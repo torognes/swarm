@@ -1,0 +1,167 @@
+.\" ============================================================================
+.TH swarm 1 "3 December 2012" "1.00" "USER COMMANDS"
+.\" ============================================================================
+.SH NAME
+swarm \(em find clusters of nearly-identical nucleotidic amplicons
+.\" ============================================================================
+.SH SYNOPSIS
+.B swarm
+[
+.I options
+] [
+.I filename
+]
+.\" ============================================================================
+.SH DESCRIPTION
+Environmental studies generate large volumes of amplicons (usually
+rRNA SSU sequences) that need to be clustered into molecular
+operational taxonomic units. Traditional clustering methods are based
+on greedy, input-order dependent algorithms, with arbitrary selection
+of cluster size and cluster centers. To address that problem, we
+developed \fBswarm\fR, a fast and exact method that recursively groups
+amplicons with \fIn\fR or less differences. \fBswarm\fR produces
+stable, input-order independent clusters (or “swarms”), and therefore
+is suitable for hierarchical clustering, while traditional clustering
+methods are not.
+.PP
+Exact clustering is impractical on large data sets when using a naïve
+all-vs-all approach (i.e. a 2-combination without repetitions), as it
+implies unrealistic numbers of pairwise comparisons. \fBswarm\fR is
+based on a maximum number of differences, and focuses only on close
+relationships. An astute use of comparisons results obtained during
+the process allows to avoid up to 98% of the amplicon comparisons
+needed in a naïve approach, while remaining exact and input-order
+independent. To speed up the remaining amplicon comparisons,
+\fBswarm\fR implements an extremely fast Needleman-Wunsch algorithm
+making use of the Streaming SIMD Extensions (SSE4.1) of modern x86-64
+CPUs.
+.PP
+\fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
+nucleotidic amplicons. The amplicon identifier is defined as the
+string comprised between the “>” symbol and the first space or the end
+of the line, whichever comes first. As \fBswarm\fR outputs lists of
+amplicon identifiers, amplicon identifiers must be unique to avoid
+ambiguity. The amplicon sequence is defined as a string of [acgt] or
+[acgu] symbols (case insensitive), starting after the end of the
+identifier line and ending before the next identifier line or the file
+end; \fBswarm\fR exits with an error message if any other symbol is
+present. Default is to read from standard input if no file is named,
+or the file name is “-”.
+.\" ----------------------------------------------------------------------------
+.SS Options
+\fBswarm\fR recognizes the following command-line options:
+.RS
+.TP 9
+.BI -d\fP,\fB\ --differences \0integer
+maximum number of differences allowed between two amplicons, meaning
+that two amplicons will be grouped if they have \fIinteger\fR (or
+less) differences. This is \fBswarm\fR's most important parameter. The
+number of differences is calculated as the number of mismatches
+(substitutions, insertions or deletions) between the two amplicons
+once the optimal pairwise global alignment has been found (see
+“advanced options” for parameters influencing the pairwise
+alignment). Any \fIinteger\fR between 1 and 256 can be used, but
+aligning two very distant amplicons is difficult and results should be
+considered with caution. Default number of differences is 1.
+.TP
+.B -h\fP,\fB\ --help
+display this help and exit.
+.TP
+.BI -o\fP,\fB\ --output-file \0filename
+output result to \fIfilename\fR. Result is a list of swarms, one swarm
+per line. A swarm is a list of amplicon identifiers separated by
+spaces. Default is to write to standard output.
+.TP
+.BI -t\fP,\fB\ --threads \0integer
+number of computation threads to use. The number of threads should be
+lesser or equal to the number of available CPU cores. Default number
+of threads is 1.
+.PP
+.B -v\fP,\fB\ --version
+output version information and exit.
+.LP
+.\" ----------------------------------------------------------------------------
+.SS Advanced options
+\fBswarm\fR recognizes advanced command-line options modifying the
+pairwise global alignment scoring parameters:
+.RS
+.TP 9
+.BI -m\fP,\fB\ --match-reward \0integer
+reward for a nucleotide match . Default is 5.
+.PP
+.BI -p\fP,\fB\ --mismatch-penalty \0integer
+penalty for a nucleotide mismatch. Default is 4.
+.PP
+.BI -g\fP,\fB\ --gap-opening-penalty \0integer
+gap open penalty. Default is 12.
+.PP
+.BI -e\fP,\fB\ --gap-extension-penalty \0integer
+gap extension penalty. Default is 4.
+.LP
+As \fBswarm\fR focuses on close relationships, final results are
+resilient to model parameters modifications. Modifying model
+parameters only impacts swarms with a large number of subseed levels,
+or analysis using a high number of differences.
+.\" classic parameters are +5/-4/-12/-1
+.\" ============================================================================
+.SH EXAMPLES
+.B swarm
+-t 4 -o
+.I myfile.swarms myfile.fasta
+.br
+Divide the data set \fImyfile.fasta\fR into swarms with the finest
+resolution possible (1 difference) using 4 computation threads, and
+write the results in the file \fImyfile.swarms\fR.
+.PP
+zcat file.fas.gz | \fBswarm\fR | awk "{print NF}" | sort -n | uniq -c
+.br
+Use swarm in a pipeline to read a compressed fasta file and to get its
+swarm size profile (with default parameters).
+.\" (add command line examples: how to dereplicate a data set? generate meaningful
+.\" unique amplicon identifiers?).
+.\" ============================================================================
+.\" .SH LIMITATIONS
+.\" What are the maximum number of amplicons? the maximum length of the
+.\" amplicon identifier, the maximum length of amplicons, maximum number
+.\" of differences (or score limits). Should we prepare the software to
+.\" accept any 4 by 4 DNA substitution matrix? What happens if amplicons
+.\" contain a mix of upper and lowercase nucleotides?
+.\" ============================================================================
+.SH AUTHORS
+Concept by Frédéric Mahé, implementation by Torbjørn Rognes.
+.\" ============================================================================
+.SH REPORTING BUGS
+Report bugs to <mahe@rhrk.uni-kl.de> and <torognes@ifi.uio.no>.
+.\" ============================================================================
+.SH AVAILABILITY
+The software is available from <https://github.com/torognes/swarm>
+.\" ============================================================================
+.SH COPYRIGHT
+Copyright (C) 2012 Frédéric Mahé & Torbjørn Rognes
+.PP
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+.PP
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Affero General Public License for more details.
+.PP
+You should have received a copy of the GNU Affero General Public
+License along with this program.  If not, see
+<http://www.gnu.org/licenses/>.
+.\" ============================================================================
+.SH SEE ALSO
+\fBswipe\fR, an extremely fast Smith-Waterman database search tool by
+Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
+.\" ============================================================================
+.\" NOTES
+.\" visualize and output to pdf
+.\" man -l swarm.1
+.\" man -t ./swarm.1 | ps2pdf - > swarm_manual.pdf
+.\"
+.\" INSTALL (sysadmin)
+.\" gzip -c swarm.1 > swarm.1.gz
+.\" mv swarm.1.gz /usr/share/man/man1/
