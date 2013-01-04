@@ -57,11 +57,11 @@ grep -v "^>" amplicons_linearized.fasta | sort -d | uniq -c |
 while read abundance sequence ; do
     hash=$(echo ${sequence} | sha1sum)
     hash=${hash:0:40}
-    printf ">%s_%d\n%s\n" "${hash}" "${abundance}" "${sequence}"
-done > amplicons_linearized_dereplicated.fasta
+    printf ">%s_%d_%s\n" "${hash}" "${abundance}" "${sequence}"
+done | sort -t "_" -k2,2nr | sed -e 's/\_/\n/2' > amplicons_linearized_dereplicated.fasta
 ```
 
-The dereplicated amplicons receive a meaningful unique name, and the information of the number of copies (or abundance) is conserved. The use of a hashing function also provides an easy way to compare sets of amplicons. If two amplicons from two different sets have the same hash, it means that they have identical sequences.
+The dereplicated amplicons receive a meaningful unique name, and are sorted by decreasing number of copies. The use of a hashing function also provides an easy way to compare sets of amplicons. If two amplicons from two different sets have the same hash, it means that they have identical sequences.
 
 ### Search for duplicated amplicon names ###
 
