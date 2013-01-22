@@ -68,7 +68,7 @@ The dereplicated amplicons receive a meaningful unique name, and are sorted by d
 **swarm** does not check if your amplicons have unique names. To avoid ambiguous results, test your fasta file with this bash command (it should print nothing, unless you have duplicated amplicon names):
 
 ```
-grep -o -E "^>[[:alnum:]_]+" amplicons.fasta | tr -d ">" | sort -d | uniq -d
+grep -o -E "^>\S+" amplicons.fasta | tr -d ">" | sort -d | uniq -d
 ```
 
 See the user manual (man page and PDF) for details on **swarm**'s options and parameters.
