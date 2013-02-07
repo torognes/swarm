@@ -45,7 +45,7 @@ To facilitate the use of **swarm**, we provide examples of shell commands that c
 Amplicons written on two lines are easier to manipulate (one line for the fasta header, one line for the sequence):
 
 ```
-sed -e 's/^>.*$/#&#/' amplicons.fasta | tr -d "\r" | tr -d "\n" | tr "#" "\n" | sed -e '/^$/d' > amplicons_linearized.fasta
+awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {print}' amplicons.fasta > amplicons_linearized.fasta
 ```
 
 ### dereplication ###
