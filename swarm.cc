@@ -133,9 +133,9 @@ void args_show()
 {
   cpu_features_show();
   fprintf(stderr, "Input data file:   %s\n", databasename ? databasename : "(stdin)");
-  fprintf(stderr, "Input data size:   %ld residues", db_getnucleotidecount());
+  fprintf(stderr, "Input data size:   %ld nucleotides", db_getnucleotidecount());
   fprintf(stderr, " in %ld sequences\n", db_getsequencecount());
-  fprintf(stderr, "Longest sequence:  %ld residues\n", db_getlongestsequence());
+  fprintf(stderr, "Longest sequence:  %ld nucleotides\n", db_getlongestsequence());
   fprintf(stderr, "Output file:       %s\n", outfile ? outfile : "(stdout)");
   fprintf(stderr, "Differences:       %ld\n", resolution);
   fprintf(stderr, "Threads:           %ld\n", threads);
