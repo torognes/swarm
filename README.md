@@ -106,14 +106,15 @@ rm "${SEEDS}"
 
 ### Get fasta sequences for all amplicons in a swarm ###
 
-For each swarm, get the fasta sequences for all amplicons.
+For each swarm, get the fasta sequences for all amplicons. Warning, this loop can generate a very large number of files. To limit the number of files, a test can be added to exclude swarms with less than *n* elements.
 
 ```
 AMPLICONS=$(mktemp)
+mkdir swarms_fasta
 while read swarm ; do
     tr " " "\n" <<< "${swarm}" > "${AMPLICONS}"
     seed=$(head -n 1 "${AMPLICONS}")
-    grep -A 1 -F -f "${AMPLICONS}" amplicons.fasta | sed -e '/^--$/d' > "${seed}.fasta"
+    grep -A 1 -F -f "${AMPLICONS}" amplicons.fasta | sed -e '/^--$/d' > "./swarms_fasta/${seed}.fasta"
 done < amplicons.swarms
 rm "${AMPLICONS}"
 ```
