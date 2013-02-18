@@ -16,10 +16,9 @@ The purpose of **swarm** is to provide a novel clustering algorithm to handle la
 
 **swarm** only runs on CPUs with SSE4.1 instructions. These instructions were introduced by Intel in November 2007 for servers and January 2008 for desktop and portable CPUs. It has been supported by AMD CPUs since October 2011. **swarm** should be able to run on any Intel or AMD CPU released since.
 
-
 ## Install ##
 
-Get the source code and a binary from [GitHub](https://github.com/torognes/swarm "swarm public repository"):
+Get the source code and a **swarm** binary from [GitHub](https://github.com/torognes/swarm "swarm public repository") using the [ZIP button](https://github.com/torognes/swarm/archive/master.zip "swarm zipped folder") or git:
 
 ```
 git clone https://github.com/torognes/swarm.git
