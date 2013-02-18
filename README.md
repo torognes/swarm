@@ -4,10 +4,6 @@ A robust and fast clustering method for amplicon-based studies.
 
 The purpose of **swarm** is to provide a novel clustering algorithm to handle large sets of amplicons. Traditional clustering algorithms results are strongly input-order dependent, and rely on an arbitrary **global** clustering threshold. **swarm** results are resilient to input-order changes and rely on a small **local** linking threshold *d*, the maximum number of differences between two amplicons. **swarm** forms stable high-resolution clusters, with a high yield of biological information.
 
-## Warning ##
-
-**swarm** only runs on CPUs with SSE4.1 instructions. These instructions were introduced by Intel in November 2007 for servers and January 2008 for desktop and portable CPUs. It has been supported by AMD CPUs since October 2011. **swarm** should be able to run on any Intel or AMD CPU released since.
-
 ## Quick start ##
 
 **swarm** most simple usage is (with default parameters, see user manual for details):
@@ -15,6 +11,11 @@ The purpose of **swarm** is to provide a novel clustering algorithm to handle la
 ```
 ./swarm amplicons.fasta
 ```
+
+# Warning #
+
+**swarm** only runs on CPUs with SSE4.1 instructions. These instructions were introduced by Intel in November 2007 for servers and January 2008 for desktop and portable CPUs. It has been supported by AMD CPUs since October 2011. **swarm** should be able to run on any Intel or AMD CPU released since.
+
 
 ## Install ##
 
@@ -42,7 +43,7 @@ To facilitate the use of **swarm**, we provide examples of shell commands that c
 
 ### linearization ###
 
-Amplicons written on two lines are easier to manipulate (one line for the fasta header, one line for the sequence):
+Amplicons written on two lines are easier to manipulate: one line for the fasta header, one line for the sequence (tested with GNU Awk 4.0.1).
 
 ```
 awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {print}' amplicons.fasta > amplicons_linearized.fasta
@@ -71,4 +72,49 @@ The dereplicated amplicons receive a meaningful unique name, and are sorted by d
 grep -o -E "^>\S+" amplicons.fasta | tr -d ">" | sort -d | uniq -d
 ```
 
+### Launch swarm ###
+
+If you want **swarm** to partition your dataset with the finest resolution (a local number of differences *d* = 1) on a quadricore CPU:
+
+```
+./swarm -d 1 -t 4 amplicons.fasta > amplicons.swarms
+```
+
 See the user manual (man page and PDF) for details on **swarm**'s options and parameters.
+
+## Parse swarm results ##
+
+To facilitate the use of **swarm**, we provide examples of shell commands that can be use to parse **swarm**'s output. We assume that the amplicon fasta file was prepared as describe above (linearization and dereplication).
+
+### Statistics ###
+
+For each swarm, print the number of unique amplicons, the number of copies, the name of the seed and its abundance, and the number of singletons (amplicons with an abundance of 1). When using input data sorted by decreasing abundance, the seed is the most abundant amplicon in the swarm (tested with GNU Awk 4.0.1).
+
+```
+awk 'BEGIN {FS=" " ; OFS="\t"} {sum=0 ; singletons=0 ; seed=$1 ; sub("_", "\t", seed) ; for (i=1 ; i<=NF ; i++) {split($i, amplicon, "_") ; sum+=amplicon[2] ; if (amplicon[2] = 1) singletons++}} {print NF, sum, seed, singletons}' amplicons.swarms
+```
+
+### Get the seed sequence for each swarm ###
+
+It is frequent for subsequent analyses to keep only one representative amplicon per OTU (usually the seed) to reduce the computational burden. That operation is easilly done with **swarm** results.
+
+```
+SEEDS=$(mktemp)
+cut -d " " -f 1 amplicons.swarms | sed -e 's/^/>/' > "${SEEDS}"
+grep -A 1 -F -f "${SEEDS}" amplicons.fasta | sed -e '/^--$/d' > amplicons_seeds.fasta
+rm "${SEEDS}"
+```
+
+### Get fasta sequences for all amplicons in a swarm ###
+
+For each swarm, get the fasta sequences for all amplicons.
+
+```
+AMPLICONS=$(mktemp)
+while read swarm ; do
+    tr " " "\n" <<< "${swarm}" > "${AMPLICONS}"
+    seed=$(head -n 1 "${AMPLICONS}")
+    grep -A 1 -F -f "${AMPLICONS}" amplicons.fasta | sed -e '/^--$/d' > "${seed}.fasta"
+done < amplicons.swarms
+rm "${AMPLICONS}"
+```
