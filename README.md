@@ -112,7 +112,7 @@ For each swarm, get the fasta sequences for all amplicons. Warning, this loop ca
 AMPLICONS=$(mktemp)
 mkdir swarms_fasta
 while read swarm ; do
-    tr " " "\n" <<< "${swarm}" > "${AMPLICONS}"
+    tr " " "\n" <<< "${swarm}" | sed -e 's/^/>/' > "${AMPLICONS}"
     seed=$(head -n 1 "${AMPLICONS}")
     grep -A 1 -F -f "${AMPLICONS}" amplicons.fasta | sed -e '/^--$/d' > "./swarms_fasta/${seed}.fasta"
 done < amplicons.swarms
