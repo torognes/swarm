@@ -90,7 +90,7 @@ To facilitate the use of **swarm**, we provide examples of shell commands that c
 For each swarm, print the number of unique amplicons, the number of copies, the name of the seed and its abundance, and the number of singletons (amplicons with an abundance of 1). When using input data sorted by decreasing abundance, the seed is the most abundant amplicon in the swarm (tested with GNU Awk 4.0.1).
 
 ```
-awk 'BEGIN {OFS="\t"} {sum=0 ; singletons=0 ; seed=$1 ; sub("_", "\t", seed) ; for (i=1 ; i<=NF ; i++) {split($i, amplicon, "_") ; sum+=amplicon[2] ; if (amplicon[2] = 1) singletons++}} {print NF, sum, seed, singletons}' amplicons.swarms
+awk 'BEGIN {OFS="\t"} {sum=0 ; singletons=0 ; seed=$1 ; sub("_", "\t", seed) ; for (i=1 ; i<=NF ; i++) {split($i, amplicon, "_") ; sum+=amplicon[2] ; if (amplicon[2] == 1) singletons++}} {print NF, sum, seed, singletons}' amplicons.swarms
 ```
 
 ### Get the seed sequence for each swarm ###
