@@ -127,4 +127,4 @@ Some pipelines use the [uclust output format](http://www.drive5.com/uclust/uclus
 awk -v fasta_file="amplicons.fasta" 'BEGIN {RS="\n*>"; FS="\n" ; while (getline < fasta_file) {lengths[$1] = length($2)} ; close(fasta_file) ; RS = "\n" ; FS = " " ; OFS = "\t" ; NA = "*"} {seed = $1 ; number = NR -1 ; {print "C", number, NF, NA, NA, NA, NA, NA, seed, NA "\n" "S", number, lengths[$1], NA, NA, NA, NA, NA, seed, NA} ; {for (i=2 ; i <= NF ; i++) {print "H", number, lengths[$i], NA, "+", 0, 0, NA, $i, seed}}}' amplicons.swarms
 ```
 
-The command is a bit complex but very efficient. Tests on a laptop show that it converts a swarm file containing 10-million amplicons names in less than two minutes. Warning, as of today the columns %Id and Alignment are filled with "*". In future versions of **swarm**, we will try to provide these data.
+The command is a bit complex but very efficient. Tests on a laptop show that it converts a swarm file containing 10-million amplicon names in less than two minutes. **Warning**: as of today the columns %Id and Alignment are filled with "*". In future versions of **swarm**, we will try to provide the actual values.
