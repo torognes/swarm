@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -23,43 +23,36 @@
 
 #include "swarm.h"
 
-#define COMPDIFF
-//#define SHOWALN
-
-#ifdef COMPDIFF
-BYTE diru[512*512];
-BYTE dirl[512*512];
-#endif
-
 void nw(char * dseq,
 	char * dend,
 	char * qseq,
 	char * qend,
-	unsigned long * hearray,
-	unsigned long * score_matrix,
+	long * score_matrix,
 	unsigned long gapopen,
 	unsigned long gapextend,
 	unsigned long * nwscore,
-	unsigned long * nwdiff)
+	unsigned long * nwdiff,
+	unsigned long * nwalignmentlength,
+	char ** nwalignment)
 {
   unsigned long h, n, e, f;
   unsigned long *hep;
   char *qp, *dp;
   unsigned long * sp;
 
-  dp = dseq;
-
-#define MAXH (ULONG_MAX - 100)
-
-#ifdef COMPDIFF
-  memset(diru, 0, 512*512);
-  memset(dirl, 0, 512*512);
-#endif
-
   unsigned long qlen = qend - qseq;
   unsigned long dlen = dend - dseq;
 
-  for(unsigned long i=0; i<2*qlen; i++)
+  BYTE * diru = (BYTE*) xmalloc(qlen*dlen);
+  BYTE * dirl = (BYTE*) xmalloc(qlen*dlen);
+
+  memset(diru, 0, qlen*dlen);
+  memset(dirl, 0, qlen*dlen);
+
+  unsigned long * hearray = 
+    (unsigned long *) xmalloc(2 * qlen * sizeof(unsigned long));
+
+  for(unsigned long i=0; i<qlen; i++)
   {
     hearray[2*i]   = gapopen + (i+1) * gapextend; // H 
     hearray[2*i+1] = gapopen + (i+1) * gapextend; // E
@@ -67,6 +60,9 @@ void nw(char * dseq,
 
   unsigned long i = 0;
   unsigned long j = 0;
+
+  dp = dseq;
+
   while (dp < dend)
     {
       hep = (unsigned long*) hearray;
@@ -87,10 +83,8 @@ void nw(char * dseq,
           if (f < h)
             h = f;
 
-#ifdef COMPDIFF
 	  diru[qlen*j+i] = ((h == f) ? 1 : 0);
 	  dirl[qlen*j+i] = ((h == e) ? 1 : 0);
-#endif
 
           *hep = h;
 
@@ -114,43 +108,19 @@ void nw(char * dseq,
       j++;
     }
 
-#ifdef COMPDIFF
-  
-#if 0
+  unsigned long dist = hearray[2*qlen-2];
 
-  for(i=1; i<=qlen; i++)
-  {
-    for(j=1; j<=dlen; j++)
-    {
-      if (diru[qlen*(j-1)+(i-1)])
-      {
-	if (dirl[qlen*(j-1)+(i-1)])
-	  printf("+");
-	else
-	  printf("^");
-      }
-      else if (dirl[qlen*(j-1)+(i-1)])
-      {
-	printf("<");
-      }
-      else
-      {
-	printf("\\");
-      }
-    }
-    printf("\n");
-  }
+  free(hearray);
 
-#endif
-
-
-#ifdef SHOWALN
-  printf("Alignment: ");
-#endif
   unsigned long diff = 0;
+
+  /* backtrack: count differences and save alignment */
 
   i = qlen;
   j = dlen;
+
+  char * alignmentstring = (char *) xmalloc(qlen + dlen + 1);
+  char * p = alignmentstring;
   
   while ((i>0) && (j>0))
   {
@@ -158,67 +128,88 @@ void nw(char * dseq,
     {
       diff++;
       i--;
-#ifdef SHOWALN
-      printf("D");
-#endif
+      *p++ = 'D';
     }
     else if (dirl[qlen*(j-1)+(i-1)])
     {
       diff++;
       j--;
-#ifdef SHOWALN
-      printf("I");
-#endif
+      *p++ = 'I';
     }
     else
-    {
-      if (qseq[i-1] == dseq[j-1])
       {
-#ifdef SHOWALN
-	printf("=");
-#endif
+	if (qseq[i-1] != dseq[j-1])
+	  diff++;
+	i--;
+	j--;
+	*p++ = 'M';
       }
-      else
-      {
-#ifdef SHOWALN
-	printf("X");
-#endif
-	diff++;
-      }
-      i--;
-      j--;
-    }
   }
   
   while(i>0)
   {
     diff++;
     i--;
-#ifdef SHOWALN
-    printf("D");
-#endif
+    *p++ = 'D';
   }
   
   while(j>0)
   {
     diff++;
     j--;
-#ifdef SHOWALN
-    printf("I");
-#endif
+    *p++ = 'I';
   }
 
-#ifdef SHOWALN
-  printf("\n");
-#endif
+  *p = 0;
 
-#endif
+  free(diru);
+  free(dirl);
 
-  unsigned long dist = hearray[2*qlen-2];
+  unsigned long alignmentlength = p - alignmentstring;
 
-  //  printf("SLOW: dist: %lu  diff: %lu\n", dist, diff);
+  /* reverse and compress alignment string */
+
+  char * compressedalignment = (char *) xmalloc(alignmentlength + 1);
+  char * q = compressedalignment;
+
+  char x = 0;
+  unsigned long no = 0;
+  while (p-- > alignmentstring)
+    {
+      char c = *p;
+      if (c == x)
+	no++;
+      else
+	{
+	  if (x)
+	    {
+	      if (no>1)
+		q += sprintf(q, "%lu%c", no, x);
+	      else
+		*q++ = x;
+	    }
+	  x = c;
+	  no = 1;
+	}
+    }
   
+  if (x)
+    {
+      if (no>1)
+	q += sprintf(q, "%lu%c", no, x);
+      else
+	*q++ = x;
+    }
+  
+  *q = 0;
+  
+  free(alignmentstring);
+  
+  unsigned long compressedalignmentlength = q - compressedalignment;
+  compressedalignment = (char*) xrealloc(compressedalignment, compressedalignmentlength + 1);
+
   * nwscore = dist;
   * nwdiff = diff;
+  * nwalignmentlength = alignmentlength;
+  * nwalignment = compressedalignment;
 }
-

@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -25,6 +25,7 @@
 
 #define CHANNELS 8
 #define CDEPTH 4
+
 #define SHUFFLE 1
 
 void dprofile_dump16(WORD * dprofile)
@@ -441,7 +442,8 @@ unsigned long backtrack16(char * qseq,
 			  WORD * left_array,
 			  unsigned long offset,
 			  unsigned long size,
-			  int channel)
+			  int channel,
+			  unsigned long * alignmentlengthp)
 {
   unsigned long diff = 0;
 
@@ -455,8 +457,6 @@ unsigned long backtrack16(char * qseq,
     {
       unsigned long index = (offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % size;
       unsigned long mask = 1 << (2*channel);
-
-      //      printf("c, o, s, i, j, index=%d, %lu, %lu, %lu, %lu, %ld\n", channel, offset, size, i, j, index);
 
       if (up_array[index] & mask)
       {
@@ -479,76 +479,38 @@ unsigned long backtrack16(char * qseq,
   
 #endif
 
-  //#define SHOWALN
-
   long i = qlen - 1;
   long j = dlen - 1;
+  unsigned long matches = 0;
+  unsigned long mask = 1 << (2*channel);
 
   while ((i>=0) && (j>=0))
   {
     unsigned long index = (offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % size;
-    unsigned long mask = 1 << (2*channel);
 
     if (up_array[index] & mask)
     {
       diff++;
       i--;
-#ifdef SHOWALN
-      printf("D");
-#endif
     }
     else if (left_array[index] & mask)
     {
       diff++;
       j--;
-#ifdef SHOWALN
-      printf("I");
-#endif
     }
     else
     {
       if (qseq[i] == dseq[j])
-      {
-#ifdef SHOWALN
-        printf("=");
-#endif
-      }
+	matches++;
       else
-      {
-#ifdef SHOWALN
-        printf("X");
-#endif
         diff++;
-      }
       i--;
       j--;
     }
   }
 
-#ifdef SHOWALN
-
-  while(i>=0)
-  {
-    diff++;
-    i--;
-    printf("D");
-  }
-
-  while(j>=0)
-  {
-    diff++;
-    j--;
-    printf("I");
-  }
-
-  printf("\n");
-
-#else
-
   diff += i + j + 2;
-
-#endif
-
+  * alignmentlengthp = matches + diff;
   return diff;
 }
 
@@ -562,6 +524,7 @@ void search16(WORD * * q_start,
 	      unsigned long * seqnos,
 	      unsigned long * scores,
 	      unsigned long * diffs,
+	      unsigned long * alignmentlengths,
 	      unsigned long qlen,
 	      unsigned long dirbuffersize,
 	      WORD * up_array,
@@ -695,7 +658,8 @@ void search16(WORD * * q_start,
 		diff = backtrack16(query.seq, dbseq, qlen, dbseqlen,
 				   up_array, left_array,
 				   offset,
-				   dirbuffersize, c);
+				   dirbuffersize, c,
+				   alignmentlengths + cand_id);
 	      }
 	    else
 	      {

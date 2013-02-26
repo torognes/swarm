@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "7 February 2013" "version 1.0.2" "USER COMMANDS"
+.TH swarm 1 "26 February 2013" "version 1.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotidic amplicons
@@ -71,11 +71,18 @@ output result to \fIfilename\fR. Result is a list of swarms, one swarm
 per line. A swarm is a list of amplicon identifiers separated by
 spaces. Default is to write to standard output.
 .TP
+.BI -u\fP,\fB\ --uclust-file \0filename
+output results in UCLUST-like file format to the specified file.
+Default is not to output in this format.
+.TP
+.BI -s\fP,\fB\ --statistics-file \0filename
+output statistics to the specified file. Default is not to output statistics.
+.TP
 .BI -t\fP,\fB\ --threads \0integer
 number of computation threads to use. The number of threads should be
 lesser or equal to the number of available CPU cores. Default number
 of threads is 1.
-.PP
+.TP
 .B -v\fP,\fB\ --version
 output version information and exit.
 .LP
@@ -87,13 +94,13 @@ pairwise global alignment scoring parameters:
 .TP 9
 .BI -m\fP,\fB\ --match-reward \0integer
 reward for a nucleotide match. Default is 5.
-.PP
+.TP
 .BI -p\fP,\fB\ --mismatch-penalty \0integer
 penalty for a nucleotide mismatch. Default is 4.
-.PP
+.TP
 .BI -g\fP,\fB\ --gap-opening-penalty \0integer
 gap open penalty. Default is 12.
-.PP
+.TP
 .BI -e\fP,\fB\ --gap-extension-penalty \0integer
 gap extension penalty. Default is 4.
 .LP

@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -32,7 +32,9 @@
 #define DEFAULT_THREADS 1
 #define DEFAULT_RESOLUTION 1
 
-char * outfile;
+char * outfilename;
+char * statsfilename;
+char * uclustfilename;
 char * progname;
 char * databasename;
 long gapopen;
@@ -61,7 +63,9 @@ long avx_present;
 
 unsigned long dbsequencecount = 0;
 
-FILE * out;
+FILE * outfile;
+FILE * statsfile;
+FILE * uclustfile;
 
 char sym_nt[] = "-acgt                           ";
 
@@ -136,7 +140,9 @@ void args_show()
   fprintf(stderr, "Input data size:   %ld nucleotides", db_getnucleotidecount());
   fprintf(stderr, " in %ld sequences\n", db_getsequencecount());
   fprintf(stderr, "Longest sequence:  %ld nucleotides\n", db_getlongestsequence());
-  fprintf(stderr, "Output file:       %s\n", outfile ? outfile : "(stdout)");
+  fprintf(stderr, "Output file:       %s\n", outfilename ? outfilename : "(stdout)");
+  if (statsfilename)
+    fprintf(stderr, "Statistics file:   %s\n", statsfilename);
   fprintf(stderr, "Differences:       %ld\n", resolution);
   fprintf(stderr, "Threads:           %ld\n", threads);
   fprintf(stderr, "Match score:       %ld\n", matchscore);
@@ -148,7 +154,7 @@ void args_show()
 
 void args_usage()
 {
-  /*               0         1         1         1         1         1         1         1          */
+  /*               0         1         2         3         4         5         6         7          */
   /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
   fprintf(stderr, "Usage: %s [OPTIONS] [filename]\n", progname);
@@ -161,6 +167,8 @@ void args_usage()
   fprintf(stderr, "  -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n");
   fprintf(stderr, "  -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n");
   fprintf(stderr, "  -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
+  fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file (no)\n");
+  fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file (no)\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -168,7 +176,7 @@ void args_usage()
 void show_header()
 {
   char title[] = "SWARM " SWARM_VERSION;
-  char ref[] = "Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe";
+  char ref[] = "Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe";
   fprintf(stderr, "%s [%s %s]\n%s\n\n", title, __DATE__, __TIME__, ref);
 }
 
@@ -179,7 +187,8 @@ void args_init(int argc, char **argv)
   progname = argv[0];
 
   databasename = NULL;
-  outfile = NULL;
+  outfilename = NULL;
+  statsfilename = NULL;
   resolution = DEFAULT_RESOLUTION;
   threads = DEFAULT_THREADS;
   matchscore = DEFAULT_MATCHSCORE;
@@ -189,7 +198,7 @@ void args_init(int argc, char **argv)
   
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:";
 
   static struct option long_options[] =
   {
@@ -202,6 +211,8 @@ void args_init(int argc, char **argv)
     {"mismatch-penalty",      required_argument, NULL, 'p' },
     {"gap-opening-penalty",   required_argument, NULL, 'g' },
     {"gap-extension-penalty", required_argument, NULL, 'e' },
+    {"statistics-file",       required_argument, NULL, 's' },
+    {"uclust-file",           required_argument, NULL, 'u' },
     { 0, 0, 0, 0 }
   };
   
@@ -219,7 +230,7 @@ void args_init(int argc, char **argv)
 	  
     case 'o':
       /* output-file */
-      outfile = optarg;
+      outfilename = optarg;
       break;
 	  
     case 't':
@@ -253,6 +264,16 @@ void args_init(int argc, char **argv)
       gapextend = atol(optarg);
       break;
 	  
+    case 's':
+      /* statistics-file */
+      statsfilename = optarg;
+      break;
+	  
+    case 'u':
+      /* uclust-file */
+      uclustfilename = optarg;
+      break;
+	  
     case 'h':
       /* help */
     default:
@@ -280,14 +301,32 @@ void args_init(int argc, char **argv)
   if (mismatchscore > -1)
     fatal("Illegal mismatch penalty specified.");
 
-  if (outfile)
+  if (outfilename)
     {
-      out = fopen(outfile, "w");
-      if (! out)
+      outfile = fopen(outfilename, "w");
+      if (! outfile)
 	fatal("Unable to open output file for writing.");
     }
   else
-    out = stdout;
+    outfile = stdout;
+  
+  if (statsfilename)
+    {
+      statsfile = fopen(statsfilename, "w");
+      if (! statsfile)
+	fatal("Unable to open statistics file for writing.");
+    }
+  else
+    statsfile = 0;
+  
+  if (uclustfilename)
+    {
+      uclustfile = fopen(uclustfilename, "w");
+      if (! uclustfile)
+	fatal("Unable to open uclust file for writing.");
+    }
+  else
+    uclustfile = 0;
   
 }
 
@@ -330,6 +369,12 @@ int main(int argc, char** argv)
 
   db_free();
 
-  if (outfile)
-    fclose(out);
+  if (uclustfile)
+    fclose(uclustfile);
+
+  if (statsfile)
+    fclose(statsfile);
+
+  if (outfilename)
+    fclose(outfile);
 }

@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -23,8 +23,6 @@
 
 #include "swarm.h"
 
-// #define DEBUG
-
 #define CHANNELS 16
 #define CDEPTH 4
 
@@ -33,7 +31,6 @@
 void dprofile_dump8(BYTE * dprofile)
 {
   char * ss = sym_nt;
-  //  char * ss = sym_sound;
 
   printf("\ndprofile:\n");
   for(int k=0; k<4; k++)
@@ -119,21 +116,6 @@ inline void dprofile_shuffle8(BYTE * dprofile,
   profline(2);
   profline(3);
   profline(4);
-  /*
-  profline(5);
-  profline(6);
-  profline(7);
-  profline(8);
-  profline(9);
-  profline(10);
-  profline(11);
-  profline(12);
-  profline(13);
-  profline(14);
-  profline(15);
-  */
-
-  //  dprofile_dump7(dprofile);
 }
 
 inline void dprofile_fill8(BYTE * dprofile,
@@ -528,17 +510,6 @@ inline void donormal8(__m128i * Sm,
 		      __m128i * H0
 		      )
 {
-#ifdef DEBUG
-  printf("donormal\n");
-  printf("Sm=%p\n", Sm);
-  printf("hep=%p\n", hep);
-  printf("qp=%p\n", qp);
-  printf("Qm=%p\n", Qm);
-  printf("Rm=%p\n", Rm);
-  printf("qlen=%ld\n", ql);
-  printf("Zm=%p\n", Zm);
-#endif
-  
   __asm__
     __volatile__
     ( 
@@ -633,27 +604,13 @@ inline void domasked8(__m128i * Sm,
 		      __m128i * MQ,
 		      __m128i * MR)
 {
-  
-#ifdef DEBUG
-  printf("domasked\n");
-  printf("Sm=%p\n", Sm);
-  printf("hep=%p\n", hep);
-  printf("qp=%p\n", qp);
-  printf("Qm=%p\n", Qm);
-  printf("Rm=%p\n", Rm);
-  printf("qlen=%ld\n", ql);
-  printf("Zm=%p\n", Zm);
-  printf("Mm=%p\n", Mm);
-#endif
-
-#if 1
   __asm__
     __volatile__
     (
      ".att_syntax noprefix    # Change assembler syntax \n"
      
      INITIALIZE
-
+     
      "        jmp       2f                   \n"
      
      "1:      movq      0(%2,r11,1), rax     \n" // load x from qp[qi]
@@ -745,7 +702,6 @@ inline void domasked8(__m128i * Sm,
        "rax",   "r10",   "r11",   "r12",
        "rdx",   "cc"
      );
-#endif
 }
 
 unsigned long backtrack(char * qseq,
@@ -756,7 +712,8 @@ unsigned long backtrack(char * qseq,
 			WORD * left_array,
 			unsigned long offset,
 			unsigned long size,
-			int channel)
+			int channel,
+			unsigned long * alignmentlengthp)
 {
   unsigned long diff = 0;
 
@@ -770,8 +727,6 @@ unsigned long backtrack(char * qseq,
     {
       unsigned long index = (offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % size;
       unsigned long mask = 1 << channel;
-
-      //      printf("c, o, s, i, j, index=%d, %lu, %lu, %lu, %lu, %ld\n", channel, offset, size, i, j, index);
 
       if (up_array[index] & mask)
       {
@@ -794,76 +749,38 @@ unsigned long backtrack(char * qseq,
   
 #endif
 
-  //#define SHOWALN
-
   long i = qlen - 1;
   long j = dlen - 1;
+  unsigned long matches = 0;
+  unsigned long mask = 1 << channel;
 
   while ((i>=0) && (j>=0))
   {
     unsigned long index = (offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % size;
-    unsigned long mask = 1 << channel;
 
     if (up_array[index] & mask)
     {
       diff++;
       i--;
-#ifdef SHOWALN
-      printf("D");
-#endif
     }
     else if (left_array[index] & mask)
     {
       diff++;
       j--;
-#ifdef SHOWALN
-      printf("I");
-#endif
     }
     else
     {
       if (qseq[i] == dseq[j])
-      {
-#ifdef SHOWALN
-        printf("=");
-#endif
-      }
+	matches++;
       else
-      {
-#ifdef SHOWALN
-        printf("X");
-#endif
         diff++;
-      }
       i--;
       j--;
     }
   }
 
-#ifdef SHOWALN
-
-  while(i>=0)
-  {
-    diff++;
-    i--;
-    printf("D");
-  }
-
-  while(j>=0)
-  {
-    diff++;
-    j--;
-    printf("I");
-  }
-
-  printf("\n");
-
-#else
-
   diff += i + j + 2;
-
-#endif
-
+  * alignmentlengthp = matches + diff;
   return diff;
 }
 
@@ -877,6 +794,7 @@ void search8(BYTE * * q_start,
 	     unsigned long * seqnos,
 	     unsigned long * scores,
 	     unsigned long * diffs,
+	     unsigned long * alignmentlengths,
 	     unsigned long qlen,
 	     unsigned long dirbuffersize,
 	     WORD * up_array,
@@ -903,8 +821,6 @@ void search8(BYTE * * q_start,
   unsigned long next_id = 0;
   unsigned long done;
   
-  //memset(hearray, 0x00, qlen * 32);
-
   T0 = _mm_set_epi8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 		    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff);
   Q  = _mm_set1_epi8(gap_open_penalty+gap_extend_penalty);
@@ -916,29 +832,13 @@ void search8(BYTE * * q_start,
   hep = (__m128i*) hearray;
   qp = (__m128i**) q_start;
 
-#ifdef DEBUG
-  //  printf("Searching %ld sequences...\n", sequences);
-#endif
-
   for (int c=0; c<CHANNELS; c++)
   {
     d_begin[c] = &zero;
     d_end[c] = d_begin[c];
     seq_id[c] = -1;
-    /*
-    d_offset[c] = 0;
-    d_length[c] = 0;
-    d_address[c] = 0;
-    */
   }
   
-  /*
-  S[0] = _mm_setzero_si128();
-  S[1] = _mm_setzero_si128();
-  S[2] = _mm_setzero_si128();
-  S[3] = _mm_setzero_si128();
-  */
-
   F0 = _mm_setzero_si128();
   H0 = _mm_setzero_si128();
   
@@ -946,8 +846,6 @@ void search8(BYTE * * q_start,
 
   WORD * up = up_array;
   WORD * left = left_array;
-
-  //  printf("dirbs, qlen, longest: %ld, %ld, %lu\n", dirbufferlen, qlen, longestdbsequence);
 
   while(1)
   {
@@ -1010,7 +908,6 @@ void search8(BYTE * * q_start,
 	  
 	  if (cand_id >= 0)
 	  {
-	    // printf("Completed channel %d, sequence %ld\n", c, cand_id);
 	    // save score
 
 	    char * dbseq = (char*) d_address[c];
@@ -1027,7 +924,8 @@ void search8(BYTE * * q_start,
 	      diff = backtrack(query.seq, dbseq, qlen, dbseqlen,
 			       up_array, left_array,
 			       offset,
-			       dirbuffersize, c);
+			       dirbuffersize, c,
+			       alignmentlengths + cand_id);
 	    }
 	    else
 	    {
@@ -1049,7 +947,6 @@ void search8(BYTE * * q_start,
 
 	    db_getsequenceandlength(seqno, & address, & length);
 		      
-	    // printf("Seqno: %ld Address: %p\n", seqno, address);
 	    d_address[c] = (BYTE*) address;
 	    d_length[c] = length;
 
@@ -1094,47 +991,17 @@ void search8(BYTE * * q_start,
 	  
       dprofile_shuffle8(dprofile, score_matrix, dseq);
 	  
-      MQ = _mm_and_si128(M, Q); //  // _mm_add_epi8(Q,R));
+      MQ = _mm_and_si128(M, Q);
       MR = _mm_and_si128(M, R);
       
       domasked8(S, hep, qp, &Q, &R, qlen, 0, &F0, up, left, &H0, &M, &MQ, &MR);
     }
     
-#if 0
-    /* dump H */
-
-    printf("col: %d\n", col);
-    col += CDEPTH;
-
-    printf("row: H-values, E-values\n");
-    for(int i=0; i<qlen; i++)
-    {
-      printf("%3d:", i);
-      for(int j=0; j<16; j++)
-	printf(" %02x", hearray[32*i + j]);
-      printf(" -");
-      for(int j=0; j<16; j++)
-	printf(" %02x", hearray[32*i + j + 16]);
-      printf("\n");
-    }
-#endif
-
     F0 = _mm_adds_epu8(F0, R);
     F0 = _mm_adds_epu8(F0, R);
     F0 = _mm_adds_epu8(F0, R);
     H0 = F0;
     F0 = _mm_adds_epu8(F0, R);
-
-
-    /*
-    for(int i=0; i<CHANNELS; i++)
-    {
-      ((BYTE*)&H0)[i] = MIN(((BYTE*)&F0)[i] + 3*gap_extend_penalty, 255);
-      ((BYTE*)&F0)[i] = MIN(((BYTE*)&F0)[i] + 4*gap_extend_penalty, 255);
-    }
-    */
-
-    //    printf("up_array, up: %p %p\n", up_array, up);
 
     up += 4*longestdbsequence;
     left += 4*longestdbsequence;

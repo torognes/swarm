@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -69,3 +69,18 @@ void * xrealloc(void *ptr, size_t size)
   return t;
 }
 
+unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
+{
+  const unsigned long fnv_offset = 14695981039346656037UL;
+  const unsigned long fnv_prime = 1099511628211;
+
+  unsigned long hash = fnv_offset;
+
+  for(unsigned long i = 0; i < n; i++)
+    {
+      unsigned char c = *s++;
+      hash = (hash ^ c) * fnv_prime;
+    }
+
+  return hash;
+}

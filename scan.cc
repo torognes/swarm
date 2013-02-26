@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -56,53 +56,10 @@ unsigned long remainingchunks;
 unsigned long * master_targets;
 unsigned long * master_scores;
 unsigned long * master_diffs;
+unsigned long * master_alignlengths;
 
 unsigned long longestdbsequence;
 unsigned long dirbuffersize;
-
-void hits_enter(struct search_data * sdp, 
-		unsigned long seqno, unsigned long score, unsigned long diff)
-{
-  if (score == 255)
-    printf("seqno, score: %ld, %ld\n", seqno, score);
-  
-  //  printf("FAST: dist: %ld  diff: %ld\n", score, diff);
-  
-  char * dseq;
-  long dlen;
-  db_getsequenceandlength(seqno, & dseq, & dlen);
-
-  unsigned long nw_score;
-  unsigned long nw_diff;
-
-  nw(dseq, dseq+dlen,
-     query.seq, query.seq+query.len, 
-     (unsigned long*)(sdp->hearray), 
-     (unsigned long*)score_matrix_63, 
-     penalty_gapopen, penalty_gapextend, 
-     &nw_score, &nw_diff);
-  
-  //  if ((score < 255) && ((score != nw_score) || (diff != nw_diff)))
-  if ((score != nw_score) || (diff != nw_diff))
-  {
-    printf("%-38s [%6ld] Scores: %3ld %3ld Diffs: %3lu %3lu\n", 
-	   db_getheader(seqno), seqno, score, nw_score, diff, nw_diff);
-    
-    
-    printf("A [%6ld]: ", query.qno);
-    db_putseq(query.qno);
-    printf("\nB [%6ld]: ", seqno);
-    db_putseq(seqno);
-    printf("\n");
-    printf("\n");
-
-    if ((score != nw_score) || (diff != nw_diff))
-      {
-	printf("BAD!!!\n");
-	//	exit(1);
-      }
-  }
-};
 
 void search_alloc(struct search_data * sdp)
 {
@@ -151,13 +108,12 @@ int search_getwork(unsigned long * countref, unsigned long * firstref)
   
   if (master_next < master_length)
     {
-      unsigned long chunksize = ((master_length - master_next + remainingchunks - 1) / remainingchunks);
+      unsigned long chunksize = 
+	((master_length - master_next + remainingchunks - 1) / remainingchunks);
       
       * countref = chunksize;
       * firstref = master_next;
       
-      //      printf("Searching %lu sequences starting at %lu\n", *countref, *firstref);
-
       master_next += chunksize;
       remainingchunks--;
       status = 1;
@@ -184,12 +140,6 @@ void search_chunk(struct search_data * sdp, long bits)
   if (sdp->target_count == 0)
     return;
 
-  /* 8-bit search */
-  
-  //master_dump();
-
-  //  printf("d: %lu\n", dirbuffersize);
-
   if (bits == 16)
     search16(sdp->qtable_w,
 	     penalty_gapopen,
@@ -201,6 +151,7 @@ void search_chunk(struct search_data * sdp, long bits)
 	     master_targets + sdp->target_index,
 	     master_scores + sdp->target_index,
 	     master_diffs + sdp->target_index,
+	     master_alignlengths + sdp->target_index,
 	     query.len,
 	     dirbuffersize/2,
 	     sdp->up_array,
@@ -216,25 +167,11 @@ void search_chunk(struct search_data * sdp, long bits)
 	    master_targets + sdp->target_index,
 	    master_scores + sdp->target_index,
 	    master_diffs + sdp->target_index,
+	    master_alignlengths + sdp->target_index,
 	    query.len,
 	    dirbuffersize/2,
 	    sdp->up_array,
 	    sdp->left_array);
-  
-  //master_dump();
-
-#if 0
-  for (unsigned long i=0; i<sdp->target_count; i++)
-    {
-      //      printf("Hit %lu %lu\n", sdp->target_index, i);
-      
-      unsigned long seqno = master_targets[sdp->target_index + i];
-      unsigned long score = master_scores[sdp->target_index + i];
-      unsigned long diff = master_diffs[sdp->target_index + i];
-      hits_enter(sdp, seqno, score, diff);
-    }
-  exit(1);
-#endif
 }
  
 void * worker_8(void * vp)
@@ -261,14 +198,11 @@ void search_do(unsigned long query_no,
 	       unsigned long * targets,
 	       unsigned long * scores,
 	       unsigned long * diffs,
+	       unsigned long * alignlengths,
 	       long bits)
 {
 
   void * (*worker_func)(void *);
-
-  //  bits = 8;
-
-  //  fprintf(stderr, "%lu\n", listlength);
 
   query.qno = query_no;
   db_getsequenceandlength(query_no, &query.seq, &query.len);
@@ -278,6 +212,7 @@ void search_do(unsigned long query_no,
   master_targets = targets;
   master_scores = scores;
   master_diffs = diffs;
+  master_alignlengths = alignlengths;
 
   long thr = threads;
   if (bits == 8)
@@ -321,24 +256,6 @@ void search_do(unsigned long query_no,
   }
 }
 
-
-void search_all(unsigned long query_no, long bits)
-{
-  unsigned long listlength = db_getsequencecount();
-
-  unsigned long * targets = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
-  unsigned long * scores = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
-  unsigned long * diffs = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
-
-  for(unsigned long i=0; i<listlength; i++)
-    targets[i] = i;
-
-  search_do(query_no, listlength, targets, scores, diffs, bits);
-
-  free(targets);
-  free(scores);
-  free(diffs);
-}
 
 void search_begin()
 {

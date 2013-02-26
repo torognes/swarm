@@ -63,14 +63,6 @@ done | sort -t "_" -k2,2nr | sed -e 's/\_/\n/2' > amplicons_linearized_dereplica
 
 The dereplicated amplicons receive a meaningful unique name, and are sorted by decreasing number of copies. The use of a hashing function also provides an easy way to compare sets of amplicons. If two amplicons from two different sets have the same hash, it means that they have identical sequences.
 
-### Search for duplicated amplicon names ###
-
-**swarm** does not check if your amplicons have unique names. To avoid ambiguous results, test your fasta file with this bash command (it should print nothing, unless you have duplicated amplicon names):
-
-```
-grep -o -E "^>\S+" amplicons.fasta | tr -d ">" | sort -d | uniq -d
-```
-
 ### Launch swarm ###
 
 If you want **swarm** to partition your dataset with the finest resolution (a local number of differences *d* = 1) on a quadricore CPU:
@@ -84,14 +76,6 @@ See the user manual (man page and PDF) for details on **swarm**'s options and pa
 ## Parse swarm results ##
 
 To facilitate the use of **swarm**, we provide examples of shell commands that can be use to parse **swarm**'s output. We assume that the amplicon fasta file was prepared as describe above (linearization and dereplication).
-
-### Statistics ###
-
-For each swarm, print the number of unique amplicons, the number of copies, the name of the seed and its abundance, and the number of singletons (amplicons with an abundance of 1). When using input data sorted by decreasing abundance, the seed is the most abundant amplicon in the swarm (tested with GNU Awk 4.0.1).
-
-```
-awk 'BEGIN {OFS="\t"} {sum=0 ; singletons=0 ; seed=$1 ; sub("_", "\t", seed) ; for (i=1 ; i<=NF ; i++) {split($i, amplicon, "_") ; sum+=amplicon[2] ; if (amplicon[2] = 1) singletons++}} {print NF, sum, seed, singletons}' amplicons.swarms
-```
 
 ### Get the seed sequence for each swarm ###
 
@@ -119,12 +103,12 @@ done < amplicons.swarms
 rm "${AMPLICONS}"
 ```
 
+## New features in version 1.1.0 ##
+
+### Statistics ###
+
+By specifying the `-s` option to **swarm** it will now output detailed statistics about each swarm to a specified file. It will print the number of unique amplicons, the number of copies, the name of the seed and its abundance, the number of singletons (amplicons with an abundance of 1) and the radius of the seed. When using input data sorted by decreasing abundance, the seed is the most abundant amplicon in the swarm.
+
 ### Convert swarm results into the uclust output format ###
 
-Some pipelines use the [uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686 "page describing the uclust output format") as input for subsequent analyses. The following Awk command efficiently converts **swarm**'s output into the tab-separated text uclust output format, using a fasta file and a swarm file as input:
-
-```
-awk -v fasta_file="amplicons.fasta" 'BEGIN {RS="\n*>"; FS="\n" ; while (getline < fasta_file) {lengths[$1] = length($2)} ; close(fasta_file) ; RS = "\n" ; FS = " " ; OFS = "\t" ; NA = "*"} {seed = $1 ; number = NR -1 ; {print "C", number, NF, NA, NA, NA, NA, NA, seed, NA "\n" "S", number, lengths[$1], NA, NA, NA, NA, NA, seed, NA} ; {for (i=2 ; i <= NF ; i++) {print "H", number, lengths[$i], NA, "+", 0, 0, NA, $i, seed}}}' amplicons.swarms
-```
-
-The command is a bit complex but very efficient. Tests on a laptop show that it converts a swarm file containing 10-million amplicons names in less than two minutes. Warning, as of today the columns %Id and Alignment are filled with "*". In future versions of **swarm**, we will try to provide these data.
+Some pipelines use the [uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686 "page describing the uclust output format") as input for subsequent analyses. **swarm** can now output results in this format to a specified file with the `-u` option.

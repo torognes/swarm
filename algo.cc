@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -24,7 +24,6 @@
 #include "swarm.h"
 
 #define SEPCHAR ' '
-//#define SEPCHAR '\t'
 #define BITS 8
 
 unsigned long count_comparisons_8;
@@ -35,15 +34,40 @@ unsigned long targetcount;
 unsigned long * targets;
 unsigned long * scores;
 unsigned long * diffs;
+unsigned long * alignlengths;
 
 unsigned long targetcount2;
 unsigned long * targets2;
 unsigned long * scores2;
 unsigned long * diffs2;
+unsigned long * alignlengths2;
 
 unsigned long * swarmids;
 unsigned long * seeded;
 unsigned long * genids;
+
+
+void fprint_id(FILE * stream, unsigned long x)
+{
+  char * h = db_getheader(x);
+  char c = *h++;
+  while (c && (c != ' '))
+    {
+      fputc(c, stream);
+      c = *h++;
+    }
+}
+
+void fprint_id_noabundance(FILE * stream, unsigned long x)
+{
+  char * h = db_getheader(x);
+  char c = *h++;
+  while (c && (c != ' ') && (c != '_'))
+    {
+      fputc(c, stream);
+      c = *h++;
+    }
+}
 
 void search_again(unsigned long seed)
 {
@@ -54,7 +78,7 @@ void search_again(unsigned long seed)
       targets2[targetcount2++] = targets[i];
 
   /* redo search */
-  search_do(seed, targetcount2, targets2, scores2, diffs2, 16);
+  search_do(seed, targetcount2, targets2, scores2, diffs2, alignlengths2, 16);
   count_comparisons_again += targetcount2;
 
   /* replace scores and diffs in original lists */
@@ -64,16 +88,27 @@ void search_again(unsigned long seed)
       /* find corresponding target in original list */
       while (targets[i] != targets2[j])
 	i++;
+
       /* replace scores and diffs */
-
-#if 0
-      fprintf(stderr, "Target: %lu  Score: %lu -> %lu  Diff: %lu -> %lu\n",
-	      targets[i], scores[i], scores2[j], diffs[i], diffs2[j]);
-#endif
-
       scores[i] = scores2[j];
       diffs[i] = diffs2[j];
+      alignlengths[i] = alignlengths[2];
     }
+}
+
+long mindiff2(unsigned long a, unsigned long b)
+{
+  long a_len = db_getsequencelen(a);
+  long b_len = db_getsequencelen(b);
+
+  long * a_composition = db_getseqinfo(a)->composition;
+  long * b_composition = db_getseqinfo(b)->composition;
+
+  long mindiff2 = labs(a_len - b_len);
+  for(int i=0; i<4; i++)
+    mindiff2 += labs(a_composition[i] - b_composition[i]);
+
+  return mindiff2;
 }
 
 
@@ -91,13 +126,17 @@ void algo_run()
   targets = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
   scores = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
   diffs = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
+  alignlengths = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
 
   targets2 = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
   scores2 = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
   diffs2 = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
+  alignlengths2 = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
 
   swarmids = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
   seeded = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
+
+  unsigned long * hits = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
 
   unsigned long diff_saturation = MIN(255 / penalty_mismatch,
 				      255 / (penalty_gapopen + penalty_gapextend));
@@ -114,7 +153,6 @@ void algo_run()
   genids = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
 
   unsigned long swarmid = 1;
-
   unsigned long maxgen = 0;
 
   unsigned long bits;
@@ -122,6 +160,12 @@ void algo_run()
 
   while (1)
     {
+
+      unsigned long amplicons_copies = 0;
+      unsigned long singletons = 0;
+      unsigned long hitcount = 0;
+      unsigned long diffsum = 0;
+      unsigned long alignlensum = 0;
 
       /* always start in 8 bit mode unless resolution is very high*/
 
@@ -142,20 +186,21 @@ void algo_run()
       
       if (seed < 0)
 	break;
-      
-
 
       unsigned long generation = 0;
 
-      //      printf("Swarm %4lu  Generation %4lu  Hit %4lu  %s (Seed)\n", swarmid, generation, seed, db_getheader(seed));
-      
-      fputs(db_getheader(seed), out);
+      hits[hitcount++] = seed;
 
       swarmids[seed] = swarmid;
       seeded[seed] = 1;
       genids[seed] = 0;
       swarmsize = 1;
       
+      unsigned long abundance = db_getabundance(seed);
+      amplicons_copies += abundance;
+      if (abundance == 1)
+	singletons++;
+
       unsigned long lastgen = 0;
 
       /* find all non-swarmed sequences , prepare for search */
@@ -168,7 +213,8 @@ void algo_run()
 
       if (targetcount > 0)
       {
-	search_do(seed, targetcount, targets, scores, diffs, bits);
+	search_do(seed, targetcount, targets, scores, diffs, alignlengths, bits);
+
 	if (bits == 8)
 	  count_comparisons_8 += targetcount;
 	else
@@ -181,9 +227,15 @@ void algo_run()
 	    unsigned long t = targets[i];
 	    swarmids[t] = swarmid;
 	    genids[t] = generation + 1;
-	    //	      printf("Swarm %4lu  Generation %4lu  Hit %4lu  %s\n", swarmid, generation, t, db_getheader(t));
-	    fputc(SEPCHAR, out);
-	    fputs(db_getheader(t), out);
+	    hits[hitcount++] = t;
+	    diffsum += diffs[i];
+	    alignlensum += alignlengths[i];
+	    
+	    abundance = db_getabundance(t);
+	    amplicons_copies += abundance;
+	    if (abundance == 1)
+	      singletons++;
+
 	    lastgen = generation + 1;
 	    swarmsize++;
 	  }
@@ -241,13 +293,16 @@ void algo_run()
 	    for(unsigned long i=0; i<targetcount; i++)
 	    {
 	      unsigned long t = targets[i];
-	      if ((swarmids[t] == 0) && (diffs[i] <= 2*generation*resolution))
+	      if ((swarmids[t] == 0)
+		  && (diffs[i] <= 2*generation*resolution) 
+		  && (mindiff2(t, subseed) <= 2*resolution)
+		  )
 		targets2[targetcount2++] = t;
 	    }
 	    
 	    if (targetcount2 > 0)
 	    {
-	      search_do(subseed, targetcount2, targets2, scores2, diffs2, bits2);
+	      search_do(subseed, targetcount2, targets2, scores2, diffs2, alignlengths2, bits2);
 	      if (bits2 == 8)
 		count_comparisons_8 += targetcount2;
 	      else
@@ -260,9 +315,15 @@ void algo_run()
 		  unsigned long t = targets2[i];
 		  swarmids[t] = swarmid;
 		  genids[t] = generation + 1;
-		  // printf("Swarm %4lu  Generation %4lu  Hit %4lu  %s\n", swarmid, generation, t, db_getheader(t));
-		  fputc(SEPCHAR, out);
-		  fputs(db_getheader(t), out);
+		  hits[hitcount++] = t;
+		  diffsum += diffs2[i];
+		  alignlensum += alignlengths2[i];
+
+		  abundance = db_getabundance(t);
+		  amplicons_copies += abundance;
+		  if (abundance == 1)
+		    singletons++;
+
 		  lastgen = generation + 1;
 		  swarmsize++;
 		}
@@ -277,14 +338,85 @@ void algo_run()
 	}
       }
       
-      fputs("\n", out);
-      
       if (swarmsize > largestswarm)
 	largestswarm = swarmsize;
+
+
+      for(unsigned long i=0; i<hitcount; i++)
+	{
+	  if (i>0)
+	    fputc(SEPCHAR, outfile);
+	  fprint_id(outfile, hits[i]);
+	}
+      fputs("\n", outfile);
+
+      if (uclustfile)
+	{
+	  double averagepercentid = alignlensum > 0 ? 100.0 * (alignlensum - diffsum) / alignlensum : 100.0;
+
+	  fprintf(uclustfile, "C\t%lu\t%lu\t%.1f\t*\t*\t*\t*\t",
+		  swarmid-1, swarmsize, averagepercentid);
+	  fprint_id(uclustfile, seed);
+	  fprintf(uclustfile, "\t*\n");
+	  
+	  fprintf(uclustfile, "S\t%lu\t%lu\t*\t*\t*\t*\t*\t",
+		  swarmid-1, db_getsequencelen(seed));
+	  fprint_id(uclustfile, seed);
+	  fprintf(uclustfile, "\t*\n");
+	  fflush(uclustfile);
+
+	  for(unsigned long i=1; i<hitcount; i++)
+	    {
+	      unsigned long hit = hits[i];
+	      
+	      char * dseq = db_getsequence(hit);
+	      char * dend = dseq + db_getsequencelen(hit);
+	      char * qseq = db_getsequence(seed);
+	      char * qend = qseq + db_getsequencelen(seed);
+
+	      unsigned long nwscore = 0;
+	      unsigned long nwdiff = 0;
+	      char * nwalignment = NULL;
+	      unsigned long nwalignmentlength = 0;
+
+	      nw(dseq, dend, qseq, qend, 
+		 score_matrix_63, gapopen, gapextend, 
+		 & nwscore, & nwdiff, & nwalignmentlength, & nwalignment);
+	      
+	      double percentid = 100.0 * (nwalignmentlength - nwdiff) / nwalignmentlength;
+	      
+	      fprintf(uclustfile, "H\t%lu\t%lu\t%.1f\t+\t0\t0\t%s\t",
+		      swarmid-1, db_getsequencelen(hit), percentid, nwalignment);
+
+	      fprint_id(uclustfile, hit);
+	      fprintf(uclustfile, "\t");
+	      fprint_id(uclustfile, seed);
+	      fprintf(uclustfile, "\n");
+	      fflush(uclustfile);
+
+	      if (nwalignment)
+		free(nwalignment);
+	    }
+
+	}
+      
+
+      if (statsfile)
+	{
+	  unsigned long radius = generation > 0 ? generation - 1 : 0;
+	  abundance = db_getabundance(seed);
+
+	  fprintf(statsfile, "%lu\t%lu\t", swarmsize, amplicons_copies);
+	  fprint_id_noabundance(statsfile, seed);
+	  fprintf(statsfile, "\t%lu\t%lu\t%lu\n", abundance, singletons, radius);
+	}
+
 
       swarmid++;
     }
   
+  free(hits);
+
   free(genids);
   free(seeded);
 
@@ -293,10 +425,12 @@ void algo_run()
   free(targets2);
   free(scores2);
   free(diffs2);
+  free(alignlengths2);
 
   free(targets);
   free(scores);
   free(diffs);
+  free(alignlengths);
 
   fprintf(stderr, "\n");
 
@@ -304,7 +438,9 @@ void algo_run()
 
   fprintf(stderr, "Largest swarm:     %lu\n", largestswarm);
 
-  fprintf(stderr, "Generation depth:  %lu\n", maxgen);
+  fprintf(stderr, "Largest radius:    %lu\n", maxgen);
+
+  fprintf(stderr, "\n");
 
   fprintf(stderr, "Comparisons (8b):  %lu (%.2lf%%)\n", count_comparisons_8, (200.0 * count_comparisons_8 / listlength / listlength));
 

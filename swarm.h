@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.0.2"
+#define SWARM_VERSION "1.1.0"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -60,9 +60,12 @@ struct seqinfo_s
   char * header;
   char * seq;
   unsigned long headerlen;
+  unsigned long headeridlen;
   unsigned long seqlen;
   unsigned long abundance;
   unsigned long clusterid;
+  unsigned long hdrhash;
+  long composition[4];
 };
 
 typedef struct seqinfo_s seqinfo_t;
@@ -99,7 +102,9 @@ extern long penalty_gapextend;
 extern long penalty_gapopen;
 extern long penalty_mismatch;
 
-extern FILE * out;
+extern FILE * outfile;
+extern FILE * statsfile;
+extern FILE * uclustfile;
 
 extern long SCORELIMIT_7;
 extern long SCORELIMIT_8;
@@ -126,6 +131,7 @@ void fatal(const char * msg);
 void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
+unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
 
 /* functions in dataset.cc */
 
@@ -160,19 +166,20 @@ void db_putseq(long seqno);
 /* functions in search8.cc, search16.cc, nw.cc */
 
 void search8(BYTE * * q_start,
-             BYTE gap_open_penalty,
-             BYTE gap_extend_penalty,
-             BYTE * score_matrix,
-             BYTE * dprofile,
-             BYTE * hearray,
-             unsigned long sequences,
-             unsigned long * seqnos,
-             unsigned long * scores,
+	     BYTE gap_open_penalty,
+	     BYTE gap_extend_penalty,
+	     BYTE * score_matrix,
+	     BYTE * dprofile,
+	     BYTE * hearray,
+	     unsigned long sequences,
+	     unsigned long * seqnos,
+	     unsigned long * scores,
 	     unsigned long * diffs,
-             unsigned long qlen,
+	     unsigned long * alignmentlengths,
+	     unsigned long qlen,
 	     unsigned long dirbuffersize,
-	     WORD * up,
-	     WORD * left);
+	     WORD * up_array,
+	     WORD * left_array);
 
 void search16(WORD * * q_start,
 	      WORD gap_open_penalty,
@@ -184,21 +191,23 @@ void search16(WORD * * q_start,
 	      unsigned long * seqnos,
 	      unsigned long * scores,
 	      unsigned long * diffs,
+	      unsigned long * alignmentlengths,
 	      unsigned long qlen,
 	      unsigned long dirbuffersize,
-	      WORD * up,
-	      WORD * left);
+	      WORD * up_array,
+	      WORD * left_array);
 
 void nw(char * dseq,
 	char * dend,
 	char * qseq,
 	char * qend,
-	unsigned long * hearray,
-	unsigned long * score_matrix,
-	unsigned long gap_open_penalty,
-	unsigned long gap_extend_penalty,
+	long * score_matrix,
+	unsigned long gapopen,
+	unsigned long gapextend,
 	unsigned long * nwscore,
-	unsigned long * nwdiff);
+	unsigned long * nwdiff,
+	unsigned long * nwalignmentlength,
+	char ** nwalignment);
 
 /* functions in matrix.cc */
 
@@ -208,11 +217,12 @@ void score_matrix_free();
 /* functions in scan.cc */
 
 void search_all(unsigned long query_no);
-void search_do(unsigned long query_no,
-               unsigned long listlength,
-               unsigned long * targets,
-               unsigned long * scores,
-               unsigned long * diffs,
+void search_do(unsigned long query_no, 
+	       unsigned long listlength,
+	       unsigned long * targets,
+	       unsigned long * scores,
+	       unsigned long * diffs,
+	       unsigned long * alignlengths,
 	       long bits);
 void search_begin();
 void search_end();

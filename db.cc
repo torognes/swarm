@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -193,6 +193,18 @@ void db_read(const char * filename)
 
   fclose(fp);
 
+  /* set up hash to check for unique headers */
+
+  unsigned long hdrhashsize = 2 * sequences;
+
+  seqinfo_t * * hdrhashtable = 
+    (seqinfo_t **) xmalloc(hdrhashsize * sizeof(seqinfo_t *));
+  memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
+
+  unsigned long duplicatedidentifiers = 0;
+  
+  /* create indices */
+
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
   seqinfo_t * seqindex_p = seqindex;
 
@@ -200,27 +212,62 @@ void db_read(const char * filename)
   for(unsigned long i=0; i<sequences; i++)
   {
     seqindex_p->header = p;
-    seqindex_p->headerlen = strlen(p);
-    seqindex_p->abundance = 0;
-    sscanf(p, "%*[^_]_%lu\n", & seqindex_p->abundance);
+    seqindex_p->headerlen = strlen(seqindex_p->header);
     p += seqindex_p->headerlen + 1;
 
-    /*
-    fprintf(stdout, "Header: %s\n", seqindex_p->header);
-    */
+    seqindex_p->headeridlen = strchrnul(seqindex_p->header, ' ') 
+      - seqindex_p->header;
+    seqindex_p->abundance = 1;
+    sscanf(seqindex_p->header, "%*[^ _]_%lu", & seqindex_p->abundance);
 
+    /* check hash, fatal error if found, otherwize insert new */
+
+    unsigned long hdrhash = hash_fnv_1a_64((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
+    seqindex_p->hdrhash = hdrhash;
+    unsigned long hashindex = hdrhash % hdrhashsize;
+
+    seqinfo_t * found;
+    
+    while ((found = hdrhashtable[hashindex]))
+      {
+	if ((found->hdrhash == hdrhash) &&
+	    (found->headeridlen == seqindex_p->headeridlen) &&
+	    (strncmp(found->header, seqindex_p->header, found->headeridlen) == 0))
+	  break;
+	hashindex = (hashindex + 1) % hdrhashsize;
+      }
+
+    if (found)
+      {
+	duplicatedidentifiers++;
+	fprintf(stderr, "Duplicated sequence identifier: %s\n", seqindex_p->header);
+      }
+
+    hdrhashtable[hashindex] = seqindex_p;
+    
     seqindex_p->seq = p;
     seqindex_p->seqlen = strlen(p);
     p += seqindex_p->seqlen + 1;
 
-    /*
-    fprintf(stdout, "Sequence: ");
-    showseq(seqindex_p->seq);
-    fprintf(stdout, "\n");
-    */
+    /* find composition */
+
+    for(unsigned long n = 1; n <= 4; n++)
+      {
+	seqindex_p->composition[n-1] = 0;
+      }
+
+    for(unsigned long i = 0; i < seqindex_p->seqlen; i++)
+      {
+	seqindex_p->composition[(int)(seqindex_p->seq[i])-1]++;
+      }
 
     seqindex_p++;
   }
+
+  free(hdrhashtable);
+
+  if (duplicatedidentifiers)
+    exit(1);
 }
 
 unsigned long db_getsequencecount()
@@ -288,33 +335,6 @@ void db_putseq(long seqno)
   db_getsequenceandlength(seqno, & seq, & len);
   for(int i=0; i<len; i++)
     putchar(sym_nt[(int)(seq[i])]);
-}
-
-
-void db_showsequence(unsigned long seqno)
-{
-  unsigned long abundance, seqlen, hdrlen;
-  char * seq, * hdr;
-
-  abundance = db_getabundance(seqno);
-  seqlen = db_getsequencelen(seqno);
-  hdrlen = db_getheaderlen(seqno);
-  seq = db_getsequence(seqno);
-  hdr = db_getheader(seqno);
-
-  printf(">%s\n", hdr);
-  showseq(seq);
-  printf("\n");
-}
-
-void db_showall()
-{
-  unsigned long seqcount = db_getsequencecount();
-
-  for(unsigned long i = 0; i < seqcount; i++)
-  {
-    db_showsequence(i);
-  }
 }
 
 void db_free()
