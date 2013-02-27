@@ -399,8 +399,9 @@ void algo_run()
 	      double percentid = 100.0 * (nwalignmentlength - nwdiff) / nwalignmentlength;
 	      
 	      fprintf(uclustfile, "H\t%lu\t%lu\t%.1f\t+\t0\t0\t%s\t",
-		      swarmid-1, db_getsequencelen(hit), percentid, nwalignment);
-
+		      swarmid-1, db_getsequencelen(hit), percentid, 
+		      nwdiff > 0 ? nwalignment : "=");
+	      
 	      fprint_id(uclustfile, hit);
 	      fprintf(uclustfile, "\t");
 	      fprint_id(uclustfile, seed);
