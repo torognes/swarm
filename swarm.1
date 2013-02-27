@@ -20,7 +20,7 @@ on greedy, input-order dependent algorithms, with arbitrary selection
 of cluster size and cluster centroids. To address that problem, we
 developed \fBswarm\fR, a fast and exact method that recursively groups
 amplicons with \fIn\fR or less differences. \fBswarm\fR produces
-stable clusters (or “swarms”), free from centroid selection induced
+stable clusters (or "swarms"), free from centroid selection induced
 input-order dependency.
 .PP
 Exact clustering is impractical on large data sets when using a naïve
@@ -37,7 +37,7 @@ modern x86-64 CPUs. If SSE4.1 instructions are not available,
 .PP
 \fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
 nucleotidic amplicons. The amplicon identifier is defined as the
-string comprised between the “>” symbol and the first space or the end
+string comprised between the ">" symbol and the first space or the end
 of the line, whichever comes first. As \fBswarm\fR outputs lists of
 amplicon identifiers, amplicon identifiers must be unique to avoid
 ambiguity. The amplicon sequence is defined as a string of [acgt] or
@@ -45,7 +45,7 @@ ambiguity. The amplicon sequence is defined as a string of [acgt] or
 identifier line and ending before the next identifier line or the file
 end; \fBswarm\fR exits with an error message if any other symbol is
 present. Default is to read from standard input if no file is named,
-or the file name is “-”.
+or the file name is "-".
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBswarm\fR recognizes the following command-line options:
@@ -58,7 +58,7 @@ less) differences. This is \fBswarm\fR's most important parameter. The
 number of differences is calculated as the number of mismatches
 (substitutions, insertions or deletions) between the two amplicons
 once the optimal pairwise global alignment has been found (see
-“advanced options” for parameters influencing the pairwise
+"advanced options" for parameters influencing the pairwise
 alignment). Any \fIinteger\fR between 1 and 256 can be used, but
 aligning two very distant amplicons is difficult and results should be
 considered with caution. Default number of differences is 1.
