@@ -149,8 +149,12 @@ void algo_run()
   for(unsigned long i=0; i<listlength; i++)
     seeded[i] = 0;
   
-  /* generation id's = distance from inital seed */
+  /* generation id's = distance, in generations, from inital seed */
   genids = (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
+
+  /* radius = actual number of differences from initial seed */
+  unsigned long * radius = 
+    (unsigned long *) xmalloc(listlength * sizeof(unsigned long));
 
   unsigned long swarmid = 1;
   unsigned long maxgen = 0;
@@ -158,6 +162,7 @@ void algo_run()
   unsigned long bits;
   unsigned long bits2;
 
+  
   while (1)
     {
 
@@ -166,6 +171,7 @@ void algo_run()
       unsigned long hitcount = 0;
       unsigned long diffsum = 0;
       unsigned long alignlensum = 0;
+      unsigned long maxradius = 0;
 
       /* always start in 8 bit mode unless resolution is very high*/
 
@@ -194,6 +200,7 @@ void algo_run()
       swarmids[seed] = swarmid;
       seeded[seed] = 1;
       genids[seed] = 0;
+      radius[seed] = 0;
       swarmsize = 1;
       
       unsigned long abundance = db_getabundance(seed);
@@ -227,6 +234,10 @@ void algo_run()
 	    unsigned long t = targets[i];
 	    swarmids[t] = swarmid;
 	    genids[t] = generation + 1;
+	    radius[t] = radius[seed] + diffs[i];
+	    if (radius[t] > maxradius)
+	      maxradius = radius[t];
+
 	    hits[hitcount++] = t;
 	    diffsum += diffs[i];
 	    alignlensum += alignlengths[i];
@@ -315,6 +326,10 @@ void algo_run()
 		  unsigned long t = targets2[i];
 		  swarmids[t] = swarmid;
 		  genids[t] = generation + 1;
+		  radius[t] = radius[subseed] + diffs2[i];
+		  if (radius[t] > maxradius)
+		    maxradius = radius[t];
+
 		  hits[hitcount++] = t;
 		  diffsum += diffs2[i];
 		  alignlensum += alignlengths2[i];
@@ -352,10 +367,8 @@ void algo_run()
 
       if (uclustfile)
 	{
-	  double averagepercentid = alignlensum > 0 ? 100.0 * (alignlensum - diffsum) / alignlensum : 100.0;
-
-	  fprintf(uclustfile, "C\t%lu\t%lu\t%.1f\t*\t*\t*\t*\t",
-		  swarmid-1, swarmsize, averagepercentid);
+	  fprintf(uclustfile, "C\t%lu\t%lu\t*\t*\t*\t*\t*\t",
+		  swarmid-1, swarmsize);
 	  fprint_id(uclustfile, seed);
 	  fprintf(uclustfile, "\t*\n");
 	  
@@ -403,12 +416,13 @@ void algo_run()
 
       if (statsfile)
 	{
-	  unsigned long radius = generation > 0 ? generation - 1 : 0;
+	  unsigned long maxgenerations = generation > 0 ? generation - 1 : 0;
 	  abundance = db_getabundance(seed);
 
 	  fprintf(statsfile, "%lu\t%lu\t", swarmsize, amplicons_copies);
 	  fprint_id_noabundance(statsfile, seed);
-	  fprintf(statsfile, "\t%lu\t%lu\t%lu\n", abundance, singletons, radius);
+	  fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
+		  abundance, singletons, maxgenerations, maxradius);
 	}
 
 
