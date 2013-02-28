@@ -1,8 +1,8 @@
 .\" ============================================================================
-.TH swarm 1 "27 February 2013" "version 1.1.0" "USER COMMANDS"
+.TH swarm 1 "28 February 2013" "version 1.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
-swarm \(em find clusters of nearly-identical nucleotidic amplicons
+swarm \(em find clusters of nearly-identical nucleotide amplicons
 .\" ============================================================================
 .SH SYNOPSIS
 .B swarm
@@ -13,15 +13,15 @@ swarm \(em find clusters of nearly-identical nucleotidic amplicons
 ]
 .\" ============================================================================
 .SH DESCRIPTION
-Environmental studies generate large volumes of amplicons (usually
-rRNA SSU sequences) that need to be clustered into molecular
-operational taxonomic units. Traditional clustering methods are based
-on greedy, input-order dependent algorithms, with arbitrary selection
-of cluster size and cluster centroids. To address that problem, we
-developed \fBswarm\fR, a fast and exact method that recursively groups
-amplicons with \fIn\fR or less differences. \fBswarm\fR produces
-stable clusters (or "swarms"), free from centroid selection induced
-input-order dependency.
+Environmental or clinical molecular studies generate large volumes of
+amplicons (e.g. SSU-rRNA sequences) that need to be clustered into
+molecular operational taxonomic units. Traditional clustering methods
+are based on greedy, input-order dependent algorithms, with arbitrary
+selection of global cluster size and cluster centroids. To address
+that problem, we developed \fBswarm\fR, a fast and robust method that
+recursively groups amplicons with \fId\fR or less
+differences. \fBswarm\fR produces stable clusters (or "swarms"), free
+from centroid selection induced input-order dependency.
 .PP
 Exact clustering is impractical on large data sets when using a naïve
 all-vs-all approach (i.e. a 2-combination without repetitions), as it
@@ -36,22 +36,25 @@ modern x86-64 CPUs. If SSE4.1 instructions are not available,
 \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
-nucleotidic amplicons. The amplicon identifier is defined as the
-string comprised between the ">" symbol and the first space or the end
-of the line, whichever comes first. As \fBswarm\fR outputs lists of
-amplicon identifiers, amplicon identifiers must be unique to avoid
-ambiguity. The amplicon sequence is defined as a string of [acgt] or
-[acgu] symbols (case insensitive), starting after the end of the
-identifier line and ending before the next identifier line or the file
-end; \fBswarm\fR exits with an error message if any other symbol is
-present. Default is to read from standard input if no file is named,
-or the file name is "-".
+nucleotide amplicons. The amplicon identifier is defined as the string
+comprised between the ">" symbol and the first space or the end of the
+line, whichever comes first. As \fBswarm\fR outputs lists of amplicon
+identifiers, amplicon identifiers must be unique to avoid ambiguity;
+swarm exits with an error message if identifiers are not unique. If
+amplicon identifiers end with a "_" followed by a number, that number
+is used as the amplicon copy number in the statistics output file. The
+amplicon sequence is defined as a string of [acgt] or [acgu] symbols
+(case insensitive), starting after the end of the identifier line and
+ending before the next identifier line or the file end; \fBswarm\fR
+exits with an error message if any other symbol is present. Default is
+to read from standard input if no file is named, or if the file name
+is "-".
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBswarm\fR recognizes the following command-line options:
 .RS
 .TP 9
-.BI -d\fP,\fB\ --differences \0integer
+.BI -d\fP,\fB\ --differences\~ "positive integer"
 maximum number of differences allowed between two amplicons, meaning
 that two amplicons will be grouped if they have \fIinteger\fR (or
 less) differences. This is \fBswarm\fR's most important parameter. The
@@ -71,22 +74,25 @@ output result to \fIfilename\fR. Result is a list of swarms, one swarm
 per line. A swarm is a list of amplicon identifiers separated by
 spaces. Default is to write to standard output.
 .TP
-.BI -u\fP,\fB\ --uclust-file \0filename
-output results in UCLUST-like file format to the specified file.
-Default is not to output in this format.
-.TP
 .BI -s\fP,\fB\ --statistics-file \0filename
-output statistics to the specified file. Default is not to output statistics.
-The file is tab separated and each line contains the following information
-about a swarm: number of unique amplicons in the swarm, total number of
-amplicons in the swarm, identifier of the initial seed,
-initial seed abundance, number of singletons (amplicons with an abundance of 1),
-maximum number of generations and the maximum radius.
+output statistics to the specified file. Default is not to output
+statistics.  The file is a tab-separated table with one swarm per row
+and seven columns of information: number of unique amplicons in the
+swarm, total copy number of amplicons in the swarm, identifier of the
+initial seed, initial seed copy number (if applicable), number of
+singletons (amplicons with a copy number of 1), maximum number of
+generations, and the maximum radius of the swarm (i.e. number of
+differences between the seed and the furthermost amplicon in the
+swarm).
 .TP
-.BI -t\fP,\fB\ --threads \0integer
+.BI -t\fP,\fB\ --threads\~ "positive integer"
 number of computation threads to use. The number of threads should be
 lesser or equal to the number of available CPU cores. Default number
 of threads is 1.
+.TP
+.BI -u\fP,\fB\ --uclust-file \0filename
+output results in uclust-like file format to the specified file. That
+option does not modify swarm default output format.
 .TP
 .B -v\fP,\fB\ --version
 output version information and exit.
@@ -97,16 +103,16 @@ output version information and exit.
 pairwise global alignment scoring parameters:
 .RS
 .TP 9
-.BI -m\fP,\fB\ --match-reward \0integer
+.BI -m\fP,\fB\ --match-reward\~ "positive integer"
 reward for a nucleotide match. Default is 5.
 .TP
-.BI -p\fP,\fB\ --mismatch-penalty \0integer
+.BI -p\fP,\fB\ --mismatch-penalty\~ "positive integer"
 penalty for a nucleotide mismatch. Default is 4.
 .TP
-.BI -g\fP,\fB\ --gap-opening-penalty \0integer
+.BI -g\fP,\fB\ --gap-opening-penalty\~ "positive integer"
 gap open penalty. Default is 12.
 .TP
-.BI -e\fP,\fB\ --gap-extension-penalty \0integer
+.BI -e\fP,\fB\ --gap-extension-penalty\~ "positive integer"
 gap extension penalty. Default is 4.
 .LP
 As \fBswarm\fR focuses on close relationships, final results are
