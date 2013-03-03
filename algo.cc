@@ -453,7 +453,7 @@ void algo_run()
 
   fprintf(stderr, "Largest swarm:     %lu\n", largestswarm);
 
-  fprintf(stderr, "Largest radius:    %lu\n", maxgen);
+  fprintf(stderr, "Max generations:   %lu\n", maxgen);
 
   fprintf(stderr, "\n");
 
