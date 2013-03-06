@@ -93,13 +93,16 @@ rm "${SEEDS}"
 For each swarm, get the fasta sequences for all amplicons. Warning, this loop can generate a very large number of files. To limit the number of files, a test can be added to exclude swarms with less than *n* elements.
 
 ```
+INPUT_SWARM="amplicons.swarms"
+INPUT_FASTA="amplicons.fasta"
+OUTPUT_FOLDER="swarms_fasta"
 AMPLICONS=$(mktemp)
-mkdir swarms_fasta
+mkdir "${OUTPUT_FOLDER}"
 while read swarm ; do
     tr " " "\n" <<< "${swarm}" | sed -e 's/^/>/' > "${AMPLICONS}"
     seed=$(head -n 1 "${AMPLICONS}")
-    grep -A 1 -F -f "${AMPLICONS}" amplicons.fasta | sed -e '/^--$/d' > "./swarms_fasta/${seed}.fasta"
-done < amplicons.swarms
+    grep -A 1 -F -f "${AMPLICONS}" "${INPUT_FASTA}" | sed -e '/^--$/d' > "./${OUTPUT_FOLDER}/${seed/>/}.fasta"
+done < "${INPUT_SWARM}"
 rm "${AMPLICONS}"
 ```
 
