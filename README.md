@@ -58,10 +58,11 @@ while read abundance sequence ; do
     hash=$(echo ${sequence} | sha1sum)
     hash=${hash:0:40}
     printf ">%s_%d_%s\n" "${hash}" "${abundance}" "${sequence}"
-done | sort -t "_" -k2,2nr | sed -e 's/\_/\n/2' > amplicons_linearized_dereplicated.fasta
+done | sort -t "_" -k2,2nr -k1.2,1d |
+sed -e 's/\_/\n/2' > amplicons_linearized_dereplicated.fasta
 ```
 
-The dereplicated amplicons receive a meaningful unique name, and are sorted by decreasing number of copies. The use of a hashing function also provides an easy way to compare sets of amplicons. If two amplicons from two different sets have the same hash, it means that they have identical sequences.
+The dereplicated amplicons receive a meaningful unique name (hash codes), and are sorted by decreasing number of copies and by hash codes (to guarantee a stable sorting). The use of a hashing function also provides an easy way to compare sets of amplicons. If two amplicons from two different sets have the same hash code, it means that the sequences they represent are identical.
 
 ### Launch swarm ###
 
