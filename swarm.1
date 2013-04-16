@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "28 February 2013" "version 1.1.0" "USER COMMANDS"
+.TH swarm 1 "16 April 2013" "version 1.1.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -27,13 +27,13 @@ Exact clustering is impractical on large data sets when using a naïve
 all-vs-all approach (i.e. a 2-combination without repetitions), as it
 implies unrealistic numbers of pairwise comparisons. \fBswarm\fR is
 based on a maximum number of differences, and focuses only on close
-relationships. An astute use of comparisons results obtained during
-the process allows to avoid up to 98% of the amplicon comparisons
-needed in a naïve approach. To speed up the remaining amplicon
-comparisons, \fBswarm\fR implements an extremely fast Needleman-Wunsch
-algorithm making use of the Streaming SIMD Extensions (SSE4.1) of
-modern x86-64 CPUs. If SSE4.1 instructions are not available,
-\fBswarm\fR exits with an error message.
+relationships. Several pre-filterings and an astute use of comparisons
+results obtained during the process allows to avoid up to 98% of the
+amplicon comparisons needed in a naïve approach. To speed up the
+remaining amplicon comparisons, \fBswarm\fR implements an extremely
+fast Needleman-Wunsch algorithm making use of the Streaming SIMD
+Extensions (SSE4.1) of modern x86-64 CPUs. If SSE4.1 instructions are
+not available, \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
 nucleotide amplicons. The amplicon identifier is defined as the string
@@ -81,7 +81,8 @@ and seven columns of information: number of unique amplicons in the
 swarm, total copy number of amplicons in the swarm, identifier of the
 initial seed, initial seed copy number (if applicable), number of
 singletons (amplicons with a copy number of 1), maximum number of
-generations, and the maximum radius of the swarm (i.e. number of
+generations (i.e. numbers of iterations before the swarm reached its
+natural limits), and the maximum radius of the swarm (i.e. number of
 differences between the seed and the furthermost amplicon in the
 swarm).
 .TP
@@ -185,7 +186,7 @@ lengths and composition comparisons reduce the number of pairwise
 alignments needed and speed up the swarming.
 .TP
 .BR v1.0\~ "released November 10, 2012"
-First public version
+First public release
 .LP
 .\" ============================================================================
 .\" NOTES

@@ -109,12 +109,12 @@ rm "${AMPLICONS}"
 
 ## New features in version 1.1.0 ##
 
-**swarm** introduces new optimizations and is 20% faster than the previous version on our test dataset. It also introduces two new output options: statistics and uclust-like format.
+**swarm** introduces new optimizations and is 20% faster than the previous version on our test dataset. It also introduces two new output options.
 
 ### Statistics ###
 
 By specifying the `-s` option to **swarm** it will now output detailed statistics about each swarm to a specified file. It will print the number of unique amplicons, the number of copies, the name of the seed and its abundance, the number of singletons (amplicons with an abundance of 1) and the radius of the swarm. When using input data sorted by decreasing abundance, the seed is the most abundant amplicon in the swarm.
 
-### Uclust-like output format ###
+### Convert swarm results into the uclust output format ###
 
 Some pipelines use the [uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686 "page describing the uclust output format") as input for subsequent analyses. **swarm** can now output results in this format to a specified file with the `-u` option.
