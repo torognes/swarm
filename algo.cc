@@ -430,9 +430,9 @@ void algo_run()
       swarmid++;
     }
   
-  free(hits);
-
+  free(radius);
   free(genids);
+  free(hits);
   free(seeded);
 
   free(swarmids);
