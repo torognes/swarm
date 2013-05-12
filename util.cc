@@ -69,6 +69,16 @@ void * xrealloc(void *ptr, size_t size)
   return t;
 }
 
+char * xstrchrnul(char *s, int c)
+{
+  char * r = strchr(s, c);
+
+  if (r)
+    return r;
+  else
+    return (char *)s + strlen(s);
+}
+
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
 {
   const unsigned long fnv_offset = 14695981039346656037UL;

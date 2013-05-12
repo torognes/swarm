@@ -120,7 +120,7 @@ void db_read(const char * filename)
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
       
-      long headerlen = strchrnul(line+1, '\n') - (line+1);
+      long headerlen = xstrchrnul(line+1, '\n') - (line+1);
 
       headerchars += headerlen;
 
@@ -215,7 +215,7 @@ void db_read(const char * filename)
     seqindex_p->headerlen = strlen(seqindex_p->header);
     p += seqindex_p->headerlen + 1;
 
-    seqindex_p->headeridlen = strchrnul(seqindex_p->header, ' ') 
+    seqindex_p->headeridlen = xstrchrnul(seqindex_p->header, ' ') 
       - seqindex_p->header;
     seqindex_p->abundance = 1;
     sscanf(seqindex_p->header, "%*[^ _]_%lu", & seqindex_p->abundance);

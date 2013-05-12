@@ -23,6 +23,83 @@
 
 #include "swarm.h"
 
+void pushop(char newop, char ** cigarendp, char * op, int * count)
+{
+  if (newop == *op)
+    (*count)++;
+  else
+  {
+    *--*cigarendp = *op;
+    if (*count > 1)
+    {
+      char buf[25];
+      int len = sprintf(buf, "%d", *count);
+      *cigarendp -= len;
+      strncpy(*cigarendp, buf, len);
+    }
+    *op = newop;
+    *count = 1;
+  }
+}
+
+void finishop(char ** cigarendp, char * op, int * count)
+{
+  if ((op) && (count))
+  {
+    *--*cigarendp = *op;
+    if (*count > 1)
+    {
+      char buf[25];
+      int len = sprintf(buf, "%d", *count);
+      *cigarendp -= len;
+      strncpy(*cigarendp, buf, len);
+    }
+    *op = 0;
+    *count = 0;
+  }
+}
+
+/*
+
+  Needleman/Wunsch/Sellers aligner
+
+  finds a global alignment with minimum cost
+  there should be positive costs/penalties for gaps and for mismatches
+  matches should have zero cost (0)
+
+  alignment priority when backtracking (from lower right corner):
+  1. left/insert/e (gap in query sequence (qseq))
+  2. align/diag/h (match/mismatch)
+  3. up/delete/f (gap in database sequence (dseq))
+  
+  qseq: the reference/query/upper/vertical/from sequence
+  dseq: the sample/database/lower/horisontal/to sequence
+
+  typical costs:
+  match: 0
+  mismatch: 3
+  gapopen: 4
+  gapextend: 3
+
+  input
+
+  dseq: pointer to start of database sequence
+  dend: pointer after database sequence
+  qseq: pointer to start of query sequence
+  qend: pointer after database sequence
+  score_matrix: 32x32 matrix of longs with scores for aligning two symbols
+  gapopen: positive number indicating penalty for opening a gap of length zero
+  gapextend: positive number indicating penalty for extending a gap
+
+  output
+
+  nwscore: the global alignment score
+  nwdiff: number of non-identical nucleotides in one optimal global alignment
+  nwalignmentlength: the length of one optimal alignment
+  nwalignment: cigar string with one optimal alignment
+
+*/
+
 void nw(char * dseq,
 	char * dend,
 	char * qseq,
@@ -33,183 +110,172 @@ void nw(char * dseq,
 	unsigned long * nwscore,
 	unsigned long * nwdiff,
 	unsigned long * nwalignmentlength,
-	char ** nwalignment)
+	char ** nwalignment,
+	unsigned long queryno,
+	unsigned long dbseqno)
 {
-  unsigned long h, n, e, f;
-  unsigned long *hep;
-  char *qp, *dp;
-  unsigned long * sp;
+  long h, n, e, f;
+  long *hep;
 
-  unsigned long qlen = qend - qseq;
-  unsigned long dlen = dend - dseq;
+  long qlen = qend - qseq;
+  long dlen = dend - dseq;
 
-  BYTE * diru = (BYTE*) xmalloc(qlen*dlen);
-  BYTE * dirl = (BYTE*) xmalloc(qlen*dlen);
+  char * diru = (char*) xmalloc(qlen*dlen);
+  char * dirl = (char*) xmalloc(qlen*dlen);
+  char * extu = (char*) xmalloc(qlen*dlen);
+  char * extl = (char*) xmalloc(qlen*dlen);
 
-  memset(diru, 0, qlen*dlen);
-  memset(dirl, 0, qlen*dlen);
+  long * hearray = (long *) xmalloc(2 * qlen * sizeof(long));
 
-  unsigned long * hearray = 
-    (unsigned long *) xmalloc(2 * qlen * sizeof(unsigned long));
+  long i, j;
 
-  for(unsigned long i=0; i<qlen; i++)
+  for(i=0; i<qlen; i++)
   {
-    hearray[2*i]   = gapopen + (i+1) * gapextend; // H 
-    hearray[2*i+1] = gapopen + (i+1) * gapextend; // E
+    hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
+    hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
   }
 
-  unsigned long i = 0;
-  unsigned long j = 0;
-
-  dp = dseq;
-
-  while (dp < dend)
+  for(j=0; j<dlen; j++)
+  {
+    hep = hearray;
+    f = 2 * gapopen + (j+2) * gapextend;
+    h = (j == 0) ? 0 : (gapopen + j * gapextend);
+    
+    for(i=0; i<qlen; i++)
     {
-      hep = (unsigned long*) hearray;
-      qp = qseq;
-      sp = ((unsigned long*)(score_matrix)) + (*dp << 5);
-      f = gapopen + (j+1) * gapextend;
-      h = (j == 0) ? 0 : gapopen + j * gapextend;
+      long index = qlen*j+i;
       
-      i = 0;
-      while (qp < qend)
-        {
-          n = *hep;
-          e = *(hep+1);
-          h += sp[(unsigned)*qp];
+      n = *hep;
+      e = *(hep+1);
+      h += score_matrix[(dseq[j]<<5) + qseq[i]];
+      
+      diru[index] = (f < h);
+      h = MIN(h, f);
+      h = MIN(h, e);
+      dirl[index] = (e == h);
 
-          if (e < h)
-            h = e;
-          if (f < h)
-            h = f;
-
-	  diru[qlen*j+i] = ((h == f) ? 1 : 0);
-	  dirl[qlen*j+i] = ((h == e) ? 1 : 0);
-
-          *hep = h;
-
-          e += gapextend;
-          f += gapextend;
-          h += gapopen + gapextend;
-
-          if (h < e)
-            e = h;
-          if (h < f)
-            f = h;
-
-          *(hep+1) = e;
-          h = n;
-          hep += 2;
-          qp++;
-	  i++;
-        }
-
-      dp++;
-      j++;
+      *hep = h;
+      
+      h += gapopen + gapextend;
+      e += gapextend;
+      f += gapextend;
+      
+      extu[index] = f < h;
+      extl[index] = e < h;
+      f = MIN(h,f);
+      e = MIN(h,e);
+      
+      *(hep+1) = e;
+      h = n;
+      hep += 2;
     }
+  }
+  
+  long dist = hearray[2*qlen-2];
+  
+  /* backtrack: count differences and save alignment in cigar string */
 
-  unsigned long dist = hearray[2*qlen-2];
+  long score = 0;
+  long alength = 0;
+  long matches = 0;
 
-  free(hearray);
+  char * cigar = (char *) xmalloc(qlen + dlen + 1);
+  char * cigarend = cigar+qlen+dlen+1;
 
-  unsigned long diff = 0;
-
-  /* backtrack: count differences and save alignment */
+  char op = 0;
+  int count = 0;
+  *(--cigarend) = 0;
 
   i = qlen;
   j = dlen;
 
-  char * alignmentstring = (char *) xmalloc(qlen + dlen + 1);
-  char * p = alignmentstring;
-  
   while ((i>0) && (j>0))
   {
-    if (diru[qlen*(j-1)+(i-1)])
+    int index = qlen*(j-1)+(i-1);
+    alength++;
+
+    if ((op == 'I') && (extl[index]))
     {
-      diff++;
-      i--;
-      *p++ = 'D';
-    }
-    else if (dirl[qlen*(j-1)+(i-1)])
-    {
-      diff++;
+      score += gapextend;
       j--;
-      *p++ = 'I';
+      pushop('I', &cigarend, &op, &count);
+    }
+    else if ((op == 'D') && (extu[index]))
+    {
+      score += gapextend;
+      i--;
+      pushop('D', &cigarend, &op, &count);
+    }
+    else if (dirl[index])
+    {
+      score += gapextend;
+      if (op != 'I')
+	score += gapopen;
+      j--;
+      pushop('I', &cigarend, &op, &count);
+    }
+    else if (diru[index])
+    {
+      score += gapextend;
+      if (op != 'D')
+	score +=gapopen;
+      i--;
+      pushop('D', &cigarend, &op, &count);
     }
     else
-      {
-	if (qseq[i-1] != dseq[j-1])
-	  diff++;
-	i--;
-	j--;
-	*p++ = 'M';
-      }
+    {
+      score += score_matrix[(dseq[j-1] << 5) + qseq[i-1]];
+      if (qseq[i-1] == dseq[j-1])
+	matches++;
+      i--;
+      j--;
+      pushop('M', &cigarend, &op, &count);
+    }
   }
   
   while(i>0)
   {
-    diff++;
+    alength++;
+    score += gapextend;
+    if (op != 'D')
+      score += gapopen;
     i--;
-    *p++ = 'D';
+    pushop('D', &cigarend, &op, &count);
   }
   
   while(j>0)
   {
-    diff++;
+    alength++;
+    score += gapextend;
+    if (op != 'I')
+      score += gapopen;
     j--;
-    *p++ = 'I';
+    pushop('I', &cigarend, &op, &count);
   }
 
-  *p = 0;
+  finishop(&cigarend, &op, &count);
 
+  /* move and reallocate cigar */
+
+  long cigarlength = cigar+qlen+dlen-cigarend;
+  memmove(cigar, cigarend, cigarlength+1);
+  cigar = (char*) xrealloc(cigar, cigarlength+1);
+
+  free(hearray);
   free(diru);
   free(dirl);
-
-  unsigned long alignmentlength = p - alignmentstring;
-
-  /* reverse and compress alignment string */
-
-  char * compressedalignment = (char *) xmalloc(alignmentlength + 1);
-  char * q = compressedalignment;
-
-  char x = 0;
-  unsigned long no = 0;
-  while (p-- > alignmentstring)
-    {
-      char c = *p;
-      if (c == x)
-	no++;
-      else
-	{
-	  if (x)
-	    {
-	      if (no>1)
-		q += sprintf(q, "%lu%c", no, x);
-	      else
-		*q++ = x;
-	    }
-	  x = c;
-	  no = 1;
-	}
-    }
-  
-  if (x)
-    {
-      if (no>1)
-	q += sprintf(q, "%lu%c", no, x);
-      else
-	*q++ = x;
-    }
-  
-  *q = 0;
-  
-  free(alignmentstring);
-  
-  unsigned long compressedalignmentlength = q - compressedalignment;
-  compressedalignment = (char*) xrealloc(compressedalignment, compressedalignmentlength + 1);
+  free(extu);
+  free(extl);
 
   * nwscore = dist;
-  * nwdiff = diff;
-  * nwalignmentlength = alignmentlength;
-  * nwalignment = compressedalignment;
+  * nwdiff = alength - matches;
+  * nwalignmentlength = alength;
+  * nwalignment = cigar;
+
+  if (score != dist)
+  {
+    fprintf(stderr, "Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
+    fprintf(stderr, "Initial and recomputed alignment score disagreement: %lu %lu\n", dist, score);
+    fprintf(stderr, "Alignment: %s\n", cigar);
+  }
 }

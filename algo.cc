@@ -262,7 +262,6 @@ void algo_run()
 	  else
 	    bits2 = 16;
 	  
-
 	  if (generation > maxgen)
 	    maxgen = generation;
 
@@ -394,7 +393,7 @@ void algo_run()
 
 	      nw(dseq, dend, qseq, qend, 
 		 score_matrix_63, gapopen, gapextend, 
-		 & nwscore, & nwdiff, & nwalignmentlength, & nwalignment);
+		 & nwscore, & nwdiff, & nwalignmentlength, & nwalignment, 0, 0);
 	      
 	      double percentid = 100.0 * (nwalignmentlength - nwdiff) / nwalignmentlength;
 	      

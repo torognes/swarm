@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.1.0"
+#define SWARM_VERSION "1.1.1"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -131,6 +131,7 @@ void fatal(const char * msg);
 void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
+char * xstrchrnul(char *s, int c);
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
 
 /* functions in dataset.cc */
@@ -178,8 +179,7 @@ void search8(BYTE * * q_start,
 	     unsigned long * alignmentlengths,
 	     unsigned long qlen,
 	     unsigned long dirbuffersize,
-	     WORD * up_array,
-	     WORD * left_array);
+	     unsigned long * dirbuffer);
 
 void search16(WORD * * q_start,
 	      WORD gap_open_penalty,
@@ -194,8 +194,7 @@ void search16(WORD * * q_start,
 	      unsigned long * alignmentlengths,
 	      unsigned long qlen,
 	      unsigned long dirbuffersize,
-	      WORD * up_array,
-	      WORD * left_array);
+	      unsigned long * dirbuffer);
 
 void nw(char * dseq,
 	char * dend,
@@ -207,7 +206,9 @@ void nw(char * dseq,
 	unsigned long * nwscore,
 	unsigned long * nwdiff,
 	unsigned long * nwalignmentlength,
-	char ** nwalignment);
+	char ** nwalignment,
+	unsigned long queryno,
+	unsigned long dbseqno);
 
 /* functions in matrix.cc */
 

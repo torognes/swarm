@@ -39,8 +39,7 @@ struct search_data
 
   BYTE * hearray;
 
-  WORD * up_array;
-  WORD * left_array;
+  unsigned long * dir_array;
 
   unsigned long target_count;
   unsigned long target_index;
@@ -59,22 +58,20 @@ unsigned long * master_diffs;
 unsigned long * master_alignlengths;
 
 unsigned long longestdbsequence;
-unsigned long dirbuffersize;
+unsigned long dirbufferbytes;
 
 void search_alloc(struct search_data * sdp)
 {
-  dirbuffersize = 2 * longestdbsequence * 4 * ((longestdbsequence+3)/4);
+  dirbufferbytes = 8 * longestdbsequence * ((longestdbsequence+3)/4) * 4;
   sdp->qtable = (BYTE**) xmalloc(longestdbsequence * sizeof(BYTE*));
   sdp->qtable_w = (WORD**) xmalloc(longestdbsequence * sizeof(WORD*));
   sdp->dprofile = (BYTE*) xmalloc(4*16*32);
   sdp->dprofile_w = (WORD*) xmalloc(4*2*8*32);
   sdp->hearray = (BYTE*) xmalloc(longestdbsequence * 32);
-  sdp->up_array = (WORD *) xmalloc(dirbuffersize);
-  sdp->left_array = (WORD *) xmalloc(dirbuffersize);
+  sdp->dir_array = (unsigned long *) xmalloc(dirbufferbytes);
 
   memset(sdp->hearray, 0, longestdbsequence*32);
-  memset(sdp->up_array, 0, dirbuffersize);
-  memset(sdp->left_array, 0, dirbuffersize);
+  memset(sdp->dir_array, 0, dirbufferbytes);
 }
 
 void search_free(struct search_data * sdp)
@@ -84,8 +81,7 @@ void search_free(struct search_data * sdp)
   free(sdp->dprofile);
   free(sdp->dprofile_w);
   free(sdp->hearray);
-  free(sdp->up_array);
-  free(sdp->left_array);
+  free(sdp->dir_array);
 }
 
 void search_init(struct search_data * sdp)
@@ -140,6 +136,34 @@ void search_chunk(struct search_data * sdp, long bits)
   if (sdp->target_count == 0)
     return;
 
+#if 0
+
+  for(unsigned long i=0; i<sdp->target_count; i++)
+  {
+    char * dseq;
+    long dlen;
+    char * nwalignment;
+
+    unsigned long seqno = master_targets[sdp->target_index + i];
+    db_getsequenceandlength(seqno, & dseq, & dlen);
+
+    nw(query.seq, query.seq + query.len,
+       dseq, dseq + dlen,
+       score_matrix_63,
+       penalty_gapopen, penalty_gapextend,
+       master_scores + sdp->target_index + i,
+       master_diffs + sdp->target_index + i,
+       master_alignlengths + sdp->target_index + i,
+       & nwalignment,
+       query.qno, seqno);
+
+    free(nwalignment);
+  }
+
+  return;
+
+#endif
+
   if (bits == 16)
     search16(sdp->qtable_w,
 	     penalty_gapopen,
@@ -153,9 +177,8 @@ void search_chunk(struct search_data * sdp, long bits)
 	     master_diffs + sdp->target_index,
 	     master_alignlengths + sdp->target_index,
 	     query.len,
-	     dirbuffersize/2,
-	     sdp->up_array,
-	     sdp->left_array);
+	     dirbufferbytes/8,
+	     sdp->dir_array);
   else
     search8(sdp->qtable,
 	    penalty_gapopen,
@@ -169,9 +192,8 @@ void search_chunk(struct search_data * sdp, long bits)
 	    master_diffs + sdp->target_index,
 	    master_alignlengths + sdp->target_index,
 	    query.len,
-	    dirbuffersize/2,
-	    sdp->up_array,
-	    sdp->left_array);
+	    dirbufferbytes/8,
+	    sdp->dir_array);
 }
  
 void * worker_8(void * vp)

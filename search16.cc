@@ -188,7 +188,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
   "        movdqa    (rax), xmm14        \n"	\
   "        movq      %4, rax             \n"	\
   "        movdqa    (rax), xmm15        \n"	\
-  "        movq      %10, rax            \n"	\
+  "        movq      %9, rax            \n"	\
   "        movdqa    (rax), xmm0         \n"	\
   "        movdqa    (%7), xmm7          \n"    \
   "        movdqa    xmm7, xmm4          \n"    \
@@ -206,37 +206,44 @@ inline void dprofile_fill16(WORD * dprofile_word,
   "        andq      $-16, r10           \n"	\
   "        xorq      r11, r11            \n" 
 
-#define ONESTEP(H, N, F, V, UP, LEFT)		\
+#define ONESTEP(H, N, F, V, DIR)		\
   "        paddusw   "V", "H"            \n"	\
+  "        movdqa    "H", xmm13          \n"    \
+  "        pcmpgtw   "F", xmm13          \n"    \
+  "        pmovmskb  xmm13, edx          \n"	\
+  "        movw      dx, 0+"DIR"         \n"	\
   "        pminuw    "F", "H"            \n"	\
   "        pminuw    xmm12, "H"          \n"	\
-  "        movdqa    "H", xmm13          \n"    \
-  "        pcmpeqw   "F", xmm13          \n"    \
-  "        pmovmskb  xmm13, edx          \n"	\
-  "        movw      dx, "UP"            \n"	\
   "        movdqa    "H", xmm13          \n"	\
   "        pcmpeqw   xmm12, xmm13        \n"    \
   "        pmovmskb  xmm13, edx          \n"	\
-  "        movw      dx, "LEFT"          \n"	\
-  "        paddusw   xmm15, "F"          \n"	\
-  "        paddusw   xmm15, xmm12        \n"	\
+  "        movw      dx, 2+"DIR"         \n"	\
   "        movdqa    "H", "N"            \n"	\
   "        paddusw   xmm14, "H"          \n"	\
+  "        paddusw   xmm15, "F"          \n"	\
+  "        paddusw   xmm15, xmm12        \n"	\
+  "        movdqa    "H", xmm13          \n"    \
+  "        pcmpgtw   "F", xmm13          \n"    \
+  "        pmovmskb  xmm13, edx          \n"	\
+  "        movw      dx, 4+"DIR"         \n"	\
+  "        movdqa    "H", xmm13          \n"	\
+  "        pcmpgtw   xmm12, xmm13        \n"    \
+  "        pmovmskb  xmm13, edx          \n"	\
+  "        movw      dx, 6+"DIR"         \n"	\
   "        pminuw    "H", xmm12          \n"	\
   "        pminuw    "H", "F"            \n"
 
 
 inline void donormal16(__m128i * Sm,
-		      __m128i * hep,
-		      __m128i ** qp,
-		      __m128i * Qm,
-		      __m128i * Rm,
-		      long ql,
-		      __m128i * Zm,
-		      __m128i * F0,
-		      WORD * Up,
-		      WORD * Left,
-		      __m128i * H0
+		       __m128i * hep,
+		       __m128i ** qp,
+		       __m128i * Qm,
+		       __m128i * Rm,
+		       long ql,
+		       __m128i * Zm,
+		       __m128i * F0,
+		       unsigned long * dir,
+		       __m128i * H0
 		      )
 {
   __asm__
@@ -252,20 +259,20 @@ inline void donormal16(__m128i * Sm,
      "        movdqa    0(%1,r11,4), xmm8   \n" // load N0
      "        movdqa    16(%1,r11,4), xmm12 \n" // load E
      
-     ONESTEP("xmm0", "xmm9",        "xmm4", " 0(rax)", " 0(%8,r11,1)", " 0(%9,r11,1)")
-     ONESTEP("xmm1", "xmm10",       "xmm5", "16(rax)", " 2(%8,r11,1)", " 2(%9,r11,1)")
-     ONESTEP("xmm2", "xmm11",       "xmm6", "32(rax)", " 4(%8,r11,1)", " 4(%9,r11,1)")
-     ONESTEP("xmm3", "0(%1,r11,4)", "xmm7", "48(rax)", " 6(%8,r11,1)", " 6(%9,r11,1)")
+     ONESTEP("xmm0", "xmm9",        "xmm4", " 0(rax)", " 0(%8,r11,4)")
+     ONESTEP("xmm1", "xmm10",       "xmm5", "16(rax)", " 8(%8,r11,4)")
+     ONESTEP("xmm2", "xmm11",       "xmm6", "32(rax)", "16(%8,r11,4)")
+     ONESTEP("xmm3", "0(%1,r11,4)", "xmm7", "48(rax)", "24(%8,r11,4)")
      
      "        movdqa    xmm12, 16(%1,r11,4) \n" // save E
      "        movq      8(%2,r11,1), rax    \n" // load x from qp[qi+1]
      "        movdqa    32(%1,r11,4), xmm0  \n" // load H0
      "        movdqa    48(%1,r11,4), xmm12 \n" // load E
      
-     ONESTEP("xmm8",  "xmm1",           "xmm4", "0(rax)" , " 8(%8,r11,1)", " 8(%9,r11,1)")
-     ONESTEP("xmm9",  "xmm2",           "xmm5", "16(rax)", "10(%8,r11,1)", "10(%9,r11,1)")
-     ONESTEP("xmm10", "xmm3",           "xmm6", "32(rax)", "12(%8,r11,1)", "12(%9,r11,1)")
-     ONESTEP("xmm11", "32(%1,r11,4)",   "xmm7", "48(rax)", "14(%8,r11,1)", "14(%9,r11,1)")
+     ONESTEP("xmm8",  "xmm1",           "xmm4", "0(rax)" , "32(%8,r11,4)")
+     ONESTEP("xmm9",  "xmm2",           "xmm5", "16(rax)", "40(%8,r11,4)")
+     ONESTEP("xmm10", "xmm3",           "xmm6", "32(rax)", "48(%8,r11,4)")
+     ONESTEP("xmm11", "32(%1,r11,4)",   "xmm7", "48(rax)", "56(%8,r11,4)")
      
      "        movdqa    xmm12, 48(%1,r11,4) \n" // save E
      "        addq      $16, r11            \n" // qi++
@@ -277,10 +284,10 @@ inline void donormal16(__m128i * Sm,
      "        movq      0(%2,r11,1), rax    \n" // load x from qp[qi]
      "        movdqa    16(%1,r11,4), xmm12 \n" // load E
      
-     ONESTEP("xmm0",  "xmm9",          "xmm4", "0(rax)" , " 0(%8,r11,1)", " 0(%9,r11,1)")
-     ONESTEP("xmm1",  "xmm10",         "xmm5", "16(rax)", " 2(%8,r11,1)", " 2(%9,r11,1)")
-     ONESTEP("xmm2",  "xmm11",         "xmm6", "32(rax)", " 4(%8,r11,1)", " 4(%9,r11,1)")
-     ONESTEP("xmm3",  "0(%1,r11,4)",   "xmm7", "48(rax)", " 6(%8,r11,1)", " 6(%9,r11,1)")
+     ONESTEP("xmm0",  "xmm9",          "xmm4", "0(rax)" , " 0(%8,r11,4)")
+     ONESTEP("xmm1",  "xmm10",         "xmm5", "16(rax)", " 8(%8,r11,4)")
+     ONESTEP("xmm2",  "xmm11",         "xmm6", "32(rax)", "16(%8,r11,4)")
+     ONESTEP("xmm3",  "0(%1,r11,4)",   "xmm7", "48(rax)", "24(%8,r11,4)")
      
      "        movdqa    xmm12, 16(%1,r11,4) \n" // save E
      
@@ -306,8 +313,7 @@ inline void donormal16(__m128i * Sm,
      : 
      : "m"(Sm), "r"(hep),  "r"(qp), "m"(Qm), 
        "m"(Rm), "r"(ql),   "m"(Zm), "r"(F0),
-       "r"(Up), "r"(Left), 
-       "m"(H0)
+       "r"(dir),"m"(H0)
        
      : "xmm0",  "xmm1",  "xmm2",  "xmm3",
        "xmm4",  "xmm5",  "xmm6",  "xmm7",
@@ -319,19 +325,18 @@ inline void donormal16(__m128i * Sm,
 }
 
 inline void domasked16(__m128i * Sm,
-		      __m128i * hep,
-		      __m128i ** qp,
-		      __m128i * Qm, 
-		      __m128i * Rm, 
-		      long ql,      
-		      __m128i * Zm,
-		      __m128i * F0,
-		      WORD * Up,
-		      WORD * Left,
-		      __m128i * H0,
-		      __m128i * Mm,
-		      __m128i * MQ,
-		      __m128i * MR)
+		       __m128i * hep,
+		       __m128i ** qp,
+		       __m128i * Qm, 
+		       __m128i * Rm, 
+		       long ql,      
+		       __m128i * Zm,
+		       __m128i * F0,
+		       unsigned long * dir,
+		       __m128i * H0,
+		       __m128i * Mm,
+		       __m128i * MQ,
+		       __m128i * MR)
 {
   
   __asm__
@@ -346,36 +351,36 @@ inline void domasked16(__m128i * Sm,
      "1:      movq      0(%2,r11,1), rax     \n" // load x from qp[qi]
      "        movdqa    0(%1,r11,4), xmm8    \n" // load N0
      "        movdqa    16(%1,r11,4), xmm12  \n" // load E
-     "        movdqa    (%12), xmm13         \n" 
-     "        psubusw   (%11), xmm8          \n" // mask N0
-     "        psubusw   (%11), xmm12         \n" // mask E
+     "        movdqa    (%11), xmm13         \n" 
+     "        psubusw   (%10), xmm8          \n" // mask N0
+     "        psubusw   (%10), xmm12         \n" // mask E
      "        paddusw   xmm13, xmm8          \n" // init N0
      "        paddusw   xmm13, xmm12         \n" // init E
-     "        paddusw   (%13), xmm13         \n" // update
-     "        movdqa    xmm13, (%12)         \n"
+     "        paddusw   (%12), xmm13         \n" // update
+     "        movdqa    xmm13, (%11)         \n"
      
-     ONESTEP("xmm0",  "xmm9",          "xmm4", "0(rax)" , "0(%8,r11,1)", "0(%9,r11,1)")
-     ONESTEP("xmm1",  "xmm10",         "xmm5", "16(rax)", "2(%8,r11,1)", "2(%9,r11,1)")
-     ONESTEP("xmm2",  "xmm11",         "xmm6", "32(rax)", "4(%8,r11,1)", "4(%9,r11,1)")
-     ONESTEP("xmm3",  "0(%1,r11,4)",   "xmm7", "48(rax)", "6(%8,r11,1)", "6(%9,r11,1)")
+     ONESTEP("xmm0",  "xmm9",          "xmm4", "0(rax)" , " 0(%8,r11,4)")
+     ONESTEP("xmm1",  "xmm10",         "xmm5", "16(rax)", " 8(%8,r11,4)")
+     ONESTEP("xmm2",  "xmm11",         "xmm6", "32(rax)", "16(%8,r11,4)")
+     ONESTEP("xmm3",  "0(%1,r11,4)",   "xmm7", "48(rax)", "24(%8,r11,4)")
      
      "        movdqa    xmm12, 16(%1,r11,4)  \n" // save E
 
      "        movq      8(%2,r11,1), rax     \n" // load x from qp[qi+1]
      "        movdqa    32(%1,r11,4), xmm0   \n" // load H0
      "        movdqa    48(%1,r11,4), xmm12  \n" // load E
-     "        movdqa    (%12), xmm13         \n"
-     "        psubusw   (%11), xmm0          \n" // mask H0
-     "        psubusw   (%11), xmm12         \n" // mask E
+     "        movdqa    (%11), xmm13         \n"
+     "        psubusw   (%10), xmm0          \n" // mask H0
+     "        psubusw   (%10), xmm12         \n" // mask E
      "        paddusw   xmm13, xmm0          \n"
      "        paddusw   xmm13, xmm12         \n"
-     "        paddusw   (%13), xmm13         \n"
-     "        movdqa    xmm13, (%12)         \n"
+     "        paddusw   (%12), xmm13         \n"
+     "        movdqa    xmm13, (%11)         \n"
      
-     ONESTEP("xmm8",  "xmm1",           "xmm4", "0(rax)" , " 8(%8,r11,1)", " 8(%9,r11,1)")
-     ONESTEP("xmm9",  "xmm2",           "xmm5", "16(rax)", "10(%8,r11,1)", "10(%9,r11,1)")
-     ONESTEP("xmm10", "xmm3",           "xmm6", "32(rax)", "12(%8,r11,1)", "12(%9,r11,1)")
-     ONESTEP("xmm11", "32(%1,r11,4)",   "xmm7", "48(rax)", "14(%8,r11,1)", "14(%9,r11,1)")
+     ONESTEP("xmm8",  "xmm1",           "xmm4", "0(rax)" , "32(%8,r11,4)")
+     ONESTEP("xmm9",  "xmm2",           "xmm5", "16(rax)", "40(%8,r11,4)")
+     ONESTEP("xmm10", "xmm3",           "xmm6", "32(rax)", "48(%8,r11,4)")
+     ONESTEP("xmm11", "32(%1,r11,4)",   "xmm7", "48(rax)", "56(%8,r11,4)")
      
      "        movdqa    xmm12, 48(%1,r11,4)  \n" // save E
      "        addq      $16, r11             \n" // qi++
@@ -386,16 +391,16 @@ inline void domasked16(__m128i * Sm,
      "        je        3f                   \n"
      "        movq      0(%2,r11,1), rax     \n" // load x from qp[qi]
      "        movdqa    16(%1,r11,4), xmm12  \n" // load E
-     "        movdqa    (%12), xmm13         \n"
-     "        psubusw   (%11), xmm12         \n" // mask E
+     "        movdqa    (%11), xmm13         \n"
+     "        psubusw   (%10), xmm12         \n" // mask E
      "        paddusw   xmm13, xmm12         \n"
-     "        paddusw   (%13), xmm13         \n"
-     "        movdqa    xmm13, (%12)         \n"
+     "        paddusw   (%12), xmm13         \n"
+     "        movdqa    xmm13, (%11)         \n"
      
-     ONESTEP("xmm0",  "xmm9",          "xmm4", "0(rax)" , "0(%8,r11,1)", "0(%9,r11,1)")
-     ONESTEP("xmm1",  "xmm10",         "xmm5", "16(rax)", "2(%8,r11,1)", "2(%9,r11,1)")
-     ONESTEP("xmm2",  "xmm11",         "xmm6", "32(rax)", "4(%8,r11,1)", "4(%9,r11,1)")
-     ONESTEP("xmm3",  "0(%1,r11,4)",   "xmm7", "48(rax)", "6(%8,r11,1)", "6(%9,r11,1)")
+     ONESTEP("xmm0",  "xmm9",          "xmm4", "0(rax)" , " 0(%8,r11,4)")
+     ONESTEP("xmm1",  "xmm10",         "xmm5", "16(rax)", " 8(%8,r11,4)")
+     ONESTEP("xmm2",  "xmm11",         "xmm6", "32(rax)", "16(%8,r11,4)")
+     ONESTEP("xmm3",  "0(%1,r11,4)",   "xmm7", "48(rax)", "24(%8,r11,4)")
      
      "        movdqa    xmm12, 16(%1,r11,4)  \n" // save E
      
@@ -422,7 +427,7 @@ inline void domasked16(__m128i * Sm,
      
      : "m"(Sm), "r"(hep),"r"(qp), "m"(Qm), 
        "m"(Rm), "r"(ql), "m"(Zm), "r"(F0),
-       "r"(Up), "r"(Left),
+       "r"(dir),
        "m"(H0), "r"(Mm), "r"(MQ), "r"(MR)
        
      : "xmm0",  "xmm1",  "xmm2",  "xmm3",
@@ -438,14 +443,16 @@ unsigned long backtrack16(char * qseq,
 			  char * dseq,
 			  unsigned long qlen,
 			  unsigned long dlen,
-			  WORD * up_array, 
-			  WORD * left_array,
+			  unsigned long * dirbuffer,
 			  unsigned long offset,
-			  unsigned long size,
-			  int channel,
+			  unsigned long dirbuffersize,
+			  unsigned long channel,
 			  unsigned long * alignmentlengthp)
 {
-  unsigned long diff = 0;
+  unsigned long maskup      = 3UL << (2*channel+ 0);
+  unsigned long maskleft    = 3UL << (2*channel+16);
+  unsigned long maskextup   = 3UL << (2*channel+32);
+  unsigned long maskextleft = 3UL << (2*channel+48);
 
 #if 0
 
@@ -455,17 +462,16 @@ unsigned long backtrack16(char * qseq,
   {
     for(unsigned long j=0; j<dlen; j++)
     {
-      unsigned long index = (offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % size;
-      unsigned long mask = 1 << (2*channel);
-
-      if (up_array[index] & mask)
+      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dir
+				  buffersize];
+      if (d & maskup)
       {
-	if (left_array[index] & mask)
+	if (d & maskleft)
 	  printf("+");
 	else
 	  printf("^");
       }
-      else if (left_array[index] & mask)
+      else if (d & maskleft)
       {
 	printf("<");
       }
@@ -476,42 +482,79 @@ unsigned long backtrack16(char * qseq,
     }
     printf("\n");
   }
-  
+
+  printf("Dumping gap extension array\n");
+
+  for(unsigned long i=0; i<qlen; i++)
+  {
+    for(unsigned long j=0; j<dlen; j++)
+    {
+      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dir
+				  buffersize];
+      if (d & maskextup)
+      {
+	if (d & maskextleft)
+	  printf("+");
+	else
+	  printf("^");
+      }
+      else if (d & maskextleft)
+      {
+	printf("<");
+      }
+      else
+      {
+	printf("\\");
+      }
+    }
+    printf("\n");
+  }
+
 #endif
 
   long i = qlen - 1;
   long j = dlen - 1;
+  unsigned long aligned = 0;
   unsigned long matches = 0;
-  unsigned long mask = 1 << (2*channel);
+  char op = 0;
 
   while ((i>=0) && (j>=0))
   {
-    unsigned long index = (offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % size;
+    aligned++;
 
-    if (up_array[index] & mask)
+    unsigned long d = 
+      dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dirbuffersize];
+
+    if ((op == 'I') && (d & maskextleft))
     {
-      diff++;
+      j--;
+    }
+    else if ((op == 'D') && (d & maskextup))
+    {
       i--;
     }
-    else if (left_array[index] & mask)
+    else if (d & maskleft)
     {
-      diff++;
       j--;
+      op = 'I';
+    }
+    else if (d & maskup)
+    {
+      i--;
+      op = 'D';
     }
     else
     {
       if (qseq[i] == dseq[j])
 	matches++;
-      else
-        diff++;
       i--;
       j--;
+      op = 'M';
     }
   }
-
-  diff += i + j + 2;
-  * alignmentlengthp = matches + diff;
-  return diff;
+  aligned += i + j + 2;
+  * alignmentlengthp = aligned;
+  return aligned - matches;
 }
 
 void search16(WORD * * q_start,
@@ -527,8 +570,7 @@ void search16(WORD * * q_start,
 	      unsigned long * alignmentlengths,
 	      unsigned long qlen,
 	      unsigned long dirbuffersize,
-	      WORD * up_array,
-	      WORD * left_array)
+	      unsigned long * dirbuffer)
 {
   __m128i Q, R, T, M, T0, MQ, MR;
   __m128i *hep, **qp;
@@ -574,8 +616,7 @@ void search16(WORD * * q_start,
   
   int easy = 0;
 
-  WORD * up = up_array;
-  WORD * left = left_array;
+  unsigned long * dir = dirbuffer;
 
   while(1)
   {
@@ -603,7 +644,7 @@ void search16(WORD * * q_start,
       dprofile_fill16(dprofile, score_matrix, dseq);
 #endif
 
-      donormal16(S, hep, qp, &Q, &R, qlen, 0, &F0, up, left, &H0);
+      donormal16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0);
     }
     else
     {
@@ -656,7 +697,7 @@ void search16(WORD * * q_start,
 	      {
 		long offset = d_offset[c];
 		diff = backtrack16(query.seq, dbseq, qlen, dbseqlen,
-				   up_array, left_array,
+				   dirbuffer,
 				   offset,
 				   dirbuffersize, c,
 				   alignmentlengths + cand_id);
@@ -688,7 +729,7 @@ void search16(WORD * * q_start,
 
 	    d_begin[c] = (unsigned char*) address;
 	    d_end[c] = (unsigned char*) address + length;
-	    d_offset[c] = up - up_array;
+	    d_offset[c] = dir - dirbuffer;
 	    next_id++;
 	    
 	    ((WORD*)&H0)[c] = 0;
@@ -734,7 +775,7 @@ void search16(WORD * * q_start,
       MQ = _mm_and_si128(M, Q);
       MR = _mm_and_si128(M, R);
       
-      domasked16(S, hep, qp, &Q, &R, qlen, 0, &F0, up, left, &H0, &M, &MQ, &MR);
+      domasked16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR);
     }
     
     F0 = _mm_adds_epu16(F0, R);
@@ -743,13 +784,11 @@ void search16(WORD * * q_start,
     H0 = F0;
     F0 = _mm_adds_epu16(F0, R);
 
-    up += 4*longestdbsequence;
-    left += 4*longestdbsequence;
+    dir += 4*longestdbsequence;
     
-    if (up >= up_array + dirbuffersize)
+    if (dir >= dirbuffer + dirbuffersize)
     {
-      up -= dirbuffersize;
-      left -= dirbuffersize;
+      dir -= dirbuffersize;
     }
   }
 }

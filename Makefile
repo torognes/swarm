@@ -25,17 +25,18 @@
 #COMMON=-pg -g
 COMMON=-g
 
+COMPILEOPT=-Wall -msse4.2
+
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
 
 # Intel options
 #CXX=icpc
-#CXXFLAGS=-Wall -Wno-missing-declarations -fast -xSSE2 $(COMMON)
+#CXXFLAGS=$(COMPILEOPT) $(COMMON) -Wno-missing-declarations -fast
 
 # GNU options
 CXX=g++
-#CXXFLAGS=-Wall -O3 -mtune=core2 -msse4.1 $(COMMON)
-CXXFLAGS=-Wall -O3 -march=core2 $(COMMON)
+CXXFLAGS=$(COMPILEOPT) $(COMMON) -O3
 
 PROG=swarm
 
