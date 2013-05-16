@@ -29,7 +29,7 @@ Table of Content
 ./swarm amplicons.fasta
 ```
 
-***Warning***: **swarm** only runs on CPUs with SSE4.1 instructions. These instructions were introduced by Intel in November 2007 for servers and January 2008 for desktop and portable CPUs. It has been supported by AMD CPUs since October 2011. **swarm** should be able to run on any Intel or AMD CPU released since.
+***Warning***: **swarm** only runs on CPUs with the SSE4.1 and POPCNT instructions. These instructions were introduced by Intel in November 2007 for servers and January 2008 for desktop and portable CPUs. It has been supported by AMD CPUs since October 2011. **swarm** should be able to run on any Intel or AMD CPU released since.
 
 <a name="install"/>
 ## Install ##
