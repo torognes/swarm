@@ -25,7 +25,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <tmmintrin.h>
+#include <nmmintrin.h>
 #include <stdlib.h>
 
 /* constants */
@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.1.1"
+#define SWARM_VERSION "1.2.0"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -47,6 +47,10 @@
 #endif
 
 #define MIN(x,y) ((x)<(y)?(x):(y))
+
+#define QGRAMLENGTH 5
+#define QGRAMVECTORBITS (1<<(2*QGRAMLENGTH))
+#define QGRAMVECTORBYTES (QGRAMVECTORBITS/8)
 
 /* structures and data types */
 
@@ -66,9 +70,12 @@ struct seqinfo_s
   unsigned long clusterid;
   unsigned long hdrhash;
   long composition[4];
+  unsigned char qgramvector[QGRAMVECTORBYTES];
 };
 
 typedef struct seqinfo_s seqinfo_t;
+
+extern seqinfo_t * seqindex;
 
 struct queryinfo
 {
@@ -123,7 +130,6 @@ extern unsigned long longestdbsequence;
 
 extern queryinfo_t query;
 
-
 /* functions in util.cc */
 
 long gcd(long a, long b);
@@ -134,7 +140,19 @@ void * xrealloc(void * ptr, size_t size);
 char * xstrchrnul(char *s, int c);
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
 
-/* functions in dataset.cc */
+
+/* functions in qgram.cc */
+
+void findqgrams(unsigned char * seq, unsigned long seqlen,
+                unsigned char * qgramvector);
+unsigned long qgram_diff(unsigned long a, unsigned long b);
+
+void qgram_diff_parallel(unsigned long seed,
+			 unsigned long listlen,
+			 unsigned long * amplist,
+			 unsigned long * difflist);
+
+/* functions in db.cc */
 
 void db_read(const char * filename);
 
@@ -164,7 +182,12 @@ void db_free();
 
 void db_putseq(long seqno);
 
-/* functions in search8.cc, search16.cc, nw.cc */
+inline unsigned char * db_getqgramvector(unsigned long seqno)
+{
+  return seqindex[seqno].qgramvector;
+}
+
+/* functions in search8.cc */
 
 void search8(BYTE * * q_start,
 	     BYTE gap_open_penalty,
@@ -181,6 +204,8 @@ void search8(BYTE * * q_start,
 	     unsigned long dirbuffersize,
 	     unsigned long * dirbuffer);
 
+/* functions in search16.cc */
+
 void search16(WORD * * q_start,
 	      WORD gap_open_penalty,
 	      WORD gap_extend_penalty,
@@ -196,6 +221,8 @@ void search16(WORD * * q_start,
 	      unsigned long dirbuffersize,
 	      unsigned long * dirbuffer);
 
+/* functions in nw.cc */
+
 void nw(char * dseq,
 	char * dend,
 	char * qseq,
@@ -207,6 +234,8 @@ void nw(char * dseq,
 	unsigned long * nwdiff,
 	unsigned long * nwalignmentlength,
 	char ** nwalignment,
+	unsigned char * dir,
+	unsigned long * hearray,
 	unsigned long queryno,
 	unsigned long dbseqno);
 

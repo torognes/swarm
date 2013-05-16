@@ -155,6 +155,8 @@ void search_chunk(struct search_data * sdp, long bits)
        master_diffs + sdp->target_index + i,
        master_alignlengths + sdp->target_index + i,
        & nwalignment,
+       (unsigned char *) sdp->dir_array,
+       (unsigned long int *) sdp->hearray,
        query.qno, seqno);
 
     free(nwalignment);

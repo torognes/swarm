@@ -59,6 +59,11 @@ void finishop(char ** cigarendp, char * op, int * count)
   }
 }
 
+const unsigned char maskup      = 1;
+const unsigned char maskleft    = 2;
+const unsigned char maskextup   = 4;
+const unsigned char maskextleft = 8;
+
 /*
 
   Needleman/Wunsch/Sellers aligner
@@ -111,21 +116,21 @@ void nw(char * dseq,
 	unsigned long * nwdiff,
 	unsigned long * nwalignmentlength,
 	char ** nwalignment,
+	unsigned char * dir,
+	unsigned long * hearray,
 	unsigned long queryno,
 	unsigned long dbseqno)
 {
+  /* dir must point to at least qlen*dlen bytes of allocated memory
+     hearray must point to at least 2*qlen longs of allocated memory (8*qlen bytes) */
+
   long h, n, e, f;
-  long *hep;
+  long unsigned *hep;
 
   long qlen = qend - qseq;
   long dlen = dend - dseq;
 
-  char * diru = (char*) xmalloc(qlen*dlen);
-  char * dirl = (char*) xmalloc(qlen*dlen);
-  char * extu = (char*) xmalloc(qlen*dlen);
-  char * extl = (char*) xmalloc(qlen*dlen);
-
-  long * hearray = (long *) xmalloc(2 * qlen * sizeof(long));
+  memset(dir, 0, qlen*dlen);
 
   long i, j;
 
@@ -149,10 +154,10 @@ void nw(char * dseq,
       e = *(hep+1);
       h += score_matrix[(dseq[j]<<5) + qseq[i]];
       
-      diru[index] = (f < h);
+      dir[index] |= (f < h ? maskup : 0);
       h = MIN(h, f);
       h = MIN(h, e);
-      dirl[index] = (e == h);
+      dir[index] |= (e == h ? maskleft : 0);
 
       *hep = h;
       
@@ -160,8 +165,8 @@ void nw(char * dseq,
       e += gapextend;
       f += gapextend;
       
-      extu[index] = f < h;
-      extl[index] = e < h;
+      dir[index] |= (f < h ? maskextup : 0);
+      dir[index] |= (e < h ? maskextleft : 0);
       f = MIN(h,f);
       e = MIN(h,e);
       
@@ -191,22 +196,23 @@ void nw(char * dseq,
 
   while ((i>0) && (j>0))
   {
-    int index = qlen*(j-1)+(i-1);
+    int d = dir[qlen*(j-1)+(i-1)];
+
     alength++;
 
-    if ((op == 'I') && (extl[index]))
+    if ((op == 'I') && (d & maskextleft))
     {
       score += gapextend;
       j--;
       pushop('I', &cigarend, &op, &count);
     }
-    else if ((op == 'D') && (extu[index]))
+    else if ((op == 'D') && (d & maskextup))
     {
       score += gapextend;
       i--;
       pushop('D', &cigarend, &op, &count);
     }
-    else if (dirl[index])
+    else if (d & maskleft)
     {
       score += gapextend;
       if (op != 'I')
@@ -214,7 +220,7 @@ void nw(char * dseq,
       j--;
       pushop('I', &cigarend, &op, &count);
     }
-    else if (diru[index])
+    else if (d & maskup)
     {
       score += gapextend;
       if (op != 'D')
@@ -260,12 +266,6 @@ void nw(char * dseq,
   long cigarlength = cigar+qlen+dlen-cigarend;
   memmove(cigar, cigarend, cigarlength+1);
   cigar = (char*) xrealloc(cigar, cigarlength+1);
-
-  free(hearray);
-  free(diru);
-  free(dirl);
-  free(extu);
-  free(extl);
 
   * nwscore = dist;
   * nwdiff = alength - matches;

@@ -261,6 +261,10 @@ void db_read(const char * filename)
 	seqindex_p->composition[(int)(seqindex_p->seq[i])-1]++;
       }
 
+    /* find qgrams */
+    findqgrams((unsigned char*) seqindex_p->seq, seqindex_p->seqlen, 
+	       seqindex_p->qgramvector);
+
     seqindex_p++;
   }
 
