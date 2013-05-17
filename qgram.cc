@@ -62,50 +62,80 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
   }
 }
 
-inline unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+/* 
+   Unable to get the Mac gcc compiler v 4.2.1 produce the real 
+   popcnt instruction. Therefore resorting to assembly code.
+*/
+
+#define popcnt_asm(x,y)						\
+  __asm__ __volatile__ ("popcnt %1,%0" : "=r"(y) : "r"(x));
+
+inline unsigned long popcount(unsigned long x)
+{
+  unsigned long y;
+  popcnt_asm(x,y);
+  return y;
+}
+
+unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
 {
   /* count number of different bits */
+  unsigned long count = 0;
+
+#if 1
+
+  /* using ordinary 64-bit registers */
 
   unsigned long *ap = (unsigned long*)a;
   unsigned long *bp = (unsigned long*)b;
-  unsigned long count = 0;
 
-#if QGRAMHASHBYTES == 128
-  x = ap[ 0] ^ bp[ 0];
-  count += __builtin_popcountl(x);
-  x = ap[ 1] ^ bp[ 1];
-  count += __builtin_popcountl(x);
-  x = ap[ 2] ^ bp[ 2];
-  count += __builtin_popcountl(x);
-  x = ap[ 3] ^ bp[ 3];
-  count += __builtin_popcountl(x);
-  x = ap[ 4] ^ bp[ 4];
-  count += __builtin_popcountl(x);
-  x = ap[ 5] ^ bp[ 5];
-  count += __builtin_popcountl(x);
-  x = ap[ 6] ^ bp[ 6];
-  count += __builtin_popcountl(x);
-  x = ap[ 7] ^ bp[ 7];
-  count += __builtin_popcountl(x);
-  x = ap[ 8] ^ bp[ 8];
-  count += __builtin_popcountl(x);
-  x = ap[ 9] ^ bp[ 9];
-  count += __builtin_popcountl(x);
-  x = ap[10] ^ bp[10];
-  count += __builtin_popcountl(x);
-  x = ap[11] ^ bp[11];
-  count += __builtin_popcountl(x);
-  x = ap[12] ^ bp[12];
-  count += __builtin_popcountl(x);
-  x = ap[13] ^ bp[13];
-  count += __builtin_popcountl(x);
-  x = ap[14] ^ bp[14];
-  count += __builtin_popcountl(x);
-  x = ap[15] ^ bp[15];
-  count += __builtin_popcountl(x);
-#else
+#if 1
+
+  /* with ordinary loop */
+
   for(int i = 0; i < QGRAMVECTORBYTES/8; i++)
-    count += __builtin_popcountl(ap[i] ^ bp[i]);
+    count += popcount(ap[i] ^ bp[i]);
+
+#else
+
+  /* unrolled loop */
+
+  count += popcount(ap[ 0] ^ bp[ 0]);
+  count += popcount(ap[ 1] ^ bp[ 1]);
+  count += popcount(ap[ 2] ^ bp[ 2]);
+  count += popcount(ap[ 3] ^ bp[ 3]);
+  count += popcount(ap[ 4] ^ bp[ 4]);
+  count += popcount(ap[ 5] ^ bp[ 5]);
+  count += popcount(ap[ 6] ^ bp[ 6]);
+  count += popcount(ap[ 7] ^ bp[ 7]);
+  count += popcount(ap[ 8] ^ bp[ 8]);
+  count += popcount(ap[ 9] ^ bp[ 9]);
+  count += popcount(ap[10] ^ bp[10]);
+  count += popcount(ap[11] ^ bp[11]);
+  count += popcount(ap[12] ^ bp[12]);
+  count += popcount(ap[13] ^ bp[13]);
+  count += popcount(ap[14] ^ bp[14]);
+  count += popcount(ap[15] ^ bp[15]);
+
+#endif
+
+#else
+
+  /* SSE2 version using the 128-bit XMM registers */
+
+  __m128i * ap = (__m128i*) a;
+  __m128i * bp = (__m128i*) b;
+
+  for(int i = 0; i < 8; i++)
+    {
+      __m128i x = _mm_load_si128(ap+i);
+      x = _mm_xor_si128(x, bp[i]);
+      unsigned long u = _mm_extract_epi64(x, 0);
+      unsigned long v = _mm_extract_epi64(x, 1);
+      count += popcount(u);
+      count += popcount(v);
+    }
+
 #endif
 
   return count;
