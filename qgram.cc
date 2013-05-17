@@ -22,9 +22,6 @@
 */
 
 #include "swarm.h"
-#include "limits.h"
-
-unsigned long qgram_map[QGRAMVECTORBITS];
 
 void printqgrams(unsigned char * qgramvector)
 {
@@ -130,10 +127,8 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
     {
       __m128i x = _mm_load_si128(ap+i);
       x = _mm_xor_si128(x, bp[i]);
-      unsigned long u = _mm_extract_epi64(x, 0);
-      unsigned long v = _mm_extract_epi64(x, 1);
-      count += popcount(u);
-      count += popcount(v);
+      count += popcount(_mm_extract_epi64(x, 0));
+      count += popcount(_mm_extract_epi64(x, 1));
     }
 
 #endif
