@@ -138,7 +138,7 @@ rm "${AMPLICONS}"
 <a name="version120"/>
 ### version 1.2.0 ###
 
-**swarm** 1.2.0 introduces filtering based on k-mers. This eliminates most of the time-consuming pairwise alignments and greatly improves speed. The speedup can be more than 100-fold compared to previous swarm versions when using a single thread with a large set of amplicons. Using multiple threads induces a computational overhead, but becomes more and more efficient as the size of the amplicon set increases.
+**swarm** 1.2.0 introduces a pre-filtering of similar amplicons based on k-mers. This eliminates most of the time-consuming pairwise alignments and greatly improves speed. The speedup can be more than 100-fold compared to previous swarm versions when using a single thread with a large set of amplicons. Using multiple threads induces a computational overhead, but becomes more and more efficient as the size of the amplicon set increases.
 
 <a name="version111"/>
 ### version 1.1.1 ###

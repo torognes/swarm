@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "16 April 2013" "version 1.1.0" "USER COMMANDS"
+.TH swarm 1 "20 May 2013" "version 1.2.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -27,13 +27,13 @@ Exact clustering is impractical on large data sets when using a naïve
 all-vs-all approach (i.e. a 2-combination without repetitions), as it
 implies unrealistic numbers of pairwise comparisons. \fBswarm\fR is
 based on a maximum number of differences, and focuses only on close
-relationships. Several pre-filterings and an astute use of comparisons
-results obtained during the process allows to avoid up to 98% of the
-amplicon comparisons needed in a naïve approach. To speed up the
-remaining amplicon comparisons, \fBswarm\fR implements an extremely
-fast Needleman-Wunsch algorithm making use of the Streaming SIMD
-Extensions (SSE4.1) of modern x86-64 CPUs. If SSE4.1 instructions are
-not available, \fBswarm\fR exits with an error message.
+relationships. An efficient \fIk\fR-mer-based filtering and an astute
+use of comparisons results obtained during the process allows to avoid
+most of the amplicon comparisons needed in a naïve approach. To speed
+up the remaining amplicon comparisons, \fBswarm\fR implements an
+extremely fast Needleman-Wunsch algorithm making use of the Streaming
+SIMD Extensions (SSE4.1) of modern x86-64 CPUs. If SSE4.1 instructions
+are not available, \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
 nucleotide amplicons. The amplicon identifier is defined as the string
@@ -176,6 +176,18 @@ Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
 .SH VERSION HISTORY
 New features and important modifications of \fBswarm\fR:
 .RS
+.TP
+.BR v1.2\~ "released May 16, 2013"
+Version 1.2 greatly improves speed by using a \fIk\fR-mer-based
+filtering. For each amplicon, the presence-absence of all possible
+5-mers is computed and recorded in a 1024-bits vector. Vector
+comparisons are extremely fast and drastically reduce the number of
+costly pairwise alignments performed by swarm. While remaining exact,
+swarm 1.2 can be more than 100-times faster than swarm 1.1, when using
+a single thread with a large set of sequences. The minor version
+1.1.1, published just before, adds compatibility with Apple computers,
+and corrects an issue in the pairwise global alignment step that could
+lead to sub-optimal alignments.
 .TP
 .BR v1.1\~ "released February 26, 2013"
 Version 1.1 introduces two new important options: the possibility to
