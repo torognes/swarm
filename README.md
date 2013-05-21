@@ -6,6 +6,7 @@ The purpose of **swarm** is to provide a novel clustering algorithm to handle la
 
 Table of Content
 ================
+
 * [Quick start](#quick_start)
 * [Install](#install)
 * [Prepare amplicon fasta files](#prepare_amplicon)
@@ -13,6 +14,7 @@ Table of Content
    * [Dereplication](#dereplication)
    * [Launch swarm](#launch)
 * [Parse swarm results](#parse)
+   * [Count the number of amplicons per OTU](#OTU_sizes)
    * [Get the seed sequence for each swarm](#extract_seeds)
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [New features](#features)
@@ -101,8 +103,20 @@ See the user manual (man page and PDF) for details on **swarm**'s options and pa
 
 To facilitate the use of **swarm**, we provide examples of shell commands that can be use to parse **swarm**'s output. We assume that the amplicon fasta file was prepared as describe above (linearization and dereplication).
 
+<a name="OTU_sizes"/>
+### Count the number of amplicons per OTU ###
+
+You might want to check the size distribution of OTU (number of amplicons in each OTU), and count the number of singletons (OTUs containing only one amplicon).
+
+```
+awk '{print NF}' amplicons.swarms | sort -n | uniq -c
+awk 'NF == 1 {sum+=1} END {print sum}' amplicons.swarms
+```
+
+The number of amplicons in each OTU and several other metrics are available in the statistics file produced by swarm when using the -s option.
+
 <a name="extract_seeds"/>
-### Get the seed sequence for each swarm ###
+### Get the seed sequence for each OTU ###
 
 It is frequent for subsequent analyses to keep only one representative amplicon per OTU (usually the seed) to reduce the computational burden. That operation is easily done with **swarm** results.
 
@@ -114,9 +128,9 @@ rm "${SEEDS}"
 ```
 
 <a name="extract_all"/>
-### Get fasta sequences for all amplicons in a swarm ###
+### Get fasta sequences for all amplicons in a OTU ###
 
-For each swarm, get the fasta sequences for all amplicons. Warning, this loop can generate a very large number of files. To limit the number of files, a test can be added to exclude swarms with less than *n* elements.
+For each OTU, get the fasta sequences for all amplicons. Warning, this loop can generate a very large number of files. To limit the number of files, a test can be added to exclude swarms with less than *n* elements.
 
 ```
 INPUT_SWARM="amplicons.swarms"
