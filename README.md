@@ -163,7 +163,7 @@ If **swarm** exists with an error message saying "This program requires a proces
 <a name="version121"/>
 ### version 1.2.1 ###
 
-**swarm** 1.2.1 removes the need for a SSE4.1 capable CPU and should now be able to run on most servers, desktops and laptops computers.
+**swarm** 1.2.1 removes the need for a SSE4.1 capable CPU and should now be able to run on most servers, desktops and laptops.
 
 <a name="version120"/>
 ### version 1.2.0 ###
