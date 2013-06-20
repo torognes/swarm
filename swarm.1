@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "20 May 2013" "version 1.2.0" "USER COMMANDS"
+.TH swarm 1 "20 June 2013" "version 1.2.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -32,8 +32,8 @@ use of comparisons results obtained during the process allows to avoid
 most of the amplicon comparisons needed in a naïve approach. To speed
 up the remaining amplicon comparisons, \fBswarm\fR implements an
 extremely fast Needleman-Wunsch algorithm making use of the Streaming
-SIMD Extensions (SSE4.1) of modern x86-64 CPUs. If SSE4.1 instructions
-are not available, \fBswarm\fR exits with an error message.
+SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are
+not available, \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
 nucleotide amplicons. The amplicon identifier is defined as the string
