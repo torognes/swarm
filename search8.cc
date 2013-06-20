@@ -904,7 +904,10 @@ void search8(BYTE * * q_start,
 	  easy = 0;
       }
 
-      dprofile_shuffle8(dprofile, score_matrix, dseq);
+      if (ssse3_present)
+	dprofile_shuffle8(dprofile, score_matrix, dseq);
+      else
+	dprofile_fill8(dprofile, score_matrix, dseq);
       
       donormal8(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0);
     }
@@ -1025,8 +1028,11 @@ void search8(BYTE * * q_start,
       if (done == sequences)
 	break;
 	  
-      dprofile_shuffle8(dprofile, score_matrix, dseq);
-	  
+      if (ssse3_present)
+	dprofile_shuffle8(dprofile, score_matrix, dseq);
+      else
+	dprofile_fill8(dprofile, score_matrix, dseq);
+
       MQ = _mm_and_si128(M, Q);
       MR = _mm_and_si128(M, R);
       

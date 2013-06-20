@@ -30,7 +30,6 @@
 
 unsigned long count_comparisons_8;
 unsigned long count_comparisons_16;
-unsigned long count_comparisons_again;
 
 unsigned long targetcount;
 unsigned long * targetindices;
@@ -80,7 +79,6 @@ void algo_run()
 {
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
-  count_comparisons_again = 0;
 
   unsigned long searches = 0;
   unsigned long estimates = 0;
@@ -498,9 +496,7 @@ void algo_run()
 
   fprintf(stderr, "Comparisons (16b): %lu (%.2lf%%)\n", count_comparisons_16, (200.0 * count_comparisons_16 / amplicons / (amplicons+1)));
 
-  fprintf(stderr, "Comparisons (cnv): %lu (%.2lf%%)\n", count_comparisons_again, (200.0 * count_comparisons_again / amplicons / (amplicons+1)));
-  
-  fprintf(stderr, "Comparisons (tot): %lu (%.2lf%%)\n", count_comparisons_8 + count_comparisons_16 + count_comparisons_again, (200.0 * (count_comparisons_8 + count_comparisons_16 + count_comparisons_again) / amplicons / (amplicons+1)));
+  fprintf(stderr, "Comparisons (tot): %lu (%.2lf%%)\n", count_comparisons_8 + count_comparisons_16, (200.0 * (count_comparisons_8 + count_comparisons_16) / amplicons / (amplicons+1)));
 
 }
 

@@ -25,7 +25,7 @@
 #COMMON=-pg -g
 COMMON=-g
 
-COMPILEOPT=-Wall -msse4.2
+COMPILEOPT=-Wall -mssse3 -mtune=core2
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)

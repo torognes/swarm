@@ -56,6 +56,8 @@ inline void dprofile_shuffle16(WORD * dprofile,
 
   // instructions? 32 + 5*12 = 92
 
+  // Requires SSSE3 due to pshufb
+
   zero = _mm_setzero_si128();
   one  = _mm_set1_epi16(1);
   
@@ -183,6 +185,9 @@ inline void dprofile_fill16(WORD * dprofile_word,
 #endif
 }
 
+// Due to the use of pminsw instead of pminuw below, the code works
+// only with 15-bit values
+
 #define INITIALIZE				\
   "        movq      %3, rax             \n"	\
   "        movdqa    (rax), xmm14        \n"	\
@@ -212,8 +217,8 @@ inline void dprofile_fill16(WORD * dprofile_word,
   "        pcmpgtw   "F", xmm13          \n"    \
   "        pmovmskb  xmm13, edx          \n"	\
   "        movw      dx, 0+"DIR"         \n"	\
-  "        pminuw    "F", "H"            \n"	\
-  "        pminuw    xmm12, "H"          \n"	\
+  "        pminsw    "F", "H"            \n"	\
+  "        pminsw    xmm12, "H"          \n"    \
   "        movdqa    "H", xmm13          \n"	\
   "        pcmpeqw   xmm12, xmm13        \n"    \
   "        pmovmskb  xmm13, edx          \n"	\
@@ -230,8 +235,8 @@ inline void dprofile_fill16(WORD * dprofile_word,
   "        pcmpgtw   xmm12, xmm13        \n"    \
   "        pmovmskb  xmm13, edx          \n"	\
   "        movw      dx, 6+"DIR"         \n"	\
-  "        pminuw    "H", xmm12          \n"	\
-  "        pminuw    "H", "F"            \n"
+  "        pminsw    "H", xmm12          \n"	\
+  "        pminsw    "H", "F"            \n"
 
 
 inline void donormal16(__m128i * Sm,
@@ -638,12 +643,11 @@ void search16(WORD * * q_start,
 	  easy = 0;
       }
 
-#ifdef SHUFFLE
-      dprofile_shuffle16(dprofile, score_matrix, dseq);
-#else
-      dprofile_fill16(dprofile, score_matrix, dseq);
-#endif
-
+      if (ssse3_present)
+	dprofile_shuffle16(dprofile, score_matrix, dseq);
+      else
+	dprofile_fill16(dprofile, score_matrix, dseq);
+      
       donormal16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0);
     }
     else
@@ -766,11 +770,10 @@ void search16(WORD * * q_start,
       if (done == sequences)
 	break;
 	  
-#ifdef SHUFFLE
-      dprofile_shuffle16(dprofile, score_matrix, dseq);
-#else
-      dprofile_fill16(dprofile, score_matrix, dseq);
-#endif
+      if (ssse3_present)
+	dprofile_shuffle16(dprofile, score_matrix, dseq);
+      else
+	dprofile_fill16(dprofile, score_matrix, dseq);
 	  
       MQ = _mm_and_si128(M, Q);
       MR = _mm_and_si128(M, R);

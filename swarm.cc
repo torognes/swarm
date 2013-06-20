@@ -51,15 +51,16 @@ long penalty_mismatch;
 
 /* Other variables */
 
-long mmx_present;
-long sse_present;
-long sse2_present;
-long sse3_present;
-long ssse3_present;
-long sse41_present;
-long sse42_present;
-long popcnt_present;
-long avx_present;
+long mmx_present = 0;
+long sse_present = 0;
+long sse2_present = 0;
+long sse3_present = 0;
+long ssse3_present = 0;
+long sse41_present = 0;
+long sse42_present = 0;
+long popcnt_present = 0;
+long avx_present = 0;
+long avx2_present = 0;
 
 unsigned long dbsequencecount = 0;
 
@@ -75,21 +76,30 @@ char sym_nt[] = "-acgt                           ";
 
 void cpu_features_detect()
 {
-  unsigned int a __attribute__ ((unused));
-  unsigned int b __attribute__ ((unused));
-  unsigned int c, d;
+  unsigned int a, b, c, d;
 
-  cpuid(1,a,b,c,d);
+  cpuid(0,a,b,c,d);
+  unsigned int maxlevel = a & 0xff;
 
-  mmx_present    = (d >> 23) & 1;
-  sse_present    = (d >> 25) & 1;
-  sse2_present   = (d >> 26) & 1;
-  sse3_present   = (c >>  0) & 1;
-  ssse3_present  = (c >>  9) & 1;
-  sse41_present  = (c >> 19) & 1;
-  sse42_present  = (c >> 20) & 1;
-  popcnt_present = (c >> 23) & 1;
-  avx_present    = (c >> 28) & 1;
+  if (maxlevel >= 1)
+  {
+    cpuid(1,a,b,c,d);
+    mmx_present    = (d >> 23) & 1;
+    sse_present    = (d >> 25) & 1;
+    sse2_present   = (d >> 26) & 1;
+    sse3_present   = (c >>  0) & 1;
+    ssse3_present  = (c >>  9) & 1;
+    sse41_present  = (c >> 19) & 1;
+    sse42_present  = (c >> 20) & 1;
+    popcnt_present = (c >> 23) & 1;
+    avx_present    = (c >> 28) & 1;
+    
+    if (maxlevel >= 7)
+    {
+      cpuid(7,a,b,c,d);
+      avx2_present   = (b >>  5) & 1;
+    }
+  }
 }
 
 void cpu_features_show()
@@ -113,6 +123,8 @@ void cpu_features_show()
     fprintf(stderr, " popcnt");
   if (avx_present)
     fprintf(stderr, " avx");
+  if (avx2_present)
+    fprintf(stderr, " avx2");
   fprintf(stderr, "\n");
 }
 
@@ -334,9 +346,9 @@ int main(int argc, char** argv)
 {
   cpu_features_detect();
 
-  if (! sse41_present)
-    fprintf(stderr, "Warning: This program requires a processor with SSE4.1.\n");
-
+  if (! sse2_present)
+    fatal("This program requires a processor with SSE2.\n");
+  
   args_init(argc, argv);
 
   penalty_mismatch = matchscore - mismatchscore;

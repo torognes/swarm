@@ -25,7 +25,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <nmmintrin.h>
+#include <tmmintrin.h>
 #include <stdlib.h>
 
 /* constants */
@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.0"
+#define SWARM_VERSION "1.2.1"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -119,6 +119,17 @@ extern long SCORELIMIT_16;
 extern long SCORELIMIT_32;
 extern long SCORELIMIT_63;
 extern char BIAS;
+
+extern long mmx_present;
+extern long sse_present;
+extern long sse2_present;
+extern long sse3_present;
+extern long ssse3_present;
+extern long sse41_present;
+extern long sse42_present;
+extern long popcnt_present;
+extern long avx_present;
+extern long avx2_present;
 
 extern unsigned char * score_matrix_8;
 extern unsigned short * score_matrix_16;
