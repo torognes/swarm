@@ -149,13 +149,13 @@ rm "${AMPLICONS}"
 <a name="troubleshooting"/>
 ## Troubleshooting ##
 
-If **swarm** exits with an error message saying "Error: Illegal character in sequence", at least one of your amplicon sequence contains a character other than ACGT (or acgt). This command will help you to find the concerned sequences and their line numbers:
+If **swarm** exits with an error message saying `Error: Illegal character in sequence`, at least one of your amplicon sequence contains a character other than ACGT (or acgt). This command will help you to find the concerned sequences and their line numbers:
 
 ```
 awk '!/^>/ && /[^ACGTacgt]/ {print NR, $0}' amplicons.fasta
 ```
 
-If **swarm** exists with an error message saying "This program requires a processor with SSE2", your computer is too old to run **swarm** (or based on a non x86-64 architecture). **swarm** only runs on CPUs with the SSE2 and POPCNT instructions. The POPCNT instruction is the most recently introduced: November 2008 for Intel CPUs and October 2011 for AMD CPUs. **swarm** should be able to run on most Intel or AMD CPU released since.
+If **swarm** exists with an error message saying `This program requires a processor with SSE2`, your computer is too old to run **swarm** (or based on a non x86-64 architecture). **swarm** only runs on CPUs with the SSE2 and POPCNT instructions. The POPCNT instruction is the most recently introduced: November 2008 for Intel CPUs and October 2011 for AMD CPUs. **swarm** should be able to run on most Intel or AMD CPU released since.
 
 <a name="features"/>
 ## New features##
@@ -168,7 +168,7 @@ If **swarm** exists with an error message saying "This program requires a proces
 <a name="version120"/>
 ### version 1.2.0 ###
 
-**swarm** 1.2.0 introduces a pre-filtering of similar amplicons based on k-mers. This eliminates most of the time-consuming pairwise alignments and greatly improves speed. The speedup can be more than 100-fold compared to previous swarm versions when using a single thread with a large set of amplicons. Using multiple threads induces a computational overhead, but becomes more and more efficient as the size of the amplicon set increases.
+**swarm** 1.2.0 introduces a pre-filtering of similar amplicons based on *k*-mers. This eliminates most of the time-consuming pairwise alignments and greatly improves speed. The speedup can be more than 100-fold compared to previous swarm versions when using a single thread with a large set of amplicons. Using multiple threads induces a computational overhead, but becomes more and more efficient as the size of the amplicon set increases.
 
 <a name="version111"/>
 ### version 1.1.1 ###
