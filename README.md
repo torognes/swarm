@@ -29,7 +29,7 @@ Table of Content
 <a name="quick_start"/>
 ## Quick start ##
 
-**swarm** most simple usage is (with default parameters, see user manual for details):
+**swarm** most simple usage is (with default parameters, use `-h` to get help or see the user manual for details):
 
 ```
 ./swarm amplicons.fasta
