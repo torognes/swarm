@@ -86,6 +86,8 @@ void algo_run()
   unsigned long largestswarm = 0;
   unsigned long swarmsize = 0;
 
+  unsigned long maxgenerations = 0;
+
   unsigned long amplicons = db_getsequencecount();
   unsigned long longestamplicon = db_getlongestsequence();
   
@@ -135,7 +137,6 @@ void algo_run()
   swarmed = 0;
 
   unsigned long swarmid = 0;
-  unsigned long maxgen = 0;
 
   while (seeded < amplicons)
     {
@@ -149,14 +150,14 @@ void algo_run()
       unsigned long hitcount = 0;
       unsigned long diffsum = 0;
       unsigned long maxradius = 0;
-      unsigned long generation = 1;
+      unsigned long maxgen = 0;
       unsigned long seedindex;
 
       seedindex = seeded;
       seeded++;
 
       amps[seedindex].swarmid = swarmid;
-      amps[seedindex].generation = generation;
+      amps[seedindex].generation = 0;
       amps[seedindex].radius = 0;
      
       unsigned long seedampliconid = amps[seedindex].ampliconid;
@@ -226,7 +227,8 @@ void algo_run()
 
 	    fprintf(stderr,
 		    "Moving from pos %u to %u. Seeded: %u Swarmed: %u ta: %lu pa: %u\n",
-		    i, swarmed, seeded, swarmed, targetampliconid, amps[swarmed].ampliconid);
+		    i, swarmed, seeded, swarmed, targetampliconid, 
+		    amps[swarmed].ampliconid);
 #endif
 
 	    if (swarmed < i)
@@ -240,7 +242,9 @@ void algo_run()
 	    }
 
 	    amps[swarmed].swarmid = swarmid;
-	    amps[swarmed].generation = generation;
+	    amps[swarmed].generation = 1;
+	    if (maxgen < 1)
+	      maxgen = 1;
 	    amps[swarmed].radius = diff;
 	    if (diff > maxradius)
 	      maxradius = diff;
@@ -271,13 +275,12 @@ void algo_run()
 	  unsigned subseedradius;
 	  
 	  unsigned long subseedindex;
+	  unsigned long subseedgeneration;
 	  
 	  subseedindex = seeded;
 	  subseedampliconid = amps[subseedindex].ampliconid;
 	  subseedradius = amps[subseedindex].radius;
-	  generation = amps[subseedindex].generation;
-	  if (generation > maxgen)
-	    maxgen = generation;
+	  subseedgeneration = amps[subseedindex].generation;
 
 	  seeded++;
 	  
@@ -291,7 +294,7 @@ void algo_run()
 	  for(unsigned long i=swarmed; i<amplicons; i++)
 	    {
 	      unsigned long targetampliconid = amps[i].ampliconid;
-	      if (amps[i].diffestimate <= 2*generation*resolution)
+	      if (amps[i].diffestimate <= subseedradius + resolution)
 		{
 		  qgramamps[listlen] = targetampliconid;
 		  qgramindices[listlen] = i;
@@ -340,7 +343,7 @@ void algo_run()
 		unsigned pos = swarmed;
 
 		while ((pos > seeded) && (amps[pos-1].ampliconid > targetampliconid) &&
-		       (amps[pos-1].generation > generation))
+		       (amps[pos-1].generation > subseedgeneration))
 		  pos--;
 
 #ifdef DEBUG
@@ -360,10 +363,12 @@ void algo_run()
 		}
 
 		amps[pos].swarmid = swarmid;
-		amps[pos].generation = generation + 1;
+		amps[pos].generation = subseedgeneration + 1;
+		if (maxgen < amps[pos].generation)
+		  maxgen = amps[pos].generation;
 		amps[pos].radius = subseedradius + diff;
-		if (diff > maxradius)
-		  maxradius = diff;
+		if (amps[pos].radius > maxradius)
+		  maxradius = amps[pos].radius;
 
 		unsigned poolampliconid = amps[pos].ampliconid;
 		hits[hitcount++] = poolampliconid;
@@ -385,6 +390,9 @@ void algo_run()
       
       if (swarmsize > largestswarm)
 	largestswarm = swarmsize;
+
+      if (maxgen > maxgenerations)
+	maxgenerations = maxgen;
 
       for(unsigned long i=0; i<hitcount; i++)
 	{
@@ -447,13 +455,12 @@ void algo_run()
 
       if (statsfile)
 	{
-	  unsigned long maxgenerations = generation > 0 ? generation - 1 : 0;
 	  abundance = db_getabundance(seedampliconid);
 
 	  fprintf(statsfile, "%lu\t%lu\t", swarmsize, amplicons_copies);
 	  fprint_id_noabundance(statsfile, seedampliconid);
 	  fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
-		  abundance, singletons, maxgenerations, maxradius);
+		  abundance, singletons, maxgen, maxradius);
 	}
     }
   
@@ -482,7 +489,7 @@ void algo_run()
 
   fprintf(stderr, "Largest swarm:     %lu\n", largestswarm);
 
-  fprintf(stderr, "Max generations:   %lu\n", maxgen);
+  fprintf(stderr, "Max generations:   %lu\n", maxgenerations);
 
   fprintf(stderr, "\n");
 
