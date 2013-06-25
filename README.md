@@ -19,6 +19,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.2](#version122)
    * [version 1.2.1](#version121)
    * [version 1.2.0](#version120)
    * [version 1.1.1](#version111)
@@ -159,6 +160,11 @@ If **swarm** exists with an error message saying `This program requires a proces
 
 <a name="features"/>
 ## New features##
+
+<a name="version122"/>
+### version 1.2.2 ###
+
+**swarm** 1.2.2 fixes an issue with incorrect values in the statistics file (maximum generation and radius of swarms). This version is also a bit faster.
 
 <a name="version121"/>
 ### version 1.2.1 ###
