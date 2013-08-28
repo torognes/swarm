@@ -77,7 +77,8 @@ awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {print}' amplicons
 To speed up the clustering process, strictly identical amplicons should be merged. This step is not mandatory, but it is an important time saver, especially for highly redundant high-throughput sequencing results.
 
 ```
-grep -v "^>" amplicons_linearized.fasta | sort -d | uniq -c |
+grep -v "^>" amplicons_linearized.fasta |
+grep -v [^ACGTacgt] | sort -d | uniq -c |
 while read abundance sequence ; do
     hash=$(sha1sum <<< "${sequence}")
     hash=${hash:0:40}
@@ -86,7 +87,7 @@ done | sort -t "_" -k2,2nr -k1.2,1d |
 sed -e 's/\_/\n/2' > amplicons_linearized_dereplicated.fasta
 ```
 
-The dereplicated amplicons receive a meaningful unique name (hash codes), and are sorted by decreasing number of copies and by hash codes (to guarantee a stable sorting). The use of a hashing function also provides an easy way to compare sets of amplicons. If two amplicons from two different sets have the same hash code, it means that the sequences they represent are identical.
+Amplicons containing characters other than "ACGT" are discarded. The dereplicated amplicons receive a meaningful unique name (hash codes), and are sorted by decreasing number of copies and by hash codes (to guarantee a stable sorting). The use of a hashing function also provides an easy way to compare sets of amplicons. If two amplicons from two different sets have the same hash code, it means that the sequences they represent are identical.
 
 <a name="launch"/>
 ### Launch swarm ###
