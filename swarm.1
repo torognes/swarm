@@ -147,7 +147,10 @@ swarm size profile (with default parameters).
 Concept by Frédéric Mahé, implementation by Torbjørn Rognes.
 .\" ============================================================================
 .SH REPORTING BUGS
-Report bugs to <mahe@rhrk.uni-kl.de> and <torognes@ifi.uio.no>.
+Submit suggestions and bug-reports at
+<https://github.com/torognes/swarm/issues>, send a pull request on
+<https://github.com/torognes/swarm>, or compose a friendly e-mail to
+<mahe@rhrk.uni-kl.de> and <torognes@ifi.uio.no>.
 .\" ============================================================================
 .SH AVAILABILITY
 The software is available from <https://github.com/torognes/swarm>
@@ -178,16 +181,17 @@ New features and important modifications of \fBswarm\fR:
 .RS
 .TP
 .BR v1.2\~ "released May 16, 2013"
-Version 1.2 greatly improves speed by using a \fIk\fR-mer-based
-filtering. For each amplicon, the presence-absence of all possible
-5-mers is computed and recorded in a 1024-bits vector. Vector
-comparisons are extremely fast and drastically reduce the number of
-costly pairwise alignments performed by swarm. While remaining exact,
-swarm 1.2 can be more than 100-times faster than swarm 1.1, when using
-a single thread with a large set of sequences. The minor version
-1.1.1, published just before, adds compatibility with Apple computers,
-and corrects an issue in the pairwise global alignment step that could
-lead to sub-optimal alignments.
+Version 1.2 greatly improves speed by using alignment-free comparisons
+of amplicons based on \fIk\fR-mer word content. For each amplicon, the
+presence-absence of all possible 5-mers is computed and recorded in a
+1024-bits vector. Vector comparisons are extremely fast and
+drastically reduce the number of costly pairwise alignments performed
+by swarm. While remaining exact, swarm 1.2 can be more than 100-times
+faster than swarm 1.1, when using a single thread with a large set of
+sequences. The minor version 1.1.1, published just before, adds
+compatibility with Apple computers, and corrects an issue in the
+pairwise global alignment step that could lead to sub-optimal
+alignments.
 .TP
 .BR v1.1\~ "released February 26, 2013"
 Version 1.1 introduces two new important options: the possibility to

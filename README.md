@@ -26,6 +26,7 @@ Table of Content
    * [version 1.1.0](#version110)
        * [Statistics](#stats)
        * [Uclust-like output format](#uclust)
+* [Contact](#contact)
 
 <a name="quick_start"/>
 ## Quick start ##
@@ -196,3 +197,12 @@ By specifying the `-s` option to **swarm** it will now output detailed statistic
 #### Uclust-like output format ####
 
 Some pipelines use the [uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686 "page describing the uclust output format") as input for subsequent analyses. **swarm** can now output results in this format to a specified file with the `-u` option.
+
+<a name="contact"/>
+## Contact ##
+
+You are welcome to:
+
+* submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
+* send a pull request on: https://github.com/torognes/swarm/
+* compose a friendly e-mail to: <torognes@ifi.uio.no> and <mahe@rhrk.uni-kl.de>
