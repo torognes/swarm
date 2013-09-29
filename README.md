@@ -227,32 +227,55 @@ Intel or AMD CPU released since.
 <a name="version121"/>
 ### version 1.2.1 ###
 
-**swarm** 1.2.1 removes the need for a SSE4.1 capable CPU and should now be able to run on most servers, desktops and laptops.
+**swarm** 1.2.1 removes the need for a SSE4.1 capable CPU and should
+  now be able to run on most servers, desktops and laptops.
 
 <a name="version120"/>
 ### version 1.2.0 ###
 
-**swarm** 1.2.0 introduces a pre-filtering of similar amplicons based on *k*-mers. This eliminates most of the time-consuming pairwise alignments and greatly improves speed. The speedup can be more than 100-fold compared to previous swarm versions when using a single thread with a large set of amplicons. Using multiple threads induces a computational overhead, but becomes more and more efficient as the size of the amplicon set increases.
+**swarm** 1.2.0 introduces a pre-filtering of similar amplicons based
+  on *k*-mers. This eliminates most of the time-consuming pairwise
+  alignments and greatly improves speed. The speedup can be more than
+  100-fold compared to previous swarm versions when using a single
+  thread with a large set of amplicons. Using multiple threads induces
+  a computational overhead, but becomes more and more efficient as the
+  size of the amplicon set increases.
 
 <a name="version111"/>
 ### version 1.1.1 ###
 
-**swarm** now works on Apple computers. This version also corrects an issue in the pairwise global alignment step that could lead to sub-optimal alignments. Slightly different alignments may result relative to previous version, giving slightly different swarms.
+**swarm** now works on Apple computers. This version also corrects an
+  issue in the pairwise global alignment step that could lead to
+  sub-optimal alignments. Slightly different alignments may result
+  relative to previous version, giving slightly different swarms.
 
 <a name="version110"/>
 ### version 1.1.0 ###
 
-**swarm** 1.1.0 introduces new optimizations and is 20% faster than the previous version on our test dataset. It also introduces two new output options: statistics and uclust-like format.
+**swarm** 1.1.0 introduces new optimizations and is 20% faster than
+  the previous version on our test dataset. It also introduces two new
+  output options: statistics and uclust-like format.
 
 <a name="stats"/>
 #### Statistics ####
 
-By specifying the `-s` option to **swarm** it will now output detailed statistics about each swarm to a specified file. It will print the number of unique amplicons, the number of copies, the name of the seed and its abundance, the number of singletons (amplicons with an abundance of 1), the number of iterations and the maximum radius of the swarm (i.e. number of differences between the seed and the furthermost amplicon). When using input data sorted by decreasing abundance, the seed is the most abundant amplicon in the swarm.
+By specifying the `-s` option to **swarm** it will now output detailed
+statistics about each swarm to a specified file. It will print the
+number of unique amplicons, the number of copies, the name of the seed
+and its abundance, the number of singletons (amplicons with an
+abundance of 1), the number of iterations and the maximum radius of
+the swarm (i.e. number of differences between the seed and the
+furthermost amplicon). When using input data sorted by decreasing
+abundance, the seed is the most abundant amplicon in the swarm.
 
 <a name="uclust"/>
 #### Uclust-like output format ####
 
-Some pipelines use the [uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686 "page describing the uclust output format") as input for subsequent analyses. **swarm** can now output results in this format to a specified file with the `-u` option.
+Some pipelines use the
+[uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686
+"page describing the uclust output format") as input for subsequent
+analyses. **swarm** can now output results in this format to a
+specified file with the `-u` option.
 
 <a name="contact"/>
 ## Contact ##
