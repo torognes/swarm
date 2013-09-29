@@ -2,7 +2,14 @@
 
 A robust and fast clustering method for amplicon-based studies.
 
-The purpose of **swarm** is to provide a novel clustering algorithm to handle large sets of amplicons. Traditional clustering algorithms results are strongly input-order dependent, and rely on an arbitrary **global** clustering threshold. **swarm** results are resilient to input-order changes and rely on a small **local** linking threshold *d*, the maximum number of differences between two amplicons. **swarm** forms stable high-resolution clusters, with a high yield of biological information.
+The purpose of **swarm** is to provide a novel clustering algorithm to
+handle large sets of amplicons. Traditional clustering algorithms
+results are strongly input-order dependent, and rely on an arbitrary
+**global** clustering threshold. **swarm** results are resilient to
+input-order changes and rely on a small **local** linking threshold
+*d*, the maximum number of differences between two
+amplicons. **swarm** forms stable high-resolution clusters, with a
+high yield of biological information.
 
 Table of Content
 ================
@@ -31,7 +38,8 @@ Table of Content
 <a name="quick_start"/>
 ## Quick start ##
 
-**swarm** most simple usage is (with default parameters, use `-h` to get help or see the user manual for details):
+**swarm** most simple usage is (with default parameters, use `-h` to
+  get help or see the user manual for details):
 
 ```
 ./swarm amplicons.fasta
@@ -40,7 +48,11 @@ Table of Content
 <a name="install"/>
 ## Install ##
 
-Get the source code and a **swarm** binary from [GitHub](https://github.com/torognes/swarm "swarm public repository") using the [ZIP button](https://github.com/torognes/swarm/archive/master.zip "swarm zipped folder") or git:
+Get the source code and a **swarm** binary from
+[GitHub](https://github.com/torognes/swarm "swarm public repository")
+using the
+[ZIP button](https://github.com/torognes/swarm/archive/master.zip
+"swarm zipped folder") or git:
 
 ```
 git clone https://github.com/torognes/swarm.git
