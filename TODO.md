@@ -44,12 +44,14 @@ step reduces the search-space for the 5-mer filtering by at least 25%.
 
 If that approach turns out to be efficient, why not add a 3-mer
 filtering before the 4-mer filtering? The memory consumption would
-increase by 30% and the k-mer vector would look like that: 1 x 64 bits
-+ 4 x 64 bits + 16 x 16 bits.
+increase by 30% and the k-mer vector would look like that:
+
+1 x 64 bits + 4 x 64 bits + 16 x 16 bits
 
 The maximal theoretical speed-up is 16x (if 3-mer filtering has the
-same efficiency than 5-mer filtering). An observed 2x or 4x speed-up
-would be great and would make swarm's speed comparable to usearch's.
+same efficiency than 5-mer filtering, which is surely not the
+case). An observed 2x or 4x speed-up would be great and would make
+swarm's speed comparable to usearch's.
 
 <a name="nucleotidic_profile"/>
 ## Nucleotidic profile based filtering ##
