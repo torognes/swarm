@@ -7,12 +7,45 @@ list some algorithmic changes that could increase swarm's speed.
 Table of Content
 ================
 
-* [More k-mer based filtering](#kmers)
+* [Swarm 1.2.2 profiling](#profiling)
+* [Multi-layered k-mer based filtering](#kmers)
 * [Nucleotidic profile based filtering](#nucleotidic_profile)
+* [Rewrite algo.cc](#algo)
+* [Use a banded Needleman-Wunsch](#banded_nw)
 * [Use prefix and suffix trees](#prefix-suffix)
 
+
+<a name="profiling"/>
+## Swarm 1.2.2 profiling ##
+
+A run of swarm 1.2.2 with profiling enabled (compile with `-pg`, run
+and analyse with `gprof`) on a dataset containing 312,503 amplicons
+(380 bp long on average) on 1 thread, gives the following results:
+
+* 62.85% `qgram_diff_parallel` (comparing qgram vectors)
+* 20.65% `algo_run` (various things, including moving data around in algo.cc)
+* 16.28% `search8` (Needleman-Wunch alignments)
+* 00.11% `db_read` (read and parse the fasta file)
+* 00.06% `findqgrams` (compute the grams for the sequences)
+* 00.05% miscellaneous
+
+It indicates that only about 0.2% of the time is used on
+initialisation, reading/parsing files and 5-mer-vector computation. So
+there is really not much to gain here.
+
+From the profiling results, we can rank our priorities:
+
+1. Reducing the number of 5-mer-vector comparisons (or accelerating
+   it) would have a large impact on computation time (see
+   [Multi-layered k-mer based filtering](#kmers) for leads on that).
+2. [Rewrite algo.cc](#algo) so that the data stored in the
+   tables/arrays are not shuffled around as much as they are now.
+3. [Use a banded Needleman-Wunsch](#banded_nw) (for the /d/ = 1
+   case).
+
+
 <a name="kmers"/>
-## More k-mer based filtering ##
+## Multi-layered k-mer based filtering ##
 
 In older versions of swarm, most of the computation time was spent on
 pairwise global alignments.
@@ -33,8 +66,10 @@ filtering. However, the cost of storing and comparing the k-mer
 profiles increases 4 times more rapidly than *k*.
 
 Swarm uses *k* = 5, and k-mer profile comparisons now represent most
-of the computation time. Can we in turn limit the number of k-mer
-profile comparisons?
+of the computation time. Tests show that the filtering is efficient,
+with only 30-40% of false-positives (and no false-negatives).
+
+Can we in turn limit the number of k-mer profile comparisons?
 
 One possibility is to apply a 4-mer pre-pre-filtering to avoid
 unnecessary 5-mer vector comparisons. A 4-mer vector comparison
@@ -52,6 +87,7 @@ The maximal theoretical speed-up is 16x (if 3-mer filtering has the
 same efficiency than 5-mer filtering, which is surely not the
 case). An observed 2x or 4x speed-up would be great and would make
 swarm's speed comparable to usearch's.
+
 
 <a name="nucleotidic_profile"/>
 ## Nucleotidic profile based filtering ##
@@ -78,6 +114,25 @@ abs(Xa -Ya) + abs(Xc -Yc) + abs(Xg -Yg) + abs(Xt -Yt)
 Adding the amplicon length difference in the mix should improve a bit
 the efficiency of the filtering. Tests are needed to verify if
 nucleotidic composition comparisons gives a significant speed up.
+
+
+<a name="algo"/>
+## Rewrite algo.cc ##
+
+Torbjørn suggests that a rewriting of `algo.cc` could reduce the level
+of data shuffling in the tables/arrays as they are now. It could be
+done using a linked list.
+
+
+<a name="banded_nw"/>
+## Use a banded Needleman-Wunsch ##
+
+We could use a banded Needleman-Wunsch instead of full
+Needleman-Wunsch to save time on alignments. If /d/ = 1, we only need
+to look at a band 3 nucleotides wide around the major diagonal (to be
+verified). The number of cells to compute would drop from *n*^2 to
+3*n* (approximately, for two amplicons of size *n*).
+
 
 <a name="prefix-suffix"/>
 ## Use prefix and suffix trees ##
