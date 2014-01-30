@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -452,56 +452,56 @@ inline void dprofile_fill8(BYTE * dprofile,
 */
 
 
-#define INITIALIZE				\
-  "        movq      %3, rax             \n"	\
-  "        movdqa    (rax), xmm14        \n"	\
-  "        movq      %4, rax             \n"	\
-  "        movdqa    (rax), xmm15        \n"	\
-  "        movq      %9, rax             \n"	\
-  "        movdqa    (rax), xmm0         \n"	\
-  "        movdqa    (%7), xmm7          \n"    \
-  "        movdqa    xmm7, xmm4          \n"    \
-  "        movdqa    xmm7, xmm1          \n"    \
-  "        paddusb   xmm15, xmm7         \n"    \
-  "        movdqa    xmm7, xmm5          \n"    \
-  "        movdqa    xmm7, xmm2          \n"    \
-  "        paddusb   xmm15, xmm7         \n"    \
-  "        movdqa    xmm7, xmm6          \n"    \
-  "        movdqa    xmm7, xmm3          \n"    \
-  "        paddusb   xmm15, xmm7         \n"    \
-  "        movq      %5, r12             \n"	\
-  "        shlq      $3, r12             \n"	\
-  "        movq      r12, r10            \n"	\
-  "        andq      $-16, r10           \n"	\
-  "        xorq      r11, r11            \n" 
+#define INITIALIZE					\
+  "        movq      %3, %%rax               \n"	\
+  "        movdqa    (%%rax), %%xmm14        \n"	\
+  "        movq      %4, %%rax               \n"	\
+  "        movdqa    (%%rax), %%xmm15        \n"	\
+  "        movq      %9, %%rax               \n"	\
+  "        movdqa    (%%rax), %%xmm0         \n"      	\
+  "        movdqa    (%7), %%xmm7            \n"	\
+  "        movdqa    %%xmm7, %%xmm4          \n"	\
+  "        movdqa    %%xmm7, %%xmm1          \n"	\
+  "        paddusb   %%xmm15, %%xmm7         \n"	\
+  "        movdqa    %%xmm7, %%xmm5          \n"	\
+  "        movdqa    %%xmm7, %%xmm2          \n"	\
+  "        paddusb   %%xmm15, %%xmm7         \n"	\
+  "        movdqa    %%xmm7, %%xmm6          \n"	\
+  "        movdqa    %%xmm7, %%xmm3          \n"	\
+  "        paddusb   %%xmm15, %%xmm7         \n"	\
+  "        movq      %5, %%r12               \n"	\
+  "        shlq      $3, %%r12               \n"	\
+  "        movq      %%r12, %%r10            \n"	\
+  "        andq      $-16, %%r10             \n"	\
+  "        xorq      %%r11, %%r11            \n" 
 
 
 #define ONESTEP(H, N, F, V, DIR)		\
-  "        paddusb   "V", "H"            \n"	\
-  "        movdqa    "H", xmm13          \n"    \
-  "        pcmpgtb   "F", xmm13          \n"    \
-  "        pmovmskb  xmm13, edx          \n"	\
-  "        movw      dx, 0+"DIR"         \n"	\
-  "        pminub    "F", "H"            \n"	\
-  "        pminub    xmm12, "H"          \n"	\
-  "        movdqa    "H", xmm13          \n"	\
-  "        pcmpeqb   xmm12, xmm13        \n"    \
-  "        pmovmskb  xmm13, edx          \n"	\
-  "        movw      dx, 2+"DIR"         \n"	\
-  "        movdqa    "H", "N"            \n"	\
-  "        paddusb   xmm14, "H"          \n"	\
-  "        paddusb   xmm15, "F"          \n"	\
-  "        paddusb   xmm15, xmm12        \n"	\
-  "        movdqa    "H", xmm13          \n"    \
-  "        pcmpgtb   "F", xmm13          \n"    \
-  "        pmovmskb  xmm13, edx          \n"	\
-  "        movw      dx, 4+"DIR"         \n"	\
-  "        movdqa    "H", xmm13          \n"    \
-  "        pcmpgtb   xmm12, xmm13        \n"    \
-  "        pmovmskb  xmm13, edx          \n"	\
-  "        movw      dx, 6+"DIR"         \n"	\
-  "        pminub    "H", xmm12          \n"	\
-  "        pminub    "H", "F"            \n"
+  "        paddusb   "V", "H"              \n"	\
+  "        movdqa    "H", %%xmm13          \n"  \
+  "        pcmpgtb   "F", %%xmm13          \n"	\
+  "        pmovmskb  %%xmm13, %%edx        \n"	\
+  "        movw      %%dx, 0+"DIR"         \n"	\
+  "        pminub    "F", "H"              \n"	\
+  "        pminub    %%xmm12, "H"          \n"	\
+  "        movdqa    "H", %%xmm13          \n"	\
+  "        pcmpeqb   %%xmm12, %%xmm13      \n"	\
+  "        pmovmskb  %%xmm13, %%edx        \n"	\
+  "        movw      %%dx, 2+"DIR"         \n"	\
+  "        movdqa    "H", "N"              \n"	\
+  "        paddusb   %%xmm14, "H"          \n"	\
+  "        paddusb   %%xmm15, "F"          \n"	\
+  "        paddusb   %%xmm15, %%xmm12      \n"	\
+  "        movdqa    "H", %%xmm13          \n"  \
+  "        pcmpgtb   "F", %%xmm13          \n"  \
+  "        pmovmskb  %%xmm13, %%edx        \n"	\
+  "        movw      %%dx, 4+"DIR"         \n"	\
+  "        movdqa    "H", %%xmm13          \n"  \
+  "        pcmpgtb   %%xmm12, %%xmm13      \n"	\
+  "        pmovmskb  %%xmm13, %%edx        \n"	\
+  "        movw      %%dx, 6+"DIR"         \n"	\
+  "        pminub    "H", %%xmm12          \n"	\
+  "        pminub    "H", "F"              \n"
 
 inline void donormal8(__m128i * Sm,
 		      __m128i * hep,
@@ -518,66 +518,62 @@ inline void donormal8(__m128i * Sm,
   __asm__
     __volatile__
     ( 
-     ".att_syntax noprefix    # Change assembler syntax \n"
-     
      INITIALIZE
      
      "        jmp       2f                  \n"
      
-     "1:      movq      0(%2,r11,1), rax    \n" // load x from qp[qi]
-     "        movdqa    0(%1,r11,4), xmm8   \n" // load N0
-     "        movdqa    16(%1,r11,4), xmm12 \n" // load E
+     "1:      movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
+     "        movdqa    0(%1,%%r11,4), %%xmm8   \n" // load N0
+     "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
      
-     ONESTEP("xmm0",  "xmm9",         "xmm4", " 0(rax)", " 0(%8,r11,4)")
-     ONESTEP("xmm1",  "xmm10",        "xmm5", "16(rax)", " 8(%8,r11,4)")
-     ONESTEP("xmm2",  "xmm11",        "xmm6", "32(rax)", "16(%8,r11,4)")
-     ONESTEP("xmm3",  "0(%1,r11,4)",  "xmm7", "48(rax)", "24(%8,r11,4)")
+     ONESTEP("%%xmm0",  "%%xmm9",         "%%xmm4", " 0(%%rax)", " 0(%8,%%r11,4)")
+     ONESTEP("%%xmm1",  "%%xmm10",        "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
+     ONESTEP("%%xmm2",  "%%xmm11",        "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
+     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",  "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
      
-     "        movdqa    xmm12, 16(%1,r11,4) \n" // save E
-     "        movq      8(%2,r11,1), rax    \n" // load x from qp[qi+1]
-     "        movdqa    32(%1,r11,4), xmm0  \n" // load H0
-     "        movdqa    48(%1,r11,4), xmm12 \n" // load E
+     "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
+     "        movq      8(%2,%%r11,1), %%rax    \n" // load x from qp[qi+1]
+     "        movdqa    32(%1,%%r11,4), %%xmm0  \n" // load H0
+     "        movdqa    48(%1,%%r11,4), %%xmm12 \n" // load E
      
-     ONESTEP("xmm8",  "xmm1",         "xmm4", " 0(rax)", "32(%8,r11,4)")
-     ONESTEP("xmm9",  "xmm2",         "xmm5", "16(rax)", "40(%8,r11,4)")
-     ONESTEP("xmm10", "xmm3",         "xmm6", "32(rax)", "48(%8,r11,4)")
-     ONESTEP("xmm11", "32(%1,r11,4)", "xmm7", "48(rax)", "56(%8,r11,4)")
+     ONESTEP("%%xmm8",  "%%xmm1",         "%%xmm4", " 0(%%rax)", "32(%8,%%r11,4)")
+     ONESTEP("%%xmm9",  "%%xmm2",         "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
+     ONESTEP("%%xmm10", "%%xmm3",         "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
+     ONESTEP("%%xmm11", "32(%1,%%r11,4)", "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
      
-     "        movdqa    xmm12, 48(%1,r11,4) \n" // save E
-     "        addq      $16, r11            \n" // qi++
-     "2:      cmpq      r11, r10            \n" // qi = ql4 ?
-     "        jne       1b                  \n" // loop
+     "        movdqa    %%xmm12, 48(%1,%%r11,4) \n" // save E
+     "        addq      $16, %%r11              \n" // qi++
+     "2:      cmpq      %%r11, %%r10            \n" // qi = ql4 ?
+     "        jne       1b                      \n" // loop
      
-     "4:      cmpq      r11, r12            \n" 
-     "        je        3f                  \n"
-     "        movq      0(%2,r11,1), rax    \n" // load x from qp[qi]
-     "        movdqa    16(%1,r11,4), xmm12 \n" // load E
+     "4:      cmpq      %%r11, %%r12            \n" 
+     "        je        3f                      \n"
+     "        movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
+     "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
      
-     ONESTEP("xmm0",  "xmm9",         "xmm4", " 0(rax)", " 0(%8,r11,4)")
-     ONESTEP("xmm1",  "xmm10",        "xmm5", "16(rax)", " 8(%8,r11,4)")
-     ONESTEP("xmm2",  "xmm11",        "xmm6", "32(rax)", "16(%8,r11,4)")
-     ONESTEP("xmm3",  "0(%1,r11,4)",  "xmm7", "48(rax)", "24(%8,r11,4)")
+     ONESTEP("%%xmm0",  "%%xmm9",         "%%xmm4", " 0(%%rax)", " 0(%8,%%r11,4)")
+     ONESTEP("%%xmm1",  "%%xmm10",        "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
+     ONESTEP("%%xmm2",  "%%xmm11",        "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
+     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",  "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
      
-     "        movdqa    xmm12, 16(%1,r11,4) \n" // save E
+     "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
      
-     "        movdqa    xmm9, xmm1          \n"
-     "        movdqa    xmm10, xmm2         \n"
-     "        movdqa    xmm11, xmm3         \n"
-     "        movdqa    0(%1,r11,4), xmm4   \n"
-     "        jmp       5f                  \n"
+     "        movdqa    %%xmm9, %%xmm1          \n"
+     "        movdqa    %%xmm10, %%xmm2         \n"
+     "        movdqa    %%xmm11, %%xmm3         \n"
+     "        movdqa    0(%1,%%r11,4), %%xmm4   \n"
+     "        jmp       5f                      \n"
      
-     "3:      movdqa    -32(%1,r11,4), xmm4 \n"
+     "3:      movdqa    -32(%1,%%r11,4), %%xmm4 \n"
      
-     "5:      movq      %0, rax             \n" // save final Hs
-     "        movdqa    xmm1, (rax)         \n"
-     "        addq      $16, rax            \n"
-     "        movdqa    xmm2, (rax)         \n"
-     "        addq      $16, rax            \n"
-     "        movdqa    xmm3, (rax)         \n"
-     "        addq      $16, rax            \n"
-     "        movdqa    xmm4, (rax)         \n"
-     
-     "        .att_syntax prefix      # Change back to standard syntax"
+     "5:      movq      %0, %%rax               \n" // save final Hs
+     "        movdqa    %%xmm1, (%%rax)         \n"
+     "        addq      $16, %%rax              \n"
+     "        movdqa    %%xmm2, (%%rax)         \n"
+     "        addq      $16, %%rax              \n"
+     "        movdqa    %%xmm3, (%%rax)         \n"
+     "        addq      $16, %%rax              \n"
+     "        movdqa    %%xmm4, (%%rax)         \n"
      
      : 
      : "m"(Sm), "r"(hep),  "r"(qp), "m"(Qm), 
@@ -610,86 +606,82 @@ inline void domasked8(__m128i * Sm,
   __asm__
     __volatile__
     (
-     ".att_syntax noprefix    # Change assembler syntax \n"
-     
      INITIALIZE
      
-     "        jmp       2f                   \n"
+     "        jmp       2f                       \n"
      
-     "1:      movq      0(%2,r11,1), rax     \n" // load x from qp[qi]
-     "        movdqa    0(%1,r11,4), xmm8    \n" // load N0
-     "        movdqa    16(%1,r11,4), xmm12  \n" // load E
-     "        movdqa    (%11), xmm13         \n" 
-     "        psubusb   (%10), xmm8          \n" // mask N0
-     "        psubusb   (%10), xmm12         \n" // mask E
-     "        paddusb   xmm13, xmm8          \n" // init N0
-     "        paddusb   xmm13, xmm12         \n" // init E
-     "        paddusb   (%12), xmm13         \n" // update
-     "        movdqa    xmm13, (%11)         \n"
+     "1:      movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
+     "        movdqa    0(%1,%%r11,4), %%xmm8    \n" // load N0
+     "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
+     "        movdqa    (%11), %%xmm13           \n" 
+     "        psubusb   (%10), %%xmm8            \n" // mask N0
+     "        psubusb   (%10), %%xmm12           \n" // mask E
+     "        paddusb   %%xmm13, %%xmm8          \n" // init N0
+     "        paddusb   %%xmm13, %%xmm12         \n" // init E
+     "        paddusb   (%12), %%xmm13           \n" // update
+     "        movdqa    %%xmm13, (%11)           \n"
      
-     ONESTEP("xmm0",  "xmm9",         "xmm4", " 0(rax)", " 0(%8,r11,4)")
-     ONESTEP("xmm1",  "xmm10",        "xmm5", "16(rax)", " 8(%8,r11,4)")
-     ONESTEP("xmm2",  "xmm11",        "xmm6", "32(rax)", "16(%8,r11,4)")
-     ONESTEP("xmm3",  "0(%1,r11,4)",  "xmm7", "48(rax)", "24(%8,r11,4)")
+     ONESTEP("%%xmm0",  "%%xmm9",         "%%xmm4", " 0(%%rax)", " 0(%8,%%r11,4)")
+     ONESTEP("%%xmm1",  "%%xmm10",        "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
+     ONESTEP("%%xmm2",  "%%xmm11",        "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
+     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",  "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
      
-     "        movdqa    xmm12, 16(%1,r11,4)  \n" // save E
+     "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
 
-     "        movq      8(%2,r11,1), rax     \n" // load x from qp[qi+1]
-     "        movdqa    32(%1,r11,4), xmm0   \n" // load H0
-     "        movdqa    48(%1,r11,4), xmm12  \n" // load E
-     "        movdqa    (%11), xmm13         \n"
-     "        psubusb   (%10), xmm0          \n" // mask H0
-     "        psubusb   (%10), xmm12         \n" // mask E
-     "        paddusb   xmm13, xmm0          \n"
-     "        paddusb   xmm13, xmm12         \n"
-     "        paddusb   (%12), xmm13         \n"
-     "        movdqa    xmm13, (%11)         \n"
+     "        movq      8(%2,%%r11,1), %%rax     \n" // load x from qp[qi+1]
+     "        movdqa    32(%1,%%r11,4), %%xmm0   \n" // load H0
+     "        movdqa    48(%1,%%r11,4), %%xmm12  \n" // load E
+     "        movdqa    (%11), %%xmm13           \n"
+     "        psubusb   (%10), %%xmm0            \n" // mask H0
+     "        psubusb   (%10), %%xmm12           \n" // mask E
+     "        paddusb   %%xmm13, %%xmm0          \n"
+     "        paddusb   %%xmm13, %%xmm12         \n"
+     "        paddusb   (%12), %%xmm13           \n"
+     "        movdqa    %%xmm13, (%11)           \n"
      
-     ONESTEP("xmm8",  "xmm1",         "xmm4", " 0(rax)", "32(%8,r11,4)")
-     ONESTEP("xmm9",  "xmm2",         "xmm5", "16(rax)", "40(%8,r11,4)")
-     ONESTEP("xmm10", "xmm3",         "xmm6", "32(rax)", "48(%8,r11,4)")
-     ONESTEP("xmm11", "32(%1,r11,4)", "xmm7", "48(rax)", "56(%8,r11,4)")
+     ONESTEP("%%xmm8",  "%%xmm1",         "%%xmm4", " 0(%%rax)", "32(%8,%%r11,4)")
+     ONESTEP("%%xmm9",  "%%xmm2",         "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
+     ONESTEP("%%xmm10", "%%xmm3",         "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
+     ONESTEP("%%xmm11", "32(%1,%%r11,4)", "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
      
-     "        movdqa    xmm12, 48(%1,r11,4)  \n" // save E
-     "        addq      $16, r11             \n" // qi++
-     "2:      cmpq      r11, r10             \n" // qi = ql4 ?
-     "        jne       1b                   \n" // loop
+     "        movdqa    %%xmm12, 48(%1,%%r11,4)  \n" // save E
+     "        addq      $16, %%r11               \n" // qi++
+     "2:      cmpq      %%r11, %%r10             \n" // qi = ql4 ?
+     "        jne       1b                       \n" // loop
      
-     "        cmpq      r11, r12             \n" 
-     "        je        3f                   \n"
-     "        movq      0(%2,r11,1), rax     \n" // load x from qp[qi]
-     "        movdqa    16(%1,r11,4), xmm12  \n" // load E
-     "        movdqa    (%11), xmm13         \n"
-     "        psubusb   (%10), xmm12         \n" // mask E
-     "        paddusb   xmm13, xmm12         \n"
-     "        paddusb   (%12), xmm13         \n"
-     "        movdqa    xmm13, (%11)         \n"
+     "        cmpq      %%r11, %%r12             \n" 
+     "        je        3f                       \n"
+     "        movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
+     "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
+     "        movdqa    (%11), %%xmm13           \n"
+     "        psubusb   (%10), %%xmm12           \n" // mask E
+     "        paddusb   %%xmm13, %%xmm12         \n"
+     "        paddusb   (%12), %%xmm13           \n"
+     "        movdqa    %%xmm13, (%11)           \n"
      
-     ONESTEP("xmm0",  "xmm9",          "xmm4", "0(rax)" , " 0(%8,r11,4)")
-     ONESTEP("xmm1",  "xmm10",         "xmm5", "16(rax)", " 8(%8,r11,4)")
-     ONESTEP("xmm2",  "xmm11",         "xmm6", "32(rax)", "16(%8,r11,4)")
-     ONESTEP("xmm3",  "0(%1,r11,4)",   "xmm7", "48(rax)", "24(%8,r11,4)")
+     ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
+     ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
+     ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
+     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
      
-     "        movdqa    xmm12, 16(%1,r11,4)  \n" // save E
+     "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
      
-     "        movdqa    xmm9, xmm1           \n"
-     "        movdqa    xmm10, xmm2          \n"
-     "        movdqa    xmm11, xmm3          \n"
-     "        movdqa    0(%1,r11,4), xmm4    \n"
-     "        jmp       5f                   \n"
+     "        movdqa    %%xmm9, %%xmm1           \n"
+     "        movdqa    %%xmm10, %%xmm2          \n"
+     "        movdqa    %%xmm11, %%xmm3          \n"
+     "        movdqa    0(%1,%%r11,4), %%xmm4    \n"
+     "        jmp       5f                       \n"
      
-     "3:      movdqa    -32(%1,r11,4), xmm4  \n"
+     "3:      movdqa    -32(%1,%%r11,4), %%xmm4  \n"
      
-     "5:      movq      %0, rax              \n" // save final Hs
-     "        movdqa    xmm1, (rax)          \n"
-     "        addq      $16, rax             \n"
-     "        movdqa    xmm2, (rax)          \n"
-     "        addq      $16, rax             \n"
-     "        movdqa    xmm3, (rax)          \n"
-     "        addq      $16, rax             \n"
-     "        movdqa    xmm4, (rax)          \n"
-     
-     "        .att_syntax prefix      # Change back to standard syntax"
+     "5:      movq      %0, %%rax                \n" // save final Hs
+     "        movdqa    %%xmm1, (%%rax)          \n"
+     "        addq      $16, %%rax               \n"
+     "        movdqa    %%xmm2, (%%rax)          \n"
+     "        addq      $16, %%rax               \n"
+     "        movdqa    %%xmm3, (%%rax)          \n"
+     "        addq      $16, %%rax               \n"
+     "        movdqa    %%xmm4, (%%rax)          \n"
      
      : 
      

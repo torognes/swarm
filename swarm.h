@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.2"
+#define SWARM_VERSION "1.2.3"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -98,6 +98,7 @@ extern long mismatchscore;
 extern long threads;
 extern char * databasename;
 extern long resolution;
+extern long break_swarms;
 
 extern char map_ncbi_nt4[];
 extern char map_ncbi_nt16[];

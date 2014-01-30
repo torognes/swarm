@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -252,6 +252,15 @@ void algo_run()
 	    unsigned poolampliconid = amps[swarmed].ampliconid;
 	    hits[hitcount++] = poolampliconid;
 
+	    if (break_swarms)
+	      {
+		fprintf(stderr, "@@\t");
+		fprint_id_noabundance(stderr, seedampliconid);
+		fprintf(stderr, "\t");
+		fprint_id_noabundance(stderr, poolampliconid);
+		fprintf(stderr, "\t1\n");
+	      }
+
 	    diffsum += diff;
 	    
 	    abundance = db_getabundance(poolampliconid);
@@ -373,6 +382,15 @@ void algo_run()
 		unsigned poolampliconid = amps[pos].ampliconid;
 		hits[hitcount++] = poolampliconid;
 		diffsum += diff;
+
+		if (break_swarms)
+		  {
+		    fprintf(stderr, "@@\t");
+		    fprint_id_noabundance(stderr, subseedampliconid);
+		    fprintf(stderr, "\t");
+		    fprint_id_noabundance(stderr, poolampliconid);
+		    fprintf(stderr, "\t1\n");
+		  }
 
 		abundance = db_getabundance(poolampliconid);
 		amplicons_copies += abundance;

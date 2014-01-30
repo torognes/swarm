@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -31,6 +31,7 @@
 #define DEFAULT_MISMATCHSCORE (-4)
 #define DEFAULT_THREADS 1
 #define DEFAULT_RESOLUTION 1
+#define DEFAULT_BREAK_SWARMS 0
 
 char * outfilename;
 char * statsfilename;
@@ -43,6 +44,7 @@ long matchscore;
 long mismatchscore;
 long threads;
 long resolution;
+long break_swarms;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -181,6 +183,7 @@ void args_usage()
   fprintf(stderr, "  -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
   fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file (no)\n");
   fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file (no)\n");
+  fprintf(stderr, "  -b, --break_swarms                  output all pairs of amplicons found (no)\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -188,7 +191,7 @@ void args_usage()
 void show_header()
 {
   char title[] = "SWARM " SWARM_VERSION;
-  char ref[] = "Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe";
+  char ref[] = "Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe";
   fprintf(stderr, "%s [%s %s]\n%s\n\n", title, __DATE__, __TIME__, ref);
 }
 
@@ -207,10 +210,11 @@ void args_init(int argc, char **argv)
   mismatchscore = DEFAULT_MISMATCHSCORE;
   gapopen = DEFAULT_GAPOPEN;
   gapextend = DEFAULT_GAPEXTEND;
+  break_swarms = DEFAULT_BREAK_SWARMS;
   
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:b";
 
   static struct option long_options[] =
   {
@@ -225,6 +229,7 @@ void args_init(int argc, char **argv)
     {"gap-extension-penalty", required_argument, NULL, 'e' },
     {"statistics-file",       required_argument, NULL, 's' },
     {"uclust-file",           required_argument, NULL, 'u' },
+    {"break_swarms",          no_argument,       NULL, 'b' },
     { 0, 0, 0, 0 }
   };
   
@@ -235,6 +240,11 @@ void args_init(int argc, char **argv)
   {
     switch(c)
     {
+    case 'b':
+      /* break_swarms */
+      break_swarms = 1;
+      break;
+
     case 'd':
       /* differences (resolution) */
       resolution = atol(optarg);
