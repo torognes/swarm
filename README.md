@@ -26,6 +26,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.4](#version124)
    * [version 1.2.3](#version123)
    * [version 1.2.2](#version122)
    * [version 1.2.1](#version121)
@@ -217,6 +218,12 @@ Intel or AMD CPU released since.
 
 <a name="features"/>
 ## New features##
+
+<a name="version124"/>
+### version 1.2.4 ###
+
+**swarm** 1.2.4 changes the name of the new option from `--break_swarms`
+to `--break-swarms` for consistency with other options.
 
 <a name="version123"/>
 ### version 1.2.3 ###

@@ -183,7 +183,7 @@ void args_usage()
   fprintf(stderr, "  -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
   fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file (no)\n");
   fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file (no)\n");
-  fprintf(stderr, "  -b, --break_swarms                  output all pairs of amplicons found (no)\n");
+  fprintf(stderr, "  -b, --break-swarms                  output all pairs of amplicons found (no)\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -229,7 +229,7 @@ void args_init(int argc, char **argv)
     {"gap-extension-penalty", required_argument, NULL, 'e' },
     {"statistics-file",       required_argument, NULL, 's' },
     {"uclust-file",           required_argument, NULL, 'u' },
-    {"break_swarms",          no_argument,       NULL, 'b' },
+    {"break-swarms",          no_argument,       NULL, 'b' },
     { 0, 0, 0, 0 }
   };
   
@@ -241,7 +241,7 @@ void args_init(int argc, char **argv)
     switch(c)
     {
     case 'b':
-      /* break_swarms */
+      /* break-swarms */
       break_swarms = 1;
       break;
 
