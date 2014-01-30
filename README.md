@@ -26,6 +26,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.3](#version123)
    * [version 1.2.2](#version122)
    * [version 1.2.1](#version121)
    * [version 1.2.0](#version120)
@@ -216,6 +217,14 @@ Intel or AMD CPU released since.
 
 <a name="features"/>
 ## New features##
+
+<a name="version123"/>
+### version 1.2.3 ###
+
+**swarm** 1.2.3 adds an option (`-b` or `--break_swarms`) to output all
+pairs of amplicons to stderr. The data can be used for post-processing
+of the results to refine the swarms. The syntax of the inline assembly
+code is also changed for compatibility with more compilers.
 
 <a name="version122"/>
 ### version 1.2.2 ###
