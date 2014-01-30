@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "30 January 2014" "version 1.2.3" "USER COMMANDS"
+.TH swarm 1 "30 January 2014" "version 1.2.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -54,7 +54,7 @@ is "-".
 \fBswarm\fR recognizes the following command-line options:
 .RS
 .TP 9
-.BI -b\fP,\fB\ --break_swarms
+.BI -b\fP,\fB\ --break-swarms
 output all pairs of nearly-identical amplicons to standard error using
 a four-columns tab-delimited format: "@@", ampliconA, amplicon B,
 number of differences. That option can be used for swarms
@@ -161,7 +161,7 @@ Submit suggestions and bug-reports at
 The software is available from <https://github.com/torognes/swarm>
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2012, 2014 Frédéric Mahé & Torbjørn Rognes
+Copyright (C) 2012, 2013, 2014 Frédéric Mahé & Torbjørn Rognes
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -185,10 +185,11 @@ Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
 New features and important modifications of \fBswarm\fR:
 .RS
 .TP
-.BR v1.2.3\~ "released January 30, 2014"
-Version 1.2.3 introduces an option to output all pairs of amplicons to
-standard error. The syntax of the inline assembly code is also changed
-for compatibility with more compilers.
+.BR v1.2.4\~ "released January 30, 2014"
+Version 1.2.4 introduces an option --break-swarms to output all pairs
+of amplicons with \fId\fR differences to standard error. The syntax of
+the inline assembly code is also changed for compatibility with more
+compilers.
 .TP
 .BR v1.2\~ "released May 16, 2013"
 Version 1.2 greatly improves speed by using alignment-free comparisons
