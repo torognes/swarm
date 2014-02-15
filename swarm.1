@@ -57,7 +57,8 @@ is "-".
 .BI -b\fP,\fB\ --break-swarms
 output all pairs of nearly-identical amplicons to standard error using
 a four-columns tab-delimited format: "@@", ampliconA, amplicon B,
-number of differences. That option can be used for swarms
+number of differences. That option, designed to work with the
+companion script swarm_breaker.py, can also be used for swarms
 post-processing, network analysis and visualization.
 .TP
 .BI -d\fP,\fB\ --differences\~ "positive integer"
@@ -187,9 +188,10 @@ New features and important modifications of \fBswarm\fR:
 .TP
 .BR v1.2.4\~ "released January 30, 2014"
 Version 1.2.4 introduces an option --break-swarms to output all pairs
-of amplicons with \fId\fR differences to standard error. The syntax of
-the inline assembly code is also changed for compatibility with more
-compilers.
+of amplicons with \fId\fR differences to standard error. That option
+is used by the companion script `swarm_breaker.py` to refine swarm
+results. The syntax of the inline assembly code is changed for
+compatibility with more compilers.
 .TP
 .BR v1.2\~ "released May 16, 2013"
 Version 1.2 greatly improves speed by using alignment-free comparisons

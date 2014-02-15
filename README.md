@@ -21,6 +21,7 @@ Table of Content
    * [Dereplication](#dereplication)
    * [Launch swarm](#launch)
 * [Parse swarm results](#parse)
+   * [Refine swarm OTUs](#refine_OTUs)
    * [Count the number of amplicons per OTU](#OTU_sizes)
    * [Get the seed sequence for each swarm](#extract_seeds)
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
@@ -144,6 +145,31 @@ commands that can be use to parse **swarm**'s output. We assume that
 the amplicon fasta file was prepared as describe above (linearization
 and dereplication).
 
+<a name="refine_OTUs"/>
+### Refine swarm OTUs ###
+
+Chains of amplicons can form when using short sequences, a
+slowly-evolving marker or a high *d* value. Using amplicon abundance
+information, these chains can be easily identified and broken to
+improve swarm's precision. Until we include that functionality
+directly into swarm, we provide a simple to use python script, and
+recommend to apply it to all swarm results. The script, tested with
+python 2.7, is located in the folder `scripts`, and can be used as
+follows:
+
+```
+python swarm_breaker.py --help
+python swarm_breaker.py -f amplicons.fasta -s amplicons.swarms 2> amplicons.log > amplicons.swarms2
+```
+
+The script produces refined OTUs and write them to the standard
+output. It also writes debugging informations to the standard error,
+that could be redirected to a log file, or redirected to
+`/dev/null`. As of today, `swarm_breaker.py` is rapid enough to deal
+with 454 data sets, but might be to slow for large Illumina data
+sets. We are currently testing a much faster algorithm, and plan to
+release it as soon as possible.
+
 <a name="OTU_sizes"/>
 ### Count the number of amplicons per OTU ###
 
@@ -222,8 +248,10 @@ Intel or AMD CPU released since.
 <a name="version124"/>
 ### version 1.2.4 ###
 
-**swarm** 1.2.4 changes the name of the new option from `--break_swarms`
-to `--break-swarms` for consistency with other options.
+**swarm** 1.2.4 changes the name of the new option from
+`--break_swarms` to `--break-swarms` for consistency with other
+options, and also adds a companion script `swarm_breaker.py` to refine
+swarm results (`scripts` folder).
 
 <a name="version123"/>
 ### version 1.2.3 ###
