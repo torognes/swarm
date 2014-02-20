@@ -151,22 +151,22 @@ and dereplication).
 Chains of amplicons can form when using short sequences, a
 slowly-evolving marker or a high *d* value. Using amplicon abundance
 information, these chains can be easily identified and broken to
-improve swarm's precision. Until we include that functionality
-directly into swarm, we provide a simple to use python script, and
-recommend to apply it to all swarm results. The script, tested with
-python 2.7, is located in the folder `scripts`, and can be used as
-follows:
+improve **swarm**'s precision. Until we include that functionality
+directly into **swarm**, we provide a simple to use python script, and
+recommend to apply it to all **swarm** results. The script, tested
+with python 2.7, is located in the folder `scripts`, and can be used
+as follows:
 
 ```
 python swarm_breaker.py --help
 python swarm_breaker.py -f amplicons.fasta -s amplicons.swarms 2> amplicons.log > amplicons.swarms2
 ```
 
-The script produces refined OTUs and write them to the standard
-output. It also writes debugging informations to the standard error,
+The script produces refined OTUs and writes them to the standard
+output. It also writes debugging information to the standard error,
 that could be redirected to a log file, or redirected to
 `/dev/null`. As of today, `swarm_breaker.py` is rapid enough to deal
-with 454 data sets, but might be to slow for large Illumina data
+with 454 data sets, but might be too slow for large Illumina data
 sets. We are currently testing a much faster algorithm, and plan to
 release it as soon as possible.
 
@@ -328,4 +328,4 @@ You are welcome to:
 
 * submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
 * send a pull request on: https://github.com/torognes/swarm/
-* compose a friendly e-mail to: <torognes@ifi.uio.no> and <mahe@rhrk.uni-kl.de>
+* compose a friendly e-mail to: Frédéric <mahe@rhrk.uni-kl.de> and Torbjørn <torognes@ifi.uio.no>
