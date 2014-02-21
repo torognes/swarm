@@ -328,4 +328,4 @@ You are welcome to:
 
 * submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
 * send a pull request on: https://github.com/torognes/swarm/
-* compose a friendly e-mail to: Frédéric <mahe@rhrk.uni-kl.de> and Torbjørn <torognes@ifi.uio.no>
+* compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
