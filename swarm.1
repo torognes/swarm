@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "30 January 2014" "version 1.2.4" "USER COMMANDS"
+.TH swarm 1 "11 April 2014" "version 1.2.5" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -186,6 +186,12 @@ Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
 .SH VERSION HISTORY
 New features and important modifications of \fBswarm\fR:
 .RS
+.TP
+.BR v1.2.5\~ "released April 11, 2014"
+Version 1.2.5 removes the need for a POPCNT hardware instruction to be
+present. Swarm now automatically checks whether POPCNT is available
+and uses a slightly slower software implementation if not. Only basic
+SSE2 instructions are now required to run swarm.
 .TP
 .BR v1.2.4\~ "released January 30, 2014"
 Version 1.2.4 introduces an option --break-swarms to output all pairs
