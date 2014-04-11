@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.5](#version125)
    * [version 1.2.4](#version124)
    * [version 1.2.3](#version123)
    * [version 1.2.2](#version122)
@@ -244,6 +245,13 @@ Intel or AMD CPU released since.
 
 <a name="features"/>
 ## New features##
+
+<a name="version125"/>
+### version 1.2.5 ###
+
+**swarm** 1.2.5 can be run on cpus without the POPCNT feature. It automatically
+checks whether the cpu feature is available and uses the appropriate code.
+The code that avoids POPCNT is just slightly slower. Only basic SSE2 is now required.
 
 <a name="version124"/>
 ### version 1.2.4 ###

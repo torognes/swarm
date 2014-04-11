@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -74,67 +74,94 @@ inline unsigned long popcount(unsigned long x)
   return y;
 }
 
-unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+unsigned long popcount_128(__m128i x)
 {
-  /* count number of different bits */
+  __m128i mask1 = _mm_set_epi8(0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
+                               0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55);
+
+  __m128i mask2 = _mm_set_epi8(0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
+                               0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33);
+
+  __m128i mask4 = _mm_set_epi8(0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+                               0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f);
+
+  __m128i zero = _mm_setzero_si128();
+
+  /* add together 2 bits: 0+1, 2+3, 3+4, ... 126+127 */
+
+  __m128i a = _mm_srli_epi64(x, 1);
+  __m128i b = _mm_and_si128(x, mask1);
+  __m128i c = _mm_and_si128(a, mask1);
+  __m128i d = _mm_add_epi64(b, c);
+
+  /* add together 4 bits: (0+1)+(2+3), ... (124+125)+(126+127) */
+
+  __m128i e = _mm_srli_epi64(d, 2);
+  __m128i f = _mm_and_si128(d, mask2);
+  __m128i g = _mm_and_si128(e, mask2);
+  __m128i h = _mm_add_epi64(f, g);
+
+  /* add together 8 bits: (0..3)+(4..7), ... (120..123)+(124..127) */
+
+  __m128i i = _mm_srli_epi64(h, 4);
+  __m128i j = _mm_add_epi64(h, i);
+  __m128i k = _mm_and_si128(j, mask4);
+
+  /* add together 8 bytes: (0..63) and (64..127) */
+
+  __m128i l = _mm_sad_epu8(k, zero);
+
+  /* add together 64-bit values into final 128 bit value */
+
+  __m128i m = _mm_srli_si128(l, 8);
+  __m128i n = _mm_add_epi64(m, l);
+
+  /* return low 64 bits: return value is always in range 0 to 128 */
+
+  unsigned long o = (unsigned long) _mm_movepi64_pi64(n);
+
+  return o;
+}
+
+unsigned long compareqgramvectors_128(unsigned char * a, unsigned char * b)
+{
+  /* Count number of different bits */
+  /* Uses SSE2 but not POPCNT instruction */
+  /* input MUST be 16-byte aligned */
+
+  __m128i * ap = (__m128i *) a;
+  __m128i * bp = (__m128i *) b;
   unsigned long count = 0;
 
-#if 1
+  while ((unsigned char*)ap < a + QGRAMVECTORBYTES)
+    count += popcount_128(_mm_xor_si128(*ap++, *bp++));
+  
+  return count;
+}
 
-  /* using ordinary 64-bit registers */
+unsigned long compareqgramvectors_64(unsigned char * a, unsigned char * b)
+{
+  /* Count number of different bits */
+  /* Uses the POPCNT instruction, requires CPU with this feature */
 
   unsigned long *ap = (unsigned long*)a;
   unsigned long *bp = (unsigned long*)b;
+  unsigned long count = 0;
 
-#if 1
-
-  /* with ordinary loop */
-
-  for(int i = 0; i < QGRAMVECTORBYTES/8; i++)
-    count += popcount(ap[i] ^ bp[i]);
-
-#else
-
-  /* unrolled loop */
-
-  count += popcount(ap[ 0] ^ bp[ 0]);
-  count += popcount(ap[ 1] ^ bp[ 1]);
-  count += popcount(ap[ 2] ^ bp[ 2]);
-  count += popcount(ap[ 3] ^ bp[ 3]);
-  count += popcount(ap[ 4] ^ bp[ 4]);
-  count += popcount(ap[ 5] ^ bp[ 5]);
-  count += popcount(ap[ 6] ^ bp[ 6]);
-  count += popcount(ap[ 7] ^ bp[ 7]);
-  count += popcount(ap[ 8] ^ bp[ 8]);
-  count += popcount(ap[ 9] ^ bp[ 9]);
-  count += popcount(ap[10] ^ bp[10]);
-  count += popcount(ap[11] ^ bp[11]);
-  count += popcount(ap[12] ^ bp[12]);
-  count += popcount(ap[13] ^ bp[13]);
-  count += popcount(ap[14] ^ bp[14]);
-  count += popcount(ap[15] ^ bp[15]);
-
-#endif
-
-#else
-
-  /* SSE2 version using the 128-bit XMM registers */
-
-  __m128i * ap = (__m128i*) a;
-  __m128i * bp = (__m128i*) b;
-
-  for(int i = 0; i < 8; i++)
-    {
-      __m128i x = _mm_load_si128(ap+i);
-      x = _mm_xor_si128(x, bp[i]);
-      count += popcount(_mm_extract_epi64(x, 0));
-      count += popcount(_mm_extract_epi64(x, 1));
-    }
-
-#endif
-
+  while ((unsigned char*) ap < a + QGRAMVECTORBYTES)
+    count += popcount(*ap++ ^ *bp++);
+  
   return count;
 }
+
+unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+{
+  if (popcnt_present)
+    return compareqgramvectors_64(a,b);
+  else
+    return compareqgramvectors_128(a,b);
+}
+
 
 inline unsigned long qgram_diff(unsigned long a, unsigned long b)
 {
