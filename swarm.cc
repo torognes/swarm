@@ -356,8 +356,8 @@ int main(int argc, char** argv)
 {
   cpu_features_detect();
 
-  if (!(sse2_present && popcnt_present))
-    fatal("This program requires a processor with SSE2 and POPCNT instructions.\n");
+  if (!sse2_present)
+    fatal("This program requires a processor with SSE2 instructions.\n");
   
   args_init(argc, argv);
 
