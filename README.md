@@ -95,7 +95,7 @@ the fasta header, one line for the sequence (tested with GNU Awk
 4.0.1).
 
 ```
-awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {print}' amplicons.fasta > amplicons_linearized.fasta
+awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {printf "\n"}' amplicons.fasta > amplicons_linearized.fasta
 ```
 
 <a name="dereplication"/>
