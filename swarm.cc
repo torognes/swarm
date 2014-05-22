@@ -32,6 +32,7 @@
 #define DEFAULT_THREADS 1
 #define DEFAULT_RESOLUTION 1
 #define DEFAULT_BREAK_SWARMS 0
+#define DEFAULT_MOTHUR 0
 
 char * outfilename;
 char * statsfilename;
@@ -45,6 +46,7 @@ long mismatchscore;
 long threads;
 long resolution;
 long break_swarms;
+long mothur;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -184,6 +186,7 @@ void args_usage()
   fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file (no)\n");
   fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file (no)\n");
   fprintf(stderr, "  -b, --break-swarms                  output all pairs of amplicons found (no)\n");
+  fprintf(stderr, "  -r, --mothur                        output in mothur list file format (no)\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -211,10 +214,11 @@ void args_init(int argc, char **argv)
   gapopen = DEFAULT_GAPOPEN;
   gapextend = DEFAULT_GAPEXTEND;
   break_swarms = DEFAULT_BREAK_SWARMS;
+  mothur = DEFAULT_MOTHUR;
   
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:b";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:br";
 
   static struct option long_options[] =
   {
@@ -230,6 +234,7 @@ void args_init(int argc, char **argv)
     {"statistics-file",       required_argument, NULL, 's' },
     {"uclust-file",           required_argument, NULL, 'u' },
     {"break-swarms",          no_argument,       NULL, 'b' },
+    {"mothur",                no_argument,       NULL, 'r' },
     { 0, 0, 0, 0 }
   };
   
@@ -294,6 +299,11 @@ void args_init(int argc, char **argv)
     case 'u':
       /* uclust-file */
       uclustfilename = optarg;
+      break;
+	  
+    case 'r':
+      /* mothur */
+      mothur = 1;
       break;
 	  
     case 'h':

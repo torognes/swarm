@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.5"
+#define SWARM_VERSION "1.2.6"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -99,6 +99,7 @@ extern long threads;
 extern char * databasename;
 extern long resolution;
 extern long break_swarms;
+extern long mothur;
 
 extern char map_ncbi_nt4[];
 extern char map_ncbi_nt16[];

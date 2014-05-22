@@ -1,24 +1,24 @@
 /*
-    SWARM
+  SWARM
 
-    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+  Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of the
-    License, or (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-    Department of Informatics, University of Oslo,
-    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
 #include "swarm.h"
@@ -112,16 +112,16 @@ void algo_run()
   unsigned long * hearray = 0;
 
   if (uclustfile)
-  {
-    dir = (unsigned char *) xmalloc(longestamplicon*longestamplicon);
-    hearray = (unsigned long *) xmalloc(2 * longestamplicon * sizeof(unsigned long));
-  }
+    {
+      dir = (unsigned char *) xmalloc(longestamplicon*longestamplicon);
+      hearray = (unsigned long *) xmalloc(2 * longestamplicon * sizeof(unsigned long));
+    }
 
   /* set ampliconid for all */
   for(unsigned long i=0; i<amplicons; i++)
-  {
-    amps[i].ampliconid = i;
-  }
+    {
+      amps[i].ampliconid = i;
+    }
 
 
   /* always search in 8 bit mode unless resolution is very high */
@@ -201,210 +201,210 @@ void algo_run()
 	}
       
       if (targetcount > 0)
-      {
-	search_do(seedampliconid, targetcount, targetampliconids, 
-		  scores, diffs, alignlengths, bits);
-	searches++;
-
-	if (bits == 8)
-	  count_comparisons_8 += targetcount;
-	else
-	  count_comparisons_16 += targetcount;
-
-	for(unsigned long t=0; t<targetcount; t++)
 	{
-	  unsigned diff = diffs[t];
+	  search_do(seedampliconid, targetcount, targetampliconids, 
+		    scores, diffs, alignlengths, bits);
+	  searches++;
 
-	  if (diff <= (unsigned long) resolution)
-	  {
-	    unsigned i = targetindices[t];
+	  if (bits == 8)
+	    count_comparisons_8 += targetcount;
+	  else
+	    count_comparisons_16 += targetcount;
 
-	    /* move the target (i) to the position (swarmed) of the first */
-	    /* unswarmed amplicon in the pool */
-	    
-#ifdef DEBUG
-	    unsigned long targetampliconid = amps[i].ampliconid;
-
-	    fprintf(stderr,
-		    "Moving from pos %u to %u. Seeded: %u Swarmed: %u ta: %lu pa: %u\n",
-		    i, swarmed, seeded, swarmed, targetampliconid, 
-		    amps[swarmed].ampliconid);
-#endif
-
-	    if (swarmed < i)
-	    {
-	      struct ampliconinfo_s temp = amps[i];
-	      for(unsigned j=i; j>swarmed; j--)
-	      {
-		amps[j] = amps[j-1];
-	      }
-	      amps[swarmed] = temp;
-	    }
-
-	    amps[swarmed].swarmid = swarmid;
-	    amps[swarmed].generation = 1;
-	    if (maxgen < 1)
-	      maxgen = 1;
-	    amps[swarmed].radius = diff;
-	    if (diff > maxradius)
-	      maxradius = diff;
-
-	    unsigned poolampliconid = amps[swarmed].ampliconid;
-	    hits[hitcount++] = poolampliconid;
-
-	    if (break_swarms)
-	      {
-		fprintf(stderr, "@@\t");
-		fprint_id_noabundance(stderr, seedampliconid);
-		fprintf(stderr, "\t");
-		fprint_id_noabundance(stderr, poolampliconid);
-		fprintf(stderr, "\t1\n");
-	      }
-
-	    diffsum += diff;
-	    
-	    abundance = db_getabundance(poolampliconid);
-	    amplicons_copies += abundance;
-	    if (abundance == 1)
-	      singletons++;
-
-	    swarmsize++;
-
-	    swarmed++;
-	  }
-	}  
-
-
-	while (seeded < swarmed)
-	{
-
-	  /* process each subseed */
-
-	  unsigned subseedampliconid;
-	  unsigned subseedradius;
-	  
-	  unsigned long subseedindex;
-	  unsigned long subseedgeneration;
-	  
-	  subseedindex = seeded;
-	  subseedampliconid = amps[subseedindex].ampliconid;
-	  subseedradius = amps[subseedindex].radius;
-	  subseedgeneration = amps[subseedindex].generation;
-
-	  seeded++;
-	  
-#ifdef DEBUG
-	  fprintf(stderr, "Subseed amplicon id: %u Generation: %lu\n", subseedampliconid, generation);
-#endif
-
-	  targetcount = 0;
-	  
-	  unsigned long listlen=0;
-	  for(unsigned long i=swarmed; i<amplicons; i++)
-	    {
-	      unsigned long targetampliconid = amps[i].ampliconid;
-	      if (amps[i].diffestimate <= subseedradius + resolution)
-		{
-		  qgramamps[listlen] = targetampliconid;
-		  qgramindices[listlen] = i;
-		  listlen++;
-		}
-	    }
-      	  qgram_diff_parallel(subseedampliconid, listlen, qgramamps, qgramdiffs);
-	  estimates += listlen;
-      
-	  for(unsigned long i=0; i < listlen; i++)
-	    if ((long)qgramdiffs[i] <= resolution)
-	      {
-		targetindices[targetcount] = qgramindices[i];
-		targetampliconids[targetcount] = qgramamps[i];
-		targetcount++;
-	      }
-	  
-	  if (targetcount > 0)
-	  {
-	    search_do(subseedampliconid, targetcount, targetampliconids, 
-		      scores, diffs, alignlengths, bits);
-	    searches++;
-
-	    if (bits == 8)
-	      count_comparisons_8 += targetcount;
-	    else
-	      count_comparisons_16 += targetcount;
-	    
-	    for(unsigned long t=0; t<targetcount; t++)
+	  for(unsigned long t=0; t<targetcount; t++)
 	    {
 	      unsigned diff = diffs[t];
-	      
+
 	      if (diff <= (unsigned long) resolution)
-	      {
-		unsigned i = targetindices[t];
-		
-		/* move the target (i) to the position (swarmed) of the first */
-		/* unswarmed amplicon in the pool */
-		
-		/* then move the target further into the swarmed but unseeded part */
-		/* of the list, so that the swarmed amplicons are ordered by id */
+		{
+		  unsigned i = targetindices[t];
 
-		/* find correct position in list */
-
-		unsigned long targetampliconid = amps[i].ampliconid;
-		unsigned pos = swarmed;
-
-		while ((pos > seeded) && (amps[pos-1].ampliconid > targetampliconid) &&
-		       (amps[pos-1].generation > subseedgeneration))
-		  pos--;
-
+		  /* move the target (i) to the position (swarmed) of the first */
+		  /* unswarmed amplicon in the pool */
+	    
 #ifdef DEBUG
-		fprintf(stderr,
-			"Moving from pos %u to %u. Seeded: %u Swarmed: %u ta: %lu pa: %u\n",
-			i, pos, seeded, swarmed, targetampliconid, amps[pos].ampliconid);
+		  unsigned long targetampliconid = amps[i].ampliconid;
+
+		  fprintf(stderr,
+			  "Moving from pos %u to %u. Seeded: %u Swarmed: %u ta: %lu pa: %u\n",
+			  i, swarmed, seeded, swarmed, targetampliconid, 
+			  amps[swarmed].ampliconid);
 #endif
 
-		if (pos < i)
-		{
-		  struct ampliconinfo_s temp = amps[i];
-		  for(unsigned j=i; j>pos; j--)
+		  if (swarmed < i)
 		    {
-		      amps[j] = amps[j-1];
+		      struct ampliconinfo_s temp = amps[i];
+		      for(unsigned j=i; j>swarmed; j--)
+			{
+			  amps[j] = amps[j-1];
+			}
+		      amps[swarmed] = temp;
 		    }
-		  amps[pos] = temp;
+
+		  amps[swarmed].swarmid = swarmid;
+		  amps[swarmed].generation = 1;
+		  if (maxgen < 1)
+		    maxgen = 1;
+		  amps[swarmed].radius = diff;
+		  if (diff > maxradius)
+		    maxradius = diff;
+
+		  unsigned poolampliconid = amps[swarmed].ampliconid;
+		  hits[hitcount++] = poolampliconid;
+
+		  if (break_swarms)
+		    {
+		      fprintf(stderr, "@@\t");
+		      fprint_id_noabundance(stderr, seedampliconid);
+		      fprintf(stderr, "\t");
+		      fprint_id_noabundance(stderr, poolampliconid);
+		      fprintf(stderr, "\t1\n");
+		    }
+
+		  diffsum += diff;
+	    
+		  abundance = db_getabundance(poolampliconid);
+		  amplicons_copies += abundance;
+		  if (abundance == 1)
+		    singletons++;
+
+		  swarmsize++;
+
+		  swarmed++;
 		}
-
-		amps[pos].swarmid = swarmid;
-		amps[pos].generation = subseedgeneration + 1;
-		if (maxgen < amps[pos].generation)
-		  maxgen = amps[pos].generation;
-		amps[pos].radius = subseedradius + diff;
-		if (amps[pos].radius > maxradius)
-		  maxradius = amps[pos].radius;
-
-		unsigned poolampliconid = amps[pos].ampliconid;
-		hits[hitcount++] = poolampliconid;
-		diffsum += diff;
-
-		if (break_swarms)
-		  {
-		    fprintf(stderr, "@@\t");
-		    fprint_id_noabundance(stderr, subseedampliconid);
-		    fprintf(stderr, "\t");
-		    fprint_id_noabundance(stderr, poolampliconid);
-		    fprintf(stderr, "\t1\n");
-		  }
-
-		abundance = db_getabundance(poolampliconid);
-		amplicons_copies += abundance;
-		if (abundance == 1)
-		  singletons++;
-
-		swarmsize++;
-
-		swarmed++;
-	      }
 	    }  
-	  }
+
+
+	  while (seeded < swarmed)
+	    {
+
+	      /* process each subseed */
+
+	      unsigned subseedampliconid;
+	      unsigned subseedradius;
+	  
+	      unsigned long subseedindex;
+	      unsigned long subseedgeneration;
+	  
+	      subseedindex = seeded;
+	      subseedampliconid = amps[subseedindex].ampliconid;
+	      subseedradius = amps[subseedindex].radius;
+	      subseedgeneration = amps[subseedindex].generation;
+
+	      seeded++;
+	  
+#ifdef DEBUG
+	      fprintf(stderr, "Subseed amplicon id: %u Generation: %lu\n", subseedampliconid, generation);
+#endif
+
+	      targetcount = 0;
+	  
+	      unsigned long listlen=0;
+	      for(unsigned long i=swarmed; i<amplicons; i++)
+		{
+		  unsigned long targetampliconid = amps[i].ampliconid;
+		  if (amps[i].diffestimate <= subseedradius + resolution)
+		    {
+		      qgramamps[listlen] = targetampliconid;
+		      qgramindices[listlen] = i;
+		      listlen++;
+		    }
+		}
+	      qgram_diff_parallel(subseedampliconid, listlen, qgramamps, qgramdiffs);
+	      estimates += listlen;
+      
+	      for(unsigned long i=0; i < listlen; i++)
+		if ((long)qgramdiffs[i] <= resolution)
+		  {
+		    targetindices[targetcount] = qgramindices[i];
+		    targetampliconids[targetcount] = qgramamps[i];
+		    targetcount++;
+		  }
+	  
+	      if (targetcount > 0)
+		{
+		  search_do(subseedampliconid, targetcount, targetampliconids, 
+			    scores, diffs, alignlengths, bits);
+		  searches++;
+
+		  if (bits == 8)
+		    count_comparisons_8 += targetcount;
+		  else
+		    count_comparisons_16 += targetcount;
+	    
+		  for(unsigned long t=0; t<targetcount; t++)
+		    {
+		      unsigned diff = diffs[t];
+	      
+		      if (diff <= (unsigned long) resolution)
+			{
+			  unsigned i = targetindices[t];
+		
+			  /* move the target (i) to the position (swarmed) of the first */
+			  /* unswarmed amplicon in the pool */
+		
+			  /* then move the target further into the swarmed but unseeded part */
+			  /* of the list, so that the swarmed amplicons are ordered by id */
+
+			  /* find correct position in list */
+
+			  unsigned long targetampliconid = amps[i].ampliconid;
+			  unsigned pos = swarmed;
+
+			  while ((pos > seeded) && (amps[pos-1].ampliconid > targetampliconid) &&
+				 (amps[pos-1].generation > subseedgeneration))
+			    pos--;
+
+#ifdef DEBUG
+			  fprintf(stderr,
+				  "Moving from pos %u to %u. Seeded: %u Swarmed: %u ta: %lu pa: %u\n",
+				  i, pos, seeded, swarmed, targetampliconid, amps[pos].ampliconid);
+#endif
+
+			  if (pos < i)
+			    {
+			      struct ampliconinfo_s temp = amps[i];
+			      for(unsigned j=i; j>pos; j--)
+				{
+				  amps[j] = amps[j-1];
+				}
+			      amps[pos] = temp;
+			    }
+
+			  amps[pos].swarmid = swarmid;
+			  amps[pos].generation = subseedgeneration + 1;
+			  if (maxgen < amps[pos].generation)
+			    maxgen = amps[pos].generation;
+			  amps[pos].radius = subseedradius + diff;
+			  if (amps[pos].radius > maxradius)
+			    maxradius = amps[pos].radius;
+
+			  unsigned poolampliconid = amps[pos].ampliconid;
+			  hits[hitcount++] = poolampliconid;
+			  diffsum += diff;
+
+			  if (break_swarms)
+			    {
+			      fprintf(stderr, "@@\t");
+			      fprint_id_noabundance(stderr, subseedampliconid);
+			      fprintf(stderr, "\t");
+			      fprint_id_noabundance(stderr, poolampliconid);
+			      fprintf(stderr, "\t1\n");
+			    }
+
+			  abundance = db_getabundance(poolampliconid);
+			  amplicons_copies += abundance;
+			  if (abundance == 1)
+			    singletons++;
+
+			  swarmsize++;
+
+			  swarmed++;
+			}
+		    }  
+		}
+	    }
 	}
-      }
       
       if (swarmsize > largestswarm)
 	largestswarm = swarmsize;
@@ -412,13 +412,6 @@ void algo_run()
       if (maxgen > maxgenerations)
 	maxgenerations = maxgen;
 
-      for(unsigned long i=0; i<hitcount; i++)
-	{
-	  if (i>0)
-	    fputc(SEPCHAR, outfile);
-	  fprint_id(outfile, hits[i]);
-	}
-      fputs("\n", outfile);
 
       if (uclustfile)
 	{
@@ -482,12 +475,51 @@ void algo_run()
 	}
     }
   
-
   if (uclustfile)
-  {
-    free(dir);
-    free(hearray);
-  }
+    {
+      free(dir);
+      free(hearray);
+    }
+
+
+  /* output results */
+  
+  if (amplicons > 0)
+    {
+      char sep_amplicons;
+      char sep_swarms;
+
+      if (mothur)
+	{
+	  /* mothur list file output */
+	  sep_amplicons = ',';
+	  sep_swarms = '\t';
+	  fprintf(outfile, "swarm\t%lu\t", swarmid);
+	}
+      else
+	{
+	  /* native swarm output */
+	  sep_amplicons = SEPCHAR;  /* usually a space */
+	  sep_swarms = '\n';
+	}
+
+      fprint_id(outfile, amps[0].ampliconid);
+      long previd = amps[0].swarmid;
+
+      for (unsigned long i=1; i<amplicons; i++)
+	{
+	  long id = amps[i].swarmid;
+	  if (id == previd)
+	    fputc(sep_amplicons, outfile);
+	  else
+	    fputc(sep_swarms, outfile);
+	  fprint_id(outfile, amps[i].ampliconid);
+	  previd = id;
+	}
+
+      fputc('\n', outfile);
+    }
+
 
   free(qgramdiffs);
   free(qgramamps);

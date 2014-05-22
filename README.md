@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.6](#version126)
    * [version 1.2.5](#version125)
    * [version 1.2.4](#version124)
    * [version 1.2.3](#version123)
@@ -227,25 +228,22 @@ rm "${AMPLICONS}"
 <a name="troubleshooting"/>
 ## Troubleshooting ##
 
-If **swarm** exits with an error message saying `Error: Illegal
-character in sequence`, at least one of your amplicon sequence
-contains a character other than ACGT (or acgt). This command will help
-you to find the concerned sequences and their line numbers:
-
-```
-awk '!/^>/ && /[^ACGTacgt]/ {print NR, $0}' amplicons.fasta
-```
-
 If **swarm** exists with an error message saying `This program
 requires a processor with SSE2`, your computer is too old to run
 **swarm** (or based on a non x86-64 architecture). **swarm** only runs
-on CPUs with the SSE2 and POPCNT instructions. The POPCNT instruction
-is the most recently introduced: November 2008 for Intel CPUs and
-October 2011 for AMD CPUs. **swarm** should be able to run on most
-Intel or AMD CPU released since.
+on CPUs with the SSE2 instructions. **swarm** should be able to run on most
+Intel and AMD CPUs released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version126"/>
+### version 1.2.6 ###
+
+**swarm** 1.2.6 add an option (`-r` or `--mothur`) to format the output file as
+a mothur-compatible list file instead of the native swarm format.
+When **swarm** encounters an illegal character in the input sequences it will
+now report the illegal character and the line number.
 
 <a name="version125"/>
 ### version 1.2.5 ###

@@ -1,24 +1,24 @@
 /*
-    SWARM
+  SWARM
 
-    Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+  Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation, either version 3 of the
-    License, or (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-    Department of Informatics, University of Oslo,
-    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
 #include "swarm.h"
@@ -79,9 +79,9 @@ void showseq(char * seq)
 {
   char * p = seq;
   while (char c = *p++)
-  {
-    putchar(sym_nt[(unsigned int)c]);
-  }
+    {
+      putchar(sym_nt[(unsigned int)c]);
+    }
 }
 
 
@@ -104,7 +104,7 @@ void db_read(const char * filename)
     {
       fp = fopen(filename, "r");
       if (!fp)
-	fatal("Error: Unable to open input data file (%s).", filename);
+        fatal("Error: Unable to open input data file (%s).", filename);
     }
   else
     fp = stdin;
@@ -112,6 +112,8 @@ void db_read(const char * filename)
   char line[LINEALLOC];
   line[0] = 0;
   fgets(line, LINEALLOC, fp);
+
+  long lineno = 1;
 
   while(line[0])
     {
@@ -125,16 +127,16 @@ void db_read(const char * filename)
       headerchars += headerlen;
 
       if (headerlen > longestheader)
-	longestheader = headerlen;
+        longestheader = headerlen;
 
 
       /* store the header */
 
       while (datalen + headerlen + 1 > dataalloc)
-      {
-	dataalloc += MEMCHUNK;
-	datap = (char *) xrealloc(datap, dataalloc);
-      }
+        {
+          dataalloc += MEMCHUNK;
+          datap = (char *) xrealloc(datap, dataalloc);
+        }
       memcpy(datap + datalen, line + 1, headerlen);
       *(datap + datalen + headerlen) = 0;
       datalen += headerlen + 1;
@@ -144,46 +146,53 @@ void db_read(const char * filename)
 
       line[0] = 0;
       fgets(line, LINEALLOC, fp);
+      lineno++;
+
 
       /* read sequence */
 
       unsigned long seqbegin = datalen;
 
       while (line[0] && (line[0] != '>'))
-	{
-	  char m;
-	  char c;
-	  char * p = line;
-	  while((c = *p++))
-	    if ((m = map_nt[(int)c]) >= 0)
-	    {
-	      while (datalen >= dataalloc)
-	      {
-		dataalloc += MEMCHUNK;
-		datap = (char *) xrealloc(datap, dataalloc);
-	      }
-
-	      *(datap+datalen) = m;
-	      datalen++;
-	    }
-	    else if (c != '\n')
-	      fatal("Illegal character in sequence.");
-	  line[0] = 0;
-	  fgets(line, LINEALLOC, fp);
-	}
+        {
+          char m;
+          char c;
+          char * p = line;
+          while((c = *p++))
+            if ((m = map_nt[(int)c]) >= 0)
+              {
+                while (datalen >= dataalloc)
+                  {
+                    dataalloc += MEMCHUNK;
+                    datap = (char *) xrealloc(datap, dataalloc);
+                  }
+                
+                *(datap+datalen) = m;
+                datalen++;
+              }
+            else if (c != '\n')
+              {
+                char msg[100];
+                snprintf(msg, 100, "Illegal character '%c' in sequence on line %ld", c, lineno);
+		fatal(msg);
+              }
+          line[0] = 0;
+          fgets(line, LINEALLOC, fp);
+          lineno++;
+        }
       
       while (datalen >= dataalloc)
-      {
-	dataalloc += MEMCHUNK;
-	datap = (char *) xrealloc(datap, dataalloc);
-      }
+        {
+          dataalloc += MEMCHUNK;
+          datap = (char *) xrealloc(datap, dataalloc);
+        }
       
       long length = datalen - seqbegin;
 
       nucleotides += length;
 
       if (length > longest)
-	longest = length;
+        longest = length;
 
       *(datap+datalen) = 0;
       datalen++;
@@ -210,63 +219,63 @@ void db_read(const char * filename)
 
   char * p = datap;
   for(unsigned long i=0; i<sequences; i++)
-  {
-    seqindex_p->header = p;
-    seqindex_p->headerlen = strlen(seqindex_p->header);
-    p += seqindex_p->headerlen + 1;
+    {
+      seqindex_p->header = p;
+      seqindex_p->headerlen = strlen(seqindex_p->header);
+      p += seqindex_p->headerlen + 1;
 
-    seqindex_p->headeridlen = xstrchrnul(seqindex_p->header, ' ') 
-      - seqindex_p->header;
-    seqindex_p->abundance = 1;
-    sscanf(seqindex_p->header, "%*[^ _]_%lu", & seqindex_p->abundance);
+      seqindex_p->headeridlen = xstrchrnul(seqindex_p->header, ' ') 
+        - seqindex_p->header;
+      seqindex_p->abundance = 1;
+      sscanf(seqindex_p->header, "%*[^ _]_%lu", & seqindex_p->abundance);
 
-    /* check hash, fatal error if found, otherwize insert new */
+      /* check hash, fatal error if found, otherwize insert new */
 
-    unsigned long hdrhash = hash_fnv_1a_64((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
-    seqindex_p->hdrhash = hdrhash;
-    unsigned long hashindex = hdrhash % hdrhashsize;
+      unsigned long hdrhash = hash_fnv_1a_64((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
+      seqindex_p->hdrhash = hdrhash;
+      unsigned long hashindex = hdrhash % hdrhashsize;
 
-    seqinfo_t * found;
+      seqinfo_t * found;
     
-    while ((found = hdrhashtable[hashindex]))
-      {
-	if ((found->hdrhash == hdrhash) &&
-	    (found->headeridlen == seqindex_p->headeridlen) &&
-	    (strncmp(found->header, seqindex_p->header, found->headeridlen) == 0))
-	  break;
-	hashindex = (hashindex + 1) % hdrhashsize;
-      }
+      while ((found = hdrhashtable[hashindex]))
+        {
+          if ((found->hdrhash == hdrhash) &&
+              (found->headeridlen == seqindex_p->headeridlen) &&
+              (strncmp(found->header, seqindex_p->header, found->headeridlen) == 0))
+            break;
+          hashindex = (hashindex + 1) % hdrhashsize;
+        }
 
-    if (found)
-      {
-	duplicatedidentifiers++;
-	fprintf(stderr, "Duplicated sequence identifier: %s\n", seqindex_p->header);
-      }
+      if (found)
+        {
+          duplicatedidentifiers++;
+          fprintf(stderr, "Duplicated sequence identifier: %s\n", seqindex_p->header);
+        }
 
-    hdrhashtable[hashindex] = seqindex_p;
+      hdrhashtable[hashindex] = seqindex_p;
     
-    seqindex_p->seq = p;
-    seqindex_p->seqlen = strlen(p);
-    p += seqindex_p->seqlen + 1;
+      seqindex_p->seq = p;
+      seqindex_p->seqlen = strlen(p);
+      p += seqindex_p->seqlen + 1;
 
-    /* find composition */
+      /* find composition */
 
-    for(unsigned long n = 1; n <= 4; n++)
-      {
-	seqindex_p->composition[n-1] = 0;
-      }
+      for(unsigned long n = 1; n <= 4; n++)
+        {
+          seqindex_p->composition[n-1] = 0;
+        }
 
-    for(unsigned long i = 0; i < seqindex_p->seqlen; i++)
-      {
-	seqindex_p->composition[(int)(seqindex_p->seq[i])-1]++;
-      }
+      for(unsigned long i = 0; i < seqindex_p->seqlen; i++)
+        {
+          seqindex_p->composition[(int)(seqindex_p->seq[i])-1]++;
+        }
 
-    /* find qgrams */
-    findqgrams((unsigned char*) seqindex_p->seq, seqindex_p->seqlen, 
-	       seqindex_p->qgramvector);
+      /* find qgrams */
+      findqgrams((unsigned char*) seqindex_p->seq, seqindex_p->seqlen, 
+                 seqindex_p->qgramvector);
 
-    seqindex_p++;
-  }
+      seqindex_p++;
+    }
 
   free(hdrhashtable);
 
@@ -305,8 +314,8 @@ char * db_getsequence(unsigned long seqno)
 }
 
 void db_getsequenceandlength(unsigned long seqno,
-			     char ** address,
-			     long * length)
+                             char ** address,
+                             long * length)
 {
   *address = seqindex[seqno].seq;
   *length = (long)(seqindex[seqno].seqlen);
