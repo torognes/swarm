@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "11 April 2014" "version 1.2.5" "USER COMMANDS"
+.TH swarm 1 "May 23, 2014" "version 1.2.6" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -80,6 +80,10 @@ display this help and exit.
 output result to \fIfilename\fR. Result is a list of swarms, one swarm
 per line. A swarm is a list of amplicon identifiers separated by
 spaces. Default is to write to standard output.
+.TP
+.BI -r\fP,\fB\ --mothur
+output results in a format compatible with Mothur. That option
+modifies swarm default output format.
 .TP
 .BI -s\fP,\fB\ --statistics-file \0filename
 output statistics to the specified file. Default is not to output
@@ -186,6 +190,11 @@ Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
 .SH VERSION HISTORY
 New features and important modifications of \fBswarm\fR:
 .RS
+.TP
+.BR v1.2.6\~ "released May 23, 2014"
+Version 1.2.6 introduces an option --mothur to output swarm results in
+a format compatible with the microbial ecology community analysis
+software suite Mothur.
 .TP
 .BR v1.2.5\~ "released April 11, 2014"
 Version 1.2.5 removes the need for a POPCNT hardware instruction to be
