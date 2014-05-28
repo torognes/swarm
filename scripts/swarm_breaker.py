@@ -69,6 +69,40 @@ def option_parse():
     return options.binary, options.fasta_file, options.swarm_file, options.threshold
 
 
+def check_files(paths):
+        status = dict()
+        for path in paths:
+            status[path] = {"exist": True, "read": True, "execute": True}
+            if not os.access(path, os.F_OK):
+                status[path]["exist"] = False
+            if not os.access(path, os.R_OK):
+                status[path]["read"] = False
+            if not os.access(path, os.X_OK):
+                status[path]["execute"] = False
+        # Deal with the swarm binary
+        if status[paths[0]]["exist"] is False:
+            print("ERROR: ", "Cannot find the swarm binary at ", paths[0],
+                  "\nUse -b /path/to/swarm to indicate the correct path.",
+                  sep="", file=sys.stderr)
+            sys.exit(-1)
+        if status[paths[0]]["execute"] is False:
+            print("ERROR:", "The swarm binary is not executable (", paths[0],
+                  ")\n", "Use chmod +x to make it executable.",
+                  sep=" ", file=sys.stderr)
+            sys.exit(-1)
+        # Are the other files readable?
+        for path in paths[1:]:
+            if status[path]["exist"] is False:
+                print("ERROR", "Cannot find the file", path,
+                      "\nExit", file=sys.stderr)
+                sys.exit(-1)
+            if status[path]["read"] is False:
+                print("ERROR", "Cannot read the file", path,
+                      "\nExit", file=sys.stderr)
+                sys.exit(-1)
+        return status
+
+
 def fasta_parse(fasta_file):
     """
     List amplicon ids, abundances and sequences, make a list and a dictionary
@@ -296,6 +330,8 @@ def main():
     """
     # Parse command line options.
     binary, fasta_file, swarm_file, threshold = option_parse()
+    # Check files
+    check_files([binary, fasta_file, swarm_file])
     # Load all amplicon ids, abundances and sequences
     all_amplicons = fasta_parse(fasta_file)
     # Load the swarming data
