@@ -130,11 +130,14 @@ sequences they represent are identical.
 ### Launch swarm ###
 
 If you want **swarm** to partition your dataset with the finest
-resolution (a local number of differences *d* = 1) on a quadricore
-CPU:
+resolution (a local number of differences *d* = 1, with
+post-processing to eliminate the potential chained OTUs) on a
+quadricore CPU:
 
 ```
 ./swarm -d 1 -t 4 amplicons.fasta > amplicons.swarms
+python ../scripts/swarm_breaker.py -f amplicons.fasta \
+    -s amplicons.swarms 2> amplicons.log > amplicons.swarms2
 ```
 
 See the user manual (man page and PDF) for details on **swarm**'s
