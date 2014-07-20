@@ -91,9 +91,13 @@ not discussed here.
 <a name="linearization"/>
 ### Linearization ###
 
-Amplicons written on two lines are easier to manipulate: one line for
-the fasta header, one line for the sequence (tested with GNU Awk
-4.0.1).
+Swarm accepts wrapped fasta files as well as linear fasta
+files. However, linear fasta files where amplicons are written on two
+lines (one line for the fasta header, one line for the sequence) are
+much easier to manipulate. For instance, many post-clustering queries
+can be easily done with `grep` when fasta files are linear. You can
+use the following code to linearize your fasta files. Code tested with
+GNU Awk 4.0.1.
 
 ```
 awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {printf "\n"}' amplicons.fasta > amplicons_linearized.fasta
