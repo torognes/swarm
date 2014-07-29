@@ -32,7 +32,7 @@ def option_parse():
     desc = """Detect and break chains of amplicons in a swarm. That
     script will search for the swarm binary in /usr/bin/. If swarm is
     installed at a different location, please modify the corresponding
-    line in the function run_swarm."""
+    line in the function run_swarm or use the -b option."""
 
     parser = OptionParser(usage="usage: %prog -f filename -s filename",
                           description=desc,
