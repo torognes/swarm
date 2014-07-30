@@ -30,9 +30,10 @@ def option_parse():
     Parse arguments from command line.
     """
     desc = """Detect and break chains of amplicons in a swarm. That
-    script will search for the swarm binary in /usr/bin/. If swarm is
-    installed at a different location, please modify the corresponding
-    line in the function run_swarm or use the -b option."""
+    script will search for the swarm binary in the directories listed
+    under $PATH. If swarm is installed at a different location, please
+    modify the corresponding line in the function run_swarm, or use
+    the -b option to specify the path to swarm."""
 
     parser = OptionParser(usage="usage: %prog -f filename -s filename",
                           description=desc,
@@ -41,7 +42,7 @@ def option_parse():
     parser.add_option("-b", "--binary",
                       metavar="<BINARY>",
                       action="store",
-                      default="/usr/bin/swarm",
+                      default="swarm",
                       dest="binary",
                       help="swarm binary location. Default is /usr/bin/swarm")
 
@@ -70,37 +71,45 @@ def option_parse():
 
 
 def check_files(paths):
-        status = dict()
-        for path in paths:
-            status[path] = {"exist": True, "read": True, "execute": True}
-            if not os.access(path, os.F_OK):
-                status[path]["exist"] = False
-            if not os.access(path, os.R_OK):
-                status[path]["read"] = False
-            if not os.access(path, os.X_OK):
-                status[path]["execute"] = False
-        # Deal with the swarm binary
+    """
+    Check input file and swarm binary status
+    """
+    status = dict()
+    for path in paths:
+        status[path] = {"exist": True, "read": True, "execute": True}
+        if not os.access(path, os.F_OK):
+            status[path]["exist"] = False
+        if not os.access(path, os.R_OK):
+            status[path]["read"] = False
+        if not os.access(path, os.X_OK):
+            status[path]["execute"] = False
+    # Is the path indicated by the user correct?
+    if paths[0] != "swarm":
         if status[paths[0]]["exist"] is False:
-            print("ERROR: ", "Cannot find the swarm binary at ", paths[0],
-                  "\nUse -b /path/to/swarm to indicate the correct path.",
+            print("Error: ",
+                  "Cannot find the swarm binary at ",
+                  paths[0], "\n",
+                  "Use -b /path/to/swarm to indicate the correct path.",
                   sep="", file=sys.stderr)
             sys.exit(-1)
         if status[paths[0]]["execute"] is False:
-            print("ERROR:", "The swarm binary is not executable (", paths[0],
-                  ")\n", "Use chmod +x to make it executable.",
-                  sep=" ", file=sys.stderr)
+            print("Error: ",
+                  "Cannot execute the swarm binary at ",
+                  paths[0], "\n",
+                  "please check file permissions.",
+                  sep="", file=sys.stderr)
             sys.exit(-1)
-        # Are the other files readable?
-        for path in paths[1:]:
-            if status[path]["exist"] is False:
-                print("ERROR", "Cannot find the file", path,
-                      "\nExit", file=sys.stderr)
-                sys.exit(-1)
-            if status[path]["read"] is False:
-                print("ERROR", "Cannot read the file", path,
-                      "\nExit", file=sys.stderr)
-                sys.exit(-1)
-        return status
+    # Are the other files readable?
+    for path in paths[1:]:
+        if status[path]["exist"] is False:
+            print("ERROR", "Cannot find the file", path,
+                  "\nExit", file=sys.stderr)
+            sys.exit(-1)
+        if status[path]["read"] is False:
+            print("ERROR", "Cannot read the file", path,
+                  "\nExit", file=sys.stderr)
+            sys.exit(-1)
+    return status
 
 
 def fasta_parse(fasta_file):
@@ -154,11 +163,18 @@ def run_swarm(binary, all_amplicons, swarm, threshold):
                     print(">", amplicon, "_", str(abundance), "\n", sequence,
                           sep="", file=tmp_fasta_file)
                 tmp_fasta_file.seek(0)  # rewind to the begining of the file
-                proc = subprocess.Popen(swarm_command,
-                                        stderr=tmp_swarm_results,
-                                        stdout=devnull,
-                                        stdin=tmp_fasta_file,
-                                        close_fds=True)
+                try:
+                    proc = subprocess.Popen(swarm_command,
+                                            stderr=tmp_swarm_results,
+                                            stdout=devnull,
+                                            stdin=tmp_fasta_file,
+                                            close_fds=True)
+                except (OSError, 2):
+                    print("Error ",
+                          "Cannot find the swarm binary in the $PATH directories\n",
+                          "Use -b /path/to/swarm to indicate the correct path.",
+                          sep="", file=sys.stderr)
+                    sys.exit(-1)
                 proc.wait()  # usefull or not?
                 tmp_swarm_results.seek(0)  # rewind to the begining of the file
                 graph_data = [line.strip().split("\t")[1:4]
