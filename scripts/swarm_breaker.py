@@ -120,7 +120,7 @@ def fasta_parse(fasta_file):
         all_amplicons = dict()
         for line in fasta_file:
             if line.startswith(">"):
-                amplicon, abundance = line.strip(">\n").split("_")
+                amplicon, abundance = line.strip(">\n").rsplit("_", 1)
             else:
                 sequence = line.strip()
                 all_amplicons[amplicon] = (int(abundance), sequence)
