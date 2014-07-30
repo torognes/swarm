@@ -136,7 +136,7 @@ def swarm_parse(swarm_file):
     with open(swarm_file, "rU") as swarm_file:
         swarms = list()
         for line in swarm_file:
-            amplicons = [(amplicon.split("_")[0], int(amplicon.split("_")[1]))
+            amplicons = [(amplicon.rsplit("_", 1)[0], int(amplicon.rsplit("_", 1)[1]))
                          for amplicon in line.strip().split(" ")]
             # Sort amplicons by decreasing abundance and alphabetical order
             amplicons.sort(key=itemgetter(1, 0), reverse=True)
