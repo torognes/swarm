@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.7](#version127)
    * [version 1.2.6](#version126)
    * [version 1.2.5](#version125)
    * [version 1.2.4](#version124)
@@ -243,6 +244,12 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version127"/>
+### version 1.2.7 ###
+
+**swarm** 1.2.7 incorporates a few small changes and improvements to
+  make it ready for integration into QIIME.
 
 <a name="version126"/>
 ### version 1.2.6 ###
