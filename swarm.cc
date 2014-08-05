@@ -33,6 +33,7 @@
 #define DEFAULT_RESOLUTION 1
 #define DEFAULT_BREAK_SWARMS 0
 #define DEFAULT_MOTHUR 0
+#define DEFAULT_ALTERNATIVE_ALGORITHM 0
 
 char * outfilename;
 char * statsfilename;
@@ -47,6 +48,7 @@ long threads;
 long resolution;
 long break_swarms;
 long mothur;
+long alternative_algorithm;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -187,6 +189,7 @@ void args_usage()
   fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file (no)\n");
   fprintf(stderr, "  -b, --break-swarms                  output all pairs of amplicons found (no)\n");
   fprintf(stderr, "  -r, --mothur                        output in mothur list file format (no)\n");
+  fprintf(stderr, "  -a, --alternative-algorithm         use an alternative algorithm when d=1\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -215,10 +218,11 @@ void args_init(int argc, char **argv)
   gapextend = DEFAULT_GAPEXTEND;
   break_swarms = DEFAULT_BREAK_SWARMS;
   mothur = DEFAULT_MOTHUR;
+  alternative_algorithm = DEFAULT_ALTERNATIVE_ALGORITHM;
   
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:br";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:bra";
 
   static struct option long_options[] =
   {
@@ -235,6 +239,7 @@ void args_init(int argc, char **argv)
     {"uclust-file",           required_argument, NULL, 'u' },
     {"break-swarms",          no_argument,       NULL, 'b' },
     {"mothur",                no_argument,       NULL, 'r' },
+    {"alternative-algorithm", no_argument,       NULL, 'a' },
     { 0, 0, 0, 0 }
   };
   
@@ -245,6 +250,11 @@ void args_init(int argc, char **argv)
   {
     switch(c)
     {
+    case 'a':
+      /* alternative-algorithm */
+      alternative_algorithm = 1;
+      break;
+
     case 'b':
       /* break-swarms */
       break_swarms = 1;
@@ -371,9 +381,9 @@ int main(int argc, char** argv)
   
   args_init(argc, argv);
 
-  penalty_mismatch = matchscore - mismatchscore;
-  penalty_gapopen = gapopen;
-  penalty_gapextend = matchscore + gapextend;
+  penalty_mismatch = 2 * matchscore - 2 * mismatchscore;
+  penalty_gapopen = 2 * gapopen;
+  penalty_gapextend = 2 * matchscore + gapextend;
 
   penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
   
@@ -393,7 +403,10 @@ int main(int argc, char** argv)
 
   search_begin();
   
-  algo_run();
+  if (alternative_algorithm && (resolution == 1))
+    algo_d1_run();
+  else
+    algo_run();
 
   search_end();
 

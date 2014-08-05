@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.8](#version128)
    * [version 1.2.7](#version127)
    * [version 1.2.6](#version126)
    * [version 1.2.5](#version125)
@@ -244,6 +245,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version128"/>
+### version 1.2.8 ###
+
+**swarm** 1.2.8 fixes an error with the gap extension penalty. Previous versions effectively used a gap penalty twice as large as intended. This version also introduces an experimental new search strategy in the case where d=1 that appears to be almost linear and faster at least for datasets of about half a million sequences or more. The new strategy can be turned on with the `-a` option.
 
 <a name="version127"/>
 ### version 1.2.7 ###

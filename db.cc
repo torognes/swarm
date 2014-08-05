@@ -84,6 +84,27 @@ void showseq(char * seq)
     }
 }
 
+void fprint_id(FILE * stream, unsigned long x)
+{
+  char * h = db_getheader(x);
+  char c = *h++;
+  while (c && (c != ' '))
+    {
+      fputc(c, stream);
+      c = *h++;
+    }
+}
+
+void fprint_id_noabundance(FILE * stream, unsigned long x)
+{
+  char * h = db_getheader(x);
+  char c = *h++;
+  while (c && (c != ' ') && (c != '_'))
+    {
+      fputc(c, stream);
+      c = *h++;
+    }
+}
 
 void db_read(const char * filename)
 {

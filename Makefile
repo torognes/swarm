@@ -40,7 +40,8 @@ CXXFLAGS=$(COMPILEOPT) $(COMMON) -O3
 
 PROG=swarm
 
-OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o algo.o qgram.o
+OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
+	algo.o algod1.o qgram.o
 
 DEPS=swarm.h Makefile
 

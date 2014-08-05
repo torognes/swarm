@@ -82,7 +82,7 @@ char * xstrchrnul(char *s, int c)
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
 {
   const unsigned long fnv_offset = 14695981039346656037UL;
-  const unsigned long fnv_prime = 1099511628211;
+  const unsigned long fnv_prime = 1099511628211; /* 2^40 - 435 */
 
   unsigned long hash = fnv_offset;
 
@@ -90,6 +90,52 @@ unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
     {
       unsigned char c = *s++;
       hash = (hash ^ c) * fnv_prime;
+    }
+
+  return hash;
+}
+
+unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n)
+{
+  const unsigned int fnv_offset = 2166136261;
+  const unsigned int fnv_prime = 16777619;
+
+  unsigned int hash = fnv_offset;
+
+  for(unsigned long i = 0; i < n; i++)
+    {
+      unsigned char c = *s++;
+      hash = (hash ^ c) * fnv_prime;
+    }
+
+  return hash;
+}
+
+unsigned long hash_djb2(unsigned char * s, unsigned long n)
+{
+  const unsigned long djb2_offset = 5381;
+
+  unsigned long hash = djb2_offset;
+
+  for(unsigned long i = 0; i < n; i++)
+    {
+      unsigned char c = *s++;
+      hash = ((hash << 5) + hash) + c; /* hash = hash * 33 + c */
+    }
+
+  return hash;
+}
+
+unsigned long hash_djb2a(unsigned char * s, unsigned long n)
+{
+  const unsigned long djb2_offset = 5381;
+
+  unsigned long hash = djb2_offset;
+
+  for(unsigned long i = 0; i < n; i++)
+    {
+      unsigned char c = *s++;
+      hash = ((hash << 5) + hash) ^ c; /* hash = hash * 33 ^ c */
     }
 
   return hash;

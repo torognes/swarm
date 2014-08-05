@@ -28,20 +28,20 @@
 #define SEPCHAR ' '
 #define BITS 8
 
-unsigned long count_comparisons_8;
-unsigned long count_comparisons_16;
+static unsigned long count_comparisons_8;
+static unsigned long count_comparisons_16;
 
-unsigned long targetcount;
-unsigned long * targetindices;
-unsigned long * targetampliconids;
-unsigned long * scores;
-unsigned long * diffs;
-unsigned long * alignlengths;
-unsigned long * qgramamps;
-unsigned long * qgramdiffs;
-unsigned long * qgramindices;
+static unsigned long targetcount;
+static unsigned long * targetindices;
+static unsigned long * targetampliconids;
+static unsigned long * scores;
+static unsigned long * diffs;
+static unsigned long * alignlengths;
+static unsigned long * qgramamps;
+static unsigned long * qgramdiffs;
+static unsigned long * qgramindices;
 
-struct ampliconinfo_s
+static struct ampliconinfo_s
 {
   unsigned ampliconid;
   unsigned diffestimate; /* a lower bound estimate on distance from initial seed */
@@ -50,30 +50,8 @@ struct ampliconinfo_s
   unsigned radius; /* actual diff from initial seed */
 } * amps;
 
-unsigned swarmed;
-unsigned seeded;
-
-void fprint_id(FILE * stream, unsigned long x)
-{
-  char * h = db_getheader(x);
-  char c = *h++;
-  while (c && (c != ' '))
-    {
-      fputc(c, stream);
-      c = *h++;
-    }
-}
-
-void fprint_id_noabundance(FILE * stream, unsigned long x)
-{
-  char * h = db_getheader(x);
-  char c = *h++;
-  while (c && (c != ' ') && (c != '_'))
-    {
-      fputc(c, stream);
-      c = *h++;
-    }
-}
+static unsigned long swarmed;
+static unsigned long seeded;
 
 void algo_run()
 {

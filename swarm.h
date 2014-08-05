@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.6"
+#define SWARM_VERSION "1.2.8"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -152,6 +152,9 @@ void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
 char * xstrchrnul(char *s, int c);
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
+unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n);
+unsigned long hash_djb2(unsigned char * s, unsigned long n);
+unsigned long hash_djb2a(unsigned char * s, unsigned long n);
 
 
 /* functions in qgram.cc */
@@ -199,6 +202,9 @@ inline unsigned char * db_getqgramvector(unsigned long seqno)
 {
   return seqindex[seqno].qgramvector;
 }
+
+void fprint_id(FILE * stream, unsigned long x);
+void fprint_id_noabundance(FILE * stream, unsigned long x);
 
 /* functions in search8.cc */
 
@@ -273,3 +279,4 @@ void search_end();
 /* functions in algo.cc */
 
 void algo_run();
+void algo_d1_run();
