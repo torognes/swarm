@@ -23,12 +23,11 @@
 
 /*
   This version of the swarm algorithm uses Frederic's idea for d=1 to
-  look for all possible variants of a sequence with only one difference
+  enumerate all of the maximum 7L+4 possible variants of a sequence with only
+  one difference, where L is the length of the sequence.
 */
 
 #include "swarm.h"
-
-//#define DEBUG
 
 #define SEPCHAR ' '
 #define HASH hash_djb2
@@ -36,14 +35,14 @@
 //#define HASH hash_fnv_1a_32
 //#define HASH hash_fnv_1a_64
 
-#define HASHFILLFACTOR 2
+#define HASHFILLFACTOR 4
 
 struct bucket_s
 {
-  long seqno;
   unsigned long hash;
-  unsigned long swarmid;
-  unsigned long generation;
+  int seqno;
+  int swarmid;
+  int generation;
   struct bucket_s * swarms_next;
   struct bucket_s * swarm_next;
   struct bucket_s * all_next;
@@ -58,7 +57,6 @@ struct bucket_s * current_swarm_tail;
 
 unsigned long amphashtablesize = 0;
 struct bucket_s * amphashtable = 0;
-static unsigned char * varseq = 0;
 
 /* overall statistics */
 static unsigned long maxgen = 0;
@@ -70,35 +68,26 @@ static unsigned long abundance_sum = 0;
 static unsigned long swarmsize = 0;
 static unsigned long swarm_maxgen = 0;
 
-#if 0
-static unsigned long collisions = 0;
-static unsigned long accesses = 0;
-#endif
+pthread_attr_t attr;
+pthread_mutex_t mutex_varmatch;
 
-int amp_compare(const void * a, const void * b)
+static struct thread_info_s
 {
-  struct bucket_s * x = * (struct bucket_s **) a;
-  struct bucket_s * y = * (struct bucket_s **) b;
+  pthread_t pthread;
+  pthread_mutex_t workmutex;
+  pthread_cond_t workcond;
+  int work;
+  unsigned char * varseq;
+  struct bucket_s * seed;
+  unsigned long mut_start;
+  unsigned long mut_length;
+} * ti;
 
-  if (x->seqno < y->seqno)
-    return -1;
-  else if (x->seqno > y->seqno)
-    return +1;
-  else
-    return 0;
-}
+long lastseed = -1;
+long seedmatches = 0;
 
-
-void dumpseq(unsigned long seqno)
-{
-  unsigned long seqlen = db_getsequencelen(seqno);
-  char * seq = db_getsequence(seqno);
-  for(int j=0; j<seqlen; j++)
-    putchar(sym_nt[(unsigned int)seq[j]]);
-  printf("\n");
-}
-
-void find_variant_matches(unsigned char * seq,
+void find_variant_matches(unsigned long thread,
+			  unsigned char * seq,
 			  unsigned long seqlen,
 			  struct bucket_s * seed)
 {
@@ -114,9 +103,6 @@ void find_variant_matches(unsigned char * seq,
       struct bucket_s * bp = amphashtable + j;
       if (bp->hash == hash)
 	{
-#if 0
-	  accesses++;
-#endif
 	  unsigned long seqno = bp->seqno;
 	  unsigned long ampseqlen = db_getsequencelen(seqno);
 	  unsigned char * ampseq = (unsigned char *) db_getsequence(seqno);
@@ -132,111 +118,221 @@ void find_variant_matches(unsigned char * seq,
 	      /* update info */
 	      bp->swarmid = seed->swarmid;
 	      bp->generation = seed->generation + 1;
-	      
+
+	      /* lock mutex before adding this amplicon to swarm */
+	      pthread_mutex_lock(&mutex_varmatch);
+
 	      /* add to swarm */
 	      current_swarm_tail->swarm_next = bp;
-	      bp->swarm_next = 0;
 	      current_swarm_tail = bp;
 	      
-	      /* update swarm stats */
-	      swarmsize++;
-	      if (bp->generation > swarm_maxgen)
-		swarm_maxgen = bp->generation;
-	      unsigned long abundance = db_getabundance(bp->seqno);
-	      abundance_sum += abundance;
-	      if (abundance == 1)
-		singletons++;
-	      
-	      /* output break_swarms info */
-	      if (break_swarms)
-		{
-		  fprintf(stderr, "@@\t");
-		  fprint_id_noabundance(stderr, seed->seqno);
-		  fprintf(stderr, "\t");
-		  fprint_id_noabundance(stderr, bp->seqno);
-		  fprintf(stderr, "\t1\n");
-		}
+	      /* unlock mutex after adding this amplicon to swarm */
+	      pthread_mutex_unlock(&mutex_varmatch);
 	    }
 	}
-#if 0
-      else
-	collisions++;
-#endif
       j = (j + 1) % amphashtablesize;
     }
 }
 
-/* 
-   process_seed:
-   - generate sequences with 0 or 1 difference from the given sequence
-   with each variant:
-   - find non-swarmed matching amplicons
-   then for all hits of variants:
-   - optionally, sort hits by decreasing abundance (ampliconindex)
-   - add them to swarm and update amplicons
-   - output swarm_breaker info
-*/
-
-void process_seed(struct bucket_s * seed)
+void generate_variants(unsigned long thread,
+		       struct bucket_s * seed,
+		       unsigned long start,
+		       unsigned long len)
 {
+  /* 
+     Generate all possible variants involving mutations from position start
+     and extending len nucleotides. Insertions in front of those positions
+     are included, but not those after. Positions are zero-based.
+     The range may extend beyond the the length of the sequence indicating
+     that inserts at the end of the sequence should be generated.
+
+     The last thread will handle insertions at the end of the sequence,
+     as well as identical sequences (no mutations).
+  */
+
+  unsigned char * varseq = ti[thread].varseq;
+  
   unsigned char * seq = (unsigned char*) db_getsequence(seed->seqno);
   unsigned long seqlen = db_getsequencelen(seed->seqno);
+  unsigned long end = MIN(seqlen,start+len);
+
+  /* make an exact copy */
   memcpy(varseq, seq, seqlen);
   
 #if 1
-  /* identical */
-  find_variant_matches(varseq, seqlen, seed);
+  /* identical non-variant */
+  if (thread == threads -1)
+    find_variant_matches(thread, varseq, seqlen, seed);
 #endif
 
   /* substitutions */
-  for(int i=0; i<seqlen; i++)
+  for(int i=start; i<end; i++)
     {
       for (int v=1; v<5; v++)
 	if (v != seq[i])
 	  {
 	    varseq[i] = v;
-	    find_variant_matches(varseq, seqlen, seed);
+	    find_variant_matches(thread, varseq, seqlen, seed);
 	  }
       varseq[i] = seq[i];
     }
 
   /* deletions */
-  for(int i=0; i<seqlen; i++)
+  memcpy(varseq, seq, start);
+  if (start < seqlen-1)
+    memcpy(varseq+start, seq+start+1, seqlen-start-1);
+  for(int i=start; i<end; i++)
     {
-      if(i>0)
-	{
-	  if (varseq[i] != seq[i-1])
-	    varseq[i] = seq[i-1];
-	  else
-	    continue;
-	}
-      find_variant_matches(varseq+1, seqlen-1, seed);
+      if ((i==0) || (seq[i] != seq[i-1]))
+	find_variant_matches(thread, varseq, seqlen-1, seed);      
+      varseq[i] = seq[i];
     }
-
+  
   /* insertions */
-  varseq[seqlen] = seq[seqlen-1];
-  for(int i=0; i<=seqlen; i++)
+  memcpy(varseq, seq, start);
+  memcpy(varseq+start+1, seq+start, seqlen-start);
+  for(int i=start; i<start+len; i++)
     {
       for(int v=1; v<5; v++)
-	{
-	  if((i==seqlen) || (v != seq[i]))
-	    {
-	      varseq[i] = v;
-	      find_variant_matches(varseq, seqlen+1, seed);
-	    }
-	}
+	if((i==seqlen) || (v != seq[i]))
+	  {
+	    varseq[i] = v;
+	    find_variant_matches(thread, varseq, seqlen+1, seed);
+	  }
       if (i<seqlen)
 	varseq[i] = seq[i];
     }
 }
 
+void * worker(void * vp)
+{
+  long t = (long) vp;
+  struct thread_info_s * tip = ti + t;
+
+  pthread_mutex_lock(&tip->workmutex);
+
+  /* loop until signalled to quit */
+  while (tip->work >= 0)
+    {
+      /* wait for work available */
+      pthread_cond_wait(&tip->workcond, &tip->workmutex);
+      if (tip->work > 0)
+	{
+	  generate_variants(t, tip->seed, tip->mut_start, tip->mut_length);
+	  tip->work = 0;
+	  pthread_cond_signal(&tip->workcond);
+	}
+    }
+
+  pthread_mutex_unlock(&tip->workmutex);
+  return 0;
+}
+
+void process_seed(struct bucket_s * seed)
+{
+  unsigned long seqlen = db_getsequencelen(seed->seqno);
+
+  unsigned long thr = threads;
+  if (thr > seqlen + 1)
+    thr = seqlen+1;
+
+  /* prepare work for the threads */
+  unsigned long start = 0;
+  for(unsigned long t=0; t<thr; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      unsigned long length = (seqlen - start + thr - t) / (thr - t);
+      tip->seed = seed;
+      tip->mut_start = start;
+      tip->mut_length = length;
+      start += length;
+      
+      pthread_mutex_lock(&tip->workmutex);
+      tip->work = 1;
+      pthread_cond_signal(&tip->workcond);
+      pthread_mutex_unlock(&tip->workmutex);
+    }
+
+  /* wait for theads to finish their work */
+  for(int t=0; t<thr; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      pthread_mutex_lock(&tip->workmutex);
+      while (tip->work > 0)
+	pthread_cond_wait(&tip->workcond, &tip->workmutex);
+      pthread_mutex_unlock(&tip->workmutex);
+    }
+}
+
+void threads_init()
+{
+  pthread_mutex_init(&mutex_varmatch, NULL);
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
+  /* allocate memory for thread info, incl the variant sequences */
+  unsigned long longestamplicon = db_getlongestsequence();
+  ti = (struct thread_info_s *) xmalloc(threads * sizeof(struct thread_info_s));
+  
+  /* init and create worker threads */
+  for(int t=0; t<threads; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
+      tip->work = 0;
+      pthread_mutex_init(&tip->workmutex, NULL);
+      pthread_cond_init(&tip->workcond, NULL);
+      if (pthread_create(&tip->pthread, &attr, worker, (void*)(long)t))
+	fatal("Cannot create thread");
+    }
+}
+
+void threads_done()
+{
+  /* finish and clean up worker threads */
+  for(int t=0; t<threads; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      
+      /* tell worker to quit */
+      pthread_mutex_lock(&tip->workmutex);
+      tip->work = -1;
+      pthread_cond_signal(&tip->workcond);
+      pthread_mutex_unlock(&tip->workmutex);
+
+      /* wait for worker to quit */
+      if (pthread_join(tip->pthread, NULL))
+	fatal("Cannot join thread");
+
+      pthread_cond_destroy(&tip->workcond);
+      pthread_mutex_destroy(&tip->workmutex);
+      free(tip->varseq);
+    }
+
+  free(ti);
+
+  pthread_attr_destroy(&attr);
+  pthread_mutex_destroy(&mutex_varmatch);
+}
+
+void update_stats(struct bucket_s * bp)
+{
+  /* update swarm stats */
+  swarmsize++;
+  if (bp->generation > swarm_maxgen)
+    swarm_maxgen = bp->generation;
+  unsigned long abundance = db_getabundance(bp->seqno);
+  abundance_sum += abundance;
+  if (abundance == 1)
+    singletons++;
+}
 
 void algo_d1_run()
 {
   unsigned long longestamplicon = db_getlongestsequence();
   unsigned long amplicons = db_getsequencecount();
- 
-  varseq = (unsigned char*) xmalloc(longestamplicon+1);
+
+  threads_init();
 
   /* compute hash for all amplicons and store them in hash table */
   amphashtablesize = HASHFILLFACTOR * amplicons;
@@ -307,14 +403,12 @@ void algo_d1_run()
 	  current_swarm_tail = seed;
 
 	  /* initialize swarm stats */
-	  swarmsize = 1;
+	  swarmsize = 0;
 	  swarm_maxgen = 0;
-	  unsigned long seedabundance = db_getabundance(seed->seqno);
-	  abundance_sum = seedabundance;
-	  if (seedabundance == 1)
-	    singletons = 1;
-	  else
-	    singletons = 0;
+	  abundance_sum = 0;
+	  singletons = 0;
+
+	  update_stats(seed);
 	  
 	  /* find the first generation matches */
 	  process_seed(seed);
@@ -325,6 +419,28 @@ void algo_d1_run()
 	    {
 	      process_seed(subseed);
 	      subseed = subseed->swarm_next;
+	    }
+
+	  /* update statistics */
+	  for (struct bucket_s * bp = seed->swarm_next; 
+	       bp;
+	       bp = bp->swarm_next)
+	    update_stats(bp);
+
+	  /* update overall statistics */
+	  if (swarmsize > largest)
+ 	    largest = swarmsize;
+	  if (swarm_maxgen > maxgen)
+	    maxgen = swarm_maxgen;
+
+	  /* output statistics to file */
+	  if (statsfile)
+	    {
+	      fprintf(statsfile, "%lu\t%lu\t", swarmsize, abundance_sum);
+	      fprint_id_noabundance(statsfile, seed->seqno);
+	      fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
+		      db_getabundance(seed->seqno),
+		      singletons, swarm_maxgen, swarm_maxgen);
 	    }
 
 	  /* output results for one swarm in native format */
@@ -339,21 +455,28 @@ void algo_d1_run()
 	      fputc('\n', outfile);
 	    }
       
-	  /* update overall statistics */
-	  if (swarmsize > largest)
- 	    largest = swarmsize;
-	  if (swarm_maxgen > maxgen)
-	    maxgen = swarm_maxgen;
-
+	  /* output break_swarms info */
+	  if (break_swarms)
+	    for (struct bucket_s * bp = seed->swarm_next; 
+		 bp;
+		 bp = bp->swarm_next)
+	      {
+		fprintf(stderr, "@@\t");
+		fprint_id_noabundance(stderr, seed->seqno);
+		fprintf(stderr, "\t");
+		fprint_id_noabundance(stderr, bp->seqno);
+		fprintf(stderr, "\t%d\n", bp->generation);
+	      }
+	  
 	  /* output swarm in uclust format */
 	  if (uclustfile)
 	    {
-	      fprintf(uclustfile, "C\t%lu\t%lu\t*\t*\t*\t*\t*\t",
+	      fprintf(uclustfile, "C\t%u\t%lu\t*\t*\t*\t*\t*\t",
 		      seed->swarmid-1, swarmsize);
 	      fprint_id(uclustfile, seed->seqno);
 	      fprintf(uclustfile, "\t*\n");
           
-	      fprintf(uclustfile, "S\t%lu\t%lu\t*\t*\t*\t*\t*\t",
+	      fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
 		      seed->swarmid-1, db_getsequencelen(seed->seqno));
 	      fprint_id(uclustfile, seed->seqno);
 	      fprintf(uclustfile, "\t*\n");
@@ -379,7 +502,7 @@ void algo_d1_run()
 		    nwalignmentlength;
               
 		  fprintf(uclustfile,
-			  "H\t%lu\t%lu\t%.1f\t+\t0\t0\t%s\t",
+			  "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
 			  seed->swarmid-1,
 			  db_getsequencelen(bp->seqno),
 			  percentid, 
@@ -395,19 +518,13 @@ void algo_d1_run()
 		}
 	    }
 
-	  if (statsfile)
-	    {
-	      fprintf(statsfile, "%lu\t%lu\t", swarmsize, abundance_sum);
-	      fprint_id_noabundance(statsfile, seed->seqno);
-	      fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
-		      seedabundance, singletons, swarm_maxgen, swarm_maxgen);
-	    }
 	}
     }
 
   unsigned long swarmcount = swarmid;
 
   /* dump swarms in mothur format */
+  /* cannot do it earlier because we need to know the number of swarms */
   if (mothur)
     {
       fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount);
@@ -428,12 +545,8 @@ void algo_d1_run()
   fprintf(stderr, "Largest swarm:     %lu\n", largest);
   fprintf(stderr, "Max generations:   %lu\n", maxgen);
 
-#if 0
-  fprintf(stderr, "\nHash collisions:   %lu\n", collisions);
-  fprintf(stderr, "Hash accesses:     %lu\n", accesses);
-#endif
+  threads_done();
 
-  free(varseq);
   free(amphashtable);
 
   if (uclustfile)

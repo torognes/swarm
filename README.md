@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.9](#version129)
    * [version 1.2.8](#version128)
    * [version 1.2.7](#version127)
    * [version 1.2.6](#version126)
@@ -245,6 +246,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version129"/>
+### version 1.2.9 ###
+
+**swarm** 1.2.9 includes a parallelized variant of the new search strategy for d=1. It seems to be fairly scalable up to about 16 threads for longer reads (~400bp), while up to about 8 threads for shorter reads (~150bp). Using about 50% more threads than available physical cores is recommended. This version also includes the d parameter in the beginning of the mothur-style output (e.g. swarm_1). Also, in the break_swarms output the real number of differences between the seed and the amplicon is indicated in the last column.
 
 <a name="version128"/>
 ### version 1.2.8 ###

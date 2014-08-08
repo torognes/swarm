@@ -34,7 +34,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.8"
+#define SWARM_VERSION "1.2.9"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32

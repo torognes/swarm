@@ -166,8 +166,7 @@ void args_show()
   fprintf(stderr, "Match score:       %ld\n", matchscore);
   fprintf(stderr, "Mismatch penalty:  %ld\n", -mismatchscore);
   fprintf(stderr, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
-  fprintf(stderr, "Converted costs:   factor: %ld, mismatch: %ld, gap opening: %ld, gap extension: %ld\n",
-	  penalty_factor, penalty_mismatch, penalty_gapopen, penalty_gapextend);
+  fprintf(stderr, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
 }
 
 void args_usage()
@@ -198,7 +197,9 @@ void show_header()
 {
   char title[] = "SWARM " SWARM_VERSION;
   char ref[] = "Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe";
-  fprintf(stderr, "%s [%s %s]\n%s\n\n", title, __DATE__, __TIME__, ref);
+  char url[] = "https://https://github.com/torognes/swarm";
+  fprintf(stderr, "%s [%s %s]\n%s\n%s\n\n",
+	  title, __DATE__, __TIME__, ref, url);
 }
 
 void args_init(int argc, char **argv)

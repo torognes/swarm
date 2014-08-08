@@ -236,7 +236,7 @@ void algo_run()
 		      fprint_id_noabundance(stderr, seedampliconid);
 		      fprintf(stderr, "\t");
 		      fprint_id_noabundance(stderr, poolampliconid);
-		      fprintf(stderr, "\t1\n");
+		      fprintf(stderr, "\t%u\n", diff);
 		    }
 
 		  diffsum += diff;
@@ -367,7 +367,7 @@ void algo_run()
 			      fprint_id_noabundance(stderr, subseedampliconid);
 			      fprintf(stderr, "\t");
 			      fprint_id_noabundance(stderr, poolampliconid);
-			      fprintf(stderr, "\t1\n");
+			      fprintf(stderr, "\t%u\n", subseedradius+diff);
 			    }
 
 			  abundance = db_getabundance(poolampliconid);
@@ -472,7 +472,7 @@ void algo_run()
 	  /* mothur list file output */
 	  sep_amplicons = ',';
 	  sep_swarms = '\t';
-	  fprintf(outfile, "swarm\t%lu\t", swarmid);
+	  fprintf(outfile, "swarm_%ld\t%lu\t", resolution, swarmid);
 	}
       else
 	{
