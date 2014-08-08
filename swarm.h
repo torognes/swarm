@@ -27,6 +27,7 @@
 #include <getopt.h>
 #include <tmmintrin.h>
 #include <stdlib.h>
+#include <regex.h>
 
 /* constants */
 
@@ -34,7 +35,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.9"
+#define SWARM_VERSION "1.2.10"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -69,8 +70,9 @@ struct seqinfo_s
   unsigned long abundance;
   unsigned long clusterid;
   unsigned long hdrhash;
-  long composition[4];
   unsigned char qgramvector[QGRAMVECTORBYTES];
+  int abundance_start;
+  int abundance_end;
 };
 
 typedef struct seqinfo_s seqinfo_t;
@@ -100,6 +102,7 @@ extern char * databasename;
 extern long resolution;
 extern long break_swarms;
 extern long mothur;
+extern long usearch_abundance;
 
 extern char map_ncbi_nt4[];
 extern char map_ncbi_nt16[];

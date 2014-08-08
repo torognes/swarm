@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.10](#version1210)
    * [version 1.2.9](#version129)
    * [version 1.2.8](#version128)
    * [version 1.2.7](#version127)
@@ -246,6 +247,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version1210"/>
+### version 1.2.10 ###
+
+**swarm** 1.2.10 allows amplicon abundances to be specified using the usearch style in the sequence header (e.g. ">id;size=1") when the `-z` option is chosen. Also fixes the bad url shown in the previous version of swarm.
 
 <a name="version129"/>
 ### version 1.2.9 ###

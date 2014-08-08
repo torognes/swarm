@@ -34,6 +34,7 @@
 #define DEFAULT_BREAK_SWARMS 0
 #define DEFAULT_MOTHUR 0
 #define DEFAULT_ALTERNATIVE_ALGORITHM 0
+#define DEFAULT_USEARCH_ABUNDANCE 0
 
 char * outfilename;
 char * statsfilename;
@@ -49,6 +50,7 @@ long resolution;
 long break_swarms;
 long mothur;
 long alternative_algorithm;
+long usearch_abundance;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -189,6 +191,7 @@ void args_usage()
   fprintf(stderr, "  -b, --break-swarms                  output all pairs of amplicons found (no)\n");
   fprintf(stderr, "  -r, --mothur                        output in mothur list file format (no)\n");
   fprintf(stderr, "  -a, --alternative-algorithm         use an alternative algorithm when d=1\n");
+  fprintf(stderr, "  -z, --usearch_abundance             abundance annotation in usearch style\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -197,7 +200,7 @@ void show_header()
 {
   char title[] = "SWARM " SWARM_VERSION;
   char ref[] = "Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe";
-  char url[] = "https://https://github.com/torognes/swarm";
+  char url[] = "https://github.com/torognes/swarm";
   fprintf(stderr, "%s [%s %s]\n%s\n%s\n\n",
 	  title, __DATE__, __TIME__, ref, url);
 }
@@ -220,10 +223,11 @@ void args_init(int argc, char **argv)
   break_swarms = DEFAULT_BREAK_SWARMS;
   mothur = DEFAULT_MOTHUR;
   alternative_algorithm = DEFAULT_ALTERNATIVE_ALGORITHM;
+  usearch_abundance = DEFAULT_USEARCH_ABUNDANCE;
   
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:bra";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:braz";
 
   static struct option long_options[] =
   {
@@ -241,6 +245,7 @@ void args_init(int argc, char **argv)
     {"break-swarms",          no_argument,       NULL, 'b' },
     {"mothur",                no_argument,       NULL, 'r' },
     {"alternative-algorithm", no_argument,       NULL, 'a' },
+    {"usearch-abundance",     no_argument,       NULL, 'z' },
     { 0, 0, 0, 0 }
   };
   
@@ -315,6 +320,11 @@ void args_init(int argc, char **argv)
     case 'r':
       /* mothur */
       mothur = 1;
+      break;
+	  
+    case 'z':
+      /* usearch_abundance */
+      usearch_abundance = 1;
       break;
 	  
     case 'h':

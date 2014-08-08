@@ -1,7 +1,7 @@
 /*
   SWARM
 
-  Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+  Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -97,13 +97,19 @@ void fprint_id(FILE * stream, unsigned long x)
 
 void fprint_id_noabundance(FILE * stream, unsigned long x)
 {
-  char * h = db_getheader(x);
-  char c = *h++;
-  while (c && (c != ' ') && (c != '_'))
-    {
-      fputc(c, stream);
-      c = *h++;
-    }
+  seqinfo_t * sp = seqindex + x;
+  char * h = sp->header;
+  int hdrlen = sp->headerlen;
+
+  /* print start of header */
+  fprintf(stream, "%.*s", sp->abundance_start, h);
+
+  /* print semicolon if the abundance is not at the end (usearch style) */
+  if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen))
+    fprintf(stream, ";");
+
+  /* print remaining part */
+  fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
 }
 
 void db_read(const char * filename)
@@ -238,6 +244,13 @@ void db_read(const char * filename)
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
   seqinfo_t * seqindex_p = seqindex;
 
+  regex_t db_regexp;
+  regmatch_t pmatch[4];
+
+  if (usearch_abundance)
+    if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
+      fatal("Regular expression compilation failed");
+
   char * p = datap;
   for(unsigned long i=0; i<sequences; i++)
     {
@@ -247,11 +260,47 @@ void db_read(const char * filename)
 
       seqindex_p->headeridlen = xstrchrnul(seqindex_p->header, ' ') 
         - seqindex_p->header;
+
+      /* get amplicon abundance */
       seqindex_p->abundance = 1;
-      sscanf(seqindex_p->header, "%*[^ _]_%lu", & seqindex_p->abundance);
+      if (usearch_abundance)
+	{
+	  if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
+	    {
+	      seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
+	      seqindex_p->abundance_start = pmatch[0].rm_so;
+	      seqindex_p->abundance_end = pmatch[0].rm_eo;
+	    }
+	  else
+	    {
+	      seqindex_p->abundance_start = 0;
+	      seqindex_p->abundance_end = 0;
+	    }
+	}
+      else
+	{
+	  int start, end;
+	  unsigned long abundance;
+	  if (sscanf(seqindex_p->header, "%*[^ _]%n_%lu%n",
+		     & start,
+		     & abundance,
+		     & end) == 1)
+	    {
+	      seqindex_p->abundance = abundance;
+	      seqindex_p->abundance_start = start;
+	      seqindex_p->abundance_end = end;
+	    }
+	  else
+	    {
+	      seqindex_p->abundance_start = 0;
+	      seqindex_p->abundance_end = 0;
+	    }
+	}
+
+      if (seqindex_p->abundance < 1)
+	fatal("abundance annotation zero");
 
       /* check hash, fatal error if found, otherwize insert new */
-
       unsigned long hdrhash = hash_fnv_1a_64((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
       seqindex_p->hdrhash = hdrhash;
       unsigned long hashindex = hdrhash % hdrhashsize;
@@ -279,24 +328,15 @@ void db_read(const char * filename)
       seqindex_p->seqlen = strlen(p);
       p += seqindex_p->seqlen + 1;
 
-      /* find composition */
-
-      for(unsigned long n = 1; n <= 4; n++)
-        {
-          seqindex_p->composition[n-1] = 0;
-        }
-
-      for(unsigned long i = 0; i < seqindex_p->seqlen; i++)
-        {
-          seqindex_p->composition[(int)(seqindex_p->seq[i])-1]++;
-        }
-
       /* find qgrams */
       findqgrams((unsigned char*) seqindex_p->seq, seqindex_p->seqlen, 
                  seqindex_p->qgramvector);
 
       seqindex_p++;
     }
+
+  if (usearch_abundance)
+    regfree(&db_regexp);
 
   free(hdrhashtable);
 
