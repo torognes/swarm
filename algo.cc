@@ -367,7 +367,7 @@ void algo_run()
 			      fprint_id_noabundance(stderr, subseedampliconid);
 			      fprintf(stderr, "\t");
 			      fprint_id_noabundance(stderr, poolampliconid);
-			      fprintf(stderr, "\t%u\n", subseedradius+diff);
+			      fprintf(stderr, "\t%u\n", diff);
 			    }
 
 			  abundance = db_getabundance(poolampliconid);

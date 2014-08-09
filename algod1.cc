@@ -465,7 +465,7 @@ void algo_d1_run()
 		fprint_id_noabundance(stderr, seed->seqno);
 		fprintf(stderr, "\t");
 		fprint_id_noabundance(stderr, bp->seqno);
-		fprintf(stderr, "\t%d\n", bp->generation);
+		fprintf(stderr, "\t%d\n", 1);
 	      }
 	  
 	  /* output swarm in uclust format */

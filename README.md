@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.11](#version1211)
    * [version 1.2.10](#version1210)
    * [version 1.2.9](#version129)
    * [version 1.2.8](#version128)
@@ -247,6 +248,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version1211"/>
+### version 1.2.11 ###
+
+**swarm** 1.2.11 corrects the number of differences reported in the break_swarms output.
 
 <a name="version1210"/>
 ### version 1.2.10 ###
