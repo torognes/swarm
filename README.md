@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.12](#version1212)
    * [version 1.2.11](#version1211)
    * [version 1.2.10](#version1210)
    * [version 1.2.9](#version129)
@@ -248,6 +249,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version1211"/>
+### version 1.2.12 ###
+
+**swarm** 1.2.12 improves speed of new search strategy for d=1.
 
 <a name="version1211"/>
 ### version 1.2.11 ###

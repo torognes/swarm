@@ -23,6 +23,36 @@
 
 #include "swarm.h"
 
+static const char * progress_prompt;
+static unsigned long progress_next;
+static unsigned long progress_size;
+static unsigned long progress_chunk;
+static const unsigned long progress_granularity = 200;
+
+void progress_init(const char * prompt, unsigned long size)
+{
+  progress_prompt = prompt;
+  progress_size = size;
+  progress_chunk = size < progress_granularity ? 
+    1 : size / progress_granularity;
+  progress_next = 0;
+  fprintf(stderr, "%s %.0f%%", prompt, 0.0);
+}
+
+void progress_update(unsigned long progress)
+{
+  if (progress >= progress_next)
+    {
+      fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
+              100.0 * progress / progress_size);
+      progress_next = progress + progress_chunk;
+    }
+}
+
+void progress_done()
+{
+  fprintf(stderr, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+}
 
 long gcd(long a, long b)
 {
@@ -139,4 +169,9 @@ unsigned long hash_djb2a(unsigned char * s, unsigned long n)
     }
 
   return hash;
+}
+
+unsigned long hash_cityhash64(unsigned char * s, unsigned long n)
+{
+  return CityHash64((const char*)s, n);
 }

@@ -23,7 +23,23 @@
 
 #include "swarm.h"
 
-pthread_t pthread_id[MAX_THREADS];
+static pthread_attr_t attr;
+
+static struct thread_info_s
+{
+  /* generic thread info */
+  pthread_t pthread;
+  pthread_mutex_t workmutex;
+  pthread_cond_t workcond;
+  int work;
+
+  /* specialized thread info */
+  unsigned long seed;
+  unsigned long listlen;
+  unsigned long * amplist;
+  unsigned long * difflist;
+} * ti;
+
 
 pthread_mutex_t workmutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -56,6 +72,7 @@ unsigned long * master_targets;
 unsigned long * master_scores;
 unsigned long * master_diffs;
 unsigned long * master_alignlengths;
+int master_bits;
 
 unsigned long longestdbsequence;
 unsigned long dirbufferbytes;
@@ -93,44 +110,6 @@ void search_init(struct search_data * sdp)
   }
 }
 
-int search_getwork(unsigned long * countref, unsigned long * firstref)
-{
-  // * countref = how many sequences to search
-  // * firstref = index into master_targets/scores/diffs where thread should start
-  
-  unsigned long status = 0;
-  
-  pthread_mutex_lock(&workmutex);
-  
-  if (master_next < master_length)
-    {
-      unsigned long chunksize = 
-	((master_length - master_next + remainingchunks - 1) / remainingchunks);
-      
-      * countref = chunksize;
-      * firstref = master_next;
-      
-      master_next += chunksize;
-      remainingchunks--;
-      status = 1;
-    }
-  
-  pthread_mutex_unlock(&workmutex);
-  
-  return status;
-}
-  
-void master_dump()
-{
-  printf("master_dump\n");
-  printf("   i    t    s    d\n");
-  for(unsigned long i=0; i< 1403; i++)
-    {
-      printf("%4lu %4lu %4lu %4lu\n", i, master_targets[i],
-	     master_scores[i], master_diffs[i]);
-    }
-}
-  
 void search_chunk(struct search_data * sdp, long bits)
 {
   if (sdp->target_count == 0)
@@ -139,7 +118,7 @@ void search_chunk(struct search_data * sdp, long bits)
 #if 0
 
   for(unsigned long i=0; i<sdp->target_count; i++)
-  {
+    {
     char * dseq;
     long dlen;
     char * nwalignment;
@@ -198,24 +177,73 @@ void search_chunk(struct search_data * sdp, long bits)
 	    sdp->dir_array);
 }
  
-void * worker_8(void * vp)
+int search_getwork(unsigned long * countref, unsigned long * firstref)
 {
-  long t = (long) vp;
+  // * countref = how many sequences to search
+  // * firstref = index into master_targets/scores/diffs where thread should start
+  
+  unsigned long status = 0;
+  
+  pthread_mutex_lock(&workmutex);
+  
+  if (master_next < master_length)
+    {
+      unsigned long chunksize = 
+	((master_length - master_next + remainingchunks - 1) / remainingchunks);
+      
+      * countref = chunksize;
+      * firstref = master_next;
+      
+      master_next += chunksize;
+      remainingchunks--;
+      status = 1;
+    }
+  
+  pthread_mutex_unlock(&workmutex);
+  
+  return status;
+}
+  
+void master_dump()
+{
+  printf("master_dump\n");
+  printf("   i    t    s    d\n");
+  for(unsigned long i=0; i< 1403; i++)
+    {
+      printf("%4lu %4lu %4lu %4lu\n", i, master_targets[i],
+	     master_scores[i], master_diffs[i]);
+    }
+}
+  
+void search_worker_core(int t)
+{
   search_init(sd+t);
   while(search_getwork(& sd[t].target_count, & sd[t].target_index))
-    search_chunk(sd+t, 8);
-  return 0;
+    search_chunk(sd+t, master_bits);
 }
 
-void * worker_16(void * vp)
+void * search_worker(void * vp)
 {
   long t = (long) vp;
-  search_init(sd+t);
-  while(search_getwork(& sd[t].target_count, & sd[t].target_index))
-    search_chunk(sd+t, 16);
+  struct thread_info_s * tip = ti + t;
+
+  pthread_mutex_lock(&tip->workmutex);
+
+  /* loop until signalled to quit */
+  while (tip->work >= 0)
+    {
+      /* wait for work available */
+      pthread_cond_wait(&tip->workcond, &tip->workmutex);
+      if (tip->work > 0)
+        {
+          search_worker_core(t);
+          tip->work = 0;
+          pthread_cond_signal(&tip->workcond);
+        }
+    }
+  pthread_mutex_unlock(&tip->workmutex);
   return 0;
 }
-
 
 void search_do(unsigned long query_no, 
 	       unsigned long listlength,
@@ -225,9 +253,6 @@ void search_do(unsigned long query_no,
 	       unsigned long * alignlengths,
 	       long bits)
 {
-
-  void * (*worker_func)(void *);
-
   query.qno = query_no;
   db_getsequenceandlength(query_no, &query.seq, &query.len);
   
@@ -237,8 +262,10 @@ void search_do(unsigned long query_no,
   master_scores = scores;
   master_diffs = diffs;
   master_alignlengths = alignlengths;
+  master_bits = bits;
 
   long thr = threads;
+
   if (bits == 8)
     {
       if (master_length <= (unsigned long)(15 * thr) )
@@ -251,35 +278,34 @@ void search_do(unsigned long query_no,
     }
 
   remainingchunks = thr;
-
-  if (bits == 16)
-    worker_func = worker_16;
-  else
-    worker_func = worker_8;
   
   if (thr == 1)
-  {
-    worker_func((void*)0);
-  }
-  else
-  {
-    long t;
-    void * status;
-    
-    for(t=0; t<thr; t++)
     {
+      search_worker_core(0);
+    }
+  else
+    {
+      /* wake up threads */
+      for(long t=0; t<thr; t++)
+	{
+	  struct thread_info_s * tip = ti + t;
+	  pthread_mutex_lock(&tip->workmutex);
+	  tip->work = 1;
+	  pthread_cond_signal(&tip->workcond);
+	  pthread_mutex_unlock(&tip->workmutex);
+	}
       
-      if (pthread_create(pthread_id + t, 0, worker_func, (void *)t))
-	fatal("Cannot create thread.");
+      /* wait for threads to finish their work */
+      for(int t=0; t<thr; t++)
+	{
+	  struct thread_info_s * tip = ti + t;
+	  pthread_mutex_lock(&tip->workmutex);
+	  while (tip->work > 0)
+	    pthread_cond_wait(&tip->workcond, &tip->workmutex);
+	  pthread_mutex_unlock(&tip->workmutex);
+	}
     }
-    
-    for(t=0; t<thr; t++) {
-      if (pthread_join(pthread_id[t], &status))
-	fatal("Cannot join thread.");
-    }
-  }
 }
-
 
 void search_begin()
 {
@@ -289,10 +315,54 @@ void search_begin()
 
   for(int t=0; t<threads; t++)
     search_alloc(sd+t);
+
+  /* start threads */
+
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  
+  /* allocate memory for thread info */
+  ti = (struct thread_info_s *) xmalloc(threads * 
+                                        sizeof(struct thread_info_s));
+  
+  /* init and create worker threads */
+  for(int t=0; t<threads; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      tip->work = 0;
+      pthread_mutex_init(&tip->workmutex, NULL);
+      pthread_cond_init(&tip->workcond, NULL);
+      if (pthread_create(&tip->pthread, &attr, search_worker, (void*)(long)t))
+        fatal("Cannot create thread");
+    }
+
 }
 
 void search_end()
 {
+  /* finish and clean up worker threads */
+
+  for(int t=0; t<threads; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      
+      /* tell worker to quit */
+      pthread_mutex_lock(&tip->workmutex);
+      tip->work = -1;
+      pthread_cond_signal(&tip->workcond);
+      pthread_mutex_unlock(&tip->workmutex);
+
+      /* wait for worker to quit */
+      if (pthread_join(tip->pthread, NULL))
+        fatal("Cannot join thread");
+
+      pthread_cond_destroy(&tip->workcond);
+      pthread_mutex_destroy(&tip->workmutex);
+    }
+
+  free(ti);
+  pthread_attr_destroy(&attr);
+
   for(int t=0; t<threads; t++)
     search_free(sd+t);
   free(sd);

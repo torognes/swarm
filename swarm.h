@@ -28,6 +28,7 @@
 #include <tmmintrin.h>
 #include <stdlib.h>
 #include <regex.h>
+#include <city.h>
 
 /* constants */
 
@@ -35,7 +36,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.11"
+#define SWARM_VERSION "1.2.12"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -60,17 +61,18 @@ typedef unsigned short WORD;
 typedef unsigned char BYTE;
 typedef BYTE VECTOR[16];
 
+typedef unsigned char qgramvector_t[QGRAMVECTORBYTES];
+
 struct seqinfo_s
 {
   char * header;
   char * seq;
-  unsigned long headerlen;
-  unsigned long headeridlen;
-  unsigned long seqlen;
-  unsigned long abundance;
-  unsigned long clusterid;
-  unsigned long hdrhash;
-  unsigned char qgramvector[QGRAMVECTORBYTES];
+  unsigned int headerlen;
+  unsigned int headeridlen;
+  unsigned int seqlen;
+  unsigned int abundance;
+  unsigned int clusterid;
+  unsigned int hdrhash;
   int abundance_start;
   int abundance_end;
 };
@@ -78,6 +80,7 @@ struct seqinfo_s
 typedef struct seqinfo_s seqinfo_t;
 
 extern seqinfo_t * seqindex;
+extern qgramvector_t * qgrams;
 
 struct queryinfo
 {
@@ -146,6 +149,7 @@ extern unsigned long longestdbsequence;
 
 extern queryinfo_t query;
 
+
 /* functions in util.cc */
 
 long gcd(long a, long b);
@@ -158,6 +162,10 @@ unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
 unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n);
 unsigned long hash_djb2(unsigned char * s, unsigned long n);
 unsigned long hash_djb2a(unsigned char * s, unsigned long n);
+unsigned long hash_cityhash64(unsigned char * s, unsigned long n);
+void progress_init(const char * prompt, unsigned long size);
+void progress_update(unsigned long progress);
+void progress_done();
 
 
 /* functions in qgram.cc */
@@ -165,11 +173,12 @@ unsigned long hash_djb2a(unsigned char * s, unsigned long n);
 void findqgrams(unsigned char * seq, unsigned long seqlen,
                 unsigned char * qgramvector);
 unsigned long qgram_diff(unsigned long a, unsigned long b);
-
-void qgram_diff_parallel(unsigned long seed,
-			 unsigned long listlen,
-			 unsigned long * amplist,
-			 unsigned long * difflist);
+void qgram_diff_fast(unsigned long seed,
+		     unsigned long listlen,
+		     unsigned long * amplist,
+		     unsigned long * difflist);
+void qgram_diff_init();
+void qgram_diff_done();
 
 /* functions in db.cc */
 
@@ -201,13 +210,17 @@ void db_free();
 
 void db_putseq(long seqno);
 
+void db_qgrams_init();
+void db_qgrams_done();
+
 inline unsigned char * db_getqgramvector(unsigned long seqno)
 {
-  return seqindex[seqno].qgramvector;
+  return (unsigned char*)(qgrams + seqno);
 }
 
 void fprint_id(FILE * stream, unsigned long x);
 void fprint_id_noabundance(FILE * stream, unsigned long x);
+
 
 /* functions in search8.cc */
 
@@ -226,6 +239,7 @@ void search8(BYTE * * q_start,
 	     unsigned long dirbuffersize,
 	     unsigned long * dirbuffer);
 
+
 /* functions in search16.cc */
 
 void search16(WORD * * q_start,
@@ -242,6 +256,7 @@ void search16(WORD * * q_start,
 	      unsigned long qlen,
 	      unsigned long dirbuffersize,
 	      unsigned long * dirbuffer);
+
 
 /* functions in nw.cc */
 
@@ -261,10 +276,12 @@ void nw(char * dseq,
 	unsigned long queryno,
 	unsigned long dbseqno);
 
+
 /* functions in matrix.cc */
 
 void score_matrix_init();
 void score_matrix_free();
+
 
 /* functions in scan.cc */
 
@@ -278,6 +295,7 @@ void search_do(unsigned long query_no,
 	       long bits);
 void search_begin();
 void search_end();
+
 
 /* functions in algo.cc */
 

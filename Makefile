@@ -25,7 +25,7 @@
 #COMMON=-pg -g
 COMMON=-g
 
-COMPILEOPT=-Wall -mssse3 -mtune=core2
+COMPILEOPT=-Wall -mssse3 -mtune=core2 -Icityhash
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
@@ -41,9 +41,9 @@ CXXFLAGS=$(COMPILEOPT) $(COMMON) -O3
 PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
-	algo.o algod1.o qgram.o
+	algo.o algod1.o qgram.o cityhash/city.o
 
-DEPS=swarm.h Makefile
+DEPS=Makefile swarm.h cityhash/config.h cityhash/city.h
 
 
 .SUFFIXES:.o .cc
@@ -60,4 +60,4 @@ swarm : $(OBJS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean :
-	rm -f *.o *~ $(PROG) gmon.out
+	rm -f *.o *~ $(PROG) gmon.out cityhash/*.o

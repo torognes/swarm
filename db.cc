@@ -23,6 +23,12 @@
 
 #include "swarm.h"
 
+//#define HASH hash_fnv_1a_64
+#define HASH hash_cityhash64
+
+#define MEMCHUNK 1048576
+#define LINEALLOC LINE_MAX
+
 char map_nt[256] =
   {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -71,9 +77,7 @@ int longestheader = 0;
 
 seqinfo_t * seqindex = 0;
 char * datap = 0;
-
-#define MEMCHUNK 1048576
-#define LINEALLOC LINE_MAX
+qgramvector_t * qgrams = 0;
 
 void showseq(char * seq)
 {
@@ -136,12 +140,22 @@ void db_read(const char * filename)
   else
     fp = stdin;
 
+  /* get file size */
+
+  if (fseek(fp, 0, SEEK_END))
+    fatal("Error: Unable to seek in database file (%s)", filename);
+
+  long filesize = ftell(fp);
+  
+  rewind(fp);
+
   char line[LINEALLOC];
   line[0] = 0;
   fgets(line, LINEALLOC, fp);
 
   long lineno = 1;
 
+  progress_init("Reading database: ", filesize);
   while(line[0])
     {
       /* read header */
@@ -225,7 +239,10 @@ void db_read(const char * filename)
       datalen++;
 
       sequences++;
+      
+      progress_update(ftell(fp));
     }
+  progress_done();
 
   fclose(fp);
 
@@ -252,6 +269,7 @@ void db_read(const char * filename)
       fatal("Regular expression compilation failed");
 
   char * p = datap;
+  progress_init("Indexing database:", sequences);
   for(unsigned long i=0; i<sequences; i++)
     {
       seqindex_p->header = p;
@@ -301,7 +319,7 @@ void db_read(const char * filename)
 	fatal("abundance annotation zero");
 
       /* check hash, fatal error if found, otherwize insert new */
-      unsigned long hdrhash = hash_fnv_1a_64((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
+      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
       seqindex_p->hdrhash = hdrhash;
       unsigned long hashindex = hdrhash % hdrhashsize;
 
@@ -328,12 +346,10 @@ void db_read(const char * filename)
       seqindex_p->seqlen = strlen(p);
       p += seqindex_p->seqlen + 1;
 
-      /* find qgrams */
-      findqgrams((unsigned char*) seqindex_p->seq, seqindex_p->seqlen, 
-                 seqindex_p->qgramvector);
-
       seqindex_p++;
+      progress_update(i);
     }
+  progress_done();
 
   if (usearch_abundance)
     regfree(&db_regexp);
@@ -342,6 +358,29 @@ void db_read(const char * filename)
 
   if (duplicatedidentifiers)
     exit(1);
+}
+
+void db_qgrams_init()
+{
+  qgrams = (qgramvector_t *) xmalloc(sequences * sizeof(qgramvector_t));
+
+  seqinfo_t * seqindex_p = seqindex;
+  progress_init("Find qgram vects: ", sequences);
+  for(int i=0; i<sequences; i++)
+    {
+      /* find qgrams */
+      findqgrams((unsigned char*) seqindex_p->seq,
+		 seqindex_p->seqlen,
+		 qgrams[i]);
+      seqindex_p++;
+      progress_update(i);
+    }
+  progress_done();
+}
+
+void db_qgrams_done()
+{
+  free(qgrams);
 }
 
 unsigned long db_getsequencecount()

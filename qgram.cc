@@ -23,6 +23,23 @@
 
 #include "swarm.h"
 
+static pthread_attr_t attr;
+
+static struct thread_info_s
+{
+  /* generic thread info */
+  pthread_t pthread;
+  pthread_mutex_t workmutex;
+  pthread_cond_t workcond;
+  int work;
+
+  /* specialized thread info */
+  unsigned long seed;
+  unsigned long listlen;
+  unsigned long * amplist;
+  unsigned long * difflist;
+} * ti;
+
 void printqgrams(unsigned char * qgramvector)
 {
   /* print qgramvector */
@@ -171,77 +188,145 @@ inline unsigned long qgram_diff(unsigned long a, unsigned long b)
   return mindiff;
 }
 
-struct thread_info_struct
+void qgram_work_diff(thread_info_s * tip)
 {
-  pthread_t id;
-  unsigned long seed;
-  unsigned long listlen;
-  unsigned long * amplist;
-  unsigned long * difflist;
-} thread_info[MAX_THREADS];
-
-void * qgram_diff_worker(void * vp)
-{
-  long t = (long) vp;
-
-  unsigned long seed = thread_info[t].seed;
-  unsigned long listlen = thread_info[t].listlen;
-  unsigned long * amplist = thread_info[t].amplist;
-  unsigned long * difflist = thread_info[t].difflist;
+  unsigned long seed = tip->seed;
+  unsigned long listlen = tip->listlen;
+  unsigned long * amplist = tip->amplist;
+  unsigned long * difflist = tip->difflist;
 
   for(unsigned long i=0; i<listlen; i++)
     difflist[i] = qgram_diff(seed, amplist[i]);
+}
+
+void * qgram_worker(void * vp)
+{
+  long t = (long) vp;
+  struct thread_info_s * tip = ti + t;
+
+  pthread_mutex_lock(&tip->workmutex);
+
+  /* loop until signalled to quit */
+  while (tip->work >= 0)
+    {
+      /* wait for work available */
+      pthread_cond_wait(&tip->workcond, &tip->workmutex);
+      if (tip->work > 0)
+        {
+          qgram_work_diff(tip);
+          tip->work = 0;
+          pthread_cond_signal(&tip->workcond);
+        }
+    }
+  pthread_mutex_unlock(&tip->workmutex);
   return 0;
 }
 
-void qgram_diff_parallel(unsigned long seed,
-			 unsigned long listlen,
-			 unsigned long * amplist,
-			 unsigned long * difflist)
+void qgram_diff_init()
+{
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+  
+  /* allocate memory for thread info */
+  ti = (struct thread_info_s *) xmalloc(threads * 
+					sizeof(struct thread_info_s));
+  
+  /* init and create worker threads */
+  for(int t=0; t<threads; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      tip->work = 0;
+      pthread_mutex_init(&tip->workmutex, NULL);
+      pthread_cond_init(&tip->workcond, NULL);
+      if (pthread_create(&tip->pthread, &attr, qgram_worker, (void*)(long)t))
+        fatal("Cannot create thread");
+    }
+}
+
+void qgram_diff_done()
+{
+  /* finish and clean up worker threads */
+  for(int t=0; t<threads; t++)
+    {
+      struct thread_info_s * tip = ti + t;
+      
+      /* tell worker to quit */
+      pthread_mutex_lock(&tip->workmutex);
+      tip->work = -1;
+      pthread_cond_signal(&tip->workcond);
+      pthread_mutex_unlock(&tip->workmutex);
+
+      /* wait for worker to quit */
+      if (pthread_join(tip->pthread, NULL))
+        fatal("Cannot join thread");
+
+      pthread_cond_destroy(&tip->workcond);
+      pthread_mutex_destroy(&tip->workmutex);
+    }
+
+  free(ti);
+  pthread_attr_destroy(&attr);
+}
+
+void qgram_diff_fast(unsigned long seed,
+		     unsigned long listlen,
+		     unsigned long * amplist,
+		     unsigned long * difflist)
 {
   long thr = threads;
   
-  const unsigned long m = 3000;
+  const unsigned long m = 150;
 
   if (listlen < m*thr)
     thr = (listlen+m-1)/m;
   
+  unsigned long * next_amplist = amplist;
+  unsigned long * next_difflist = difflist;
+  unsigned long listrest = listlen;
+  unsigned long thrrest = thr;
+  
+  /* distribute work */
+  for(long t=0; t<thr; t++)
+    {
+      thread_info_s * tip = ti + t;
+      unsigned long chunk = (listrest + thrrest - 1) / thrrest;
+
+      tip->seed = seed;
+      tip->amplist = next_amplist;
+      tip->difflist = next_difflist;
+      tip->listlen = chunk;
+
+      next_amplist += chunk;
+      next_difflist += chunk;
+      listrest -= chunk;
+      thrrest--;
+    }
+
   if (thr == 1)
     {
-      for(unsigned long i=0; i<listlen; i++)
-	difflist[i] = qgram_diff(seed, amplist[i]);
+      qgram_work_diff(ti);
     }
   else
     {
-      long t;
-      void * status;
-      
-      unsigned long * next_amplist = amplist;
-      unsigned long * next_difflist = difflist;
-      unsigned long listrest = listlen;
-      unsigned long thrrest = thr;
-      unsigned long chunk;
-      
-      for(t=0; t<thr; t++)
+      /* wake up threads */
+      for(long t=0; t<thr; t++)
 	{
-	  thread_info[t].seed = seed;
-	  thread_info[t].amplist = next_amplist;
-	  thread_info[t].difflist = next_difflist;
-	  chunk = (listrest + thrrest - 1) / thrrest;
-	  thread_info[t].listlen = chunk;
-	  next_amplist += chunk;
-	  next_difflist += chunk;
-	  listrest -= chunk;
-	  thrrest--;
+	  struct thread_info_s * tip = ti + t;
+	  pthread_mutex_lock(&tip->workmutex);
+	  tip->work = 1;
+	  pthread_cond_signal(&tip->workcond);
+	  pthread_mutex_unlock(&tip->workmutex);
 	}
-
-      for(t=0; t<thr; t++)
-	if (pthread_create(&thread_info[t].id, 0, qgram_diff_worker, (void *)t))
-	  fatal("Cannot create thread.");
       
-      for(t=0; t<thr; t++) {
-	if (pthread_join(thread_info[t].id, &status))
-	  fatal("Cannot join thread.");
-      }
+      /* wait for threads to finish their work */
+      for(int t=0; t<thr; t++)
+	{
+	  struct thread_info_s * tip = ti + t;
+	  pthread_mutex_lock(&tip->workmutex);
+	  while (tip->work > 0)
+	    pthread_cond_wait(&tip->workcond, &tip->workmutex);
+	  pthread_mutex_unlock(&tip->workmutex);
+	}
     }
 }
+

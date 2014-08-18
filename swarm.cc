@@ -156,17 +156,16 @@ void args_getnum(int i, int argc, char **argv, long * result, char * error)
 void args_show()
 {
   cpu_features_show();
-  fprintf(stderr, "Input data file:   %s\n", databasename ? databasename : "(stdin)");
-  fprintf(stderr, "Input data size:   %ld nucleotides", db_getnucleotidecount());
-  fprintf(stderr, " in %ld sequences\n", db_getsequencecount());
-  fprintf(stderr, "Longest sequence:  %ld nucleotides\n", db_getlongestsequence());
+  fprintf(stderr, "Database file:     %s\n", databasename);
   fprintf(stderr, "Output file:       %s\n", outfilename ? outfilename : "(stdout)");
   if (statsfilename)
     fprintf(stderr, "Statistics file:   %s\n", statsfilename);
-  fprintf(stderr, "Differences:       %ld\n", resolution);
+  if (uclustfilename)
+    fprintf(stderr, "Uclust file:       %s\n", uclustfilename);
+  fprintf(stderr, "Resolution (d):    %ld\n", resolution);
   fprintf(stderr, "Threads:           %ld\n", threads);
-  fprintf(stderr, "Match score:       %ld\n", matchscore);
-  fprintf(stderr, "Mismatch penalty:  %ld\n", -mismatchscore);
+  fprintf(stderr, "Algorithm:         %s\n", alternative_algorithm && (resolution==1) ? "alternative" : "regular");
+  fprintf(stderr, "Scores:            match: %ld, mismatch: %ld\n", matchscore, mismatchscore);
   fprintf(stderr, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
   fprintf(stderr, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
 }
@@ -198,11 +197,15 @@ void args_usage()
 
 void show_header()
 {
-  char title[] = "SWARM " SWARM_VERSION;
+  char title[] = "Swarm " SWARM_VERSION;
   char ref[] = "Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe";
   char url[] = "https://github.com/torognes/swarm";
   fprintf(stderr, "%s [%s %s]\n%s\n%s\n\n",
 	  title, __DATE__, __TIME__, ref, url);
+  fprintf(stderr, "Please cite: Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
+  fprintf(stderr, "Swarm: robust and fast clustering method for amplicon-based studies.\n");
+  fprintf(stderr, "PeerJ PrePrints 2:e386v1 http://dx.doi.org/10.7287/peerj.preprints.386v1\n");
+  fprintf(stderr, "\n");
 }
 
 void args_init(int argc, char **argv)
@@ -330,6 +333,7 @@ void args_init(int argc, char **argv)
     case 'h':
       /* help */
     default:
+      show_header();
       args_usage();
       exit(1);
       break;
@@ -404,11 +408,17 @@ int main(int argc, char** argv)
 
   show_header();
   
+  args_show();
+
+  fprintf(stderr, "\n");
+
   db_read(databasename);
+  
+  fprintf(stderr, "Database info:     %ld nt", db_getnucleotidecount());
+  fprintf(stderr, " in %ld sequences,", db_getsequencecount());
+  fprintf(stderr, " longest %ld nt\n", db_getlongestsequence());
 
   dbsequencecount = db_getsequencecount();
-
-  args_show();
 
   score_matrix_init();
 
