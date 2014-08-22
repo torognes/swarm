@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "May 23, 2014" "version 1.2.6" "USER COMMANDS"
+.TH swarm 1 "August 18, 2014" "version 1.2.12" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -42,21 +42,24 @@ line, whichever comes first. As \fBswarm\fR outputs lists of amplicon
 identifiers, amplicon identifiers must be unique to avoid ambiguity;
 swarm exits with an error message if identifiers are not unique. If
 amplicon identifiers end with a "_" followed by a number, that number
-is used as the amplicon copy number in the statistics output file. The
-amplicon sequence is defined as a string of [acgt] or [acgu] symbols
-(case insensitive), starting after the end of the identifier line and
-ending before the next identifier line or the file end; \fBswarm\fR
-exits with an error message if any other symbol is present. Default is
-to read from standard input if no file is named, or if the file name
-is "-".
+is used as the amplicon copy number in the statistics output file (see
+option -z for usearch users). The amplicon sequence is defined as a
+string of [acgt] or [acgu] symbols (case insensitive), starting after
+the end of the identifier line and ending before the next identifier
+line or the file end; \fBswarm\fR exits with an error message if any
+other symbol is present. Default is to read from standard input if no
+file is named, or if the file name is "-".
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBswarm\fR recognizes the following command-line options:
 .RS
 .TP 9
+.B -a\fP,\fB\ --alternative-algorithm
+use a fast experimental clustering algorithm when d = 1.
+.TP
 .BI -b\fP,\fB\ --break-swarms
 output all pairs of nearly-identical amplicons to standard error using
-a four-columns tab-delimited format: "@@", ampliconA, amplicon B,
+a four-columns tab-delimited format: "@@", ampliconA, ampliconB,
 number of differences. That option, designed to work with the
 companion script swarm_breaker.py, can also be used for swarms
 post-processing, network analysis and visualization.
@@ -108,6 +111,10 @@ option does not modify swarm default output format.
 .TP
 .B -v\fP,\fB\ --version
 output version information and exit.
+.TP
+.B -z\fP,\fB\ --usearch_abundance
+allows amplicon abundances to be specified using the usearch style in
+the sequence header (e.g. ">id;size=1").
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Advanced options
@@ -147,11 +154,7 @@ Use swarm in a pipeline to read a compressed fasta file and to get its
 swarm size profile (with default parameters).
 .\" ============================================================================
 .\" .SH LIMITATIONS
-.\" What are the maximum number of amplicons? the maximum length of the
-.\" amplicon identifier, the maximum length of amplicons, maximum number
-.\" of differences (or score limits). Should we prepare the software to
-.\" accept any 4 by 4 DNA substitution matrix? What happens if amplicons
-.\" contain a mix of upper and lowercase nucleotides?
+.\" List known limitations or bugs.
 .\" ============================================================================
 .SH AUTHORS
 Concept by Frédéric Mahé, implementation by Torbjørn Rognes.
@@ -188,8 +191,24 @@ License along with this program.  If not, see
 Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
 .\" ============================================================================
 .SH VERSION HISTORY
-New features and important modifications of \fBswarm\fR:
+New features and important modifications of \fBswarm\fR (short lived
+or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v1.2.12\~ "released August 18, 2014"
+Version 1.2.12 introduces an option --alternative-algorithm to use an
+extremely fast, experimental clustering algorithm for the special case
+d = 1. Multithreading scalability of the default algorithm has been
+noticeably improved.
+.TP
+.BR v1.2.10\~ "released August 8, 2014"
+allows amplicon abundances to be specified using the usearch style in
+the sequence header (e.g. ">id;size=1") when the -z option is chosen.
+.TP
+.BR v1.2.8\~ "released August 5, 2014"
+swarm 1.2.8 fixes an error with the gap extension penalty. Previous
+versions used a gap penalty twice as large as intended. That bug
+correction induces small changes in clustering results.
 .TP
 .BR v1.2.6\~ "released May 23, 2014"
 Version 1.2.6 introduces an option --mothur to output swarm results in
