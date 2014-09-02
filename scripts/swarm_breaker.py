@@ -155,6 +155,8 @@ def run_swarm(binary, all_amplicons, swarm, threshold):
     Write temporary fasta files, run swarm and collect the graph data
     """
     swarm_command = [binary, "-b", "-d", str(threshold)]
+    if threshold == 1:
+        swarm_command.insert(1, "-a")  # Use the fast algorithm if d = 1
     with open(os.devnull, "w") as devnull:
         with tempfile.SpooledTemporaryFile() as tmp_fasta_file:
             with tempfile.SpooledTemporaryFile() as tmp_swarm_results:
