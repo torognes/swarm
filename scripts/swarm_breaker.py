@@ -179,7 +179,7 @@ def run_swarm(binary, all_amplicons, swarm, threshold):
                 tmp_swarm_results.seek(0)  # rewind to the begining of the file
                 graph_data = [line.strip().split("\t")[1:4]
                               for line in tmp_swarm_results
-                              if line.startswith("@")]
+                              if "@@" in line]
                 return graph_data
 
 
