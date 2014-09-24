@@ -66,8 +66,16 @@ def option_parse():
                       dest="threshold",
                       help="set local clustering <THRESHOLD>. Default is 1")
 
+    parser.add_option("-t", "--threads",
+                      metavar="<THREADS>",
+                      action="store",
+                      type="int",
+                      default=1,
+                      dest="threads",
+                      help="set the number of <THREADS>. Default is 1")
+
     (options, args) = parser.parse_args()
-    return options.binary, options.fasta_file, options.swarm_file, options.threshold
+    return options.binary, options.fasta_file, options.swarm_file, options.threshold, options.threads
 
 
 def check_files(paths):
@@ -150,11 +158,11 @@ def swarm_parse(swarm_file):
         return swarms
 
 
-def run_swarm(binary, all_amplicons, swarm, threshold):
+def run_swarm(binary, all_amplicons, swarm, threshold, threads):
     """
     Write temporary fasta files, run swarm and collect the graph data
     """
-    swarm_command = [binary, "-b", "-d", str(threshold)]
+    swarm_command = [binary, "-b", "-d", str(threshold), "-t", str(threads)]
     if threshold == 1:
         swarm_command.insert(1, "-a")  # Use the fast algorithm if d = 1
     with open(os.devnull, "w") as devnull:
@@ -177,7 +185,7 @@ def run_swarm(binary, all_amplicons, swarm, threshold):
                           "Use -b /path/to/swarm to indicate the correct path.",
                           sep="", file=sys.stderr)
                     sys.exit(-1)
-                proc.wait()  # usefull or not?
+                # proc.wait()  # usefull or not?
                 tmp_swarm_results.seek(0)  # rewind to the begining of the file
                 graph_data = [line.strip().split("\t")[1:4]
                               for line in tmp_swarm_results
@@ -281,7 +289,7 @@ def swarmer(graph, seed, path=[]):
     return path
 
 
-def swarm_breaker(binary, all_amplicons, swarms, threshold):
+def swarm_breaker(binary, all_amplicons, swarms, threshold, threads):
     """
     Recursively inspect and break the newly produced swarms
     """
@@ -292,7 +300,7 @@ def swarm_breaker(binary, all_amplicons, swarms, threshold):
         top_amplicon, swarm_mass, swarm_size, top_abundance, amplicons = swarm
         if swarm_size > 2 and top_abundance > ABUNDANT:
             # Run swarm to get the pairwise relationships
-            graph_raw_data = run_swarm(binary, all_amplicons, amplicons, threshold)
+            graph_raw_data = run_swarm(binary, all_amplicons, amplicons, threshold, threads)
             # Build the graph of pairwise relationships
             graph = build_graph(graph_raw_data)
             new_swarm_seeds, graph = graph_breaker(amplicons, graph,
@@ -323,7 +331,7 @@ def swarm_breaker(binary, all_amplicons, swarms, threshold):
                 # Sort the rest of the new swarms by decreasing mass
                 # and size. Inject them into swarm_breaker.
                 new_swarms.sort(key=itemgetter(1, 2), reverse=True)
-                swarm_breaker(binary, all_amplicons, new_swarms, threshold)
+                swarm_breaker(binary, all_amplicons, new_swarms, threshold, threads)
         else:
             # Output the swarm
             print(" ".join(["_".join([amplicon[0], str(amplicon[1])])
@@ -347,7 +355,7 @@ def main():
     been treated.
     """
     # Parse command line options.
-    binary, fasta_file, swarm_file, threshold = option_parse()
+    binary, fasta_file, swarm_file, threshold, threads = option_parse()
     # Check files
     check_files([binary, fasta_file, swarm_file])
     # Load all amplicon ids, abundances and sequences
@@ -355,7 +363,7 @@ def main():
     # Load the swarming data
     swarms = swarm_parse(swarm_file)
     # Deal with each swarm
-    swarm_breaker(binary, all_amplicons, swarms, threshold)
+    swarm_breaker(binary, all_amplicons, swarms, threshold, threads)
 
 
 #*****************************************************************************#
