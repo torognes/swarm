@@ -1,0 +1,21 @@
+Please cite swarm as follows:
+
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm: robust and fast clustering method for amplicon-based studies. PeerJ 2:e593 <http://dx.doi.org/10.7717/peerj.593>
+
+
+Bibtex format:
+
+@article{10.7717/peerj.593,
+ title = {Swarm: robust and fast clustering method for amplicon-based studies},
+ author = {Mahé, Frédéric and Rognes, Torbjørn and Quince, Christopher and de Vargas, Colomban and Dunthorn, Micah},
+ year = {2014},
+ month = {9},
+ keywords = {Environmental diversity, Barcoding, Molecular operational taxonomic units},
+ abstract = {Popular \textit{de novo} amplicon clustering methods suffer from two fundamental flaws: arbitrary global clustering thresholds, and input-order dependency induced by centroid selection. Swarm was developed to address these issues by first clustering nearly identical amplicons iteratively using a local threshold, and then by using clusters’ internal structure and amplicon abundances to refine its results. This fast, scalable, and input-order independent approach reduces the influence of clustering parameters and produces robust operational taxonomic units.},
+ volume = {2},
+ pages = {e593},
+ journal = {PeerJ},
+ issn = {2167-8359},
+ url = {http://dx.doi.org/10.7717/peerj.593},
+ doi = {10.7717/peerj.593}
+}

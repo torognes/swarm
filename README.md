@@ -379,7 +379,7 @@ To cite **swarm**, please refer to:
 
 Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
 robust and fast clustering method for amplicon-based studies. PeerJ
-PrePrints 2:e386v1 http://dx.doi.org/10.7287/peerj.preprints.386v1
+2:e593 http://dx.doi.org/10.7717/peerj.593
 
 <a name="contact"/>
 ## Contact ##
