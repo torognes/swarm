@@ -204,7 +204,7 @@ void show_header()
 	  title, __DATE__, __TIME__, ref, url);
   fprintf(stderr, "Please cite: Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
   fprintf(stderr, "Swarm: robust and fast clustering method for amplicon-based studies.\n");
-  fprintf(stderr, "PeerJ PrePrints 2:e386v1 http://dx.doi.org/10.7287/peerj.preprints.386v1\n");
+  fprintf(stderr, "PeerJ 2:e593 http://dx.doi.org/10.7717/peerj.593\n");
   fprintf(stderr, "\n");
 }
 
