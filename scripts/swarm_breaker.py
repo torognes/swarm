@@ -185,7 +185,7 @@ def run_swarm(binary, all_amplicons, swarm, threshold, threads):
                           "Use -b /path/to/swarm to indicate the correct path.",
                           sep="", file=sys.stderr)
                     sys.exit(-1)
-                proc.wait()  # usefull or not?
+                proc.wait()  # Important to wait
                 tmp_swarm_results.seek(0)  # rewind to the begining of the file
                 graph_data = [line.strip().split("\t")[1:4]
                               for line in tmp_swarm_results
