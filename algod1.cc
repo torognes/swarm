@@ -64,8 +64,6 @@ static unsigned long swarm_maxgen = 0;
 static unsigned long swarmed = 0;
 
 pthread_attr_t attr;
-pthread_mutex_t mutex_varmatch;
-pthread_mutex_t mutex_stderr;
 
 static struct thread_info_s
 {
@@ -77,6 +75,9 @@ static struct thread_info_s
   int seed;
   unsigned long mut_start;
   unsigned long mut_length;
+  int * hits_data;
+  int hits_alloc;
+  int hits_count;
 } * ti;
 
 #ifdef HASHSTATS
@@ -93,61 +94,8 @@ unsigned long hash_mask;
 unsigned char * hash_occupied = 0;
 unsigned long * hash_values = 0;
 int * hash_data = 0;
-
-inline unsigned long hash_compute_hash(unsigned char * seq, int seqlen)
-{
-#if 1
-  return HASH(seq, seqlen);
-#else
-  unsigned char compressed[200];
-  unsigned char * q = compressed;
-  unsigned char * s = seq;
-
-  int chunk = seqlen & 0xffffffe0;
-  int rest = seqlen-chunk;
-  for (int i=0; i<chunk; i+= 32)
-    {
-      unsigned long * p = (unsigned long *)(s);
-      unsigned long x0 = p[0] - 0x0101010101010101;
-      unsigned long x1 = p[1] - 0x0101010101010101;
-      unsigned long x2 = p[2] - 0x0101010101010101;
-      unsigned long x3 = p[3] - 0x0101010101010101;
-      *((unsigned long *)q) = x0 | (x1 << 2) | (x2 << 4) | (x3 << 6);
-      s += 32;
-      q += 8;
-    }
-
-  if (rest > 16)
-    {
-      unsigned int * p = (unsigned int *)(s);
-      unsigned int x0 = p[0] - 0x01010101;
-      unsigned int x1 = p[1] - 0x01010101;
-      unsigned int x2 = p[2] - 0x01010101;
-      unsigned int x3 = p[3] - 0x01010101;
-      *((unsigned int *)q) = (x0) | (x1 << 2) | (x2 << 4) | (x3 << 6);
-      s += 16;
-      q += 4;
-      rest -= 16;
-    }
-
-  chunk = rest & 0xfffffffc;
-  rest = rest - chunk;
-  for (int i=0; i<chunk; i+= 4)
-    {
-      unsigned int * p = (unsigned int *) (s);
-      unsigned int x = p[0] - 0x01010101;
-      *q++ = x | (x >> 6) | (x >> 12) | (x >> 18);
-      s+=4;
-    }
-  if (rest == 1)
-    *q++ = seq[chunk]-1;
-  else if (rest == 2)
-    *q++ = (seq[chunk]-1) | ((seq[chunk+1]-1) << 2);
-  else if (rest == 3)
-    *q++ = (seq[chunk]-1) | ((seq[chunk+1]-1) << 2) | ((seq[chunk+2]-1) << 4);
-  return (HASH(compressed, q - compressed));
-#endif
-}
+int * hits_data = 0;
+int hits_alloc = 0;
 
 inline unsigned int hash_getindex(unsigned long hash)
 {
@@ -220,7 +168,7 @@ inline void hash_insert(int amp,
 			unsigned char * key,
 			unsigned long keylen)
 {
-  unsigned long hash = hash_compute_hash(key, keylen);
+  unsigned long hash = HASH(key, keylen);
   unsigned int j = hash_getindex(hash);
   
   /* find the first empty bucket */
@@ -239,7 +187,7 @@ void find_variant_matches(unsigned long thread,
 {
   /* compute hash and corresponding hash table index */
 
-  unsigned long hash = hash_compute_hash(seq, seqlen);
+  unsigned long hash = HASH(seq, seqlen);
   unsigned int j = hash_getindex(hash);
 
   /* find matching buckets */
@@ -274,33 +222,17 @@ void find_variant_matches(unsigned long thread,
 #ifdef HASHSTATS
 		  bingo++;
 #endif
-		  
-		  /* update info */
-		  bp->swarmid = ampinfo[seed].swarmid;
-		  bp->generation = ampinfo[seed].generation + 1;
 
-		  /* lock mutex before adding this amplicon to swarm */
-		  pthread_mutex_lock(&mutex_varmatch);
-		  
-		  /* add to swarm */
-		  ampinfo[current_swarm_tail].swarm_next = amp;
-		  current_swarm_tail = amp;
-		  swarmed++;
-		  
-		  /* unlock mutex after adding this amplicon to swarm */
-		  pthread_mutex_unlock(&mutex_varmatch);
+		  struct thread_info_s * tip = ti + thread;
 
-		  /* output break_swarms info */
-		  if (break_swarms)
+		  if (tip->hits_count + 1 > tip->hits_alloc)
 		    {
-		      pthread_mutex_lock(&mutex_stderr);
-		      fprintf(stderr, "@@\t");
-		      fprint_id_noabundance(stderr, seed);
-		      fprintf(stderr, "\t");
-		      fprint_id_noabundance(stderr, amp);
-		      fprintf(stderr, "\t%d\n", 1);
-		      pthread_mutex_unlock(&mutex_stderr);
+		      tip->hits_alloc <<= 1;
+		      tip->hits_data = (int*)realloc(tip->hits_data,
+						     tip->hits_alloc);
 		    }
+
+		  tip->hits_data[tip->hits_count++] = amp;
 		}
 #ifdef HASHSTATS
 	      else
@@ -340,10 +272,12 @@ void generate_variants(unsigned long thread,
   */
 
   unsigned char * varseq = ti[thread].varseq;
-  
+
   unsigned char * seq = (unsigned char*) db_getsequence(seed);
   unsigned long seqlen = db_getsequencelen(seed);
   unsigned long end = MIN(seqlen,start+len);
+
+  ti[thread].hits_count = 0;
 
   /* make an exact copy */
   memcpy(varseq, seq, seqlen);
@@ -422,6 +356,18 @@ void * worker(void * vp)
   return 0;
 }
 
+int compare_amp(const void * a, const void * b)
+{
+  int * x = (int*) a;
+  int * y = (int*) b;
+  if (*x < *y)
+    return -1;
+  else if (*x > *y)
+    return +1;
+  else
+    return 0;
+}
+
 void process_seed(int seed)
 {
   unsigned long seqlen = db_getsequencelen(seed);
@@ -456,12 +402,54 @@ void process_seed(int seed)
 	pthread_cond_wait(&tip->workcond, &tip->workmutex);
       pthread_mutex_unlock(&tip->workmutex);
     }
+
+  /* join hits from the threads */
+
+  int hits_count = 0;
+  for(int t=0; t<thr; t++)
+    {
+      if (hits_count + ti[t].hits_count > hits_alloc)
+	{
+	  hits_alloc <<= 1;
+	  hits_data = (int*)realloc(hits_data, hits_alloc);
+	}
+      for(int i=0; i < ti[t].hits_count; i++)
+	hits_data[hits_count++] = ti[t].hits_data[i];
+    }
+
+  /* sort hits */
+
+  qsort(hits_data, hits_count, sizeof(int), compare_amp);
+
+  /* update swarms */
+
+  for(int i = 0; i < hits_count; i++)
+    {
+      long amp = hits_data[i];
+
+      /* update info */
+      ampinfo[amp].swarmid = ampinfo[seed].swarmid;
+      ampinfo[amp].generation = ampinfo[seed].generation + 1;
+
+      /* add to swarm */
+      ampinfo[current_swarm_tail].swarm_next = amp;
+      current_swarm_tail = amp;
+      swarmed++;
+
+      /* output break_swarms info */
+      if (break_swarms)
+	{
+	  fprintf(stderr, "@@\t");
+	  fprint_id_noabundance(stderr, seed);
+	  fprintf(stderr, "\t");
+	  fprint_id_noabundance(stderr, amp);
+	  fprintf(stderr, "\t%d\n", 1);
+	}
+    }
 }
 
 void threads_init()
 {
-  pthread_mutex_init(&mutex_varmatch, NULL);
-  pthread_mutex_init(&mutex_stderr, NULL);
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	
@@ -474,6 +462,8 @@ void threads_init()
     {
       struct thread_info_s * tip = ti + t;
       tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
+      tip->hits_alloc = 7 * longestamplicon + 4;
+      tip->hits_data = (int*) xmalloc(tip->hits_alloc);
       tip->work = 0;
       pthread_mutex_init(&tip->workmutex, NULL);
       pthread_cond_init(&tip->workcond, NULL);
@@ -502,13 +492,12 @@ void threads_done()
       pthread_cond_destroy(&tip->workcond);
       pthread_mutex_destroy(&tip->workmutex);
       free(tip->varseq);
+      free(tip->hits_data);
     }
 
   free(ti);
 
   pthread_attr_destroy(&attr);
-  pthread_mutex_destroy(&mutex_varmatch);
-  pthread_mutex_destroy(&mutex_stderr);
 }
 
 void update_stats(int amp)
@@ -533,6 +522,9 @@ void algo_d1_run()
   threads_init();
 
   ampinfo = (struct ampinfo_s *) xmalloc (amplicons * sizeof(struct ampinfo_s));
+
+  hits_alloc = longestamplicon * 7 + 4;
+  hits_data = (int *) xmalloc(hits_alloc);
 
   /* compute hash for all amplicons and store them in a hash table */
   
@@ -735,6 +727,8 @@ void algo_d1_run()
   hash_free();
 
   free(ampinfo);
+
+  free(hits_data);
 
   if (uclustfile)
     {

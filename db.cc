@@ -90,13 +90,7 @@ void showseq(char * seq)
 
 void fprint_id(FILE * stream, unsigned long x)
 {
-  char * h = db_getheader(x);
-  char c = *h++;
-  while (c && (c != ' '))
-    {
-      fputc(c, stream);
-      c = *h++;
-    }
+  fprintf(stream, "%.*s", seqindex[x].headeridlen, seqindex[x].header);
 }
 
 void fprint_id_noabundance(FILE * stream, unsigned long x)
@@ -114,6 +108,23 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
 
   /* print remaining part */
   fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
+}
+
+int db_compare_abundance(const void * a, const void * b)
+{
+  seqinfo_t * x = (seqinfo_t *) a;
+  seqinfo_t * y = (seqinfo_t *) b;
+  
+  if (x->abundance < y->abundance)
+    return -1;
+  else if (x->abundance > y->abundance)
+    return +1;
+  else if (x < y)
+    return -1;
+  else if (x > y)
+    return +1;
+  else
+    return 0;
 }
 
 void db_read(const char * filename)
@@ -268,6 +279,10 @@ void db_read(const char * filename)
     if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
       fatal("Regular expression compilation failed");
 
+  long lastabundance = LONG_MAX;
+
+  int presorted = 1;
+
   char * p = datap;
   progress_init("Indexing database:", sequences);
   for(unsigned long i=0; i<sequences; i++)
@@ -315,6 +330,11 @@ void db_read(const char * filename)
 	    }
 	}
 
+      if (seqindex_p->abundance > lastabundance)
+	presorted = 0;
+
+      lastabundance = seqindex_p->abundance;
+
       if (seqindex_p->abundance < 1)
 	fatal("abundance annotation zero");
 
@@ -350,6 +370,13 @@ void db_read(const char * filename)
       progress_update(i);
     }
   progress_done();
+
+  if (!presorted)
+    {
+      progress_init("Abundance sorting:", 1);
+      qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
+      progress_done();
+    }
 
   if (usearch_abundance)
     regfree(&db_regexp);

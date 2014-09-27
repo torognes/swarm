@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.15](#version1215)
    * [version 1.2.14](#version1214)
    * [version 1.2.13](#version1213)
    * [version 1.2.12](#version1212)
@@ -251,6 +252,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version1215"/>
+### version 1.2.15 ###
+
+**swarm** 1.2.15 sorts the input sequences in order of decreasing abundance unless they are detected to be sorted already. When using the alternative algorithm for d=1 it also sorts all subseeds in order of decreasing abundance.
 
 <a name="version1214"/>
 ### version 1.2.14 ###

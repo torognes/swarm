@@ -28,6 +28,7 @@
 #include <tmmintrin.h>
 #include <stdlib.h>
 #include <regex.h>
+#include <limits.h>
 #include <city.h>
 
 /* constants */
@@ -36,7 +37,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.14"
+#define SWARM_VERSION "1.2.15"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32

@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "September 27, 2014" "version 1.2.14" "USER COMMANDS"
+.TH swarm 1 "September 27, 2014" "version 1.2.15" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -199,6 +199,9 @@ Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v1.2.15\~ "released September 27, 2014"
+Version 1.2.15 sorts the input sequences in order of decreasing abundance unless they are detected to be sorted already. When using the alternative algorithm for d=1 it also sorts all subseeds in order of decreasing abundance.
 .TP
 .BR v1.2.14\~ "released September 27, 2014"
 Version 1.2.14 fixes a bug in the output with the swarm_breaker option (-b) when using the alternative algorithm (-a).
