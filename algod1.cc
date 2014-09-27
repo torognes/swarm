@@ -65,6 +65,7 @@ static unsigned long swarmed = 0;
 
 pthread_attr_t attr;
 pthread_mutex_t mutex_varmatch;
+pthread_mutex_t mutex_stderr;
 
 static struct thread_info_s
 {
@@ -288,6 +289,18 @@ void find_variant_matches(unsigned long thread,
 		  
 		  /* unlock mutex after adding this amplicon to swarm */
 		  pthread_mutex_unlock(&mutex_varmatch);
+
+		  /* output break_swarms info */
+		  if (break_swarms)
+		    {
+		      pthread_mutex_lock(&mutex_stderr);
+		      fprintf(stderr, "@@\t");
+		      fprint_id_noabundance(stderr, seed);
+		      fprintf(stderr, "\t");
+		      fprint_id_noabundance(stderr, amp);
+		      fprintf(stderr, "\t%d\n", 1);
+		      pthread_mutex_unlock(&mutex_stderr);
+		    }
 		}
 #ifdef HASHSTATS
 	      else
@@ -395,7 +408,8 @@ void * worker(void * vp)
   while (tip->work >= 0)
     {
       /* wait for work available */
-      pthread_cond_wait(&tip->workcond, &tip->workmutex);
+      if (tip->work == 0)
+	pthread_cond_wait(&tip->workcond, &tip->workmutex);
       if (tip->work > 0)
 	{
 	  generate_variants(t, tip->seed, tip->mut_start, tip->mut_length);
@@ -447,6 +461,7 @@ void process_seed(int seed)
 void threads_init()
 {
   pthread_mutex_init(&mutex_varmatch, NULL);
+  pthread_mutex_init(&mutex_stderr, NULL);
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	
@@ -493,6 +508,7 @@ void threads_done()
 
   pthread_attr_destroy(&attr);
   pthread_mutex_destroy(&mutex_varmatch);
+  pthread_mutex_destroy(&mutex_stderr);
 }
 
 void update_stats(int amp)
@@ -626,19 +642,6 @@ void algo_d1_run()
 	      fputc('\n', outfile);
 	    }
       
-	  /* output break_swarms info */
-	  if (break_swarms)
-	    for (int a = ampinfo[seed].swarm_next; 
-		 a >= 0;
-		 a = ampinfo[a].swarm_next)
-	      {
-		fprintf(stderr, "@@\t");
-		fprint_id_noabundance(stderr, seed);
-		fprintf(stderr, "\t");
-		fprint_id_noabundance(stderr, a);
-		fprintf(stderr, "\t%d\n", 1);
-	      }
-	  
 	  /* output swarm in uclust format */
 	  if (uclustfile)
 	    {
