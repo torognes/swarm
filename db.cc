@@ -115,16 +115,21 @@ int db_compare_abundance(const void * a, const void * b)
   seqinfo_t * x = (seqinfo_t *) a;
   seqinfo_t * y = (seqinfo_t *) b;
   
-  if (x->abundance < y->abundance)
+  if (x->abundance > y->abundance)
     return -1;
-  else if (x->abundance > y->abundance)
+  else if (x->abundance < y->abundance)
     return +1;
+#if 1
   else if (x < y)
     return -1;
   else if (x > y)
     return +1;
   else
     return 0;
+#else
+  else
+    return strcmp(x->seq, y->seq);
+#endif
 }
 
 void db_read(const char * filename)
@@ -371,7 +376,9 @@ void db_read(const char * filename)
     }
   progress_done();
 
+#if 1
   if (!presorted)
+#endif
     {
       progress_init("Abundance sorting:", 1);
       qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
