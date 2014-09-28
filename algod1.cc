@@ -229,7 +229,7 @@ void find_variant_matches(unsigned long thread,
                     {
                       tip->hits_alloc <<= 1;
                       tip->hits_data = (int*)realloc(tip->hits_data,
-                                                     tip->hits_alloc);
+                                                     tip->hits_alloc * sizeof(int));
                     }
 
                   tip->hits_data[tip->hits_count++] = amp;
@@ -411,7 +411,7 @@ void process_seed(int seed)
       if (hits_count + ti[t].hits_count > hits_alloc)
         {
           hits_alloc <<= 1;
-          hits_data = (int*)realloc(hits_data, hits_alloc);
+          hits_data = (int*)realloc(hits_data, hits_alloc * sizeof(int));
         }
       for(int i=0; i < ti[t].hits_count; i++)
         hits_data[hits_count++] = ti[t].hits_data[i];
@@ -463,7 +463,7 @@ void threads_init()
       struct thread_info_s * tip = ti + t;
       tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
       tip->hits_alloc = 7 * longestamplicon + 4;
-      tip->hits_data = (int*) xmalloc(tip->hits_alloc);
+      tip->hits_data = (int*) xmalloc(tip->hits_alloc * sizeof(int));
       tip->work = 0;
       pthread_mutex_init(&tip->workmutex, NULL);
       pthread_cond_init(&tip->workcond, NULL);
@@ -524,7 +524,7 @@ void algo_d1_run()
   ampinfo = (struct ampinfo_s *) xmalloc (amplicons * sizeof(struct ampinfo_s));
 
   hits_alloc = longestamplicon * 7 + 4;
-  hits_data = (int *) xmalloc(hits_alloc);
+  hits_data = (int *) xmalloc(hits_alloc * sizeof(int));
 
   /* compute hash for all amplicons and store them in a hash table */
   

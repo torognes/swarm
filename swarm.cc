@@ -175,7 +175,7 @@ void args_usage()
   /*               0         1         2         3         4         5         6         7          */
   /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
-  fprintf(stderr, "Usage: %s [OPTIONS] [filename]\n", progname);
+  fprintf(stderr, "Usage: %s [OPTIONS] filename\n", progname);
   fprintf(stderr, "  -d, --differences INTEGER           resolution (1)\n");
   fprintf(stderr, "  -h, --help                          display this help and exit\n");
   fprintf(stderr, "  -o, --output-file FILENAME          output result filename (stdout)\n");
@@ -384,6 +384,9 @@ void args_init(int argc, char **argv)
     }
   else
     uclustfile = 0;
+
+  if (!databasename)
+    fatal("Database file not specified.");
   
 }
 

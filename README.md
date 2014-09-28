@@ -27,6 +27,7 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.17](#version1217)
    * [version 1.2.16](#version1216)
    * [version 1.2.15](#version1215)
    * [version 1.2.14](#version1214)
@@ -253,6 +254,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version1217"/>
+### version 1.2.17 ###
+
+**swarm** 1.2.17 fixes a memory allocation bug introduced in version 1.2.15.
 
 <a name="version1216"/>
 ### version 1.2.16 ###
