@@ -231,7 +231,7 @@ void db_read(const char * filename)
               {
                 char msg[100];
                 snprintf(msg, 100, "Illegal character '%c' in sequence on line %ld", c, lineno);
-		fatal(msg);
+                fatal(msg);
               }
           line[0] = 0;
           fgets(line, LINEALLOC, fp);
@@ -302,46 +302,46 @@ void db_read(const char * filename)
       /* get amplicon abundance */
       seqindex_p->abundance = 1;
       if (usearch_abundance)
-	{
-	  if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
-	    {
-	      seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
-	      seqindex_p->abundance_start = pmatch[0].rm_so;
-	      seqindex_p->abundance_end = pmatch[0].rm_eo;
-	    }
-	  else
-	    {
-	      seqindex_p->abundance_start = 0;
-	      seqindex_p->abundance_end = 0;
-	    }
-	}
+        {
+          if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
+            {
+              seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
+              seqindex_p->abundance_start = pmatch[0].rm_so;
+              seqindex_p->abundance_end = pmatch[0].rm_eo;
+            }
+          else
+            {
+              seqindex_p->abundance_start = 0;
+              seqindex_p->abundance_end = 0;
+            }
+        }
       else
-	{
-	  int start, end;
-	  unsigned long abundance;
-	  if (sscanf(seqindex_p->header, "%*[^ _]%n_%lu%n",
-		     & start,
-		     & abundance,
-		     & end) == 1)
-	    {
-	      seqindex_p->abundance = abundance;
-	      seqindex_p->abundance_start = start;
-	      seqindex_p->abundance_end = end;
-	    }
-	  else
-	    {
-	      seqindex_p->abundance_start = 0;
-	      seqindex_p->abundance_end = 0;
-	    }
-	}
+        {
+          int start, end;
+          unsigned long abundance;
+          if (sscanf(seqindex_p->header, "%*[^ _]%n_%lu%n",
+                     & start,
+                     & abundance,
+                     & end) == 1)
+            {
+              seqindex_p->abundance = abundance;
+              seqindex_p->abundance_start = start;
+              seqindex_p->abundance_end = end;
+            }
+          else
+            {
+              seqindex_p->abundance_start = 0;
+              seqindex_p->abundance_end = 0;
+            }
+        }
 
       if (seqindex_p->abundance > lastabundance)
-	presorted = 0;
+        presorted = 0;
 
       lastabundance = seqindex_p->abundance;
 
       if (seqindex_p->abundance < 1)
-	fatal("abundance annotation zero");
+        fatal("abundance annotation zero");
 
       /* check hash, fatal error if found, otherwize insert new */
       unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
@@ -404,8 +404,8 @@ void db_qgrams_init()
     {
       /* find qgrams */
       findqgrams((unsigned char*) seqindex_p->seq,
-		 seqindex_p->seqlen,
-		 qgrams[i]);
+                 seqindex_p->seqlen,
+                 qgrams[i]);
       seqindex_p++;
       progress_update(i);
     }

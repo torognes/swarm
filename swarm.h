@@ -175,9 +175,9 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
                 unsigned char * qgramvector);
 unsigned long qgram_diff(unsigned long a, unsigned long b);
 void qgram_diff_fast(unsigned long seed,
-		     unsigned long listlen,
-		     unsigned long * amplist,
-		     unsigned long * difflist);
+                     unsigned long listlen,
+                     unsigned long * amplist,
+                     unsigned long * difflist);
 void qgram_diff_init();
 void qgram_diff_done();
 
@@ -197,8 +197,8 @@ char * db_getsequence(unsigned long seqno);
 unsigned long db_getsequencelen(unsigned long seqno);
 
 void db_getsequenceandlength(unsigned long seqno,
-			     char ** address,
-			     long * length);
+                             char ** address,
+                             long * length);
 
 char * db_getheader(unsigned long seqno);
 unsigned long db_getheaderlen(unsigned long seqno);
@@ -226,56 +226,56 @@ void fprint_id_noabundance(FILE * stream, unsigned long x);
 /* functions in search8.cc */
 
 void search8(BYTE * * q_start,
-	     BYTE gap_open_penalty,
-	     BYTE gap_extend_penalty,
-	     BYTE * score_matrix,
-	     BYTE * dprofile,
-	     BYTE * hearray,
-	     unsigned long sequences,
-	     unsigned long * seqnos,
-	     unsigned long * scores,
-	     unsigned long * diffs,
-	     unsigned long * alignmentlengths,
-	     unsigned long qlen,
-	     unsigned long dirbuffersize,
-	     unsigned long * dirbuffer);
+             BYTE gap_open_penalty,
+             BYTE gap_extend_penalty,
+             BYTE * score_matrix,
+             BYTE * dprofile,
+             BYTE * hearray,
+             unsigned long sequences,
+             unsigned long * seqnos,
+             unsigned long * scores,
+             unsigned long * diffs,
+             unsigned long * alignmentlengths,
+             unsigned long qlen,
+             unsigned long dirbuffersize,
+             unsigned long * dirbuffer);
 
 
 /* functions in search16.cc */
 
 void search16(WORD * * q_start,
-	      WORD gap_open_penalty,
-	      WORD gap_extend_penalty,
-	      WORD * score_matrix,
-	      WORD * dprofile,
-	      WORD * hearray,
-	      unsigned long sequences,
-	      unsigned long * seqnos,
-	      unsigned long * scores,
-	      unsigned long * diffs,
-	      unsigned long * alignmentlengths,
-	      unsigned long qlen,
-	      unsigned long dirbuffersize,
-	      unsigned long * dirbuffer);
+              WORD gap_open_penalty,
+              WORD gap_extend_penalty,
+              WORD * score_matrix,
+              WORD * dprofile,
+              WORD * hearray,
+              unsigned long sequences,
+              unsigned long * seqnos,
+              unsigned long * scores,
+              unsigned long * diffs,
+              unsigned long * alignmentlengths,
+              unsigned long qlen,
+              unsigned long dirbuffersize,
+              unsigned long * dirbuffer);
 
 
 /* functions in nw.cc */
 
 void nw(char * dseq,
-	char * dend,
-	char * qseq,
-	char * qend,
-	long * score_matrix,
-	unsigned long gapopen,
-	unsigned long gapextend,
-	unsigned long * nwscore,
-	unsigned long * nwdiff,
-	unsigned long * nwalignmentlength,
-	char ** nwalignment,
-	unsigned char * dir,
-	unsigned long * hearray,
-	unsigned long queryno,
-	unsigned long dbseqno);
+        char * dend,
+        char * qseq,
+        char * qend,
+        long * score_matrix,
+        unsigned long gapopen,
+        unsigned long gapextend,
+        unsigned long * nwscore,
+        unsigned long * nwdiff,
+        unsigned long * nwalignmentlength,
+        char ** nwalignment,
+        unsigned char * dir,
+        unsigned long * hearray,
+        unsigned long queryno,
+        unsigned long dbseqno);
 
 
 /* functions in matrix.cc */
@@ -288,12 +288,12 @@ void score_matrix_free();
 
 void search_all(unsigned long query_no);
 void search_do(unsigned long query_no, 
-	       unsigned long listlength,
-	       unsigned long * targets,
-	       unsigned long * scores,
-	       unsigned long * diffs,
-	       unsigned long * alignlengths,
-	       long bits);
+               unsigned long listlength,
+               unsigned long * targets,
+               unsigned long * scores,
+               unsigned long * diffs,
+               unsigned long * alignlengths,
+               long bits);
 void search_begin();
 void search_end();
 

@@ -106,20 +106,20 @@ const unsigned char maskextleft = 8;
 */
 
 void nw(char * dseq,
-	char * dend,
-	char * qseq,
-	char * qend,
-	long * score_matrix,
-	unsigned long gapopen,
-	unsigned long gapextend,
-	unsigned long * nwscore,
-	unsigned long * nwdiff,
-	unsigned long * nwalignmentlength,
-	char ** nwalignment,
-	unsigned char * dir,
-	unsigned long * hearray,
-	unsigned long queryno,
-	unsigned long dbseqno)
+        char * dend,
+        char * qseq,
+        char * qend,
+        long * score_matrix,
+        unsigned long gapopen,
+        unsigned long gapextend,
+        unsigned long * nwscore,
+        unsigned long * nwdiff,
+        unsigned long * nwalignmentlength,
+        char ** nwalignment,
+        unsigned char * dir,
+        unsigned long * hearray,
+        unsigned long queryno,
+        unsigned long dbseqno)
 {
   /* dir must point to at least qlen*dlen bytes of allocated memory
      hearray must point to at least 2*qlen longs of allocated memory (8*qlen bytes) */
@@ -216,7 +216,7 @@ void nw(char * dseq,
     {
       score += gapextend;
       if (op != 'I')
-	score += gapopen;
+        score += gapopen;
       j--;
       pushop('I', &cigarend, &op, &count);
     }
@@ -224,7 +224,7 @@ void nw(char * dseq,
     {
       score += gapextend;
       if (op != 'D')
-	score +=gapopen;
+        score +=gapopen;
       i--;
       pushop('D', &cigarend, &op, &count);
     }
@@ -232,7 +232,7 @@ void nw(char * dseq,
     {
       score += score_matrix[(dseq[j-1] << 5) + qseq[i-1]];
       if (qseq[i-1] == dseq[j-1])
-	matches++;
+        matches++;
       i--;
       j--;
       pushop('M', &cigarend, &op, &count);

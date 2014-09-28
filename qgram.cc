@@ -53,7 +53,7 @@ void printqgrams(unsigned char * qgramvector)
 }
 
 void findqgrams(unsigned char * seq, unsigned long seqlen, 
-		unsigned char * qgramvector)
+                unsigned char * qgramvector)
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
@@ -81,7 +81,7 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
    popcnt instruction. Therefore resorting to assembly code.
 */
 
-#define popcnt_asm(x,y)						\
+#define popcnt_asm(x,y)                                         \
   __asm__ __volatile__ ("popcnt %1,%0" : "=r"(y) : "r"(x));
 
 inline unsigned long popcount(unsigned long x)
@@ -183,7 +183,7 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
 inline unsigned long qgram_diff(unsigned long a, unsigned long b)
 {
   unsigned long diffqgrams = compareqgramvectors(db_getqgramvector(a),
-						 db_getqgramvector(b));
+                                                 db_getqgramvector(b));
   unsigned long mindiff = (diffqgrams + 2*QGRAMLENGTH - 1)/(2*QGRAMLENGTH);
   return mindiff;
 }
@@ -229,7 +229,7 @@ void qgram_diff_init()
   
   /* allocate memory for thread info */
   ti = (struct thread_info_s *) xmalloc(threads * 
-					sizeof(struct thread_info_s));
+                                        sizeof(struct thread_info_s));
   
   /* init and create worker threads */
   for(int t=0; t<threads; t++)
@@ -269,9 +269,9 @@ void qgram_diff_done()
 }
 
 void qgram_diff_fast(unsigned long seed,
-		     unsigned long listlen,
-		     unsigned long * amplist,
-		     unsigned long * difflist)
+                     unsigned long listlen,
+                     unsigned long * amplist,
+                     unsigned long * difflist)
 {
   long thr = threads;
   
@@ -310,23 +310,23 @@ void qgram_diff_fast(unsigned long seed,
     {
       /* wake up threads */
       for(long t=0; t<thr; t++)
-	{
-	  struct thread_info_s * tip = ti + t;
-	  pthread_mutex_lock(&tip->workmutex);
-	  tip->work = 1;
-	  pthread_cond_signal(&tip->workcond);
-	  pthread_mutex_unlock(&tip->workmutex);
-	}
+        {
+          struct thread_info_s * tip = ti + t;
+          pthread_mutex_lock(&tip->workmutex);
+          tip->work = 1;
+          pthread_cond_signal(&tip->workcond);
+          pthread_mutex_unlock(&tip->workmutex);
+        }
       
       /* wait for threads to finish their work */
       for(int t=0; t<thr; t++)
-	{
-	  struct thread_info_s * tip = ti + t;
-	  pthread_mutex_lock(&tip->workmutex);
-	  while (tip->work > 0)
-	    pthread_cond_wait(&tip->workcond, &tip->workmutex);
-	  pthread_mutex_unlock(&tip->workmutex);
-	}
+        {
+          struct thread_info_s * tip = ti + t;
+          pthread_mutex_lock(&tip->workmutex);
+          while (tip->work > 0)
+            pthread_cond_wait(&tip->workcond, &tip->workmutex);
+          pthread_mutex_unlock(&tip->workmutex);
+        }
     }
 }
 

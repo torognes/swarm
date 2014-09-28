@@ -49,7 +49,7 @@ void score_matrix_dump()
     fprintf(stderr, "%2d %c ", i, sym_nt[i]);
     for(int j=0; j<16; j++)
       {
-	fprintf(stderr, "%2ld", score_matrix_63[(i<<5) + j]);
+        fprintf(stderr, "%2ld", score_matrix_63[(i<<5) + j]);
       }
     fprintf(stderr, "\n");
   }
@@ -73,9 +73,9 @@ void score_matrix_read()
       sc = ((a==b)&&(a>0)&&(b>0)) ? 0 : penalty_mismatch;
       // sc = (a==b) ? matchscore : mismatchscore;
       if (sc < lo)
-	lo = sc;
+        lo = sc;
       if (sc > hi)
-	hi = sc;
+        hi = sc;
       score_matrix_63[(a<<5) + b] = sc;
     }
 

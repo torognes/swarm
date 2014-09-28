@@ -78,9 +78,9 @@ FILE * uclustfile;
 
 char sym_nt[] = "-acgt                           ";
 
-#define cpuid(f,a,b,c,d)						\
-  __asm__ __volatile__ ("cpuid":					\
-			"=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (f));
+#define cpuid(f,a,b,c,d)                                                \
+  __asm__ __volatile__ ("cpuid":                                        \
+                        "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (f));
 
 void cpu_features_detect()
 {
@@ -201,7 +201,7 @@ void show_header()
   char ref[] = "Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe";
   char url[] = "https://github.com/torognes/swarm";
   fprintf(stderr, "%s [%s %s]\n%s\n%s\n\n",
-	  title, __DATE__, __TIME__, ref, url);
+          title, __DATE__, __TIME__, ref, url);
   fprintf(stderr, "Please cite: Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
   fprintf(stderr, "Swarm: robust and fast clustering method for amplicon-based studies.\n");
   fprintf(stderr, "PeerJ 2:e593 http://dx.doi.org/10.7717/peerj.593\n");
@@ -273,17 +273,17 @@ void args_init(int argc, char **argv)
       /* differences (resolution) */
       resolution = atol(optarg);
       break;
-	  
+          
     case 'o':
       /* output-file */
       outfilename = optarg;
       break;
-	  
+          
     case 't':
       /* threads */
       threads = atol(optarg);
       break;
-	  
+          
     case 'v':
       /* version */
       show_header();
@@ -294,42 +294,42 @@ void args_init(int argc, char **argv)
       /* match reward */
       matchscore = atol(optarg);
       break;
-	  
+          
     case 'p':
       /* mismatch penalty */
       mismatchscore = - atol(optarg);
       break;
-	  
+          
     case 'g':
       /* gap opening penalty */
       gapopen = atol(optarg);
       break;
-	  
+          
     case 'e':
       /* gap extension penalty */
       gapextend = atol(optarg);
       break;
-	  
+          
     case 's':
       /* statistics-file */
       statsfilename = optarg;
       break;
-	  
+          
     case 'u':
       /* uclust-file */
       uclustfilename = optarg;
       break;
-	  
+          
     case 'r':
       /* mothur */
       mothur = 1;
       break;
-	  
+          
     case 'z':
       /* usearch_abundance */
       usearch_abundance = 1;
       break;
-	  
+          
     case 'h':
       /* help */
     default:
@@ -362,7 +362,7 @@ void args_init(int argc, char **argv)
     {
       outfile = fopen(outfilename, "w");
       if (! outfile)
-	fatal("Unable to open output file for writing.");
+        fatal("Unable to open output file for writing.");
     }
   else
     outfile = stdout;
@@ -371,7 +371,7 @@ void args_init(int argc, char **argv)
     {
       statsfile = fopen(statsfilename, "w");
       if (! statsfile)
-	fatal("Unable to open statistics file for writing.");
+        fatal("Unable to open statistics file for writing.");
     }
   else
     statsfile = 0;
@@ -380,7 +380,7 @@ void args_init(int argc, char **argv)
     {
       uclustfile = fopen(uclustfilename, "w");
       if (! uclustfile)
-	fatal("Unable to open uclust file for writing.");
+        fatal("Unable to open uclust file for writing.");
     }
   else
     uclustfile = 0;

@@ -165,8 +165,8 @@ inline int hash_compare_value(unsigned int j, unsigned long hash)
 }
 
 inline void hash_insert(int amp,
-			unsigned char * key,
-			unsigned long keylen)
+                        unsigned char * key,
+                        unsigned long keylen)
 {
   unsigned long hash = HASH(key, keylen);
   unsigned int j = hash_getindex(hash);
@@ -181,9 +181,9 @@ inline void hash_insert(int amp,
 }
 
 void find_variant_matches(unsigned long thread,
-			  unsigned char * seq,
-			  unsigned long seqlen,
-			  int seed)
+                          unsigned char * seq,
+                          unsigned long seqlen,
+                          int seed)
 {
   /* compute hash and corresponding hash table index */
 
@@ -203,51 +203,51 @@ void find_variant_matches(unsigned long thread,
       hits++;
 #endif
       if (hash_compare_value(j, hash))
-	{
+        {
 #ifdef HASHSTATS
-	  success++;
+          success++;
 #endif
-	  
-	  /* check if not already swarmed */
-	  int amp = hash_data[j];
-	  struct ampinfo_s * bp = ampinfo + amp;
-	  if (!bp->swarmid)
-	    {
-	      unsigned long ampseqlen = db_getsequencelen(amp);
-	      unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
-	      
-	      /* make sure sequences are identical even though hashes are */
-	      if ((ampseqlen == seqlen) && (!memcmp(ampseq, seq, seqlen)))
-		{
+          
+          /* check if not already swarmed */
+          int amp = hash_data[j];
+          struct ampinfo_s * bp = ampinfo + amp;
+          if (!bp->swarmid)
+            {
+              unsigned long ampseqlen = db_getsequencelen(amp);
+              unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
+              
+              /* make sure sequences are identical even though hashes are */
+              if ((ampseqlen == seqlen) && (!memcmp(ampseq, seq, seqlen)))
+                {
 #ifdef HASHSTATS
-		  bingo++;
+                  bingo++;
 #endif
 
-		  struct thread_info_s * tip = ti + thread;
+                  struct thread_info_s * tip = ti + thread;
 
-		  if (tip->hits_count + 1 > tip->hits_alloc)
-		    {
-		      tip->hits_alloc <<= 1;
-		      tip->hits_data = (int*)realloc(tip->hits_data,
-						     tip->hits_alloc);
-		    }
+                  if (tip->hits_count + 1 > tip->hits_alloc)
+                    {
+                      tip->hits_alloc <<= 1;
+                      tip->hits_data = (int*)realloc(tip->hits_data,
+                                                     tip->hits_alloc);
+                    }
 
-		  tip->hits_data[tip->hits_count++] = amp;
-		}
+                  tip->hits_data[tip->hits_count++] = amp;
+                }
 #ifdef HASHSTATS
-	      else
-		{
-		  collisions++;
-		  
-		  fprintf(stderr, "Hash collision between ");
-		  fprint_id_noabundance(stderr, seed);
-		  fprintf(stderr, " and ");
-		  fprint_id_noabundance(stderr, amp);
-		  fprintf(stderr, ".\n");
-		}
+              else
+                {
+                  collisions++;
+                  
+                  fprintf(stderr, "Hash collision between ");
+                  fprint_id_noabundance(stderr, seed);
+                  fprintf(stderr, " and ");
+                  fprint_id_noabundance(stderr, amp);
+                  fprintf(stderr, ".\n");
+                }
 #endif
-	    }
-	}
+            }
+        }
       j = hash_getnextindex(j);
 #ifdef HASHSTATS
       probes++;
@@ -256,9 +256,9 @@ void find_variant_matches(unsigned long thread,
 }
 
 void generate_variants(unsigned long thread,
-		       int seed,
-		       unsigned long start,
-		       unsigned long len)
+                       int seed,
+                       unsigned long start,
+                       unsigned long len)
 {
   /* 
      Generate all possible variants involving mutations from position start
@@ -292,11 +292,11 @@ void generate_variants(unsigned long thread,
   for(int i=start; i<end; i++)
     {
       for (int v=1; v<5; v++)
-	if (v != seq[i])
-	  {
-	    varseq[i] = v;
-	    find_variant_matches(thread, varseq, seqlen, seed);
-	  }
+        if (v != seq[i])
+          {
+            varseq[i] = v;
+            find_variant_matches(thread, varseq, seqlen, seed);
+          }
       varseq[i] = seq[i];
     }
 
@@ -307,9 +307,9 @@ void generate_variants(unsigned long thread,
   for(int i=start; i<end; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
-	{
-	  find_variant_matches(thread, varseq, seqlen-1, seed);      
-	}
+        {
+          find_variant_matches(thread, varseq, seqlen-1, seed);      
+        }
       varseq[i] = seq[i];
     }
   
@@ -319,15 +319,15 @@ void generate_variants(unsigned long thread,
   for(int i=start; i<start+len; i++)
     {
       for(int v=1; v<5; v++)
-	{
-	  if((i==seqlen) || (v != seq[i]))
-	    {
-	      varseq[i] = v;
-	      find_variant_matches(thread, varseq, seqlen+1, seed);
-	    }
-	}
+        {
+          if((i==seqlen) || (v != seq[i]))
+            {
+              varseq[i] = v;
+              find_variant_matches(thread, varseq, seqlen+1, seed);
+            }
+        }
       if (i<seqlen)
-	varseq[i] = seq[i];
+        varseq[i] = seq[i];
     }
 }
 
@@ -343,13 +343,13 @@ void * worker(void * vp)
     {
       /* wait for work available */
       if (tip->work == 0)
-	pthread_cond_wait(&tip->workcond, &tip->workmutex);
+        pthread_cond_wait(&tip->workcond, &tip->workmutex);
       if (tip->work > 0)
-	{
-	  generate_variants(t, tip->seed, tip->mut_start, tip->mut_length);
-	  tip->work = 0;
-	  pthread_cond_signal(&tip->workcond);
-	}
+        {
+          generate_variants(t, tip->seed, tip->mut_start, tip->mut_length);
+          tip->work = 0;
+          pthread_cond_signal(&tip->workcond);
+        }
     }
 
   pthread_mutex_unlock(&tip->workmutex);
@@ -399,7 +399,7 @@ void process_seed(int seed)
       struct thread_info_s * tip = ti + t;
       pthread_mutex_lock(&tip->workmutex);
       while (tip->work > 0)
-	pthread_cond_wait(&tip->workcond, &tip->workmutex);
+        pthread_cond_wait(&tip->workcond, &tip->workmutex);
       pthread_mutex_unlock(&tip->workmutex);
     }
 
@@ -409,12 +409,12 @@ void process_seed(int seed)
   for(int t=0; t<thr; t++)
     {
       if (hits_count + ti[t].hits_count > hits_alloc)
-	{
-	  hits_alloc <<= 1;
-	  hits_data = (int*)realloc(hits_data, hits_alloc);
-	}
+        {
+          hits_alloc <<= 1;
+          hits_data = (int*)realloc(hits_data, hits_alloc);
+        }
       for(int i=0; i < ti[t].hits_count; i++)
-	hits_data[hits_count++] = ti[t].hits_data[i];
+        hits_data[hits_count++] = ti[t].hits_data[i];
     }
 
   /* sort hits */
@@ -438,13 +438,13 @@ void process_seed(int seed)
 
       /* output break_swarms info */
       if (break_swarms)
-	{
-	  fprintf(stderr, "@@\t");
-	  fprint_id_noabundance(stderr, seed);
-	  fprintf(stderr, "\t");
-	  fprint_id_noabundance(stderr, amp);
-	  fprintf(stderr, "\t%d\n", 1);
-	}
+        {
+          fprintf(stderr, "@@\t");
+          fprint_id_noabundance(stderr, seed);
+          fprintf(stderr, "\t");
+          fprint_id_noabundance(stderr, amp);
+          fprintf(stderr, "\t%d\n", 1);
+        }
     }
 }
 
@@ -452,7 +452,7 @@ void threads_init()
 {
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-	
+        
   /* allocate memory for thread info, incl the variant sequences */
   unsigned long longestamplicon = db_getlongestsequence();
   ti = (struct thread_info_s *) xmalloc(threads * sizeof(struct thread_info_s));
@@ -468,7 +468,7 @@ void threads_init()
       pthread_mutex_init(&tip->workmutex, NULL);
       pthread_cond_init(&tip->workcond, NULL);
       if (pthread_create(&tip->pthread, &attr, worker, (void*)(long)t))
-	fatal("Cannot create thread");
+        fatal("Cannot create thread");
     }
 }
 
@@ -487,7 +487,7 @@ void threads_done()
 
       /* wait for worker to quit */
       if (pthread_join(tip->pthread, NULL))
-	fatal("Cannot join thread");
+        fatal("Cannot join thread");
 
       pthread_cond_destroy(&tip->workcond);
       pthread_mutex_destroy(&tip->workmutex);
@@ -564,130 +564,130 @@ void algo_d1_run()
     {
       struct ampinfo_s * sp = ampinfo + seed;
       if (sp->swarmid == 0)
-	{
-	  /* start a new swarm with a new initial seed */
-	  swarmid++;
-	  swarmed++;
-	  sp->swarmid = swarmid;
-	  sp->generation = 0;
-	  sp->swarm_next = -1;
-	  sp->swarms_next = -1;
+        {
+          /* start a new swarm with a new initial seed */
+          swarmid++;
+          swarmed++;
+          sp->swarmid = swarmid;
+          sp->generation = 0;
+          sp->swarm_next = -1;
+          sp->swarms_next = -1;
 
-	  /* link up this initial seed in the list of swarms */
-	  if (swarmid > 1)
-	    ampinfo[swarms_tail].swarms_next = seed;
-	  swarms_tail = seed;
-	  current_swarm_tail = seed;
-	  
-	  /* initialize swarm stats */
-	  swarmsize = 0;
-	  swarm_maxgen = 0;
-	  abundance_sum = 0;
-	  singletons = 0;
-
-	  update_stats(seed);
-	  
-	  /* find the first generation matches */
-	  process_seed(seed);
-
-	  /* find later generation matches */
-	  int subseed = sp->swarm_next;
-	  while(subseed >= 0)
-	    {
-	      process_seed(subseed);
-	      subseed = ampinfo[subseed].swarm_next;
-	    }
-
-	  /* update statistics */
-	  for (int a = ampinfo[seed].swarm_next; 
-	       a >= 0;
-	       a = ampinfo[a].swarm_next)
-	    update_stats(a);
-
-	  /* update overall statistics */
-	  if (swarmsize > largest)
- 	    largest = swarmsize;
-	  if (swarm_maxgen > maxgen)
-	    maxgen = swarm_maxgen;
-
-	  /* output statistics to file */
-	  if (statsfile)
-	    {
-	      fprintf(statsfile, "%lu\t%lu\t", swarmsize, abundance_sum);
-	      fprint_id_noabundance(statsfile, seed);
-	      fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
-		      db_getabundance(seed),
-		      singletons, swarm_maxgen, swarm_maxgen);
-	    }
-
-	  /* output results for one swarm in native format */
-	  if (!mothur)
-	    {
-	      for (int a = seed; 
-		   a >= 0;
-		   a = ampinfo[a].swarm_next)
-		{
-		  if (a != seed)
-		    fputc(SEPCHAR, outfile);
-		  fprint_id(outfile, a);
-		}
-	      fputc('\n', outfile);
-	    }
-      
-	  /* output swarm in uclust format */
-	  if (uclustfile)
-	    {
-	      fprintf(uclustfile, "C\t%u\t%lu\t*\t*\t*\t*\t*\t",
-		      ampinfo[seed].swarmid - 1, 
-		      swarmsize);
-	      fprint_id(uclustfile, seed);
-	      fprintf(uclustfile, "\t*\n");
+          /* link up this initial seed in the list of swarms */
+          if (swarmid > 1)
+            ampinfo[swarms_tail].swarms_next = seed;
+          swarms_tail = seed;
+          current_swarm_tail = seed;
           
-	      fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
-		      ampinfo[seed].swarmid-1,
-		      db_getsequencelen(seed));
-	      fprint_id(uclustfile, seed);
-	      fprintf(uclustfile, "\t*\n");
+          /* initialize swarm stats */
+          swarmsize = 0;
+          swarm_maxgen = 0;
+          abundance_sum = 0;
+          singletons = 0;
 
-	      for (int a = ampinfo[seed].swarm_next; 
-		   a >= 0;
-		   a = ampinfo[a].swarm_next)
-		{
-		  char * dseq = db_getsequence(a);
-		  char * dend = dseq + db_getsequencelen(a);
-		  char * qseq = db_getsequence(seed);
-		  char * qend = qseq + db_getsequencelen(seed);
+          update_stats(seed);
+          
+          /* find the first generation matches */
+          process_seed(seed);
 
-		  unsigned long nwscore = 0;
-		  unsigned long nwdiff = 0;
-		  char * nwalignment = NULL;
-		  unsigned long nwalignmentlength = 0;
+          /* find later generation matches */
+          int subseed = sp->swarm_next;
+          while(subseed >= 0)
+            {
+              process_seed(subseed);
+              subseed = ampinfo[subseed].swarm_next;
+            }
 
-		  nw(dseq, dend, qseq, qend,
-		     score_matrix_63, gapopen, gapextend,
-		     & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
-		     dir, hearray, 0, 0);
+          /* update statistics */
+          for (int a = ampinfo[seed].swarm_next; 
+               a >= 0;
+               a = ampinfo[a].swarm_next)
+            update_stats(a);
+
+          /* update overall statistics */
+          if (swarmsize > largest)
+            largest = swarmsize;
+          if (swarm_maxgen > maxgen)
+            maxgen = swarm_maxgen;
+
+          /* output statistics to file */
+          if (statsfile)
+            {
+              fprintf(statsfile, "%lu\t%lu\t", swarmsize, abundance_sum);
+              fprint_id_noabundance(statsfile, seed);
+              fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
+                      db_getabundance(seed),
+                      singletons, swarm_maxgen, swarm_maxgen);
+            }
+
+          /* output results for one swarm in native format */
+          if (!mothur)
+            {
+              for (int a = seed; 
+                   a >= 0;
+                   a = ampinfo[a].swarm_next)
+                {
+                  if (a != seed)
+                    fputc(SEPCHAR, outfile);
+                  fprint_id(outfile, a);
+                }
+              fputc('\n', outfile);
+            }
+      
+          /* output swarm in uclust format */
+          if (uclustfile)
+            {
+              fprintf(uclustfile, "C\t%u\t%lu\t*\t*\t*\t*\t*\t",
+                      ampinfo[seed].swarmid - 1, 
+                      swarmsize);
+              fprint_id(uclustfile, seed);
+              fprintf(uclustfile, "\t*\n");
+          
+              fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
+                      ampinfo[seed].swarmid-1,
+                      db_getsequencelen(seed));
+              fprint_id(uclustfile, seed);
+              fprintf(uclustfile, "\t*\n");
+
+              for (int a = ampinfo[seed].swarm_next; 
+                   a >= 0;
+                   a = ampinfo[a].swarm_next)
+                {
+                  char * dseq = db_getsequence(a);
+                  char * dend = dseq + db_getsequencelen(a);
+                  char * qseq = db_getsequence(seed);
+                  char * qend = qseq + db_getsequencelen(seed);
+
+                  unsigned long nwscore = 0;
+                  unsigned long nwdiff = 0;
+                  char * nwalignment = NULL;
+                  unsigned long nwalignmentlength = 0;
+
+                  nw(dseq, dend, qseq, qend,
+                     score_matrix_63, gapopen, gapextend,
+                     & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
+                     dir, hearray, 0, 0);
               
-		  double percentid = 100.0 * (nwalignmentlength - nwdiff) /
-		    nwalignmentlength;
+                  double percentid = 100.0 * (nwalignmentlength - nwdiff) /
+                    nwalignmentlength;
               
-		  fprintf(uclustfile,
-			  "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
-			  ampinfo[seed].swarmid-1,
-			  db_getsequencelen(a),
-			  percentid, 
-			  nwdiff > 0 ? nwalignment : "=");
+                  fprintf(uclustfile,
+                          "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
+                          ampinfo[seed].swarmid-1,
+                          db_getsequencelen(a),
+                          percentid, 
+                          nwdiff > 0 ? nwalignment : "=");
               
-		  fprint_id(uclustfile, a);
-		  fprintf(uclustfile, "\t");
-		  fprint_id(uclustfile, seed);
-		  fprintf(uclustfile, "\n");
-		  
-		  if (nwalignment)
-		    free(nwalignment);
-		}
-	    }
-	}
+                  fprint_id(uclustfile, a);
+                  fprintf(uclustfile, "\t");
+                  fprint_id(uclustfile, seed);
+                  fprintf(uclustfile, "\n");
+                  
+                  if (nwalignment)
+                    free(nwalignment);
+                }
+            }
+        }
       progress_update(swarmed);
     }
   progress_done();
@@ -701,19 +701,19 @@ void algo_d1_run()
       fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount);
 
       for (int seed = 0;
-	   seed >= 0;
-	   seed = ampinfo[seed].swarms_next)
-	
-	for (int a = seed; 
-	     a >= 0;
-	     a = ampinfo[a].swarm_next)
-	  {
-	    if (a == seed)
-	      fputc('\t', outfile);
-	    else
-	      fputc(',', outfile);
-	    fprint_id(outfile, a);
-	  }
+           seed >= 0;
+           seed = ampinfo[seed].swarms_next)
+        
+        for (int a = seed; 
+             a >= 0;
+             a = ampinfo[a].swarm_next)
+          {
+            if (a == seed)
+              fputc('\t', outfile);
+            else
+              fputc(',', outfile);
+            fprint_id(outfile, a);
+          }
       fputc('\n', outfile);
     }
   

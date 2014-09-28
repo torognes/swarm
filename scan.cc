@@ -147,34 +147,34 @@ void search_chunk(struct search_data * sdp, long bits)
 
   if (bits == 16)
     search16(sdp->qtable_w,
-	     penalty_gapopen,
-	     penalty_gapextend,
-	     (WORD*) score_matrix_16,
-	     sdp->dprofile_w,
-	     (WORD*) sdp->hearray,
-	     sdp->target_count,
-	     master_targets + sdp->target_index,
-	     master_scores + sdp->target_index,
-	     master_diffs + sdp->target_index,
-	     master_alignlengths + sdp->target_index,
-	     query.len,
-	     dirbufferbytes/8,
-	     sdp->dir_array);
+             penalty_gapopen,
+             penalty_gapextend,
+             (WORD*) score_matrix_16,
+             sdp->dprofile_w,
+             (WORD*) sdp->hearray,
+             sdp->target_count,
+             master_targets + sdp->target_index,
+             master_scores + sdp->target_index,
+             master_diffs + sdp->target_index,
+             master_alignlengths + sdp->target_index,
+             query.len,
+             dirbufferbytes/8,
+             sdp->dir_array);
   else
     search8(sdp->qtable,
-	    penalty_gapopen,
-	    penalty_gapextend,
-	    (BYTE*) score_matrix_8,
-	    sdp->dprofile,
-	    sdp->hearray,
-	    sdp->target_count,
-	    master_targets + sdp->target_index,
-	    master_scores + sdp->target_index,
-	    master_diffs + sdp->target_index,
-	    master_alignlengths + sdp->target_index,
-	    query.len,
-	    dirbufferbytes/8,
-	    sdp->dir_array);
+            penalty_gapopen,
+            penalty_gapextend,
+            (BYTE*) score_matrix_8,
+            sdp->dprofile,
+            sdp->hearray,
+            sdp->target_count,
+            master_targets + sdp->target_index,
+            master_scores + sdp->target_index,
+            master_diffs + sdp->target_index,
+            master_alignlengths + sdp->target_index,
+            query.len,
+            dirbufferbytes/8,
+            sdp->dir_array);
 }
  
 int search_getwork(unsigned long * countref, unsigned long * firstref)
@@ -189,7 +189,7 @@ int search_getwork(unsigned long * countref, unsigned long * firstref)
   if (master_next < master_length)
     {
       unsigned long chunksize = 
-	((master_length - master_next + remainingchunks - 1) / remainingchunks);
+        ((master_length - master_next + remainingchunks - 1) / remainingchunks);
       
       * countref = chunksize;
       * firstref = master_next;
@@ -211,7 +211,7 @@ void master_dump()
   for(unsigned long i=0; i< 1403; i++)
     {
       printf("%4lu %4lu %4lu %4lu\n", i, master_targets[i],
-	     master_scores[i], master_diffs[i]);
+             master_scores[i], master_diffs[i]);
     }
 }
   
@@ -246,12 +246,12 @@ void * search_worker(void * vp)
 }
 
 void search_do(unsigned long query_no, 
-	       unsigned long listlength,
-	       unsigned long * targets,
-	       unsigned long * scores,
-	       unsigned long * diffs,
-	       unsigned long * alignlengths,
-	       long bits)
+               unsigned long listlength,
+               unsigned long * targets,
+               unsigned long * scores,
+               unsigned long * diffs,
+               unsigned long * alignlengths,
+               long bits)
 {
   query.qno = query_no;
   db_getsequenceandlength(query_no, &query.seq, &query.len);
@@ -269,12 +269,12 @@ void search_do(unsigned long query_no,
   if (bits == 8)
     {
       if (master_length <= (unsigned long)(15 * thr) )
-	thr = (master_length + 15) / 16;
+        thr = (master_length + 15) / 16;
     }
   else
     {
       if (master_length <= (unsigned long)(7 * thr) )
-	thr = (master_length + 7) / 8;
+        thr = (master_length + 7) / 8;
     }
 
   remainingchunks = thr;
@@ -287,23 +287,23 @@ void search_do(unsigned long query_no,
     {
       /* wake up threads */
       for(long t=0; t<thr; t++)
-	{
-	  struct thread_info_s * tip = ti + t;
-	  pthread_mutex_lock(&tip->workmutex);
-	  tip->work = 1;
-	  pthread_cond_signal(&tip->workcond);
-	  pthread_mutex_unlock(&tip->workmutex);
-	}
+        {
+          struct thread_info_s * tip = ti + t;
+          pthread_mutex_lock(&tip->workmutex);
+          tip->work = 1;
+          pthread_cond_signal(&tip->workcond);
+          pthread_mutex_unlock(&tip->workmutex);
+        }
       
       /* wait for threads to finish their work */
       for(int t=0; t<thr; t++)
-	{
-	  struct thread_info_s * tip = ti + t;
-	  pthread_mutex_lock(&tip->workmutex);
-	  while (tip->work > 0)
-	    pthread_cond_wait(&tip->workcond, &tip->workmutex);
-	  pthread_mutex_unlock(&tip->workmutex);
-	}
+        {
+          struct thread_info_s * tip = ti + t;
+          pthread_mutex_lock(&tip->workmutex);
+          while (tip->work > 0)
+            pthread_cond_wait(&tip->workcond, &tip->workmutex);
+          pthread_mutex_unlock(&tip->workmutex);
+        }
     }
 }
 
