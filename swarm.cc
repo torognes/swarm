@@ -78,20 +78,21 @@ FILE * uclustfile;
 
 char sym_nt[] = "-acgt                           ";
 
-#define cpuid(f,a,b,c,d)                                                \
-  __asm__ __volatile__ ("cpuid":                                        \
-                        "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (f));
+#define cpuid(f1, f2, a, b, c, d)                                       \
+  __asm__ __volatile__ ("cpuid"                                         \
+                        : "=a" (a), "=b" (b), "=c" (c), "=d" (d)        \
+                        : "a" (f1), "c" (f2));
 
 void cpu_features_detect()
 {
   unsigned int a, b, c, d;
 
-  cpuid(0,a,b,c,d);
+  cpuid(0, 0, a, b, c, d);
   unsigned int maxlevel = a & 0xff;
 
   if (maxlevel >= 1)
   {
-    cpuid(1,a,b,c,d);
+    cpuid(1, 0, a, b, c, d);
     mmx_present    = (d >> 23) & 1;
     sse_present    = (d >> 25) & 1;
     sse2_present   = (d >> 26) & 1;
@@ -101,10 +102,10 @@ void cpu_features_detect()
     sse42_present  = (c >> 20) & 1;
     popcnt_present = (c >> 23) & 1;
     avx_present    = (c >> 28) & 1;
-    
+
     if (maxlevel >= 7)
     {
-      cpuid(7,a,b,c,d);
+      cpuid(7, 0, a, b, c, d);
       avx2_present   = (b >>  5) & 1;
     }
   }
@@ -156,7 +157,7 @@ void args_getnum(int i, int argc, char **argv, long * result, char * error)
 void args_show()
 {
   cpu_features_show();
-  fprintf(stderr, "Database file:     %s\n", databasename);
+  fprintf(stderr, "Database file:     %s\n", databasename ? databasename : "(stdin)");
   fprintf(stderr, "Output file:       %s\n", outfilename ? outfilename : "(stdout)");
   if (statsfilename)
     fprintf(stderr, "Statistics file:   %s\n", statsfilename);
@@ -175,7 +176,7 @@ void args_usage()
   /*               0         1         2         3         4         5         6         7          */
   /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
-  fprintf(stderr, "Usage: %s [OPTIONS] filename\n", progname);
+  fprintf(stderr, "Usage: %s [OPTIONS] [filename]\n", progname);
   fprintf(stderr, "  -d, --differences INTEGER           resolution (1)\n");
   fprintf(stderr, "  -h, --help                          display this help and exit\n");
   fprintf(stderr, "  -o, --output-file FILENAME          output result filename (stdout)\n");
@@ -384,9 +385,6 @@ void args_init(int argc, char **argv)
     }
   else
     uclustfile = 0;
-
-  if (!databasename)
-    fatal("Database file not specified.");
   
 }
 

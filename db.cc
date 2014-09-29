@@ -158,12 +158,14 @@ void db_read(const char * filename)
 
   /* get file size */
 
-  if (fseek(fp, 0, SEEK_END))
-    fatal("Error: Unable to seek in database file (%s)", filename);
-
-  long filesize = ftell(fp);
-  
-  rewind(fp);
+  long filesize = 0;
+  if (filename)
+    {
+      if (fseek(fp, 0, SEEK_END))
+        fatal("Error: Unable to seek in database file (%s)", filename);
+      filesize = ftell(fp);
+      rewind(fp);
+    }
 
   char line[LINEALLOC];
   line[0] = 0;
@@ -256,7 +258,8 @@ void db_read(const char * filename)
 
       sequences++;
       
-      progress_update(ftell(fp));
+      if (filename)
+        progress_update(ftell(fp));
     }
   progress_done();
 

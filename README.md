@@ -255,6 +255,11 @@ released since 2004.
 <a name="features"/>
 ## New features##
 
+<a name="version1218"/>
+### version 1.2.18 ###
+
+**swarm** 1.2.18 reenables the possibility of reading sequences from stdin if no file name is specified on the command line. It also fixes a bug related to cpu features detection.
+
 <a name="version1217"/>
 ### version 1.2.17 ###
 
