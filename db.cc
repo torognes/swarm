@@ -97,17 +97,27 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
-  int hdrlen = sp->headerlen;
+  int hdrlen = sp->headeridlen;
 
-  /* print start of header */
-  fprintf(stream, "%.*s", sp->abundance_start, h);
-
-  /* print semicolon if the abundance is not at the end (usearch style) */
-  if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen))
-    fprintf(stream, ";");
-
-  /* print remaining part */
-  fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
+  if (sp->abundance_start < sp->abundance_end)
+    {
+      /* print start of header */
+      fprintf(stream, "%.*s", sp->abundance_start, h);
+      
+      if (usearch_abundance)
+        {
+          /* print semicolon if the abundance is not at either end */
+          if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen))
+            fprintf(stream, ";");
+          
+          /* print remaining part */
+          fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
+        }
+    }
+  else
+    {
+      fprintf(stream, "%s", h);
+    }
 }
 
 int db_compare_abundance(const void * a, const void * b)
@@ -177,14 +187,19 @@ void db_read(const char * filename)
   while(line[0])
     {
       /* read header */
+      /* the header ends at a space character, a newline or a nul character */
 
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
       
-      long headerlen = xstrchrnul(line+1, '\n') - (line+1);
-
+      long headerlen = 0;
+      if (char * stop = strpbrk(line+1, " \n"))
+        headerlen = stop - (line+1);
+      else
+        headerlen = strlen(line+1);
+      
       headerchars += headerlen;
-
+      
       if (headerlen > longestheader)
         longestheader = headerlen;
 
@@ -284,12 +299,20 @@ void db_read(const char * filename)
   regmatch_t pmatch[4];
 
   if (usearch_abundance)
-    if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-      fatal("Regular expression compilation failed");
+    {
+      if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
+        fatal("Regular expression compilation failed");
+    }
+  else
+    {
+      if (regcomp(&db_regexp, "(_)([0-9]+)$", REG_EXTENDED))
+        fatal("Regular expression compilation failed");
+    }
 
   long lastabundance = LONG_MAX;
 
   int presorted = 1;
+  int missingabundance = 0;
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
@@ -297,54 +320,31 @@ void db_read(const char * filename)
     {
       seqindex_p->header = p;
       seqindex_p->headerlen = strlen(seqindex_p->header);
+      seqindex_p->headeridlen = seqindex_p->headerlen;
+
       p += seqindex_p->headerlen + 1;
 
-      seqindex_p->headeridlen = xstrchrnul(seqindex_p->header, ' ') 
-        - seqindex_p->header;
-
       /* get amplicon abundance */
-      seqindex_p->abundance = 1;
-      if (usearch_abundance)
+      seqindex_p->abundance = 0;
+      if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
         {
-          if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
-            {
-              seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
-              seqindex_p->abundance_start = pmatch[0].rm_so;
-              seqindex_p->abundance_end = pmatch[0].rm_eo;
-            }
-          else
-            {
-              seqindex_p->abundance_start = 0;
-              seqindex_p->abundance_end = 0;
-            }
+          seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
+          seqindex_p->abundance_start = pmatch[0].rm_so;
+          seqindex_p->abundance_end = pmatch[0].rm_eo;
         }
       else
         {
-          int start, end;
-          unsigned long abundance;
-          if (sscanf(seqindex_p->header, "%*[^ _]%n_%lu%n",
-                     & start,
-                     & abundance,
-                     & end) == 1)
-            {
-              seqindex_p->abundance = abundance;
-              seqindex_p->abundance_start = start;
-              seqindex_p->abundance_end = end;
-            }
-          else
-            {
-              seqindex_p->abundance_start = 0;
-              seqindex_p->abundance_end = 0;
-            }
+          seqindex_p->abundance_start = 0;
+          seqindex_p->abundance_end = 0;
         }
+      
+      if (seqindex_p->abundance < 1)
+        missingabundance++;
 
       if (seqindex_p->abundance > lastabundance)
         presorted = 0;
 
       lastabundance = seqindex_p->abundance;
-
-      if (seqindex_p->abundance < 1)
-        fatal("abundance annotation zero");
 
       /* check hash, fatal error if found, otherwize insert new */
       unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
@@ -379,9 +379,15 @@ void db_read(const char * filename)
     }
   progress_done();
 
-#if 1
+  if (missingabundance)
+    {
+      char * msg;
+      asprintf(&msg, "Abundance annotation not found for %d sequences",
+               missingabundance);
+      fatal(msg);
+    }
+
   if (!presorted)
-#endif
     {
       progress_init("Abundance sorting:", 1);
       qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);

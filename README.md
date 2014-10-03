@@ -27,6 +27,8 @@ Table of Content
    * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+   * [version 1.2.19](#version1219)
+   * [version 1.2.18](#version1218)
    * [version 1.2.17](#version1217)
    * [version 1.2.16](#version1216)
    * [version 1.2.15](#version1215)
@@ -254,6 +256,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version1219"/>
+### version 1.2.19 ###
+
+**swarm** 1.2.19 fixes a problem related to abundance information when the sequence identifier includes multiple underscore characters.
 
 <a name="version1218"/>
 ### version 1.2.18 ###
