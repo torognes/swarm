@@ -104,7 +104,10 @@ not discussed here.
 <a name="linearization"/>
 ### Linearization ###
 
-Swarm accepts wrapped fasta files as well as linear fasta
+Please note that fasta files must be linearized in order to use
+the `swarm_breaker.py` script.
+
+The main swarm executable accepts wrapped fasta files as well as linear fasta
 files. However, linear fasta files where amplicons are written on two
 lines (one line for the fasta header, one line for the sequence) are
 much easier to manipulate. For instance, many post-clustering queries
