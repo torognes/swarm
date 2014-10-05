@@ -82,7 +82,7 @@ def option_parse():
 
     (options, args) = parser.parse_args()
     return options.binary, options.fasta_file, options.swarm_file, \
-        options.threshold, options.threads, option.usearch_style
+        options.threshold, options.threads, options.usearch_style
 
 
 def check_files(paths):
@@ -133,21 +133,32 @@ def fasta_parse(fasta_file, usearch_style):
     abundances and sequences, make a dictionary
     """
     with open(fasta_file, "rU") as fasta_file:
-        all_amplicons = dict()
-        sequence = list()
-
         # What is the amplicon-abundance separator?
         separator = "_"
         if usearch_style:
             separator = ";size="
 
+        all_amplicons = dict()
+        sequence = list()
+        amplicon = ""
+        abundance = 0
         # Parse the fasta file
         for line in fasta_file:
+            line = line.strip()
+            if not line:  # skip empty lines
+                continue
             if line.startswith(">"):
-                amplicon, abundance = line.strip(">\n").rsplit(separator, 1)
+                if sequence:  # then finalize the previous fasta entry
+                    full_sequence = "".join(sequence)
+                    all_amplicons[amplicon] = (int(abundance), full_sequence)
+                    sequence = list()
+                # store the header and the abundance value of the new entry
+                amplicon, abundance = line.lstrip(">").rsplit(separator, 1)
             else:
-                sequence = line.strip()
-                all_amplicons[amplicon] = (int(abundance), sequence)
+                sequence.append(line)
+        else:  # deal with the last entry
+            full_sequence = "".join(sequence)
+            all_amplicons[amplicon] = (int(abundance), full_sequence)
         return all_amplicons
 
 
@@ -197,7 +208,7 @@ def run_swarm(binary, all_amplicons, swarm, threshold, threads):
                                             close_fds=True)
                 except (OSError, 2):
                     print("Error ",
-                          "Cannot find the swarm binary in the $PATH directories\n",
+                          "Cannot find the swarm binary in $PATH\n",
                           "Use -b /path/to/swarm to indicate the correct path.",
                           sep="", file=sys.stderr)
                     sys.exit(-1)
@@ -274,7 +285,9 @@ def graph_breaker(amplicons, graph, all_amplicons, ABUNDANT):
             lowest = min(abundances)
             if lowest != abundances[-1]:
                 # LOW VALLEY MODEL (CHANGE HERE)
-                if (abundances[-1] / lowest > RATIO / 2 and abundances[0] / abundances[-1] < 10) or abundances[-1] / lowest >= RATIO:
+                peak1 = abundances[0]
+                peak2 = abundances[-1]
+                if (peak2 / lowest > RATIO / 2 and peak1 / peak2 < 10) or peak2 / lowest >= RATIO:
                     # Debugging
                     print(abundances, "\tBREAK!", file=sys.stderr)
                     # Find the rightmost occurence of the lowest point
@@ -316,7 +329,8 @@ def swarm_breaker(binary, all_amplicons, swarms, threshold, threads):
         top_amplicon, swarm_mass, swarm_size, top_abundance, amplicons = swarm
         if swarm_size > 2 and top_abundance > ABUNDANT:
             # Run swarm to get the pairwise relationships
-            graph_raw_data = run_swarm(binary, all_amplicons, amplicons, threshold, threads)
+            graph_raw_data = run_swarm(binary, all_amplicons,
+                                       amplicons, threshold, threads)
             # Build the graph of pairwise relationships
             graph = build_graph(graph_raw_data)
             new_swarm_seeds, graph = graph_breaker(amplicons, graph,
@@ -341,13 +355,15 @@ def swarm_breaker(binary, all_amplicons, swarms, threshold, threads):
             # first swarm). There will always be at least one swarm in
             # new_swarms.
             print(" ".join(["_".join([amplicon[0], str(amplicon[1])])
-                            for amplicon in new_swarms[0][4]]), file=sys.stdout)
+                            for amplicon in new_swarms[0][4]]),
+                  file=sys.stdout)
             new_swarms.pop(0)
             if new_swarms:
                 # Sort the rest of the new swarms by decreasing mass
                 # and size. Inject them into swarm_breaker.
                 new_swarms.sort(key=itemgetter(1, 2), reverse=True)
-                swarm_breaker(binary, all_amplicons, new_swarms, threshold, threads)
+                swarm_breaker(binary, all_amplicons,
+                              new_swarms, threshold, threads)
         else:
             # Output the swarm
             print(" ".join(["_".join([amplicon[0], str(amplicon[1])])
