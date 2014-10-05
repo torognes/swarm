@@ -129,11 +129,11 @@ def check_files(paths):
 
 def fasta_parse(fasta_file, usearch_style):
     """
-    Parse the fasta file (linearized or not). List amplicon ids,
-    abundances and sequences, make a dictionary
+    Parse the fasta file (linearized or not). Store amplicon ids,
+    abundances and sequences in a dictionary.
     """
     with open(fasta_file, "rU") as fasta_file:
-        # What is the amplicon-abundance separator?
+        # What is the amplicon-abundance separator? "_" by default.
         separator = "_"
         if usearch_style:
             separator = ";size="
@@ -162,16 +162,21 @@ def fasta_parse(fasta_file, usearch_style):
         return all_amplicons
 
 
-def swarm_parse(swarm_file):
+def swarm_parse(swarm_file, usearch_style):
     """
     List amplicons contained in each swarms, sort by decreasing
     abundance. Sort the list of swarms by decreasing mass and
     decreasing size.
     """
     with open(swarm_file, "rU") as swarm_file:
+        # What is the amplicon-abundance separator? "_" by default.
+        separator = "_"
+        if usearch_style:
+            separator = ";size="
+
         swarms = list()
         for line in swarm_file:
-            amplicons = [(amplicon.rsplit("_", 1)[0], int(amplicon.rsplit("_", 1)[1]))
+            amplicons = [(amplicon.rsplit(separator, 1)[0], int(amplicon.rsplit(separator, 1)[1]))
                          for amplicon in line.strip().split(" ")]
             # Sort amplicons by decreasing abundance and alphabetical order
             amplicons.sort(key=itemgetter(1, 0), reverse=True)
@@ -190,8 +195,8 @@ def run_swarm(binary, all_amplicons, swarm, threshold, threads):
     Write temporary fasta files, run swarm and collect the graph data
     """
     swarm_command = [binary, "-b", "-d", str(threshold), "-t", str(threads)]
-    if threshold == 1:
-        swarm_command.insert(1, "-a")  # Use the fast algorithm if d = 1
+    # if threshold == 1:
+    #     swarm_command.insert(1, "-a")  # Use the fast algorithm if d = 1
     with open(os.devnull, "w") as devnull:
         with tempfile.SpooledTemporaryFile() as tmp_fasta_file:
             with tempfile.SpooledTemporaryFile() as tmp_swarm_results:
