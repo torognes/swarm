@@ -74,8 +74,15 @@ def option_parse():
                       dest="threads",
                       help="set the number of <THREADS>. Default is 1")
 
+    parser.add_option("-z", "--usearch_abundance",
+                      action="store_true",
+                      dest="usearch_style",
+                      default=False,
+                      help="abundance annotation in usearch style")
+
     (options, args) = parser.parse_args()
-    return options.binary, options.fasta_file, options.swarm_file, options.threshold, options.threads
+    return options.binary, options.fasta_file, options.swarm_file, \
+        options.threshold, options.threads, option.usearch_style
 
 
 def check_files(paths):
@@ -120,15 +127,24 @@ def check_files(paths):
     return status
 
 
-def fasta_parse(fasta_file):
+def fasta_parse(fasta_file, usearch_style):
     """
-    List amplicon ids, abundances and sequences, make a list and a dictionary
+    Parse the fasta file (linearized or not). List amplicon ids,
+    abundances and sequences, make a dictionary
     """
     with open(fasta_file, "rU") as fasta_file:
         all_amplicons = dict()
+        sequence = list()
+
+        # What is the amplicon-abundance separator?
+        separator = "_"
+        if usearch_style:
+            separator = ";size="
+
+        # Parse the fasta file
         for line in fasta_file:
             if line.startswith(">"):
-                amplicon, abundance = line.strip(">\n").rsplit("_", 1)
+                amplicon, abundance = line.strip(">\n").rsplit(separator, 1)
             else:
                 sequence = line.strip()
                 all_amplicons[amplicon] = (int(abundance), sequence)
@@ -355,13 +371,14 @@ def main():
     been treated.
     """
     # Parse command line options.
-    binary, fasta_file, swarm_file, threshold, threads = option_parse()
+    binary, fasta_file, swarm_file, threshold, \
+        threads, usearch_style = option_parse()
     # Check files
     check_files([binary, fasta_file, swarm_file])
     # Load all amplicon ids, abundances and sequences
-    all_amplicons = fasta_parse(fasta_file)
+    all_amplicons = fasta_parse(fasta_file, usearch_style)
     # Load the swarming data
-    swarms = swarm_parse(swarm_file)
+    swarms = swarm_parse(swarm_file, usearch_style)
     # Deal with each swarm
     swarm_breaker(binary, all_amplicons, swarms, threshold, threads)
 
