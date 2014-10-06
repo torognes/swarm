@@ -46,6 +46,14 @@ def option_parse():
                       dest="binary",
                       help="swarm binary location. Default is /usr/bin/swarm")
 
+    parser.add_option("-d", "--differences",
+                      metavar="<THRESHOLD>",
+                      action="store",
+                      type="int",
+                      default=1,
+                      dest="threshold",
+                      help="set local clustering <THRESHOLD>. Default is 1")
+
     parser.add_option("-f", "--fasta_file",
                       metavar="<FILENAME>",
                       action="store",
@@ -58,14 +66,6 @@ def option_parse():
                       dest="swarm_file",
                       help="set <FILENAME> as swarm file.")
 
-    parser.add_option("-d", "--differences",
-                      metavar="<THRESHOLD>",
-                      action="store",
-                      type="int",
-                      default=1,
-                      dest="threshold",
-                      help="set local clustering <THRESHOLD>. Default is 1")
-
     parser.add_option("-t", "--threads",
                       metavar="<THREADS>",
                       action="store",
@@ -73,6 +73,12 @@ def option_parse():
                       default=1,
                       dest="threads",
                       help="set the number of <THREADS>. Default is 1")
+
+    parser.add_option("-v", "--verbose",
+                      action="store_true",
+                      dest="verbose",
+                      default=False,
+                      help="verbose (debugging, writes to the standard error)")
 
     parser.add_option("-z", "--usearch_abundance",
                       action="store_true",
@@ -82,7 +88,8 @@ def option_parse():
 
     (options, args) = parser.parse_args()
     return options.binary, options.fasta_file, options.swarm_file, \
-        options.threshold, options.threads, options.usearch_style
+        options.threshold, options.threads, options.usearch_style, \
+        options.verbose
 
 
 def check_files(paths):
@@ -261,7 +268,7 @@ def find_path(graph, start, end, path=[]):
     return None
 
 
-def graph_breaker(amplicons, graph, all_amplicons, ABUNDANT):
+def graph_breaker(amplicons, graph, all_amplicons, ABUNDANT, verbose):
     """
     Find deep valleys and cut the graph
     """
@@ -271,8 +278,9 @@ def graph_breaker(amplicons, graph, all_amplicons, ABUNDANT):
     # Ending peak is RATIO times higher than the valley
     RATIO = 50
     # Debugging
-    print("## OTU ", top_amplicons[0], "\n", "# List potential bridges",
-          sep="", file=sys.stderr)
+    if verbose:
+        print("## OTU ", top_amplicons[0], "\n", "# List potential bridges",
+              sep="", file=sys.stderr)
     # Initialize the list of new seeds
     new_swarm_seeds = [top_amplicons[0]]
     # Break if there is no second peak
@@ -294,7 +302,8 @@ def graph_breaker(amplicons, graph, all_amplicons, ABUNDANT):
                 peak2 = abundances[-1]
                 if (peak2 / lowest > RATIO / 2 and peak1 / peak2 < 10) or peak2 / lowest >= RATIO:
                     # Debugging
-                    print(abundances, "\tBREAK!", file=sys.stderr)
+                    if verbose:
+                        print(abundances, "\tBREAK!", file=sys.stderr)
                     # Find the rightmost occurence of the lowest point
                     index = len(abundances) - (abundances[::-1].index(lowest) + 1)
                     left_amplicon = path[index-1]
@@ -307,7 +316,9 @@ def graph_breaker(amplicons, graph, all_amplicons, ABUNDANT):
                     # Lowest point will be a new swarm seed
                     new_swarm_seeds.append(right_amplicon)
                 else:
-                    print(abundances, file=sys.stderr)
+                    # Debugging
+                    if verbose:
+                        print(abundances, file=sys.stderr)
     return new_swarm_seeds, graph
 
 
@@ -323,7 +334,7 @@ def swarmer(graph, seed, path=[]):
     return path
 
 
-def swarm_breaker(binary, all_amplicons, swarms, threshold, threads):
+def swarm_breaker(binary, all_amplicons, swarms, threshold, threads, verbose):
     """
     Recursively inspect and break the newly produced swarms
     """
@@ -339,7 +350,8 @@ def swarm_breaker(binary, all_amplicons, swarms, threshold, threads):
             # Build the graph of pairwise relationships
             graph = build_graph(graph_raw_data)
             new_swarm_seeds, graph = graph_breaker(amplicons, graph,
-                                                   all_amplicons, ABUNDANT)
+                                                   all_amplicons,
+                                                   ABUNDANT, verbose)
             # Explore the graph and find all amplicons linked to the seeds
             observed = 0
             new_swarms = list()
@@ -368,7 +380,7 @@ def swarm_breaker(binary, all_amplicons, swarms, threshold, threads):
                 # and size. Inject them into swarm_breaker.
                 new_swarms.sort(key=itemgetter(1, 2), reverse=True)
                 swarm_breaker(binary, all_amplicons,
-                              new_swarms, threshold, threads)
+                              new_swarms, threshold, threads, verbose)
         else:
             # Output the swarm
             print(" ".join(["_".join([amplicon[0], str(amplicon[1])])
@@ -393,7 +405,7 @@ def main():
     """
     # Parse command line options.
     binary, fasta_file, swarm_file, threshold, \
-        threads, usearch_style = option_parse()
+        threads, usearch_style, verbose = option_parse()
     # Check files
     check_files([binary, fasta_file, swarm_file])
     # Load all amplicon ids, abundances and sequences
@@ -401,7 +413,7 @@ def main():
     # Load the swarming data
     swarms = swarm_parse(swarm_file, usearch_style)
     # Deal with each swarm
-    swarm_breaker(binary, all_amplicons, swarms, threshold, threads)
+    swarm_breaker(binary, all_amplicons, swarms, threshold, threads, verbose)
 
 
 #*****************************************************************************#
