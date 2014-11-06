@@ -365,7 +365,7 @@ void db_read(const char * filename)
       if (found)
         {
           duplicatedidentifiers++;
-          fprintf(stderr, "Duplicated sequence identifier: %s\n", seqindex_p->header);
+          fprintf(logfile, "WARNING: Duplicated sequence identifier: %s\n", seqindex_p->header);
         }
 
       hdrhashtable[hashindex] = seqindex_p;

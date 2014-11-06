@@ -43,12 +43,12 @@ static struct thread_info_s
 void printqgrams(unsigned char * qgramvector)
 {
   /* print qgramvector */
-  fprintf(stderr, "qgram vector:\n");
+  fprintf(logfile, "qgram vector:\n");
   for(int i = 0; i < QGRAMVECTORBYTES; i++)
   {
-    fprintf(stderr, "%02x", qgramvector[i]);
+    fprintf(logfile, "%02x", qgramvector[i]);
     if ((i % 32) == 31)
-      fprintf(stderr, "\n");
+      fprintf(logfile, "\n");
   }
 }
 

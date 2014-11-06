@@ -39,6 +39,7 @@
 struct ampinfo_s
 {
   int swarmid;
+  int parent;
   int generation;
   int swarms_next;
   int swarm_next;
@@ -94,8 +95,10 @@ unsigned long hash_mask;
 unsigned char * hash_occupied = 0;
 unsigned long * hash_values = 0;
 int * hash_data = 0;
-int * hits_data = 0;
-int hits_alloc = 0;
+
+int * global_hits_data = 0;
+int global_hits_alloc = 0;
+int global_hits_count = 0;
 
 inline unsigned int hash_getindex(unsigned long hash)
 {
@@ -185,6 +188,13 @@ void find_variant_matches(unsigned long thread,
                           unsigned long seqlen,
                           int seed)
 {
+  unsigned long max_abundance;
+  
+  if (opt_no_valley)
+    max_abundance = db_getabundance(seed);
+  else
+    max_abundance = ULONG_MAX;
+
   /* compute hash and corresponding hash table index */
 
   unsigned long hash = HASH(seq, seqlen);
@@ -211,7 +221,7 @@ void find_variant_matches(unsigned long thread,
           /* check if not already swarmed */
           int amp = hash_data[j];
           struct ampinfo_s * bp = ampinfo + amp;
-          if (!bp->swarmid)
+          if ((!bp->swarmid) && (db_getabundance(amp) <= max_abundance))
             {
               unsigned long ampseqlen = db_getsequencelen(amp);
               unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
@@ -239,11 +249,11 @@ void find_variant_matches(unsigned long thread,
                 {
                   collisions++;
                   
-                  fprintf(stderr, "Hash collision between ");
-                  fprint_id_noabundance(stderr, seed);
-                  fprintf(stderr, " and ");
-                  fprint_id_noabundance(stderr, amp);
-                  fprintf(stderr, ".\n");
+                  fprintf(logfile, "Hash collision between ");
+                  fprint_id_noabundance(logfile, seed);
+                  fprintf(logfile, " and ");
+                  fprint_id_noabundance(logfile, amp);
+                  fprintf(logfile, ".\n");
                 }
 #endif
             }
@@ -368,6 +378,36 @@ int compare_amp(const void * a, const void * b)
     return 0;
 }
 
+void swarm_breaker_info(int amp)
+{
+  /* output info for swarm_breaker script */
+  if (break_swarms)
+    {
+      long seed = ampinfo[amp].parent;
+      if (!opt_internal_structure)
+        fprintf(internal_structure_file, "@@\t");
+      fprint_id_noabundance(internal_structure_file, seed);
+      fprintf(internal_structure_file, "\t");
+      fprint_id_noabundance(internal_structure_file, amp);
+      fprintf(internal_structure_file, "\t%d", 1);
+      if (opt_internal_structure)
+        fprintf(internal_structure_file, "\t%d\t%d", 
+                ampinfo[seed].swarmid,
+                ampinfo[amp].generation);
+      fprintf(internal_structure_file, "\n");
+    }
+}
+
+void add_amp_to_swarm(int amp)
+{
+  /* add to swarm */
+  ampinfo[current_swarm_tail].swarm_next = amp;
+  current_swarm_tail = amp;
+  swarmed++;
+
+  swarm_breaker_info(amp);
+}
+
 void process_seed(int seed)
 {
   unsigned long seqlen = db_getsequencelen(seed);
@@ -405,45 +445,25 @@ void process_seed(int seed)
 
   /* join hits from the threads */
 
-  int hits_count = 0;
   for(int t=0; t<thr; t++)
     {
-      if (hits_count + ti[t].hits_count > hits_alloc)
+      if (global_hits_count + ti[t].hits_count > global_hits_alloc)
         {
-          hits_alloc <<= 1;
-          hits_data = (int*)realloc(hits_data, hits_alloc * sizeof(int));
+          global_hits_alloc <<= 1;
+          global_hits_data = (int*)realloc(global_hits_data,
+                                           global_hits_alloc * sizeof(int));
         }
       for(int i=0; i < ti[t].hits_count; i++)
-        hits_data[hits_count++] = ti[t].hits_data[i];
-    }
-
-  /* sort hits */
-
-  qsort(hits_data, hits_count, sizeof(int), compare_amp);
-
-  /* update swarms */
-
-  for(int i = 0; i < hits_count; i++)
-    {
-      long amp = hits_data[i];
-
-      /* update info */
-      ampinfo[amp].swarmid = ampinfo[seed].swarmid;
-      ampinfo[amp].generation = ampinfo[seed].generation + 1;
-
-      /* add to swarm */
-      ampinfo[current_swarm_tail].swarm_next = amp;
-      current_swarm_tail = amp;
-      swarmed++;
-
-      /* output break_swarms info */
-      if (break_swarms)
         {
-          fprintf(stderr, "@@\t");
-          fprint_id_noabundance(stderr, seed);
-          fprintf(stderr, "\t");
-          fprint_id_noabundance(stderr, amp);
-          fprintf(stderr, "\t%d\n", 1);
+          long amp = ti[t].hits_data[i];
+
+          /* add to list for this generation */
+          global_hits_data[global_hits_count++] = amp;
+
+          /* update info */
+          ampinfo[amp].swarmid = ampinfo[seed].swarmid;
+          ampinfo[amp].generation = ampinfo[seed].generation + 1;
+          ampinfo[amp].parent = seed;
         }
     }
 }
@@ -523,8 +543,8 @@ void algo_d1_run()
 
   ampinfo = (struct ampinfo_s *) xmalloc (amplicons * sizeof(struct ampinfo_s));
 
-  hits_alloc = longestamplicon * 7 + 4;
-  hits_data = (int *) xmalloc(hits_alloc * sizeof(int));
+  global_hits_alloc = longestamplicon * 7 + 4;
+  global_hits_data = (int *) xmalloc(global_hits_alloc * sizeof(int));
 
   /* compute hash for all amplicons and store them in a hash table */
   
@@ -570,6 +590,7 @@ void algo_d1_run()
           swarmed++;
           sp->swarmid = swarmid;
           sp->generation = 0;
+          sp->parent = -1;
           sp->swarm_next = -1;
           sp->swarms_next = -1;
 
@@ -587,15 +608,45 @@ void algo_d1_run()
 
           update_stats(seed);
           
+          /* init list */
+          global_hits_count = 0;
+
           /* find the first generation matches */
           process_seed(seed);
 
+          /* sort hits */
+          qsort(global_hits_data, global_hits_count,
+                sizeof(int), compare_amp);
+          
+          /* add subseeds on list to current swarm */
+          for(int i = 0; i < global_hits_count; i++)
+            add_amp_to_swarm(global_hits_data[i]);
+          
           /* find later generation matches */
           int subseed = sp->swarm_next;
           while(subseed >= 0)
             {
-              process_seed(subseed);
-              subseed = ampinfo[subseed].swarm_next;
+              /* process all subseeds of this generation */
+              global_hits_count = 0;
+              while(subseed >= 0)
+                {
+                  process_seed(subseed);
+                  subseed = ampinfo[subseed].swarm_next;
+                }
+              
+              /* sort all of this generation */
+              qsort(global_hits_data, global_hits_count,
+                    sizeof(int), compare_amp);
+              
+              /* add them to the swarm */
+              for(int i = 0; i < global_hits_count; i++)
+                add_amp_to_swarm(global_hits_data[i]);
+
+              /* start with most abundant amplicon of next generation */
+              if (global_hits_count)
+                subseed = global_hits_data[0];
+              else
+                subseed = -1;
             }
 
           /* update statistics */
@@ -717,10 +768,10 @@ void algo_d1_run()
       fputc('\n', outfile);
     }
   
-  fprintf(stderr, "\n");
-  fprintf(stderr, "Number of swarms:  %lu\n", swarmid);
-  fprintf(stderr, "Largest swarm:     %lu\n", largest);
-  fprintf(stderr, "Max generations:   %lu\n", maxgen);
+  fprintf(logfile, "\n");
+  fprintf(logfile, "Number of swarms:  %lu\n", swarmid);
+  fprintf(logfile, "Largest swarm:     %lu\n", largest);
+  fprintf(logfile, "Max generations:   %lu\n", maxgen);
 
   threads_done();
 
@@ -728,7 +779,7 @@ void algo_d1_run()
 
   free(ampinfo);
 
-  free(hits_data);
+  free(global_hits_data);
 
   if (uclustfile)
     {
@@ -737,11 +788,11 @@ void algo_d1_run()
     }
 
 #ifdef HASHSTATS
-  fprintf(stderr, "Tries: %ld\n", tries);
-  fprintf(stderr, "Probes: %ld\n", probes);
-  fprintf(stderr, "Hits: %ld\n", hits);
-  fprintf(stderr, "Success: %ld\n", success);
-  fprintf(stderr, "Bingo: %ld\n", bingo);
-  fprintf(stderr, "Collisions: %ld\n", collisions);
+  fprintf(logfile, "Tries: %ld\n", tries);
+  fprintf(logfile, "Probes: %ld\n", probes);
+  fprintf(logfile, "Hits: %ld\n", hits);
+  fprintf(logfile, "Success: %ld\n", success);
+  fprintf(logfile, "Bingo: %ld\n", bingo);
+  fprintf(logfile, "Collisions: %ld\n", collisions);
 #endif
 }

@@ -36,14 +36,17 @@ void progress_init(const char * prompt, unsigned long size)
   progress_chunk = size < progress_granularity ? 
     1 : size / progress_granularity;
   progress_next = 0;
-  fprintf(stderr, "%s %.0f%%", prompt, 0.0);
+  if (opt_log)
+    fprintf(logfile, "%s", prompt);
+  else
+    fprintf(logfile, "%s %.0f%%", prompt, 0.0);
 }
 
 void progress_update(unsigned long progress)
 {
-  if (progress >= progress_next)
+  if ((!opt_log) && (progress >= progress_next))
     {
-      fprintf(stderr, "  \r%s %.0f%%", progress_prompt,
+      fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
               100.0 * progress / progress_size);
       progress_next = progress + progress_chunk;
     }
@@ -51,7 +54,10 @@ void progress_update(unsigned long progress)
 
 void progress_done()
 {
-  fprintf(stderr, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+  if (opt_log)
+    fprintf(logfile, " %.0f%%\n", 100.0);
+  else
+    fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
 }
 
 long gcd(long a, long b)

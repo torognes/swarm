@@ -227,11 +227,15 @@ void algo_run()
 
                   if (break_swarms)
                     {
-                      fprintf(stderr, "@@\t");
-                      fprint_id_noabundance(stderr, seedampliconid);
-                      fprintf(stderr, "\t");
-                      fprint_id_noabundance(stderr, poolampliconid);
-                      fprintf(stderr, "\t%u\n", diff);
+                      if (!opt_internal_structure)
+                        fprintf(internal_structure_file, "@@\t");
+                      fprint_id_noabundance(internal_structure_file, seedampliconid);
+                      fprintf(internal_structure_file, "\t");
+                      fprint_id_noabundance(internal_structure_file, poolampliconid);
+                      fprintf(internal_structure_file, "\t%u", diff);
+                      if (opt_internal_structure)
+                        fprintf(internal_structure_file, "\t%lu\t1", swarmid);
+                      fprintf(internal_structure_file, "\n");
                     }
 
                   diffsum += diff;
@@ -352,11 +356,15 @@ void algo_run()
 
                           if (break_swarms)
                             {
-                              fprintf(stderr, "@@\t");
-                              fprint_id_noabundance(stderr, subseedampliconid);
-                              fprintf(stderr, "\t");
-                              fprint_id_noabundance(stderr, poolampliconid);
-                              fprintf(stderr, "\t%u\n", diff);
+                              if (!opt_internal_structure)
+                                fprintf(internal_structure_file, "@@\t");
+                              fprint_id_noabundance(internal_structure_file, subseedampliconid);
+                              fprintf(internal_structure_file, "\t");
+                              fprint_id_noabundance(internal_structure_file, poolampliconid);
+                              fprintf(internal_structure_file, "\t%u", diff);
+                              if (opt_internal_structure)
+                                fprintf(internal_structure_file, "\t%lu\t%lu", swarmid, subseedgeneration + 1);
+                              fprintf(internal_structure_file, "\n");
                             }
 
                           abundance = db_getabundance(poolampliconid);
@@ -506,31 +514,31 @@ void algo_run()
 
   qgram_diff_done();
 
-  fprintf(stderr, "\n");
+  fprintf(logfile, "\n");
 
-  fprintf(stderr, "Number of swarms:  %lu\n", swarmid);
+  fprintf(logfile, "Number of swarms:  %lu\n", swarmid);
 
-  fprintf(stderr, "Largest swarm:     %lu\n", largestswarm);
+  fprintf(logfile, "Largest swarm:     %lu\n", largestswarm);
 
-  fprintf(stderr, "Max generations:   %lu\n", maxgenerations);
+  fprintf(logfile, "Max generations:   %lu\n", maxgenerations);
 
-  fprintf(stderr, "\n");
+  fprintf(logfile, "\n");
 
-  fprintf(stderr, "Estimates:         %lu\n", estimates);
+  fprintf(logfile, "Estimates:         %lu\n", estimates);
 
-  fprintf(stderr, "Searches:          %lu\n", searches);
+  fprintf(logfile, "Searches:          %lu\n", searches);
 
-  fprintf(stderr, "\n");
+  fprintf(logfile, "\n");
 
-  fprintf(stderr, "Comparisons (8b):  %lu (%.2lf%%)\n",
+  fprintf(logfile, "Comparisons (8b):  %lu (%.2lf%%)\n",
           count_comparisons_8, (200.0 * count_comparisons_8 / 
                                 amplicons / (amplicons+1)));
 
-  fprintf(stderr, "Comparisons (16b): %lu (%.2lf%%)\n",
+  fprintf(logfile, "Comparisons (16b): %lu (%.2lf%%)\n",
           count_comparisons_16, (200.0 * count_comparisons_16 /
                                  amplicons / (amplicons+1)));
 
-  fprintf(stderr, "Comparisons (tot): %lu (%.2lf%%)\n",
+  fprintf(logfile, "Comparisons (tot): %lu (%.2lf%%)\n",
           count_comparisons_8 + count_comparisons_16,
           (200.0 * (count_comparisons_8 + count_comparisons_16) /
            amplicons / (amplicons+1)));

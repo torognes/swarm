@@ -35,6 +35,9 @@
 #define DEFAULT_MOTHUR 0
 #define DEFAULT_ALTERNATIVE_ALGORITHM 0
 #define DEFAULT_USEARCH_ABUNDANCE 0
+#define DEFAULT_INTERNAL_STRUCTURE 0
+#define DEFAULT_LOG 0
+#define DEFAULT_NO_VALLEY 0
 
 char * outfilename;
 char * statsfilename;
@@ -51,6 +54,10 @@ long break_swarms;
 long mothur;
 long alternative_algorithm;
 long usearch_abundance;
+
+char * opt_log;
+char * opt_internal_structure;
+long opt_no_valley;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -75,6 +82,8 @@ unsigned long dbsequencecount = 0;
 FILE * outfile;
 FILE * statsfile;
 FILE * uclustfile;
+FILE * logfile = stderr;
+FILE * internal_structure_file;
 
 char sym_nt[] = "-acgt                           ";
 
@@ -113,28 +122,28 @@ void cpu_features_detect()
 
 void cpu_features_show()
 {
-  fprintf(stderr, "CPU features:     ");
+  fprintf(logfile, "CPU features:     ");
   if (mmx_present)
-    fprintf(stderr, " mmx");
+    fprintf(logfile, " mmx");
   if (sse_present)
-    fprintf(stderr, " sse");
+    fprintf(logfile, " sse");
   if (sse2_present)
-    fprintf(stderr, " sse2");
+    fprintf(logfile, " sse2");
   if (sse3_present)
-    fprintf(stderr, " sse3");
+    fprintf(logfile, " sse3");
   if (ssse3_present)
-    fprintf(stderr, " ssse3");
+    fprintf(logfile, " ssse3");
   if (sse41_present)
-    fprintf(stderr, " sse4.1");
+    fprintf(logfile, " sse4.1");
   if (sse42_present)
-    fprintf(stderr, " sse4.2");
+    fprintf(logfile, " sse4.2");
   if (popcnt_present)
-    fprintf(stderr, " popcnt");
+    fprintf(logfile, " popcnt");
   if (avx_present)
-    fprintf(stderr, " avx");
+    fprintf(logfile, " avx");
   if (avx2_present)
-    fprintf(stderr, " avx2");
-  fprintf(stderr, "\n");
+    fprintf(logfile, " avx2");
+  fprintf(logfile, "\n");
 }
 
 
@@ -157,18 +166,18 @@ void args_getnum(int i, int argc, char **argv, long * result, char * error)
 void args_show()
 {
   cpu_features_show();
-  fprintf(stderr, "Database file:     %s\n", databasename ? databasename : "(stdin)");
-  fprintf(stderr, "Output file:       %s\n", outfilename ? outfilename : "(stdout)");
+  fprintf(logfile, "Database file:     %s\n", databasename ? databasename : "(stdin)");
+  fprintf(logfile, "Output file:       %s\n", outfilename ? outfilename : "(stdout)");
   if (statsfilename)
-    fprintf(stderr, "Statistics file:   %s\n", statsfilename);
+    fprintf(logfile, "Statistics file:   %s\n", statsfilename);
   if (uclustfilename)
-    fprintf(stderr, "Uclust file:       %s\n", uclustfilename);
-  fprintf(stderr, "Resolution (d):    %ld\n", resolution);
-  fprintf(stderr, "Threads:           %ld\n", threads);
-  fprintf(stderr, "Algorithm:         %s\n", alternative_algorithm && (resolution==1) ? "alternative" : "regular");
-  fprintf(stderr, "Scores:            match: %ld, mismatch: %ld\n", matchscore, mismatchscore);
-  fprintf(stderr, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
-  fprintf(stderr, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
+    fprintf(logfile, "Uclust file:       %s\n", uclustfilename);
+  fprintf(logfile, "Resolution (d):    %ld\n", resolution);
+  fprintf(logfile, "Threads:           %ld\n", threads);
+  fprintf(logfile, "Algorithm:         %s\n", alternative_algorithm && (resolution==1) ? "alternative" : "regular");
+  fprintf(logfile, "Scores:            match: %ld, mismatch: %ld\n", matchscore, mismatchscore);
+  fprintf(logfile, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
+  fprintf(logfile, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
 }
 
 void args_usage()
@@ -186,12 +195,15 @@ void args_usage()
   fprintf(stderr, "  -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n");
   fprintf(stderr, "  -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n");
   fprintf(stderr, "  -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
-  fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file (no)\n");
-  fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file (no)\n");
-  fprintf(stderr, "  -b, --break-swarms                  output all pairs of amplicons found (no)\n");
-  fprintf(stderr, "  -r, --mothur                        output in mothur list file format (no)\n");
-  fprintf(stderr, "  -a, --alternative-algorithm         use an alternative algorithm when d=1\n");
+  fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file\n");
+  fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file\n");
+  fprintf(stderr, "  -b, --break-swarms                  output all pairs of amplicons found\n");
+  fprintf(stderr, "  -r, --mothur                        output in mothur list file format\n");
+  fprintf(stderr, "  -a, --alternative-algorithm         use an alternative algorithm for d=1\n");
   fprintf(stderr, "  -z, --usearch_abundance             abundance annotation in usearch style\n");
+  fprintf(stderr, "  -i, --internal-structure FILENAME   write internal swarm structure to file\n");
+  fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");
+  fprintf(stderr, "  -n, --no-valley                     never add amplicons with higher abundance\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -201,12 +213,12 @@ void show_header()
   char title[] = "Swarm " SWARM_VERSION;
   char ref[] = "Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe";
   char url[] = "https://github.com/torognes/swarm";
-  fprintf(stderr, "%s [%s %s]\n%s\n%s\n\n",
+  fprintf(logfile, "%s [%s %s]\n%s\n%s\n\n",
           title, __DATE__, __TIME__, ref, url);
-  fprintf(stderr, "Please cite: Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
-  fprintf(stderr, "Swarm: robust and fast clustering method for amplicon-based studies.\n");
-  fprintf(stderr, "PeerJ 2:e593 http://dx.doi.org/10.7717/peerj.593\n");
-  fprintf(stderr, "\n");
+  fprintf(logfile, "Please cite: Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
+  fprintf(logfile, "Swarm: robust and fast clustering method for amplicon-based studies.\n");
+  fprintf(logfile, "PeerJ 2:e593 http://dx.doi.org/10.7717/peerj.593\n");
+  fprintf(logfile, "\n");
 }
 
 void args_init(int argc, char **argv)
@@ -228,10 +240,13 @@ void args_init(int argc, char **argv)
   mothur = DEFAULT_MOTHUR;
   alternative_algorithm = DEFAULT_ALTERNATIVE_ALGORITHM;
   usearch_abundance = DEFAULT_USEARCH_ABUNDANCE;
+  opt_log = DEFAULT_LOG;
+  opt_internal_structure = DEFAULT_INTERNAL_STRUCTURE;
+  opt_no_valley = DEFAULT_NO_VALLEY;
   
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:braz";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:brazi:l:n";
 
   static struct option long_options[] =
   {
@@ -250,6 +265,9 @@ void args_init(int argc, char **argv)
     {"mothur",                no_argument,       NULL, 'r' },
     {"alternative-algorithm", no_argument,       NULL, 'a' },
     {"usearch-abundance",     no_argument,       NULL, 'z' },
+    {"internal-structure",    required_argument, NULL, 'i' },
+    {"log",                   required_argument, NULL, 'l' },
+    {"no-valley",             no_argument,       NULL, 'n' },
     { 0, 0, 0, 0 }
   };
   
@@ -327,8 +345,24 @@ void args_init(int argc, char **argv)
       break;
           
     case 'z':
-      /* usearch_abundance */
+      /* usearch-abundance */
       usearch_abundance = 1;
+      break;
+          
+    case 'i':
+      /* internal-structure */
+      break_swarms = 1;
+      opt_internal_structure = optarg;
+      break;
+          
+    case 'l':
+      /* log */
+      opt_log = optarg;
+      break;
+          
+    case 'n':
+      /* no-valley*/
+      opt_no_valley = 1;
       break;
           
     case 'h':
@@ -385,7 +419,25 @@ void args_init(int argc, char **argv)
     }
   else
     uclustfile = 0;
-  
+
+  if (opt_log)
+    {
+      logfile = fopen(opt_log, "w");
+      if (! logfile)
+        fatal("Unable to open log file for writing.");
+    }
+  else
+    logfile = stderr;
+
+  if (opt_internal_structure)
+    {
+      internal_structure_file = fopen(opt_internal_structure, "w");
+      if (! internal_structure_file)
+        fatal("Unable to open internal structure file for writing.");
+    }
+  else
+    internal_structure_file = stderr;
+
 }
 
 int main(int argc, char** argv)
@@ -411,13 +463,13 @@ int main(int argc, char** argv)
   
   args_show();
 
-  fprintf(stderr, "\n");
+  fprintf(logfile, "\n");
 
   db_read(databasename);
   
-  fprintf(stderr, "Database info:     %ld nt", db_getnucleotidecount());
-  fprintf(stderr, " in %ld sequences,", db_getsequencecount());
-  fprintf(stderr, " longest %ld nt\n", db_getlongestsequence());
+  fprintf(logfile, "Database info:     %ld nt", db_getnucleotidecount());
+  fprintf(logfile, " in %ld sequences,", db_getsequencecount());
+  fprintf(logfile, " longest %ld nt\n", db_getlongestsequence());
 
   dbsequencecount = db_getsequencecount();
 

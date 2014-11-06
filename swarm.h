@@ -37,7 +37,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.19"
+#define SWARM_VERSION "1.2.20"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -121,6 +121,12 @@ extern long penalty_mismatch;
 extern FILE * outfile;
 extern FILE * statsfile;
 extern FILE * uclustfile;
+extern FILE * internal_structure_file;
+extern FILE * logfile;
+
+extern char * opt_log;
+extern char * opt_internal_structure;
+extern long opt_no_valley;
 
 extern long SCORELIMIT_7;
 extern long SCORELIMIT_8;

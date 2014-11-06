@@ -36,22 +36,22 @@ long * score_matrix_63 = NULL;
 
 void score_matrix_dump()
 {
-  fprintf(stderr, "     ");
+  fprintf(logfile, "     ");
   for(int i=0; i<16; i++)
-    fprintf(stderr, "%2d", i);
-  fprintf(stderr, "\n");
-  fprintf(stderr, "     ");
+    fprintf(logfile, "%2d", i);
+  fprintf(logfile, "\n");
+  fprintf(logfile, "     ");
   for(int i=0; i<16; i++)
-    fprintf(stderr, " %c", sym_nt[i]);
-  fprintf(stderr, "\n");
+    fprintf(logfile, " %c", sym_nt[i]);
+  fprintf(logfile, "\n");
   for(int i=0; i<16; i++)
   {
-    fprintf(stderr, "%2d %c ", i, sym_nt[i]);
+    fprintf(logfile, "%2d %c ", i, sym_nt[i]);
     for(int j=0; j<16; j++)
       {
-        fprintf(stderr, "%2ld", score_matrix_63[(i<<5) + j]);
+        fprintf(logfile, "%2ld", score_matrix_63[(i<<5) + j]);
       }
-    fprintf(stderr, "\n");
+    fprintf(logfile, "\n");
   }
 }
 
