@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "October 3, 2014" "version 1.2.19" "USER COMMANDS"
+.TH swarm 1 "November 6, 2014" "version 1.2.20" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -55,14 +55,33 @@ file is named, or if the file name is "-".
 .RS
 .TP 9
 .B -a\fP,\fB\ --alternative-algorithm
-use a fast experimental clustering algorithm when d = 1.
+use an alternative and faster clustering algorithm, only usable when d
+= 1. That new algorithm produces exactly the same results than the
+standard swarm algorithm (for d = 1). When combined with the
+--no-valley option, the OTU delineation and breaking are performed in
+one-pass.
 .TP
 .BI -b\fP,\fB\ --break-swarms
 output all pairs of nearly-identical amplicons to standard error using
-a four-columns tab-delimited format: "@@", ampliconA, ampliconB,
-number of differences. That option, designed to work with the
-companion script swarm_breaker.py, can also be used for swarms
-post-processing, network analysis and visualization.
+a four-columns tab-delimited format:
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+"@@", a distinctive pattern to facilitate parsing.
+.IP \n+[step].
+amplicon A label.
+.IP \n+[step].
+amplicon B label.
+.IP \n+[step].
+number of differences between amplicons A and B (\fIpositive
+integer\fR).
+.RE
+.PP
+That option, designed to work with the companion script
+swarm_breaker.py, can also be used for swarms post-processing, network
+analysis and visualization.
+.RE
 .TP
 .BI -d\fP,\fB\ --differences\~ "positive integer"
 maximum number of differences allowed between two amplicons, meaning
@@ -73,11 +92,53 @@ number of differences is calculated as the number of mismatches
 once the optimal pairwise global alignment has been found (see
 "advanced options" for parameters influencing the pairwise
 alignment). Any \fIinteger\fR between 1 and 256 can be used, but
-aligning two very distant amplicons is difficult and results should be
-considered with caution. Default number of differences is 1.
+aligning correctly two very distant amplicons is difficult and results
+should be considered with caution. Default number of differences is 1.
 .TP
 .BI -h\fP,\fB\ --help
 display this help and exit.
+.TP
+.BI -i\fP,\fB\ --internal-structure \0filename
+output all pairs of nearly-identical amplicons to \fIfilename\fR using
+a five-columns tab-delimited format:
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+amplicon A label.
+.IP \n+[step].
+amplicon B label.
+.IP \n+[step].
+number of differences between amplicons A and B (\fIpositive
+integer\fR).
+.IP \n+[step].
+OTU number (\fIpositive integer\fR). OTUs are numbered in their order
+of delineation, starting from 1. All pairs of amplicons belonging to
+the same OTU will receive the same number.
+.IP \n+[step].
+number of steps from the OTU seed to amplicon B (\fIpositive
+integer\fR).
+.RE
+.PP
+That option will replace the option --break-swarms in future versions
+of swarm.
+.RE
+.TP
+.BI -l\fP,\fB\ --log \0filename
+output all swarm messages to \fIfilename\fR instead of stderr, with
+the exception of error messages of course. That option is useful in
+situations where using stderr is problematic (e.g. some job schedulers
+abort processes as soon as they write to stderr).
+.TP
+.BI -n\fP,\fB\ --no-valley
+when using --alternative-algorithm, use amplicon abundance values to
+prevent the formation of valleys (decreasing-increasing abundance
+values along a path). The option forbids the creation of a link
+between amplicon A and B if the abundance of B is higher than the
+abundance of A. In practice, that option acts as a built-in OTU
+breaking step, eliminating the need to use the companion script
+swarm_breaker.py. Please note that the built-in breaking is stricter
+than the OTU breaking script, and produces higher-resolution results.
 .TP
 .BI -o\fP,\fB\ --output-file \0filename
 output result to \fIfilename\fR. Result is a list of swarms, one swarm
@@ -114,7 +175,7 @@ output version information and exit.
 .TP
 .B -z\fP,\fB\ --usearch_abundance
 allows amplicon abundances to be specified using the usearch style in
-the sequence header (e.g. ">id;size=1").
+the sequence header (e.g. ">label;size=1").
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Advanced options
@@ -141,12 +202,13 @@ parameters only impacts analysis using a high number of differences.
 .\" ============================================================================
 .SH EXAMPLES
 .B swarm
--t 4 -o
+-a -n -t 4 -o
 .I myfile.swarms myfile.fasta
 .br
 Divide the data set \fImyfile.fasta\fR into swarms with the finest
-resolution possible (1 difference) using 4 computation threads, and
-write the results in the file \fImyfile.swarms\fR.
+resolution possible (1 difference, built-in breaking) using 4
+computation threads and the fast algorithm. OTUs are written to the
+file \fImyfile.swarms\fR.
 .PP
 zcat file.fas.gz | \fBswarm\fR | awk "{print NF}" | sort -n | uniq -c
 .br
@@ -199,6 +261,16 @@ Torbjørn Rognes (available from <https://github.com/torognes/swipe>).
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v1.2.20\~ "released November 6, 2014"
+Version 1.2.20 presents a production-ready version of the alternative
+algorithm (option -a), with optional built-in OTU breaking (option
+-n). That alternative algorithmic approach (usable only with d = 1) is
+considerably faster than currently used clustering algorithms, and can
+deal with datasets of 100 million unique amplicons or more in a few
+hours. Of course, results are rigourously identical to the results
+previously produced with swarm. That release also introduces new
+options to control swarm output (options -i and -l).
 .TP
 .BR v1.2.19\~ "released October 3, 2014"
 Version 1.2.19 fixes a problem related to abundance information when the sequence identifier includes multiple underscore characters.

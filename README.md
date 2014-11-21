@@ -17,42 +17,45 @@ Table of Content
 * [Quick start](#quick_start)
 * [Install](#install)
 * [Prepare amplicon fasta files](#prepare_amplicon)
-   * [Linearization](#linearization)
-   * [Dereplication](#dereplication)
-   * [Launch swarm](#launch)
+  * [Linearization](#linearization)
+  * [Dereplication](#dereplication)
+  * [Launch swarm](#launch)
 * [Parse swarm results](#parse)
-   * [Refine swarm OTUs](#refine_OTUs)
-   * [Count the number of amplicons per OTU](#OTU_sizes)
-   * [Get the seed sequence for each swarm](#extract_seeds)
-   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
+  * [Refine swarm OTUs](#refine_OTUs)
+  * [Count the number of amplicons per OTU](#OTU_sizes)
+  * [Get the seed sequence for each swarm](#extract_seeds)
+  * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
-   * [version 1.2.19](#version1219)
-   * [version 1.2.18](#version1218)
-   * [version 1.2.17](#version1217)
-   * [version 1.2.16](#version1216)
-   * [version 1.2.15](#version1215)
-   * [version 1.2.14](#version1214)
-   * [version 1.2.13](#version1213)
-   * [version 1.2.12](#version1212)
-   * [version 1.2.11](#version1211)
-   * [version 1.2.10](#version1210)
-   * [version 1.2.9](#version129)
-   * [version 1.2.8](#version128)
-   * [version 1.2.7](#version127)
-   * [version 1.2.6](#version126)
-   * [version 1.2.5](#version125)
-   * [version 1.2.4](#version124)
-   * [version 1.2.3](#version123)
-   * [version 1.2.2](#version122)
-   * [version 1.2.1](#version121)
-   * [version 1.2.0](#version120)
-   * [version 1.1.1](#version111)
-   * [version 1.1.0](#version110)
-       * [Statistics](#stats)
-       * [Uclust-like output format](#uclust)
+  * [version 1.2.20](#version1220)
+  * [version 1.2.19](#version1219)
+  * [version 1.2.18](#version1218)
+  * [version 1.2.17](#version1217)
+  * [version 1.2.16](#version1216)
+  * [version 1.2.15](#version1215)
+  * [version 1.2.14](#version1214)
+  * [version 1.2.13](#version1213)
+  * [version 1.2.12](#version1212)
+  * [version 1.2.11](#version1211)
+  * [version 1.2.10](#version1210)
+  * [version 1.2.9](#version129)
+  * [version 1.2.8](#version128)
+  * [version 1.2.7](#version127)
+  * [version 1.2.6](#version126)
+  * [version 1.2.5](#version125)
+  * [version 1.2.4](#version124)
+  * [version 1.2.3](#version123)
+  * [version 1.2.2](#version122)
+  * [version 1.2.1](#version121)
+  * [version 1.2.0](#version120)
+  * [version 1.1.1](#version111)
+  * [version 1.1.0](#version110)
+    * [Statistics](#stats)
+    * [Uclust-like output format](#uclust)
 * [Citation](#citation)
 * [Contact](#contact)
+* [Alternatives](#alternatives)
+
 
 <a name="quick_start"/>
 ## Quick start ##
@@ -147,12 +150,19 @@ sequences they represent are identical.
 ### Launch swarm ###
 
 If you want **swarm** to partition your dataset with the finest
-resolution (a local number of differences *d* = 1, with
-post-processing to eliminate the potential chained OTUs) on a
-quadricore CPU:
+resolution (a local number of differences *d* = 1, with built-in
+elimination of potential chained OTUs) on a quadricore CPU:
 
 ```
-./swarm -d 1 -t 4 amplicons.fasta > amplicons.swarms
+./swarm -a -n -d 1 -t 4 amplicons.fasta > amplicons.swarms
+```
+
+If you want tu use **swarm** with higher *d* values (*d* > 1), you
+will have to use a post-processing python scrip to eliminate the
+potential chained OTUs (see the "Refine swarm OTUs" section below):
+
+```
+./swarm -d 3 -t 4 amplicons.fasta > amplicons.swarms
 python ../scripts/swarm_breaker.py -f amplicons.fasta \
     -s amplicons.swarms 2> amplicons.log > amplicons.swarms2
 ```
@@ -190,8 +200,9 @@ output. It also writes debugging information to the standard error,
 that could be redirected to a log file, or redirected to
 `/dev/null`. As of today, `swarm_breaker.py` is rapid enough to deal
 with 454 data sets, but might be too slow for large Illumina data
-sets. We are currently testing a much faster algorithm, and plan to
-release it as soon as possible.
+sets. For large datasets, we recommend to use the fast clustering
+algorithm (option -a) and the built-in OTU breaking (option -n) to
+perform OTU delineation and refinement in one-step.
 
 <a name="OTU_sizes"/>
 ### Count the number of amplicons per OTU ###
@@ -257,35 +268,57 @@ released since 2004.
 <a name="features"/>
 ## New features##
 
+<a name="version1220"/>
+### version 1.2.20 ###
+
+**swarm** 1.2.20 presents a production-ready version of the
+  alternative algorithm (option -a), with optional built-in OTU
+  breaking (option -n). That alternative algorithmic approach (usable
+  only with d = 1) is considerably faster than currently used
+  clustering algorithms, and can deal with datasets of 100 million
+  unique amplicons or more in a few hours. Of course, results are
+  rigourously identical to the results previously produced with
+  swarm. That release also introduces new options to control swarm
+  output (options -i and -l).
+
 <a name="version1219"/>
 ### version 1.2.19 ###
 
-**swarm** 1.2.19 fixes a problem related to abundance information when the sequence identifier includes multiple underscore characters.
+**swarm** 1.2.19 fixes a problem related to abundance information when
+  the sequence identifier includes multiple underscore characters.
 
 <a name="version1218"/>
 ### version 1.2.18 ###
 
-**swarm** 1.2.18 reenables the possibility of reading sequences from stdin if no file name is specified on the command line. It also fixes a bug related to cpu features detection.
+**swarm** 1.2.18 reenables the possibility of reading sequences from
+  stdin if no file name is specified on the command line. It also
+  fixes a bug related to cpu features detection.
 
 <a name="version1217"/>
 ### version 1.2.17 ###
 
-**swarm** 1.2.17 fixes a memory allocation bug introduced in version 1.2.15.
+**swarm** 1.2.17 fixes a memory allocation bug introduced in
+  version 1.2.15.
 
 <a name="version1216"/>
 ### version 1.2.16 ###
 
-**swarm** 1.2.16 fixes a bug in the abundance sort introduced in version 1.2.15.
+**swarm** 1.2.16 fixes a bug in the abundance sort introduced in
+  version 1.2.15.
 
 <a name="version1215"/>
 ### version 1.2.15 ###
 
-**swarm** 1.2.15 sorts the input sequences in order of decreasing abundance unless they are detected to be sorted already. When using the alternative algorithm for d=1 it also sorts all subseeds in order of decreasing abundance.
+**swarm** 1.2.15 sorts the input sequences in order of decreasing
+  abundance unless they are detected to be sorted already. When using
+  the alternative algorithm for d=1 it also sorts all subseeds in
+  order of decreasing abundance.
 
 <a name="version1214"/>
 ### version 1.2.14 ###
 
-**swarm** 1.2.14 fixes a bug in the output with the swarm_breaker option (`-b`) when using the alternative algorithm (`-a`).
+**swarm** 1.2.14 fixes a bug in the output with the swarm_breaker
+  option (`-b`) when using the alternative algorithm (`-a`).
 
 <a name="version1213"/>
 ### version 1.2.13 ###
@@ -300,22 +333,40 @@ released since 2004.
 <a name="version1211"/>
 ### version 1.2.11 ###
 
-**swarm** 1.2.11 corrects the number of differences reported in the break_swarms output.
+**swarm** 1.2.11 corrects the number of differences reported in the
+  break_swarms output.
 
 <a name="version1210"/>
 ### version 1.2.10 ###
 
-**swarm** 1.2.10 allows amplicon abundances to be specified using the usearch style in the sequence header (e.g. ">id;size=1") when the `-z` option is chosen. Also fixes the bad url shown in the previous version of swarm.
+**swarm** 1.2.10 allows amplicon abundances to be specified using the
+  usearch style in the sequence header (e.g. ">id;size=1") when the
+  `-z` option is chosen. Also fixes the bad url shown in the previous
+  version of swarm.
 
 <a name="version129"/>
 ### version 1.2.9 ###
 
-**swarm** 1.2.9 includes a parallelized variant of the new search strategy for d=1. It seems to be fairly scalable up to about 16 threads for longer reads (~400bp), while up to about 8 threads for shorter reads (~150bp). Using about 50% more threads than available physical cores is recommended. This version also includes the d parameter in the beginning of the mothur-style output (e.g. swarm_1). Also, in the break_swarms output the real number of differences between the seed and the amplicon is indicated in the last column.
+**swarm** 1.2.9 includes a parallelized variant of the new search
+  strategy for d=1. It seems to be fairly scalable up to about 16
+  threads for longer reads (~400bp), while up to about 8 threads for
+  shorter reads (~150bp). Using about 50% more threads than available
+  physical cores is recommended. This version also includes the d
+  parameter in the beginning of the mothur-style output
+  (e.g. swarm\_1). Also, in the break_swarms output the real number of
+  differences between the seed and the amplicon is indicated in the
+  last column.
 
 <a name="version128"/>
 ### version 1.2.8 ###
 
-**swarm** 1.2.8 fixes an error with the gap extension penalty. Previous versions effectively used a gap penalty twice as large as intended. This version also introduces an experimental new search strategy in the case where d=1 that appears to be almost linear and faster at least for datasets of about half a million sequences or more. The new strategy can be turned on with the `-a` option.
+**swarm** 1.2.8 fixes an error with the gap extension
+  penalty. Previous versions effectively used a gap penalty twice as
+  large as intended. This version also introduces an experimental new
+  search strategy in the case where d=1 that appears to be almost
+  linear and faster at least for datasets of about half a million
+  sequences or more. The new strategy can be turned on with the `-a`
+  option.
 
 <a name="version127"/>
 ### version 1.2.7 ###
@@ -326,33 +377,36 @@ released since 2004.
 <a name="version126"/>
 ### version 1.2.6 ###
 
-**swarm** 1.2.6 add an option (`-r` or `--mothur`) to format the output file as
-a mothur-compatible list file instead of the native swarm format.
-When **swarm** encounters an illegal character in the input sequences it will
-now report the illegal character and the line number.
+**swarm** 1.2.6 add an option (`-r` or `--mothur`) to format the
+  output file as a mothur-compatible list file instead of the native
+  swarm format.  When **swarm** encounters an illegal character in the
+  input sequences it will now report the illegal character and the
+  line number.
 
 <a name="version125"/>
 ### version 1.2.5 ###
 
-**swarm** 1.2.5 can be run on cpus without the POPCNT feature. It automatically
-checks whether the cpu feature is available and uses the appropriate code.
-The code that avoids POPCNT is just slightly slower. Only basic SSE2 is now required.
+**swarm** 1.2.5 can be run on cpus without the POPCNT feature. It
+  automatically checks whether the cpu feature is available and uses
+  the appropriate code.  The code that avoids POPCNT is just slightly
+  slower. Only basic SSE2 is now required.
 
 <a name="version124"/>
 ### version 1.2.4 ###
 
 **swarm** 1.2.4 changes the name of the new option from
-`--break_swarms` to `--break-swarms` for consistency with other
-options, and also adds a companion script `swarm_breaker.py` to refine
-swarm results (`scripts` folder).
+  `--break_swarms` to `--break-swarms` for consistency with other
+  options, and also adds a companion script `swarm_breaker.py` to
+  refine swarm results (`scripts` folder).
 
 <a name="version123"/>
 ### version 1.2.3 ###
 
-**swarm** 1.2.3 adds an option (`-b` or `--break_swarms`) to output all
-pairs of amplicons to stderr. The data can be used for post-processing
-of the results to refine the swarms. The syntax of the inline assembly
-code is also changed for compatibility with more compilers.
+**swarm** 1.2.3 adds an option (`-b` or `--break_swarms`) to output
+  all pairs of amplicons to stderr. The data can be used for
+  post-processing of the results to refine the swarms. The syntax of
+  the inline assembly code is also changed for compatibility with more
+  compilers.
 
 <a name="version122"/>
 ### version 1.2.2 ###
@@ -431,3 +485,13 @@ You are welcome to:
 * submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
 * send a pull request on: https://github.com/torognes/swarm/
 * compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
+
+<a name="alternatives"/>
+## Alternatives ##
+
+If you want to try alternative clustering methods, here are some
+links:
+
+* [DNAclust](http://dnaclust.sourceforge.net/)
+* [Crunchclust](https://code.google.com/p/crunchclust/)
+* [Sumaclust](http://metabarcoding.org/sumatra)
