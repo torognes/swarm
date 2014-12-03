@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "November 6, 2014" "version 1.2.20" "USER COMMANDS"
+.TH swarm 1 "December 3, 2014" "version 2.0.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -24,16 +24,24 @@ differences. \fBswarm\fR produces stable clusters (or "swarms"), free
 from centroid selection induced input-order dependency.
 .PP
 Exact clustering is impractical on large data sets when using a naïve
-all-vs-all approach (i.e. a 2-combination without repetitions), as it
-implies unrealistic numbers of pairwise comparisons. \fBswarm\fR is
-based on a maximum number of differences, and focuses only on close
-relationships. An efficient \fIk\fR-mer-based filtering and an astute
-use of comparisons results obtained during the process allows to avoid
-most of the amplicon comparisons needed in a naïve approach. To speed
-up the remaining amplicon comparisons, \fBswarm\fR implements an
-extremely fast Needleman-Wunsch algorithm making use of the Streaming
-SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are
-not available, \fBswarm\fR exits with an error message.
+all-vs-all approach (more precisely a 2-combination without
+repetitions), as it implies unrealistic numbers of pairwise
+comparisons. \fBswarm\fR is based on a maximum number of differences
+\fId\fR, and focuses only on very close relationships. An efficient
+\fIk\fR-mer-based filtering and an astute use of comparisons results
+obtained during the process allows to avoid most of the amplicon
+comparisons needed in a naïve approach. To speed up the remaining
+amplicon comparisons, \fBswarm\fR implements an extremely fast
+Needleman-Wunsch algorithm making use of the Streaming SIMD Extensions
+(SSE2) of modern x86-64 CPUs. If SSE2 instructions are not available,
+\fBswarm\fR exits with an error message.
+.PP
+By default, \fBswarm\fR will work at its finest possible resolution
+(\fId\fR = 1). It will then use a specifically crafted "stepping
+stone" algorithm that provides indentical results, but at a much
+greater speed. The speed difference is due to a change in
+computational complexity (quadratic vs. linear), and will increase
+favorably for \fBswarm\fR as datasets will grow larger.
 .PP
 \fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
 nucleotide amplicons. The amplicon identifier is defined as the string
@@ -41,47 +49,27 @@ comprised between the ">" symbol and the first space or the end of the
 line, whichever comes first. As \fBswarm\fR outputs lists of amplicon
 identifiers, amplicon identifiers must be unique to avoid ambiguity;
 swarm exits with an error message if identifiers are not unique. If
-amplicon identifiers end with a "_" followed by a number, that number
-is used as the amplicon copy number in the statistics output file (see
-option -z for usearch users). The amplicon sequence is defined as a
-string of [acgt] or [acgu] symbols (case insensitive), starting after
-the end of the identifier line and ending before the next identifier
-line or the file end; \fBswarm\fR exits with an error message if any
-other symbol is present. Default is to read from standard input if no
-file is named, or if the file name is "-".
+amplicon identifiers end with a "_" followed by a positive integer,
+that value is used as the amplicon copy number in the statistics
+output file (see the option -z to change that behavior for
+usearch/vsearch users). The amplicon sequence is defined as a string
+of [acgt] or [acgu] symbols (case insensitive), starting after the end
+of the identifier line and ending before the next identifier line or
+the file end; \fBswarm\fR exits with an error message if any other
+symbol is present. Default is to read from standard input if no file
+is named, or if the file name is "-".
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBswarm\fR recognizes the following command-line options:
 .RS
 .TP 9
-.B -a\fP,\fB\ --alternative-algorithm
-use an alternative and faster clustering algorithm, only usable when d
-= 1. That new algorithm produces exactly the same results than the
-standard swarm algorithm (for d = 1). When combined with the
---no-valley option, the OTU delineation and breaking are performed in
-one-pass.
-.TP
-.BI -b\fP,\fB\ --break-swarms
-output all pairs of nearly-identical amplicons to standard error using
-a four-columns tab-delimited format:
-.RS
-.RS
-.nr step 1 1
-.IP \n[step]. 4
-"@@", a distinctive pattern to facilitate parsing.
-.IP \n+[step].
-amplicon A label.
-.IP \n+[step].
-amplicon B label.
-.IP \n+[step].
-number of differences between amplicons A and B (\fIpositive
-integer\fR).
-.RE
-.PP
-That option, designed to work with the companion script
-swarm_breaker.py, can also be used for swarms post-processing, network
-analysis and visualization.
-.RE
+.BI -b\fP,\fB\ --boundary\~ "positive integer"
+when using the option --fastidious, define what is a small OTU. By
+default, an OTU is small if it has a mass of 2 or less, meaning that
+it is composed of either one amplicon of abundance 2, or two amplicons
+of abundance 1. Any positive value greater than 2 can be used. Using
+higher boundary values will speed up the second pass, but also reduce
+the taxonomical resolution of swarm results.
 .TP
 .BI -d\fP,\fB\ --differences\~ "positive integer"
 maximum number of differences allowed between two amplicons, meaning
@@ -93,9 +81,21 @@ once the optimal pairwise global alignment has been found (see
 "advanced options" for parameters influencing the pairwise
 alignment). Any \fIinteger\fR between 1 and 256 can be used, but
 aligning correctly two very distant amplicons is difficult and results
-should be considered with caution. Default number of differences is 1.
+should be considered with caution. Using high \fId\fR values will also
+decrease the taxonomical resolution of swarm results. Default number
+of differences is 1.
 .TP
-.BI -h\fP,\fB\ --help
+.BI -f\fP,\fB\ --fastidious \0filename
+when working with \fId\fR = 1, perform a second pass to reduce the
+number of small OTUs. During the stone stepping process at \fId\fR =
+1, a step can be missing for purely stochastic reasons, interrupting
+the agglomerative process. That option will create virtual steps to
+graft small OTUs upon bigger ones. By default, an OTU is small if it
+has a mass of 2 or less (see the --boundary option to increase that
+value). Output the refined OTUs to \fIfilename\fR. Warning, that
+second pass can be many times slower than the first pass.
+.TP
+.B -h\fP,\fB\ --help
 display this help and exit.
 .TP
 .BI -i\fP,\fB\ --internal-structure \0filename
@@ -119,35 +119,30 @@ the same OTU will receive the same number.
 number of steps from the OTU seed to amplicon B (\fIpositive
 integer\fR).
 .RE
-.PP
-That option will replace the option --break-swarms in future versions
-of swarm.
 .RE
 .TP
 .BI -l\fP,\fB\ --log \0filename
-output all swarm messages to \fIfilename\fR instead of stderr, with
-the exception of error messages of course. That option is useful in
-situations where using stderr is problematic (e.g. some job schedulers
-abort processes as soon as they write to stderr).
+output all messages to \fIfilename\fR instead of \fIstandard error\fR,
+with the exception of error messages of course. That option is useful
+in situations where writing to \fIstandard error\fR is problematic
+(for example, with certain job schedulers).
 .TP
-.BI -n\fP,\fB\ --no-valley
-when using --alternative-algorithm, use amplicon abundance values to
-prevent the formation of valleys (decreasing-increasing abundance
-values along a path). The option forbids the creation of a link
-between amplicon A and B if the abundance of B is higher than the
-abundance of A. In practice, that option acts as a built-in OTU
-breaking step, eliminating the need to use the companion script
-swarm_breaker.py. Please note that the built-in breaking is stricter
-than the OTU breaking script, and produces higher-resolution results.
+.B -n\fP,\fB\ --no-otu-breaking
+desactivate the built-in OTU refinement (not recommended). Amplicon
+abundance values are used to identify transitions among in-contact
+OTUs and to separate them, yielding higher-resolution clustering
+results. That option prevents that, and in practice, allows the
+creation of a link between amplicon A and B, even if the abundance of
+B is higher than the abundance of A.
 .TP
 .BI -o\fP,\fB\ --output-file \0filename
 output result to \fIfilename\fR. Result is a list of swarms, one swarm
 per line. A swarm is a list of amplicon identifiers separated by
 spaces. Default is to write to standard output.
 .TP
-.BI -r\fP,\fB\ --mothur
+.B -r\fP,\fB\ --mothur
 output results in a format compatible with Mothur. That option
-modifies swarm default output format.
+modifies swarm's default output format.
 .TP
 .BI -s\fP,\fB\ --statistics-file \0filename
 output statistics to the specified file. Default is not to output
@@ -174,8 +169,8 @@ option does not modify swarm default output format.
 output version information and exit.
 .TP
 .B -z\fP,\fB\ --usearch_abundance
-allows amplicon abundances to be specified using the usearch style in
-the sequence header (e.g. ">label;size=1").
+accept amplicon abundances specified using the usearch/vsearch style
+(">label;size=INT[;]").
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Advanced options
@@ -202,10 +197,10 @@ parameters only impacts analysis using a high number of differences.
 .\" ============================================================================
 .SH EXAMPLES
 .B swarm
--a -n -t 4 -o
+-t 4 -o
 .I myfile.swarms myfile.fasta
 .br
-Divide the data set \fImyfile.fasta\fR into swarms with the finest
+Divide the data set \fImyfile.fasta\fR into OTUs with the finest
 resolution possible (1 difference, built-in breaking) using 4
 computation threads and the fast algorithm. OTUs are written to the
 file \fImyfile.swarms\fR.
@@ -252,6 +247,7 @@ Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public
 License along with this program.  If not, see
 <http://www.gnu.org/licenses/>.
+.PP
 .\" ============================================================================
 .SH SEE ALSO
 \fBswipe\fR, an extremely fast Smith-Waterman database search tool by
@@ -262,11 +258,19 @@ clustering method (by Robert C. Edgar), along with other amplicon
 filtering and searching tools. \fBvsearch\fR is implemented by
 Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 <https://github.com/torognes/vsearch>.
+.PP
 .\" ============================================================================
 .SH VERSION HISTORY
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v2.0.0\~ "released December 25, 2014"
+Version 2.0.0 is faster and easier to use, providing new output
+options (--internal-structure and --log), new control options
+(--boundary, --fastidious, --no-otu-breaking), and built-in OTU
+refinement. When using default parameters, a novel and considerably
+faster algorithmic approach is used, guaranteeing swarm's scalability.
 .TP
 .BR v1.2.20\~ "released November 6, 2014"
 Version 1.2.20 presents a production-ready version of the alternative
@@ -279,22 +283,31 @@ previously produced with swarm. That release also introduces new
 options to control swarm output (options -i and -l).
 .TP
 .BR v1.2.19\~ "released October 3, 2014"
-Version 1.2.19 fixes a problem related to abundance information when the sequence identifier includes multiple underscore characters.
+Version 1.2.19 fixes a problem related to abundance information when
+the sequence identifier includes multiple underscore characters.
 .TP
 .BR v1.2.18\~ "released September 29, 2014"
-Version 1.2.18 reenables the possibility of reading sequences from stdin if no file name is specified on the command line. It also fixes a bug related to cpu features detection.
+Version 1.2.18 reenables the possibility of reading sequences from
+stdin if no file name is specified on the command line. It also fixes
+a bug related to cpu features detection.
 .TP
 .BR v1.2.17\~ "released September 28, 2014"
-Version 1.2.17 fixes a memory allocation bug introduced in version 1.2.15.
+Version 1.2.17 fixes a memory allocation bug introduced in version
+1.2.15.
 .TP
 .BR v1.2.16\~ "released September 27, 2014"
-Version 1.2.16 fixes a bug in the abundance sort introduced in version 1.2.15.
+Version 1.2.16 fixes a bug in the abundance sort introduced in version
+1.2.15.
 .TP
 .BR v1.2.15\~ "released September 27, 2014"
-Version 1.2.15 sorts the input sequences in order of decreasing abundance unless they are detected to be sorted already. When using the alternative algorithm for d=1 it also sorts all subseeds in order of decreasing abundance.
+Version 1.2.15 sorts the input sequences in order of decreasing
+abundance unless they are detected to be sorted already. When using
+the alternative algorithm for d=1 it also sorts all subseeds in order
+of decreasing abundance.
 .TP
 .BR v1.2.14\~ "released September 27, 2014"
-Version 1.2.14 fixes a bug in the output with the swarm_breaker option (-b) when using the alternative algorithm (-a).
+Version 1.2.14 fixes a bug in the output with the swarm_breaker option
+(-b) when using the alternative algorithm (-a).
 .TP
 .BR v1.2.12\~ "released August 18, 2014"
 Version 1.2.12 introduces an option --alternative-algorithm to use an
