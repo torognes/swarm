@@ -37,7 +37,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.20"
+#define SWARM_VERSION "2.0.0"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -104,7 +104,6 @@ extern long mismatchscore;
 extern long threads;
 extern char * databasename;
 extern long resolution;
-extern long break_swarms;
 extern long mothur;
 extern long usearch_abundance;
 
@@ -126,7 +125,10 @@ extern FILE * logfile;
 
 extern char * opt_log;
 extern char * opt_internal_structure;
-extern long opt_no_valley;
+extern long opt_no_otu_breaking;
+extern long opt_fastidious;
+extern long opt_border;
+
 
 extern long SCORELIMIT_7;
 extern long SCORELIMIT_8;

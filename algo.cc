@@ -160,10 +160,17 @@ void algo_run()
 
       targetcount = 0;
 
-      unsigned long listlen = amplicons - swarmed;
+      unsigned long listlen = 0;
 
-      for(unsigned long i=0; i<listlen; i++)
-        qgramamps[i] = amps[swarmed+i].ampliconid;
+      for(unsigned long i=0; i < amplicons-swarmed; i++)
+        {
+          unsigned ampid = amps[swarmed+i].ampliconid;
+          if ((opt_no_otu_breaking) || (db_getabundance(ampid) <= abundance))
+            {
+              qgramamps[i] = ampid;
+              listlen++;
+            }
+        }
 
       qgram_diff_fast(seedampliconid, listlen, qgramamps, qgramdiffs);
 
@@ -225,16 +232,13 @@ void algo_run()
                   unsigned poolampliconid = amps[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
-                  if (break_swarms)
+                  if (opt_internal_structure)
                     {
-                      if (!opt_internal_structure)
-                        fprintf(internal_structure_file, "@@\t");
                       fprint_id_noabundance(internal_structure_file, seedampliconid);
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, poolampliconid);
                       fprintf(internal_structure_file, "\t%u", diff);
-                      if (opt_internal_structure)
-                        fprintf(internal_structure_file, "\t%lu\t1", swarmid);
+                      fprintf(internal_structure_file, "\t%lu\t1", swarmid);
                       fprintf(internal_structure_file, "\n");
                     }
 
@@ -262,11 +266,13 @@ void algo_run()
           
               unsigned long subseedindex;
               unsigned long subseedgeneration;
+              unsigned long subseedabundance;
           
               subseedindex = seeded;
               subseedampliconid = amps[subseedindex].ampliconid;
               subseedradius = amps[subseedindex].radius;
               subseedgeneration = amps[subseedindex].generation;
+              subseedabundance = db_getabundance(subseedampliconid);
 
               seeded++;
           
@@ -276,7 +282,10 @@ void algo_run()
               for(unsigned long i=swarmed; i<amplicons; i++)
                 {
                   unsigned long targetampliconid = amps[i].ampliconid;
-                  if (amps[i].diffestimate <= subseedradius + resolution)
+                  if ((amps[i].diffestimate <= subseedradius + resolution) &&
+                      ((opt_no_otu_breaking) || 
+                       (db_getabundance(targetampliconid)
+                        <= subseedabundance)))
                     {
                       qgramamps[listlen] = targetampliconid;
                       qgramindices[listlen] = i;
@@ -354,16 +363,13 @@ void algo_run()
                           hits[hitcount++] = poolampliconid;
                           diffsum += diff;
 
-                          if (break_swarms)
+                          if (opt_internal_structure)
                             {
-                              if (!opt_internal_structure)
-                                fprintf(internal_structure_file, "@@\t");
                               fprint_id_noabundance(internal_structure_file, subseedampliconid);
                               fprintf(internal_structure_file, "\t");
                               fprint_id_noabundance(internal_structure_file, poolampliconid);
                               fprintf(internal_structure_file, "\t%u", diff);
-                              if (opt_internal_structure)
-                                fprintf(internal_structure_file, "\t%lu\t%lu", swarmid, subseedgeneration + 1);
+                              fprintf(internal_structure_file, "\t%lu\t%lu", swarmid, subseedgeneration + 1);
                               fprintf(internal_structure_file, "\n");
                             }
 
@@ -522,6 +528,7 @@ void algo_run()
 
   fprintf(logfile, "Max generations:   %lu\n", maxgenerations);
 
+#if 0
   fprintf(logfile, "\n");
 
   fprintf(logfile, "Estimates:         %lu\n", estimates);
@@ -542,6 +549,7 @@ void algo_run()
           count_comparisons_8 + count_comparisons_16,
           (200.0 * (count_comparisons_8 + count_comparisons_16) /
            amplicons / (amplicons+1)));
+#endif
 
 }
 

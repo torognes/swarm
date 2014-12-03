@@ -189,11 +189,11 @@ void find_variant_matches(unsigned long thread,
                           int seed)
 {
   unsigned long max_abundance;
-  
-  if (opt_no_valley)
-    max_abundance = db_getabundance(seed);
-  else
+
+  if (opt_no_otu_breaking)
     max_abundance = ULONG_MAX;
+  else
+    max_abundance = db_getabundance(seed);
 
   /* compute hash and corresponding hash table index */
 
@@ -381,19 +381,16 @@ int compare_amp(const void * a, const void * b)
 void swarm_breaker_info(int amp)
 {
   /* output info for swarm_breaker script */
-  if (break_swarms)
+  if (opt_internal_structure)
     {
       long seed = ampinfo[amp].parent;
-      if (!opt_internal_structure)
-        fprintf(internal_structure_file, "@@\t");
       fprint_id_noabundance(internal_structure_file, seed);
       fprintf(internal_structure_file, "\t");
       fprint_id_noabundance(internal_structure_file, amp);
       fprintf(internal_structure_file, "\t%d", 1);
-      if (opt_internal_structure)
-        fprintf(internal_structure_file, "\t%d\t%d", 
-                ampinfo[seed].swarmid,
-                ampinfo[amp].generation);
+      fprintf(internal_structure_file, "\t%d\t%d", 
+              ampinfo[seed].swarmid,
+              ampinfo[amp].generation);
       fprintf(internal_structure_file, "\n");
     }
 }

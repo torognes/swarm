@@ -33,11 +33,12 @@
 #define DEFAULT_RESOLUTION 1
 #define DEFAULT_BREAK_SWARMS 0
 #define DEFAULT_MOTHUR 0
-#define DEFAULT_ALTERNATIVE_ALGORITHM 0
 #define DEFAULT_USEARCH_ABUNDANCE 0
 #define DEFAULT_INTERNAL_STRUCTURE 0
 #define DEFAULT_LOG 0
-#define DEFAULT_NO_VALLEY 0
+#define DEFAULT_NO_OTU_BREAKING 0
+#define DEFAULT_FASTIDIOUS 0
+#define DEFAULT_BORDER 3
 
 char * outfilename;
 char * statsfilename;
@@ -52,12 +53,13 @@ long threads;
 long resolution;
 long break_swarms;
 long mothur;
-long alternative_algorithm;
 long usearch_abundance;
 
 char * opt_log;
 char * opt_internal_structure;
-long opt_no_valley;
+long opt_no_otu_breaking;
+long opt_fastidious;
+long opt_border;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -174,10 +176,14 @@ void args_show()
     fprintf(logfile, "Uclust file:       %s\n", uclustfilename);
   fprintf(logfile, "Resolution (d):    %ld\n", resolution);
   fprintf(logfile, "Threads:           %ld\n", threads);
-  fprintf(logfile, "Algorithm:         %s\n", alternative_algorithm && (resolution==1) ? "alternative" : "regular");
   fprintf(logfile, "Scores:            match: %ld, mismatch: %ld\n", matchscore, mismatchscore);
   fprintf(logfile, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
   fprintf(logfile, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
+  fprintf(logfile, "Break OTUs:        %s\n", opt_no_otu_breaking ? "No" : "Yes");
+  if (opt_fastidious)
+    fprintf(logfile, "Fastidious:        Yes, with border %ld\n", opt_border);
+  else
+    fprintf(logfile, "Fastidious:        No\n");
 }
 
 void args_usage()
@@ -197,13 +203,13 @@ void args_usage()
   fprintf(stderr, "  -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
   fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file\n");
   fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file\n");
-  fprintf(stderr, "  -b, --break-swarms                  output all pairs of amplicons found\n");
   fprintf(stderr, "  -r, --mothur                        output in mothur list file format\n");
-  fprintf(stderr, "  -a, --alternative-algorithm         use an alternative algorithm for d=1\n");
   fprintf(stderr, "  -z, --usearch_abundance             abundance annotation in usearch style\n");
   fprintf(stderr, "  -i, --internal-structure FILENAME   write internal swarm structure to file\n");
   fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");
-  fprintf(stderr, "  -n, --no-valley                     never add amplicons with higher abundance\n");
+  fprintf(stderr, "  -n, --no-otu-breaking               never break OTUs\n");
+  fprintf(stderr, "  -f, --fastidious                    link nearby abundant swarms\n");
+  fprintf(stderr, "  -b, --boundary INTEGER              min amplicon abundance for fastidious\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -236,17 +242,17 @@ void args_init(int argc, char **argv)
   mismatchscore = DEFAULT_MISMATCHSCORE;
   gapopen = DEFAULT_GAPOPEN;
   gapextend = DEFAULT_GAPEXTEND;
-  break_swarms = DEFAULT_BREAK_SWARMS;
   mothur = DEFAULT_MOTHUR;
-  alternative_algorithm = DEFAULT_ALTERNATIVE_ALGORITHM;
   usearch_abundance = DEFAULT_USEARCH_ABUNDANCE;
   opt_log = DEFAULT_LOG;
   opt_internal_structure = DEFAULT_INTERNAL_STRUCTURE;
-  opt_no_valley = DEFAULT_NO_VALLEY;
-  
+  opt_no_otu_breaking = DEFAULT_NO_OTU_BREAKING;
+  opt_fastidious = DEFAULT_FASTIDIOUS;
+  opt_border = DEFAULT_BORDER;
+
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:brazi:l:n";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:rzi:l:nfb:";
 
   static struct option long_options[] =
   {
@@ -261,13 +267,13 @@ void args_init(int argc, char **argv)
     {"gap-extension-penalty", required_argument, NULL, 'e' },
     {"statistics-file",       required_argument, NULL, 's' },
     {"uclust-file",           required_argument, NULL, 'u' },
-    {"break-swarms",          no_argument,       NULL, 'b' },
     {"mothur",                no_argument,       NULL, 'r' },
-    {"alternative-algorithm", no_argument,       NULL, 'a' },
     {"usearch-abundance",     no_argument,       NULL, 'z' },
     {"internal-structure",    required_argument, NULL, 'i' },
     {"log",                   required_argument, NULL, 'l' },
-    {"no-valley",             no_argument,       NULL, 'n' },
+    {"no-otu-breaking",       no_argument,       NULL, 'n' },
+    {"fastidious",            no_argument,       NULL, 'f' },
+    {"border",                required_argument, NULL, 'b' },
     { 0, 0, 0, 0 }
   };
   
@@ -278,21 +284,18 @@ void args_init(int argc, char **argv)
   {
     switch(c)
     {
-    case 'a':
-      /* alternative-algorithm */
-      alternative_algorithm = 1;
-      break;
-
-    case 'b':
-      /* break-swarms */
-      break_swarms = 1;
-      break;
-
     case 'd':
       /* differences (resolution) */
       resolution = atol(optarg);
       break;
           
+    case 'h':
+      /* help */
+      show_header();
+      args_usage();
+      exit(1);
+      break;
+
     case 'o':
       /* output-file */
       outfilename = optarg;
@@ -351,7 +354,6 @@ void args_init(int argc, char **argv)
           
     case 'i':
       /* internal-structure */
-      break_swarms = 1;
       opt_internal_structure = optarg;
       break;
           
@@ -361,12 +363,20 @@ void args_init(int argc, char **argv)
       break;
           
     case 'n':
-      /* no-valley*/
-      opt_no_valley = 1;
+      /* no-otu-breaking */
+      opt_no_otu_breaking = 1;
       break;
           
-    case 'h':
-      /* help */
+    case 'f':
+      /* fastidious */
+      opt_fastidious = 1;
+      break;
+          
+    case 'b':
+      /* border */
+      opt_border = atol(optarg);
+      break;
+          
     default:
       show_header();
       args_usage();
@@ -438,6 +448,9 @@ void args_init(int argc, char **argv)
   else
     internal_structure_file = stderr;
 
+  if (opt_fastidious || (opt_border != 3))
+    fprintf(stderr, "WARNING: The fastidious and border options are not implemented yet.\n");
+
 }
 
 int main(int argc, char** argv)
@@ -477,7 +490,7 @@ int main(int argc, char** argv)
 
   search_begin();
   
-  if (alternative_algorithm && (resolution == 1))
+  if (resolution == 1)
     algo_d1_run();
   else
     algo_run();
