@@ -259,7 +259,7 @@ rm "${AMPLICONS}"
 <a name="troubleshooting"/>
 ## Troubleshooting ##
 
-If **swarm** exists with an error message saying `This program
+If **swarm** exits with an error message saying `This program
 requires a processor with SSE2`, your computer is too old to run
 **swarm** (or based on a non x86-64 architecture). **swarm** only runs
 on CPUs with the SSE2 instructions, i.e. most Intel and AMD CPUs
