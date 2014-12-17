@@ -531,6 +531,7 @@ You are welcome to:
 If you want to try alternative clustering methods, here are some
 links:
 
+* [Vsearch](https://github.com/torognes/vsearch)
 * [DNAclust](http://dnaclust.sourceforge.net/)
 * [Crunchclust](https://code.google.com/p/crunchclust/)
 * [Sumaclust](http://metabarcoding.org/sumatra)
