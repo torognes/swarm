@@ -14,6 +14,7 @@ high yield of biological information.
 Table of Content
 ================
 
+* [Common misconceptions](#common_misconceptions)
 * [Quick start](#quick_start)
 * [Install](#install)
 * [Prepare amplicon fasta files](#prepare_amplicon)
@@ -66,15 +67,15 @@ Table of Content
   [Crunchclust](https://code.google.com/p/crunchclust/)). **swarm**'s
   novelty is its algorithmic approach, much faster than other
   clustering methods, and its use of sequence abundance values to
-  delineate OTUs. Swarm can delineate large OTUs, while being able to
-  distinguish OTUs with as little as two differences between their
-  centers.
+  delineate OTUs. Swarm properly delineates large OTUs (high recall),
+  while being able to distinguish OTUs with as little as two
+  differences between their centers (high precision).
 
 **swarm** uses a local clustering threshold (*d*), not a global
   clustering threshold like other softwares do. Users may be tempted
   to convert a 97%-global similarity threshold into a number of
   differences, and to use large *d* values. That's not the correct way
-  to use swarm. OTUs produced by swarm can be much larger than *d*,
+  to use swarm. OTUs produced by swarm are naturally larger than *d*,
   and tests have shown that using the default *d* value (*d* = 1)
   gives good results on most datasets. For long amplicons or shallow
   sequencing, higher *d* values can be used (*d* = 2, 3, very rarely
