@@ -133,11 +133,8 @@ Table of Content
 ./swarm amplicons.fasta
 ```
 
-<<<<<<< HEAD
 The memory footprint of **swarm** is roughly 1.6 times the size of the
 input fasta file.
-=======
->>>>>>> master
 
 <a name="install"/>
 ## Install ##
