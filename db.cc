@@ -1,7 +1,7 @@
 /*
   SWARM
 
-  Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+  Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -409,7 +409,7 @@ void db_qgrams_init()
 
   seqinfo_t * seqindex_p = seqindex;
   progress_init("Find qgram vects: ", sequences);
-  for(int i=0; i<sequences; i++)
+  for(unsigned int i=0; i<sequences; i++)
     {
       /* find qgrams */
       findqgrams((unsigned char*) seqindex_p->seq,

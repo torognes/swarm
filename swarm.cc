@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -38,7 +38,7 @@
 #define DEFAULT_LOG 0
 #define DEFAULT_NO_OTU_BREAKING 0
 #define DEFAULT_FASTIDIOUS 0
-#define DEFAULT_BORDER 3
+#define DEFAULT_BOUNDARY 3
 
 char * outfilename;
 char * statsfilename;
@@ -59,7 +59,7 @@ char * opt_log;
 char * opt_internal_structure;
 long opt_no_otu_breaking;
 long opt_fastidious;
-long opt_border;
+long opt_boundary;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -181,7 +181,7 @@ void args_show()
   fprintf(logfile, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
   fprintf(logfile, "Break OTUs:        %s\n", opt_no_otu_breaking ? "No" : "Yes");
   if (opt_fastidious)
-    fprintf(logfile, "Fastidious:        Yes, with border %ld\n", opt_border);
+    fprintf(logfile, "Fastidious:        Yes, with boundary %ld\n", opt_boundary);
   else
     fprintf(logfile, "Fastidious:        No\n");
 }
@@ -217,7 +217,7 @@ void args_usage()
 void show_header()
 {
   char title[] = "Swarm " SWARM_VERSION;
-  char ref[] = "Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe";
+  char ref[] = "Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe";
   char url[] = "https://github.com/torognes/swarm";
   fprintf(logfile, "%s [%s %s]\n%s\n%s\n\n",
           title, __DATE__, __TIME__, ref, url);
@@ -248,7 +248,7 @@ void args_init(int argc, char **argv)
   opt_internal_structure = DEFAULT_INTERNAL_STRUCTURE;
   opt_no_otu_breaking = DEFAULT_NO_OTU_BREAKING;
   opt_fastidious = DEFAULT_FASTIDIOUS;
-  opt_border = DEFAULT_BORDER;
+  opt_boundary = DEFAULT_BOUNDARY;
 
   opterr = 1;
 
@@ -273,7 +273,7 @@ void args_init(int argc, char **argv)
     {"log",                   required_argument, NULL, 'l' },
     {"no-otu-breaking",       no_argument,       NULL, 'n' },
     {"fastidious",            no_argument,       NULL, 'f' },
-    {"border",                required_argument, NULL, 'b' },
+    {"boundary",              required_argument, NULL, 'b' },
     { 0, 0, 0, 0 }
   };
   
@@ -373,8 +373,8 @@ void args_init(int argc, char **argv)
       break;
           
     case 'b':
-      /* border */
-      opt_border = atol(optarg);
+      /* boundary */
+      opt_boundary = atol(optarg);
       break;
           
     default:
@@ -448,9 +448,8 @@ void args_init(int argc, char **argv)
   else
     internal_structure_file = stderr;
 
-  if (opt_fastidious || (opt_border != 3))
-    fprintf(stderr, "WARNING: The fastidious and border options are not implemented yet.\n");
-
+  if (opt_fastidious && (resolution != 1))
+    fatal("The fastidious option only works when the resolution (d) is 1.\n");
 }
 
 int main(int argc, char** argv)

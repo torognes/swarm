@@ -1,6 +1,6 @@
 # SWARM
 #
-# Copyright (C) 2012-2013 Torbjorn Rognes and Frederic Mahe
+# Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -43,7 +43,7 @@ PROG=swarm
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o cityhash/city.o
 
-DEPS=Makefile swarm.h cityhash/config.h cityhash/city.h
+DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h
 
 
 .SUFFIXES:.o .cc

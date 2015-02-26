@@ -1,7 +1,7 @@
 /*
   SWARM
 
-  Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+  Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -36,6 +36,18 @@
 #define POWEROFTWO
 //#define HASHSTATS
 
+struct swarminfo_s
+{
+  int seed;
+  int size;
+  unsigned long mass;
+  int singletons;
+  int maxgen;
+  int maxradius;
+};
+
+struct swarminfo_s * swarminfo = 0;
+
 struct ampinfo_s
 {
   int swarmid;
@@ -43,6 +55,7 @@ struct ampinfo_s
   int generation;
   int swarms_next;
   int swarm_next;
+  unsigned long mass; /* sum of abundances of amplicons in swarm */
 };
 
 struct ampinfo_s * ampinfo = 0;
@@ -200,6 +213,11 @@ void find_variant_matches(unsigned long thread,
   unsigned long hash = HASH(seq, seqlen);
   unsigned int j = hash_getindex(hash);
 
+#if 0
+  /* print the hash to stdout */
+  fprintf(stdout, "%016lx\n", hash);
+#endif
+
   /* find matching buckets */
 
 #ifdef HASHSTATS
@@ -264,6 +282,17 @@ void find_variant_matches(unsigned long thread,
 #endif
     }
 }
+
+#if 0
+void mutator(char * seq,             /* initial sequence */
+             unsigned long seqlen,   /* length of initial sequence */
+             char * mutseq,          /* buffer for mutant sequences */
+             unsigned long mutstart, /* start of segment to be mutated */
+             unsigned long mutend,   /* end of segment to be mutated */
+             void * cb(),            /* function to call for each mutant */
+             unsigned long thread,   /* thread */
+             int seed);              /* original seed */
+#endif
 
 void generate_variants(unsigned long thread,
                        int seed,
@@ -531,6 +560,280 @@ void update_stats(int amp)
     singletons++;
 }
 
+bool hash_check(char * seq,
+                unsigned long seqlen,
+                int seed)
+{
+  /* compute hash and corresponding hash table index */
+
+  unsigned long hash = HASH((unsigned char*)seq, seqlen);
+  unsigned int j = hash_getindex(hash);
+
+  /* find matching buckets */
+
+  while (hash_is_occupied(j))
+    {
+      if (hash_compare_value(j, hash))
+        {
+          /* check that mass is below threshold */
+          int amp = hash_data[j];
+          struct ampinfo_s * bp = ampinfo + amp;
+          struct ampinfo_s * p = bp;
+          while (p->parent >= 0)
+            p = ampinfo + p->parent;
+          if ((p->mass < opt_boundary) && (p->mass > 0))
+            {
+              unsigned long ampseqlen = db_getsequencelen(amp);
+              unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
+
+              /* make absolutely sure sequences are identical */
+              if ((ampseqlen == seqlen) && (!memcmp(ampseq, seq, seqlen)))
+                {
+                  /* zero mass to avoid doing it again */
+                  p->mass = 0;
+
+                  /* graft small OTU (amp) on big OTU (seed) */
+#if 0
+                  fprintf(logfile, 
+                          "Grafting small OTU with seed %d on large OTU with seed %d (sward ids: %d %d)\n",
+                          amp,
+                          seed,
+                          ampinfo[amp].swarmid,
+                          ampinfo[seed].swarmid);
+#endif
+
+                  /* TODO!!! */
+
+                  return 1;
+                }
+            }
+        }
+      j = hash_getnextindex(j);
+    }
+  return 0;
+}
+
+long fastidious_mark_small_var(BloomFilter * bloom,
+                                        char * buffer,
+                                        int seed)
+{
+  /*
+    bloom is a BloomFilter in which to enter the variants
+    buffer is a buffer large enough to hold all sequences + 1 insertion
+    seed is the original seed
+  */
+
+  long variants = 0;
+
+  char * varseq = buffer;
+  unsigned char * seq = (unsigned char*) db_getsequence(seed);
+  unsigned long start = 0;
+  unsigned long seqlen = db_getsequencelen(seed);
+  unsigned long end = seqlen;
+
+  /* make an exact copy */
+  memcpy(varseq, seq, seqlen);
+
+  /* substitutions */
+  for(int i=start; i<end; i++)
+    {
+      for (int v=1; v<5; v++)
+        if (v != seq[i])
+          {
+            varseq[i] = v;
+            bloom->set(varseq, seqlen);
+            variants++;
+          }
+      varseq[i] = seq[i];
+    }
+
+  /* deletions */
+  memcpy(varseq, seq, start);
+  if (start < seqlen-1)
+    memcpy(varseq+start, seq+start+1, seqlen-start-1);
+  for(int i=start; i<end; i++)
+    {
+      if ((i==0) || (seq[i] != seq[i-1]))
+        {
+          bloom->set(varseq, seqlen-1);
+          variants++;
+        }
+      varseq[i] = seq[i];
+    }
+
+  /* insertions */
+  memcpy(varseq, seq, start);
+  memcpy(varseq+start+1, seq+start, seqlen-start);
+  for(int i=start; i<end; i++)
+    {
+      for(int v=1; v<5; v++)
+        {
+          if((i==seqlen) || (v != seq[i]))
+            {
+              varseq[i] = v;
+              bloom->set(varseq, seqlen+1);
+              variants++;
+            }
+        }
+      if (i<seqlen)
+        varseq[i] = seq[i];
+    }
+  return variants;
+}
+
+long fastidious_check_large_var_2(char * seq,
+                                  size_t seqlen,
+                                  char * varseq,
+                                  int seed)
+{
+  /* generate second generation variants from seq of length seqlen.
+     Use buffer varseq for variants.
+     The original sequences came from seed */
+
+  long matches = 0;
+
+  unsigned long start = 0;
+  unsigned long end = seqlen;
+
+  /* make an exact copy */
+  memcpy(varseq, seq, seqlen);
+
+  /* substitutions */
+  for(int i=start; i<end; i++)
+    {
+      for (int v=1; v<5; v++)
+        if (v != seq[i])
+          {
+            varseq[i] = v;
+            if (hash_check(varseq, seqlen, seed))
+              matches++;
+          }
+      varseq[i] = seq[i];
+    }
+
+  /* deletions */
+  memcpy(varseq, seq, start);
+  if (start < seqlen-1)
+    memcpy(varseq+start, seq+start+1, seqlen-start-1);
+  for(int i=start; i<end; i++)
+    {
+      if ((i==0) || (seq[i] != seq[i-1]))
+        {
+          if (hash_check(varseq, seqlen-1, seed))
+            matches++;
+        }
+      varseq[i] = seq[i];
+    }
+
+  /* insertions */
+  memcpy(varseq, seq, start);
+  memcpy(varseq+start+1, seq+start, seqlen-start);
+  for(int i=start; i<end; i++)
+    {
+      for(int v=1; v<5; v++)
+        {
+          if((i==seqlen) || (v != seq[i]))
+            {
+              varseq[i] = v;
+              if (hash_check(varseq, seqlen+1, seed))
+                matches++;
+            }
+        }
+      if (i<seqlen)
+        varseq[i] = seq[i];
+    }
+  return matches;
+}
+
+void fastidious_check_large_var(BloomFilter * bloom,
+                                        char * buffer1,
+                                        char * buffer2,
+                                        int seed,
+                                        long * m,
+                                        long * v)
+{
+  /*
+    bloom is a BloomFilter in which to enter the variants
+    buffer1 is a buffer large enough to hold all sequences + 1 insertion
+    buffer2 is a buffer large enough to hold all sequences + 2 insertions
+    seed is the original seed
+    m is where to store number of matches
+    v is where to store number of variants
+  */
+
+  long variants = 0;
+  long matches = 0;
+
+  char * varseq = buffer1;
+  unsigned char * seq = (unsigned char*) db_getsequence(seed);
+  unsigned long start = 0;
+  unsigned long seqlen = db_getsequencelen(seed);
+  unsigned long end = seqlen;
+
+  /* make an exact copy */
+  memcpy(varseq, seq, seqlen);
+
+  /* substitutions */
+  for(int i=start; i<end; i++)
+    {
+      for (int v=1; v<5; v++)
+        if (v != seq[i])
+          {
+            varseq[i] = v;
+            variants++;
+            if (bloom->get(varseq, seqlen))
+              matches += fastidious_check_large_var_2(varseq,
+                                                          seqlen,
+                                                          buffer2,
+                                                          seed);
+          }
+      varseq[i] = seq[i];
+    }
+
+  /* deletions */
+  memcpy(varseq, seq, start);
+  if (start < seqlen-1)
+    memcpy(varseq+start, seq+start+1, seqlen-start-1);
+  for(int i=start; i<end; i++)
+    {
+      if ((i==0) || (seq[i] != seq[i-1]))
+        {
+          variants++;
+          if (bloom->get(varseq, seqlen-1))
+            matches += fastidious_check_large_var_2(varseq,
+                                                        seqlen-1,
+                                                        buffer2,
+                                                        seed);
+        }
+      varseq[i] = seq[i];
+    }
+
+  /* insertions */
+  memcpy(varseq, seq, start);
+  memcpy(varseq+start+1, seq+start, seqlen-start);
+  for(int i=start; i<end; i++)
+    {
+      for(int v=1; v<5; v++)
+        {
+          if((i==seqlen) || (v != seq[i]))
+            {
+              varseq[i] = v;
+              variants++;
+              if (bloom->get(varseq, seqlen+1))
+                matches += fastidious_check_large_var_2(varseq,
+                                                            seqlen+1,
+                                                            buffer2,
+                                                            seed);
+            }
+        }
+      if (i<seqlen)
+        varseq[i] = seq[i];
+    }
+  *m = matches;
+  *v = variants;
+}
+
+
 void algo_d1_run()
 {
   unsigned long longestamplicon = db_getlongestsequence();
@@ -668,20 +971,6 @@ void algo_d1_run()
                       singletons, swarm_maxgen, swarm_maxgen);
             }
 
-          /* output results for one swarm in native format */
-          if (!mothur)
-            {
-              for (int a = seed; 
-                   a >= 0;
-                   a = ampinfo[a].swarm_next)
-                {
-                  if (a != seed)
-                    fputc(SEPCHAR, outfile);
-                  fprint_id(outfile, a);
-                }
-              fputc('\n', outfile);
-            }
-      
           /* output swarm in uclust format */
           if (uclustfile)
             {
@@ -742,28 +1031,174 @@ void algo_d1_run()
 
   unsigned long swarmcount = swarmid;
 
-  /* dump swarms in mothur format */
-  /* cannot do it earlier because we need to know the number of swarms */
-  if (mothur)
+  /* fastidious */
+
+  if (opt_fastidious)
     {
-      fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount);
+      fprintf(logfile, "\n");
+
+      fprintf(logfile, "WARNING: The fastidious option is under development and does not work yet.\n");
+
+      long small_otus = 0;
+      long amplicons_in_small_otus = 0;
+      long nucleotides_in_small_otus = 0;
+
+      progress_init("Counting amplicons in small OTUs", swarmcount);
+      long i=0;
+      for (int seed = 0;
+           seed >= 0;
+           seed = ampinfo[seed].swarms_next)
+        {
+          unsigned long mass = 0;
+          unsigned long sumlen = 0;
+          unsigned long count = 0;
+          for (int a = seed;
+               a >= 0;
+               a = ampinfo[a].swarm_next)
+            {
+              unsigned long abundance = db_getabundance(a);
+              mass += abundance;
+              sumlen += db_getsequencelen(a);
+              count++;
+            }
+          ampinfo[seed].mass = mass;
+          if (mass < opt_boundary)
+            {
+              small_otus++;
+              amplicons_in_small_otus += count;
+              nucleotides_in_small_otus += sumlen;
+            }
+          progress_update(++i);
+        }
+      progress_done();
+
+      fprintf(logfile, "Small OTUs: %ld\n",
+             small_otus);
+      fprintf(logfile, "Large OTUs: %ld\n",
+              swarmcount - small_otus);
+      fprintf(logfile, "Amplicons in small OTUs: %ld\n",
+             amplicons_in_small_otus);
+      fprintf(logfile, "Amplicons in large OTUs: %ld\n",
+             amplicons - amplicons_in_small_otus);
+      fprintf(logfile, "Total length of amplicons in small OTUs: %ld\n",
+             nucleotides_in_small_otus);
+
+      /* m: total size of bloom filter in bits */
+      /* k: number of hash functions */
+      /* n: number of entries in the bloom filter */
+      /* here: k=12 and m/n=18, that is 18 bits/entry */
+
+      size_t m = 18 * 7 * nucleotides_in_small_otus;
+      int k = 12; /* optimal k = m/n ln 2 */
+
+      fprintf(logfile, "m, k: %ld, %d\n", m, k);
+      fprintf(logfile, "Size of Bloom filter bitmap: %.1lf MB\n",
+              1.0 * m / (8*1024*1024));
+
+      BloomFilter bloom(m, k);
+      char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
+      char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
+
+      progress_init("Adding small OTU amplicons to Bloom filter",
+                    amplicons_in_small_otus);
+
+      i = 0;
+      long variants = 0;
 
       for (int seed = 0;
            seed >= 0;
            seed = ampinfo[seed].swarms_next)
-        
-        for (int a = seed; 
-             a >= 0;
-             a = ampinfo[a].swarm_next)
-          {
-            if (a == seed)
-              fputc('\t', outfile);
-            else
-              fputc(',', outfile);
-            fprint_id(outfile, a);
-          }
-      fputc('\n', outfile);
+        {
+          if (ampinfo[seed].mass < opt_boundary)
+            {
+              for (int a = seed;
+                   a >= 0;
+                   a = ampinfo[a].swarm_next)
+                {
+                  variants += fastidious_mark_small_var(&bloom,
+                                                        buffer1,
+                                                        a);
+                  i++;
+                }
+            }
+          progress_update(i);
+        }
+
+      progress_done();
+
+      fprintf(logfile, "Generated %ld variants from small OTUs\n", variants);
+
+      progress_init("Checking large OTU amplicons against Bloom filter", amplicons - amplicons_in_small_otus);
+
+      i = 0;
+      long matches = 0;
+      variants = 0;
+
+      for (int seed = 0;
+           seed >= 0;
+           seed = ampinfo[seed].swarms_next)
+        {
+          if (ampinfo[seed].mass >= opt_boundary)
+            {
+              for (int a = seed;
+                   a >= 0;
+                   a = ampinfo[a].swarm_next)
+                {
+                  long m, v;
+                  fastidious_check_large_var(&bloom,
+                                             buffer1,
+                                             buffer2,
+                                             a, &m, &v);
+                  matches += m;
+                  variants += v;
+                  i++;
+                }
+              progress_update(i);
+            }
+        }
+
+      progress_done();
+
+      fprintf(logfile, "Got %ld matches for %ld variants\n",
+              matches, variants);
+
+      free(buffer1);
+      free(buffer2);
     }
+
+  /* dump swarms */
+
+  if (mothur)
+    fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount);
+
+  for (int seed = 0;
+       seed >= 0;
+       seed = ampinfo[seed].swarms_next)
+    {
+      for (int a = seed;
+           a >= 0;
+           a = ampinfo[a].swarm_next)
+        {
+          if (mothur)
+            {
+              if (a == seed)
+                fputc('\t', outfile);
+              else
+                fputc(',', outfile);
+            }
+          else
+            {
+              if (a != seed)
+                fputc(SEPCHAR, outfile);
+            }
+          fprint_id(outfile, a);
+        }
+      if (!mothur)
+        fputc('\n', outfile);
+    }
+
+  if (mothur)
+    fputc('\n', outfile);
   
   fprintf(logfile, "\n");
   fprintf(logfile, "Number of swarms:  %lu\n", swarmid);

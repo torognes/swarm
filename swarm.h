@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -37,7 +37,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "2.0.0"
+#define SWARM_VERSION "2.0.1"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -127,7 +127,7 @@ extern char * opt_log;
 extern char * opt_internal_structure;
 extern long opt_no_otu_breaking;
 extern long opt_fastidious;
-extern long opt_border;
+extern long opt_boundary;
 
 
 extern long SCORELIMIT_7;
@@ -310,3 +310,9 @@ void search_end();
 
 void algo_run();
 void algo_d1_run();
+
+
+/* new header files */
+
+#include "bitmap.h"
+#include "bloom.h"
