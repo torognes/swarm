@@ -25,7 +25,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <tmmintrin.h>
+#include <x86intrin.h>
 #include <stdlib.h>
 #include <regex.h>
 #include <limits.h>
@@ -37,7 +37,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "1.2.20"
+#define SWARM_VERSION "1.2.21"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -227,6 +227,17 @@ inline unsigned char * db_getqgramvector(unsigned long seqno)
 
 void fprint_id(FILE * stream, unsigned long x);
 void fprint_id_noabundance(FILE * stream, unsigned long x);
+
+
+/* functions in ssse3.cc */
+
+void dprofile_shuffle8(BYTE * dprofile,
+                       BYTE * score_matrix,
+                       BYTE * dseq_byte);
+
+void dprofile_shuffle16(WORD * dprofile,
+                        WORD * score_matrix,
+                        BYTE * dseq_byte);
 
 
 /* functions in search8.cc */

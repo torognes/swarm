@@ -47,71 +47,6 @@ void dprofile_dump16(WORD * dprofile)
   exit(1);
 }
 
-inline void dprofile_shuffle16(WORD * dprofile,
-                               WORD * score_matrix,
-                               BYTE * dseq_byte)
-{
-  __m128i m0, m1, m2, m3, t0, t1, t2, t3, t4, t5, u0, u1, u2, u3, u4, zero, one;
-  __m128i * dseq = (__m128i*) dseq_byte;
-
-  // instructions? 32 + 5*12 = 92
-
-  // Requires SSSE3 due to pshufb
-
-  zero = _mm_setzero_si128();
-  one  = _mm_set1_epi16(1);
-  
-  t0 = _mm_load_si128(dseq+0);
-  
-  m0 = _mm_unpacklo_epi8(t0, zero);
-  m0 = _mm_slli_epi16(m0, 1);
-  t1 = _mm_adds_epu16(m0, one);
-  t1 = _mm_slli_epi16(t1, 8);
-  m0 = _mm_or_si128(m0, t1);
-  
-  m1 = _mm_unpackhi_epi8(t0, zero);
-  m1 = _mm_slli_epi16(m1, 1);
-  t2 = _mm_adds_epu16(m1, one);
-  t2 = _mm_slli_epi16(t2, 8);
-  m1 = _mm_or_si128(m1, t2);
-
-  t3 = _mm_load_si128(dseq+1);
-  
-  m2 = _mm_unpacklo_epi8(t3, zero);
-  m2 = _mm_slli_epi16(m2, 1);
-  t4 = _mm_adds_epu16(m2, one);
-  t4 = _mm_slli_epi16(t4, 8);
-  m2 = _mm_or_si128(m2, t4);
-
-  m3 = _mm_unpackhi_epi8(t3, zero);
-  m3 = _mm_slli_epi16(m3, 1);
-  t5 = _mm_adds_epu16(m3, one);
-  t5 = _mm_slli_epi16(t5, 8);
-  m3 = _mm_or_si128(m3, t5);
-  
-#define profline(j)                                     \
-  u0 = _mm_load_si128((__m128i*)(score_matrix)+4*j);    \
-  u1 = _mm_shuffle_epi8(u0, m0);                        \
-  u2 = _mm_shuffle_epi8(u0, m1);                        \
-  u3 = _mm_shuffle_epi8(u0, m2);                        \
-  u4 = _mm_shuffle_epi8(u0, m3);                        \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+0, u1);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+1, u2);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+2, u3);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+3, u4)
-
-  profline(0);
-  profline(1);
-  profline(2);
-  profline(3);
-  profline(4);
-
-#if 0
-  dprofile_dump16(dprofile);
-#endif
-}
-
-
 
 inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
@@ -184,6 +119,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
   dprofile_dump16(dprofile_word);
 #endif
 }
+
+/* 
+   Sorry for the assembler code below. This code was originally written
+   several years ago when compilers were not that good at compiling
+   intrinsics to optimal code.
+   Similar code using intrinsics instead of assembler is available in
+   the vsearch codebase.
+*/
 
 // Due to the use of pminsw instead of pminuw below, the code works
 // only with 15-bit values

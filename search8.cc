@@ -77,47 +77,6 @@ void dseq_dump8(BYTE * dseq)
 }
 
 
-inline void dprofile_shuffle8(BYTE * dprofile,
-                              BYTE * score_matrix,
-                              BYTE * dseq_byte)
-{
-  __m128i m0, m1, m2, m3, t0, t1, t2, t3, t4;
-
-  __m128i * dseq = (__m128i*) dseq_byte;
-  
-  // ca 12 * 5 + 4 = 64 instructions
-
-  // 16 x 4 = 64 db symbols
-
-  // make masks
-
-  /* Note: pshufb only on modern Intel cpus (SSSE3), not AMD */
-  /* SSSE3: Supplemental SSE3 */
-
-  m0 = _mm_load_si128(dseq);
-  m1 = _mm_load_si128(dseq+1);
-  m2 = _mm_load_si128(dseq+2);
-  m3 = _mm_load_si128(dseq+3);
-
-#define profline(j)                                     \
-  t0 = _mm_load_si128((__m128i*)(score_matrix)+2*j);    \
-  t1 = _mm_shuffle_epi8(t0, m0);                        \
-  t2 = _mm_shuffle_epi8(t0, m1);                        \
-  t3 = _mm_shuffle_epi8(t0, m2);                        \
-  t4 = _mm_shuffle_epi8(t0, m3);                        \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+0, t1);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+1, t2);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+2, t3);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+3, t4)
-
-
-  profline(0);
-  profline(1);
-  profline(2);
-  profline(3);
-  profline(4);
-}
-
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
@@ -451,6 +410,13 @@ inline void dprofile_fill8(BYTE * dprofile,
    query length (loop end double) (r10), loop end single (r12) 
 */
 
+/* 
+   Sorry for the assembler code below. This code was originally written
+   several years ago when compilers were not that good at compiling
+   intrinsics to optimal code.
+   Similar code using intrinsics instead of assembler is available in
+   the vsearch codebase.
+*/
 
 #define INITIALIZE                                      \
   "        movq      %3, %%rax               \n"        \

@@ -28,6 +28,7 @@ Table of Content
   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+  * [version 1.2.21](#version1221)
   * [version 1.2.20](#version1220)
   * [version 1.2.19](#version1219)
   * [version 1.2.18](#version1218)
@@ -311,6 +312,12 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version1221"/>
+### version 1.2.21 ###
+
+**swarm** 1.2.21 is supposed to fix some problems related to the use of the
+SSSE3 cpu instructions which are not always available.
 
 <a name="version1220"/>
 ### version 1.2.20 ###
