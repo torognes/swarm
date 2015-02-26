@@ -25,23 +25,18 @@
 #COMMON=-pg -g
 COMMON=-g
 
-COMPILEOPT=-Wall -mssse3 -mtune=core2 -Icityhash
+COMPILEOPT=-Wall -O3 -msse2 -mtune=core2 -Icityhash
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
 
-# Intel options
-#CXX=icpc
-#CXXFLAGS=$(COMPILEOPT) $(COMMON) -Wno-missing-declarations -fast
-
-# GNU options
 CXX=g++
-CXXFLAGS=$(COMPILEOPT) $(COMMON) -O3
+CXXFLAGS=$(COMPILEOPT) $(COMMON)
 
 PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
-	algo.o algod1.o qgram.o cityhash/city.o
+	algo.o algod1.o qgram.o ssse3.o cityhash/city.o
 
 DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h
 
@@ -51,9 +46,6 @@ DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h
 %.o : %.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.s : %.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -c -S -o $@ $<
-
 all : $(PROG)
 
 swarm : $(OBJS)
@@ -61,3 +53,6 @@ swarm : $(OBJS)
 
 clean :
 	rm -f *.o *~ $(PROG) gmon.out cityhash/*.o
+
+ssse3.o : ssse3.cc $(DEPS)
+	$(CXX) -mssse3 $(CXXFLAGS) -c -o $@ $<

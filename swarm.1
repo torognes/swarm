@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "February 26, 2015" "version 2.0.1" "USER COMMANDS"
+.TH swarm 1 "February 26, 2015" "version 2.0.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -266,6 +266,9 @@ New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
 .TP
+.BR v2.0.2\~ "released February 26, 2015"
+Version 2.0.2 fixes SSSE3 problems.
+.TP
 .BR v2.0.1\~ "released February 26, 2015"
 Version 2.0.1 is a development version that contains a partial
 implementation of the fastidious option, but it is not usable yet.
@@ -277,6 +280,10 @@ options (\-\-internal\-structure and \-\-log), new control options
 OTU refinement. When using default parameters, a novel and
 considerably faster algorithmic approach is used, guaranteeing swarm's
 scalability.
+.TP
+.BR v1.2.21\~ "released February 26, 2015"
+Version 1.2.21 is supposed to fix some problems related to the use of the
+SSSE3 cpu instructions which are not always available.
 .TP
 .BR v1.2.20\~ "released November 6, 2014"
 Version 1.2.20 presents a production-ready version of the alternative
