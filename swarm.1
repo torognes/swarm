@@ -51,27 +51,27 @@ identifiers, amplicon identifiers must be unique to avoid ambiguity;
 swarm exits with an error message if identifiers are not unique. If
 amplicon identifiers end with a "_" followed by a positive integer,
 that value is used as the amplicon copy number in the statistics
-output file (see the option -z to change that behavior for
+output file (see the option \-z to change that behavior for
 usearch/vsearch users). The amplicon sequence is defined as a string
 of [acgt] or [acgu] symbols (case insensitive), starting after the end
 of the identifier line and ending before the next identifier line or
 the file end; \fBswarm\fR exits with an error message if any other
 symbol is present. Default is to read from standard input if no file
-is named, or if the file name is "-".
+is named, or if the file name is "\-".
 .\" ----------------------------------------------------------------------------
 .SS Options
 \fBswarm\fR recognizes the following command-line options:
 .RS
 .TP 9
-.BI -b\fP,\fB\ --boundary\~ "positive integer"
-when using the option --fastidious, define what is a small OTU. By
+.BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
+when using the option \-\-fastidious, define what is a small OTU. By
 default, an OTU is small if it has a mass of 2 or less, meaning that
 it is composed of either one amplicon of abundance 2, or two amplicons
 of abundance 1. Any positive value greater than 2 can be used. Using
 higher boundary values will speed up the second pass, but also reduce
 the taxonomical resolution of swarm results.
 .TP
-.BI -d\fP,\fB\ --differences\~ "positive integer"
+.BI \-d\fP,\fB\ \-\-differences\~ "positive integer"
 maximum number of differences allowed between two amplicons, meaning
 that two amplicons will be grouped if they have \fIinteger\fR (or
 less) differences. This is \fBswarm\fR's most important parameter. The
@@ -85,20 +85,20 @@ should be considered with caution. Using high \fId\fR values will also
 decrease the taxonomical resolution of swarm results. Default number
 of differences is 1.
 .TP
-.BI -f\fP,\fB\ --fastidious \0filename
+.BI \-f\fP,\fB\ \-\-fastidious \0filename
 when working with \fId\fR = 1, perform a second pass to reduce the
 number of small OTUs. During the stone stepping process at \fId\fR =
 1, a step can be missing for purely stochastic reasons, interrupting
 the agglomerative process. That option will create virtual steps to
 graft small OTUs upon bigger ones. By default, an OTU is small if it
-has a mass of 2 or less (see the --boundary option to increase that
+has a mass of 2 or less (see the \-\-boundary option to increase that
 value). Output the refined OTUs to \fIfilename\fR. Warning, that
 second pass can be many times slower than the first pass.
 .TP
-.B -h\fP,\fB\ --help
+.B \-h\fP,\fB\ \-\-help
 display this help and exit.
 .TP
-.BI -i\fP,\fB\ --internal-structure \0filename
+.BI \-i\fP,\fB\ \-\-internal\-structure \0filename
 output all pairs of nearly-identical amplicons to \fIfilename\fR using
 a five-columns tab-delimited format:
 .RS
@@ -121,13 +121,13 @@ integer\fR).
 .RE
 .RE
 .TP
-.BI -l\fP,\fB\ --log \0filename
+.BI \-l\fP,\fB\ \-\-log \0filename
 output all messages to \fIfilename\fR instead of \fIstandard error\fR,
 with the exception of error messages of course. That option is useful
 in situations where writing to \fIstandard error\fR is problematic
 (for example, with certain job schedulers).
 .TP
-.B -n\fP,\fB\ --no-otu-breaking
+.B \-n\fP,\fB\ \-\-no\-otu\-breaking
 desactivate the built-in OTU refinement (not recommended). Amplicon
 abundance values are used to identify transitions among in-contact
 OTUs and to separate them, yielding higher-resolution clustering
@@ -135,16 +135,16 @@ results. That option prevents that, and in practice, allows the
 creation of a link between amplicon A and B, even if the abundance of
 B is higher than the abundance of A.
 .TP
-.BI -o\fP,\fB\ --output-file \0filename
+.BI \-o\fP,\fB\ \-\-output\-file \0filename
 output result to \fIfilename\fR. Result is a list of swarms, one swarm
 per line. A swarm is a list of amplicon identifiers separated by
 spaces. Default is to write to standard output.
 .TP
-.B -r\fP,\fB\ --mothur
+.B \-r\fP,\fB\ \-\-mothur
 output results in a format compatible with Mothur. That option
 modifies swarm's default output format.
 .TP
-.BI -s\fP,\fB\ --statistics-file \0filename
+.BI \-s\fP,\fB\ \-\-statistics\-file \0filename
 output statistics to the specified file. Default is not to output
 statistics.  The file is a tab-separated table with one swarm per row
 and seven columns of information: number of unique amplicons in the
@@ -156,19 +156,19 @@ natural limits), and the maximum radius of the swarm (i.e. number of
 differences between the seed and the furthermost amplicon in the
 swarm).
 .TP
-.BI -t\fP,\fB\ --threads\~ "positive integer"
+.BI \-t\fP,\fB\ \-\-threads\~ "positive integer"
 number of computation threads to use. The number of threads should be
 lesser or equal to the number of available CPU cores. Default number
 of threads is 1.
 .TP
-.BI -u\fP,\fB\ --uclust-file \0filename
+.BI \-u\fP,\fB\ \-\-uclust\-file \0filename
 output results in uclust-like file format to the specified file. That
 option does not modify swarm default output format.
 .TP
-.B -v\fP,\fB\ --version
+.B \-v\fP,\fB\ \-\-version
 output version information and exit.
 .TP
-.B -z\fP,\fB\ --usearch_abundance
+.B \-z\fP,\fB\ \-\-usearch\-abundance
 accept amplicon abundances specified using the usearch/vsearch style
 (">label;size=INT[;]").
 .LP
@@ -178,16 +178,16 @@ accept amplicon abundances specified using the usearch/vsearch style
 pairwise global alignment scoring parameters:
 .RS
 .TP 9
-.BI -m\fP,\fB\ --match-reward\~ "positive integer"
+.BI \-m\fP,\fB\ \-\-match\-reward\~ "positive integer"
 reward for a nucleotide match. Default is 5.
 .TP
-.BI -p\fP,\fB\ --mismatch-penalty\~ "positive integer"
+.BI \-p\fP,\fB\ \-\-mismatch\-penalty\~ "positive integer"
 penalty for a nucleotide mismatch. Default is 4.
 .TP
-.BI -g\fP,\fB\ --gap-opening-penalty\~ "positive integer"
+.BI \-g\fP,\fB\ \-\-gap\-opening\-penalty\~ "positive integer"
 gap open penalty. Default is 12.
 .TP
-.BI -e\fP,\fB\ --gap-extension-penalty\~ "positive integer"
+.BI \-e\fP,\fB\ \-\-gap\-extension\-penalty\~ "positive integer"
 gap extension penalty. Default is 4.
 .LP
 As \fBswarm\fR focuses on close relationships, final results are
@@ -197,7 +197,7 @@ parameters only impacts analysis using a high number of differences.
 .\" ============================================================================
 .SH EXAMPLES
 .B swarm
--t 4 -o
+-t 4 \-o
 .I myfile.swarms myfile.fasta
 .br
 Divide the data set \fImyfile.fasta\fR into OTUs with the finest
@@ -205,7 +205,8 @@ resolution possible (1 difference, built-in breaking) using 4
 computation threads and the fast algorithm. OTUs are written to the
 file \fImyfile.swarms\fR.
 .PP
-zcat file.fas.gz | \fBswarm\fR | awk "{print NF}" | sort -n | uniq -c
+zcat file.fas.gz | \fBswarm\fR | awk "{print NF}" | sort \-n | uniq
+\-c
 .br
 Use swarm in a pipeline to read a compressed fasta file and to get its
 swarm size profile (with default parameters).
@@ -225,8 +226,8 @@ studies. \fIPeerJ\fR 2:e593 <http://dx.doi.org/10.7717/peerj.593>
 Submit suggestions and bug-reports at
 <https://github.com/torognes/swarm/issues>, send a pull request on
 <https://github.com/torognes/swarm>, or compose a friendly or
-curmudgeont e-mail to Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn
-Rognes <torognes@ifi.uio.no>.
+curmudgeonly e-mail to Frédéric Mahé <mahe@rhrk.uni-kl.de> and
+Torbjørn Rognes <torognes@ifi.uio.no>.
 .\" ============================================================================
 .SH AVAILABILITY
 The software is available from <https://github.com/torognes/swarm>
@@ -267,20 +268,21 @@ or minor bug releases are not mentioned):
 .TP
 .BR v2.0.0\~ "released December 25, 2014"
 Version 2.0.0 is faster and easier to use, providing new output
-options (--internal-structure and --log), new control options
-(--boundary, --fastidious, --no-otu-breaking), and built-in OTU
-refinement. When using default parameters, a novel and considerably
-faster algorithmic approach is used, guaranteeing swarm's scalability.
+options (\-\-internal\-structure and \-\-log), new control options
+(\-\-boundary, \-\-fastidious, \-\-no\-otu\-breaking), and built-in
+OTU refinement. When using default parameters, a novel and
+considerably faster algorithmic approach is used, guaranteeing swarm's
+scalability.
 .TP
 .BR v1.2.20\~ "released November 6, 2014"
 Version 1.2.20 presents a production-ready version of the alternative
-algorithm (option -a), with optional built-in OTU breaking (option
--n). That alternative algorithmic approach (usable only with d = 1) is
-considerably faster than currently used clustering algorithms, and can
-deal with datasets of 100 million unique amplicons or more in a few
-hours. Of course, results are rigourously identical to the results
+algorithm (option \-a), with optional built-in OTU breaking (option
+\-n). That alternative algorithmic approach (usable only with d = 1)
+is considerably faster than currently used clustering algorithms, and
+can deal with datasets of 100 million unique amplicons or more in a
+few hours. Of course, results are rigourously identical to the results
 previously produced with swarm. That release also introduces new
-options to control swarm output (options -i and -l).
+options to control swarm output (options \-i and \-l).
 .TP
 .BR v1.2.19\~ "released October 3, 2014"
 Version 1.2.19 fixes a problem related to abundance information when
@@ -302,22 +304,22 @@ Version 1.2.16 fixes a bug in the abundance sort introduced in version
 .BR v1.2.15\~ "released September 27, 2014"
 Version 1.2.15 sorts the input sequences in order of decreasing
 abundance unless they are detected to be sorted already. When using
-the alternative algorithm for d=1 it also sorts all subseeds in order
-of decreasing abundance.
+the alternative algorithm for d = 1 it also sorts all subseeds in
+order of decreasing abundance.
 .TP
 .BR v1.2.14\~ "released September 27, 2014"
 Version 1.2.14 fixes a bug in the output with the swarm_breaker option
-(-b) when using the alternative algorithm (-a).
+(\-b) when using the alternative algorithm (\-a).
 .TP
 .BR v1.2.12\~ "released August 18, 2014"
-Version 1.2.12 introduces an option --alternative-algorithm to use an
-extremely fast, experimental clustering algorithm for the special case
-d = 1. Multithreading scalability of the default algorithm has been
-noticeably improved.
+Version 1.2.12 introduces an option \-\-alternative\-algorithm to use
+an extremely fast, experimental clustering algorithm for the special
+case d = 1. Multithreading scalability of the default algorithm has
+been noticeably improved.
 .TP
 .BR v1.2.10\~ "released August 8, 2014"
 allows amplicon abundances to be specified using the usearch style in
-the sequence header (e.g. ">id;size=1") when the -z option is chosen.
+the sequence header (e.g. ">id;size=1") when the \-z option is chosen.
 .TP
 .BR v1.2.8\~ "released August 5, 2014"
 swarm 1.2.8 fixes an error with the gap extension penalty. Previous
@@ -325,7 +327,7 @@ versions used a gap penalty twice as large as intended. That bug
 correction induces small changes in clustering results.
 .TP
 .BR v1.2.6\~ "released May 23, 2014"
-Version 1.2.6 introduces an option --mothur to output swarm results in
+Version 1.2.6 introduces an option \-\-mothur to output swarm results in
 a format compatible with the microbial ecology community analysis
 software suite Mothur.
 .TP
@@ -336,10 +338,10 @@ and uses a slightly slower software implementation if not. Only basic
 SSE2 instructions are now required to run swarm.
 .TP
 .BR v1.2.4\~ "released January 30, 2014"
-Version 1.2.4 introduces an option --break-swarms to output all pairs
-of amplicons with \fId\fR differences to standard error. That option
-is used by the companion script `swarm_breaker.py` to refine swarm
-results. The syntax of the inline assembly code is changed for
+Version 1.2.4 introduces an option \-\-break\-swarms to output all
+pairs of amplicons with \fId\fR differences to standard error. That
+option is used by the companion script `swarm_breaker.py` to refine
+swarm results. The syntax of the inline assembly code is changed for
 compatibility with more compilers.
 .TP
 .BR v1.2\~ "released May 16, 2013"
@@ -364,7 +366,7 @@ lengths and composition comparisons reduce the number of pairwise
 alignments needed and speed up the swarming.
 .TP
 .BR v1.0\~ "released November 10, 2012"
-First public release
+First public release.
 .LP
 .\" ============================================================================
 .\" NOTES
