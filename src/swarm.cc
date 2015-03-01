@@ -59,7 +59,7 @@ char * opt_log;
 char * opt_internal_structure;
 long opt_no_otu_breaking;
 long opt_fastidious;
-long opt_boundary;
+unsigned long opt_boundary;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -181,7 +181,7 @@ void args_show()
   fprintf(logfile, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
   fprintf(logfile, "Break OTUs:        %s\n", opt_no_otu_breaking ? "No" : "Yes");
   if (opt_fastidious)
-    fprintf(logfile, "Fastidious:        Yes, with boundary %ld\n", opt_boundary);
+    fprintf(logfile, "Fastidious:        Yes, with boundary %lu\n", opt_boundary);
   else
     fprintf(logfile, "Fastidious:        No\n");
 }
