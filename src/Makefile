@@ -49,10 +49,11 @@ DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h
 all : $(PROG)
 
 swarm : $(OBJS)
-	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
+	mkdir -p ../bin
+	$(CXX) $(LINKFLAGS) -o ../bin/$@ $(OBJS) $(LIBS)
 
 clean :
-	rm -f *.o *~ $(PROG) gmon.out cityhash/*.o
+	rm -rf *.o *~ ../bin/ gmon.out cityhash/*.o
 
 ssse3.o : ssse3.cc $(DEPS)
 	$(CXX) -mssse3 $(CXXFLAGS) -c -o $@ $<
