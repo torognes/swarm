@@ -52,7 +52,7 @@ struct ampinfo_s
 {
   int swarmid;
   int parent;
-  int generation;
+  unsigned int generation;
   int swarms_next;
   int swarm_next;
   unsigned long mass; /* sum of abundances of amplicons in swarm */
