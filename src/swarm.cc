@@ -49,7 +49,7 @@ long gapopen;
 long gapextend;
 long matchscore;
 long mismatchscore;
-long threads;
+unsigned long threads;
 long resolution;
 long break_swarms;
 long mothur;

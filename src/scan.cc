@@ -264,7 +264,7 @@ void search_do(unsigned long query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  long thr = threads;
+  unsigned long thr = threads;
 
   if (bits == 8)
     {
@@ -286,7 +286,7 @@ void search_do(unsigned long query_no,
   else
     {
       /* wake up threads */
-      for(long t=0; t<thr; t++)
+      for(unsigned long t=0; t<thr; t++)
         {
           struct thread_info_s * tip = ti + t;
           pthread_mutex_lock(&tip->workmutex);
@@ -296,7 +296,7 @@ void search_do(unsigned long query_no,
         }
       
       /* wait for threads to finish their work */
-      for(int t=0; t<thr; t++)
+      for(unsigned long t=0; t<thr; t++)
         {
           struct thread_info_s * tip = ti + t;
           pthread_mutex_lock(&tip->workmutex);
@@ -313,7 +313,7 @@ void search_begin()
   
   sd = (struct search_data *) xmalloc(sizeof(search_data) * threads);
 
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     search_alloc(sd+t);
 
   /* start threads */
@@ -326,7 +326,7 @@ void search_begin()
                                         sizeof(struct thread_info_s));
   
   /* init and create worker threads */
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
@@ -342,7 +342,7 @@ void search_end()
 {
   /* finish and clean up worker threads */
 
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       
@@ -363,7 +363,7 @@ void search_end()
   free(ti);
   pthread_attr_destroy(&attr);
 
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     search_free(sd+t);
   free(sd);
 }

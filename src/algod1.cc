@@ -504,7 +504,7 @@ void threads_init()
   ti = (struct thread_info_s *) xmalloc(threads * sizeof(struct thread_info_s));
   
   /* init and create worker threads */
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
@@ -521,7 +521,7 @@ void threads_init()
 void threads_done()
 {
   /* finish and clean up worker threads */
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       

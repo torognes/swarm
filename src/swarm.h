@@ -101,7 +101,7 @@ extern long gapextend;
 extern long gapopenextend;
 extern long matchscore;
 extern long mismatchscore;
-extern long threads;
+extern unsigned long threads;
 extern char * databasename;
 extern long resolution;
 extern long mothur;
