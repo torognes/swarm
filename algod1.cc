@@ -36,6 +36,7 @@
 #define POWEROFTWO
 //#define HASHSTATS
 
+#if 0
 struct swarminfo_s
 {
   int seed;
@@ -47,15 +48,24 @@ struct swarminfo_s
 };
 
 struct swarminfo_s * swarminfo = 0;
+#endif
 
 struct ampinfo_s
 {
   int swarmid;
   int parent;
-  int generation;
-  int swarms_next;
-  int swarm_next;
+  int generation; 
+  int swarm_next; /* amp id of next amplicon in swarm */
+  int seed; /* seed id */
+
+  /* info about entire swarm, present for initial seed only */
+  int swarms_next; /* amp id of seed of next swarm */
+  int size; /* total number of amplicons in this swarm */
   unsigned long mass; /* sum of abundances of amplicons in swarm */
+  unsigned long sumlen; /* sum of length of amplicons in swarm */
+  bool attached;
+  int singletons;
+  int maxgen;
 };
 
 struct ampinfo_s * ampinfo = 0;
@@ -72,10 +82,11 @@ static unsigned long largest = 0;
 
 /* per swarm statistics */
 static unsigned long singletons = 0;
-static unsigned long abundance_sum = 0;
+static unsigned long abundance_sum = 0; /* = mass */
 static unsigned long swarmsize = 0;
 static unsigned long swarm_maxgen = 0;
 static unsigned long swarmed = 0;
+static unsigned long swarm_sumlen = 0;
 
 pthread_attr_t attr;
 
@@ -434,9 +445,9 @@ void add_amp_to_swarm(int amp)
   swarm_breaker_info(amp);
 }
 
-void process_seed(int seed)
+void process_seed(int seed, int subseed)
 {
-  unsigned long seqlen = db_getsequencelen(seed);
+  unsigned long seqlen = db_getsequencelen(subseed);
 
   unsigned long thr = threads;
   if (thr > seqlen + 1)
@@ -448,7 +459,7 @@ void process_seed(int seed)
     {
       struct thread_info_s * tip = ti + t;
       unsigned long length = (seqlen - start + thr - t) / (thr - t);
-      tip->seed = seed;
+      tip->seed = subseed;
       tip->mut_start = start;
       tip->mut_length = length;
       start += length;
@@ -487,9 +498,10 @@ void process_seed(int seed)
           global_hits_data[global_hits_count++] = amp;
 
           /* update info */
-          ampinfo[amp].swarmid = ampinfo[seed].swarmid;
-          ampinfo[amp].generation = ampinfo[seed].generation + 1;
-          ampinfo[amp].parent = seed;
+          ampinfo[amp].swarmid = ampinfo[subseed].swarmid;
+          ampinfo[amp].generation = ampinfo[subseed].generation + 1;
+          ampinfo[amp].seed = seed;
+          ampinfo[amp].parent = subseed;
         }
     }
 }
@@ -558,11 +570,59 @@ void update_stats(int amp)
   abundance_sum += abundance;
   if (abundance == 1)
     singletons++;
+  swarm_sumlen += db_getsequencelen(amp);
+}
+
+void attach(int seed, int amp, struct ampinfo_s * p)
+{
+  /* flag attachment to avoid doing it again */
+  p->attached = 1;
+  
+  /* graft small OTU (amp) on big OTU (seed) */
+#if 0
+  fprintf(logfile, 
+          "Grafting small OTU with seed %d on large OTU with seed %d (sward ids: %d %d)\n",
+          amp,
+          seed,
+          ampinfo[amp].swarmid,
+          ampinfo[seed].swarmid);
+#endif
+  
+  /* TODO!!! */
 }
 
 bool hash_check(char * seq,
-                unsigned long seqlen,
-                int seed)
+                unsigned long seqlen)
+{
+  /* check if given sequence has already been hashed */
+  /* compute hash and corresponding hash table index */
+
+  unsigned long hash = HASH((unsigned char*)seq, seqlen);
+  unsigned int j = hash_getindex(hash);
+
+  /* find matching buckets */
+
+  while (hash_is_occupied(j))
+    {
+      if (hash_compare_value(j, hash))
+        {
+          /* make absolutely sure sequences are identical */
+          int amp = hash_data[j];
+          
+          unsigned long ampseqlen = db_getsequencelen(amp);
+          unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
+          
+          if ((ampseqlen == seqlen) && (!memcmp(ampseq, seq, seqlen)))
+            return 1;
+        }
+      j = hash_getnextindex(j);
+    }
+  return 0;
+}
+
+bool hash_check_attach(char * seq,
+                       unsigned long seqlen,
+                       int seed)
 {
   /* compute hash and corresponding hash table index */
 
@@ -578,10 +638,13 @@ bool hash_check(char * seq,
           /* check that mass is below threshold */
           int amp = hash_data[j];
           struct ampinfo_s * bp = ampinfo + amp;
+
+          /* find the seed of this swarm */
           struct ampinfo_s * p = bp;
           while (p->parent >= 0)
             p = ampinfo + p->parent;
-          if ((p->mass < opt_boundary) && (p->mass > 0))
+
+          if ((p->mass < opt_boundary) && (! p->attached))
             {
               unsigned long ampseqlen = db_getsequencelen(amp);
               unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
@@ -589,21 +652,7 @@ bool hash_check(char * seq,
               /* make absolutely sure sequences are identical */
               if ((ampseqlen == seqlen) && (!memcmp(ampseq, seq, seqlen)))
                 {
-                  /* zero mass to avoid doing it again */
-                  p->mass = 0;
-
-                  /* graft small OTU (amp) on big OTU (seed) */
-#if 0
-                  fprintf(logfile, 
-                          "Grafting small OTU with seed %d on large OTU with seed %d (sward ids: %d %d)\n",
-                          amp,
-                          seed,
-                          ampinfo[amp].swarmid,
-                          ampinfo[seed].swarmid);
-#endif
-
-                  /* TODO!!! */
-
+                  attach(seed, amp, p);
                   return 1;
                 }
             }
@@ -614,8 +663,8 @@ bool hash_check(char * seq,
 }
 
 long fastidious_mark_small_var(BloomFilter * bloom,
-                                        char * buffer,
-                                        int seed)
+                               char * buffer,
+                               int seed)
 {
   /*
     bloom is a BloomFilter in which to enter the variants
@@ -705,7 +754,7 @@ long fastidious_check_large_var_2(char * seq,
         if (v != seq[i])
           {
             varseq[i] = v;
-            if (hash_check(varseq, seqlen, seed))
+            if (hash_check_attach(varseq, seqlen, seed))
               matches++;
           }
       varseq[i] = seq[i];
@@ -719,7 +768,7 @@ long fastidious_check_large_var_2(char * seq,
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
-          if (hash_check(varseq, seqlen-1, seed))
+          if (hash_check_attach(varseq, seqlen-1, seed))
             matches++;
         }
       varseq[i] = seq[i];
@@ -735,7 +784,7 @@ long fastidious_check_large_var_2(char * seq,
           if((i==seqlen) || (v != seq[i]))
             {
               varseq[i] = v;
-              if (hash_check(varseq, seqlen+1, seed))
+              if (hash_check_attach(varseq, seqlen+1, seed))
                 matches++;
             }
         }
@@ -893,6 +942,7 @@ void algo_d1_run()
           sp->parent = -1;
           sp->swarm_next = -1;
           sp->swarms_next = -1;
+          sp->seed = seed;
 
           /* link up this initial seed in the list of swarms */
           if (swarmid > 1)
@@ -905,6 +955,7 @@ void algo_d1_run()
           swarm_maxgen = 0;
           abundance_sum = 0;
           singletons = 0;
+          swarm_sumlen = 0;
 
           update_stats(seed);
           
@@ -912,7 +963,7 @@ void algo_d1_run()
           global_hits_count = 0;
 
           /* find the first generation matches */
-          process_seed(seed);
+          process_seed(seed, seed);
 
           /* sort hits */
           qsort(global_hits_data, global_hits_count,
@@ -930,7 +981,8 @@ void algo_d1_run()
               global_hits_count = 0;
               while(subseed >= 0)
                 {
-                  process_seed(subseed);
+                  process_seed(seed, subseed);
+                  update_stats(subseed);
                   subseed = ampinfo[subseed].swarm_next;
                 }
               
@@ -949,87 +1001,26 @@ void algo_d1_run()
                 subseed = -1;
             }
 
-          /* update statistics */
-          for (int a = ampinfo[seed].swarm_next; 
-               a >= 0;
-               a = ampinfo[a].swarm_next)
-            update_stats(a);
+          /* save stats */
+          ampinfo[seed].size = swarmsize;
+          ampinfo[seed].mass = abundance_sum;
+          ampinfo[seed].sumlen = swarm_sumlen;
+          ampinfo[seed].attached = 0;
+          ampinfo[seed].singletons = singletons;
+          ampinfo[seed].maxgen = swarm_maxgen;
 
-          /* update overall statistics */
+          /* update overall stats */
           if (swarmsize > largest)
             largest = swarmsize;
           if (swarm_maxgen > maxgen)
             maxgen = swarm_maxgen;
-
-          /* output statistics to file */
-          if (statsfile)
-            {
-              fprintf(statsfile, "%lu\t%lu\t", swarmsize, abundance_sum);
-              fprint_id_noabundance(statsfile, seed);
-              fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
-                      db_getabundance(seed),
-                      singletons, swarm_maxgen, swarm_maxgen);
-            }
-
-          /* output swarm in uclust format */
-          if (uclustfile)
-            {
-              fprintf(uclustfile, "C\t%u\t%lu\t*\t*\t*\t*\t*\t",
-                      ampinfo[seed].swarmid - 1, 
-                      swarmsize);
-              fprint_id(uclustfile, seed);
-              fprintf(uclustfile, "\t*\n");
-          
-              fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
-                      ampinfo[seed].swarmid-1,
-                      db_getsequencelen(seed));
-              fprint_id(uclustfile, seed);
-              fprintf(uclustfile, "\t*\n");
-
-              for (int a = ampinfo[seed].swarm_next; 
-                   a >= 0;
-                   a = ampinfo[a].swarm_next)
-                {
-                  char * dseq = db_getsequence(a);
-                  char * dend = dseq + db_getsequencelen(a);
-                  char * qseq = db_getsequence(seed);
-                  char * qend = qseq + db_getsequencelen(seed);
-
-                  unsigned long nwscore = 0;
-                  unsigned long nwdiff = 0;
-                  char * nwalignment = NULL;
-                  unsigned long nwalignmentlength = 0;
-
-                  nw(dseq, dend, qseq, qend,
-                     score_matrix_63, gapopen, gapextend,
-                     & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
-                     dir, hearray, 0, 0);
-              
-                  double percentid = 100.0 * (nwalignmentlength - nwdiff) /
-                    nwalignmentlength;
-              
-                  fprintf(uclustfile,
-                          "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
-                          ampinfo[seed].swarmid-1,
-                          db_getsequencelen(a),
-                          percentid, 
-                          nwdiff > 0 ? nwalignment : "=");
-              
-                  fprint_id(uclustfile, a);
-                  fprintf(uclustfile, "\t");
-                  fprint_id(uclustfile, seed);
-                  fprintf(uclustfile, "\n");
-                  
-                  if (nwalignment)
-                    free(nwalignment);
-                }
-            }
         }
       progress_update(swarmed);
     }
   progress_done();
 
   unsigned long swarmcount = swarmid;
+
 
   /* fastidious */
 
@@ -1049,39 +1040,29 @@ void algo_d1_run()
            seed >= 0;
            seed = ampinfo[seed].swarms_next)
         {
-          unsigned long mass = 0;
-          unsigned long sumlen = 0;
-          unsigned long count = 0;
-          for (int a = seed;
-               a >= 0;
-               a = ampinfo[a].swarm_next)
+          if (ampinfo[seed].mass < opt_boundary)
             {
-              unsigned long abundance = db_getabundance(a);
-              mass += abundance;
-              sumlen += db_getsequencelen(a);
-              count++;
-            }
-          ampinfo[seed].mass = mass;
-          if (mass < opt_boundary)
-            {
+              amplicons_in_small_otus += ampinfo[seed].size;
+              nucleotides_in_small_otus += ampinfo[seed].sumlen;
               small_otus++;
-              amplicons_in_small_otus += count;
-              nucleotides_in_small_otus += sumlen;
             }
           progress_update(++i);
         }
       progress_done();
 
+      long amplicons_in_large_otus = amplicons - amplicons_in_small_otus;
+      long large_otus = swarmcount - small_otus;
+
       fprintf(logfile, "Small OTUs: %ld\n",
-             small_otus);
+              small_otus);
       fprintf(logfile, "Large OTUs: %ld\n",
-              swarmcount - small_otus);
+              large_otus);
       fprintf(logfile, "Amplicons in small OTUs: %ld\n",
-             amplicons_in_small_otus);
+              amplicons_in_small_otus);
       fprintf(logfile, "Amplicons in large OTUs: %ld\n",
-             amplicons - amplicons_in_small_otus);
+              amplicons_in_large_otus);
       fprintf(logfile, "Total length of amplicons in small OTUs: %ld\n",
-             nucleotides_in_small_otus);
+              nucleotides_in_small_otus);
 
       /* m: total size of bloom filter in bits */
       /* k: number of hash functions */
@@ -1091,7 +1072,7 @@ void algo_d1_run()
       size_t m = 18 * 7 * nucleotides_in_small_otus;
       int k = 12; /* optimal k = m/n ln 2 */
 
-      fprintf(logfile, "m, k: %ld, %d\n", m, k);
+      fprintf(logfile, "Bloom filter: m=%ld, k=%d\n", m, k);
       fprintf(logfile, "Size of Bloom filter bitmap: %.1lf MB\n",
               1.0 * m / (8*1024*1024));
 
@@ -1099,75 +1080,78 @@ void algo_d1_run()
       char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
       char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
 
+
       progress_init("Adding small OTU amplicons to Bloom filter",
                     amplicons_in_small_otus);
-
-      i = 0;
+      long x = 0;
       long variants = 0;
-
-      for (int seed = 0;
-           seed >= 0;
-           seed = ampinfo[seed].swarms_next)
+      /* process amplicons in order from least to most abundant */
+      /* but stop when all amplicons in small otus are processed */
+      for(int a = amplicons-1; (a >= 0) && (x < amplicons_in_small_otus); a--)
         {
-          if (ampinfo[seed].mass < opt_boundary)
+          int seed = ampinfo[a].seed;
+          int mass = ampinfo[seed].mass;
+          if (mass < opt_boundary)
             {
-              for (int a = seed;
-                   a >= 0;
-                   a = ampinfo[a].swarm_next)
-                {
-                  variants += fastidious_mark_small_var(&bloom,
-                                                        buffer1,
-                                                        a);
-                  i++;
-                }
+              variants += fastidious_mark_small_var(&bloom,
+                                                    buffer1,
+                                                    a);
+              progress_update(++x);
             }
-          progress_update(i);
         }
-
       progress_done();
 
       fprintf(logfile, "Generated %ld variants from small OTUs\n", variants);
 
-      progress_init("Checking large OTU amplicons against Bloom filter", amplicons - amplicons_in_small_otus);
 
+      progress_init("Checking large OTU amplicons against Bloom filter",
+                    amplicons_in_large_otus);
       i = 0;
       long matches = 0;
       variants = 0;
+      /* process amplicons in order from most to least abundant */
+      /* but stop when all amplicons in large otus are processed */
 
-      for (int seed = 0;
-           seed >= 0;
-           seed = ampinfo[seed].swarms_next)
+      for(int a = 0; (a < amplicons) && (i < amplicons_in_large_otus); a++)
         {
-          if (ampinfo[seed].mass >= opt_boundary)
+          int seed = ampinfo[a].seed;
+          int mass = ampinfo[seed].mass;
+          if (mass >= opt_boundary)
             {
-              for (int a = seed;
-                   a >= 0;
-                   a = ampinfo[a].swarm_next)
-                {
-                  long m, v;
-                  fastidious_check_large_var(&bloom,
-                                             buffer1,
-                                             buffer2,
-                                             a, &m, &v);
-                  matches += m;
-                  variants += v;
-                  i++;
-                }
-              progress_update(i);
+              long m, v;
+              fastidious_check_large_var(&bloom,
+                                         buffer1,
+                                         buffer2,
+                                         a, &m, &v);
+              matches += m;
+              variants += v;
+              progress_update(++i);
             }
         }
-
       progress_done();
 
       fprintf(logfile, "Got %ld matches for %ld variants\n",
               matches, variants);
 
+
+      long attached = 0;
+      for (int seed = 0;
+           seed >= 0;
+           seed = ampinfo[seed].swarms_next)
+        if (ampinfo[seed].attached)
+          attached++;
+      
+      fprintf(logfile, "Got %ld attachments\n", attached);
+
       free(buffer1);
       free(buffer2);
     }
 
+
   /* dump swarms */
 
+  progress_init("Writing swarms to file", swarmcount);
+  long i = 0;
   if (mothur)
     fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount);
 
@@ -1195,11 +1179,103 @@ void algo_d1_run()
         }
       if (!mothur)
         fputc('\n', outfile);
+      progress_update(++i);
     }
 
   if (mothur)
     fputc('\n', outfile);
   
+  progress_done();
+
+  /* output statistics to file */
+
+  if (statsfile)
+    {
+      progress_init("Writing statistics file", swarmcount);
+      long i = 0;
+      for (int seed = 0;
+           seed >= 0;
+           seed = ampinfo[seed].swarms_next)
+        {
+          struct ampinfo_s * bp = ampinfo + seed;
+
+          fprintf(statsfile, "%u\t%lu\t", bp->size, bp->mass);
+          fprint_id_noabundance(statsfile, seed);
+          fprintf(statsfile, "\t%lu\t%u\t%u\t%u\n", 
+                  db_getabundance(seed),
+                  bp->singletons, bp->maxgen, bp->maxgen);
+          progress_update(++i);
+        }
+      progress_done();
+    }
+
+
+  /* output swarm in uclust format */
+
+  if (uclustfile)
+    {
+      progress_init("Writing UCLUST file", swarmcount);
+      long i = 0;
+      for (int seed = 0;
+           seed >= 0;
+           seed = ampinfo[seed].swarms_next)
+        {
+          struct ampinfo_s * bp = ampinfo + seed;
+          
+          fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+                  bp->swarmid - 1, 
+                  bp->size);
+          fprint_id(uclustfile, seed);
+          fprintf(uclustfile, "\t*\n");
+          
+          fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
+                  bp->swarmid-1,
+                  db_getsequencelen(seed));
+          fprint_id(uclustfile, seed);
+          fprintf(uclustfile, "\t*\n");
+          
+          for (int a = bp->swarm_next; 
+               a >= 0;
+               a = ampinfo[a].swarm_next)
+            {
+              char * dseq = db_getsequence(a);
+              char * dend = dseq + db_getsequencelen(a);
+              char * qseq = db_getsequence(seed);
+              char * qend = qseq + db_getsequencelen(seed);
+              
+              unsigned long nwscore = 0;
+              unsigned long nwdiff = 0;
+              char * nwalignment = NULL;
+              unsigned long nwalignmentlength = 0;
+              
+              nw(dseq, dend, qseq, qend,
+                 score_matrix_63, gapopen, gapextend,
+                 & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
+                 dir, hearray, 0, 0);
+              
+              double percentid = 100.0 * (nwalignmentlength - nwdiff) /
+                nwalignmentlength;
+              
+              fprintf(uclustfile,
+                      "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
+                      ampinfo[seed].swarmid-1,
+                      db_getsequencelen(a),
+                      percentid, 
+                      nwdiff > 0 ? nwalignment : "=");
+              
+              fprint_id(uclustfile, a);
+              fprintf(uclustfile, "\t");
+              fprint_id(uclustfile, seed);
+              fprintf(uclustfile, "\n");
+              
+              if (nwalignment)
+                free(nwalignment);
+            }
+          progress_update(++i);
+        }
+      progress_done();
+    }
+
   fprintf(logfile, "\n");
   fprintf(logfile, "Number of swarms:  %lu\n", swarmid);
   fprintf(logfile, "Largest swarm:     %lu\n", largest);

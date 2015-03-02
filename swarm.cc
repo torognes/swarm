@@ -208,7 +208,7 @@ void args_usage()
   fprintf(stderr, "  -i, --internal-structure FILENAME   write internal swarm structure to file\n");
   fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");
   fprintf(stderr, "  -n, --no-otu-breaking               never break OTUs\n");
-  fprintf(stderr, "  -f, --fastidious                    link nearby abundant swarms\n");
+  fprintf(stderr, "  -f, --fastidious                    link nearby low-abundance swarms\n");
   fprintf(stderr, "  -b, --boundary INTEGER              min amplicon abundance for fastidious\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
