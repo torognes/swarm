@@ -54,7 +54,7 @@ struct ampinfo_s
 {
   int swarmid;
   int parent;
-  int generation; 
+  unsigned int generation; 
   int swarm_next; /* amp id of next amplicon in swarm */
   int seed; /* seed id */
 
@@ -334,12 +334,12 @@ void generate_variants(unsigned long thread,
   
 #if 1
   /* identical non-variant */
-  if (thread == threads -1)
+  if (thread == threads - 1)
     find_variant_matches(thread, varseq, seqlen, seed);
 #endif
 
   /* substitutions */
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       for (int v=1; v<5; v++)
         if (v != seq[i])
@@ -354,7 +354,7 @@ void generate_variants(unsigned long thread,
   memcpy(varseq, seq, start);
   if (start < seqlen-1)
     memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
@@ -366,7 +366,7 @@ void generate_variants(unsigned long thread,
   /* insertions */
   memcpy(varseq, seq, start);
   memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(int i=start; i<start+len; i++)
+  for(unsigned int i=start; i<start+len; i++)
     {
       for(int v=1; v<5; v++)
         {
@@ -471,7 +471,7 @@ void process_seed(int seed, int subseed)
     }
 
   /* wait for theads to finish their work */
-  for(int t=0; t<thr; t++)
+  for(unsigned int t=0; t<thr; t++)
     {
       struct thread_info_s * tip = ti + t;
       pthread_mutex_lock(&tip->workmutex);
@@ -482,7 +482,7 @@ void process_seed(int seed, int subseed)
 
   /* join hits from the threads */
 
-  for(int t=0; t<thr; t++)
+  for(unsigned int t=0; t<thr; t++)
     {
       if (global_hits_count + ti[t].hits_count > global_hits_alloc)
         {
@@ -516,7 +516,7 @@ void threads_init()
   ti = (struct thread_info_s *) xmalloc(threads * sizeof(struct thread_info_s));
   
   /* init and create worker threads */
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
@@ -533,7 +533,7 @@ void threads_init()
 void threads_done()
 {
   /* finish and clean up worker threads */
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       
@@ -684,7 +684,7 @@ long fastidious_mark_small_var(BloomFilter * bloom,
   memcpy(varseq, seq, seqlen);
 
   /* substitutions */
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       for (int v=1; v<5; v++)
         if (v != seq[i])
@@ -700,7 +700,7 @@ long fastidious_mark_small_var(BloomFilter * bloom,
   memcpy(varseq, seq, start);
   if (start < seqlen-1)
     memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
@@ -713,7 +713,7 @@ long fastidious_mark_small_var(BloomFilter * bloom,
   /* insertions */
   memcpy(varseq, seq, start);
   memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       for(int v=1; v<5; v++)
         {
@@ -748,7 +748,7 @@ long fastidious_check_large_var_2(char * seq,
   memcpy(varseq, seq, seqlen);
 
   /* substitutions */
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       for (int v=1; v<5; v++)
         if (v != seq[i])
@@ -764,7 +764,7 @@ long fastidious_check_large_var_2(char * seq,
   memcpy(varseq, seq, start);
   if (start < seqlen-1)
     memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
@@ -777,7 +777,7 @@ long fastidious_check_large_var_2(char * seq,
   /* insertions */
   memcpy(varseq, seq, start);
   memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       for(int v=1; v<5; v++)
         {
@@ -823,7 +823,7 @@ void fastidious_check_large_var(BloomFilter * bloom,
   memcpy(varseq, seq, seqlen);
 
   /* substitutions */
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       for (int v=1; v<5; v++)
         if (v != seq[i])
@@ -843,7 +843,7 @@ void fastidious_check_large_var(BloomFilter * bloom,
   memcpy(varseq, seq, start);
   if (start < seqlen-1)
     memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
@@ -860,7 +860,7 @@ void fastidious_check_large_var(BloomFilter * bloom,
   /* insertions */
   memcpy(varseq, seq, start);
   memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(int i=start; i<end; i++)
+  for(unsigned int i=start; i<end; i++)
     {
       for(int v=1; v<5; v++)
         {
@@ -903,7 +903,7 @@ void algo_d1_run()
   swarms_tail = 0;
 
   progress_init("Hashing sequences:", amplicons);
-  for(int i=0; i<amplicons; i++)
+  for(unsigned int i=0; i<amplicons; i++)
     {
       unsigned long seqlen = db_getsequencelen(i);
       unsigned char * seq = (unsigned char *) db_getsequence(i);
@@ -929,7 +929,7 @@ void algo_d1_run()
   /* for each non-swarmed amplicon look for subseeds ... */
   unsigned long swarmid = 0;
   progress_init("Clustering:       ", amplicons);
-  for(int seed = 0; seed < amplicons; seed++)
+  for(unsigned int seed = 0; seed < amplicons; seed++)
     {
       struct ampinfo_s * sp = ampinfo + seed;
       if (sp->swarmid == 0)

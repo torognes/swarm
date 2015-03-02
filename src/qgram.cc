@@ -232,7 +232,7 @@ void qgram_diff_init()
                                         sizeof(struct thread_info_s));
   
   /* init and create worker threads */
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
@@ -246,7 +246,7 @@ void qgram_diff_init()
 void qgram_diff_done()
 {
   /* finish and clean up worker threads */
-  for(int t=0; t<threads; t++)
+  for(unsigned long t=0; t<threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       

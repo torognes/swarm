@@ -101,7 +101,7 @@ extern long gapextend;
 extern long gapopenextend;
 extern long matchscore;
 extern long mismatchscore;
-extern long threads;
+extern unsigned long threads;
 extern char * databasename;
 extern long resolution;
 extern long mothur;
@@ -127,7 +127,7 @@ extern char * opt_log;
 extern char * opt_internal_structure;
 extern long opt_no_otu_breaking;
 extern long opt_fastidious;
-extern long opt_boundary;
+extern unsigned long opt_boundary;
 
 
 extern long SCORELIMIT_7;
