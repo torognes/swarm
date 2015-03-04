@@ -127,7 +127,7 @@ extern char * opt_log;
 extern char * opt_internal_structure;
 extern long opt_no_otu_breaking;
 extern long opt_fastidious;
-extern unsigned long opt_boundary;
+extern long opt_boundary;
 
 
 extern long SCORELIMIT_7;

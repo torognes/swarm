@@ -59,7 +59,7 @@ char * opt_log;
 char * opt_internal_structure;
 long opt_no_otu_breaking;
 long opt_fastidious;
-unsigned long opt_boundary;
+long opt_boundary;
 
 long penalty_factor;
 long penalty_gapextend;

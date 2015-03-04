@@ -28,6 +28,7 @@ Table of Content
   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+  * [version 2.0.3](#version203)
   * [version 2.0.2](#version202)
   * [version 2.0.1](#version201)
   * [version 2.0.0](#version200)
@@ -347,6 +348,11 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version203"/>
+### version 2.0.3 ###
+
+**swarm** 2.0.3 includes a working fastidious option.
 
 <a name="version202"/>
 ### version 2.0.2 ###

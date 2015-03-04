@@ -25,7 +25,7 @@
 #COMMON=-pg -g
 COMMON=-g
 
-COMPILEOPT=-Wall -O3 -msse2 -mtune=core2 -Icityhash
+COMPILEOPT=-Wall -Wsign-compare -O3 -msse2 -mtune=core2 -Icityhash
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
@@ -49,11 +49,12 @@ DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h
 all : $(PROG)
 
 swarm : $(OBJS)
+	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 	mkdir -p ../bin
-	$(CXX) $(LINKFLAGS) -o ../bin/$@ $(OBJS) $(LIBS)
+	cp -a swarm ../bin
 
 clean :
-	rm -rf *.o *~ ../bin/ gmon.out cityhash/*.o
+	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o ../man/*~ ../*~
 
 ssse3.o : ssse3.cc $(DEPS)
 	$(CXX) -mssse3 $(CXXFLAGS) -c -o $@ $<

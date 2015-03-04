@@ -394,8 +394,7 @@ void db_read(const char * filename)
       progress_done();
     }
 
-  if (usearch_abundance)
-    regfree(&db_regexp);
+  regfree(&db_regexp);
 
   free(hdrhashtable);
 

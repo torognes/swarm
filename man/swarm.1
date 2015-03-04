@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "February 26, 2015" "version 2.0.2" "USER COMMANDS"
+.TH swarm 1 "March 4, 2015" "version 2.0.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -64,10 +64,12 @@ is named, or if the file name is "\-".
 .RS
 .TP 9
 .BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
-when using the option \-\-fastidious, define what is a small OTU. By
-default, an OTU is small if it has a mass of 2 or less, meaning that
+when using the option \-\-fastidious, define the minimum mass of a large
+(heavy) OTU as the number given with this option. The default value is 3,
+indicating that any OTU with mass 3 or more is considered large (heavy).
+By default, an OTU is small if it has a mass of 2 or less, meaning that
 it is composed of either one amplicon of abundance 2, or two amplicons
-of abundance 1. Any positive value greater than 2 can be used. Using
+of abundance 1. Any positive value greater than 1 can be specified. Using
 higher boundary values will speed up the second pass, but also reduce
 the taxonomical resolution of swarm results.
 .TP
@@ -265,6 +267,10 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v2.0.3\~ "released March 4, 2015"
+Version 2.0.3 includes a working implementation of the fastidious option,
+but only the initial clustering is parallelized.
 .TP
 .BR v2.0.2\~ "released February 26, 2015"
 Version 2.0.2 fixes SSSE3 problems.
