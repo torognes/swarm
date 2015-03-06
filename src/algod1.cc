@@ -62,6 +62,18 @@ static struct swarminfo_s
 
 static long swarminfo_alloc = 0;
 
+/* Information about potential grafts */
+
+static struct graft_s
+{
+  int parent; /* amplicon in large/heavy otu/swarm */
+  int child;  /* amplicon in small/light otu/swarm */
+} * graft_array = 0;
+
+static long graft_alloc = 0;
+static long graft_candidates = 0;
+static pthread_mutex_t graft_mutex;
+ 
 #define NO_SWARM (-1)
 
 static int current_swarm_tail;
@@ -572,10 +584,68 @@ void attach(int seed, int amp)
   // Update overall stats
   if (hp->size > largest)
     largest = hp->size;
-  if (hp->maxgen > maxgen)
-    maxgen = hp->maxgen;
 
   swarmcount_adjusted--;
+}
+
+void add_graft_candidate(int seed, int amp)
+{
+  pthread_mutex_lock(&graft_mutex);
+  if (graft_candidates <= graft_alloc)
+    {
+      graft_alloc += 1000;
+      graft_array = (struct graft_s *)
+        xrealloc(graft_array, graft_alloc * sizeof(struct graft_s));
+    }
+  graft_array[graft_candidates].parent = seed;
+  graft_array[graft_candidates].child = amp;
+  graft_candidates++;
+  pthread_mutex_unlock(&graft_mutex);
+}
+
+int compare_candidates(const void * a, const void * b)
+{
+  struct graft_s * x = (graft_s *) a;
+  struct graft_s * y = (graft_s *) b;
+
+  if (x->parent < y->parent)
+    return -1;
+  else if (x->parent > y->parent)
+    return +1;
+  else if (x->child < y->child)
+    return -1;
+  else if (x->child > y->child)
+    return +1;
+  else
+    return 0;
+}
+
+int attach_candidates()
+{
+  /* sort list of candidates by parent and child amplicon number
+     (decreasing abundance) */
+  qsort(graft_array, graft_candidates, sizeof(graft_s), compare_candidates);
+
+  progress_init("Grafting light swarms on heavy swarms", graft_candidates);
+
+  int grafts = 0;
+
+  /* for each candidate */
+  for(int i=0; i < graft_candidates; i++)
+    {
+      /* check that child is not already attached */
+      if (!swarminfo[ampinfo[graft_array[i].child].swarmid].attached)
+        {      
+          /* attach child to parent */
+          attach(graft_array[i].parent, graft_array[i].child);
+          grafts++;
+        }
+      progress_update(i+1);
+    }
+
+  progress_done();
+
+  return grafts;
 }
 
 bool hash_check_attach(char * seq,
@@ -598,7 +668,7 @@ bool hash_check_attach(char * seq,
 
           struct swarminfo_s * smallp = swarminfo + ampinfo[amp].swarmid;
           
-          if ((smallp->mass < opt_boundary) && (! smallp->attached))
+          if (smallp->mass < opt_boundary)
             {
               unsigned long ampseqlen = db_getsequencelen(amp);
               unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
@@ -606,7 +676,7 @@ bool hash_check_attach(char * seq,
               /* make absolutely sure sequences are identical */
               if ((ampseqlen == seqlen) && (!memcmp(ampseq, seq, seqlen)))
                 {
-                  attach(seed, amp);
+                  add_graft_candidate(seed, amp);
                   return 1;
                 }
             }
@@ -851,11 +921,67 @@ int compare_amp(const void * a, const void * b)
     return 0;
 }
 
+static pthread_mutex_t light_mutex;
+static long light_variants;
+static long light_progress;
+static long light_amplicon_count;
+static int light_amplicon;
+BloomFilter * bloomp;
+
+void mark_light_thread(long t)
+{
+  char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
+  pthread_mutex_lock(&light_mutex);
+  while (light_progress < light_amplicon_count)
+    {
+      int a = light_amplicon--;
+      if (swarminfo[ampinfo[a].swarmid].mass < opt_boundary)
+        {
+          progress_update(++light_progress);
+          pthread_mutex_unlock(&light_mutex);
+          long v = fastidious_mark_small_var(bloomp, buffer1, a);
+          pthread_mutex_lock(&light_mutex);
+          light_variants += v;
+        }
+    }
+  pthread_mutex_unlock(&light_mutex);
+  free(buffer1);
+}
+
+static pthread_mutex_t heavy_mutex;
+static long heavy_variants;
+static long heavy_progress;
+static long heavy_amplicon_count;
+static int heavy_amplicon;
+static long amplicons;
+
+void check_heavy_thread(long t)
+{
+  char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
+  char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
+  pthread_mutex_lock(&heavy_mutex);
+  while ((heavy_amplicon < amplicons) && (heavy_progress < heavy_amplicon_count))
+    {
+      int a = heavy_amplicon++;
+      if (swarminfo[ampinfo[a].swarmid].mass >= opt_boundary)
+        {
+          progress_update(++heavy_progress);
+          pthread_mutex_unlock(&heavy_mutex);
+          long m, v;
+          fastidious_check_large_var(bloomp, buffer1, buffer2, a, &m, &v);
+          pthread_mutex_lock(&heavy_mutex);
+          heavy_variants += v;
+        }
+    }
+  pthread_mutex_unlock(&heavy_mutex);
+  free(buffer2);
+  free(buffer1);
+}
 
 void algo_d1_run()
 {
   unsigned long longestamplicon = db_getlongestsequence();
-  long amplicons = db_getsequencecount();
+  amplicons = db_getsequencecount();
 
   threads_init();
 
@@ -1005,10 +1131,12 @@ void algo_d1_run()
   if (opt_fastidious)
     {
       fprintf(logfile, "\n");
-
-      fprintf(logfile, "WARNING: The fastidious option is beta feature "
-              "that is in rapid development.\n");
-
+      fprintf(logfile, "WARNING: The fastidious option is a beta feature "
+              "in rapid development.\n");
+      fprintf(logfile, "Results before fastidious processing:\n");
+      fprintf(logfile, "Number of swarms:  %lu\n", swarmcount);
+      fprintf(logfile, "Largest swarm:     %d\n", largest);
+      
       long small_otus = 0;
       long amplicons_in_small_otus = 0;
       long nucleotides_in_small_otus = 0;
@@ -1043,7 +1171,7 @@ void algo_d1_run()
       
       if ((small_otus == 0) || (large_otus == 0))
         {
-          fprintf(logfile, "No light or heavy swarms found - "
+          fprintf(logfile, "Only light or heavy swarms found - "
                   "no need for further analysis.\n");
         }
       else
@@ -1060,42 +1188,69 @@ void algo_d1_run()
           fprintf(logfile, "Bloom filter: m=%ld, k=%d, size=%.1lfMB\n",
                   m, k, 1.0 * m / (8*1024*1024));
 
-          BloomFilter bloom(m, k);
+          bloomp = new BloomFilter(m, k);
           char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
           char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
-
-
+          
           progress_init("Adding light swarm amplicons to Bloom filter",
                         amplicons_in_small_otus);
+
           /* process amplicons in order from least to most abundant */
           /* but stop when all amplicons in small otus are processed */
+
+          light_variants = 0;
+
+#if 1
+          pthread_mutex_init(&light_mutex, NULL);
+          light_progress = 0;
+          light_amplicon_count = amplicons_in_small_otus;
+          light_amplicon = amplicons - 1;
+          ThreadRunner * tr = new ThreadRunner(threads, mark_light_thread);
+          tr->run();
+          delete tr;
+          pthread_mutex_destroy(&light_mutex);
+#else
           int a = amplicons - 1;
           long x = 0;
-          long variants = 0;
           while (x < amplicons_in_small_otus)
             {
               if (swarminfo[ampinfo[a].swarmid].mass < opt_boundary)
                 {
-                  variants += fastidious_mark_small_var(&bloom, buffer1, a);
+                  light_variants += fastidious_mark_small_var(bloomp, buffer1, a);
                   x++;
                   progress_update(x);
                 }
               a--;
             }
+#endif
+
           progress_done();
 
           fprintf(logfile,
-                  "Generated %ld variants from light swarms\n", variants);
+                  "Generated %ld variants from light swarms\n", light_variants);
 
 
           progress_init("Checking heavy swarm amplicons against Bloom filter",
                         amplicons_in_large_otus);
           i = 0;
-          long matches = 0;
-          variants = 0;
           /* process amplicons in order from most to least abundant */
           /* but stop when all amplicons in large otus are processed */
 
+          pthread_mutex_init(&graft_mutex, NULL);
+
+          heavy_variants = 0;
+
+#if 1
+          pthread_mutex_init(&heavy_mutex, NULL);
+          heavy_progress = 0;
+          heavy_amplicon_count = amplicons_in_large_otus;
+          heavy_amplicon = 0;
+          ThreadRunner * heavy_tr = new ThreadRunner(threads, 
+                                                     check_heavy_thread);
+          heavy_tr->run();
+          delete heavy_tr;
+          pthread_mutex_destroy(&heavy_mutex);
+#else
           for(int a = 0; (a < amplicons) && (i < amplicons_in_large_otus); a++)
             {
               int swarmid = ampinfo[a].swarmid;
@@ -1103,20 +1258,31 @@ void algo_d1_run()
               if (mass >= opt_boundary)
                 {
                   long m, v;
-                  fastidious_check_large_var(&bloom, buffer1, buffer2, 
+                  fastidious_check_large_var(bloomp, buffer1, buffer2, 
                                              a, &m, &v);
-                  matches += m;
-                  variants += v;
+                  heavy_variants += v;
                   progress_update(++i);
                 }
             }
+#endif
+
           progress_done();
 
-          fprintf(logfile, "Got %ld matches for %ld variants\n",
-                  matches, variants);
+          pthread_mutex_destroy(&graft_mutex);
+
+          fprintf(logfile, "Heavy variants: %ld\n", heavy_variants);
+          fprintf(logfile, "Got %ld graft candidates\n", graft_candidates);
+
+          int grafts = attach_candidates();
+
+          fprintf(logfile, "Made %d grafts\n", grafts);
 
           free(buffer1);
           free(buffer2);
+
+          free(graft_array);
+
+          delete bloomp;
         }
     }
 

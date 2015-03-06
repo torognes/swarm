@@ -204,7 +204,7 @@ void args_usage()
   fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file\n");
   fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file\n");
   fprintf(stderr, "  -r, --mothur                        output in mothur list file format\n");
-  fprintf(stderr, "  -z, --usearch_abundance             abundance annotation in usearch style\n");
+  fprintf(stderr, "  -z, --usearch-abundance             abundance annotation in usearch style\n");
   fprintf(stderr, "  -i, --internal-structure FILENAME   write internal swarm structure to file\n");
   fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");
   fprintf(stderr, "  -n, --no-otu-breaking               never break OTUs\n");

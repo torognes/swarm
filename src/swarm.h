@@ -37,7 +37,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "2.0.3"
+#define SWARM_VERSION "2.0.4"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -327,3 +327,4 @@ void algo_d1_run();
 
 #include "bitmap.h"
 #include "bloom.h"
+#include "threads.h"

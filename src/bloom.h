@@ -21,13 +21,13 @@
 
 class BloomFilter
 {
- private:
+private:
   
   Bitmap bitmap;
   size_t m; /* total number of bits in bitmap */
   int k; /* number of hash functions */
   
- public:
+public:
   
   BloomFilter(unsigned long _m, int _k) : bitmap(_m)
   {

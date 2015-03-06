@@ -38,8 +38,8 @@ PROG=swarm
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o ssse3.o cityhash/city.o
 
-DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h
-
+DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h \
+	threads.h
 
 .SUFFIXES:.o .cc
 

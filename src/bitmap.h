@@ -56,16 +56,19 @@ class Bitmap
   
   void reset(size_t x)
   {
-    data[x >> 3] &= ~ (1 << (x & 7));
+    //    data[x >> 3] &= ~ (1 << (x & 7));
+    __sync_fetch_and_and(data + (x >> 3), ~(1 << (x & 7)));
   }
   
   void set(size_t x)
   {
-    data[x >> 3] |= 1 << (x & 7);
+    //    data[x >> 3] |= 1 << (x & 7);
+    __sync_fetch_and_or(data + (x >> 3), 1 << (x & 7));
   }
   
   void flip(size_t x)
   {
-    data[x >> 3] ^= 1 << (x & 7);
+    //    data[x >> 3] ^= 1 << (x & 7);
+    __sync_fetch_and_xor(data + (x >> 3), 1 << (x & 7));
   }
 };
