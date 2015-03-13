@@ -74,9 +74,10 @@ higher boundary values will speed up the second pass, but also reduce
 the taxonomical resolution of swarm results.
 .TP
 .BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
-when using the option \-\-fastidious, define the maximum size (in
-megabytes) of the Bloom filter. That option is not active by
-default. When used it overides the \-\-bloom\-bits value.
+when using the option \-\-fastidious, define swarm's maximum memory
+footprint (in megabytes). Swarm will adjust the \-\-bloom\-bits value
+of the Bloom filter to fit within the specified amount of memory. That
+option is not active by default.
 .TP
 .BI \-d\fP,\fB\ \-\-differences\~ "zero or positive integer"
 maximum number of differences allowed between two amplicons, meaning
@@ -188,8 +189,8 @@ all the amplicons in the OTU.
 when using the option \-\-fastidious, define the size (in bits) of
 each entry in the Bloom filter. That option allows to balance the
 efficiency (i.e. speed) and the memory footprint of the Bloom
-filter. Using large values will make the Bloom filter more efficient
-but will require more memory. Any value between 8 and 32 can be
+filter. Large values will make the Bloom filter more efficient but
+will require more memory. Any value between 4 and 20 can be
 used. Default value is 16.
 .TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
