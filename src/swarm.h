@@ -30,6 +30,13 @@
 #include <regex.h>
 #include <limits.h>
 #include <city.h>
+#include <sys/types.h>
+#include <sys/resource.h>
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#else
+#include <sys/sysinfo.h>
+#endif
 
 /* constants */
 
@@ -37,11 +44,12 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "2.0.4"
+#define SWARM_VERSION "2.0.5"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
 #define MAX_THREADS 256
+#define SEPCHAR ' '
 
 #ifdef BIASED
 #define ZERO 0x00
@@ -49,7 +57,9 @@
 #define ZERO 0x80
 #endif
 
+#ifndef MIN
 #define MIN(x,y) ((x)<(y)?(x):(y))
+#endif
 
 #define QGRAMLENGTH 5
 #define QGRAMVECTORBITS (1<<(2*QGRAMLENGTH))
@@ -122,13 +132,16 @@ extern FILE * statsfile;
 extern FILE * uclustfile;
 extern FILE * internal_structure_file;
 extern FILE * logfile;
+extern FILE * fp_seeds;
 
 extern char * opt_log;
 extern char * opt_internal_structure;
+extern char * opt_seeds;
 extern long opt_no_otu_breaking;
 extern long opt_fastidious;
 extern long opt_boundary;
-
+extern long opt_bloom_bits;
+extern long opt_ceiling;
 
 extern long SCORELIMIT_7;
 extern long SCORELIMIT_8;
@@ -176,7 +189,6 @@ void progress_init(const char * prompt, unsigned long size);
 void progress_update(unsigned long progress);
 void progress_done();
 
-
 /* functions in qgram.cc */
 
 void findqgrams(unsigned char * seq, unsigned long seqlen,
@@ -221,6 +233,8 @@ void db_putseq(long seqno);
 
 void db_qgrams_init();
 void db_qgrams_done();
+
+void db_fprintseq(FILE * fp, int a, int width);
 
 inline unsigned char * db_getqgramvector(unsigned long seqno)
 {
@@ -321,6 +335,17 @@ void search_end();
 
 void algo_run();
 void algo_d1_run();
+
+
+/* functions in derep.cc */
+
+void dereplicate();
+
+
+/* functions in arch.cc */
+
+unsigned long arch_get_memused();
+unsigned long arch_get_memtotal();
 
 
 /* new header files */

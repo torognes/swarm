@@ -1,7 +1,7 @@
 /*
   SWARM
 
-  Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+  Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,6 @@
 
 #include "swarm.h"
 
-#define SEPCHAR ' '
 #define BITS 8
 
 static unsigned long count_comparisons_8;

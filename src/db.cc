@@ -129,17 +129,15 @@ int db_compare_abundance(const void * a, const void * b)
     return -1;
   else if (x->abundance < y->abundance)
     return +1;
-#if 1
-  else if (x < y)
-    return -1;
-  else if (x > y)
-    return +1;
-  else
-    return 0;
-#else
-  else
-    return strcmp(x->seq, y->seq);
-#endif
+  else 
+    {
+      if (x < y)
+        return -1;
+      else if (x > y)
+        return +1;
+      else
+        return 0;
+    }
 }
 
 void db_read(const char * filename)
@@ -498,4 +496,36 @@ void db_free()
     free(datap);
   if (seqindex)
     free(seqindex);
+}
+
+void db_fprintseq(FILE * fp, int a, int width)
+{
+  char * seq = db_getsequence(a);
+  int len = db_getsequencelen(a);
+  char buffer[1025];
+  char * buf;
+
+  if (len < 1025)
+    buf = buffer;
+  else
+    buf = (char*) xmalloc(len+1);
+
+  for(int i=0; i<len; i++)
+    buf[i] = sym_nt[(int)(seq[i])];
+  buf[len] = 0;
+
+  if (width < 1)
+    fprintf(fp, "%.*s\n", (int)(len), buf);
+  else
+    {
+      long rest = len;
+      for(int i=0; i<len; i += width)
+        {
+          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), buf+i);
+          rest -= width;
+        }
+    }
+
+  if (len >= 1025)
+    free(buf);
 }

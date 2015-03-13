@@ -29,8 +29,6 @@
 
 #include "swarm.h"
 
-#define SEPCHAR ' '
-
 #define HASH hash_cityhash64
 #define HASHFILLFACTOR 0.5
 #define POWEROFTWO
@@ -43,7 +41,8 @@ static struct ampinfo_s
   int swarmid;
   int parent;
   int generation; 
-  int next;           /* amp id of next amplicon in swarm */
+  int next;       /* amp id of next amplicon in swarm */
+  int graft_cand; /* amp id of potential grafting parent (fastitdious) */
 } * ampinfo = 0;
 
 /* Information about each swarm (OTU) */
@@ -63,14 +62,6 @@ static struct swarminfo_s
 static long swarminfo_alloc = 0;
 
 /* Information about potential grafts */
-
-static struct graft_s
-{
-  int parent; /* amplicon in large/heavy otu/swarm */
-  int child;  /* amplicon in small/light otu/swarm */
-} * graft_array = 0;
-
-static long graft_alloc = 0;
 static long graft_candidates = 0;
 static pthread_mutex_t graft_mutex;
  
@@ -591,60 +582,79 @@ void attach(int seed, int amp)
 void add_graft_candidate(int seed, int amp)
 {
   pthread_mutex_lock(&graft_mutex);
-  if (graft_candidates <= graft_alloc)
-    {
-      graft_alloc += 1000;
-      graft_array = (struct graft_s *)
-        xrealloc(graft_array, graft_alloc * sizeof(struct graft_s));
-    }
-  graft_array[graft_candidates].parent = seed;
-  graft_array[graft_candidates].child = amp;
   graft_candidates++;
+  if ((ampinfo[amp].graft_cand == NO_SWARM)||(ampinfo[amp].graft_cand > seed))
+    ampinfo[amp].graft_cand = seed;
   pthread_mutex_unlock(&graft_mutex);
 }
 
-int compare_candidates(const void * a, const void * b)
+struct graft_cand
 {
-  struct graft_s * x = (graft_s *) a;
-  struct graft_s * y = (graft_s *) b;
+  int parent;
+  int child;
+} * graft_array;
 
+int compare_grafts(const void * a, const void * b)
+{
+  struct graft_cand * x = (struct graft_cand *) a;
+  struct graft_cand * y = (struct graft_cand *) b;
   if (x->parent < y->parent)
     return -1;
   else if (x->parent > y->parent)
     return +1;
-  else if (x->child < y->child)
-    return -1;
-  else if (x->child > y->child)
-    return +1;
   else
-    return 0;
+    if (x->child < y->child)
+      return -1;
+    else if (x->child < y->child)
+      return +1;
+    else
+      return 0;
 }
 
-int attach_candidates()
+int attach_candidates(int amplicons)
 {
-  /* sort list of candidates by parent and child amplicon number
-     (decreasing abundance) */
-  qsort(graft_array, graft_candidates, sizeof(graft_s), compare_candidates);
-
-  progress_init("Grafting light swarms on heavy swarms", graft_candidates);
+  /* count pairs */
+  int pair_count = 0;
+  for(int i=0; i < amplicons; i++)
+    if (ampinfo[i].graft_cand != NO_SWARM)
+      pair_count++;
 
   int grafts = 0;
+  progress_init("Grafting light swarms on heavy swarms", pair_count);
 
-  /* for each candidate */
-  for(int i=0; i < graft_candidates; i++)
+  /* allocate memory */
+  graft_array = (struct graft_cand *) 
+    xmalloc(pair_count * sizeof(struct graft_cand));
+
+  /* fill in */
+  int j = 0;
+  for(int i=0; i < amplicons; i++)
+    if (ampinfo[i].graft_cand != NO_SWARM)
+      {
+        graft_array[j].parent = ampinfo[i].graft_cand;
+        graft_array[j].child = i;
+        j++;
+      }
+
+  /* sort */
+  qsort(graft_array, pair_count, sizeof(struct graft_cand), compare_grafts);
+
+  /* attach in order */
+  for(int i=0; i < pair_count; i++)
     {
-      /* check that child is not already attached */
-      if (!swarminfo[ampinfo[graft_array[i].child].swarmid].attached)
-        {      
+      int parent = graft_array[i].parent;
+      int child  = graft_array[i].child;
+
+      if (!swarminfo[ampinfo[child].swarmid].attached)
+        {
           /* attach child to parent */
-          attach(graft_array[i].parent, graft_array[i].child);
+          attach(parent, child);
           grafts++;
         }
       progress_update(i+1);
     }
-
   progress_done();
-
+  free(graft_array);
   return grafts;
 }
 
@@ -1004,6 +1014,7 @@ void algo_d1_run()
       bp->generation = 0;
       bp->swarmid = NO_SWARM;
       bp->next = NO_SWARM;
+      bp->graft_cand = NO_SWARM;
       hash_insert(i, seq, seqlen);
       progress_update(i);
     }
@@ -1136,7 +1147,8 @@ void algo_d1_run()
       fprintf(logfile, "Results before fastidious processing:\n");
       fprintf(logfile, "Number of swarms:  %lu\n", swarmcount);
       fprintf(logfile, "Largest swarm:     %d\n", largest);
-      
+      fprintf(logfile, "\n");
+
       long small_otus = 0;
       long amplicons_in_small_otus = 0;
       long nucleotides_in_small_otus = 0;
@@ -1156,8 +1168,6 @@ void algo_d1_run()
           progress_update(i+1);
         }
       progress_done();
-
-      long i=0;
 
       long amplicons_in_large_otus = amplicons - amplicons_in_small_otus;
       long large_otus = swarmcount - small_otus;
@@ -1180,14 +1190,39 @@ void algo_d1_run()
           /* k: number of hash functions */
           /* n: number of entries in the bloom filter */
           /* here: k=12 and m/n=18, that is 18 bits/entry */
-      
-          int bits = 18; /* 18 */
-          int k = 12;    /* 12 */
-          size_t m = bits * 7 * nucleotides_in_small_otus;
+          
+          long bits = opt_bloom_bits; /* 18 */
+          long k = int(bits * 0.693);    /* 12 */
+          long m = bits * 7 * nucleotides_in_small_otus;
+          
+          long memtotal = arch_get_memtotal();
+          long memused = arch_get_memused();
 
-          fprintf(logfile, "Bloom filter: m=%ld, k=%d, size=%.1lfMB\n",
-                  m, k, 1.0 * m / (8*1024*1024));
+          if (opt_ceiling)
+            {
+              long memrest = 1024 * 1024 * opt_ceiling - memused;
+              long new_bits = 8 * memrest / (7 * nucleotides_in_small_otus);
+              if (new_bits < bits)
+                {
+                  if (new_bits < 2)
+                    fatal("Insufficient memory remaining for Bloom filter");
+                  fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
+                  bits = new_bits;
+                  k = int(bits * 0.693);
+                  m = bits * 7 * nucleotides_in_small_otus;
+                }
+            }
 
+          if (memused + m/8 > memtotal)
+            {
+              fprintf(logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
+              fprintf(logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
+            }
+
+          fprintf(logfile,
+                  "Bloom filter: bits=%ld, m=%ld, k=%ld, size=%.1lfMB\n",
+                  bits, m, k, 1.0 * m / (8*1024*1024));
+          
           bloomp = new BloomFilter(m, k);
           char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
           char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
@@ -1199,7 +1234,7 @@ void algo_d1_run()
           /* but stop when all amplicons in small otus are processed */
 
           light_variants = 0;
-
+                        
 #if 1
           pthread_mutex_init(&light_mutex, NULL);
           light_progress = 0;
@@ -1228,11 +1263,10 @@ void algo_d1_run()
 
           fprintf(logfile,
                   "Generated %ld variants from light swarms\n", light_variants);
-
-
+                    
           progress_init("Checking heavy swarm amplicons against Bloom filter",
                         amplicons_in_large_otus);
-          i = 0;
+          
           /* process amplicons in order from most to least abundant */
           /* but stop when all amplicons in large otus are processed */
 
@@ -1251,6 +1285,8 @@ void algo_d1_run()
           delete heavy_tr;
           pthread_mutex_destroy(&heavy_mutex);
 #else
+          long i = 0;
+          
           for(int a = 0; (a < amplicons) && (i < amplicons_in_large_otus); a++)
             {
               int swarmid = ampinfo[a].swarmid;
@@ -1268,28 +1304,25 @@ void algo_d1_run()
 
           progress_done();
 
+          free(buffer1);
+          free(buffer2);
+
+          delete bloomp;
+
           pthread_mutex_destroy(&graft_mutex);
 
           fprintf(logfile, "Heavy variants: %ld\n", heavy_variants);
           fprintf(logfile, "Got %ld graft candidates\n", graft_candidates);
-
-          int grafts = attach_candidates();
-
+          int grafts = attach_candidates(amplicons);
           fprintf(logfile, "Made %d grafts\n", grafts);
-
-          free(buffer1);
-          free(buffer2);
-
-          free(graft_array);
-
-          delete bloomp;
+          fprintf(logfile, "\n");
         }
     }
 
 
   /* dump swarms */
 
-  progress_init("Writing swarms to file", swarmcount);
+  progress_init("Writing swarms:   ", swarmcount);
 
   if (mothur)
     fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount_adjusted);
@@ -1329,11 +1362,32 @@ void algo_d1_run()
   progress_done();
 
 
+  /* dump seeds in fasta format with sum of abundances */
+
+  if (opt_seeds)
+    {
+      progress_init("Writing seeds:    ", swarmcount_adjusted);
+      for(int i=0; i < swarmcount; i++)
+        {
+          if (!swarminfo[i].attached)
+            {
+              int seed = swarminfo[i].seed;
+              fprintf(fp_seeds, ">");
+              fprint_id_noabundance(fp_seeds, seed);
+              fprintf(fp_seeds, "_%lu\n", swarminfo[i].mass);
+              db_fprintseq(fp_seeds, seed, 0);
+            }
+          progress_update(i+1);
+        }
+      progress_done();
+    }
+
+
   /* output swarm in uclust format */
 
   if (uclustfile)
     {
-      progress_init("Writing UCLUST file", swarmcount);
+      progress_init("Writing UCLUST:   ", swarmcount);
 
       for(unsigned int swarmid = 0; swarmid < swarmcount ; swarmid++)
         {
@@ -1402,7 +1456,7 @@ void algo_d1_run()
 
   if (statsfile)
     {
-      progress_init("Writing statistics file", swarmcount);
+      progress_init("Writing stats:    ", swarmcount);
       for(long i = 0; i < swarmcount; i++)
         {
           swarminfo_s * sp = swarminfo + i;

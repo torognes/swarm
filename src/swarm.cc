@@ -57,9 +57,12 @@ long usearch_abundance;
 
 char * opt_log;
 char * opt_internal_structure;
+char * opt_seeds;
 long opt_no_otu_breaking;
 long opt_fastidious;
 long opt_boundary;
+long opt_bloom_bits;
+long opt_ceiling;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -86,6 +89,7 @@ FILE * statsfile;
 FILE * uclustfile;
 FILE * logfile = stderr;
 FILE * internal_structure_file;
+FILE * fp_seeds = 0;
 
 char sym_nt[] = "-acgt                           ";
 
@@ -209,7 +213,10 @@ void args_usage()
   fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");
   fprintf(stderr, "  -n, --no-otu-breaking               never break OTUs\n");
   fprintf(stderr, "  -f, --fastidious                    link nearby low-abundance swarms\n");
-  fprintf(stderr, "  -b, --boundary INTEGER              min amplicon abundance for fastidious\n");
+  fprintf(stderr, "  -b, --boundary INTEGER              min mass of large OTU for fastidious (3)\n");
+  fprintf(stderr, "  -w, --seeds FILENAME                write seed seqs with abundances to FASTA\n");
+  fprintf(stderr, "  -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n");
+  fprintf(stderr, "  -c, --ceiling INTEGER               max memory in MB used for fastidious\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -249,10 +256,13 @@ void args_init(int argc, char **argv)
   opt_no_otu_breaking = DEFAULT_NO_OTU_BREAKING;
   opt_fastidious = DEFAULT_FASTIDIOUS;
   opt_boundary = DEFAULT_BOUNDARY;
+  opt_bloom_bits = 16;
+  opt_seeds = 0;
+  opt_ceiling = 0;
 
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:rzi:l:nfb:";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:rzi:l:nfb:w:y:c:";
 
   static struct option long_options[] =
   {
@@ -274,6 +284,9 @@ void args_init(int argc, char **argv)
     {"no-otu-breaking",       no_argument,       NULL, 'n' },
     {"fastidious",            no_argument,       NULL, 'f' },
     {"boundary",              required_argument, NULL, 'b' },
+    {"seeds",                 required_argument, NULL, 'w' },
+    {"bloom-bits",            required_argument, NULL, 'y' },
+    {"ceiling",               required_argument, NULL, 'c' },
     { 0, 0, 0, 0 }
   };
   
@@ -377,6 +390,21 @@ void args_init(int argc, char **argv)
       opt_boundary = atol(optarg);
       break;
           
+    case 'w':
+      /* seeds */
+      opt_seeds = optarg;
+      break;
+      
+    case 'y':
+      /* bloom-bits */
+      opt_bloom_bits = atol(optarg);
+      break;
+      
+    case 'c':
+      /* ceiling */
+      opt_ceiling = atol(optarg);
+      break;
+      
     default:
       show_header();
       args_usage();
@@ -388,7 +416,7 @@ void args_init(int argc, char **argv)
   if (optind < argc)
     databasename = argv[optind];
   
-  if (resolution < 1)
+  if (resolution < 0)
     fatal("Illegal resolution specified.");
 
   if ((threads < 1) || (threads > MAX_THREADS))
@@ -403,6 +431,12 @@ void args_init(int argc, char **argv)
   if (mismatchscore > -1)
     fatal("Illegal mismatch penalty specified.");
 
+  if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
+    fatal("Illegal number of Bloom filter bits specified (must be 2..64).");
+
+  if (opt_ceiling < 1)
+    fatal("Illegal memory ceiling (must be > 0)");
+
   if (outfilename)
     {
       outfile = fopen(outfilename, "w");
@@ -411,6 +445,15 @@ void args_init(int argc, char **argv)
     }
   else
     outfile = stdout;
+  
+  if (opt_seeds)
+    {
+      fp_seeds = fopen(opt_seeds, "w");
+      if (! fp_seeds)
+        fatal("Unable to open seeds file for writing.");
+    }
+  else
+    fp_seeds = 0;
   
   if (statsfilename)
     {
@@ -489,16 +532,29 @@ int main(int argc, char** argv)
 
   search_begin();
   
-  if (resolution == 1)
-    algo_d1_run();
-  else
-    algo_run();
+  switch (resolution)
+    {
+    case 0:
+      dereplicate();
+      break;
+      
+    case 1:
+      algo_d1_run();
+      break;
+
+    default:
+      algo_run();
+      break;
+    }
 
   search_end();
 
   score_matrix_free();
 
   db_free();
+
+  if (opt_seeds)
+    fclose(fp_seeds);
 
   if (uclustfile)
     fclose(uclustfile);
