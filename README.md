@@ -28,6 +28,8 @@ Table of Content
   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+  * [version 2.0.6](#version206)
+  * [version 2.0.5](#version205)
   * [version 2.0.4](#version204)
   * [version 2.0.3](#version203)
   * [version 2.0.2](#version202)
@@ -304,14 +306,8 @@ option.
 
 It is frequent for subsequent analyses to keep only one representative
 amplicon per OTU (usually the seed) to reduce the computational
-burden. That operation is easily done with **swarm** results.
-
-```sh
-SEEDS=$(mktemp)
-cut -d " " -f 1 amplicons.swarms | sed -e 's/^/>/' > "${SEEDS}"
-grep -A 1 -F -f "${SEEDS}" amplicons.fasta | sed -e '/^--$/d' > amplicons_seeds.fasta
-rm "${SEEDS}"
-```
+burden. That operation is easily done with **swarm** by using the `-w
+filename` option.
 
 
 <a name="extract_all"/>
@@ -350,6 +346,21 @@ released since 2004.
 <a name="features"/>
 ## New features##
 
+<a name="version206"/>
+### version 2.0.6 ###
+
+**swarm** 2.0.6 fixes a minor bug.
+
+<a name="version205"/>
+### version 2.0.5 ###
+
+**swarm** 2.0.5 improves the implementation of the fastidious option
+and adds options to control memory usage of the Bloom filter (`-y` and
+`-c`). In addition, an option (`-w`) allows to output OTU
+representatives sequences with updated abundances (sum of all
+abundances inside each OTU). This version also enables dereplication
+when `d = 0`.
+
 <a name="version204"/>
 ### version 2.0.4 ###
 
@@ -363,20 +374,20 @@ released since 2004.
 <a name="version202"/>
 ### version 2.0.2 ###
 
-**swarm** 2.0.2 fixes SSSE3 problems
+**swarm** 2.0.2 fixes SSSE3 problems.
 
 <a name="version201"/>
 ### version 2.0.1 ###
 
 **swarm** 2.0.1 is a development release that partially implements the 
-  fastidious option.
+fastidious option.
 
 <a name="version200"/>
 ### version 2.0.0 ###
 
 **swarm** 2.0.0 simplifies the usage of swarm by using the fast
-  algorithm and the built-in OTU breaking by default. Some options are
-  changed and some new output options are introduced.
+algorithm and the built-in OTU breaking by default. Some options are
+changed and some new output options are introduced.
 
 <a name="version1221"/>
 ### version 1.2.21 ###
@@ -388,14 +399,13 @@ SSSE3 cpu instructions which are not always available.
 ### version 1.2.20 ###
 
 **swarm** 1.2.20 presents a production-ready version of the
-  alternative algorithm (option -a), with optional built-in OTU
-  breaking (option -n). That alternative algorithmic approach (usable
-  only with d = 1) is considerably faster than currently used
-  clustering algorithms, and can deal with datasets of 100 million
-  unique amplicons or more in a few hours. Of course, results are
-  rigourously identical to the results previously produced with
-  swarm. That release also introduces new options to control swarm
-  output (options -i and -l).
+alternative algorithm (option `-a`), with optional built-in OTU
+breaking (option `-n`). That alternative algorithmic approach (usable
+only with `d = 1`) is considerably faster than currently used clustering
+algorithms, and can deal with datasets of 100 million unique amplicons
+or more in a few hours. Of course, results are rigourously identical
+to the results previously produced with swarm. That release also
+introduces new options to control swarm output (options -i and -l).
 
 <a name="version1219"/>
 ### version 1.2.19 ###

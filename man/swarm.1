@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "March 6, 2015" "version 2.0.4" "USER COMMANDS"
+.TH swarm 1 "March 13, 2015" "version 2.0.6" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -73,7 +73,12 @@ of abundance 1. Any positive value greater than 1 can be specified. Using
 higher boundary values will speed up the second pass, but also reduce
 the taxonomical resolution of swarm results.
 .TP
-.BI \-d\fP,\fB\ \-\-differences\~ "positive integer"
+.BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
+when using the option \-\-fastidious, define the maximum size (in
+megabytes) of the Bloom filter. That option is not active by
+default. When used it overides the \-\-bloom\-bits value.
+.TP
+.BI \-d\fP,\fB\ \-\-differences\~ "zero or positive integer"
 maximum number of differences allowed between two amplicons, meaning
 that two amplicons will be grouped if they have \fIinteger\fR (or
 less) differences. This is \fBswarm\fR's most important parameter. The
@@ -81,21 +86,25 @@ number of differences is calculated as the number of mismatches
 (substitutions, insertions or deletions) between the two amplicons
 once the optimal pairwise global alignment has been found (see
 "advanced options" for parameters influencing the pairwise
-alignment). Any \fIinteger\fR between 1 and 256 can be used, but
+alignment). Any \fIinteger\fR between 0 and 256 can be used, but
 aligning correctly two very distant amplicons is difficult and results
 should be considered with caution. Using high \fId\fR values will also
-decrease the taxonomical resolution of swarm results. Default number
-of differences is 1.
+decrease the taxonomical resolution of swarm results. When using
+\fId\fR = 0, \fBswarm\fR will output results corresponding to a strict
+dereplication of the dataset. Default number of differences is 1.
 .TP
-.BI \-f\fP,\fB\ \-\-fastidious \0filename
+.B \-f\fP,\fB\ \-\-fastidious
 when working with \fId\fR = 1, perform a second pass to reduce the
 number of small OTUs. During the stone stepping process at \fId\fR =
 1, a step can be missing for purely stochastic reasons, interrupting
 the agglomerative process. That option will create virtual steps to
 graft small OTUs upon bigger ones. By default, an OTU is small if it
 has a mass of 2 or less (see the \-\-boundary option to increase that
-value). Output the refined OTUs to \fIfilename\fR. Warning, that
-second pass can be many times slower than the first pass.
+value).To speed things up, swarm uses a Bloom filter to store
+intermediate results. Warning, that second pass can be many times
+slower than the first pass and require much more memory. See the
+options \-\-bloom\-bits or \-\-ceiling to control the memory footprint
+of the Bloom filter.
 .TP
 .B \-h\fP,\fB\ \-\-help
 display this help and exit.
@@ -170,6 +179,19 @@ option does not modify swarm default output format.
 .B \-v\fP,\fB\ \-\-version
 output version information and exit.
 .TP
+.BI \-w\fP,\fB\ \-\-seeds \0filename
+output OTU representatives to \fIfilename\fR in fasta format. The
+abundance value of each representative is the sum of the abundances of
+all the amplicons in the OTU.
+.TP
+.BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
+when using the option \-\-fastidious, define the size (in bits) of
+each entry in the Bloom filter. That option allows to balance the
+efficiency (i.e. speed) and the memory footprint of the Bloom
+filter. Using large values will make the Bloom filter more efficient
+but will require more memory. Any value between 8 and 32 can be
+used. Default value is 16.
+.TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
 accept amplicon abundances specified using the usearch/vsearch style
 (">label;size=INT[;]").
@@ -235,7 +257,7 @@ Torbjørn Rognes <torognes@ifi.uio.no>.
 The software is available from <https://github.com/torognes/swarm>
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2012, 2013, 2014 Frédéric Mahé & Torbjørn Rognes
+Copyright (C) 2012, 2013, 2014, 2015 Frédéric Mahé & Torbjørn Rognes
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -268,12 +290,16 @@ New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
 .TP
+.BR v2.0.6\~ "released March 13, 2015"
+Version 2.0.6 fixes a minor bug.
+.TP
 .BR v2.0.5\~ "released March 13, 2015"
 Version 2.0.5 improves the implementation of the fastidious option and
-adds options to control memory usage of the Bloom filter (-y and -c).
-In addition, an option (-w) to output the seed sequences with summed
-abundances over each cluster is available. This version also enables
-dereplication when d=0.
+adds options to control memory usage of the Bloom filter (\-y and
+\-c).  In addition, an option (\-w) allows to output OTU
+representatives sequences with updated abundances (sum of all
+abundances inside each OTU). This version also enables dereplication
+when d = 0.
 .TP
 .BR v2.0.4\~ "released March 6, 2015"
 Version 2.0.4 includes a fully parallelised implementation of the
