@@ -65,36 +65,6 @@ Table of Content
 * [Contact](#contact)
 * [Alternatives](#alternatives)
 
-<a name="common_misconceptions"/>
-## Common misconceptions ##
-
-**swarm** is a single-linkage clustering method, with some superficial
-  similarities with other clustering methods
-  ([Huse et al, 2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/);
-  [Crunchclust](https://code.google.com/p/crunchclust/)). **swarm**'s
-  novelty is its algorithmic approach, much faster than other
-  clustering methods, and its use of sequence abundance values to
-  delineate OTUs. Swarm properly delineates large OTUs (high recall),
-  while being able to distinguish OTUs with as little as two
-  differences between their centers (high precision).
-
-**swarm** uses a local clustering threshold (*d*), not a global
-  clustering threshold like other softwares do. Users may be tempted
-  to convert a 97%-global similarity threshold into a number of
-  differences, and to use large *d* values. That's not the correct way
-  to use swarm. OTUs produced by swarm are naturally larger than *d*,
-  and tests have shown that using the default *d* value (*d* = 1)
-  gives good results on most datasets. For long amplicons or shallow
-  sequencing, higher *d* values can be used (*d* = 2, 3, very rarely
-  more).
-
-**swarm** produces high-resolution results, especially when using *d*
-  = 1. Under certain rare conditions though, a given marker may not
-  evolve fast enough to distinguish molecular taxa. If it concerns
-  abundant sequences, swarm may form an OTU with a large radius,
-  whereas classic clustering methods will cut through randomly,
-  depending where the 97%-threshold falls. So, keep in mind that
-  markers have limitations too.
 
 <a name="common_misconceptions"/>
 ## Common misconceptions ##
