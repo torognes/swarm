@@ -434,8 +434,8 @@ void args_init(int argc, char **argv)
   if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
     fatal("Illegal number of Bloom filter bits specified (must be 2..64).");
 
-  if (opt_ceiling < 1)
-    fatal("Illegal memory ceiling (must be > 0)");
+  if (opt_ceiling < 0)
+    fatal("Illegal memory ceiling");
 
   if (outfilename)
     {
