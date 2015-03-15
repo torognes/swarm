@@ -8,9 +8,10 @@
 from __future__ import print_function
 
 __author__ = "Frédéric Mahé <mahe@rhrk.uni-kl.fr>"
-__date__ = "2014/06/03"
-__version__ = "$Revision: 1.0"
+__date__ = "2015/03/15"
+__version__ = "$Revision: 2.0"
 
+import os
 import sys
 import operator
 
@@ -25,26 +26,33 @@ def fasta_parse():
     """
     Map amplicon ids, abundances and samples
     """
+    separator = ";size="
     fasta_files = sys.argv[1:]
     all_amplicons = dict()
-    samples = list()
+    samples = dict()
     amplicons2samples = dict()
     for fasta_file in fasta_files:
-        sample = fasta_file.split(".")[0]
-        samples.append(sample)
+        sample = os.path.basename(fasta_file)
+        sample = os.path.splitext(sample)[0]
+        samples[sample] = samples.get(sample, 0) + 1
         with open(fasta_file, "rU") as fasta_file:
             for line in fasta_file:
                 if line.startswith(">"):
-                    amplicon, abundance = line.strip(">\n").split("_")
+                    amplicon, abundance = line.strip(">\n").split(separator)
                     abundance = int(abundance)
                     if amplicon not in amplicons2samples:
                         amplicons2samples[amplicon] = {sample: abundance}
                     else:
-                        amplicons2samples[amplicon][sample] = abundance
-                    if amplicon in all_amplicons:
-                        all_amplicons[amplicon] += abundance
-                    else:
-                        all_amplicons[amplicon] = abundance
+                        # deal with duplicated samples
+                        amplicons2samples[amplicon][sample] = amplicons2samples[amplicon].get(sample, 0) + abundance
+                    all_amplicons[amplicon] = all_amplicons.get(amplicon, 0) + abundance
+
+    # deal with duplicated samples
+    duplicates = [sample for sample in samples if samples[sample] > 1]
+    if duplicates:
+        print("Warning: some samples are duplicated", file=sys.stderr)
+        print("\n".join(duplicates), file=sys.stderr)
+    samples = sorted(samples.keys())
 
     return all_amplicons, amplicons2samples, samples
 
@@ -76,7 +84,7 @@ def main():
                   file=sys.stdout)
         else:
             print("Abundance sum is not correct for this amplicon",
-                  amplicon, str(abundance), str(total), file=sys.stderr)
+                  amplicon, abundance, total, file=sys.stderr)
             sys.exit(-1)
 
     return
