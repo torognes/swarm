@@ -504,6 +504,45 @@ void algo_run()
     }
 
 
+  /* dump seeds in fasta format with sum of abundances */
+
+  if ((opt_seeds) && (amplicons > 0))
+    {
+      progress_init("Writing seeds:    ", amplicons);
+
+      unsigned long mass = 0;
+      unsigned previd = amps[0].swarmid;
+      unsigned prevamp = amps[0].ampliconid;
+      mass += db_getabundance(prevamp);
+
+      for (unsigned long i=1; i<amplicons; i++)
+        {
+          unsigned id = amps[i].swarmid;
+
+          if (id != previd)
+            {
+              fprintf(fp_seeds, ">");
+              fprint_id_with_new_abundance(fp_seeds, prevamp, mass);
+              fprintf(fp_seeds, "\n");
+              db_fprintseq(fp_seeds, prevamp, 0);
+              mass = 0;
+            }
+
+          previd = id;
+          prevamp = amps[i].ampliconid;
+          mass += db_getabundance(prevamp);
+          progress_update(i);
+        }
+
+      fprintf(fp_seeds, ">");
+      fprint_id_with_new_abundance(fp_seeds, prevamp, mass);
+      fprintf(fp_seeds, "\n");
+      db_fprintseq(fp_seeds, prevamp, 0);
+
+      progress_done();
+    }
+
+
   free(qgramdiffs);
   free(qgramamps);
   free(qgramindices);

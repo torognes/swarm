@@ -1373,8 +1373,8 @@ void algo_d1_run()
             {
               int seed = swarminfo[i].seed;
               fprintf(fp_seeds, ">");
-              fprint_id_noabundance(fp_seeds, seed);
-              fprintf(fp_seeds, "_%lu\n", swarminfo[i].mass);
+              fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass);
+              fprintf(fp_seeds, "\n");
               db_fprintseq(fp_seeds, seed, 0);
             }
           progress_update(i+1);

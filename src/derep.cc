@@ -207,15 +207,6 @@ void dereplicate()
   progress_done();
 
 
-  /* write:
-     - output (mothur)
-     - stats
-     - uclust
-     - internal-structure
-  */
-
-
-
   /* dump swarms */
 
   progress_init("Writing swarms:   ", swarmcount);
@@ -261,10 +252,9 @@ void dereplicate()
       for(int i=0; i < swarmcount; i++)
         {
           int seed = hashtable[i].seqno_first;
-          
           fprintf(fp_seeds, ">");
-          fprint_id_noabundance(fp_seeds, seed);
-          fprintf(fp_seeds, "_%lu\n", hashtable[i].mass);
+          fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass);
+          fprintf(fp_seeds, "\n");
           db_fprintseq(fp_seeds, seed, 0);
           progress_update(i+1);
         }

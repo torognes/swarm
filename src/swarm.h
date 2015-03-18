@@ -44,7 +44,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "2.0.6"
+#define SWARM_VERSION "2.0.7"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -243,6 +243,9 @@ inline unsigned char * db_getqgramvector(unsigned long seqno)
 
 void fprint_id(FILE * stream, unsigned long x);
 void fprint_id_noabundance(FILE * stream, unsigned long x);
+void fprint_id_with_new_abundance(FILE * stream,
+                                  unsigned long seqno,
+                                  unsigned long abundance);
 
 
 /* functions in ssse3.cc */

@@ -28,6 +28,7 @@ Table of Content
   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+  * [version 2.0.7](#version207)
   * [version 2.0.6](#version206)
   * [version 2.0.5](#version205)
   * [version 2.0.4](#version204)
@@ -315,6 +316,12 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version207"/>
+### version 2.0.7 ###
+
+**swarm** 2.0.7 writes abundance information in usearch style when using
+options `-w` (`--seeds`) in combination with `-z` (`--usearch-abundance`).
 
 <a name="version206"/>
 ### version 2.0.6 ###

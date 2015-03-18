@@ -120,6 +120,29 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
     }
 }
 
+void fprint_id_with_new_abundance(FILE * stream,
+                                  unsigned long seqno,
+                                  unsigned long abundance)
+{
+  seqinfo_t * sp = seqindex + seqno;
+
+  if (usearch_abundance)
+    fprintf(stream,
+            "%.*s%ssize=%lu;%.*s",
+            sp->abundance_start,
+            sp->header,
+            sp->abundance_start > 0 ? ";" : "",
+            abundance,
+            sp->headeridlen - sp->abundance_end,
+            sp->header + sp->abundance_end);
+  else
+    fprintf(stream,
+            "%.*s_%lu",
+            sp->abundance_start,
+            sp->header,
+            abundance);
+}
+
 int db_compare_abundance(const void * a, const void * b)
 {
   seqinfo_t * x = (seqinfo_t *) a;
