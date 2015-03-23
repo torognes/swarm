@@ -2,14 +2,24 @@
 
 A robust and fast clustering method for amplicon-based studies.
 
-The purpose of **swarm** is to provide a novel clustering algorithm to
-handle large sets of amplicons. Traditional clustering algorithms
-results are strongly input-order dependent, and rely on an arbitrary
-**global** clustering threshold. **swarm** results are resilient to
-input-order changes and rely on a small **local** linking threshold
-*d*, the maximum number of differences between two
-amplicons. **swarm** forms stable high-resolution clusters, with a
+The purpose of **swarm** is to provide a novel clustering algorithm
+that handles massive sets of amplicons. Traditional clustering
+algorithms results are strongly input-order dependent, and rely on an
+arbitrary **global** clustering threshold. **swarm** results are
+resilient to input-order changes and rely on a small **local** linking
+threshold *d*, the maximum number of differences between two
+amplicons. **swarm** forms stable, high-resolution clusters, with a
 high yield of biological information.
+
+**swarm** 2.0 introduces several novelties and improvements over
+  swarm 1.0:
+* built-in breaking phase now performed automatically,
+* built-in strict dereplication (with *d* = 0),
+* possibility to output OTU representatives in fasta format (option
+  `-w`),
+* fast algorithm now used by default for *d* = 1 (linear complexity),
+* a new option called fastidious that refines *d* = 1 results and
+  reduces the number of small OTUs,
 
 Table of Content
 ================
@@ -21,13 +31,14 @@ Table of Content
   * [Linearization](#linearization)
   * [Dereplication](#dereplication)
   * [Launch swarm](#launch)
-* [Parse swarm results](#parse)
+* [Frequently asked questions](#FAQ)
   * [Refine swarm OTUs](#refine_OTUs)
   * [Count the number of amplicons per OTU](#OTU_sizes)
   * [Get the seed sequence for each swarm](#extract_seeds)
   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+  * [version 2.1.0](#version210)
   * [version 2.0.7](#version207)
   * [version 2.0.6](#version206)
   * [version 2.0.5](#version205)
@@ -71,31 +82,31 @@ Table of Content
 ## Common misconceptions ##
 
 **swarm** is a single-linkage clustering method, with some superficial
-  similarities with other clustering methods
-  ([Huse et al, 2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/);
-  [Crunchclust](https://code.google.com/p/crunchclust/)). **swarm**'s
-  novelty is its use of sequence abundance values to delineate
-  OTUs. Swarm properly delineates large OTUs (high recall), while
-  being able to distinguish OTUs with as little as two differences
-  between their centers (high precision).
+  similarities with other clustering methods (e.g.,
+  [Huse et al, 2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/)). **swarm**'s
+  novelty is its iterative growth process and the use of sequence
+  abundance values to delineate OTUs. Swarm properly delineates large
+  OTUs (high recall), while being able to distinguish OTUs with as
+  little as two differences between their centers (high precision).
 
 **swarm** uses a local clustering threshold (*d*), not a global
-  clustering threshold like other softwares do. Users may be tempted
+  clustering threshold like other algorithms do. Users may be tempted
   to convert a 97%-global similarity threshold into a number of
-  differences, and to use large *d* values. That's not the correct way
-  to use swarm. OTUs produced by swarm are naturally larger than *d*,
-  and tests have shown that using the default *d* value (*d* = 1)
-  gives good results on most datasets. For long amplicons or shallow
-  sequencing, higher *d* values can be used (*d* = 2, 3, very rarely
-  more).
+  differences, and to use large *d* values. This is not a correct use
+  of swarm. OTUs produced by swarm are naturally larger than *d*, and
+  tests have shown that using the default *d* value (*d* = 1) gives
+  good results on most datasets. Using the new fastidious option
+  further improves the quality of results. For long amplicons or
+  shallow sequencing, higher *d* values can be used (*d* = 2 or *d* =
+  3, very rarely more).
 
 **swarm** produces high-resolution results, especially when using *d*
   = 1. Under certain rare conditions though, a given marker may not
   evolve fast enough to distinguish molecular taxa. If it concerns
   abundant sequences, swarm may form an OTU with a large radius,
   whereas classic clustering methods will cut through randomly,
-  depending where the 97%-threshold falls. So, keep in mind that
-  markers have limitations too.
+  forcing delineation where the 97%-threshold falls. So, keep in mind
+  that markers have limitations too.
 
 
 <a name="quick_start"/>
@@ -109,7 +120,9 @@ Table of Content
 ```
 
 The memory footprint of **swarm** is roughly 1.6 times the size of the
-input fasta file.
+input fasta file. When using the fastidious option, memory footprint
+can increase significantly. See options `-c` and `-y` to control and
+cap swarm's memory consumption.
 
 <a name="install"/>
 ## Install ##
@@ -118,20 +131,21 @@ Get the source code and a **swarm** binary from
 [GitHub](https://github.com/torognes/swarm "swarm public repository")
 using the
 [ZIP button](https://github.com/torognes/swarm/archive/master.zip
-"swarm zipped folder") or git:
+"swarm zipped folder") or git, and compile swarm:
 
 ```sh
 git clone https://github.com/torognes/swarm.git
-cd swarm/
+cd swarm/src/
+make
+cd ../bin/
 ```
-
-Use the command `make` to compile **swarm** from scratch.
 
 If you have administrator privileges, you can make **swarm**
 accessible for all users. Simply copy the binary to `/usr/bin/`. The
 man page can be installed this way:
 
 ```sh
+cd ./man/
 gzip -c swarm.1 > swarm.1.gz
 mv swarm.1.gz /usr/share/man/man1/
 ```
@@ -146,8 +160,8 @@ swarm`.
 To facilitate the use of **swarm**, we provide examples of shell
 commands that can be use to format and check the input fasta file
 (warning, this may not be suitable for very large files). The amplicon
-clipping step (adaptor and primer removal) and the filtering step are
-not discussed here.
+clipping step (adaptor and primer removal) and filtering steps are not
+discussed here.
 
 
 <a name="linearization"/>
@@ -172,7 +186,8 @@ awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {printf "\n"}' amp
 To speed up the clustering process, strictly identical amplicons
 should be merged. This step is not mandatory, but it is an important
 time saver, especially for highly redundant high-throughput sequencing
-results.
+results. Swarm can perform a dereplication for you (with options `-d 0
+-w`), or you can use standard command line tools:
 
 ```sh
 grep -v "^>" amplicons_linearized.fasta | \
@@ -186,8 +201,8 @@ sed -e 's/\_/\n/2' > amplicons_linearized_dereplicated.fasta
 ```
 
 Amplicons containing characters other than "ACGT" are discarded. The
-dereplicated amplicons receive a meaningful unique name (hash codes),
-and are sorted by decreasing number of copies and by hash codes (to
+dereplicated amplicons receive a meaningful unique name (hash values),
+and are sorted by decreasing number of copies and by hash values (to
 guarantee a stable sorting). The use of a hashing function also
 provides an easy way to compare sets of amplicons. If two amplicons
 from two different sets have the same hash code, it means that the
@@ -197,79 +212,51 @@ sequences they represent are identical.
 <a name="launch"/>
 ### Launch swarm ###
 
-If you want **swarm** to partition your dataset with the finest
-resolution (a local number of differences *d* = 1, with built-in
-elimination of potential chained OTUs) on a quadricore CPU:
+Here is a typical way to use **swarm**:
 
 ```sh
-./swarm -a -n -d 1 -t 4 amplicons.fasta > amplicons.swarms
+./swarm -f -t 4 -w OTU_representatives.fasta amplicons.fasta > /dev/null
 ```
 
-If you want tu use **swarm** with higher *d* values (*d* > 1), you
-will have to use a post-processing python scrip to eliminate the
-potential chained OTUs (see the "Refine swarm OTUs" section below):
+Swarm will partition your dataset with the finest resolution (local
+number of differences *d* = 1 by default, built-in elimination of
+potential chained OTUs, fastidious processing) using 4 CPU-cores. OTU
+representatives will be written to a new fasta file, other results
+will be discarded (`/dev/null`).
 
-```sh
-./swarm -d 3 -t 4 amplicons.fasta > amplicons.swarms
-python ../scripts/swarm_breaker.py -f amplicons.fasta \
-    -s amplicons.swarms 2> amplicons.log > amplicons.swarms2
-```
-
-See the user manual (man page and PDF) for details on **swarm**'s
-options and parameters.
+See the user manual (man page and PDF) for details on swarm's options
+and parameters.
 
 
-<a name="parse"/>
-## Parse swarm results ##
+<a name="FAQ"/>
+## Frequently asked questions ##
 
-To facilitate the use of **swarm**, we provide examples of shell
-commands that can be use to parse **swarm**'s output. We assume that
-the amplicon fasta file was prepared as describe above (linearization
-and dereplication).
+To facilitate the use of **swarm**, we provide examples of options or
+shell commands that can be use to parse **swarm**'s output. We assume
+that the amplicon fasta file was prepared as describe above
+(linearization and dereplication).
 
 
 <a name="refine_OTUs"/>
 ### Refine swarm OTUs ###
 
-Chains of amplicons can form when using short sequences, a
-slowly-evolving marker or a high *d* value. Using amplicon abundance
-information, these chains can be easily identified and broken to
-improve **swarm**'s precision. Until we include that functionality
-directly into **swarm**, we provide a simple to use python script, and
-recommend to apply it to all **swarm** results. The script, tested
-with python 2.7, is located in the folder `scripts`, and can be used
-as follows:
-
-```sh
-python swarm_breaker.py --help
-python swarm_breaker.py -f amplicons.fasta -s amplicons.swarms 2> amplicons.log > amplicons.swarms2
-```
-
-The script produces refined OTUs and writes them to the standard
-output. It also writes debugging information to the standard error,
-that could be redirected to a log file, or redirected to
-`/dev/null`. As of today, `swarm_breaker.py` is rapid enough to deal
-with 454 data sets, but might be too slow for large Illumina data
-sets. For large datasets, we recommend to use the fast clustering
-algorithm (option -a) and the built-in OTU breaking (option -n) to
-perform OTU delineation and refinement in one-step.
+The chain-breaking, which used to be performed in a second step in
+swarm 1.0, is now built-in and performed by default. It is possible to
+deactivate it with the `--no-otu-breaking` option, but it is not
+recommended. The fastidious option is recommended when using *d* = 1,
+as it will reduce the number of small OTUs while maintaining a
+high clustering resolution.
 
 
 <a name="OTU_sizes"/>
 ### Count the number of amplicons per OTU ###
 
-You might want to check the size distribution of OTU (number of
+You might want to check the size distribution of OTUs (number of
 amplicons in each OTU), and count the number of singletons (OTUs
-containing only one amplicon).
-
-```sh
-awk '{print NF}' amplicons.swarms | sort -n | uniq -c
-awk 'NF == 1 {sum+=1} END {print sum}' amplicons.swarms
-```
-
-The number of amplicons in each OTU and several other metrics are
-available in the statistics file produced by swarm when using the -s
-option.
+containing only one amplicon). It can be easily done with the
+`--statistics-file filename` option. Each line in the output file
+represents an OTU and provides different metrics. See the manual for a
+complete description.
 
 
 <a name="extract_seeds"/>
@@ -317,6 +304,11 @@ released since 2004.
 <a name="features"/>
 ## New features##
 
+<a name="version210"/>
+### version 2.1.0 ###
+
+**swarm** 2.1.0 marks the first official release of swarm 2.
+
 <a name="version207"/>
 ### version 2.0.7 ###
 
@@ -341,7 +333,7 @@ when `d = 0`.
 <a name="version204"/>
 ### version 2.0.4 ###
 
-**swarm** 2.0.4 includes a fully parallelised fastidious option.
+**swarm** 2.0.4 includes a fully parallelized fastidious option.
 
 <a name="version203"/>
 ### version 2.0.3 ###
@@ -370,7 +362,7 @@ changed and some new output options are introduced.
 ### version 1.2.21 ###
 
 **swarm** 1.2.21 is supposed to fix some problems related to the use of the
-SSSE3 cpu instructions which are not always available.
+SSSE3 CPU instructions which are not always available.
 
 <a name="version1220"/>
 ### version 1.2.20 ###
@@ -378,11 +370,12 @@ SSSE3 cpu instructions which are not always available.
 **swarm** 1.2.20 presents a production-ready version of the
 alternative algorithm (option `-a`), with optional built-in OTU
 breaking (option `-n`). That alternative algorithmic approach (usable
-only with `d = 1`) is considerably faster than currently used clustering
-algorithms, and can deal with datasets of 100 million unique amplicons
-or more in a few hours. Of course, results are rigourously identical
-to the results previously produced with swarm. That release also
-introduces new options to control swarm output (options -i and -l).
+only with *d* = 1) is considerably faster than currently used
+clustering algorithms, and can deal with datasets of 100 million
+unique amplicons or more in a few hours. Of course, results are
+rigourously identical to the results previously produced with
+swarm. That release also introduces new options to control swarm
+output (options `-i` and `-l`).
 
 <a name="version1219"/>
 ### version 1.2.19 ###
@@ -394,8 +387,8 @@ introduces new options to control swarm output (options -i and -l).
 ### version 1.2.18 ###
 
 **swarm** 1.2.18 reenables the possibility of reading sequences from
-  stdin if no file name is specified on the command line. It also
-  fixes a bug related to cpu features detection.
+  `stdin` if no file name is specified on the command line. It also
+  fixes a bug related to CPU features detection.
 
 <a name="version1217"/>
 ### version 1.2.17 ###
@@ -414,13 +407,13 @@ introduces new options to control swarm output (options -i and -l).
 
 **swarm** 1.2.15 sorts the input sequences in order of decreasing
   abundance unless they are detected to be sorted already. When using
-  the alternative algorithm for d=1 it also sorts all subseeds in
+  the alternative algorithm for *d* = 1 it also sorts all subseeds in
   order of decreasing abundance.
 
 <a name="version1214"/>
 ### version 1.2.14 ###
 
-**swarm** 1.2.14 fixes a bug in the output with the swarm_breaker
+**swarm** 1.2.14 fixes a bug in the output with the swarm breaker
   option (`-b`) when using the alternative algorithm (`-a`).
 
 <a name="version1213"/>
@@ -431,32 +424,32 @@ introduces new options to control swarm output (options -i and -l).
 <a name="version1212"/>
 ### version 1.2.12 ###
 
-**swarm** 1.2.12 improves speed of new search strategy for d=1.
+**swarm** 1.2.12 improves speed of new search strategy for *d* = 1.
 
 <a name="version1211"/>
 ### version 1.2.11 ###
 
 **swarm** 1.2.11 corrects the number of differences reported in the
-  break_swarms output.
+  break swarms output.
 
 <a name="version1210"/>
 ### version 1.2.10 ###
 
 **swarm** 1.2.10 allows amplicon abundances to be specified using the
-  usearch style in the sequence header (e.g. ">id;size=1") when the
-  `-z` option is chosen. Also fixes the bad url shown in the previous
+  usearch style in the sequence header (e.g. `>id;size=1`) when the
+  `-z` option is chosen. Also fixes the bad URL shown in the previous
   version of swarm.
 
 <a name="version129"/>
 ### version 1.2.9 ###
 
 **swarm** 1.2.9 includes a parallelized variant of the new search
-  strategy for d=1. It seems to be fairly scalable up to about 16
+  strategy for *d* = 1. It seems to be fairly scalable up to about 16
   threads for longer reads (~400bp), while up to about 8 threads for
   shorter reads (~150bp). Using about 50% more threads than available
-  physical cores is recommended. This version also includes the d
-  parameter in the beginning of the mothur-style output
-  (e.g. swarm\_1). Also, in the break_swarms output the real number of
+  physical cores is recommended. This version also includes the *d*
+  parameter in the beginning of the mothur-style output (e.g.,
+  `swarm\_1`). Also, in the break_swarms output the real number of
   differences between the seed and the amplicon is indicated in the
   last column.
 
@@ -466,7 +459,7 @@ introduces new options to control swarm output (options -i and -l).
 **swarm** 1.2.8 fixes an error with the gap extension
   penalty. Previous versions effectively used a gap penalty twice as
   large as intended. This version also introduces an experimental new
-  search strategy in the case where d=1 that appears to be almost
+  search strategy in the case where *d* = 1 that appears to be almost
   linear and faster at least for datasets of about half a million
   sequences or more. The new strategy can be turned on with the `-a`
   option.
@@ -489,8 +482,8 @@ introduces new options to control swarm output (options -i and -l).
 <a name="version125"/>
 ### version 1.2.5 ###
 
-**swarm** 1.2.5 can be run on cpus without the POPCNT feature. It
-  automatically checks whether the cpu feature is available and uses
+**swarm** 1.2.5 can be run on CPUs without the POPCNT feature. It
+  automatically checks whether the CPU feature is available and uses
   the appropriate code.  The code that avoids POPCNT is just slightly
   slower. Only basic SSE2 is now required.
 
@@ -506,7 +499,7 @@ introduces new options to control swarm output (options -i and -l).
 ### version 1.2.3 ###
 
 **swarm** 1.2.3 adds an option (`-b` or `--break_swarms`) to output
-  all pairs of amplicons to stderr. The data can be used for
+  all pairs of amplicons to `stderr`. The data can be used for
   post-processing of the results to refine the swarms. The syntax of
   the inline assembly code is also changed for compatibility with more
   compilers.
@@ -548,7 +541,7 @@ introduces new options to control swarm output (options -i and -l).
 
 **swarm** 1.1.0 introduces new optimizations and is 20% faster than
   the previous version on our test dataset. It also introduces two new
-  output options: statistics and uclust-like format.
+  output options: `statistics` and `uclust-like` format.
 
 
 <a name="stats"/>
@@ -583,6 +576,9 @@ Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
 robust and fast clustering method for amplicon-based studies. PeerJ
 2:e593 http://dx.doi.org/10.7717/peerj.593
 
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (in preparation)
+Swarm 2.0: highly scalable clustering.
+
 
 <a name="contact"/>
 ## Contact ##
@@ -597,8 +593,8 @@ You are welcome to:
 <a name="alternatives"/>
 ## Alternatives ##
 
-If you want to try alternative clustering methods, here are some
-links:
+If you want to try alternative free and open-source clustering
+methods, here are some links:
 
 * [Vsearch](https://github.com/torognes/vsearch)
 * [DNAclust](http://dnaclust.sourceforge.net/)
