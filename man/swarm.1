@@ -8,9 +8,8 @@ swarm \(em find clusters of nearly-identical nucleotide amplicons
 .B swarm
 [
 .I options
-] [
-.I filename
 ]
+.I filename
 .\" ============================================================================
 .SH DESCRIPTION
 Environmental or clinical molecular studies generate large volumes of
@@ -56,9 +55,7 @@ of the identifier line and ending before the next identifier line or
 the file end; \fBswarm\fR exits with an error message if any other
 symbol is present.
 .\" ----------------------------------------------------------------------------
-.SS Options
-\fBswarm\fR recognizes the following command-line options:
-.RS
+.SS General options
 .TP 9
 .BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
 when using the option \-\-fastidious, define the minimum mass of a large
@@ -107,6 +104,33 @@ control the memory footprint of the Bloom filter.
 .B \-h\fP,\fB\ \-\-help
 display this help and exit.
 .TP
+.B \-n\fP,\fB\ \-\-no\-otu\-breaking
+deactivate the built-in OTU refinement (not recommended). Amplicon
+abundance values are used to identify transitions among in-contact
+OTUs and to separate them, yielding higher-resolution clustering
+results. That option prevents that, and in practice, allows the
+creation of a link between amplicon A and B, even if the abundance of
+B is higher than the abundance of A.
+.TP
+.BI \-t\fP,\fB\ \-\-threads\~ "positive integer"
+number of computation threads to use. The number of threads should be
+lesser or equal to the number of available CPU cores. Default number
+of threads is 1.
+.TP
+.B \-v\fP,\fB\ \-\-version
+output version information and exit.
+.TP
+.BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
+when using the option \-\-fastidious, define the size (in bits) of
+each entry in the Bloom filter. That option allows to balance the
+efficiency (i.e. speed) and the memory footprint of the Bloom
+filter. Large values will make the Bloom filter more efficient but
+will require more memory. Any value between 4 and 20 can be
+used. Default value is 16.
+.LP
+.\" ----------------------------------------------------------------------------
+.SS Input/output options
+.TP 9
 .BI \-i\fP,\fB\ \-\-internal\-structure \0filename
 output all pairs of nearly-identical amplicons to \fIfilename\fR using
 a five-columns tab-delimited format:
@@ -136,14 +160,6 @@ with the exception of error messages of course. That option is useful
 in situations where writing to \fIstandard error\fR is problematic
 (for example, with certain job schedulers).
 .TP
-.B \-n\fP,\fB\ \-\-no\-otu\-breaking
-deactivate the built-in OTU refinement (not recommended). Amplicon
-abundance values are used to identify transitions among in-contact
-OTUs and to separate them, yielding higher-resolution clustering
-results. That option prevents that, and in practice, allows the
-creation of a link between amplicon A and B, even if the abundance of
-B is higher than the abundance of A.
-.TP
 .BI \-o\fP,\fB\ \-\-output\-file \0filename
 output result to \fIfilename\fR. Result is a list of OTUs, one OTU
 per line. A OTU is a list of amplicon identifiers separated by
@@ -165,30 +181,14 @@ the OTU (i.e., number of cummulated differences between the seed and
 the furthermost amplicon in the OTU. The actual pairwise distance and
 max radius is often much smaller).
 .TP
-.BI \-t\fP,\fB\ \-\-threads\~ "positive integer"
-number of computation threads to use. The number of threads should be
-lesser or equal to the number of available CPU cores. Default number
-of threads is 1.
-.TP
 .BI \-u\fP,\fB\ \-\-uclust\-file \0filename
 output results in uclust-like file format to the specified file. That
 option does not modify swarm default output format.
-.TP
-.B \-v\fP,\fB\ \-\-version
-output version information and exit.
 .TP
 .BI \-w\fP,\fB\ \-\-seeds \0filename
 output OTU representatives to \fIfilename\fR in fasta format. The
 abundance value of each representative is the sum of the abundances of
 all the amplicons in the OTU.
-.TP
-.BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
-when using the option \-\-fastidious, define the size (in bits) of
-each entry in the Bloom filter. That option allows to balance the
-efficiency (i.e. speed) and the memory footprint of the Bloom
-filter. Large values will make the Bloom filter more efficient but
-will require more memory. Any value between 4 and 20 can be
-used. Default value is 16.
 .TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
 accept amplicon abundances specified using the usearch/vsearch style
@@ -196,7 +196,7 @@ accept amplicon abundances specified using the usearch/vsearch style
 annotation style used in output files.
 .LP
 .\" ----------------------------------------------------------------------------
-.SS Advanced options
+.SS Pairwise alignment options
 when using \fId\fR > 1, \fBswarm\fR recognizes advanced command-line
 options modifying the pairwise global alignment scoring parameters:
 .RS
