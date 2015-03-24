@@ -95,11 +95,17 @@ stepping process at \fId\fR = 1, a step can be missing for purely
 stochastic reasons, interrupting the agglomerative process. That
 option will create virtual steps to graft small OTUs upon bigger
 ones. By default, an OTU is small if it has a mass of 2 or less (see
-the \-\-boundary option to increase that value).To speed things up,
+the \-\-boundary option to increase that value). To speed things up,
 swarm uses a Bloom filter to store intermediate results. Warning, that
-second pass can be 2 to 3 times slower than the first pass and require
-much more memory. See the options \-\-bloom\-bits (\-y) or \-\-ceiling
-(\-c) to control the memory footprint of the Bloom filter.
+second pass can be 2 to 3 times slower than the first pass and
+requires much more memory. See the options \-\-bloom\-bits (\-y) or
+\-\-ceiling (\-c) to control the memory footprint of the Bloom
+filter. Warning, the fastidious option modifies OTUs: output files
+\-\-log (\-l), \-\-output\-file (\-o), and \-\-seeds (\-w) are updated
+to reflect these modifications; the file \-\-statistics\-file (\-s) is
+partially updated (columns 6 and 7 are not updated); output files
+\-\-internal\-structure (\-i), \-\-mothur (\-r), and \-\-uclust\-file
+(\-u) are not updated.
 .TP
 .B \-h\fP,\fB\ \-\-help
 display this help and exit.
