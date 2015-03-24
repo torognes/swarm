@@ -58,20 +58,20 @@ symbol is present.
 .SS General options
 .TP 9
 .BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
-when using the option \-\-fastidious, define the minimum mass of a large
-(heavy) OTU as the number given with this option. The default value is 3,
-indicating that any OTU with mass 3 or more is considered large (heavy).
-By default, an OTU is small if it has a mass of 2 or less, meaning that
-it is composed of either one amplicon of abundance 2, or two amplicons
-of abundance 1. Any positive value greater than 1 can be specified. Using
-higher boundary values will speed up the second pass, but also reduce
-the taxonomical resolution of swarm results.
+when using the option \-\-fastidious (\-f) , define the minimum mass
+of a large OTU as the number given with this option. The default value
+is 3, indicating that any OTU with mass 3 or more is considered large.
+By default, an OTU is small if it has a mass of 2 or less, meaning
+that it is composed of either one amplicon of abundance 2, or two
+amplicons of abundance 1. Any positive value greater than 1 can be
+specified. Using higher boundary values will speed up the second pass,
+but also reduce the taxonomical resolution of swarm results.
 .TP
 .BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
-when using the option \-\-fastidious, define swarm's maximum memory
-footprint (in megabytes). Swarm will adjust the \-\-bloom\-bits value
-of the Bloom filter to fit within the specified amount of memory. That
-option is not active by default.
+when using the option \-\-fastidious (\-f), define swarm's maximum
+memory footprint (in megabytes). Swarm will adjust the \-\-bloom\-bits
+(\-y) value of the Bloom filter to fit within the specified amount of
+memory. That option is not active by default.
 .TP
 .BI \-d\fP,\fB\ \-\-differences\~ "zero or positive integer"
 maximum number of differences allowed between two amplicons, meaning
@@ -98,8 +98,8 @@ ones. By default, an OTU is small if it has a mass of 2 or less (see
 the \-\-boundary option to increase that value).To speed things up,
 swarm uses a Bloom filter to store intermediate results. Warning, that
 second pass can be 2 to 3 times slower than the first pass and require
-much more memory. See the options \-\-bloom\-bits or \-\-ceiling to
-control the memory footprint of the Bloom filter.
+much more memory. See the options \-\-bloom\-bits (\-y) or \-\-ceiling
+(\-c) to control the memory footprint of the Bloom filter.
 .TP
 .B \-h\fP,\fB\ \-\-help
 display this help and exit.
@@ -121,12 +121,13 @@ of threads is 1.
 output version information and exit.
 .TP
 .BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
-when using the option \-\-fastidious, define the size (in bits) of
-each entry in the Bloom filter. That option allows to balance the
+when using the option \-\-fastidious (\-f), define the size (in bits)
+of each entry in the Bloom filter. That option allows to balance the
 efficiency (i.e. speed) and the memory footprint of the Bloom
 filter. Large values will make the Bloom filter more efficient but
 will require more memory. Any value between 4 and 20 can be
-used. Default value is 16.
+used. Default value is 16. See the \-\-ceiling (\-c) option for an
+alternative way to control the memory footprint.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Input/output options
