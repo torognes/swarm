@@ -127,7 +127,9 @@ cap swarm's memory consumption.
 <a name="install"/>
 ## Install ##
 
-Get the source code and a **swarm** binary from
+Get the latest binaries for GNU/Linux or MacOSX from
+[the release page](https://github.com/torognes/swarm/releases "swarm
+tagged releases"). Get the source code from
 [GitHub](https://github.com/torognes/swarm "swarm public repository")
 using the
 [ZIP button](https://github.com/torognes/swarm/archive/master.zip
@@ -244,8 +246,10 @@ The chain-breaking, which used to be performed in a second step in
 swarm 1.0, is now built-in and performed by default. It is possible to
 deactivate it with the `--no-otu-breaking` option, but it is not
 recommended. The fastidious option is recommended when using *d* = 1,
-as it will reduce the number of small OTUs while maintaining a
-high clustering resolution.
+as it will reduce the number of small OTUs while maintaining a high
+clustering resolution. The principle of the fastidious option is
+described in the figure below:
+![](https://github.com/frederic-mahe/swarm/blob/master/figures/swarm_2.0_fastidious_reduced.png)
 
 
 <a name="OTU_sizes"/>
