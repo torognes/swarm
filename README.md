@@ -261,6 +261,8 @@ recommended. The fastidious option is recommended when using *d* = 1,
 as it will reduce the number of small OTUs while maintaining a high
 clustering resolution. The principle of the fastidious option is
 described in the figure below:
+
+
 ![](https://github.com/frederic-mahe/swarm/blob/master/figures/swarm_2.0_fastidious_reduced.png)
 
 
