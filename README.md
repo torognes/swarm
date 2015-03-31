@@ -323,7 +323,7 @@ released since 2004.
 <a name="features"/>
 ## New features##
 
-<a name="version210"/>
+<a name="version211"/>
 ### version 2.1.1 ###
 
 **swarm** 2.1.1 fixes a bug with the fastidious option that caused it
