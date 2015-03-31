@@ -696,8 +696,18 @@ bool hash_check_attach(char * seq,
   return 0;
 }
 
+long expected_variant_count(char * seq, int len)
+{
+  int c = 0;
+  for(int i=1; i<len; i++)
+    if (seq[i] != seq[i-1])
+      c++;
+  return 6*len+5+c;
+}
+
+
 long fastidious_mark_small_var(BloomFilter * bloom,
-                               char * buffer,
+                               char * varseq,
                                int seed)
 {
   /*
@@ -710,17 +720,14 @@ long fastidious_mark_small_var(BloomFilter * bloom,
 
   long variants = 0;
 
-  char * varseq = buffer;
   unsigned char * seq = (unsigned char*) db_getsequence(seed);
-  unsigned long start = 0;
   unsigned long seqlen = db_getsequencelen(seed);
-  unsigned long end = seqlen;
 
   /* make an exact copy */
   memcpy(varseq, seq, seqlen);
 
   /* substitutions */
-  for(unsigned int i=start; i<end; i++)
+  for(unsigned int i=0; i<seqlen; i++)
     {
       for (int v=1; v<5; v++)
         if (v != seq[i])
@@ -733,10 +740,9 @@ long fastidious_mark_small_var(BloomFilter * bloom,
     }
 
   /* deletions */
-  memcpy(varseq, seq, start);
-  if (start < seqlen-1)
-    memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(unsigned int i=start; i<end; i++)
+  if (seqlen > 1)
+    memcpy(varseq, seq+1, seqlen-1);
+  for(unsigned int i=0; i<seqlen; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
@@ -747,9 +753,8 @@ long fastidious_mark_small_var(BloomFilter * bloom,
     }
 
   /* insertions */
-  memcpy(varseq, seq, start);
-  memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(unsigned int i=start; i<end; i++)
+  memcpy(varseq+1, seq, seqlen);
+  for(unsigned int i=0; i<seqlen+1; i++)
     {
       for(int v=1; v<5; v++)
         {
@@ -763,6 +768,11 @@ long fastidious_mark_small_var(BloomFilter * bloom,
       if (i<seqlen)
         varseq[i] = seq[i];
     }
+#if 0
+  long e = expected_variant_count((char*)seq, seqlen);
+  if (variants != e)
+    fprintf(logfile, "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
+#endif
   return variants;
 }
 
@@ -777,14 +787,11 @@ long fastidious_check_large_var_2(char * seq,
 
   long matches = 0;
 
-  unsigned long start = 0;
-  unsigned long end = seqlen;
-
   /* make an exact copy */
   memcpy(varseq, seq, seqlen);
 
   /* substitutions */
-  for(unsigned int i=start; i<end; i++)
+  for(unsigned int i=0; i<seqlen; i++)
     {
       for (int v=1; v<5; v++)
         if (v != seq[i])
@@ -797,10 +804,9 @@ long fastidious_check_large_var_2(char * seq,
     }
 
   /* deletions */
-  memcpy(varseq, seq, start);
-  if (start < seqlen-1)
-    memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(unsigned int i=start; i<end; i++)
+  if (seqlen > 1)
+    memcpy(varseq, seq+1, seqlen-1);
+  for(unsigned int i=0; i<seqlen; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
@@ -811,9 +817,8 @@ long fastidious_check_large_var_2(char * seq,
     }
 
   /* insertions */
-  memcpy(varseq, seq, start);
-  memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(unsigned int i=start; i<end; i++)
+  memcpy(varseq+1, seq, seqlen);
+  for(unsigned int i=0; i<seqlen+1; i++)
     {
       for(int v=1; v<5; v++)
         {
@@ -831,11 +836,11 @@ long fastidious_check_large_var_2(char * seq,
 }
 
 void fastidious_check_large_var(BloomFilter * bloom,
-                                        char * buffer1,
-                                        char * buffer2,
-                                        int seed,
-                                        long * m,
-                                        long * v)
+                                char * varseq,
+                                char * buffer2,
+                                int seed,
+                                long * m,
+                                long * v)
 {
   /*
     bloom is a BloomFilter in which to enter the variants
@@ -849,17 +854,14 @@ void fastidious_check_large_var(BloomFilter * bloom,
   long variants = 0;
   long matches = 0;
 
-  char * varseq = buffer1;
   unsigned char * seq = (unsigned char*) db_getsequence(seed);
-  unsigned long start = 0;
   unsigned long seqlen = db_getsequencelen(seed);
-  unsigned long end = seqlen;
 
   /* make an exact copy */
   memcpy(varseq, seq, seqlen);
 
   /* substitutions */
-  for(unsigned int i=start; i<end; i++)
+  for(unsigned int i=0; i<seqlen; i++)
     {
       for (int v=1; v<5; v++)
         if (v != seq[i])
@@ -868,35 +870,33 @@ void fastidious_check_large_var(BloomFilter * bloom,
             variants++;
             if (bloom->get(varseq, seqlen))
               matches += fastidious_check_large_var_2(varseq,
-                                                          seqlen,
-                                                          buffer2,
-                                                          seed);
+                                                      seqlen,
+                                                      buffer2,
+                                                      seed);
           }
       varseq[i] = seq[i];
     }
 
   /* deletions */
-  memcpy(varseq, seq, start);
-  if (start < seqlen-1)
-    memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(unsigned int i=start; i<end; i++)
+  if (seqlen > 1)
+    memcpy(varseq, seq+1, seqlen-1);
+  for(unsigned int i=0; i<seqlen; i++)
     {
       if ((i==0) || (seq[i] != seq[i-1]))
         {
           variants++;
           if (bloom->get(varseq, seqlen-1))
             matches += fastidious_check_large_var_2(varseq,
-                                                        seqlen-1,
-                                                        buffer2,
-                                                        seed);
+                                                    seqlen-1,
+                                                    buffer2,
+                                                    seed);
         }
       varseq[i] = seq[i];
     }
 
   /* insertions */
-  memcpy(varseq, seq, start);
-  memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(unsigned int i=start; i<end; i++)
+  memcpy(varseq+1, seq, seqlen);
+  for(unsigned int i=0; i<seqlen+1; i++)
     {
       for(int v=1; v<5; v++)
         {
@@ -906,9 +906,9 @@ void fastidious_check_large_var(BloomFilter * bloom,
               variants++;
               if (bloom->get(varseq, seqlen+1))
                 matches += fastidious_check_large_var_2(varseq,
-                                                            seqlen+1,
-                                                            buffer2,
-                                                            seed);
+                                                        seqlen+1,
+                                                        buffer2,
+                                                        seed);
             }
         }
       if (i<seqlen)
@@ -916,6 +916,12 @@ void fastidious_check_large_var(BloomFilter * bloom,
     }
   *m = matches;
   *v = variants;
+
+#if 0
+  long e = expected_variant_count((char*)seq, seqlen);
+  if (variants != e)
+    fprintf(logfile, "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
+#endif
 }
 
 
@@ -1142,8 +1148,6 @@ void algo_d1_run()
   if (opt_fastidious)
     {
       fprintf(logfile, "\n");
-      fprintf(logfile, "WARNING: The fastidious option is a beta feature "
-              "in rapid development.\n");
       fprintf(logfile, "Results before fastidious processing:\n");
       fprintf(logfile, "Number of swarms:  %lu\n", swarmcount);
       fprintf(logfile, "Largest swarm:     %d\n", largest);

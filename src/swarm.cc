@@ -195,7 +195,7 @@ void args_usage()
   /*               0         1         2         3         4         5         6         7          */
   /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
-  fprintf(stderr, "Usage: %s [OPTIONS] [filename]\n", progname);
+  fprintf(stderr, "Usage: swarm [OPTIONS] [filename]\n");
   fprintf(stderr, "  -d, --differences INTEGER           resolution (1)\n");
   fprintf(stderr, "  -h, --help                          display this help and exit\n");
   fprintf(stderr, "  -o, --output-file FILENAME          output result filename (stdout)\n");
@@ -212,9 +212,9 @@ void args_usage()
   fprintf(stderr, "  -i, --internal-structure FILENAME   write internal swarm structure to file\n");
   fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");
   fprintf(stderr, "  -n, --no-otu-breaking               never break OTUs\n");
+  fprintf(stderr, "  -w, --seeds FILENAME                write seed seqs with abundances to FASTA\n");
   fprintf(stderr, "  -f, --fastidious                    link nearby low-abundance swarms\n");
   fprintf(stderr, "  -b, --boundary INTEGER              min mass of large OTU for fastidious (3)\n");
-  fprintf(stderr, "  -w, --seeds FILENAME                write seed seqs with abundances to FASTA\n");
   fprintf(stderr, "  -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n");
   fprintf(stderr, "  -c, --ceiling INTEGER               max memory in MB used for fastidious\n");
   fprintf(stderr, "\n");

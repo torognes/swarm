@@ -50,6 +50,7 @@ Table of Content
   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
 * [New features](#features)
+  * [version 2.1.1](#version211)
   * [version 2.1.0](#version210)
   * [version 2.0.7](#version207)
   * [version 2.0.6](#version206)
@@ -321,6 +322,12 @@ released since 2004.
 
 <a name="features"/>
 ## New features##
+
+<a name="version210"/>
+### version 2.1.1 ###
+
+**swarm** 2.1.1 fixes a bug with the fastidious option that caused it
+to ignore some connections between heavy and light swarms.
 
 <a name="version210"/>
 ### version 2.1.0 ###
