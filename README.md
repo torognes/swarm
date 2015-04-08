@@ -348,8 +348,11 @@ You are welcome to:
 
 **swarm** is available in third-party pipelines:
 
-* [LotuS (v1.30)](http://psbweb05.psb.ugent.be/lotus/)
-* [QIIME (v1.9)](http://qiime.org/)
+* [LotuS (v1.30)](http://psbweb05.psb.ugent.be/lotus/): extremely fast
+  OTU building, annotation, phylogeny and abundance matrix pipeline,
+  based on raw sequencer output.
+* [QIIME (v1.9)](http://qiime.org/): a multi-purpose pipeline for
+  performing microbiome analysis from raw DNA sequencing data.
 
 
 <a name="alternatives"/>
