@@ -49,6 +49,10 @@ Table of Content
   * [Get the seed sequence for each swarm](#extract_seeds)
   * [Get fasta sequences for all amplicons in a swarm](#extract_all)
 * [Troubleshooting](#troubleshooting)
+* [Citation](#citation)
+* [Contact](#contact)
+* [Third-party pipelines](#pipelines)
+* [Alternatives](#alternatives)
 * [New features](#features)
   * [version 2.1.1](#version211)
   * [version 2.1.0](#version210)
@@ -86,10 +90,6 @@ Table of Content
   * [version 1.1.0](#version110)
     * [Statistics](#stats)
     * [Uclust-like output format](#uclust)
-* [Citation](#citation)
-* [Contact](#contact)
-* [Alternatives](#alternatives)
-
 
 <a name="common_misconceptions"/>
 ## Common misconceptions ##
@@ -318,6 +318,50 @@ requires a processor with SSE2`, your computer is too old to run
 **swarm** (or based on a non x86-64 architecture). **swarm** only runs
 on CPUs with the SSE2 instructions, i.e. most Intel and AMD CPUs
 released since 2004.
+
+
+<a name="citation"/>
+## Citation ##
+
+To cite **swarm**, please refer to:
+
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
+robust and fast clustering method for amplicon-based studies. PeerJ
+2:e593 http://dx.doi.org/10.7717/peerj.593
+
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (in preparation)
+Swarm 2.0: highly scalable clustering.
+
+
+<a name="contact"/>
+## Contact ##
+
+You are welcome to:
+
+* submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
+* send a pull request on: https://github.com/torognes/swarm/
+* compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
+
+
+<a name="pipelines"/>
+## Third-party pipelines ##
+
+**swarm** is available in third-party pipelines:
+
+* [LotuS (v1.30)](http://psbweb05.psb.ugent.be/lotus/)
+* [QIIME (v1.9)](http://qiime.org/)
+
+
+<a name="alternatives"/>
+## Alternatives ##
+
+If you want to try alternative free and open-source clustering
+methods, here are some links:
+
+* [Vsearch](https://github.com/torognes/vsearch)
+* [DNAclust](http://dnaclust.sourceforge.net/)
+* [Crunchclust](https://code.google.com/p/crunchclust/)
+* [Sumaclust](http://metabarcoding.org/sumatra)
 
 
 <a name="features"/>
@@ -590,38 +634,3 @@ Some pipelines use the
 "page describing the uclust output format") as input for subsequent
 analyses. **swarm** can now output results in this format to a
 specified file with the `-u` option.
-
-
-<a name="citation"/>
-## Citation ##
-
-To cite **swarm**, please refer to:
-
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
-robust and fast clustering method for amplicon-based studies. PeerJ
-2:e593 http://dx.doi.org/10.7717/peerj.593
-
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (in preparation)
-Swarm 2.0: highly scalable clustering.
-
-
-<a name="contact"/>
-## Contact ##
-
-You are welcome to:
-
-* submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
-* send a pull request on: https://github.com/torognes/swarm/
-* compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
-
-
-<a name="alternatives"/>
-## Alternatives ##
-
-If you want to try alternative free and open-source clustering
-methods, here are some links:
-
-* [Vsearch](https://github.com/torognes/vsearch)
-* [DNAclust](http://dnaclust.sourceforge.net/)
-* [Crunchclust](https://code.google.com/p/crunchclust/)
-* [Sumaclust](http://metabarcoding.org/sumatra)
