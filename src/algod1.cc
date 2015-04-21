@@ -295,7 +295,7 @@ void generate_variants(unsigned long thread,
      Generate all possible variants involving mutations from position start
      and extending len nucleotides. Insertions in front of those positions
      are included, but not those after. Positions are zero-based.
-     The range may extend beyond the the length of the sequence indicating
+     The range may extend beyond the length of the sequence indicating
      that inserts at the end of the sequence should be generated.
 
      The last thread will handle insertions at the end of the sequence,
