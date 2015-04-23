@@ -99,12 +99,15 @@ def parse_files(swarms, internal_structure, OTU, drop):
         for line in internal_structure:
             # Get the first four elements of the line
             ampliconA, ampliconB, d, OTU_number = line.strip().split("\t")[0:4]
-            if int(OTU_number) == OTU:
+            OTU_number = int(OTU_number)
+            if OTU_number == OTU:
                 amplicon_connected[ampliconA] = True
                 amplicon_connected[ampliconB] = True
                 if ampliconA in amplicon_index and ampliconB in amplicon_index:
                     relations.append((amplicon_index[ampliconA],
                                       amplicon_index[ampliconB]))
+            elif OTU_number > OTU:
+                break
 
     # Drop amplicons grafted with the fastidious option
     amplicons = [amplicon for amplicon in amplicons
