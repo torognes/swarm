@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 """
     Visualize the internal structure of a swarm (color vertices by
-    abundance). Amplicons grafted with the fastidious option will be
-    discarded and will not be visualized. Requires the module igraph
-    and python 2.7+.
+    abundance). Requires the module igraph and python 2.7+.
+
+    Limitations: amplicons grafted with the fastidious option will be
+    discarded and will not be visualized. The script does not deal
+    with ";size=" abundance annotations.
 """
 
 from __future__ import print_function
 
 __author__ = "Frédéric Mahé <mahe@rhrk.uni-kl.fr>"
-__date__ = "2015/04/16"
-__version__ = "$Revision: 2.0"
+__date__ = "2015/04/22"
+__version__ = "$Revision: 3.0"
 
 import sys
 import os.path
@@ -55,12 +57,21 @@ def option_parse():
                       default=1,
                       help="Select the nth OTU (first by default)")
 
+    parser.add_option("-d", "--drop",
+                      metavar="<INTEGER>",
+                      action="store",
+                      type="int",
+                      dest="drop",
+                      default=0,
+                      help="Drop amplicons seen <INTEGER> or less times (0)")
+
     (options, args) = parser.parse_args()
 
-    return options.swarms, options.internal_structure, options.OTU
+    return options.swarms, options.internal_structure, \
+        options.OTU, options.drop
 
 
-def parse_files(swarms, internal_structure, OTU):
+def parse_files(swarms, internal_structure, OTU, drop):
     """
     """
     # List amplicon ids and abundances
@@ -68,9 +79,14 @@ def parse_files(swarms, internal_structure, OTU):
     with open(swarms, "rU") as swarms:
         for i, swarm in enumerate(swarms):
             if i == OTU - 1:
-                amplicons = [tuple(item.split("_"))
+                amplicons = [tuple(item.split("_"))  # TODO: deal with ";size="
                              for item in swarm.strip().split(" ")]
                 break
+
+    # Drop amplicons with a low abundance (remove connections too)
+    if drop:
+        amplicons = [amplicon for amplicon in amplicons
+                     if int(amplicon[1]) > drop]
 
     # Convert amplicon names to amplicon indexes (igraph uses
     # numerical ids, not names). Requires python 2.7+)
@@ -86,10 +102,11 @@ def parse_files(swarms, internal_structure, OTU):
             if int(OTU_number) == OTU:
                 amplicon_connected[ampliconA] = True
                 amplicon_connected[ampliconB] = True
-                relations.append((amplicon_index[ampliconA],
-                                  amplicon_index[ampliconB]))
+                if ampliconA in amplicon_index and ampliconB in amplicon_index:
+                    relations.append((amplicon_index[ampliconA],
+                                      amplicon_index[ampliconB]))
 
-    # Discard amplicons grafted with the fastidious option
+    # Drop amplicons grafted with the fastidious option
     amplicons = [amplicon for amplicon in amplicons
                  if amplicon_connected[amplicon[0]]]
 
@@ -154,7 +171,7 @@ def main():
     Backbone of the script
     """
     # Parse command line options.
-    swarms, internal_structure, OTU = option_parse()
+    swarms, internal_structure, OTU, drop = option_parse()
 
     # Output file
     basename = os.path.splitext(swarms)[0]
@@ -163,7 +180,7 @@ def main():
     output_graphml = basename + "_OTU_" + str(OTU) + ".graphml"
 
     # Collect data
-    amplicons, relations = parse_files(swarms, internal_structure, OTU)
+    amplicons, relations = parse_files(swarms, internal_structure, OTU, drop)
 
     # Build the graph with igraph
     g, bbox = build_graph(amplicons, relations)
@@ -178,7 +195,8 @@ def main():
     visual_style["bbox"] = bbox
     visual_style["margin"] = 20
 
-    # Output the graph
+    # Output the graph (profiling shows that 98% of the computation
+    # time is spent on "layout", no need to try to optimize the rest)
     g.write_graphml(output_graphml)
     plot(g, output_pdf, **visual_style)
     # plot(g, output_svg, **visual_style)
