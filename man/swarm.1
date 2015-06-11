@@ -45,15 +45,17 @@ nucleotide amplicons. The amplicon identifier is defined as the string
 comprised between the ">" symbol and the first space or the end of the
 line, whichever comes first. As \fBswarm\fR outputs lists of amplicon
 identifiers, amplicon identifiers must be unique to avoid ambiguity;
-swarm exits with an error message if identifiers are not unique. If
-amplicon identifiers end with a "_" followed by a positive integer,
-that value is used as the amplicon copy number in the statistics
-output file (see the option \-z to change that behavior for
-usearch/vsearch users). The amplicon sequence is defined as a string
-of [acgt] or [acgu] symbols (case insensitive), starting after the end
-of the identifier line and ending before the next identifier line or
-the file end; \fBswarm\fR exits with an error message if any other
-symbol is present.
+swarm exits with an error message if identifiers are not
+unique. Amplicon identifiers must end with a "_" followed by a
+positive integer representing the amplicon copy number (or abundance
+annotation; usearch/vsearch users can use the option \-z to change
+that behavior). Abundance annotations play a crucial role in the
+clustering process, and swarm exits with an error message if that
+information is not available. The amplicon sequence is defined as a
+string of [acgt] or [acgu] symbols (case insensitive), starting after
+the end of the identifier line and ending before the next identifier
+line or the file end; \fBswarm\fR exits with an error message if any
+other symbol is present.
 .\" ----------------------------------------------------------------------------
 .SS General options
 .TP 9
