@@ -202,7 +202,7 @@ def main():
     # time is spent on "layout", no need to try to optimize the rest)
     g.write_graphml(output_graphml)
     plot(g, output_pdf, **visual_style)
-    # plot(g, output_svg, **visual_style)
+    # # plot(g, output_svg, **visual_style)
 
     return
 
