@@ -318,7 +318,8 @@ robust and fast clustering method for amplicon-based studies. PeerJ
 2:e593 http://dx.doi.org/10.7717/peerj.593
 
 Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (in preparation)
-Swarm 2.0: highly scalable clustering.
+Swarm v2: highly-scalable and high-resolution amplicon
+clustering. https://dx.doi.org/10.7287/peerj.preprints.1222v2
 
 
 <a name="contact"/>
