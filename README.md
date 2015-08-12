@@ -14,11 +14,11 @@ high yield of biological information.
 **swarm** 2.0 introduces several novelties and improvements over
   swarm 1.0:
 * built-in breaking phase now performed automatically,
-* built-in strict dereplication (with *d* = 0),
 * possibility to output OTU representatives in fasta format (option
   `-w`),
-* fast algorithm now used by default for *d* = 1 (linear complexity),
-* a new option called fastidious that refines *d* = 1 results and
+* fast algorithm now used by default for *d* = 1 (linear time
+  complexity),
+* a new option called *fastidious* that refines *d* = 1 results and
   reduces the number of small OTUs,
 
 Table of Content
@@ -107,23 +107,46 @@ Table of Content
   abundant sequences, swarm may form an OTU with a large radius,
   whereas classic clustering methods will cut through randomly,
   forcing delineation where the 97%-threshold falls. So, keep in mind
-  that markers have limitations too.
+  that molecular markers have limitations too.
 
 
 <a name="quick_start"/>
 ## Quick start ##
 
-**swarm** most simple usage is (with default parameters, use `-h` to
-  get help or see the user manual for details):
+**swarm** most simple usage is:
 
 ```sh
 ./swarm amplicons.fasta
 ```
 
+That command will apply default parameters to the fasta file
+`amplicons.fasta`. The fasta file must be formatted as follows:
+
+```
+>seqID1_1000
+acgtacgtacgtacgt
+>seqID2_25
+cgtcgtcgtcgtcgt
+```
+
+were sequence identifiers are unique and end with a value indicating
+the number of occurrences of the sequence (e.g., `_1000`). Alternative
+formats are possible, please see the
+[user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
+**requires** each fasta entry to present a number of occurrences to
+work properly. That crucial information can be produced during the
+[dereplication](#dereplication) step.
+
+Use `swarm -h` to get a short help, or see the
+  [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)
+  for a complete description of input/output formats and command line
+  options.
+
 The memory footprint of **swarm** is roughly 1.6 times the size of the
 input fasta file. When using the fastidious option, memory footprint
 can increase significantly. See options `-c` and `-y` to control and
 cap swarm's memory consumption.
+
 
 <a name="install"/>
 ## Install ##
@@ -161,10 +184,15 @@ swarm`.
 ## Prepare amplicon fasta files ##
 
 To facilitate the use of **swarm**, we provide examples of shell
-commands that can be use to format and check the input fasta file
-(warning, this may not be suitable for very large files). The amplicon
-clipping step (adaptor and primer removal) and filtering steps are not
-discussed here.
+commands that can be use to format and check the input fasta
+file. Warning, these examples may not be suitable for very large
+files.
+
+We assume your SFF or FASTQ files have been properly pair-assembled
+(with [pear](https://github.com/xflouris/PEAR) for example), trimmed
+from adaptors and primers (with
+[cutadapt](https://code.google.com/p/cutadapt/) for example), and
+converted to fasta.
 
 
 <a name="linearization"/>
@@ -173,10 +201,10 @@ discussed here.
 Swarm accepts wrapped fasta files as well as linear fasta
 files. However, linear fasta files where amplicons are written on two
 lines (one line for the fasta header, one line for the sequence) are
-much easier to manipulate. For instance, many post-clustering queries
-can be easily done with `grep` when fasta files are linear. You can
-use the following code to linearize your fasta files. Code tested with
-GNU Awk 4.0.1.
+easier to manipulate. For instance, many post-clustering queries can
+be easily done with `grep` when fasta files are linear. You can use
+the following code to linearize your fasta files. Code tested with GNU
+Awk 4.0.1.
 
 ```sh
 awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {printf "\n"}' amplicons.fasta > amplicons_linearized.fasta
@@ -184,13 +212,28 @@ awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {printf "\n"}' amp
 
 
 <a name="dereplication"/>
-### Dereplication ###
+### Dereplication (mandatory) ###
 
-To speed up the clustering process, strictly identical amplicons
-should be merged. This step is not mandatory, but it is an important
-time saver, especially for highly redundant high-throughput sequencing
-results. Swarm can perform a dereplication for you (with options `-d 0
--w`), or you can use standard command line tools:
+In a sample, or collection of sample, a given sequence is likely to
+appear several times. That number of strictly identical occurrences
+represents the *abundance* value of the sequence. Swarm requires all
+fasta entries to present abundance values to be able to produce
+high-resolution clusters, like this:
+
+```
+>seqID1_1000
+acgtacgtacgtacgt
+>seqID2_25
+cgtcgtcgtcgtcgt
+```
+
+were `seqID1` has an abundance of 1,000 and `seqID2` has an abundance
+of 25 (alternative formats are possible, please see the
+[user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)).
+
+The role of the dereplication step is to identify, merge and sort
+identical sequences by decreasing abundance. Here is an example using
+standard command line tools:
 
 ```sh
 grep -v "^>" amplicons_linearized.fasta | \
@@ -205,12 +248,18 @@ sed -e 's/\_/\n/2' > amplicons_linearized_dereplicated.fasta
 
 Amplicons containing characters other than "ACGT" are discarded. The
 dereplicated amplicons receive a meaningful unique name (hash values),
-and are sorted by decreasing number of copies and by hash values (to
-guarantee a stable sorting). The use of a hashing function also
+and are sorted by decreasing number of occurrences and by hash values
+(to guarantee a stable sorting). The use of a hashing function also
 provides an easy way to compare sets of amplicons. If two amplicons
 from two different sets have the same hash code, it means that the
 sequences they represent are identical.
 
+If for some reason your fasta entries don't have abundance values, and
+you still want to run swarm, you can easily add fake abundance values:
+
+```sh
+sed '/^>/ s/$/_1/' amplicons.fasta > amplicons_with_abundances.fasta
+```
 
 <a name="launch"/>
 ### Launch swarm ###
@@ -227,8 +276,9 @@ potential chained OTUs, fastidious processing) using 4 CPU-cores. OTU
 representatives will be written to a new fasta file, other results
 will be discarded (`/dev/null`).
 
-See the user manual (man page and PDF) for details on swarm's options
-and parameters.
+See the
+[user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)
+for details on swarm's options and parameters.
 
 
 <a name="FAQ"/>
@@ -610,8 +660,8 @@ output (options `-i` and `-l`).
 
 By specifying the `-s` option to **swarm** it will now output detailed
 statistics about each swarm to a specified file. It will print the
-number of unique amplicons, the number of copies, the name of the seed
-and its abundance, the number of singletons (amplicons with an
+number of unique amplicons, the number of occurrences, the name of the
+seed and its abundance, the number of singletons (amplicons with an
 abundance of 1), the number of iterations and the maximum radius of
 the swarm (i.e. number of differences between the seed and the
 furthermost amplicon). When using input data sorted by decreasing

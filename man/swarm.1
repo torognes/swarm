@@ -83,12 +83,13 @@ number of differences is calculated as the number of mismatches
 (substitutions, insertions or deletions) between the two amplicons
 once the optimal pairwise global alignment has been found (see
 "advanced options" for parameters influencing the pairwise
-alignment). Any \fIinteger\fR between 0 and 256 can be used, but
-aligning correctly two very distant amplicons is difficult and results
-should be considered with caution. Using high \fId\fR values will also
-decrease the taxonomical resolution of swarm results. When using
+alignment). Any \fIinteger\fR between 0 and 256 can be used, but high
+\fId\fR values will decrease the taxonomical resolution of swarm
+results. Commonly used values are 1, 2 or 3, rarely higher. When using
 \fId\fR = 0, swarm will output results corresponding to a strict
-dereplication of the dataset. Default number of differences is 1.
+dereplication of the dataset (warning, swarm still requires fasta
+entries to present abundance values). Default number of differences is
+1.
 .TP
 .B \-f\fP,\fB\ \-\-fastidious
 when working with \fId\fR = 1, perform a second clustering pass to
