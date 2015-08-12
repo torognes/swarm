@@ -79,7 +79,7 @@ def parse_files(swarms, internal_structure, OTU, drop):
     with open(swarms, "rU") as swarms:
         for i, swarm in enumerate(swarms):
             if i == OTU - 1:
-                amplicons = [tuple(item.split("_"))  # TODO: deal with ";size="
+                amplicons = [tuple(item.rsplit("_", 1))  # TODO: deal with ";size="
                              for item in swarm.strip().split(" ")]
                 break
 
