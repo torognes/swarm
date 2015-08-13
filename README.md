@@ -129,7 +129,7 @@ acgtacgtacgtacgt
 cgtcgtcgtcgtcgt
 ```
 
-were sequence identifiers are unique and end with a value indicating
+where sequence identifiers are unique and end with a value indicating
 the number of occurrences of the sequence (e.g., `_1000`). Alternative
 formats are possible, please see the
 [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
