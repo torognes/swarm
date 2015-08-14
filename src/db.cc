@@ -403,7 +403,7 @@ void db_read(const char * filename)
   if (missingabundance)
     {
       char * msg;
-      asprintf(&msg, "Abundance annotation not found for %d sequences",
+      asprintf(&msg, "Abundance annotations not found for %d sequences",
                missingabundance);
       fatal(msg);
     }
