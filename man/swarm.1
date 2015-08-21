@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "March 31, 2015" "version 2.1.1" "USER COMMANDS"
+.TH swarm 1 "August 21, 2015" "version 2.1.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -137,6 +137,11 @@ filter. Large values will make the Bloom filter more efficient but
 will require more memory. Any value between 4 and 20 can be
 used. Default value is 16. See the \-\-ceiling (\-c) option for an
 alternative way to control the memory footprint.
+.TP
+.BI \-a\fP,\fB\ \-\-append\-abundance\~ "positive integer"
+the abundance value to use when abundance information about the
+sequence is missing in the input file. A fatal error will be
+generated if abundance is not given and this option is not present.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Input/output options
@@ -296,6 +301,12 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v2.1.2\~ "released August 21, 2015"
+Version 2.1.2 adds the \-a (\-\-append\-abundance) option to set a default
+abundance value to be used when abundance information is missing from
+the input file. The error message when missing abundance information is
+detected is also improved.
 .TP
 .BR v2.1.1\~ "released March 31, 2015"
 Version 2.1.1 fixes a bug with the fastidious option that caused it
