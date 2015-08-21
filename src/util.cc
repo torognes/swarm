@@ -88,7 +88,7 @@ void fatal(const char * format, const char * message)
 void * xmalloc(size_t size)
 {
   const size_t alignment = 16;
-  void * t;
+  void * t = NULL;
   posix_memalign(& t, alignment, size);
 
   if (t==NULL)

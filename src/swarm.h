@@ -44,7 +44,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "2.1.1"
+#define SWARM_VERSION "2.1.2"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
@@ -142,6 +142,7 @@ extern long opt_fastidious;
 extern long opt_boundary;
 extern long opt_bloom_bits;
 extern long opt_ceiling;
+extern long opt_append_abundance;
 
 extern long SCORELIMIT_7;
 extern long SCORELIMIT_8;

@@ -202,7 +202,7 @@ void db_read(const char * filename)
   line[0] = 0;
   fgets(line, LINEALLOC, fp);
 
-  long lineno = 1;
+  unsigned int lineno = 1;
 
   progress_init("Reading database: ", filesize);
   while(line[0])
@@ -225,6 +225,17 @@ void db_read(const char * filename)
         longestheader = headerlen;
 
 
+      /* store the line number */
+      
+      while (datalen + sizeof(unsigned int) > dataalloc)
+        {
+          dataalloc += MEMCHUNK;
+          datap = (char *) xrealloc(datap, dataalloc);
+        }
+      memcpy(datap + datalen, & lineno, sizeof(unsigned int));
+      datalen += sizeof(unsigned int);
+
+
       /* store the header */
 
       while (datalen + headerlen + 1 > dataalloc)
@@ -244,7 +255,7 @@ void db_read(const char * filename)
       lineno++;
 
 
-      /* read sequence */
+      /* read and store sequence */
 
       unsigned long seqbegin = datalen;
 
@@ -268,7 +279,7 @@ void db_read(const char * filename)
             else if (c != '\n')
               {
                 char msg[100];
-                snprintf(msg, 100, "Illegal character '%c' in sequence on line %ld", c, lineno);
+                snprintf(msg, 100, "Illegal character '%c' in sequence on line %u", c, lineno);
                 fatal(msg);
               }
           line[0] = 0;
@@ -334,15 +345,20 @@ void db_read(const char * filename)
 
   int presorted = 1;
   int missingabundance = 0;
+  unsigned int missingabundance_lineno = 0;
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
   for(unsigned long i=0; i<sequences; i++)
     {
+      /* get line number */
+      unsigned int lineno = *((unsigned int*)p);
+      p += sizeof(unsigned int);
+
+      /* get header */
       seqindex_p->header = p;
       seqindex_p->headerlen = strlen(seqindex_p->header);
       seqindex_p->headeridlen = seqindex_p->headerlen;
-
       p += seqindex_p->headerlen + 1;
 
       /* get amplicon abundance */
@@ -360,7 +376,18 @@ void db_read(const char * filename)
         }
       
       if (seqindex_p->abundance < 1)
-        missingabundance++;
+        {
+          if (opt_append_abundance > 0)
+            {
+              seqindex_p->abundance = opt_append_abundance;
+            }
+          else
+            {
+              missingabundance++;
+              if (missingabundance == 1)
+                missingabundance_lineno = lineno;
+            }
+        }
 
       if (seqindex_p->abundance > lastabundance)
         presorted = 0;
@@ -403,8 +430,15 @@ void db_read(const char * filename)
   if (missingabundance)
     {
       char * msg;
-      asprintf(&msg, "Abundance annotations not found for %d sequences",
-               missingabundance);
+      asprintf(&msg,
+               "Abundance annotations not found for %d sequences, "
+               "starting on line %u.\n"
+               "Fasta headers must end with abundance annotations "
+               "(_INT or ;size=INT)\n"
+               "Abundance annotations can be produced by "
+               "dereplicating the sequences\n",
+               missingabundance,
+               missingabundance_lineno);
       fatal(msg);
     }
 

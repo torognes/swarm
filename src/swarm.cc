@@ -63,6 +63,7 @@ long opt_fastidious;
 long opt_boundary;
 long opt_bloom_bits;
 long opt_ceiling;
+long opt_append_abundance;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -217,6 +218,7 @@ void args_usage()
   fprintf(stderr, "  -b, --boundary INTEGER              min mass of large OTU for fastidious (3)\n");
   fprintf(stderr, "  -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n");
   fprintf(stderr, "  -c, --ceiling INTEGER               max memory in MB used for fastidious\n");
+  fprintf(stderr, "  -a, --append-abundance INTEGER      value to use when abundance is missing\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
@@ -259,10 +261,11 @@ void args_init(int argc, char **argv)
   opt_bloom_bits = 16;
   opt_seeds = 0;
   opt_ceiling = 0;
+  opt_append_abundance = 0;
 
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:rzi:l:nfb:w:y:c:";
+  char short_options[] = "d:ho:t:vm:p:g:e:s:u:rzi:l:nfb:w:y:c:a:";
 
   static struct option long_options[] =
   {
@@ -287,6 +290,7 @@ void args_init(int argc, char **argv)
     {"seeds",                 required_argument, NULL, 'w' },
     {"bloom-bits",            required_argument, NULL, 'y' },
     {"ceiling",               required_argument, NULL, 'c' },
+    {"append-abundance",      required_argument, NULL, 'a' },
     { 0, 0, 0, 0 }
   };
   
@@ -405,6 +409,11 @@ void args_init(int argc, char **argv)
       opt_ceiling = atol(optarg);
       break;
       
+    case 'a':
+      /* append-abundance */
+      opt_append_abundance = atol(optarg);
+      break;
+      
     default:
       show_header();
       args_usage();
@@ -436,6 +445,9 @@ void args_init(int argc, char **argv)
 
   if (opt_ceiling < 0)
     fatal("Illegal memory ceiling");
+
+  if (opt_append_abundance < 0)
+    fatal("Illegal abundance value specified");
 
   if (outfilename)
     {
