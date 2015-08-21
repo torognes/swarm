@@ -42,6 +42,7 @@ Table of Content
 * [Third-party pipelines](#pipelines)
 * [Alternatives](#alternatives)
 * [New features](#features)
+  * [version 2.1.2](#version212)
   * [version 2.1.1](#version211)
   * [version 2.1.0](#version210)
   * [version 2.0.7](#version207)
@@ -261,6 +262,10 @@ you still want to run swarm, you can easily add fake abundance values:
 sed '/^>/ s/$/_1/' amplicons.fasta > amplicons_with_abundances.fasta
 ```
 
+Alternatively, you may specify a default abundance value with the
+`--append-abundance` (`-a`) option to be used when abundance information
+is missing from a sequence.
+
 <a name="launch"/>
 ### Launch swarm ###
 
@@ -408,6 +413,14 @@ methods, here are some links:
 
 <a name="features"/>
 ## New features##
+
+<a name="version212"/>
+### version 2.1.2 ###
+
+**swarm** 2.1.2 adds the -a (--append-abundance) option to set a default
+abundance value to be used when abundance information is missing from
+the input file. If this option is not specified, missing abundance information
+will result in a fatal error. The error message in that case is improved.
 
 <a name="version211"/>
 ### version 2.1.1 ###
