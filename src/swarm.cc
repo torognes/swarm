@@ -153,21 +153,13 @@ void cpu_features_show()
   fprintf(logfile, "\n");
 }
 
-
-void args_getstring(int i, int argc, char **argv, char ** result, char * error)
+long args_long(char * str, const char * option)
 {
-  if (i+1 < argc)
-    *result = argv[i+1];
-  else
-    fatal(error);
-}
-
-void args_getnum(int i, int argc, char **argv, long * result, char * error)
-{
-  if (i+1 < argc)
-    *result = atol(argv[i+1]);
-  else
-    fatal(error);
+  char * endptr;
+  long temp = strtol(str, & endptr, 10);
+  if (*endptr)
+    fatal("Invalid numeric argument for option %s", option);
+  return temp;
 }
 
 void args_show()
@@ -303,7 +295,7 @@ void args_init(int argc, char **argv)
     {
     case 'd':
       /* differences (resolution) */
-      resolution = atol(optarg);
+      resolution = args_long(optarg, "-d or --differences");
       break;
           
     case 'h':
@@ -320,7 +312,7 @@ void args_init(int argc, char **argv)
           
     case 't':
       /* threads */
-      threads = atol(optarg);
+      threads = args_long(optarg, "-t or --threads");
       break;
           
     case 'v':
@@ -330,23 +322,23 @@ void args_init(int argc, char **argv)
       break;
 
     case 'm':
-      /* match reward */
-      matchscore = atol(optarg);
+      /* match-reward */
+      matchscore = args_long(optarg, "-m or --match-reward");
       break;
           
     case 'p':
-      /* mismatch penalty */
-      mismatchscore = - atol(optarg);
+      /* mismatch-penalty */
+      mismatchscore = - args_long(optarg, "-p or --mismatch-penalty");
       break;
           
     case 'g':
-      /* gap opening penalty */
-      gapopen = atol(optarg);
+      /* gap-opening-penalty */
+      gapopen = args_long(optarg, "-g or --gap-opening-penalty");
       break;
           
     case 'e':
       /* gap extension penalty */
-      gapextend = atol(optarg);
+      gapextend = args_long(optarg, "-e or --gap-extension-penalty");
       break;
           
     case 's':
@@ -391,7 +383,7 @@ void args_init(int argc, char **argv)
           
     case 'b':
       /* boundary */
-      opt_boundary = atol(optarg);
+      opt_boundary = args_long(optarg, "-b or --boundary");
       break;
           
     case 'w':
@@ -401,17 +393,17 @@ void args_init(int argc, char **argv)
       
     case 'y':
       /* bloom-bits */
-      opt_bloom_bits = atol(optarg);
+      opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
       break;
       
     case 'c':
       /* ceiling */
-      opt_ceiling = atol(optarg);
+      opt_ceiling = args_long(optarg, "-c or --ceiling");
       break;
       
     case 'a':
       /* append-abundance */
-      opt_append_abundance = atol(optarg);
+      opt_append_abundance = args_long(optarg, "-a or --append-abundance");
       break;
       
     default:
