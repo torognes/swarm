@@ -124,7 +124,7 @@ void nw(char * dseq,
   /* dir must point to at least qlen*dlen bytes of allocated memory
      hearray must point to at least 2*qlen longs of allocated memory (8*qlen bytes) */
 
-  long h, n, e, f;
+  long n, e;
   long unsigned *hep;
 
   long qlen = qend - qseq;
@@ -143,8 +143,8 @@ void nw(char * dseq,
   for(j=0; j<dlen; j++)
   {
     hep = hearray;
-    f = 2 * gapopen + (j+2) * gapextend;
-    h = (j == 0) ? 0 : (gapopen + j * gapextend);
+    long f = 2 * gapopen + (j+2) * gapextend;
+    long h = (j == 0) ? 0 : (gapopen + j * gapextend);
     
     for(i=0; i<qlen; i++)
     {
@@ -275,7 +275,7 @@ void nw(char * dseq,
   if (score != dist)
   {
     fprintf(stderr, "WARNING: Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
-    fprintf(stderr, "Initial and recomputed alignment score disagreement: %lu %lu\n", dist, score);
+    fprintf(stderr, "Initial and recomputed alignment score disagreement: %ld %ld\n", dist, score);
     fprintf(stderr, "Alignment: %s\n", cigar);
   }
 }

@@ -41,7 +41,7 @@ private:
 
   static void * worker(void * vp)
   {
-    struct thread_s * tip = (thread_s *) vp;
+    struct thread_s * tip = (struct thread_s *) vp;
 
     pthread_mutex_lock(&tip->workmutex);
 

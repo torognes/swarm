@@ -172,13 +172,13 @@ void args_show()
   if (uclustfilename)
     fprintf(logfile, "Uclust file:       %s\n", uclustfilename);
   fprintf(logfile, "Resolution (d):    %ld\n", resolution);
-  fprintf(logfile, "Threads:           %ld\n", threads);
+  fprintf(logfile, "Threads:           %lu\n", threads);
   fprintf(logfile, "Scores:            match: %ld, mismatch: %ld\n", matchscore, mismatchscore);
   fprintf(logfile, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
   fprintf(logfile, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
   fprintf(logfile, "Break OTUs:        %s\n", opt_no_otu_breaking ? "No" : "Yes");
   if (opt_fastidious)
-    fprintf(logfile, "Fastidious:        Yes, with boundary %lu\n", opt_boundary);
+    fprintf(logfile, "Fastidious:        Yes, with boundary %ld\n", opt_boundary);
   else
     fprintf(logfile, "Fastidious:        No\n");
 }
@@ -526,9 +526,9 @@ int main(int argc, char** argv)
 
   db_read(databasename);
   
-  fprintf(logfile, "Database info:     %ld nt", db_getnucleotidecount());
-  fprintf(logfile, " in %ld sequences,", db_getsequencecount());
-  fprintf(logfile, " longest %ld nt\n", db_getlongestsequence());
+  fprintf(logfile, "Database info:     %lu nt", db_getnucleotidecount());
+  fprintf(logfile, " in %lu sequences,", db_getsequencecount());
+  fprintf(logfile, " longest %lu nt\n", db_getlongestsequence());
 
   dbsequencecount = db_getsequencecount();
 

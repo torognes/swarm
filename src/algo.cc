@@ -56,7 +56,10 @@ void algo_run()
   count_comparisons_16 = 0;
 
   unsigned long searches = 0;
+
+#ifdef VERBOSE
   unsigned long estimates = 0;
+#endif
 
   unsigned long largestswarm = 0;
   unsigned long swarmsize = 0;
@@ -70,7 +73,7 @@ void algo_run()
 
   qgram_diff_init();
 
-  amps = (ampliconinfo_s *) xmalloc(amplicons * sizeof(struct ampliconinfo_s));
+  amps = (struct ampliconinfo_s *) xmalloc(amplicons * sizeof(struct ampliconinfo_s));
 
   targetampliconids = (unsigned long *) xmalloc(amplicons * 
                                                 sizeof(unsigned long));
@@ -131,7 +134,6 @@ void algo_run()
       unsigned long amplicons_copies = 0;
       unsigned long singletons = 0;
       unsigned long hitcount = 0;
-      unsigned long diffsum = 0;
       unsigned long maxradius = 0;
       unsigned long maxgen = 0;
       unsigned long seedindex;
@@ -173,7 +175,9 @@ void algo_run()
 
       qgram_diff_fast(seedampliconid, listlen, qgramamps, qgramdiffs);
 
+#ifdef VERBOSE
       estimates += listlen;
+#endif
       
       for(unsigned long i=0; i < listlen; i++)
         {
@@ -241,8 +245,6 @@ void algo_run()
                       fprintf(internal_structure_file, "\n");
                     }
 
-                  diffsum += diff;
-            
                   abundance = db_getabundance(poolampliconid);
                   amplicons_copies += abundance;
                   if (abundance == 1)
@@ -295,8 +297,10 @@ void algo_run()
               qgram_diff_fast(subseedampliconid, listlen, qgramamps, 
                               qgramdiffs);
 
+#ifdef VERBOSE
               estimates += listlen;
-      
+#endif
+
               for(unsigned long i=0; i < listlen; i++)
                 if ((long)qgramdiffs[i] <= resolution)
                   {
@@ -360,7 +364,6 @@ void algo_run()
 
                           unsigned poolampliconid = amps[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
-                          diffsum += diff;
 
                           if (opt_internal_structure)
                             {
@@ -566,7 +569,7 @@ void algo_run()
 
   fprintf(logfile, "Max generations:   %lu\n", maxgenerations);
 
-#if 0
+#ifdef VERBOSE
   fprintf(logfile, "\n");
 
   fprintf(logfile, "Estimates:         %lu\n", estimates);

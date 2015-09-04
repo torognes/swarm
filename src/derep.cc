@@ -212,7 +212,7 @@ void dereplicate()
   progress_init("Writing swarms:   ", swarmcount);
 
   if (mothur)
-    fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount);
+    fprintf(outfile, "swarm_%ld\t%ld", resolution, swarmcount);
 
   for(int i = 0; i < swarmcount; i++)
     {
@@ -352,7 +352,7 @@ void dereplicate()
 
   fprintf(logfile, "\n");
   fprintf(logfile, "Number of swarms:  %ld\n", swarmcount);
-  fprintf(logfile, "Largest swarm:     %d\n", maxsize);
+  fprintf(logfile, "Largest swarm:     %u\n", maxsize);
   fprintf(logfile, "Heaviest swarm:    %lu\n", maxmass);
 
   free(nextseqtab);

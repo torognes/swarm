@@ -508,8 +508,8 @@ void process_seed(int seed, int subseed)
       if (global_hits_count + ti[t].hits_count > global_hits_alloc)
         {
           global_hits_alloc <<= 1;
-          global_hits_data = (int*)realloc(global_hits_data,
-                                           global_hits_alloc * sizeof(int));
+          global_hits_data = (int*)xrealloc(global_hits_data,
+                                            global_hits_alloc * sizeof(int));
         }
       for(int i=0; i < ti[t].hits_count; i++)
         {
@@ -605,7 +605,7 @@ int compare_grafts(const void * a, const void * b)
   else
     if (x->child < y->child)
       return -1;
-    else if (x->child < y->child)
+    else if (x->child > y->child)
       return +1;
     else
       return 0;
@@ -1111,9 +1111,9 @@ void algo_d1_run()
               /* allocate memory for more swarms... */
               swarminfo_alloc += 1000;
               swarminfo = 
-                (swarminfo_s *) xrealloc (swarminfo,
-                                          swarminfo_alloc *
-                                          sizeof(swarminfo_s));
+                (struct swarminfo_s *) xrealloc (swarminfo,
+                                                 swarminfo_alloc *
+                                                 sizeof(swarminfo_s));
             }
 
           struct swarminfo_s * sp = swarminfo + swarmid;
@@ -1149,7 +1149,7 @@ void algo_d1_run()
     {
       fprintf(logfile, "\n");
       fprintf(logfile, "Results before fastidious processing:\n");
-      fprintf(logfile, "Number of swarms:  %lu\n", swarmcount);
+      fprintf(logfile, "Number of swarms:  %ld\n", swarmcount);
       fprintf(logfile, "Largest swarm:     %d\n", largest);
       fprintf(logfile, "\n");
 
@@ -1329,7 +1329,7 @@ void algo_d1_run()
   progress_init("Writing swarms:   ", swarmcount);
 
   if (mothur)
-    fprintf(outfile, "swarm_%ld\t%lu", resolution, swarmcount_adjusted);
+    fprintf(outfile, "swarm_%ld\t%ld", resolution, swarmcount_adjusted);
 
   for(int i = 0; i < swarmcount; i++)
     {
@@ -1401,7 +1401,7 @@ void algo_d1_run()
               
               struct ampinfo_s * bp = ampinfo + seed;
               
-              fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+              fprintf(uclustfile, "C\t%u\t%d\t*\t*\t*\t*\t*\t",
                       swarmid,
                       swarminfo[swarmid].size);
               fprint_id(uclustfile, seed);
@@ -1436,7 +1436,7 @@ void algo_d1_run()
                     nwalignmentlength;
                   
                   fprintf(uclustfile,
-                          "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
+                          "H\t%d\t%lu\t%.1f\t+\t0\t0\t%s\t",
                           ampinfo[seed].swarmid,
                           db_getsequencelen(a),
                           percentid, 
@@ -1466,9 +1466,9 @@ void algo_d1_run()
           swarminfo_s * sp = swarminfo + i;
           if (!sp->attached)
             {
-              fprintf(statsfile, "%u\t%lu\t", sp->size, sp->mass);
+              fprintf(statsfile, "%d\t%ld\t", sp->size, sp->mass);
               fprint_id_noabundance(statsfile, sp->seed);
-              fprintf(statsfile, "\t%lu\t%u\t%u\t%u\n", 
+              fprintf(statsfile, "\t%lu\t%d\t%d\t%d\n",
                       db_getabundance(sp->seed),
                       sp->singletons, sp->maxgen, sp->maxgen);
             }
@@ -1479,7 +1479,7 @@ void algo_d1_run()
 
 
   fprintf(logfile, "\n");
-  fprintf(logfile, "Number of swarms:  %lu\n", swarmcount_adjusted);
+  fprintf(logfile, "Number of swarms:  %ld\n", swarmcount_adjusted);
   fprintf(logfile, "Largest swarm:     %d\n", largest);
   fprintf(logfile, "Max generations:   %d\n", maxgen);
 
@@ -1501,11 +1501,11 @@ void algo_d1_run()
     }
 
 #ifdef HASHSTATS
-  fprintf(logfile, "Tries: %ld\n", tries);
-  fprintf(logfile, "Probes: %ld\n", probes);
-  fprintf(logfile, "Hits: %ld\n", hits);
-  fprintf(logfile, "Success: %ld\n", success);
-  fprintf(logfile, "Bingo: %ld\n", bingo);
-  fprintf(logfile, "Collisions: %ld\n", collisions);
+  fprintf(logfile, "Tries: %lu\n", tries);
+  fprintf(logfile, "Probes: %lu\n", probes);
+  fprintf(logfile, "Hits: %lu\n", hits);
+  fprintf(logfile, "Success: %lu\n", success);
+  fprintf(logfile, "Bingo: %lu\n", bingo);
+  fprintf(logfile, "Collisions: %lu\n", collisions);
 #endif
 }
