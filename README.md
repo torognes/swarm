@@ -42,6 +42,9 @@ Table of Content
 * [Third-party pipelines](#pipelines)
 * [Alternatives](#alternatives)
 * [New features](#features)
+  * [version 2.1.5](#version215)
+  * [version 2.1.4](#version214)
+  * [version 2.1.3](#version213)
   * [version 2.1.2](#version212)
   * [version 2.1.1](#version211)
   * [version 2.1.0](#version210)
@@ -413,6 +416,21 @@ methods, here are some links:
 
 <a name="features"/>
 ## New features##
+
+<a name="version215"/>
+### version 2.1.5 ###
+
+**swarm** 2.1.5 fixes minor bugs.
+
+<a name="version214"/>
+### version 2.1.4 ###
+
+**swarm** 2.1.4 fixes minor bugs in the swarm algorithm used for d=1.
+
+<a name="version213"/>
+### version 2.1.3 ###
+
+**swarm** 2.1.3 adds checks of numeric option arguments.
 
 <a name="version212"/>
 ### version 2.1.2 ###
