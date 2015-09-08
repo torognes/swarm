@@ -200,7 +200,8 @@ void db_read(const char * filename)
 
   char line[LINEALLOC];
   line[0] = 0;
-  fgets(line, LINEALLOC, fp);
+  if (!fgets(line, LINEALLOC, fp))
+    line[0] = 0;
 
   unsigned int lineno = 1;
 
@@ -251,7 +252,8 @@ void db_read(const char * filename)
       /* get next line */
 
       line[0] = 0;
-      fgets(line, LINEALLOC, fp);
+      if (!fgets(line, LINEALLOC, fp))
+        line[0] = 0;
       lineno++;
 
 
@@ -283,7 +285,8 @@ void db_read(const char * filename)
                 fatal(msg);
               }
           line[0] = 0;
-          fgets(line, LINEALLOC, fp);
+          if (!fgets(line, LINEALLOC, fp))
+            line[0] = 0;
           lineno++;
         }
       
@@ -430,16 +433,18 @@ void db_read(const char * filename)
   if (missingabundance)
     {
       char * msg;
-      asprintf(&msg,
-               "Abundance annotations not found for %d sequences, "
-               "starting on line %u.\n"
-               "Fasta headers must end with abundance annotations "
-               "(_INT or ;size=INT)\n"
-               "Abundance annotations can be produced by "
-               "dereplicating the sequences\n",
-               missingabundance,
-               missingabundance_lineno);
-      fatal(msg);
+      if (asprintf(&msg,
+                   "Abundance annotations not found for %d sequences, "
+                   "starting on line %u.\n"
+                   "Fasta headers must end with abundance annotations "
+                   "(_INT or ;size=INT)\n"
+                   "Abundance annotations can be produced by "
+                   "dereplicating the sequences\n",
+                   missingabundance,
+                   missingabundance_lineno) == -1)
+        fatal("Out of memory");
+      else
+        fatal(msg);
     }
 
   if (!presorted)
