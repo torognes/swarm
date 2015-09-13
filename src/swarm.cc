@@ -189,28 +189,30 @@ void args_usage()
   /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
   fprintf(stderr, "Usage: swarm [OPTIONS] [filename]\n");
+  fprintf(stderr, "  -b, --boundary INTEGER              min mass of large OTU for fastidious (3)\n");
+  fprintf(stderr, "  -c, --ceiling INTEGER               max memory in MB used for fastidious\n");
   fprintf(stderr, "  -d, --differences INTEGER           resolution (1)\n");
+  fprintf(stderr, "  -f, --fastidious                    link nearby low-abundance swarms\n");
   fprintf(stderr, "  -h, --help                          display this help and exit\n");
-  fprintf(stderr, "  -o, --output-file FILENAME          output result filename (stdout)\n");
+  fprintf(stderr, "  -n, --no-otu-breaking               never break OTUs\n");
   fprintf(stderr, "  -t, --threads INTEGER               number of threads to use (1)\n");
   fprintf(stderr, "  -v, --version                       display version information and exit\n");
+  fprintf(stderr, "  -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n");
+  fprintf(stderr, "Input/output options:\n");
+  fprintf(stderr, "  -a, --append-abundance INTEGER      value to use when abundance is missing\n");  
+  fprintf(stderr, "  -i, --internal-structure FILENAME   write internal swarm structure to file\n");
+  fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");  
+  fprintf(stderr, "  -o, --output-file FILENAME          output result filename (stdout)\n");
+  fprintf(stderr, "  -r, --mothur                        output in mothur list file format\n");
+  fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file\n");
+  fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file\n");
+  fprintf(stderr, "  -w, --seeds FILENAME                write seed seqs with abundances to FASTA\n");
+  fprintf(stderr, "  -z, --usearch-abundance             abundance annotation in usearch style\n");
+  fprintf(stderr, "Pairwise alignment advanced options:\n");
   fprintf(stderr, "  -m, --match-reward INTEGER          reward for nucleotide match (5)\n");
   fprintf(stderr, "  -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n");
   fprintf(stderr, "  -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n");
   fprintf(stderr, "  -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
-  fprintf(stderr, "  -s, --statistics-file FILENAME      dump swarm statistics to file\n");
-  fprintf(stderr, "  -u, --uclust-file FILENAME          output in UCLUST-like format to file\n");
-  fprintf(stderr, "  -r, --mothur                        output in mothur list file format\n");
-  fprintf(stderr, "  -z, --usearch-abundance             abundance annotation in usearch style\n");
-  fprintf(stderr, "  -i, --internal-structure FILENAME   write internal swarm structure to file\n");
-  fprintf(stderr, "  -l, --log FILENAME                  log to file, not to stderr\n");
-  fprintf(stderr, "  -n, --no-otu-breaking               never break OTUs\n");
-  fprintf(stderr, "  -w, --seeds FILENAME                write seed seqs with abundances to FASTA\n");
-  fprintf(stderr, "  -f, --fastidious                    link nearby low-abundance swarms\n");
-  fprintf(stderr, "  -b, --boundary INTEGER              min mass of large OTU for fastidious (3)\n");
-  fprintf(stderr, "  -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n");
-  fprintf(stderr, "  -c, --ceiling INTEGER               max memory in MB used for fastidious\n");
-  fprintf(stderr, "  -a, --append-abundance INTEGER      value to use when abundance is missing\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
 }
