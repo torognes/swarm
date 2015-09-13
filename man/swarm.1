@@ -181,29 +181,43 @@ in situations where writing to \fIstandard error\fR is problematic
 (for example, with certain job schedulers).
 .TP
 .BI \-o\fP,\fB\ \-\-output\-file \0filename
-output result to \fIfilename\fR. Result is a list of OTUs, one OTU
-per line. A OTU is a list of amplicon identifiers separated by
-spaces. Default is to write to standard output.
+output clustering results to \fIfilename\fR. Results consist of a list
+of OTUs, one OTU per line. An OTU is a list of amplicon identifiers
+separated by spaces. Default is to write to standard output.
 .TP
 .B \-r\fP,\fB\ \-\-mothur
-output results in a format compatible with Mothur. That option
-modifies swarm's default output format.
+output clustering results in a format compatible with Mothur. That
+option modifies \fBswarm\fR's default output format.
 .TP
 .BI \-s\fP,\fB\ \-\-statistics\-file \0filename
-output statistics to the specified file. The file is a tab-separated
-table with one OTU per row and seven columns of information: number of
-unique amplicons in the OTU, total copy number of amplicons in the
-OTU, identifier of the initial seed, initial seed copy number (if
-applicable), number of singletons (amplicons with a copy number of 1),
-maximum number of generations (i.e., numbers of iterations before the
-OTU reached its natural limits), and the theoretical maximum radius of
-the OTU (i.e., number of cummulated differences between the seed and
-the furthermost amplicon in the OTU. The actual pairwise distance and
-max radius is often much smaller).
+output statistics to \fIfilename\fR. The file is a tab-separated table
+with one OTU per row and seven columns of information:
+.RS
+.RS
+.nr step 1 1
+.IP \n[step]. 4
+number of unique amplicons in the OTU,
+.IP \n+[step].
+total copy number of amplicons in the OTU,
+.IP \n+[step].
+identifier of the initial seed,
+.IP \n+[step].
+initial seed copy number,
+.IP \n+[step].
+number of amplicons with a copy number of 1 in the OTU,
+.IP \n+[step].
+maximum number of iterations before the OTU reached its natural
+limits),
+.IP \n+[step].
+theoretical maximum radius of the OTU (i.e., number of cummulated
+differences between the seed and the furthermost amplicon in the
+OTU). The actual maximum radius of the OTU is often much smaller.
+.RE
+.RE
 .TP
 .BI \-u\fP,\fB\ \-\-uclust\-file \0filename
-output results in uclust-like file format to the specified file. That
-option does not modify swarm default output format.
+output clustering results in uclust-like file format to the specified
+file. That option does not modify \fBswarm\fR's default output format.
 .TP
 .BI \-w\fP,\fB\ \-\-seeds \0filename
 output OTU representatives to \fIfilename\fR in fasta format. The
@@ -211,8 +225,8 @@ abundance value of each representative is the sum of the abundances of
 all the amplicons in the OTU.
 .TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
-accept amplicon abundances specified using the usearch/vsearch style
-(">label;size=\fIinteger\fR[;]"). That option influences the
+accept amplicon abundance values in usearch/vsearch's style
+(>label;size=\fIinteger\fR[;]). That option influences the abundance
 annotation style used in output files.
 .LP
 .\" ----------------------------------------------------------------------------
