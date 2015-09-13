@@ -228,6 +228,7 @@ all the amplicons in the OTU.
 accept amplicon abundance values in usearch/vsearch's style
 (>label;size=\fIinteger\fR[;]). That option influences the abundance
 annotation style used in output files.
+.\" which files are modified? -w at least.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Pairwise alignment advanced options
@@ -256,17 +257,18 @@ impact when clustering using a higher \fId\fR value.
 .\" ============================================================================
 .SH EXAMPLES
 .PP
-Divide the data set \fImyfile.fasta\fR into OTUs with the finest
+Clusterize the data set \fImyfile.fasta\fR into OTUs with the finest
 resolution possible (1 difference, built-in breaking, fastidious
 option) using 4 computation threads. OTUs are written to the file
-\fImyfile.swarms\fR.
+\fImyfile.swarms\fR, and OTU representatives are written to
+\fImyfile.representatives.fasta\fR.
 .PP
 .RS
 .B swarm
-\-t 4 \-f \-o
-.I myfile.swarms myfile.fasta
+\-t 4 \-f \-w
+.I myfile.representatives.fasta < myfile.fasta > myfile.swarms
 .RE
-.PP
+.LP
 .\" ============================================================================
 .\" .SH LIMITATIONS
 .\" List known limitations or bugs.
@@ -278,6 +280,10 @@ Concept by Frédéric Mahé, implementation by Torbjørn Rognes.
 Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
 robust and fast clustering method for amplicon-based
 studies. \fIPeerJ\fR 2:e593 <http://dx.doi.org/10.7717/peerj.593>
+.PP
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015) Swarm v2:
+highly-scalable and high-resolution amplicon clustering. \fIPeerJ
+PrePrints\fR 3:e1503 <http://dx.doi.org/10.7287/peerj.preprints.1222v2>
 .\" ============================================================================
 .SH REPORTING BUGS
 Submit suggestions and bug-reports at
@@ -327,21 +333,23 @@ or minor bug releases are not mentioned):
 Version 2.1.5 fixes minor bugs.
 .TP
 .BR v2.1.4\~ "released September 4, 2015"
-Version 2.1.4 fixes minor bugs in the swarm algorithm used for d=1.
+Version 2.1.4 fixes minor bugs in the swarm algorithm used for \fId\fR
+= 1.
 .TP
 .BR v2.1.3\~ "released August 28, 2015"
 Version 2.1.3 adds checks of numeric option arguments.
 .TP
 .BR v2.1.1\~ "released March 31, 2015"
-Version 2.1.1 fixes a bug with the fastidious option that caused it
-to ignore some connections between heavy and light swarms.
+Version 2.1.1 fixes a bug with the fastidious option that caused it to
+ignore some connections between large and small OTUs.
 .TP
 .BR v2.1.0\~ "released March 24, 2015"
-Version 2.1.0 marks the first official release of swarm 2.
+Version 2.1.0 marks the first official release of swarm v2.
 .TP
 .BR v2.0.7\~ "released March 18, 2015"
 Version 2.0.7 writes abundance information in usearch style when using
-options \-w (\-\-seeds) in combination with \-z (\-\-usearch\-abundance).
+options \-w (\-\-seeds) in combination with \-z
+(\-\-usearch\-abundance).
 .TP
 .BR v2.0.6\~ "released March 13, 2015"
 Version 2.0.6 fixes a minor bug.
@@ -351,16 +359,16 @@ Version 2.0.5 improves the implementation of the fastidious option and
 adds options to control memory usage of the Bloom filter (\-y and
 \-c).  In addition, an option (\-w) allows to output OTU
 representatives sequences with updated abundances (sum of all
-abundances inside each OTU). This version also enables dereplication
-when \fId\fR = 0.
+abundances inside each OTU). This version also enables \fBswarm\fR to
+run with \fId\fR = 0.
 .TP
 .BR v2.0.4\~ "released March 6, 2015"
 Version 2.0.4 includes a fully parallelised implementation of the
 fastidious option.
 .TP
 .BR v2.0.3\~ "released March 4, 2015"
-Version 2.0.3 includes a working implementation of the fastidious option,
-but only the initial clustering is parallelized.
+Version 2.0.3 includes a working implementation of the fastidious
+option, but only the initial clustering is parallelized.
 .TP
 .BR v2.0.2\~ "released February 26, 2015"
 Version 2.0.2 fixes SSSE3 problems.
@@ -373,13 +381,13 @@ implementation of the fastidious option, but it is not usable yet.
 Version 2.0.0 is faster and easier to use, providing new output
 options (\-\-internal\-structure and \-\-log), new control options
 (\-\-boundary, \-\-fastidious, \-\-no\-otu\-breaking), and built-in
-OTU refinement. When using default parameters, a novel and
-considerably faster algorithmic approach is used, guaranteeing swarm's
-scalability.
+OTU refinement (no need to use the python script anymore). When using
+default parameters, a novel and considerably faster algorithmic
+approach is used, guaranteeing \fBswarm\fR's scalability.
 .TP
 .BR v1.2.21\~ "released February 26, 2015"
-Version 1.2.21 is supposed to fix some problems related to the use of the
-SSSE3 CPU instructions which are not always available.
+Version 1.2.21 is supposed to fix some problems related to the use of
+the SSSE3 CPU instructions which are not always available.
 .TP
 .BR v1.2.20\~ "released November 6, 2014"
 Version 1.2.20 presents a production-ready version of the alternative
@@ -415,8 +423,8 @@ the alternative algorithm for \fId\fR = 1 it also sorts all subseeds
 in order of decreasing abundance.
 .TP
 .BR v1.2.14\~ "released September 27, 2014"
-Version 1.2.14 fixes a bug in the output with the swarm_breaker option
-(\-b) when using the alternative algorithm (\-a).
+Version 1.2.14 fixes a bug in the output with the \-\-swarm_breaker
+option (\-b) when using the alternative algorithm (\-a).
 .TP
 .BR v1.2.12\~ "released August 18, 2014"
 Version 1.2.12 introduces an option \-\-alternative\-algorithm to use
@@ -425,31 +433,32 @@ case \fId\fR = 1. Multithreading scalability of the default algorithm
 has been noticeably improved.
 .TP
 .BR v1.2.10\~ "released August 8, 2014"
-allows amplicon abundances to be specified using the usearch style in
-the sequence header (e.g. ">id;size=1") when the \-z option is chosen.
+Version 1.2.10 allows amplicon abundances to be specified using the
+usearch style in the sequence header (e.g. ">id;size=1") when the \-z
+option is chosen.
 .TP
 .BR v1.2.8\~ "released August 5, 2014"
-swarm 1.2.8 fixes an error with the gap extension penalty. Previous
+Version 1.2.8 fixes an error with the gap extension penalty. Previous
 versions used a gap penalty twice as large as intended. That bug
 correction induces small changes in clustering results.
 .TP
 .BR v1.2.6\~ "released May 23, 2014"
-Version 1.2.6 introduces an option \-\-mothur to output swarm results in
-a format compatible with the microbial ecology community analysis
-software suite Mothur.
+Version 1.2.6 introduces an option \-\-mothur to output clustering
+results in a format compatible with the microbial ecology community
+analysis software suite Mothur (<http://www.mothur.org/>).
 .TP
 .BR v1.2.5\~ "released April 11, 2014"
 Version 1.2.5 removes the need for a POPCNT hardware instruction to be
-present. Swarm now automatically checks whether POPCNT is available
-and uses a slightly slower software implementation if not. Only basic
-SSE2 instructions are now required to run swarm.
+present. \fBswarm\fR now automatically checks whether POPCNT is
+available and uses a slightly slower software implementation if
+not. Only basic SSE2 instructions are now required to run \fBswarm\fR.
 .TP
 .BR v1.2.4\~ "released January 30, 2014"
 Version 1.2.4 introduces an option \-\-break\-swarms to output all
 pairs of amplicons with \fId\fR differences to standard error. That
 option is used by the companion script `swarm_breaker.py` to refine
-swarm results. The syntax of the inline assembly code is changed for
-compatibility with more compilers.
+\fBswarm\fR results. The syntax of the inline assembly code is changed
+for compatibility with more compilers.
 .TP
 .BR v1.2\~ "released May 16, 2013"
 Version 1.2 greatly improves speed by using alignment-free comparisons
@@ -457,20 +466,20 @@ of amplicons based on \fIk\fR-mer word content. For each amplicon, the
 presence-absence of all possible 5-mers is computed and recorded in a
 1024-bits vector. Vector comparisons are extremely fast and
 drastically reduce the number of costly pairwise alignments performed
-by swarm. While remaining exact, swarm 1.2 can be more than 100-times
-faster than swarm 1.1, when using a single thread with a large set of
-sequences. The minor version 1.1.1, published just before, adds
-compatibility with Apple computers, and corrects an issue in the
-pairwise global alignment step that could lead to sub-optimal
+by \fBswarm\fR. While remaining exact, \fBswarm\fR 1.2 can be more
+than 100-times faster than \fBswarm\fR 1.1, when using a single thread
+with a large set of sequences. The minor version 1.1.1, published just
+before, adds compatibility with Apple computers, and corrects an issue
+in the pairwise global alignment step that could lead to sub-optimal
 alignments.
 .TP
 .BR v1.1\~ "released February 26, 2013"
 Version 1.1 introduces two new important options: the possibility to
-output swarming results using the uclust output format, and the
-possibility to output detailed statistics on each swarms. Swarm 1.1 is
-also faster: new filterings based on pairwise amplicon sequence
+output clustering results using the uclust output format, and the
+possibility to output detailed statistics on each OTU. \fBswarm\fR 1.1
+is also faster: new filterings based on pairwise amplicon sequence
 lengths and composition comparisons reduce the number of pairwise
-alignments needed and speed up the swarming.
+alignments needed and speed up the clustering.
 .TP
 .BR v1.0\~ "released November 10, 2012"
 First public release.
