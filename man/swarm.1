@@ -137,15 +137,18 @@ filter. Large values will make the Bloom filter more efficient but
 will require more memory. Any value between 4 and 20 can be
 used. Default value is 16. See the \-\-ceiling (\-c) option for an
 alternative way to control the memory footprint.
-.TP
-.BI \-a\fP,\fB\ \-\-append\-abundance\~ "positive integer"
-the abundance value to use when abundance information about the
-sequence is missing in the input file. A fatal error will be
-generated if abundance is not given and this option is not present.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Input/output options
 .TP 9
+.BI \-a\fP,\fB\ \-\-append\-abundance\~ "positive integer"
+set abundance value to use when some or all amplicons in the input
+file lack abundance values. Warning, it is not recommended to use
+\fBswarm\fR on datasets where abundance values are all identical. We
+provide that option as a courtesy to advanced users, please use it
+carefully. \fBswarm\fR exits with an error message if abundance values
+are missing and if this option is not used.
+.TP
 .BI \-i\fP,\fB\ \-\-internal\-structure \0filename
 output all pairs of nearly-identical amplicons to \fIfilename\fR using
 a five-columns tab-delimited format:
