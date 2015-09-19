@@ -80,8 +80,6 @@ Table of Content
   * [version 1.2.0](#version120)
   * [version 1.1.1](#version111)
   * [version 1.1.0](#version110)
-    * [Statistics](#stats)
-    * [Uclust-like output format](#uclust)
 
 <a name="common_misconceptions"/>
 ## Common misconceptions ##
@@ -395,6 +393,10 @@ You are welcome to:
 
 **swarm** is available in third-party pipelines:
 
+* [FROGS](https://github.com/geraldinepascal/FROGS): a
+  [Galaxy](https://galaxyproject.org/)/CLI workflow designed to
+  produce an OTU count matrix from high depth sequencing amplicon
+  data.
 * [LotuS (v1.30)](http://psbweb05.psb.ugent.be/lotus/): extremely fast
   OTU building, annotation, phylogeny and abundance matrix pipeline,
   based on raw sequencer output.
@@ -685,25 +687,17 @@ output (options `-i` and `-l`).
   the previous version on our test dataset. It also introduces two new
   output options: `statistics` and `uclust-like` format.
 
-
-<a name="stats"/>
-#### Statistics ####
-
 By specifying the `-s` option to **swarm** it will now output detailed
-statistics about each swarm to a specified file. It will print the
-number of unique amplicons, the number of occurrences, the name of the
-seed and its abundance, the number of singletons (amplicons with an
-abundance of 1), the number of iterations and the maximum radius of
-the swarm (i.e. number of differences between the seed and the
-furthermost amplicon). When using input data sorted by decreasing
-abundance, the seed is the most abundant amplicon in the swarm.
-
-
-<a name="uclust"/>
-#### Uclust-like output format ####
+  statistics about each swarm to a specified file. It will print the
+  number of unique amplicons, the number of occurrences, the name of
+  the seed and its abundance, the number of singletons (amplicons with
+  an abundance of 1), the number of iterations and the maximum radius
+  of the swarm (i.e. number of differences between the seed and the
+  furthermost amplicon). When using input data sorted by decreasing
+  abundance, the seed is the most abundant amplicon in the swarm.
 
 Some pipelines use the
-[uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686
-"page describing the uclust output format") as input for subsequent
-analyses. **swarm** can now output results in this format to a
-specified file with the `-u` option.
+  [uclust output format](http://www.drive5.com/uclust/uclust_userguide_1_1_579.html#_Toc257997686
+  "page describing the uclust output format") as input for subsequent
+  analyses. **swarm** can now output results in this format to a
+  specified file with the `-u` option.
