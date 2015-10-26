@@ -234,8 +234,22 @@ of 25 (alternative formats are possible, please see the
 [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)).
 
 The role of the dereplication step is to identify, merge and sort
-identical sequences by decreasing abundance. Here is an example using
-standard command line tools:
+identical sequences by decreasing abundance. Here is a command using
+[vsearch](https://github.com/torognes/vsearch) v1.3.3 or superior:
+
+```sh
+vsearch \
+    --derep_fulllength amplicons.fasta \
+    --sizeout \
+    --relabel_sha1 \
+    --fasta_width 0 \
+    --output amplicons_linearized_dereplicated.fasta
+```
+
+The command performs the dereplication, the linearization
+(`--fasta_width 0`) and the renaming with hashing values
+(`--relabel_sha1`). If you can't or don't want to use vsearch, here is
+an example using standard command line tools:
 
 ```sh
 grep -v "^>" amplicons_linearized.fasta | \
