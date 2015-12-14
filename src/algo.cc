@@ -516,6 +516,7 @@ void algo_run()
       unsigned long mass = 0;
       unsigned previd = amps[0].swarmid;
       unsigned prevamp = amps[0].ampliconid;
+      unsigned seed = prevamp;
       mass += db_getabundance(prevamp);
 
       for (unsigned long i=1; i<amplicons; i++)
@@ -525,10 +526,11 @@ void algo_run()
           if (id != previd)
             {
               fprintf(fp_seeds, ">");
-              fprint_id_with_new_abundance(fp_seeds, prevamp, mass);
+              fprint_id_with_new_abundance(fp_seeds, seed, mass);
               fprintf(fp_seeds, "\n");
               db_fprintseq(fp_seeds, prevamp, 0);
               mass = 0;
+              seed = amps[i].ampliconid;
             }
 
           previd = id;
@@ -538,7 +540,7 @@ void algo_run()
         }
 
       fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, prevamp, mass);
+      fprint_id_with_new_abundance(fp_seeds, seed, mass);
       fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, prevamp, 0);
 

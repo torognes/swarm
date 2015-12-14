@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "September 8, 2015" "version 2.1.5" "USER COMMANDS"
+.TH swarm 1 "December 14, 2015" "version 2.1.6" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -277,13 +277,13 @@ option) using 4 computation threads. OTUs are written to the file
 Concept by Frédéric Mahé, implementation by Torbjørn Rognes.
 .\" ============================================================================
 .SH CITATION
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
-robust and fast clustering method for amplicon-based
-studies. \fIPeerJ\fR 2:e593 <http://dx.doi.org/10.7717/peerj.593>
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014)
+Swarm: robust and fast clustering method for amplicon-based studies.
+\fIPeerJ\fR 2:e593 <http://dx.doi.org/10.7717/peerj.593>
 .PP
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015) Swarm v2:
-highly-scalable and high-resolution amplicon clustering. \fIPeerJ
-PrePrints\fR 3:e1503 <http://dx.doi.org/10.7287/peerj.preprints.1222v2>
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015)
+Swarm v2: highly-scalable and high-resolution amplicon clustering.
+\fIPeerJ\fR 3:e1420 <http://dx.doi.org/10.7717/peerj.1420>
 .\" ============================================================================
 .SH REPORTING BUGS
 Submit suggestions and bug-reports at
@@ -328,6 +328,11 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v2.1.6\~ "released December 14, 2015"
+Version 2.1.6 fixes problems with older compilers that do not have
+the x86intrin.h header file. It also fixes a bug in the output of seeds
+with the `-w` option when d>1.
 .TP
 .BR v2.1.5\~ "released September 8, 2015"
 Version 2.1.5 fixes minor bugs.

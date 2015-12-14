@@ -42,6 +42,7 @@ Table of Content
 * [Third-party pipelines](#pipelines)
 * [Alternatives](#alternatives)
 * [New features](#features)
+  * [version 2.1.6](#version216)
   * [version 2.1.5](#version215)
   * [version 2.1.4](#version214)
   * [version 2.1.3](#version213)
@@ -383,13 +384,13 @@ released since 2004.
 
 To cite **swarm**, please refer to:
 
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
-robust and fast clustering method for amplicon-based studies. PeerJ
-2:e593 http://dx.doi.org/10.7717/peerj.593
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014)
+Swarm: robust and fast clustering method for amplicon-based studies.
+PeerJ 2:e593 doi: [10.7717/peerj.593](http://dx.doi.org/10.7717/peerj.593)
 
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (in preparation)
-Swarm v2: highly-scalable and high-resolution amplicon
-clustering. https://dx.doi.org/10.7287/peerj.preprints.1222v2
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015)
+Swarm v2: highly-scalable and high-resolution amplicon clustering.
+PeerJ 3:e1420 doi: [10.7717/peerj.1420](http://dx.doi.org/10.7717/peerj.1420)
 
 
 <a name="contact"/>
@@ -432,6 +433,13 @@ methods, here are some links:
 
 <a name="features"/>
 ## New features##
+
+<a name="version216"/>
+### version 2.1.6 ###
+
+**swarm** 2.1.6 fixes problems with older compilers that do not have
+the x86intrin.h header file. It also fixes a bug in the output of seeds
+with the `-w` option when d>1.
 
 <a name="version215"/>
 ### version 2.1.5 ###

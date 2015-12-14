@@ -25,17 +25,25 @@
 #include <string.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <x86intrin.h>
 #include <stdlib.h>
 #include <regex.h>
 #include <limits.h>
 #include <city.h>
 #include <sys/types.h>
 #include <sys/resource.h>
+
 #ifdef __APPLE__
 #include <sys/sysctl.h>
 #else
 #include <sys/sysinfo.h>
+#endif
+
+#ifdef __SSE2__
+#include <emmintrin.h>
+#endif
+
+#ifdef __SSSE3__
+#include <tmmintrin.h>
 #endif
 
 /* constants */
@@ -44,7 +52,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "2.1.5"
+#define SWARM_VERSION "2.1.6"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
