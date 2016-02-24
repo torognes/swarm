@@ -1,24 +1,24 @@
 /*
-  SWARM
+    SWARM
 
-  Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2016 Torbjorn Rognes and Frederic Mahe
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as
-  published by the Free Software Foundation, either version 3 of the
-  License, or (at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-  Department of Informatics, University of Oslo,
-  PO Box 1080 Blindern, NO-0316 Oslo, Norway
+    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+    Department of Informatics, University of Oslo,
+    PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
 #include "swarm.h"
@@ -515,9 +515,8 @@ void algo_run()
 
       unsigned long mass = 0;
       unsigned previd = amps[0].swarmid;
-      unsigned prevamp = amps[0].ampliconid;
-      unsigned seed = prevamp;
-      mass += db_getabundance(prevamp);
+      unsigned seed = amps[0].ampliconid;
+      mass += db_getabundance(seed);
 
       for (unsigned long i=1; i<amplicons; i++)
         {
@@ -528,21 +527,21 @@ void algo_run()
               fprintf(fp_seeds, ">");
               fprint_id_with_new_abundance(fp_seeds, seed, mass);
               fprintf(fp_seeds, "\n");
-              db_fprintseq(fp_seeds, prevamp, 0);
+              db_fprintseq(fp_seeds, seed, 0);
+
               mass = 0;
               seed = amps[i].ampliconid;
             }
 
+          mass += db_getabundance(amps[i].ampliconid);
           previd = id;
-          prevamp = amps[i].ampliconid;
-          mass += db_getabundance(prevamp);
           progress_update(i);
         }
 
       fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, seed, mass);
       fprintf(fp_seeds, "\n");
-      db_fprintseq(fp_seeds, prevamp, 0);
+      db_fprintseq(fp_seeds, seed, 0);
 
       progress_done();
     }

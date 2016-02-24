@@ -1,24 +1,24 @@
 /*
-  SWARM
+    SWARM
 
-  Copyright (C) 2012-2015 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2016 Torbjorn Rognes and Frederic Mahe
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as
-  published by the Free Software Foundation, either version 3 of the
-  License, or (at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Affero General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
 
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
-  Department of Informatics, University of Oslo,
-  PO Box 1080 Blindern, NO-0316 Oslo, Norway
+    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+    Department of Informatics, University of Oslo,
+    PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
 #include "swarm.h"
@@ -215,7 +215,7 @@ void db_read(const char * filename)
         fatal("Illegal header line in fasta file.");
       
       long headerlen = 0;
-      if (char * stop = strpbrk(line+1, " \n"))
+      if (char * stop = strpbrk(line+1, " \r\n"))
         headerlen = stop - (line+1);
       else
         headerlen = strlen(line+1);
@@ -278,10 +278,13 @@ void db_read(const char * filename)
                 *(datap+datalen) = m;
                 datalen++;
               }
-            else if (c != '\n')
+            else if ((c != 10) && (c != 13))
               {
                 char msg[100];
-                snprintf(msg, 100, "Illegal character '%c' in sequence on line %u", c, lineno);
+                if ((c >= 32) && (c <= 126))
+                  snprintf(msg, 100, "Illegal character '%c' in sequence on line %u", c, lineno);
+                else
+                  snprintf(msg, 100, "Illegal character (ascii no %d) in sequence on line %u", c, lineno);
                 fatal(msg);
               }
           line[0] = 0;
@@ -434,12 +437,10 @@ void db_read(const char * filename)
     {
       char * msg;
       if (asprintf(&msg,
-                   "Abundance annotations not found for %d sequences, "
-                   "starting on line %u.\n"
-                   "Fasta headers must end with abundance annotations "
-                   "(_INT or ;size=INT)\n"
-                   "Abundance annotations can be produced by "
-                   "dereplicating the sequences\n",
+                   "Abundance annotations not found for %d sequences, starting on line %u.\n"
+                   "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
+                   "The -z option must be used if the abundance annotation is in the latter format.\n"
+                   "Abundance annotations can be produced by dereplicating the sequences.\n",
                    missingabundance,
                    missingabundance_lineno) == -1)
         fatal("Out of memory");

@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "February 24, 2016" "version 2.1.6" "USER COMMANDS"
+.TH swarm 1 "February 24, 2016" "version 2.1.7" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -279,11 +279,11 @@ Concept by Frédéric Mahé, implementation by Torbjørn Rognes.
 .SH CITATION
 Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014)
 Swarm: robust and fast clustering method for amplicon-based studies.
-\fIPeerJ\fR 2:e593 <http://dx.doi.org/10.7717/peerj.593>
+\fIPeerJ\fR 2:e593 <https://doi.org/10.7717/peerj.593>
 .PP
 Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015)
 Swarm v2: highly-scalable and high-resolution amplicon clustering.
-\fIPeerJ\fR 3:e1420 <http://dx.doi.org/10.7717/peerj.1420>
+\fIPeerJ\fR 3:e1420 <https://doi.org/10.7717/peerj.1420>
 .\" ============================================================================
 .SH REPORTING BUGS
 Submit suggestions and bug-reports at
@@ -296,7 +296,7 @@ Torbjørn Rognes <torognes@ifi.uio.no>.
 The software is available from <https://github.com/torognes/swarm>
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2012, 2013, 2014, 2015, 2016 Frédéric Mahé & Torbjørn Rognes
+Copyright (C) 2012-2016 Frédéric Mahé & Torbjørn Rognes
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -329,10 +329,17 @@ New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
 .TP
+.BR v2.1.7\~ "released February 24, 2016"
+Version 2.1.7 fixes a bug in the output of seeds with the \-w option
+when \fId\fR > 1 that was not properly fixed in version 2.1.6. It also
+handles ascii character no 13 (CR) in FASTA files better. Swarm will
+now exit with status 0 if the \-h or the \-v option is specified. The
+help text and some error messages have been improved.
+.TP
 .BR v2.1.6\~ "released December 14, 2015"
 Version 2.1.6 fixes problems with older compilers that do not have the
 x86intrin.h header file. It also fixes a bug in the output of seeds
-with the `-w` option when \fId\fR > 1.
+with the \-w option when \fId\fR > 1.
 .TP
 .BR v2.1.5\~ "released September 8, 2015"
 Version 2.1.5 fixes minor bugs.

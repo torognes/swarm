@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2014 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2016 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -74,12 +74,13 @@ long gcd(long a, long b)
 
 void fatal(const char * msg)
 {
-  fprintf(stderr, "Error: %s\n", msg);
+  fprintf(stderr, "\nError: %s\n", msg);
   exit(1);
 }
 
 void fatal(const char * format, const char * message)
 {
+  fprintf(stderr, "\n");
   fprintf(stderr, format, message);
   fprintf(stderr, "\n");
   exit(1);
