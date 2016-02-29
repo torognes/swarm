@@ -426,10 +426,10 @@ If you want to try alternative free and open-source clustering
 methods, here are some links:
 
 * [Vsearch](https://github.com/torognes/vsearch)
+* [Oligotyping](http://merenlab.org/projects/oligotyping/)
 * [DNAclust](http://dnaclust.sourceforge.net/)
-* [Crunchclust](https://code.google.com/p/crunchclust/)
 * [Sumaclust](http://metabarcoding.org/sumatra)
-
+* [Crunchclust](https://code.google.com/p/crunchclust/)
 
 <a name="features"/>
 ## New features##
