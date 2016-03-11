@@ -42,6 +42,8 @@ Table of Content
 * [Third-party pipelines](#pipelines)
 * [Alternatives](#alternatives)
 * [New features](#features)
+  * [version 2.1.8](#version218)
+  * [version 2.1.7](#version217)
   * [version 2.1.6](#version216)
   * [version 2.1.5](#version215)
   * [version 2.1.4](#version214)
@@ -434,6 +436,19 @@ methods, here are some links:
 <a name="features"/>
 ## New features##
 
+<a name="version218"/>
+### version 2.1.8 ###
+
+**swarm** 2.1.8 fixes a rare bug triggered when clustering extremely
+short undereplicated sequences. Also, alignment parameters are not
+shown when d=1.
+
+<a name="version217"/>
+### version 2.1.7 ###
+
+**swarm** 2.1.7 fixes more problems with seed output. Ignore CR
+  characters in FASTA files. Improved help and error messsages.
+
 <a name="version216"/>
 ### version 2.1.6 ###
 
@@ -459,10 +474,11 @@ with the `-w` option when d>1.
 <a name="version212"/>
 ### version 2.1.2 ###
 
-**swarm** 2.1.2 adds the -a (--append-abundance) option to set a default
-abundance value to be used when abundance information is missing from
-the input file. If this option is not specified, missing abundance information
-will result in a fatal error. The error message in that case is improved.
+**swarm** 2.1.2 adds the -a (--append-abundance) option to set a
+default abundance value to be used when abundance information is
+missing from the input file. If this option is not specified, missing
+abundance information will result in a fatal error. The error message
+in that case is improved.
 
 <a name="version211"/>
 ### version 2.1.1 ###

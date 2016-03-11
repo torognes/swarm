@@ -119,6 +119,8 @@ static int * global_hits_data = 0;
 static int global_hits_alloc = 0;
 static int global_hits_count = 0;
 
+static unsigned long threads_used = 0;
+
 inline unsigned int hash_getindex(unsigned long hash)
 {
 #ifdef POWEROFTWO
@@ -315,7 +317,7 @@ void generate_variants(unsigned long thread,
   
 #if 1
   /* identical non-variant */
-  if (thread == threads - 1)
+  if (thread == threads_used - 1)
     find_variant_matches(thread, varseq, seqlen, seed);
 #endif
 
@@ -470,16 +472,17 @@ void process_seed(int seed, int subseed)
 {
   unsigned long seqlen = db_getsequencelen(subseed);
 
-  unsigned long thr = threads;
-  if (thr > seqlen + 1)
-    thr = seqlen+1;
+  threads_used = threads;
+  if (threads_used > seqlen + 1)
+    threads_used = seqlen+1;
 
   /* prepare work for the threads */
   unsigned long start = 0;
-  for(unsigned long t=0; t<thr; t++)
+  for(unsigned long t=0; t<threads_used; t++)
     {
       struct thread_info_s * tip = ti + t;
-      unsigned long length = (seqlen - start + thr - t) / (thr - t);
+      unsigned long length =
+        (seqlen - start + threads_used - t) / (threads_used - t);
       tip->seed = subseed;
       tip->mut_start = start;
       tip->mut_length = length;
@@ -491,8 +494,8 @@ void process_seed(int seed, int subseed)
       pthread_mutex_unlock(&tip->workmutex);
     }
 
-  /* wait for theads to finish their work */
-  for(unsigned int t=0; t<thr; t++)
+  /* wait for threads to finish their work */
+  for(unsigned int t=0; t<threads_used; t++)
     {
       struct thread_info_s * tip = ti + t;
       pthread_mutex_lock(&tip->workmutex);
@@ -503,7 +506,7 @@ void process_seed(int seed, int subseed)
 
   /* join hits from the threads */
 
-  for(unsigned int t=0; t<thr; t++)
+  for(unsigned int t=0; t<threads_used; t++)
     {
       if (global_hits_count + ti[t].hits_count > global_hits_alloc)
         {

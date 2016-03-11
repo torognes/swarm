@@ -173,9 +173,13 @@ void args_show()
     fprintf(logfile, "Uclust file:       %s\n", uclustfilename);
   fprintf(logfile, "Resolution (d):    %ld\n", resolution);
   fprintf(logfile, "Threads:           %lu\n", threads);
+
+  if (resolution > 1)
+    {
   fprintf(logfile, "Scores:            match: %ld, mismatch: %ld\n", matchscore, mismatchscore);
   fprintf(logfile, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
   fprintf(logfile, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
+    }
   fprintf(logfile, "Break OTUs:        %s\n", opt_no_otu_breaking ? "No" : "Yes");
   if (opt_fastidious)
     fprintf(logfile, "Fastidious:        Yes, with boundary %ld\n", opt_boundary);
