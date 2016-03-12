@@ -1,8 +1,7 @@
 Please cite swarm as follows:
-
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm: robust and fast clustering method for amplicon-based studies. PeerJ 2:e593 <http://dx.doi.org/10.7717/peerj.593>
-
-
+- Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm: robust and fast clustering method for amplicon-based studies. PeerJ 2:e593 <http://dx.doi.org/10.7717/peerj.593>
+- Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015) Swarm v2: highly-scalable and high-resolution amplicon clustering. PeerJ 3:e1420 <https://doi.org/10.7717/peerj.1420>
+    
 Bibtex format:
 
 @article{10.7717/peerj.593,
@@ -18,4 +17,19 @@ Bibtex format:
  issn = {2167-8359},
  url = {http://dx.doi.org/10.7717/peerj.593},
  doi = {10.7717/peerj.593}
+}
+
+@article{10.7717/peerj.1420,
+ title = {Swarm v2: highly-scalable and high-resolution amplicon clustering},
+ author = {Mahé, Frédéric and Rognes, Torbjørn and Quince, Christopher and de Vargas, Colomban and Dunthorn, Micah},
+ year = {2015},
+ month = {12},
+ keywords = {Environmental diversity, Barcoding, Molecular operational taxonomic units},
+ abstract = {Previously we presented Swarm v1, a novel and open source amplicon clustering program that produced fine-scale molecular operational taxonomic units (OTUs), free of arbitrary global clustering thresholds and input-order dependency. Swarm v1 worked with an initial phase that used iterative single-linkage with a local clustering threshold (\textit{d}), followed by a phase that used the internal abundance structures of clusters to break chained OTUs. Here we present Swarm v2, which has two important novel features: (1) a new algorithm for \textit{d} = 1 that allows the computation time of the program to scale linearly with increasing amounts of data; and (2) the new fastidious option that reduces under-grouping by grafting low abundant OTUs (e.g., singletons and doubletons) onto larger ones. Swarm v2 also directly integrates the clustering and breaking phases, dereplicates sequencing reads with \textit{d} = 0, outputs OTU representatives in fasta format, and plots individual OTUs as two-dimensional networks.},
+ volume = {3},
+ pages = {e1420},
+ journal = {PeerJ},
+ issn = {2167-8359},
+ url = {https://doi.org/10.7717/peerj.1420},
+ doi = {10.7717/peerj.1420}
 }
