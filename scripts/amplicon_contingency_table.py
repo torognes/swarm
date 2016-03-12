@@ -8,8 +8,8 @@
 from __future__ import print_function
 
 __author__ = "Frédéric Mahé <mahe@rhrk.uni-kl.fr>"
-__date__ = "2015/03/15"
-__version__ = "$Revision: 2.0"
+__date__ = "2016/03/12"
+__version__ = "$Revision: 2.1"
 
 import os
 import sys
@@ -38,7 +38,7 @@ def fasta_parse():
         with open(fasta_file, "rU") as fasta_file:
             for line in fasta_file:
                 if line.startswith(">"):
-                    amplicon, abundance = line.strip(">\n").split(separator)
+                    amplicon, abundance = line.strip(">;\n").split(separator)
                     abundance = int(abundance)
                     if amplicon not in amplicons2samples:
                         amplicons2samples[amplicon] = {sample: abundance}
