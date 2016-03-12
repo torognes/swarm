@@ -20,8 +20,8 @@ algorithms, with arbitrary selection of global cluster size and
 cluster centroids. To address that problem, we developed \fBswarm\fR,
 a fast and robust method that recursively groups amplicons with
 \fId\fR or less differences. \fBswarm\fR produces natural and stable
-clusters centered on local peaks of abundance, free from centroid
-selection induced input-order dependency.
+clusters centered on local peaks of abundance, mostly free from
+input-order dependency induced by centroid selection.
 .PP
 Exact clustering is impractical on large data sets when using a naïve
 all-vs-all approach (more precisely a 2-combination without
@@ -60,22 +60,20 @@ other symbol is present.
 .\" ----------------------------------------------------------------------------
 .SS General options
 .TP 9
-.BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
-when using the option \-\-fastidious (\-f), define the minimum mass of
-a large OTU as the number given with this option. The default value is
-3, indicating that any OTU with mass 3 or more is considered "large".
-By default, an OTU is "small" if it has a mass of 2 or less, meaning
-that it is composed of either one amplicon of abundance 2, or two
-amplicons of abundance 1. Any positive value greater than 1 can be
-specified. Using higher boundary values will speed up the second pass,
-but also reduce the taxonomical resolution of \fBswarm\fR results.
+.B \-h\fP,\fB\ \-\-help
+display this help and exit.
 .TP
-.BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
-when using the option \-\-fastidious (\-f), define \fBswarm\fR's
-maximum memory footprint (in megabytes). \fBswarm\fR will adjust the
-\-\-bloom\-bits (\-y) value of the Bloom filter to fit within the
-specified amount of memory. That option is not active by default.
+.BI \-t\fP,\fB\ \-\-threads\~ "positive integer"
+number of computation threads to use. Values between 1 and 256 are
+accepted, but we recommend to use a number of threads lesser or equal
+to the number of available CPU cores. Default number of threads is 1.
 .TP
+.B \-v\fP,\fB\ \-\-version
+output version information and exit.
+.LP
+.\" ----------------------------------------------------------------------------
+.SS Clustering options
+.TP 9
 .BI \-d\fP,\fB\ \-\-differences\~ "zero or positive integer"
 maximum number of differences allowed between two amplicons, meaning
 that two amplicons will be grouped if they have \fIinteger\fR (or
@@ -83,37 +81,15 @@ less) differences. This is \fBswarm\fR's most important parameter. The
 number of differences is calculated as the number of mismatches
 (substitutions, insertions or deletions) between the two amplicons
 once the optimal pairwise global alignment has been found (see
-"pairwise alignment advanced options" to influencing that step). Any
+"pairwise alignment advanced options" to influence that step). Any
 \fIinteger\fR between 0 and 256 can be used, but high \fId\fR values
 will decrease the taxonomical resolution of \fBswarm\fR
 results. Commonly used \fId\fR values are 1, 2 or 3, rarely
 higher. When using \fId\fR = 0, \fBswarm\fR will output results
 corresponding to a strict dereplication of the dataset, i.e. merging
-identical amplicons. Warning, \fBswarm\fR still requires fasta entries
-to present abundance values. Default number of differences is 1.
-.TP
-.B \-f\fP,\fB\ \-\-fastidious
-when working with \fId\fR = 1, perform a second clustering pass to
-reduce the number of small OTUs (recommended option). During the
-clustering process with \fId\fR = 1, an intermediate amplicon can be
-missing for purely stochastic reasons, interrupting the aggregation
-process. That option will create virtual amplicons, allowing to graft
-small OTUs upon bigger ones. By default, an OTU is "small" if it has a
-mass of 2 or less (see the \-\-boundary option to increase that
-value). To speed things up, \fBswarm\fR uses a Bloom filter to store
-intermediate results. Warning, that second pass can be 2 to 3 times
-slower than the first pass and requires much more memory. See the
-options \-\-bloom\-bits (\-y) or \-\-ceiling (\-c) to control the
-memory footprint of the Bloom filter. Warning, the fastidious option
-modifies clustering results. The output files produced by the options
-\-\-log (\-l), \-\-output\-file (\-o), \-\-mothur (\-r),
-\-\-uclust\-file, and \-\-seeds (\-w) are updated to reflect these
-modifications; the file \-\-statistics\-file (\-s) is partially
-updated (columns 6 and 7 are not updated); the output file
-\-\-internal\-structure (\-i) is not updated.
-.TP
-.B \-h\fP,\fB\ \-\-help
-display this help and exit.
+identical amplicons. Warning, whatever the \fId\fR value, \fBswarm\fR
+requires fasta entries to present abundance values. Default number of
+differences is 1.
 .TP
 .B \-n\fP,\fB\ \-\-no\-otu\-breaking
 deactivate the built-in OTU refinement (not recommended). Amplicon
@@ -122,14 +98,46 @@ OTUs and to separate them, yielding higher-resolution clustering
 results. That option prevents that separation, and in practice, allows
 the creation of a link between amplicons A and B, even if the
 abundance of B is higher than the abundance of A.
+.LP
+.\" ----------------------------------------------------------------------------
+.SS Fastious options
+.TP 9
+.BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
+when using the option \-\-fastidious (\-f), define the minimum mass of
+a \fIlarge\fR OTU. By default, an OTU with a mass of 3 or more is
+considered large. Conversely, an OTU is small if it has a mass of less
+than 3, meaning that it is composed of either one amplicon of
+abundance 2, or two amplicons of abundance 1. Any positive value
+greater than 1 can be specified. Using higher boundary values will
+speed up the second pass, but also reduce the taxonomical resolution
+of \fBswarm\fR results. Default mass of a large OTU is 3.
 .TP
-.BI \-t\fP,\fB\ \-\-threads\~ "positive integer"
-number of computation threads to use. The number of threads should be
-lesser or equal to the number of available CPU cores. Default number
-of threads is 1.
+.BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
+when using the option \-\-fastidious (\-f), define \fBswarm\fR's
+maximum memory footprint (in megabytes). \fBswarm\fR will adjust the
+\-\-bloom\-bits (\-y) value of the Bloom filter to fit within the
+specified amount of memory.
 .TP
-.B \-v\fP,\fB\ \-\-version
-output version information and exit.
+.B \-f\fP,\fB\ \-\-fastidious
+when working with \fId\fR = 1, perform a second clustering pass to
+reduce the number of small OTUs (recommended option). During the first
+clustering pass, an intermediate amplicon can be missing for purely
+stochastic reasons, interrupting the aggregation process. The
+fastidious option will create virtual amplicons, allowing to graft
+small OTUs upon bigger ones. By default, an OTU is small if it has a
+mass of 2 or less (see the \-\-boundary option to modify that
+value). To speed things up, \fBswarm\fR uses a Bloom filter to store
+intermediate results. Warning, the second clustering pass can be 2 to
+3 times slower than the first pass and requires much more memory to
+store the virtual amplicons in Bloom filters. See the options
+\-\-bloom\-bits (\-y) or \-\-ceiling (\-c) to control the memory
+footprint of the Bloom filter. The fastidious option modifies
+clustering results: the output files produced by the options \-\-log
+(\-l), \-\-output\-file (\-o), \-\-mothur (\-r), \-\-uclust\-file, and
+\-\-seeds (\-w) are updated to reflect these modifications; the file
+\-\-statistics\-file (\-s) is partially updated (columns 6 and 7 are
+not updated); the output file \-\-internal\-structure (\-i) is not
+updated.
 .TP
 .BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
 when using the option \-\-fastidious (\-f), define the size (in bits)
@@ -183,7 +191,8 @@ in situations where writing to \fIstandard error\fR is problematic
 .BI \-o\fP,\fB\ \-\-output\-file \0filename
 output clustering results to \fIfilename\fR. Results consist of a list
 of OTUs, one OTU per line. An OTU is a list of amplicon identifiers
-separated by spaces. Default is to write to standard output.
+separated by spaces. That output format can be modified by the option
+\-\-mothur (\-r). Default is to write to standard output.
 .TP
 .B \-r\fP,\fB\ \-\-mothur
 output clustering results in a format compatible with Mothur. That
@@ -237,16 +246,16 @@ options modifying the pairwise global alignment scoring parameters:
 .RS
 .TP 9
 .BI \-m\fP,\fB\ \-\-match\-reward\~ "positive integer"
-set the reward for a nucleotide match. Default is 5.
+Default reward for a nucleotide match is 5.
 .TP
 .BI \-p\fP,\fB\ \-\-mismatch\-penalty\~ "positive integer"
-set the penalty for a nucleotide mismatch. Default is 4.
+Default penalty for a nucleotide mismatch is 4.
 .TP
 .BI \-g\fP,\fB\ \-\-gap\-opening\-penalty\~ "positive integer"
-set the gap open penalty. Default is 12.
+Default gap opening penalty is 12.
 .TP
 .BI \-e\fP,\fB\ \-\-gap\-extension\-penalty\~ "positive integer"
-set the gap extension penalty. Default is 4.
+Default gap extension penalty is 4.
 .LP
 .RE
 As \fBswarm\fR focuses on close relationships (e.g., \fId\fR = 2 or
