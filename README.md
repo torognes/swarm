@@ -41,48 +41,7 @@ Table of Content
 * [Contact](#contact)
 * [Third-party pipelines](#pipelines)
 * [Alternatives](#alternatives)
-* [New features](#features)
-  * [version 2.1.8](#version218)
-  * [version 2.1.7](#version217)
-  * [version 2.1.6](#version216)
-  * [version 2.1.5](#version215)
-  * [version 2.1.4](#version214)
-  * [version 2.1.3](#version213)
-  * [version 2.1.2](#version212)
-  * [version 2.1.1](#version211)
-  * [version 2.1.0](#version210)
-  * [version 2.0.7](#version207)
-  * [version 2.0.6](#version206)
-  * [version 2.0.5](#version205)
-  * [version 2.0.4](#version204)
-  * [version 2.0.3](#version203)
-  * [version 2.0.2](#version202)
-  * [version 2.0.1](#version201)
-  * [version 2.0.0](#version200)
-  * [version 1.2.21](#version1221)
-  * [version 1.2.20](#version1220)
-  * [version 1.2.19](#version1219)
-  * [version 1.2.18](#version1218)
-  * [version 1.2.17](#version1217)
-  * [version 1.2.16](#version1216)
-  * [version 1.2.15](#version1215)
-  * [version 1.2.14](#version1214)
-  * [version 1.2.13](#version1213)
-  * [version 1.2.12](#version1212)
-  * [version 1.2.11](#version1211)
-  * [version 1.2.10](#version1210)
-  * [version 1.2.9](#version129)
-  * [version 1.2.8](#version128)
-  * [version 1.2.7](#version127)
-  * [version 1.2.6](#version126)
-  * [version 1.2.5](#version125)
-  * [version 1.2.4](#version124)
-  * [version 1.2.3](#version123)
-  * [version 1.2.2](#version122)
-  * [version 1.2.1](#version121)
-  * [version 1.2.0](#version120)
-  * [version 1.1.1](#version111)
-  * [version 1.1.0](#version110)
+* [Version history](#history)
 
 <a name="common_misconceptions"/>
 ## Common misconceptions ##
@@ -124,7 +83,7 @@ Table of Content
 ./swarm amplicons.fasta
 ```
 
-That command will apply default parameters to the fasta file
+That command will apply default parameters (`-d 1`) to the fasta file
 `amplicons.fasta`. The fasta file must be formatted as follows:
 
 ```
@@ -136,7 +95,7 @@ cgtcgtcgtcgtcgt
 
 where sequence identifiers are unique and end with a value indicating
 the number of occurrences of the sequence (e.g., `_1000`). Alternative
-formats are possible, please see the
+format is possible with the option `-z`, please see the
 [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
 **requires** each fasta entry to present a number of occurrences to
 work properly. That crucial information can be produced during the
@@ -433,8 +392,9 @@ methods, here are some links:
 * [Sumaclust](http://metabarcoding.org/sumatra)
 * [Crunchclust](https://code.google.com/p/crunchclust/)
 
-<a name="features"/>
-## New features##
+
+<a name="history"/>
+## Version history##
 
 <a name="version218"/>
 ### version 2.1.8 ###
