@@ -3,13 +3,18 @@
 A robust and fast clustering method for amplicon-based studies.
 
 The purpose of **swarm** is to provide a novel clustering algorithm
-that handles massive sets of amplicons. Traditional clustering
-algorithms results are strongly input-order dependent, and rely on an
-arbitrary **global** clustering threshold. **swarm** results are
+that handles massive sets of amplicons. Results of traditional
+clustering algorithms are strongly input-order dependent, and rely on
+an arbitrary **global** clustering threshold. **swarm** results are
 resilient to input-order changes and rely on a small **local** linking
-threshold *d*, the maximum number of differences between two
-amplicons. **swarm** forms stable, high-resolution clusters, with a
-high yield of biological information.
+threshold *d*, representing the maximum number of differences between
+two amplicons. **swarm** forms stable, high-resolution clusters, with
+a high yield of biological information.
+
+To help users, we describe
+[a complete pipeline](https://github.com/frederic-mahe/swarm/wiki/Fred's-metabarcoding-pipeline)
+starting from raw fastq files, clustering with **swarm** and producing
+a filtered OTU table.
 
 **swarm** 2.0 introduces several novelties and improvements over
   swarm 1.0:
@@ -21,8 +26,8 @@ high yield of biological information.
 * a new option called *fastidious* that refines *d* = 1 results and
   reduces the number of small OTUs,
 
-Table of Content
-================
+Table of Contents
+=================
 
 * [Common misconceptions](#common_misconceptions)
 * [Quick start](#quick_start)
@@ -50,9 +55,9 @@ Table of Content
   similarities with other clustering methods (e.g.,
   [Huse et al, 2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/)). **swarm**'s
   novelty is its iterative growth process and the use of sequence
-  abundance values to delineate OTUs. Swarm properly delineates large
-  OTUs (high recall), while being able to distinguish OTUs with as
-  little as two differences between their centers (high precision).
+  abundance values to delineate OTUs. **swarm** properly delineates
+  large OTUs (high recall), and can distinguish OTUs with as little as
+  two differences between their centers (high precision).
 
 **swarm** uses a local clustering threshold (*d*), not a global
   clustering threshold like other algorithms do. Users may be tempted
@@ -162,7 +167,7 @@ converted to fasta.
 <a name="linearization"/>
 ### Linearization ###
 
-Swarm accepts wrapped fasta files as well as linear fasta
+**swarm** accepts wrapped fasta files as well as linear fasta
 files. However, linear fasta files where amplicons are written on two
 lines (one line for the fasta header, one line for the sequence) are
 easier to manipulate. For instance, many post-clustering queries can
@@ -239,9 +244,9 @@ you still want to run swarm, you can easily add fake abundance values:
 sed '/^>/ s/$/_1/' amplicons.fasta > amplicons_with_abundances.fasta
 ```
 
-Alternatively, you may specify a default abundance value with the
-`--append-abundance` (`-a`) option to be used when abundance information
-is missing from a sequence.
+Alternatively, you may specify a default abundance value with
+**swarm**'s `--append-abundance` (`-a`) option to be used when
+abundance information is missing from a sequence.
 
 <a name="launch"/>
 ### Launch swarm ###
@@ -252,11 +257,11 @@ Here is a typical way to use **swarm**:
 ./swarm -f -t 4 -w OTU_representatives.fasta amplicons.fasta > /dev/null
 ```
 
-Swarm will partition your dataset with the finest resolution (local
-number of differences *d* = 1 by default, built-in elimination of
-potential chained OTUs, fastidious processing) using 4 CPU-cores. OTU
-representatives will be written to a new fasta file, other results
-will be discarded (`/dev/null`).
+**swarm** will partition your dataset with the finest resolution
+(local number of differences *d* = 1 by default, built-in elimination
+of potential chained OTUs, fastidious processing) using 4
+CPU-cores. OTU representatives will be written to a new fasta file,
+other results will be discarded (`/dev/null`).
 
 See the
 [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)
@@ -276,12 +281,12 @@ that the amplicon fasta file was prepared as describe above
 ### Refine swarm OTUs ###
 
 The chain-breaking, which used to be performed in a second step in
-swarm 1.0, is now built-in and performed by default. It is possible to
-deactivate it with the `--no-otu-breaking` option, but it is not
-recommended. The fastidious option is recommended when using *d* = 1,
-as it will reduce the number of small OTUs while maintaining a high
-clustering resolution. The principle of the fastidious option is
-described in the figure below:
+**swarm** 1.0, is now built-in and performed by default. It is
+possible to deactivate it with the `--no-otu-breaking` option, but it
+is not recommended. The fastidious option is recommended when using
+*d* = 1, as it will reduce the number of small OTUs while maintaining
+a high clustering resolution. The principle of the fastidious option
+is described in the figure below:
 
 
 ![](https://github.com/frederic-mahe/swarm/blob/master/figures/swarm_2.0_fastidious_reduced.png)
