@@ -155,31 +155,31 @@ inline void dprofile_fill16(WORD * dprofile_word,
   "        xorq      %%r11, %%r11            \n" 
 
 #define ONESTEP(H, N, F, V, DIR)                        \
-  "        paddusw   "V", "H"                \n"        \
-  "        movdqa    "H", %%xmm13            \n"        \
-  "        pcmpgtw   "F", %%xmm13            \n"        \
+  "        paddusw   " V ", " H "            \n"        \
+  "        movdqa    " H ", %%xmm13          \n"        \
+  "        pcmpgtw   " F ", %%xmm13          \n"        \
   "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 0+"DIR"           \n"        \
-  "        pminsw    "F", "H"                \n"        \
-  "        pminsw    %%xmm12, "H"            \n"        \
-  "        movdqa    "H", %%xmm13            \n"        \
+  "        movw      %%dx, 0+" DIR "         \n"        \
+  "        pminsw    " F ", " H "            \n"        \
+  "        pminsw    %%xmm12, " H "          \n"        \
+  "        movdqa    " H ", %%xmm13          \n"        \
   "        pcmpeqw   %%xmm12, %%xmm13        \n"        \
   "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 2+"DIR"           \n"        \
-  "        movdqa    "H", "N"                \n"        \
-  "        paddusw   %%xmm14, "H"            \n"        \
-  "        paddusw   %%xmm15, "F"            \n"        \
+  "        movw      %%dx, 2+" DIR "         \n"        \
+  "        movdqa    " H ", " N "            \n"        \
+  "        paddusw   %%xmm14, " H "          \n"        \
+  "        paddusw   %%xmm15, " F "          \n"        \
   "        paddusw   %%xmm15, %%xmm12        \n"        \
-  "        movdqa    "H", %%xmm13            \n"        \
-  "        pcmpgtw   "F", %%xmm13            \n"        \
+  "        movdqa    " H ", %%xmm13          \n"        \
+  "        pcmpgtw   " F ", %%xmm13          \n"        \
   "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 4+"DIR"           \n"        \
-  "        movdqa    "H", %%xmm13            \n"        \
+  "        movw      %%dx, 4+" DIR "         \n"        \
+  "        movdqa    " H ", %%xmm13          \n"        \
   "        pcmpgtw   %%xmm12, %%xmm13        \n"        \
   "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 6+"DIR"           \n"        \
-  "        pminsw    "H", %%xmm12            \n"        \
-  "        pminsw    "H", "F"                \n"
+  "        movw      %%dx, 6+" DIR "         \n"        \
+  "        pminsw    " H ", %%xmm12          \n"        \
+  "        pminsw    " H ", " F "            \n"
 
 
 inline void donormal16(__m128i * Sm,

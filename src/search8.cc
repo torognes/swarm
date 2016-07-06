@@ -443,31 +443,31 @@ inline void dprofile_fill8(BYTE * dprofile,
 
 
 #define ONESTEP(H, N, F, V, DIR)                \
-  "        paddusb   "V", "H"              \n"  \
-  "        movdqa    "H", %%xmm13          \n"  \
-  "        pcmpgtb   "F", %%xmm13          \n"  \
+  "        paddusb   " V ", " H "          \n"  \
+  "        movdqa    " H ", %%xmm13        \n"  \
+  "        pcmpgtb   " F ", %%xmm13        \n"  \
   "        pmovmskb  %%xmm13, %%edx        \n"  \
-  "        movw      %%dx, 0+"DIR"         \n"  \
-  "        pminub    "F", "H"              \n"  \
-  "        pminub    %%xmm12, "H"          \n"  \
-  "        movdqa    "H", %%xmm13          \n"  \
+  "        movw      %%dx, 0+" DIR "       \n"  \
+  "        pminub    " F ", " H "          \n"  \
+  "        pminub    %%xmm12, " H "        \n"  \
+  "        movdqa    " H ", %%xmm13        \n"  \
   "        pcmpeqb   %%xmm12, %%xmm13      \n"  \
   "        pmovmskb  %%xmm13, %%edx        \n"  \
-  "        movw      %%dx, 2+"DIR"         \n"  \
-  "        movdqa    "H", "N"              \n"  \
-  "        paddusb   %%xmm14, "H"          \n"  \
-  "        paddusb   %%xmm15, "F"          \n"  \
+  "        movw      %%dx, 2+" DIR "       \n"  \
+  "        movdqa    " H ", " N "          \n"  \
+  "        paddusb   %%xmm14, " H "        \n"  \
+  "        paddusb   %%xmm15, " F "        \n"  \
   "        paddusb   %%xmm15, %%xmm12      \n"  \
-  "        movdqa    "H", %%xmm13          \n"  \
-  "        pcmpgtb   "F", %%xmm13          \n"  \
+  "        movdqa    " H ", %%xmm13        \n"  \
+  "        pcmpgtb   " F ", %%xmm13        \n"  \
   "        pmovmskb  %%xmm13, %%edx        \n"  \
-  "        movw      %%dx, 4+"DIR"         \n"  \
-  "        movdqa    "H", %%xmm13          \n"  \
+  "        movw      %%dx, 4+" DIR "       \n"  \
+  "        movdqa    " H ", %%xmm13        \n"  \
   "        pcmpgtb   %%xmm12, %%xmm13      \n"  \
   "        pmovmskb  %%xmm13, %%edx        \n"  \
-  "        movw      %%dx, 6+"DIR"         \n"  \
-  "        pminub    "H", %%xmm12          \n"  \
-  "        pminub    "H", "F"              \n"
+  "        movw      %%dx, 6+" DIR "       \n"  \
+  "        pminub    " H ", %%xmm12        \n"  \
+  "        pminub    " H ", " F "          \n"
 
 inline void donormal8(__m128i * Sm,
                       __m128i * hep,
