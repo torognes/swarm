@@ -5,15 +5,14 @@
     abundance). Requires the module igraph and python 2.7+.
 
     Limitations: amplicons grafted with the fastidious option will be
-    discarded and will not be visualized. The script does not deal
-    with ";size=" abundance annotations.
+    discarded and will not be visualized.
 """
 
 from __future__ import print_function
 
 __author__ = "Frédéric Mahé <mahe@rhrk.uni-kl.fr>"
-__date__ = "2015/04/22"
-__version__ = "$Revision: 3.0"
+__date__ = "2016/11/09"
+__version__ = "$Revision: 3.1"
 
 import sys
 import os.path
@@ -33,9 +32,9 @@ def option_parse():
     """
     desc = """Visualize the internal structure of a given OTU."""
 
-    parser = OptionParser(usage="usage: %prog -s FILE -i FILE -o INT",
+    parser = OptionParser(usage="usage: %prog -s FILE -i FILE [-o INT -d INT]",
                           description=desc,
-                          version="%prog version 2.0")
+                          version="%prog version 3.1")
 
     parser.add_option("-s", "--swarms",
                       metavar="<FILENAME>",
@@ -63,7 +62,8 @@ def option_parse():
                       type="int",
                       dest="drop",
                       default=0,
-                      help="Drop amplicons seen <INTEGER> or less times (0)")
+                      help="Drop amplicons seen <INTEGER> or less times \
+                            (zero by default)")
 
     (options, args) = parser.parse_args()
 
