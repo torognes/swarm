@@ -326,10 +326,11 @@ INPUT_FASTA="amplicons.fasta"
 OUTPUT_FOLDER="swarms_fasta"
 AMPLICONS=$(mktemp)
 mkdir "${OUTPUT_FOLDER}"
-while read swarm ; do
-    tr " " "\n" <<< "${swarm}" | sed -e 's/^/>/' > "${AMPLICONS}"
+while read OTU ; do
+    tr " " "\n" <<< "${OTU}" | sed -e 's/^/>/' > "${AMPLICONS}"
     seed=$(head -n 1 "${AMPLICONS}")
-    grep -A 1 -F -f "${AMPLICONS}" "${INPUT_FASTA}" | sed -e '/^--$/d' > "./${OUTPUT_FOLDER}/${seed/>/}.fasta"
+    grep -A 1 -F -f "${AMPLICONS}" "${INPUT_FASTA}" | \
+        sed -e '/^--$/d' > "./${OUTPUT_FOLDER}/${seed/>/}.fasta"
 done < "${INPUT_SWARM}"
 rm "${AMPLICONS}"
 ```
