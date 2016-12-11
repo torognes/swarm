@@ -318,7 +318,9 @@ filename` option.
 For each OTU, get the fasta sequences for all amplicons. Warning, this
 loop can generate a very large number of files. To limit the number of
 files, a test can be added to exclude swarms with less than *n*
-elements.
+elements. See
+[this wiki page](https://github.com/torognes/swarm/wiki/Get-fasta-sequences-for-all-amplicons-in-a-OTU)
+for more examples.
 
 ```sh
 INPUT_SWARM="amplicons.swarms"
