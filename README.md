@@ -404,6 +404,16 @@ methods, here are some links:
 <a name="history"/>
 ## Version history##
 
+<a name="version2110"/>
+### version 2.1.10 ###
+
+**swarm** 2.1.10 fixes two bugs related to gap penalties of
+alignments.  The first bug may lead to wrong aligments and similarity
+percentages reported in UCLUST (.uc) files. The second bug makes Swarm
+use a slightly higher gap extension penalty than specified. The
+default gap extension penalty used have actually been 4.5 instead of
+4.
+
 <a name="version219"/>
 ### version 2.1.9 ###
 

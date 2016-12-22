@@ -424,7 +424,7 @@ void algo_run()
               unsigned long nwalignmentlength = 0;
 
               nw(dseq, dend, qseq, qend, 
-                 score_matrix_63, gapopen, gapextend, 
+                 score_matrix_63, penalty_gapopen, penalty_gapextend,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                  dir, hearray, 0, 0);
               

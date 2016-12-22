@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "July 6, 2016" "version 2.1.9" "USER COMMANDS"
+.TH swarm 1 "December 22, 2016" "version 2.1.10" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -343,6 +343,13 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v2.1.10\~ "released December 22, 2016"
+Version 2.1.10 fixes two bugs related to gap penalties of alignments.
+The first bug may lead to wrong aligments and similarity percentages
+reported in UCLUST (.uc) files. The second bug makes Swarm use a
+slightly higher gap extension penalty than specified. The default gap
+extension penalty used have actually been 4.5 instead of 4.
 .TP
 .BR v2.1.9\~ "released July 6, 2016"
 Version 2.1.9 fixes errors when compiling with GCC version 6.

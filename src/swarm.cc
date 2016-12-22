@@ -526,7 +526,7 @@ int main(int argc, char** argv)
 
   penalty_mismatch = 2 * matchscore - 2 * mismatchscore;
   penalty_gapopen = 2 * gapopen;
-  penalty_gapextend = 2 * matchscore + gapextend;
+  penalty_gapextend = matchscore + 2 * gapextend;
 
   penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
   
