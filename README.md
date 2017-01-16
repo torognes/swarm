@@ -404,6 +404,11 @@ methods, here are some links:
 <a name="history"/>
 ## Version history##
 
+<a name="version2112"/>
+### version 2.1.12 ###
+
+**swarm** 2.1.12 removes a debugging message.
+
 <a name="version2111"/>
 ### version 2.1.11 ###
 

@@ -205,7 +205,7 @@ void algo_run()
 
           for(unsigned long t=0; t<targetcount; t++)
             {
-#if 1
+#if 0
               printf("seed: %lu target: %lu score: %lu "
                      "diffs: %lu alignlen: %lu bits: %lu\n",
                      seedampliconid,
