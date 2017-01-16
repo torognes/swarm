@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2016 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -128,8 +128,8 @@ inline void dprofile_fill16(WORD * dprofile_word,
    the vsearch codebase.
 */
 
-// Due to the use of pminsw instead of pminuw below, the code works
-// only with 15-bit values
+// Due to the use of pminsw instead of pminuw (which is sse4) below,
+// the code works only with 15-bit values
 
 #define INITIALIZE                                      \
   "        movq      %3, %%rax               \n"        \
@@ -139,14 +139,17 @@ inline void dprofile_fill16(WORD * dprofile_word,
   "        movq      %9, %%rax               \n"        \
   "        movdqa    (%%rax), %%xmm0         \n"        \
   "        movdqa    (%7), %%xmm7            \n"        \
+  "        movdqa    %%xmm7, %%xmm3          \n"        \
+  "        psubusw   %%xmm14, %%xmm3         \n"        \
+  "        movdqa    %%xmm3, %%xmm1          \n"        \
+  "        paddusw   %%xmm15, %%xmm3         \n"        \
+  "        movdqa    %%xmm3, %%xmm2          \n"        \
+  "        paddusw   %%xmm15, %%xmm3         \n"        \
   "        movdqa    %%xmm7, %%xmm4          \n"        \
-  "        movdqa    %%xmm7, %%xmm1          \n"        \
   "        paddusw   %%xmm15, %%xmm7         \n"        \
   "        movdqa    %%xmm7, %%xmm5          \n"        \
-  "        movdqa    %%xmm7, %%xmm2          \n"        \
   "        paddusw   %%xmm15, %%xmm7         \n"        \
   "        movdqa    %%xmm7, %%xmm6          \n"        \
-  "        movdqa    %%xmm7, %%xmm3          \n"        \
   "        paddusw   %%xmm15, %%xmm7         \n"        \
   "        movq      %5, %%r12               \n"        \
   "        shlq      $3, %%r12               \n"        \
@@ -280,7 +283,8 @@ inline void domasked16(__m128i * Sm,
                        __m128i * H0,
                        __m128i * Mm,
                        __m128i * MQ,
-                       __m128i * MR)
+                       __m128i * MR,
+                       __m128i * MQ0)
 {
   
   __asm__
@@ -298,6 +302,7 @@ inline void domasked16(__m128i * Sm,
      "        psubusw   (%10), %%xmm12           \n" // mask E
      "        paddusw   %%xmm13, %%xmm8          \n" // init N0
      "        paddusw   %%xmm13, %%xmm12         \n" // init E
+     "        paddusw   (%13), %%xmm12           \n" // fix E
      "        paddusw   (%12), %%xmm13           \n" // update
      "        movdqa    %%xmm13, (%11)           \n"
      
@@ -316,6 +321,7 @@ inline void domasked16(__m128i * Sm,
      "        psubusw   (%10), %%xmm12           \n" // mask E
      "        paddusw   %%xmm13, %%xmm0          \n"
      "        paddusw   %%xmm13, %%xmm12         \n"
+     "        paddusw   (%13), %%xmm12           \n" // fix E
      "        paddusw   (%12), %%xmm13           \n"
      "        movdqa    %%xmm13, (%11)           \n"
      
@@ -336,6 +342,7 @@ inline void domasked16(__m128i * Sm,
      "        movdqa    (%11), %%xmm13           \n"
      "        psubusw   (%10), %%xmm12           \n" // mask E
      "        paddusw   %%xmm13, %%xmm12         \n"
+     "        paddusw   (%13), %%xmm12           \n" // fix E
      "        paddusw   (%12), %%xmm13           \n"
      "        movdqa    %%xmm13, (%11)           \n"
      
@@ -368,7 +375,8 @@ inline void domasked16(__m128i * Sm,
      : "m"(Sm), "r"(hep),"r"(qp), "m"(Qm), 
        "m"(Rm), "r"(ql), "m"(Zm), "r"(F0),
        "r"(dir),
-       "m"(H0), "r"(Mm), "r"(MQ), "r"(MR)
+       "m"(H0), "r"(Mm), "r"(MQ), "r"(MR),
+       "r"(MQ0)
        
      : "xmm0",  "xmm1",  "xmm2",  "xmm3",
        "xmm4",  "xmm5",  "xmm6",  "xmm7",
@@ -402,18 +410,15 @@ unsigned long backtrack16(char * qseq,
   {
     for(unsigned long j=0; j<dlen; j++)
     {
-      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dir
-                                  buffersize];
-      if (d & maskup)
-      {
-        if (d & maskleft)
-          printf("+");
-        else
-          printf("^");
-      }
-      else if (d & maskleft)
+      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+                                   + 4*i + (j&3)) % dirbuffersize];
+      if (d & maskleft)
       {
         printf("<");
+      }
+      else if (d & maskup)
+      {
+        printf("^");
       }
       else
       {
@@ -429,8 +434,8 @@ unsigned long backtrack16(char * qseq,
   {
     for(unsigned long j=0; j<dlen; j++)
     {
-      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dir
-                                  buffersize];
+      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+                                   + 4*i + (j&3)) % dirbuffersize];
       if (d & maskextup)
       {
         if (d & maskextleft)
@@ -457,6 +462,11 @@ unsigned long backtrack16(char * qseq,
   unsigned long aligned = 0;
   unsigned long matches = 0;
   char op = 0;
+
+#undef SHOWALIGNMENT
+#ifdef SHOWALIGNMENT
+  printf("alignment, reversed: ");
+#endif
 
   while ((i>=0) && (j>=0))
   {
@@ -491,8 +501,34 @@ unsigned long backtrack16(char * qseq,
       j--;
       op = 'M';
     }
+
+#ifdef SHOWALIGNMENT
+    printf("%c", op);
+#endif
   }
-  aligned += i + j + 2;
+
+  while (i>=0)
+    {
+      aligned++;
+      i--;
+#ifdef SHOWALIGNMENT
+      printf("D");
+#endif
+    }
+
+  while (j>=0)
+    {
+      aligned++;
+      j--;
+#ifdef SHOWALIGNMENT
+      printf("I");
+#endif
+    }
+
+#ifdef SHOWALIGNMENT
+  printf("\n");
+#endif
+
   * alignmentlengthp = aligned;
   return aligned - matches;
 }
@@ -512,7 +548,7 @@ void search16(WORD * * q_start,
               unsigned long dirbuffersize,
               unsigned long * dirbuffer)
 {
-  __m128i Q, R, T, M, T0, MQ, MR;
+  __m128i Q, R, T, M, T0, MQ, MR, MQ0;
   __m128i *hep, **qp;
 
   BYTE * d_begin[CHANNELS];
@@ -672,7 +708,7 @@ void search16(WORD * * q_start,
             next_id++;
             
             ((WORD*)&H0)[c] = 0;
-            ((WORD*)&F0)[c] = gap_open_penalty + gap_extend_penalty;
+            ((WORD*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
             
             
             // fill channel
@@ -712,15 +748,18 @@ void search16(WORD * * q_start,
           
       MQ = _mm_and_si128(M, Q);
       MR = _mm_and_si128(M, R);
+      MQ0 = MQ;
       
-      domasked16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR);
+      domasked16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR,
+                 &MQ0);
     }
     
     F0 = _mm_adds_epu16(F0, R);
     F0 = _mm_adds_epu16(F0, R);
     F0 = _mm_adds_epu16(F0, R);
-    H0 = F0;
+    H0 = _mm_subs_epu16(F0, Q);
     F0 = _mm_adds_epu16(F0, R);
+
 
     dir += 4*longestdbsequence;
     

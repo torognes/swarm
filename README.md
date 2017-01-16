@@ -404,6 +404,13 @@ methods, here are some links:
 <a name="history"/>
 ## Version history##
 
+<a name="version2111"/>
+### version 2.1.11 ###
+
+**swarm** 2.1.11 fixes two bugs related to the SIMD implementation
+of alignment that might result in incorrect alignments and scores.
+The bug only applies when d>1.
+
 <a name="version2110"/>
 ### version 2.1.10 ###
 

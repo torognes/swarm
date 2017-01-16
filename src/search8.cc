@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2016 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -381,7 +381,7 @@ inline void dprofile_fill8(BYTE * dprofile,
     _mm_store_si128((__m128i*)(dprofile+16*j+1536+448), xmm15);
   }
 
-  //  dprofile_dump7(dprofile);
+  //  dprofile_dump8(dprofile);
 }
 
 
@@ -426,14 +426,17 @@ inline void dprofile_fill8(BYTE * dprofile,
   "        movq      %9, %%rax               \n"        \
   "        movdqa    (%%rax), %%xmm0         \n"        \
   "        movdqa    (%7), %%xmm7            \n"        \
+  "        movdqa    %%xmm7, %%xmm3          \n"        \
+  "        psubusb   %%xmm14, %%xmm3         \n"        \
+  "        movdqa    %%xmm3, %%xmm1          \n"        \
+  "        paddusb   %%xmm15, %%xmm3         \n"        \
+  "        movdqa    %%xmm3, %%xmm2          \n"        \
+  "        paddusb   %%xmm15, %%xmm3         \n"        \
   "        movdqa    %%xmm7, %%xmm4          \n"        \
-  "        movdqa    %%xmm7, %%xmm1          \n"        \
   "        paddusb   %%xmm15, %%xmm7         \n"        \
   "        movdqa    %%xmm7, %%xmm5          \n"        \
-  "        movdqa    %%xmm7, %%xmm2          \n"        \
   "        paddusb   %%xmm15, %%xmm7         \n"        \
   "        movdqa    %%xmm7, %%xmm6          \n"        \
-  "        movdqa    %%xmm7, %%xmm3          \n"        \
   "        paddusb   %%xmm15, %%xmm7         \n"        \
   "        movq      %5, %%r12               \n"        \
   "        shlq      $3, %%r12               \n"        \
@@ -441,14 +444,13 @@ inline void dprofile_fill8(BYTE * dprofile,
   "        andq      $-16, %%r10             \n"        \
   "        xorq      %%r11, %%r11            \n" 
 
-
 #define ONESTEP(H, N, F, V, DIR)                \
   "        paddusb   " V ", " H "          \n"  \
   "        movdqa    " H ", %%xmm13        \n"  \
-  "        pcmpgtb   " F ", %%xmm13        \n"  \
+  "        pminub    " F ", " H "          \n"  \
+  "        pcmpeqb   " H ", %%xmm13        \n"  \
   "        pmovmskb  %%xmm13, %%edx        \n"  \
   "        movw      %%dx, 0+" DIR "       \n"  \
-  "        pminub    " F ", " H "          \n"  \
   "        pminub    %%xmm12, " H "        \n"  \
   "        movdqa    " H ", %%xmm13        \n"  \
   "        pcmpeqb   %%xmm12, %%xmm13      \n"  \
@@ -459,15 +461,16 @@ inline void dprofile_fill8(BYTE * dprofile,
   "        paddusb   %%xmm15, " F "        \n"  \
   "        paddusb   %%xmm15, %%xmm12      \n"  \
   "        movdqa    " H ", %%xmm13        \n"  \
-  "        pcmpgtb   " F ", %%xmm13        \n"  \
+  "        pminub    " H ", " F "          \n"  \
+  "        pcmpeqb   " F ", %%xmm13        \n"  \
   "        pmovmskb  %%xmm13, %%edx        \n"  \
   "        movw      %%dx, 4+" DIR "       \n"  \
   "        movdqa    " H ", %%xmm13        \n"  \
-  "        pcmpgtb   %%xmm12, %%xmm13      \n"  \
-  "        pmovmskb  %%xmm13, %%edx        \n"  \
-  "        movw      %%dx, 6+" DIR "       \n"  \
   "        pminub    " H ", %%xmm12        \n"  \
-  "        pminub    " H ", " F "          \n"
+  "        pcmpeqb   %%xmm12, %%xmm13      \n"  \
+  "        pmovmskb  %%xmm13, %%edx        \n"  \
+  "        movw      %%dx, 6+" DIR "       \n"
+
 
 inline void donormal8(__m128i * Sm,
                       __m128i * hep,
@@ -567,7 +570,8 @@ inline void domasked8(__m128i * Sm,
                       __m128i * H0,
                       __m128i * Mm,
                       __m128i * MQ,
-                      __m128i * MR)
+                      __m128i * MR,
+                      __m128i * MQ0)
 {
   __asm__
     __volatile__
@@ -584,6 +588,7 @@ inline void domasked8(__m128i * Sm,
      "        psubusb   (%10), %%xmm12           \n" // mask E
      "        paddusb   %%xmm13, %%xmm8          \n" // init N0
      "        paddusb   %%xmm13, %%xmm12         \n" // init E
+     "        paddusb   (%13), %%xmm12           \n" // fix E
      "        paddusb   (%12), %%xmm13           \n" // update
      "        movdqa    %%xmm13, (%11)           \n"
      
@@ -602,6 +607,7 @@ inline void domasked8(__m128i * Sm,
      "        psubusb   (%10), %%xmm12           \n" // mask E
      "        paddusb   %%xmm13, %%xmm0          \n"
      "        paddusb   %%xmm13, %%xmm12         \n"
+     "        paddusb   (%13), %%xmm12           \n" // fix E
      "        paddusb   (%12), %%xmm13           \n"
      "        movdqa    %%xmm13, (%11)           \n"
      
@@ -622,6 +628,7 @@ inline void domasked8(__m128i * Sm,
      "        movdqa    (%11), %%xmm13           \n"
      "        psubusb   (%10), %%xmm12           \n" // mask E
      "        paddusb   %%xmm13, %%xmm12         \n"
+     "        paddusb   (%13), %%xmm12           \n" // fix E
      "        paddusb   (%12), %%xmm13           \n"
      "        movdqa    %%xmm13, (%11)           \n"
      
@@ -654,7 +661,7 @@ inline void domasked8(__m128i * Sm,
      : "m"(Sm), "r"(hep),"r"(qp), "m"(Qm), 
        "m"(Rm), "r"(ql), "m"(Zm), "r"(F0),
        "r"(dir),"m"(H0),
-       "r"(Mm), "r"(MQ), "r"(MR)
+       "r"(Mm), "r"(MQ), "r"(MR), "r"(MQ0)
        
      : "xmm0",  "xmm1",  "xmm2",  "xmm3",
        "xmm4",  "xmm5",  "xmm6",  "xmm7",
@@ -689,16 +696,13 @@ unsigned long backtrack(char * qseq,
     for(unsigned long j=0; j<dlen; j++)
     {
       unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dirbuffersize];
-      if (d & maskup)
-      {
-        if (d & maskleft)
-          printf("+");
-        else
-          printf("^");
-      }
-      else if (d & maskleft)
+      if (d & maskleft)
       {
         printf("<");
+      }
+      else if (!(d & maskup))
+      {
+          printf("^");
       }
       else
       {
@@ -714,15 +718,16 @@ unsigned long backtrack(char * qseq,
   {
     for(unsigned long j=0; j<dlen; j++)
     {
-      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dirbuffersize];
-      if (d & maskextup)
+      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+                                   + 4*i + (j&3)) % dirbuffersize];
+      if (!(d & maskextup))
       {
-        if (d & maskextleft)
+        if (!(d & maskextleft))
           printf("+");
         else
           printf("^");
       }
-      else if (d & maskextleft)
+      else if (!(d & maskextleft))
       {
         printf("<");
       }
@@ -742,18 +747,23 @@ unsigned long backtrack(char * qseq,
   unsigned long matches = 0;
   char op = 0;
 
+#undef SHOWALIGNMENT
+#ifdef SHOWALIGNMENT
+  printf("alignment, reversed: ");
+#endif
+
   while ((i>=0) && (j>=0))
   {
     aligned++;
 
-    unsigned long d = 
-      dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dirbuffersize];
+    unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+                                 + 4*i + (j&3)) % dirbuffersize];
 
-    if ((op == 'I') && (d & maskextleft))
+    if ((op == 'I') && (!(d & maskextleft)))
     {
       j--;
     }
-    else if ((op == 'D') && (d & maskextup))
+    else if ((op == 'D') && (!(d & maskextup)))
     {
       i--;
     }
@@ -762,7 +772,7 @@ unsigned long backtrack(char * qseq,
       j--;
       op = 'I';
     }
-    else if (d & maskup)
+    else if (!(d & maskup))
     {
       i--;
       op = 'D';
@@ -775,8 +785,35 @@ unsigned long backtrack(char * qseq,
       j--;
       op = 'M';
     }
+
+#ifdef SHOWALIGNMENT
+    printf("%c", op);
+#endif
+
   }
-  aligned += i + j + 2;
+
+  while (i>=0)
+    {
+      aligned++;
+      i--;
+#ifdef SHOWALIGNMENT
+      printf("D");
+#endif
+    }
+
+  while (j>=0)
+    {
+      aligned++;
+      j--;
+#ifdef SHOWALIGNMENT
+      printf("I");
+#endif
+    }
+
+#ifdef SHOWALIGNMENT
+  printf("\n");
+#endif
+
   * alignmentlengthp = aligned;
   return aligned - matches;
 }
@@ -796,7 +833,7 @@ void search8(BYTE * * q_start,
              unsigned long dirbuffersize,
              unsigned long * dirbuffer)
 {
-  __m128i Q, R, T, M, T0, MQ, MR;
+  __m128i Q, R, T, M, T0, MQ, MR, MQ0;
   __m128i *hep, **qp;
 
   BYTE * d_begin[CHANNELS];
@@ -954,7 +991,7 @@ void search8(BYTE * * q_start,
             next_id++;
             
             ((BYTE*)&H0)[c] = 0;
-            ((BYTE*)&F0)[c] = gap_open_penalty + gap_extend_penalty;
+            ((BYTE*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
             
             // fill channel
             for(int j=0; j<CDEPTH; j++)
@@ -993,15 +1030,18 @@ void search8(BYTE * * q_start,
 
       MQ = _mm_and_si128(M, Q);
       MR = _mm_and_si128(M, R);
+      MQ0 = MQ;
       
-      domasked8(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR);
+      domasked8(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR,
+                &MQ0);
     }
     
     F0 = _mm_adds_epu8(F0, R);
     F0 = _mm_adds_epu8(F0, R);
     F0 = _mm_adds_epu8(F0, R);
-    H0 = F0;
+    H0 = _mm_subs_epu8(F0, Q);
     F0 = _mm_adds_epu8(F0, R);
+
 
     dir += 4*longestdbsequence;
     if (dir >= dirbuffer + dirbuffersize)

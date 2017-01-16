@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2016 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -126,8 +126,8 @@ void search_chunk(struct search_data * sdp, long bits)
     unsigned long seqno = master_targets[sdp->target_index + i];
     db_getsequenceandlength(seqno, & dseq, & dlen);
 
-    nw(query.seq, query.seq + query.len,
-       dseq, dseq + dlen,
+    nw(dseq, dseq + dlen,
+       query.seq, query.seq + query.len,
        score_matrix_63,
        penalty_gapopen, penalty_gapextend,
        master_scores + sdp->target_index + i,
@@ -137,6 +137,10 @@ void search_chunk(struct search_data * sdp, long bits)
        (unsigned char *) sdp->dir_array,
        (unsigned long int *) sdp->hearray,
        query.qno, seqno);
+
+#if 0
+    printf("\nAlignment: %s\n", nwalignment);
+#endif
 
     free(nwalignment);
   }

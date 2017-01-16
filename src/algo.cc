@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2016 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -205,6 +205,17 @@ void algo_run()
 
           for(unsigned long t=0; t<targetcount; t++)
             {
+#if 1
+              printf("seed: %lu target: %lu score: %lu "
+                     "diffs: %lu alignlen: %lu bits: %lu\n",
+                     seedampliconid,
+                     targetampliconids[t],
+                     scores[t],
+                     diffs[t],
+                     alignlengths[t],
+                     bits);
+#endif
+
               unsigned diff = diffs[t];
 
               if (diff <= (unsigned long) resolution)
