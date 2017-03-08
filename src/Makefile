@@ -29,7 +29,7 @@ LIBS=-lpthread
 LINKFLAGS=$(COMMON)
 
 CXX=g++
-WARNINGS=-Wall -Wsign-compare -Wextra -Wpedantic -Wno-c++11-long-long
+WARNINGS=-Wall -Wsign-compare -Wextra -Wpedantic -Wno-long-long
 CXXFLAGS=$(COMMON) $(WARNINGS) -O3 -msse2 -mtune=core2 -Icityhash
 
 PROG=swarm
@@ -51,4 +51,4 @@ clean :
 	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o ../man/*~ ../*~
 
 ssse3.o : ssse3.cc $(DEPS)
-	$(CXX) -mssse3 $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<

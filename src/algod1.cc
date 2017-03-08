@@ -1231,7 +1231,7 @@ void algo_d1_run()
             }
 
           fprintf(logfile,
-                  "Bloom filter: bits=%ld, m=%ld, k=%ld, size=%.1lfMB\n",
+                  "Bloom filter: bits=%ld, m=%ld, k=%ld, size=%.1fMB\n",
                   bits, m, k, 1.0 * m / (8*1024*1024));
           
           bloomp = new BloomFilter(m, k);
