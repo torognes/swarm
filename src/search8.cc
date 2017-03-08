@@ -854,8 +854,7 @@ void search8(BYTE * * q_start,
   unsigned long next_id = 0;
   unsigned long done;
   
-  T0 = _mm_set_epi8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff);
+  T0 = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1);
   Q  = _mm_set1_epi8(gap_open_penalty+gap_extend_penalty);
   R  = _mm_set1_epi8(gap_extend_penalty);
 

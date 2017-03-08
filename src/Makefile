@@ -25,13 +25,12 @@
 #COMMON=-pg -g
 COMMON=-g
 
-COMPILEOPT=-Wall -Wsign-compare -O3 -msse2 -mtune=core2 -Icityhash
-
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
 
 CXX=g++
-CXXFLAGS=$(COMPILEOPT) $(COMMON)
+WARNINGS=-Wall -Wsign-compare -Wextra -Woverflow -Wunused-parameter
+CXXFLAGS=$(COMMON) $(WARNINGS) -O3 -msse2 -mtune=core2 -Icityhash
 
 PROG=swarm
 
@@ -40,11 +39,6 @@ OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 
 DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h \
 	threads.h
-
-.SUFFIXES:.o .cc
-
-%.o : %.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 all : $(PROG)
 

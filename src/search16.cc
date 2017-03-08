@@ -570,7 +570,7 @@ void search16(WORD * * q_start,
   unsigned long next_id = 0;
   unsigned long done;
   
-  T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, 0xffff);
+  T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
   Q  = _mm_set1_epi16(gap_open_penalty+gap_extend_penalty);
   R  = _mm_set1_epi16(gap_extend_penalty);
 

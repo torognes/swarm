@@ -468,7 +468,7 @@ void add_amp_to_swarm(int amp)
   swarm_breaker_info(amp);
 }
 
-void process_seed(int seed, int subseed)
+void process_seed(int subseed)
 {
   unsigned long seqlen = db_getsequencelen(subseed);
 
@@ -949,6 +949,8 @@ BloomFilter * bloomp;
 
 void mark_light_thread(long t)
 {
+  (void) t;
+
   char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
@@ -976,6 +978,8 @@ static long amplicons;
 
 void check_heavy_thread(long t)
 {
+  (void) t;
+
   char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
   char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
   pthread_mutex_lock(&heavy_mutex);
@@ -1071,7 +1075,7 @@ void algo_d1_run()
           global_hits_count = 0;
 
           /* find the first generation matches */
-          process_seed(seed, seed);
+          process_seed(seed);
 
           /* sort hits */
           qsort(global_hits_data, global_hits_count,
@@ -1089,7 +1093,7 @@ void algo_d1_run()
               global_hits_count = 0;
               while(subseed != NO_SWARM)
                 {
-                  process_seed(seed, subseed);
+                  process_seed(subseed);
                   update_stats(subseed);
                   subseed = ampinfo[subseed].next;
                 }
