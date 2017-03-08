@@ -404,6 +404,11 @@ methods, here are some links:
 <a name="history"/>
 ## Version history##
 
+<a name="version2113"/>
+### version 2.1.13 ###
+
+**swarm** 2.1.13 removes a bug in the progress bar when writing seeds.
+
 <a name="version2112"/>
 ### version 2.1.12 ###
 
