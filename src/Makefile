@@ -29,7 +29,7 @@ LIBS=-lpthread
 LINKFLAGS=$(COMMON)
 
 CXX=g++
-WARNINGS=-Wall -Wsign-compare -Wextra -Woverflow -Wunused-parameter
+WARNINGS=-Wall -Wsign-compare -Wextra -Wpedantic -Wno-c++11-long-long
 CXXFLAGS=$(COMMON) $(WARNINGS) -O3 -msse2 -mtune=core2 -Icityhash
 
 PROG=swarm
