@@ -1377,7 +1377,7 @@ void algo_d1_run()
 
   if (opt_seeds)
     {
-      progress_init("Writing seeds:    ", swarmcount_adjusted);
+      progress_init("Writing seeds:    ", swarmcount);
       for(int i=0; i < swarmcount; i++)
         {
           if (!swarminfo[i].attached)
