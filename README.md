@@ -1,4 +1,4 @@
-# swarm #
+# swarm
 
 A robust and fast clustering method for amplicon-based studies.
 
@@ -49,7 +49,7 @@ Table of Contents
 * [Version history](#history)
 
 <a name="common_misconceptions"/>
-## Common misconceptions ##
+## Common misconceptions
 
 **swarm** is a single-linkage clustering method, with some superficial
   similarities with other clustering methods (e.g.,
