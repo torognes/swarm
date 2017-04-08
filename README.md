@@ -16,8 +16,8 @@ To help users, we describe
 starting from raw fastq files, clustering with **swarm** and producing
 a filtered OTU table.
 
-**swarm** 2.0 introduces several novelties and improvements over
-  swarm 1.0:
+swarm 2.0 introduces several novelties and improvements over swarm
+1.0:
 * built-in breaking phase now performed automatically,
 * possibility to output OTU representatives in fasta format (option
   `-w`),
