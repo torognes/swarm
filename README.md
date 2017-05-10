@@ -48,7 +48,6 @@ Table of Contents
 * [Alternatives](#alternatives)
 * [Version history](#history)
 
-<a name="common_misconceptions"/>
 ## Common misconceptions
 
 **swarm** is a single-linkage clustering method, with some superficial
