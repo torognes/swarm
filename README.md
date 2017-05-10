@@ -29,27 +29,26 @@ swarm 2.0 introduces several novelties and improvements over swarm
 Table of Contents
 =================
 
-* [Common misconceptions](#common_misconceptions)
-* [Quick start](#quick_start)
-* [Install](#install)
-* [Prepare amplicon fasta files](#prepare_amplicon)
-  * [Linearization](#linearization)
-  * [Dereplication](#dereplication)
-  * [Launch swarm](#launch)
-* [Frequently asked questions](#FAQ)
-  * [Refine swarm OTUs](#refine_OTUs)
-  * [Count the number of amplicons per OTU](#OTU_sizes)
-  * [Get the seed sequence for each swarm](#extract_seeds)
-  * [Get fasta sequences for all amplicons in a swarm](#extract_all)
-* [Troubleshooting](#troubleshooting)
-* [Citation](#citation)
-* [Contact](#contact)
-* [Third-party pipelines](#pipelines)
-* [Alternatives](#alternatives)
-* [Version history](#history)
+* [Common misconceptions](https://github.com/torognes/swarm#common_misconceptions)
+* [Quick start](https://github.com/torognes/swarm#quick_start)
+* [Install](https://github.com/torognes/swarm#install)
+* [Prepare amplicon fasta files](https://github.com/torognes/swarm#prepare_amplicon)
+  * [Linearization](https://github.com/torognes/swarm#linearization)
+  * [Dereplication](https://github.com/torognes/swarm#dereplication)
+  * [Launch swarm](https://github.com/torognes/swarm#launch)
+* [Frequently asked questions](https://github.com/torognes/swarm#FAQ)
+  * [Refine swarm OTUs](https://github.com/torognes/swarm#refine_OTUs)
+  * [Count the number of amplicons per OTU](https://github.com/torognes/swarm#OTU_sizes)
+  * [Get the seed sequence for each swarm](https://github.com/torognes/swarm#extract_seeds)
+  * [Get fasta sequences for all amplicons in a swarm](https://github.com/torognes/swarm#extract_all)
+* [Troubleshooting](https://github.com/torognes/swarm#troubleshooting)
+* [Citation](https://github.com/torognes/swarm#citation)
+* [Contact](https://github.com/torognes/swarm#contact)
+* [Third-party pipelines](https://github.com/torognes/swarm#pipelines)
+* [Alternatives](https://github.com/torognes/swarm#alternatives)
+* [Version history](https://github.com/torognes/swarm#history)
 
 ## Common misconceptions
-<a name="common_misconceptions"/>
 
 **swarm** is a single-linkage clustering method, with some superficial
   similarities with other clustering methods (e.g.,
@@ -80,7 +79,6 @@ Table of Contents
 
 
 ## Quick start
-<a name="quick_start"/>
 
 **swarm** most simple usage is:
 
@@ -117,7 +115,6 @@ can increase significantly. See options `-c` and `-y` to control and
 cap swarm's memory consumption.
 
 
-<a name="install"/>
 ## Install ##
 
 Get the latest binaries for GNU/Linux or MacOSX from
@@ -149,7 +146,6 @@ Once installed, the man page can be accessed with the command `man
 swarm`.
 
 
-<a name="prepare_amplicon"/>
 ## Prepare amplicon fasta files ##
 
 To facilitate the use of **swarm**, we provide examples of shell
@@ -164,7 +160,6 @@ from adaptors and primers (with
 converted to fasta.
 
 
-<a name="linearization"/>
 ### Linearization ###
 
 **swarm** accepts wrapped fasta files as well as linear fasta
@@ -180,7 +175,6 @@ awk 'NR==1 {print ; next} {printf /^>/ ? "\n"$0"\n" : $1} END {printf "\n"}' amp
 ```
 
 
-<a name="dereplication"/>
 ### Dereplication (mandatory) ###
 
 In a sample, or collection of sample, a given sequence is likely to
@@ -248,7 +242,7 @@ Alternatively, you may specify a default abundance value with
 **swarm**'s `--append-abundance` (`-a`) option to be used when
 abundance information is missing from a sequence.
 
-<a name="launch"/>
+
 ### Launch swarm ###
 
 Here is a typical way to use **swarm**:
@@ -268,7 +262,6 @@ See the
 for details on swarm's options and parameters.
 
 
-<a name="FAQ"/>
 ## Frequently asked questions ##
 
 To facilitate the use of **swarm**, we provide examples of options or
@@ -277,7 +270,6 @@ that the amplicon fasta file was prepared as describe above
 (linearization and dereplication).
 
 
-<a name="refine_OTUs"/>
 ### Refine swarm OTUs ###
 
 The chain-breaking, which used to be performed in a second step in
@@ -292,7 +284,6 @@ is described in the figure below:
 ![](https://github.com/frederic-mahe/swarm/blob/master/figures/swarm_2.0_fastidious_reduced.png)
 
 
-<a name="OTU_sizes"/>
 ### Count the number of amplicons per OTU ###
 
 You might want to check the size distribution of OTUs (number of
@@ -303,7 +294,6 @@ represents an OTU and provides different metrics. See the manual for a
 complete description.
 
 
-<a name="extract_seeds"/>
 ### Get the seed sequence for each OTU ###
 
 It is frequent for subsequent analyses to keep only one representative
@@ -312,7 +302,6 @@ burden. That operation is easily done with **swarm** by using the `-w
 filename` option.
 
 
-<a name="extract_all"/>
 ### Get fasta sequences for all amplicons in a OTU ###
 
 For each OTU, get the fasta sequences for all amplicons. Warning, this
@@ -338,7 +327,6 @@ rm "${AMPLICONS}"
 ```
 
 
-<a name="troubleshooting"/>
 ## Troubleshooting ##
 
 If **swarm** exits with an error message saying `This program
@@ -348,7 +336,6 @@ on CPUs with the SSE2 instructions, i.e. most Intel and AMD CPUs
 released since 2004.
 
 
-<a name="citation"/>
 ## Citation ##
 
 To cite **swarm**, please refer to:
@@ -362,7 +349,6 @@ Swarm v2: highly-scalable and high-resolution amplicon clustering.
 PeerJ 3:e1420 doi: [10.7717/peerj.1420](http://dx.doi.org/10.7717/peerj.1420)
 
 
-<a name="contact"/>
 ## Contact ##
 
 You are welcome to:
@@ -372,7 +358,6 @@ You are welcome to:
 * compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
 
 
-<a name="pipelines"/>
 ## Third-party pipelines ##
 
 **swarm** is available in third-party pipelines:
@@ -388,7 +373,6 @@ You are welcome to:
   performing microbiome analysis from raw DNA sequencing data.
 
 
-<a name="alternatives"/>
 ## Alternatives ##
 
 If you want to try alternative free and open-source clustering
@@ -401,27 +385,22 @@ methods, here are some links:
 * [Crunchclust](https://code.google.com/p/crunchclust/)
 
 
-<a name="history"/>
 ## Version history##
 
-<a name="version2113"/>
 ### version 2.1.13 ###
 
 **swarm** 2.1.13 removes a bug in the progress bar when writing seeds.
 
-<a name="version2112"/>
 ### version 2.1.12 ###
 
 **swarm** 2.1.12 removes a debugging message.
 
-<a name="version2111"/>
 ### version 2.1.11 ###
 
 **swarm** 2.1.11 fixes two bugs related to the SIMD implementation
 of alignment that might result in incorrect alignments and scores.
 The bug only applies when d>1.
 
-<a name="version2110"/>
 ### version 2.1.10 ###
 
 **swarm** 2.1.10 fixes two bugs related to gap penalties of
@@ -431,47 +410,39 @@ use a slightly higher gap extension penalty than specified. The
 default gap extension penalty used have actually been 4.5 instead of
 4.
 
-<a name="version219"/>
 ### version 2.1.9 ###
 
 **swarm** 2.1.9 fixes a problem when compiling with GCC version 6.
 
-<a name="version218"/>
 ### version 2.1.8 ###
 
 **swarm** 2.1.8 fixes a rare bug triggered when clustering extremely
 short undereplicated sequences. Also, alignment parameters are not
 shown when d=1.
 
-<a name="version217"/>
 ### version 2.1.7 ###
 
 **swarm** 2.1.7 fixes more problems with seed output. Ignore CR
   characters in FASTA files. Improved help and error messsages.
 
-<a name="version216"/>
 ### version 2.1.6 ###
 
 **swarm** 2.1.6 fixes problems with older compilers that do not have
 the x86intrin.h header file. It also fixes a bug in the output of seeds
 with the `-w` option when d>1.
 
-<a name="version215"/>
 ### version 2.1.5 ###
 
 **swarm** 2.1.5 fixes minor bugs.
 
-<a name="version214"/>
 ### version 2.1.4 ###
 
 **swarm** 2.1.4 fixes minor bugs in the swarm algorithm used for d=1.
 
-<a name="version213"/>
 ### version 2.1.3 ###
 
 **swarm** 2.1.3 adds checks of numeric option arguments.
 
-<a name="version212"/>
 ### version 2.1.2 ###
 
 **swarm** 2.1.2 adds the -a (--append-abundance) option to set a
@@ -480,29 +451,24 @@ missing from the input file. If this option is not specified, missing
 abundance information will result in a fatal error. The error message
 in that case is improved.
 
-<a name="version211"/>
 ### version 2.1.1 ###
 
 **swarm** 2.1.1 fixes a bug with the fastidious option that caused it
 to ignore some connections between heavy and light swarms.
 
-<a name="version210"/>
 ### version 2.1.0 ###
 
 **swarm** 2.1.0 marks the first official release of swarm 2.
 
-<a name="version207"/>
 ### version 2.0.7 ###
 
 **swarm** 2.0.7 writes abundance information in usearch style when using
 options `-w` (`--seeds`) in combination with `-z` (`--usearch-abundance`).
 
-<a name="version206"/>
 ### version 2.0.6 ###
 
 **swarm** 2.0.6 fixes a minor bug.
 
-<a name="version205"/>
 ### version 2.0.5 ###
 
 **swarm** 2.0.5 improves the implementation of the fastidious option
@@ -512,41 +478,34 @@ representatives sequences with updated abundances (sum of all
 abundances inside each OTU). This version also enables dereplication
 when `d = 0`.
 
-<a name="version204"/>
 ### version 2.0.4 ###
 
 **swarm** 2.0.4 includes a fully parallelized fastidious option.
 
-<a name="version203"/>
 ### version 2.0.3 ###
 
 **swarm** 2.0.3 includes a working fastidious option.
 
-<a name="version202"/>
 ### version 2.0.2 ###
 
 **swarm** 2.0.2 fixes SSSE3 problems.
 
-<a name="version201"/>
 ### version 2.0.1 ###
 
 **swarm** 2.0.1 is a development release that partially implements the 
 fastidious option.
 
-<a name="version200"/>
 ### version 2.0.0 ###
 
 **swarm** 2.0.0 simplifies the usage of swarm by using the fast
 algorithm and the built-in OTU breaking by default. Some options are
 changed and some new output options are introduced.
 
-<a name="version1221"/>
 ### version 1.2.21 ###
 
 **swarm** 1.2.21 is supposed to fix some problems related to the use of the
 SSSE3 CPU instructions which are not always available.
 
-<a name="version1220"/>
 ### version 1.2.20 ###
 
 **swarm** 1.2.20 presents a production-ready version of the
@@ -559,32 +518,27 @@ rigourously identical to the results previously produced with
 swarm. That release also introduces new options to control swarm
 output (options `-i` and `-l`).
 
-<a name="version1219"/>
 ### version 1.2.19 ###
 
 **swarm** 1.2.19 fixes a problem related to abundance information when
   the sequence identifier includes multiple underscore characters.
 
-<a name="version1218"/>
 ### version 1.2.18 ###
 
 **swarm** 1.2.18 reenables the possibility of reading sequences from
   `stdin` if no file name is specified on the command line. It also
   fixes a bug related to CPU features detection.
 
-<a name="version1217"/>
 ### version 1.2.17 ###
 
 **swarm** 1.2.17 fixes a memory allocation bug introduced in
   version 1.2.15.
 
-<a name="version1216"/>
 ### version 1.2.16 ###
 
 **swarm** 1.2.16 fixes a bug in the abundance sort introduced in
   version 1.2.15.
 
-<a name="version1215"/>
 ### version 1.2.15 ###
 
 **swarm** 1.2.15 sorts the input sequences in order of decreasing
@@ -592,29 +546,24 @@ output (options `-i` and `-l`).
   the alternative algorithm for *d* = 1 it also sorts all subseeds in
   order of decreasing abundance.
 
-<a name="version1214"/>
 ### version 1.2.14 ###
 
 **swarm** 1.2.14 fixes a bug in the output with the swarm breaker
   option (`-b`) when using the alternative algorithm (`-a`).
 
-<a name="version1213"/>
 ### version 1.2.13 ###
 
 **swarm** 1.2.13 updates the citation.
 
-<a name="version1212"/>
 ### version 1.2.12 ###
 
 **swarm** 1.2.12 improves speed of new search strategy for *d* = 1.
 
-<a name="version1211"/>
 ### version 1.2.11 ###
 
 **swarm** 1.2.11 corrects the number of differences reported in the
   break swarms output.
 
-<a name="version1210"/>
 ### version 1.2.10 ###
 
 **swarm** 1.2.10 allows amplicon abundances to be specified using the
@@ -622,7 +571,6 @@ output (options `-i` and `-l`).
   `-z` option is chosen. Also fixes the bad URL shown in the previous
   version of swarm.
 
-<a name="version129"/>
 ### version 1.2.9 ###
 
 **swarm** 1.2.9 includes a parallelized variant of the new search
@@ -635,7 +583,6 @@ output (options `-i` and `-l`).
   differences between the seed and the amplicon is indicated in the
   last column.
 
-<a name="version128"/>
 ### version 1.2.8 ###
 
 **swarm** 1.2.8 fixes an error with the gap extension
@@ -646,13 +593,11 @@ output (options `-i` and `-l`).
   sequences or more. The new strategy can be turned on with the `-a`
   option.
 
-<a name="version127"/>
 ### version 1.2.7 ###
 
 **swarm** 1.2.7 incorporates a few small changes and improvements to
   make it ready for integration into QIIME.
 
-<a name="version126"/>
 ### version 1.2.6 ###
 
 **swarm** 1.2.6 add an option (`-r` or `--mothur`) to format the
@@ -661,7 +606,6 @@ output (options `-i` and `-l`).
   input sequences it will now report the illegal character and the
   line number.
 
-<a name="version125"/>
 ### version 1.2.5 ###
 
 **swarm** 1.2.5 can be run on CPUs without the POPCNT feature. It
@@ -669,7 +613,6 @@ output (options `-i` and `-l`).
   the appropriate code.  The code that avoids POPCNT is just slightly
   slower. Only basic SSE2 is now required.
 
-<a name="version124"/>
 ### version 1.2.4 ###
 
 **swarm** 1.2.4 changes the name of the new option from
@@ -677,7 +620,6 @@ output (options `-i` and `-l`).
   options, and also adds a companion script `swarm_breaker.py` to
   refine swarm results (`scripts` folder).
 
-<a name="version123"/>
 ### version 1.2.3 ###
 
 **swarm** 1.2.3 adds an option (`-b` or `--break_swarms`) to output
@@ -686,20 +628,18 @@ output (options `-i` and `-l`).
   the inline assembly code is also changed for compatibility with more
   compilers.
 
-<a name="version122"/>
 ### version 1.2.2 ###
 
 **swarm** 1.2.2 fixes an issue with incorrect values in the statistics
   file (maximum generation and radius of swarms). This version is also
   a bit faster.
 
-<a name="version121"/>
 ### version 1.2.1 ###
 
 **swarm** 1.2.1 removes the need for a SSE4.1 capable CPU and should
   now be able to run on most servers, desktops and laptops.
 
-<a name="version120"/>
+
 ### version 1.2.0 ###
 
 **swarm** 1.2.0 introduces a pre-filtering of similar amplicons based
@@ -710,7 +650,7 @@ output (options `-i` and `-l`).
   a computational overhead, but becomes more and more efficient as the
   size of the amplicon set increases.
 
-<a name="version111"/>
+
 ### version 1.1.1 ###
 
 **swarm** now works on Apple computers. This version also corrects an
@@ -718,7 +658,7 @@ output (options `-i` and `-l`).
   sub-optimal alignments. Slightly different alignments may result
   relative to previous version, giving slightly different swarms.
 
-<a name="version110"/>
+
 ### version 1.1.0 ###
 
 **swarm** 1.1.0 introduces new optimizations and is 20% faster than
