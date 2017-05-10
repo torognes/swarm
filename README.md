@@ -26,28 +26,6 @@ swarm 2.0 introduces several novelties and improvements over swarm
 * a new option called *fastidious* that refines *d* = 1 results and
   reduces the number of small OTUs,
 
-Table of Contents
-=================
-
-* [Common misconceptions](https://github.com/torognes/swarm#common_misconceptions)
-* [Quick start](https://github.com/torognes/swarm#quick_start)
-* [Install](https://github.com/torognes/swarm#install)
-* [Prepare amplicon fasta files](https://github.com/torognes/swarm#prepare_amplicon)
-  * [Linearization](https://github.com/torognes/swarm#linearization)
-  * [Dereplication](https://github.com/torognes/swarm#dereplication)
-  * [Launch swarm](https://github.com/torognes/swarm#launch)
-* [Frequently asked questions](https://github.com/torognes/swarm#FAQ)
-  * [Refine swarm OTUs](https://github.com/torognes/swarm#refine_OTUs)
-  * [Count the number of amplicons per OTU](https://github.com/torognes/swarm#OTU_sizes)
-  * [Get the seed sequence for each swarm](https://github.com/torognes/swarm#extract_seeds)
-  * [Get fasta sequences for all amplicons in a swarm](https://github.com/torognes/swarm#extract_all)
-* [Troubleshooting](https://github.com/torognes/swarm#troubleshooting)
-* [Citation](https://github.com/torognes/swarm#citation)
-* [Contact](https://github.com/torognes/swarm#contact)
-* [Third-party pipelines](https://github.com/torognes/swarm#pipelines)
-* [Alternatives](https://github.com/torognes/swarm#alternatives)
-* [Version history](https://github.com/torognes/swarm#history)
-
 ## Common misconceptions
 
 **swarm** is a single-linkage clustering method, with some superficial
