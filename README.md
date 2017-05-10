@@ -49,6 +49,7 @@ Table of Contents
 * [Version history](#history)
 
 ## Common misconceptions
+<a name="common_misconceptions"/>
 
 **swarm** is a single-linkage clustering method, with some superficial
   similarities with other clustering methods (e.g.,
@@ -78,8 +79,8 @@ Table of Contents
   that molecular markers have limitations too.
 
 
+## Quick start
 <a name="quick_start"/>
-## Quick start ##
 
 **swarm** most simple usage is:
 
