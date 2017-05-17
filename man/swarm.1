@@ -42,8 +42,9 @@ extremely fast Needleman-Wunsch algorithm making use of the Streaming
 SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are
 not available, \fBswarm\fR exits with an error message.
 .PP
-\fBswarm\fR reads the named input \fIfilename\fR, a fasta file of
-nucleotide amplicons. The amplicon identifier is defined as the string
+\fBswarm\fR can read nucleotide amplicons in fasta format from a
+normal file or from the standard input (using a pipe or a
+redirection). The amplicon identifier is defined as the string
 comprised between the '>' symbol and the first space or the end of the
 line, whichever comes first. As \fBswarm\fR outputs lists of amplicon
 identifiers, amplicon identifiers must be unique to avoid ambiguity;
@@ -54,10 +55,11 @@ annotation; usearch/vsearch users can use the option \-z to use the
 ';size=' annotation). Abundance annotations play a crucial role in the
 clustering process, and swarm exits with an error message if that
 information is not available. The amplicon sequence is defined as a
-string of [acgt] or [acgu] symbols (case insensitive), starting after
-the end of the identifier line and ending before the next identifier
-line or the file end; \fBswarm\fR exits with an error message if any
-other symbol is present.
+string of [acgt] or [acgu] symbols (case insensitive, 'u' is replaced
+with 't' internally), starting after the end of the identifier line
+and ending before the next identifier line or the file end;
+\fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
+exits with an error message if any other symbol is present.
 .\" ----------------------------------------------------------------------------
 .SS General options
 .TP 9
