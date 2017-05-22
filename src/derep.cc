@@ -345,7 +345,7 @@ void dereplicate()
           fprint_id_noabundance(statsfile, sp->seqno_first);
           fprintf(statsfile, "\t%lu\t%u\t%u\t%u\n", 
                   db_getabundance(sp->seqno_first),
-                  sp->singletons, 0, 0);
+                  sp->singletons, (unsigned int)0, (unsigned int)0);
           progress_update(i);
         }
       progress_done();
