@@ -263,11 +263,11 @@ void db_read(const char * filename)
 
       while (line[0] && (line[0] != '>'))
         {
-          char m;
           char c;
           char * p = line;
           while((c = *p++))
 	    {
+	    char m;
             if ((m = map_nt[(int)c]) >= 0)
               {
                 while (datalen >= dataalloc)
