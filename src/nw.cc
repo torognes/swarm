@@ -125,7 +125,6 @@ void nw(char * dseq,
      hearray must point to at least 2*qlen longs of allocated memory (8*qlen bytes) */
 
   long n, e;
-  long unsigned *hep;
 
   long qlen = qend - qseq;
   long dlen = dend - dseq;
@@ -142,6 +141,7 @@ void nw(char * dseq,
 
   for(j=0; j<dlen; j++)
   {
+    long unsigned *hep;
     hep = hearray;
     long f = 2 * gapopen + (j+2) * gapextend;
     long h = (j == 0) ? 0 : (gapopen + j * gapextend);
