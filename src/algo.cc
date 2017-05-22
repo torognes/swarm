@@ -62,7 +62,6 @@ void algo_run()
 #endif
 
   unsigned long largestswarm = 0;
-  unsigned long swarmsize = 0;
 
   unsigned long maxgenerations = 0;
 
@@ -131,6 +130,7 @@ void algo_run()
       
       swarmid++;
 
+      unsigned long swarmsize = 0;
       unsigned long amplicons_copies = 0;
       unsigned long singletons = 0;
       unsigned long hitcount = 0;
