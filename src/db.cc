@@ -267,6 +267,7 @@ void db_read(const char * filename)
           char c;
           char * p = line;
           while((c = *p++))
+	    {
             if ((m = map_nt[(int)c]) >= 0)
               {
                 while (datalen >= dataalloc)
@@ -287,6 +288,7 @@ void db_read(const char * filename)
                   snprintf(msg, 100, "Illegal character (ascii no %d) in sequence on line %u", c, lineno);
                 fatal(msg);
               }
+	    }
           line[0] = 0;
           if (!fgets(line, LINEALLOC, fp))
             line[0] = 0;
