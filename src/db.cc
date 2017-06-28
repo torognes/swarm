@@ -354,6 +354,7 @@ void db_read(const char * filename)
   int presorted = 1;
   int missingabundance = 0;
   unsigned int missingabundance_lineno = 0;
+  char * missingabundance_header = 0;
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
@@ -393,7 +394,10 @@ void db_read(const char * filename)
             {
               missingabundance++;
               if (missingabundance == 1)
-                missingabundance_lineno = lineno;
+                {
+                  missingabundance_lineno = lineno;
+                  missingabundance_header = seqindex_p->header;
+                }
             }
         }
 
@@ -439,12 +443,16 @@ void db_read(const char * filename)
     {
       char * msg;
       if (xsprintf(&msg,
-                   "Abundance annotations not found for %d sequences, starting on line %u.\n"
+                   "Abundance annotations not found for %d sequences, starting on line %u:\n"
+                   ">%s\n"
                    "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
                    "The -z option must be used if the abundance annotation is in the latter format.\n"
-                   "Abundance annotations can be produced by dereplicating the sequences.\n",
+                   "Abundance annotations can be produced by dereplicating the sequences.\n"
+                   "The header is defined as the string comprised between the \">\" symbol\n"
+                   "and the first space or the end of the line, whichever comes first.\n",
                    missingabundance,
-                   missingabundance_lineno) == -1)
+                   missingabundance_lineno,
+                   missingabundance_header) == -1)
         fatal("Out of memory");
       else
         fatal(msg);
