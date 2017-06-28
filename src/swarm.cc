@@ -337,9 +337,10 @@ void args_init(int argc, char **argv)
               }
 
             fprintf(stderr,
-                    "WARNING: Option -%c or --%s specified more than once.\n",
+                    "Error: Option -%c or --%s specified more than once.\n",
                     c,
                     long_options[longoptindex].name);
+            exit(1);
           }
         used_options[optindex]++;
       }
