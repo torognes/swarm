@@ -94,10 +94,17 @@ FILE * fp_seeds = 0;
 
 char sym_nt[] = "-acgt                           ";
 
-#define cpuid(f1, f2, a, b, c, d)                                       \
-  __asm__ __volatile__ ("cpuid"                                         \
-                        : "=a" (a), "=b" (b), "=c" (c), "=d" (d)        \
+void cpuid(unsigned int f1,
+           unsigned int f2,
+           unsigned int & a,
+           unsigned int & b,
+           unsigned int & c,
+           unsigned int & d)
+{
+  __asm__ __volatile__ ("cpuid"
+                        : "=a" (a), "=b" (b), "=c" (c), "=d" (d)
                         : "a" (f1), "c" (f2));
+}
 
 void cpu_features_detect()
 {

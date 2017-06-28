@@ -29,7 +29,7 @@ class Bitmap
   
  public:
 
-  Bitmap(size_t _size)
+  explicit Bitmap(size_t _size)
   {
     size = _size;
     data = (unsigned char *) xmalloc((size+7)/8);

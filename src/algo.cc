@@ -55,9 +55,8 @@ void algo_run()
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
 
-  unsigned long searches = 0;
-
 #ifdef VERBOSE
+  unsigned long searches = 0;
   unsigned long estimates = 0;
 #endif
 
@@ -196,7 +195,9 @@ void algo_run()
         {
           search_do(seedampliconid, targetcount, targetampliconids, 
                     scores, diffs, alignlengths, bits);
+#ifdef VERBOSE
           searches++;
+#endif
 
           if (bits == 8)
             count_comparisons_8 += targetcount;
@@ -324,7 +325,9 @@ void algo_run()
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids, 
                             scores, diffs, alignlengths, bits);
+#ifdef VERBOSE
                   searches++;
+#endif
 
                   if (bits == 8)
                     count_comparisons_8 += targetcount;
