@@ -438,7 +438,7 @@ void db_read(const char * filename)
   if (missingabundance)
     {
       char * msg;
-      if (asprintf(&msg,
+      if (xsprintf(&msg,
                    "Abundance annotations not found for %d sequences, starting on line %u.\n"
                    "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
                    "The -z option must be used if the abundance annotation is in the latter format.\n"
