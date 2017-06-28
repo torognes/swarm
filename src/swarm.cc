@@ -440,8 +440,8 @@ void args_init(int argc, char **argv)
   if (optind < argc)
     databasename = argv[optind];
   
-  if (resolution < 0)
-    fatal("Illegal resolution specified.");
+  if ((resolution < 0) || (resolution > 255))
+    fatal("Error: number of differences specified with -d must be in the range 0 to 255.");
 
   if ((threads < 1) || (threads > MAX_THREADS))
     fatal("Illegal number of threads specified");
