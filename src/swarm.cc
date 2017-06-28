@@ -282,6 +282,8 @@ void args_init(int argc, char **argv)
 
   char short_options[] = "d:ho:t:vm:p:g:e:s:u:rzi:l:nfb:w:y:c:a:";
 
+  /* unused short option letters: jkqx */
+
   static struct option long_options[] =
   {
     {"differences",           required_argument, NULL, 'd' },
@@ -309,11 +311,39 @@ void args_init(int argc, char **argv)
     { 0, 0, 0, 0 }
   };
   
+  int used_options[26] = { 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0,
+                           0 };
+
   int option_index = 0;
   int c;
   
   while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
   {
+    if ((c >= 'a') && (c <= 'z'))
+      {
+        int optindex = c - 'a';
+        if (used_options[optindex] == 1)
+          {
+            int longoptindex = 0;
+            while (long_options[longoptindex].name)
+              {
+                if (long_options[longoptindex].val == c)
+                  break;
+                longoptindex++;
+              }
+
+            fprintf(stderr,
+                    "WARNING: Option -%c or --%s specified more than once.\n",
+                    c,
+                    long_options[longoptindex].name);
+          }
+        used_options[optindex]++;
+      }
+
     switch(c)
     {
     case 'd':
@@ -463,6 +493,9 @@ void args_init(int argc, char **argv)
 
   if (opt_append_abundance < 0)
     fatal("Illegal abundance value specified");
+
+  if ((opt_ceiling > 0) && (opt_fastidious == 0))
+    fprintf(stderr, "WARNING: Options -c and --ceiling ignored without -f or --fastidious.\n");
 
   if (outfilename)
     {
