@@ -434,6 +434,15 @@ void db_read(const char * filename)
       seqindex_p->seqlen = strlen(p);
       p += seqindex_p->seqlen + 1;
 
+      if (seqindex_p->seqlen == 0)
+        {
+          char * msg;
+          if (xsprintf(&msg, "Empty sequence found on line %u.", lineno) == -1)
+            fatal("Out of memory");
+          else
+            fatal(msg);
+        }
+
       seqindex_p++;
       progress_update(i);
     }
