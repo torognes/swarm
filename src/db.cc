@@ -303,6 +303,15 @@ void db_read(const char * filename)
       
       long length = datalen - seqbegin;
 
+      if (length == 0)
+        {
+          char * msg;
+          if (xsprintf(&msg, "Empty sequence found on line %u.", lineno-1) == -1)
+            fatal("Out of memory");
+          else
+            fatal(msg);
+        }
+
       nucleotides += length;
 
       if (length > longest)
@@ -433,15 +442,6 @@ void db_read(const char * filename)
       seqindex_p->seq = p;
       seqindex_p->seqlen = strlen(p);
       p += seqindex_p->seqlen + 1;
-
-      if (seqindex_p->seqlen == 0)
-        {
-          char * msg;
-          if (xsprintf(&msg, "Empty sequence found on line %u.", lineno) == -1)
-            fatal("Out of memory");
-          else
-            fatal(msg);
-        }
 
       seqindex_p++;
       progress_update(i);
