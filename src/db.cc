@@ -389,8 +389,8 @@ void db_read(const char * filename)
         }
       else
         {
-          seqindex_p->abundance_start = 0;
-          seqindex_p->abundance_end = 0;
+          seqindex_p->abundance_start = seqindex_p->headerlen;
+          seqindex_p->abundance_end = seqindex_p->headerlen;
         }
       
       if (seqindex_p->abundance < 1)
