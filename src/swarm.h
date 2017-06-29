@@ -87,12 +87,11 @@ struct seqinfo_s
 {
   char * header;
   char * seq;
-  unsigned int headerlen;
-  unsigned int headeridlen;
+  int headerlen;
   unsigned int seqlen;
   unsigned int abundance;
   unsigned int clusterid;
-  unsigned int hdrhash;
+  unsigned long hdrhash;
   int abundance_start;
   int abundance_end;
 };

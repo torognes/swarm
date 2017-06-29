@@ -64,6 +64,8 @@ long opt_boundary;
 long opt_bloom_bits;
 long opt_ceiling;
 long opt_append_abundance;
+long opt_help;
+long opt_version;
 
 long penalty_factor;
 long penalty_gapextend;
@@ -277,6 +279,8 @@ void args_init(int argc, char **argv)
   opt_seeds = 0;
   opt_ceiling = 0;
   opt_append_abundance = 0;
+  opt_help = 0;
+  opt_version = 0;
 
   opterr = 1;
 
@@ -354,9 +358,7 @@ void args_init(int argc, char **argv)
           
     case 'h':
       /* help */
-      show_header();
-      args_usage();
-      exit(0);
+      opt_help = 1;
       break;
 
     case 'o':
@@ -371,8 +373,7 @@ void args_init(int argc, char **argv)
           
     case 'v':
       /* version */
-      show_header();
-      exit(0);
+      opt_version = 1;
       break;
 
     case 'm':
@@ -554,6 +555,14 @@ void args_init(int argc, char **argv)
 
   if (opt_fastidious && (resolution != 1))
     fatal("The fastidious option only works when the resolution (d) is 1.\n");
+
+  if (opt_version || opt_help)
+    {
+      show_header();
+      if (opt_help)
+        args_usage();
+      exit(0);
+    }
 }
 
 int main(int argc, char** argv)

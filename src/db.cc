@@ -90,14 +90,14 @@ void showseq(char * seq)
 
 void fprint_id(FILE * stream, unsigned long x)
 {
-  fprintf(stream, "%.*s", seqindex[x].headeridlen, seqindex[x].header);
+  fprintf(stream, "%.*s", seqindex[x].headerlen, seqindex[x].header);
 }
 
 void fprint_id_noabundance(FILE * stream, unsigned long x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
-  int hdrlen = sp->headeridlen;
+  int hdrlen = sp->headerlen;
 
   if (sp->abundance_start < sp->abundance_end)
     {
@@ -133,7 +133,7 @@ void fprint_id_with_new_abundance(FILE * stream,
             sp->header,
             sp->abundance_start > 0 ? ";" : "",
             abundance,
-            sp->headeridlen - sp->abundance_end,
+            sp->headerlen - sp->abundance_end,
             sp->header + sp->abundance_end);
   else
     fprintf(stream,
@@ -281,12 +281,17 @@ void db_read(const char * filename)
               }
             else if ((c != 10) && (c != 13))
               {
-                char msg[100];
                 if ((c >= 32) && (c <= 126))
-                  snprintf(msg, 100, "Illegal character '%c' in sequence on line %u", c, lineno);
+                  fprintf(logfile,
+                          "Illegal character '%c' in sequence on line %u",
+                          c,
+                          lineno);
                 else
-                  snprintf(msg, 100, "Illegal character (ascii no %d) in sequence on line %u", c, lineno);
-                fatal(msg);
+                  fprintf(logfile,
+                          "Illegal character (ascii no %d) in sequence on line %u",
+                          c,
+                          lineno);
+                exit(1);
               }
 	    }
           line[0] = 0;
@@ -305,11 +310,8 @@ void db_read(const char * filename)
 
       if (length == 0)
         {
-          char * msg;
-          if (xsprintf(&msg, "Empty sequence found on line %u.", lineno-1) == -1)
-            fatal("Out of memory");
-          else
-            fatal(msg);
+          fprintf(logfile, "Empty sequence found on line %u.", lineno-1);
+          exit(1);
         }
 
       nucleotides += length;
@@ -376,7 +378,6 @@ void db_read(const char * filename)
       /* get header */
       seqindex_p->header = p;
       seqindex_p->headerlen = strlen(seqindex_p->header);
-      seqindex_p->headeridlen = seqindex_p->headerlen;
       p += seqindex_p->headerlen + 1;
 
       /* get amplicon abundance */
@@ -416,17 +417,17 @@ void db_read(const char * filename)
       lastabundance = seqindex_p->abundance;
 
       /* check hash, fatal error if found, otherwize insert new */
-      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->headeridlen);
+      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->abundance_start);
       seqindex_p->hdrhash = hdrhash;
       unsigned long hashindex = hdrhash % hdrhashsize;
 
-      seqinfo_t * found;
+      seqinfo_t * found = 0;
     
       while ((found = hdrhashtable[hashindex]))
         {
           if ((found->hdrhash == hdrhash) &&
-              (found->headeridlen == seqindex_p->headeridlen) &&
-              (strncmp(found->header, seqindex_p->header, found->headeridlen) == 0))
+              (found->abundance_start == seqindex_p->abundance_start) &&
+              (strncmp(found->header, seqindex_p->header, found->abundance_start) == 0))
             break;
           hashindex = (hashindex + 1) % hdrhashsize;
         }
@@ -434,7 +435,10 @@ void db_read(const char * filename)
       if (found)
         {
           duplicatedidentifiers++;
-          fprintf(logfile, "WARNING: Duplicated sequence identifier: %s\n", seqindex_p->header);
+          fprintf(logfile, "\nError: Duplicated sequence identifier: %.*s\n",
+                  seqindex_p->abundance_start,
+                  seqindex_p->header);
+          exit(1);
         }
 
       hdrhashtable[hashindex] = seqindex_p;
@@ -452,7 +456,7 @@ void db_read(const char * filename)
     {
       char * msg;
       if (xsprintf(&msg,
-                   "Abundance annotations not found for %d sequences, starting on line %u:\n"
+                   "Abundance annotations not found for %d sequences, starting on line %u.\n"
                    ">%s\n"
                    "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
                    "The -z option must be used if the abundance annotation is in the latter format.\n"
