@@ -268,7 +268,7 @@ void search_do(unsigned long query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  unsigned long thr = threads;
+  unsigned long thr = opt_threads;
 
   if (bits == 8)
     {
@@ -315,9 +315,9 @@ void search_begin()
 {
   longestdbsequence = db_getlongestsequence();
   
-  sd = (struct search_data *) xmalloc(sizeof(search_data) * threads);
+  sd = (struct search_data *) xmalloc(sizeof(search_data) * opt_threads);
 
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     search_alloc(sd+t);
 
   /* start threads */
@@ -326,11 +326,11 @@ void search_begin()
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
   /* allocate memory for thread info */
-  ti = (struct thread_info_s *) xmalloc(threads * 
+  ti = (struct thread_info_s *) xmalloc(opt_threads *
                                         sizeof(struct thread_info_s));
   
   /* init and create worker threads */
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
@@ -346,7 +346,7 @@ void search_end()
 {
   /* finish and clean up worker threads */
 
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       
@@ -367,7 +367,7 @@ void search_end()
   free(ti);
   pthread_attr_destroy(&attr);
 
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     search_free(sd+t);
   free(sd);
 }

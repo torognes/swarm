@@ -32,6 +32,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/resource.h>
+#include <sys/stat.h>
 
 #ifdef __APPLE__
 #include <sys/sysctl.h>
@@ -89,7 +90,7 @@ struct seqinfo_s
   char * seq;
   int headerlen;
   unsigned int seqlen;
-  unsigned int abundance;
+  unsigned long abundance;
   unsigned int clusterid;
   unsigned long hdrhash;
   int abundance_start;
@@ -112,18 +113,33 @@ typedef struct queryinfo queryinfo_t;
 
 /* common data */
 
+extern char * opt_internal_structure;
+extern char * opt_log;
+extern char * opt_output_file;
+extern char * opt_seeds;
+extern char * opt_statistics_file;
+extern char * opt_uclust_file;
+extern long opt_append_abundance;
+extern long opt_bloom_bits;
+extern long opt_boundary;
+extern long opt_ceiling;
+extern long opt_differences;
+extern long opt_fastidious;
+extern long opt_gap_extension_penalty;
+extern long opt_gap_opening_penalty;
+extern long opt_help;
+extern long opt_match_reward;
+extern long opt_mismatch_penalty;
+extern long opt_mothur;
+extern long opt_no_otu_breaking;
+extern long opt_threads;
+extern long opt_usearch_abundance;
+extern long opt_version;
+
 extern char * queryname;
 extern char * matrixname;
-extern long gapopen;
-extern long gapextend;
-extern long gapopenextend;
-extern long matchscore;
-extern long mismatchscore;
-extern unsigned long threads;
-extern char * databasename;
-extern long resolution;
-extern long mothur;
-extern long usearch_abundance;
+
+extern char * input_filename;
 
 extern char map_ncbi_nt4[];
 extern char map_ncbi_nt16[];
@@ -142,15 +158,6 @@ extern FILE * internal_structure_file;
 extern FILE * logfile;
 extern FILE * fp_seeds;
 
-extern char * opt_log;
-extern char * opt_internal_structure;
-extern char * opt_seeds;
-extern long opt_no_otu_breaking;
-extern long opt_fastidious;
-extern long opt_boundary;
-extern long opt_bloom_bits;
-extern long opt_ceiling;
-extern long opt_append_abundance;
 
 extern long SCORELIMIT_7;
 extern long SCORELIMIT_8;

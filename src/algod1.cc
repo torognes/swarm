@@ -397,10 +397,10 @@ void threads_init()
   /* allocate memory for thread info, incl the variant sequences */
   unsigned long longestamplicon = db_getlongestsequence();
   ti = (struct thread_info_s *) 
-    xmalloc(threads * sizeof(struct thread_info_s));
+    xmalloc(opt_threads * sizeof(struct thread_info_s));
   
   /* init and create worker threads */
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
@@ -417,7 +417,7 @@ void threads_init()
 void threads_done()
 {
   /* finish and clean up worker threads */
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       
@@ -472,7 +472,7 @@ void process_seed(int subseed)
 {
   unsigned long seqlen = db_getsequencelen(subseed);
 
-  threads_used = threads;
+  threads_used = opt_threads;
   if (threads_used > seqlen + 1)
     threads_used = seqlen+1;
 
@@ -1251,7 +1251,7 @@ void algo_d1_run()
           light_progress = 0;
           light_amplicon_count = amplicons_in_small_otus;
           light_amplicon = amplicons - 1;
-          ThreadRunner * tr = new ThreadRunner(threads, mark_light_thread);
+          ThreadRunner * tr = new ThreadRunner(opt_threads, mark_light_thread);
           tr->run();
           delete tr;
           pthread_mutex_destroy(&light_mutex);
@@ -1290,7 +1290,7 @@ void algo_d1_run()
           heavy_progress = 0;
           heavy_amplicon_count = amplicons_in_large_otus;
           heavy_amplicon = 0;
-          ThreadRunner * heavy_tr = new ThreadRunner(threads, 
+          ThreadRunner * heavy_tr = new ThreadRunner(opt_threads, 
                                                      check_heavy_thread);
           heavy_tr->run();
           delete heavy_tr;
@@ -1335,8 +1335,8 @@ void algo_d1_run()
 
   progress_init("Writing swarms:   ", swarmcount);
 
-  if (mothur)
-    fprintf(outfile, "swarm_%ld\t%ld", resolution, swarmcount_adjusted);
+  if (opt_mothur)
+    fprintf(outfile, "swarm_%ld\t%ld", opt_differences, swarmcount_adjusted);
 
   for(int i = 0; i < swarmcount; i++)
     {
@@ -1347,7 +1347,7 @@ void algo_d1_run()
                a >= 0;
                a = ampinfo[a].next)
             {
-              if (mothur)
+              if (opt_mothur)
                 {
                   if (a == seed)
                     fputc('\t', outfile);
@@ -1361,13 +1361,13 @@ void algo_d1_run()
                 }
               fprint_id(outfile, a);
             }
-          if (!mothur)
+          if (!opt_mothur)
             fputc('\n', outfile);
         }
       progress_update(i+1);
     }
 
-  if (mothur)
+  if (opt_mothur)
     fputc('\n', outfile);
   
   progress_done();

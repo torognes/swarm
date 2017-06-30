@@ -111,7 +111,7 @@ void algo_run()
   
   unsigned long bits;
 
-  if ((unsigned long)resolution <= diff_saturation)
+  if ((unsigned long)opt_differences <= diff_saturation)
     bits = 8;
   else
     bits = 16;
@@ -183,7 +183,7 @@ void algo_run()
           unsigned poolampliconid = qgramamps[i];
           long diff = qgramdiffs[i];
           amps[swarmed+i].diffestimate = diff;
-          if (diff <= resolution)
+          if (diff <= opt_differences)
             {
               targetindices[targetcount] = swarmed+i;
               targetampliconids[targetcount] = poolampliconid;
@@ -219,7 +219,7 @@ void algo_run()
 
               unsigned diff = diffs[t];
 
-              if (diff <= (unsigned long) resolution)
+              if (diff <= (unsigned long) opt_differences)
                 {
                   unsigned i = targetindices[t];
 
@@ -295,7 +295,7 @@ void algo_run()
               for(unsigned long i=swarmed; i<amplicons; i++)
                 {
                   unsigned long targetampliconid = amps[i].ampliconid;
-                  if ((amps[i].diffestimate <= subseedradius + resolution) &&
+                  if ((amps[i].diffestimate <= subseedradius + opt_differences) &&
                       ((opt_no_otu_breaking) || 
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
@@ -314,7 +314,7 @@ void algo_run()
 #endif
 
               for(unsigned long i=0; i < listlen; i++)
-                if ((long)qgramdiffs[i] <= resolution)
+                if ((long)qgramdiffs[i] <= opt_differences)
                   {
                     targetindices[targetcount] = qgramindices[i];
                     targetampliconids[targetcount] = qgramamps[i];
@@ -338,7 +338,7 @@ void algo_run()
                     {
                       unsigned diff = diffs[t];
               
-                      if (diff <= (unsigned long) resolution)
+                      if (diff <= (unsigned long) opt_differences)
                         {
                           unsigned i = targetindices[t];
                 
@@ -489,12 +489,12 @@ void algo_run()
       char sep_amplicons;
       char sep_swarms;
 
-      if (mothur)
+      if (opt_mothur)
         {
           /* mothur list file output */
           sep_amplicons = ',';
           sep_swarms = '\t';
-          fprintf(outfile, "swarm_%ld\t%lu\t", resolution, swarmid);
+          fprintf(outfile, "swarm_%ld\t%lu\t", opt_differences, swarmid);
         }
       else
         {

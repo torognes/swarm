@@ -213,20 +213,20 @@ void dereplicate()
 
   progress_init("Writing swarms:   ", swarmcount);
 
-  if (mothur)
-    fprintf(outfile, "swarm_%ld\t%ld", resolution, swarmcount);
+  if (opt_mothur)
+    fprintf(outfile, "swarm_%ld\t%ld", opt_differences, swarmcount);
 
   for(int i = 0; i < swarmcount; i++)
     {
       int seed = hashtable[i].seqno_first;
-      if (mothur)
+      if (opt_mothur)
         fputc('\t', outfile);
       fprint_id(outfile, seed);
       int a = nextseqtab[seed];
 
       while (a)
         {
-          if (mothur)
+          if (opt_mothur)
             fputc(',', outfile);
           else
             fputc(SEPCHAR, outfile);
@@ -234,13 +234,13 @@ void dereplicate()
           a = nextseqtab[a];
         }
       
-      if (!mothur)
+      if (!opt_mothur)
         fputc('\n', outfile);
 
       progress_update(i+1);
     }
 
-  if (mothur)
+  if (opt_mothur)
     fputc('\n', outfile);
   
   progress_done();

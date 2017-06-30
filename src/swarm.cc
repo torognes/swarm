@@ -23,48 +23,33 @@
 
 #include "swarm.h"
 
-/* ARGUMENTS AND THEIR DEFAULTS */
+/* OPTIONS */
 
-#define DEFAULT_GAPOPEN 12
-#define DEFAULT_GAPEXTEND 4
-#define DEFAULT_MATCHSCORE 5
-#define DEFAULT_MISMATCHSCORE (-4)
-#define DEFAULT_THREADS 1
-#define DEFAULT_RESOLUTION 1
-#define DEFAULT_BREAK_SWARMS 0
-#define DEFAULT_MOTHUR 0
-#define DEFAULT_USEARCH_ABUNDANCE 0
-#define DEFAULT_INTERNAL_STRUCTURE 0
-#define DEFAULT_LOG 0
-#define DEFAULT_NO_OTU_BREAKING 0
-#define DEFAULT_FASTIDIOUS 0
-#define DEFAULT_BOUNDARY 3
-
-char * outfilename;
-char * statsfilename;
-char * uclustfilename;
 char * progname;
-char * databasename;
-long gapopen;
-long gapextend;
-long matchscore;
-long mismatchscore;
-unsigned long threads;
-long resolution;
-long break_swarms;
-long mothur;
-long usearch_abundance;
+char * input_filename;
 
-char * opt_log;
 char * opt_internal_structure;
+char * opt_log;
+char * opt_output_file;
 char * opt_seeds;
-long opt_no_otu_breaking;
-long opt_fastidious;
-long opt_boundary;
-long opt_bloom_bits;
-long opt_ceiling;
+char * opt_statistics_file;
+char * opt_uclust_file;
+
 long opt_append_abundance;
+long opt_bloom_bits;
+long opt_boundary;
+long opt_ceiling;
+long opt_differences;
+long opt_fastidious;
+long opt_gap_extension_penalty;
+long opt_gap_opening_penalty;
 long opt_help;
+long opt_match_reward;
+long opt_mismatch_penalty;
+long opt_mothur;
+long opt_no_otu_breaking;
+long opt_threads;
+long opt_usearch_abundance;
 long opt_version;
 
 long penalty_factor;
@@ -95,6 +80,10 @@ FILE * internal_structure_file;
 FILE * fp_seeds = 0;
 
 char sym_nt[] = "-acgt                           ";
+
+char * DASH_FILENAME = (char*) "-";
+char * STDIN_NAME = (char*) "/dev/stdin";
+char * STDOUT_NAME = (char*) "/dev/stdout";
 
 void cpuid(unsigned int f1,
            unsigned int f2,
@@ -174,24 +163,33 @@ long args_long(char * str, const char * option)
 void args_show()
 {
   cpu_features_show();
-  fprintf(logfile, "Database file:     %s\n", databasename ? databasename : "(stdin)");
-  fprintf(logfile, "Output file:       %s\n", outfilename ? outfilename : "(stdout)");
-  if (statsfilename)
-    fprintf(logfile, "Statistics file:   %s\n", statsfilename);
-  if (uclustfilename)
-    fprintf(logfile, "Uclust file:       %s\n", uclustfilename);
-  fprintf(logfile, "Resolution (d):    %ld\n", resolution);
-  fprintf(logfile, "Threads:           %lu\n", threads);
+  fprintf(logfile, "Database file:     %s\n", input_filename);
+  fprintf(logfile, "Output file:       %s\n", opt_output_file);
+  if (opt_statistics_file)
+    fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file);
+  if (opt_uclust_file)
+    fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file);
+  fprintf(logfile, "Resolution (d):    %ld\n", opt_differences);
+  fprintf(logfile, "Threads:           %lu\n", opt_threads);
 
-  if (resolution > 1)
+  if (opt_differences > 1)
     {
-  fprintf(logfile, "Scores:            match: %ld, mismatch: %ld\n", matchscore, mismatchscore);
-  fprintf(logfile, "Gap penalties:     opening: %ld, extension: %ld\n", gapopen, gapextend);
-  fprintf(logfile, "Converted costs:   mismatch: %ld, gap opening: %ld, gap extension: %ld\n", penalty_mismatch, penalty_gapopen, penalty_gapextend);
+      fprintf(logfile,
+              "Scores:            match: %ld, mismatch: %ld\n",
+              opt_match_reward, opt_mismatch_penalty);
+      fprintf(logfile,
+              "Gap penalties:     opening: %ld, extension: %ld\n",
+              opt_gap_opening_penalty, opt_gap_extension_penalty);
+      fprintf(logfile,
+              "Converted costs:   mismatch: %ld, gap opening: %ld, "
+              "gap extension: %ld\n",
+              penalty_mismatch, penalty_gapopen, penalty_gapextend);
     }
-  fprintf(logfile, "Break OTUs:        %s\n", opt_no_otu_breaking ? "No" : "Yes");
+  fprintf(logfile, "Break OTUs:        %s\n",
+          opt_no_otu_breaking ? "No" : "Yes");
   if (opt_fastidious)
-    fprintf(logfile, "Fastidious:        Yes, with boundary %ld\n", opt_boundary);
+    fprintf(logfile, "Fastidious:        Yes, with boundary %ld\n",
+            opt_boundary);
   else
     fprintf(logfile, "Fastidious:        No\n");
 }
@@ -258,60 +256,61 @@ void args_init(int argc, char **argv)
   /* Set defaults */
 
   progname = argv[0];
+  input_filename = DASH_FILENAME;
 
-  databasename = NULL;
-  outfilename = NULL;
-  statsfilename = NULL;
-  resolution = DEFAULT_RESOLUTION;
-  threads = DEFAULT_THREADS;
-  matchscore = DEFAULT_MATCHSCORE;
-  mismatchscore = DEFAULT_MISMATCHSCORE;
-  gapopen = DEFAULT_GAPOPEN;
-  gapextend = DEFAULT_GAPEXTEND;
-  mothur = DEFAULT_MOTHUR;
-  usearch_abundance = DEFAULT_USEARCH_ABUNDANCE;
-  opt_log = DEFAULT_LOG;
-  opt_internal_structure = DEFAULT_INTERNAL_STRUCTURE;
-  opt_no_otu_breaking = DEFAULT_NO_OTU_BREAKING;
-  opt_fastidious = DEFAULT_FASTIDIOUS;
-  opt_boundary = DEFAULT_BOUNDARY;
-  opt_bloom_bits = 16;
-  opt_seeds = 0;
-  opt_ceiling = 0;
   opt_append_abundance = 0;
+  opt_bloom_bits = 16;
+  opt_boundary = 3;
+  opt_ceiling = 0;
+  opt_differences = 1;
+  opt_fastidious = 0;
+  opt_gap_extension_penalty = 4;
+  opt_gap_opening_penalty = 12;
   opt_help = 0;
+  opt_internal_structure = 0;
+  opt_log = 0;
+  opt_match_reward = 5;
+  opt_mismatch_penalty = 4;
+  opt_mothur = 0;
+  opt_no_otu_breaking = 0;
+  opt_output_file = DASH_FILENAME;
+  opt_seeds = 0;
+  opt_statistics_file = 0;
+  opt_threads = 1;
+  opt_uclust_file = 0;
+  opt_usearch_abundance = 0;
   opt_version = 0;
 
   opterr = 1;
 
-  char short_options[] = "d:ho:t:vm:p:g:e:s:u:rzi:l:nfb:w:y:c:a:";
+  char short_options[] = "a:b:c:d:e:fg:hi:l:m:no:p:rs:t:u:vw:y:z";
 
   /* unused short option letters: jkqx */
 
   static struct option long_options[] =
   {
+    {"append-abundance",      required_argument, NULL, 'a' },
+    {"boundary",              required_argument, NULL, 'b' },
+    {"ceiling",               required_argument, NULL, 'c' },
     {"differences",           required_argument, NULL, 'd' },
-    {"help",                  no_argument,       NULL, 'h' },
-    {"output-file",           required_argument, NULL, 'o' },
-    {"threads",               required_argument, NULL, 't' },
-    {"version",               no_argument,       NULL, 'v' },
-    {"match-reward",          required_argument, NULL, 'm' },
-    {"mismatch-penalty",      required_argument, NULL, 'p' },
-    {"gap-opening-penalty",   required_argument, NULL, 'g' },
     {"gap-extension-penalty", required_argument, NULL, 'e' },
-    {"statistics-file",       required_argument, NULL, 's' },
-    {"uclust-file",           required_argument, NULL, 'u' },
-    {"mothur",                no_argument,       NULL, 'r' },
-    {"usearch-abundance",     no_argument,       NULL, 'z' },
+    {"fastidious",            no_argument,       NULL, 'f' },
+    {"gap-opening-penalty",   required_argument, NULL, 'g' },
+    {"help",                  no_argument,       NULL, 'h' },
     {"internal-structure",    required_argument, NULL, 'i' },
     {"log",                   required_argument, NULL, 'l' },
+    {"match-reward",          required_argument, NULL, 'm' },
     {"no-otu-breaking",       no_argument,       NULL, 'n' },
-    {"fastidious",            no_argument,       NULL, 'f' },
-    {"boundary",              required_argument, NULL, 'b' },
+    {"output-file",           required_argument, NULL, 'o' },
+    {"mismatch-penalty",      required_argument, NULL, 'p' },
+    {"mothur",                no_argument,       NULL, 'r' },
+    {"statistics-file",       required_argument, NULL, 's' },
+    {"threads",               required_argument, NULL, 't' },
+    {"uclust-file",           required_argument, NULL, 'u' },
+    {"version",               no_argument,       NULL, 'v' },
     {"seeds",                 required_argument, NULL, 'w' },
     {"bloom-bits",            required_argument, NULL, 'y' },
-    {"ceiling",               required_argument, NULL, 'c' },
-    {"append-abundance",      required_argument, NULL, 'a' },
+    {"usearch-abundance",     no_argument,       NULL, 'z' },
     { 0, 0, 0, 0 }
   };
   
@@ -327,6 +326,9 @@ void args_init(int argc, char **argv)
   
   while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
   {
+
+    /* check if any option is specified more than once */
+
     if ((c >= 'a') && (c <= 'z'))
       {
         int optindex = c - 'a';
@@ -346,162 +348,215 @@ void args_init(int argc, char **argv)
                     long_options[longoptindex].name);
             exit(1);
           }
-        used_options[optindex]++;
+        used_options[optindex] = 1;
       }
 
     switch(c)
-    {
-    case 'd':
-      /* differences (resolution) */
-      resolution = args_long(optarg, "-d or --differences");
-      break;
-          
-    case 'h':
-      /* help */
-      opt_help = 1;
-      break;
+      {
+      case 'a':
+        /* append-abundance */
+        opt_append_abundance = args_long(optarg, "-a or --append-abundance");
+        break;
 
-    case 'o':
-      /* output-file */
-      outfilename = optarg;
-      break;
-          
-    case 't':
-      /* threads */
-      threads = args_long(optarg, "-t or --threads");
-      break;
-          
-    case 'v':
-      /* version */
-      opt_version = 1;
-      break;
+      case 'b':
+        /* boundary */
+        opt_boundary = args_long(optarg, "-b or --boundary");
+        break;
 
-    case 'm':
-      /* match-reward */
-      matchscore = args_long(optarg, "-m or --match-reward");
-      break;
+      case 'c':
+        /* ceiling */
+        opt_ceiling = args_long(optarg, "-c or --ceiling");
+        break;
+
+      case 'd':
+        /* differences (resolution) */
+        opt_differences = args_long(optarg, "-d or --differences");
+        break;
+
+      case 'e':
+        /* gap extension penalty */
+        opt_gap_extension_penalty = args_long(optarg, "-e or --gap-extension-penalty");
+        break;
           
-    case 'p':
-      /* mismatch-penalty */
-      mismatchscore = - args_long(optarg, "-p or --mismatch-penalty");
-      break;
-          
-    case 'g':
-      /* gap-opening-penalty */
-      gapopen = args_long(optarg, "-g or --gap-opening-penalty");
-      break;
-          
-    case 'e':
-      /* gap extension penalty */
-      gapextend = args_long(optarg, "-e or --gap-extension-penalty");
-      break;
-          
-    case 's':
-      /* statistics-file */
-      statsfilename = optarg;
-      break;
-          
-    case 'u':
-      /* uclust-file */
-      uclustfilename = optarg;
-      break;
-          
-    case 'r':
-      /* mothur */
-      mothur = 1;
-      break;
-          
-    case 'z':
-      /* usearch-abundance */
-      usearch_abundance = 1;
-      break;
-          
-    case 'i':
-      /* internal-structure */
-      opt_internal_structure = optarg;
-      break;
-          
-    case 'l':
-      /* log */
-      opt_log = optarg;
-      break;
-          
-    case 'n':
-      /* no-otu-breaking */
-      opt_no_otu_breaking = 1;
-      break;
-          
-    case 'f':
-      /* fastidious */
-      opt_fastidious = 1;
-      break;
-          
-    case 'b':
-      /* boundary */
-      opt_boundary = args_long(optarg, "-b or --boundary");
-      break;
-          
-    case 'w':
-      /* seeds */
-      opt_seeds = optarg;
-      break;
-      
-    case 'y':
-      /* bloom-bits */
-      opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
-      break;
-      
-    case 'c':
-      /* ceiling */
-      opt_ceiling = args_long(optarg, "-c or --ceiling");
-      break;
-      
-    case 'a':
-      /* append-abundance */
-      opt_append_abundance = args_long(optarg, "-a or --append-abundance");
-      break;
-      
-    default:
-      show_header();
-      args_usage();
-      exit(1);
-      break;
+      case 'f':
+        /* fastidious */
+        opt_fastidious = 1;
+        break;
+
+      case 'g':
+        /* gap-opening-penalty */
+        opt_gap_opening_penalty = args_long(optarg, "-g or --gap-opening-penalty");
+        break;
+
+      case 'h':
+        /* help */
+        opt_help = 1;
+        break;
+
+      case 'i':
+        /* internal-structure */
+        opt_internal_structure = optarg;
+        break;
+
+      case 'l':
+        /* log */
+        opt_log = optarg;
+        break;
+
+      case 'm':
+        /* match-reward */
+        opt_match_reward = args_long(optarg, "-m or --match-reward");
+        break;
+
+      case 'n':
+        /* no-otu-breaking */
+        opt_no_otu_breaking = 1;
+        break;
+
+      case 'o':
+        /* output-file */
+        opt_output_file = optarg;
+        break;
+
+      case 'p':
+        /* mismatch-penalty */
+        opt_mismatch_penalty = args_long(optarg, "-p or --mismatch-penalty");
+        break;
+
+      case 'r':
+        /* mothur */
+        opt_mothur = 1;
+        break;
+
+      case 's':
+        /* statistics-file */
+        opt_statistics_file = optarg;
+        break;
+
+      case 't':
+        /* threads */
+        opt_threads = args_long(optarg, "-t or --threads");
+        break;
+
+      case 'u':
+        /* uclust-file */
+        opt_uclust_file = optarg;
+        break;
+
+      case 'v':
+        /* version */
+        opt_version = 1;
+        break;
+
+      case 'w':
+        /* seeds */
+        opt_seeds = optarg;
+        break;
+
+      case 'y':
+        /* bloom-bits */
+        opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
+        break;
+
+      case 'z':
+        /* usearch-abundance */
+        opt_usearch_abundance = 1;
+        break;
+
+      default:
+        show_header();
+        args_usage();
+        exit(1);
+        break;
     }
   }
   
   if (optind < argc)
-    databasename = argv[optind];
+    input_filename = argv[optind];
   
-  if ((resolution < 0) || (resolution > 255))
-    fatal("Error: number of differences specified with -d must be in the range 0 to 255.");
+  if ((opt_differences < 0) || (opt_differences > 255))
+    fatal("Error: number of differences specified with -d or --differences must be in the range 0 to 255.");
 
-  if ((threads < 1) || (threads > MAX_THREADS))
+  if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
     fatal("Illegal number of threads specified");
   
-  if ((gapopen < 0) || (gapextend < 0) || ((gapopen + gapextend) < 1))
+  if ((opt_gap_opening_penalty < 0) || (opt_gap_extension_penalty < 0) ||
+      ((opt_gap_opening_penalty + opt_gap_extension_penalty) < 1))
     fatal("Illegal gap penalties specified.");
 
-  if (matchscore < 1)
+  if (opt_match_reward < 1)
     fatal("Illegal match reward specified.");
 
-  if (mismatchscore > -1)
+  if (opt_mismatch_penalty < 1)
     fatal("Illegal mismatch penalty specified.");
 
   if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
     fatal("Illegal number of Bloom filter bits specified (must be 2..64).");
 
-  if (opt_ceiling < 0)
-    fatal("Illegal memory ceiling");
+  if (opt_boundary < 2)
+    fatal("Illegal boundary specified with -b or --boundary, must be at least 2");
+
+  if (used_options[2])
+    if ((opt_ceiling < 1) || (opt_ceiling > 1073741824))
+      fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 1 to 1073741824 MB");
 
   if (opt_append_abundance < 0)
     fatal("Illegal abundance value specified");
 
-  if ((opt_ceiling > 0) && (opt_fastidious == 0))
-    fprintf(stderr, "WARNING: Options -c and --ceiling ignored without -f or --fastidious.\n");
-
-  if (outfilename)
+  if (!opt_fastidious)
     {
-      outfile = fopen(outfilename, "w");
+      if (used_options[1])
+        fatal("Option -b or --boundary specified without -f or --fastidious.\n");
+      if (used_options[2])
+        fatal("Option -c or --ceiling specified without -f or --fastidious.\n");
+      if (used_options[24])
+        fatal("Option -y or --bloom-bits specified without -f or --fastidious.\n");
+    }
+
+  if (opt_differences < 2)
+    {
+      if (used_options[12])
+        fatal("Option -m or --match-reward specified when d < 2");
+      if (used_options[15])
+        fatal("Option -p or --mismatch-penalty specified when d < 2");
+      if (used_options[6])
+        fatal("Option -g or --gap-opening-penalty specified when d < 2");
+      if (used_options[4])
+        fatal("Option -e or --gap-extension-penalty specified when d < 2");
+    }
+
+  if (opt_fastidious && (opt_differences != 1))
+    fatal("The fastidious option only works when the resolution (d) is 1.\n");
+
+  /* replace filename "-" by "/dev/stdin" for input file options */
+
+  if (!strcmp(input_filename, DASH_FILENAME))
+    input_filename = STDIN_NAME;
+
+  /* replace filename "-" by "/dev/stdout" for output file options */
+
+  char * * stdout_options[] =
+    {
+      & opt_internal_structure,
+      & opt_log,
+      & opt_output_file,
+      & opt_statistics_file,
+      & opt_uclust_file,
+      & opt_seeds,
+      0
+    };
+
+  int o = 0;
+  while(char * * stdout_opt = stdout_options[o++])
+    if ((*stdout_opt) && (!strcmp(*stdout_opt, DASH_FILENAME)))
+      *stdout_opt = STDOUT_NAME;
+
+
+  /* open files */
+
+  if (opt_output_file)
+    {
+      outfile = fopen(opt_output_file, "w");
       if (! outfile)
         fatal("Unable to open output file for writing.");
     }
@@ -517,18 +572,18 @@ void args_init(int argc, char **argv)
   else
     fp_seeds = 0;
   
-  if (statsfilename)
+  if (opt_statistics_file)
     {
-      statsfile = fopen(statsfilename, "w");
+      statsfile = fopen(opt_statistics_file, "w");
       if (! statsfile)
         fatal("Unable to open statistics file for writing.");
     }
   else
     statsfile = 0;
   
-  if (uclustfilename)
+  if (opt_uclust_file)
     {
-      uclustfile = fopen(uclustfilename, "w");
+      uclustfile = fopen(opt_uclust_file, "w");
       if (! uclustfile)
         fatal("Unable to open uclust file for writing.");
     }
@@ -553,16 +608,6 @@ void args_init(int argc, char **argv)
   else
     internal_structure_file = stderr;
 
-  if (opt_fastidious && (resolution != 1))
-    fatal("The fastidious option only works when the resolution (d) is 1.\n");
-
-  if (opt_version || opt_help)
-    {
-      show_header();
-      if (opt_help)
-        args_usage();
-      exit(0);
-    }
 }
 
 int main(int argc, char** argv)
@@ -574,9 +619,17 @@ int main(int argc, char** argv)
   
   args_init(argc, argv);
 
-  penalty_mismatch = 2 * matchscore - 2 * mismatchscore;
-  penalty_gapopen = 2 * gapopen;
-  penalty_gapextend = matchscore + 2 * gapextend;
+  if (opt_version || opt_help)
+    {
+      show_header();
+      if (opt_help)
+        args_usage();
+      exit(0);
+    }
+
+  penalty_mismatch = 2 * opt_match_reward + 2 * opt_mismatch_penalty;
+  penalty_gapopen = 2 * opt_gap_opening_penalty;
+  penalty_gapextend = opt_match_reward + 2 * opt_gap_extension_penalty;
 
   penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
   
@@ -590,7 +643,7 @@ int main(int argc, char** argv)
 
   fprintf(logfile, "\n");
 
-  db_read(databasename);
+  db_read(input_filename);
   
   fprintf(logfile, "Database info:     %lu nt", db_getnucleotidecount());
   fprintf(logfile, " in %lu sequences,", db_getsequencecount());
@@ -602,7 +655,7 @@ int main(int argc, char** argv)
 
   search_begin();
   
-  switch (resolution)
+  switch (opt_differences)
     {
     case 0:
       dereplicate();
@@ -632,6 +685,6 @@ int main(int argc, char** argv)
   if (statsfile)
     fclose(statsfile);
 
-  if (outfilename)
+  if (opt_output_file)
     fclose(outfile);
 }

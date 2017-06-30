@@ -104,7 +104,7 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
       /* print start of header */
       fprintf(stream, "%.*s", sp->abundance_start, h);
       
-      if (usearch_abundance)
+      if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
           if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen))
@@ -126,7 +126,7 @@ void fprint_id_with_new_abundance(FILE * stream,
 {
   seqinfo_t * sp = seqindex + seqno;
 
-  if (usearch_abundance)
+  if (opt_usearch_abundance)
     fprintf(stream,
             "%.*s%ssize=%lu;%.*s",
             sp->abundance_start,
@@ -189,8 +189,15 @@ void db_read(const char * filename)
 
   /* get file size */
 
+  struct stat fs;
+
+  if (fstat(fileno(fp), & fs))
+    fatal("Unable to fstat on input file (%s)", filename);
+
+  bool is_pipe = S_ISFIFO(fs.st_mode);
+
   long filesize = 0;
-  if (filename)
+  if (! is_pipe)
     {
       if (fseek(fp, 0, SEEK_END))
         fatal("Error: Unable to seek in database file (%s)", filename);
@@ -324,7 +331,7 @@ void db_read(const char * filename)
 
       sequences++;
       
-      if (filename)
+      if (! is_pipe)
         progress_update(ftell(fp));
     }
   progress_done();
@@ -349,7 +356,7 @@ void db_read(const char * filename)
   regex_t db_regexp;
   regmatch_t pmatch[4];
 
-  if (usearch_abundance)
+  if (opt_usearch_abundance)
     {
       if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
         fatal("Regular expression compilation failed");
@@ -360,7 +367,7 @@ void db_read(const char * filename)
         fatal("Regular expression compilation failed");
     }
 
-  long lastabundance = LONG_MAX;
+  unsigned long lastabundance = ULONG_MAX;
 
   int presorted = 1;
   int missingabundance = 0;

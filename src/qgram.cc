@@ -228,11 +228,11 @@ void qgram_diff_init()
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
   
   /* allocate memory for thread info */
-  ti = (struct thread_info_s *) xmalloc(threads * 
+  ti = (struct thread_info_s *) xmalloc(opt_threads * 
                                         sizeof(struct thread_info_s));
   
   /* init and create worker threads */
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
@@ -246,7 +246,7 @@ void qgram_diff_init()
 void qgram_diff_done()
 {
   /* finish and clean up worker threads */
-  for(unsigned long t=0; t<threads; t++)
+  for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       
@@ -273,7 +273,7 @@ void qgram_diff_fast(unsigned long seed,
                      unsigned long * amplist,
                      unsigned long * difflist)
 {
-  long thr = threads;
+  long thr = opt_threads;
   
   const unsigned long m = 150;
 
