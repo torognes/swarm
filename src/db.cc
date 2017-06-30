@@ -153,14 +153,7 @@ int db_compare_abundance(const void * a, const void * b)
   else if (x->abundance < y->abundance)
     return +1;
   else 
-    {
-      if (x < y)
-        return -1;
-      else if (x > y)
-        return +1;
-      else
-        return 0;
-    }
+    return strcmp(x->header, y->header);
 }
 
 void db_read(const char * filename)
@@ -289,12 +282,12 @@ void db_read(const char * filename)
             else if ((c != 10) && (c != 13))
               {
                 if ((c >= 32) && (c <= 126))
-                  fprintf(logfile,
+                  fprintf(stderr,
                           "Illegal character '%c' in sequence on line %u",
                           c,
                           lineno);
                 else
-                  fprintf(logfile,
+                  fprintf(stderr,
                           "Illegal character (ascii no %d) in sequence on line %u",
                           c,
                           lineno);
@@ -317,7 +310,7 @@ void db_read(const char * filename)
 
       if (length == 0)
         {
-          fprintf(logfile, "Empty sequence found on line %u.", lineno-1);
+          fprintf(stderr, "\nError: Empty sequence found on line %u.\n\n", lineno-1);
           exit(1);
         }
 
@@ -342,12 +335,25 @@ void db_read(const char * filename)
 
   unsigned long hdrhashsize = 2 * sequences;
 
-  seqinfo_t * * hdrhashtable = 
+  seqinfo_t * * hdrhashtable =
     (seqinfo_t **) xmalloc(hdrhashsize * sizeof(seqinfo_t *));
   memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
 
   unsigned long duplicatedidentifiers = 0;
-  
+
+  //#define CHECKDUPLICATEDSEQS
+#ifdef CHECKDUPLICATEDSEQS
+  /* set up hash to check for unique sequences */
+
+  unsigned long seqhashsize = 2 * sequences;
+
+  seqinfo_t * * seqhashtable =
+    (seqinfo_t **) xmalloc(seqhashsize * sizeof(seqinfo_t *));
+  memset(seqhashtable, 0, seqhashsize * sizeof(seqinfo_t *));
+
+  unsigned long duplicatedsequences = 0;
+#endif
+
   /* create indices */
 
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
@@ -367,7 +373,7 @@ void db_read(const char * filename)
         fatal("Regular expression compilation failed");
     }
 
-  unsigned long lastabundance = ULONG_MAX;
+  seqinfo_t * lastseq = 0;
 
   int presorted = 1;
   int missingabundance = 0;
@@ -386,6 +392,11 @@ void db_read(const char * filename)
       seqindex_p->header = p;
       seqindex_p->headerlen = strlen(seqindex_p->header);
       p += seqindex_p->headerlen + 1;
+
+      /* and sequence */
+      seqindex_p->seq = p;
+      seqindex_p->seqlen = strlen(p);
+      p += seqindex_p->seqlen + 1;
 
       /* get amplicon abundance */
       seqindex_p->abundance = 0;
@@ -418,41 +429,82 @@ void db_read(const char * filename)
             }
         }
 
-      if (seqindex_p->abundance > lastabundance)
-        presorted = 0;
+      if (seqindex_p->abundance_start == 0)
+          fatal("Empty sequence identifier");
 
-      lastabundance = seqindex_p->abundance;
 
-      /* check hash, fatal error if found, otherwize insert new */
-      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->abundance_start);
-      seqindex_p->hdrhash = hdrhash;
-      unsigned long hashindex = hdrhash % hdrhashsize;
+      /* check if the sequences are presorted by abundance and header */
 
-      seqinfo_t * found = 0;
-    
-      while ((found = hdrhashtable[hashindex]))
+      if (presorted && lastseq)
         {
-          if ((found->hdrhash == hdrhash) &&
-              (found->abundance_start == seqindex_p->abundance_start) &&
-              (strncmp(found->header, seqindex_p->header, found->abundance_start) == 0))
-            break;
-          hashindex = (hashindex + 1) % hdrhashsize;
+          if (lastseq->abundance < seqindex_p->abundance)
+            presorted = 0;
+          else if (lastseq->abundance == seqindex_p->abundance)
+            {
+              if (strcmp(lastseq->header, seqindex_p->header) > 0)
+                presorted = 0;
+            }
         }
 
-      if (found)
+      lastseq = seqindex_p;
+
+
+      /* check for duplicated identifiers using hash table */
+
+      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->abundance_start);
+      seqindex_p->hdrhash = hdrhash;
+      unsigned long hdrhashindex = hdrhash % hdrhashsize;
+
+      seqinfo_t * hdrfound = 0;
+    
+      while ((hdrfound = hdrhashtable[hdrhashindex]))
+        {
+          if ((hdrfound->hdrhash == hdrhash) &&
+              (hdrfound->abundance_start == seqindex_p->abundance_start) &&
+              (strncmp(hdrfound->header, seqindex_p->header, hdrfound->abundance_start) == 0))
+            break;
+          hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
+        }
+
+      if (hdrfound)
         {
           duplicatedidentifiers++;
-          fprintf(logfile, "\nError: Duplicated sequence identifier: %.*s\n",
+          fprintf(stderr, "\nError: Duplicated sequence identifier: %.*s\n\n",
                   seqindex_p->abundance_start,
                   seqindex_p->header);
           exit(1);
         }
 
-      hdrhashtable[hashindex] = seqindex_p;
+      hdrhashtable[hdrhashindex] = seqindex_p;
     
-      seqindex_p->seq = p;
-      seqindex_p->seqlen = strlen(p);
-      p += seqindex_p->seqlen + 1;
+
+#ifdef CHECKDUPLICATEDSEQS
+      /* check for duplicated sequences using hash table */
+
+      unsigned long seqhash = HASH((unsigned char*)seqindex_p->seq,
+                                   seqindex_p->seqlen);
+      seqindex_p->seqhash = seqhash;
+      unsigned long seqhashindex = seqhash % seqhashsize;
+
+      seqinfo_t * seqfound = 0;
+
+      while ((seqfound = seqhashtable[seqhashindex]))
+        {
+          if ((seqfound->seqhash == seqhash) &&
+              (seqfound->seqlen == seqindex_p->seqlen) &&
+              (memcmp(seqfound->seq, seqindex_p->seq, seqfound->seqlen) == 0))
+            break;
+          seqhashindex = (seqhashindex + 1) % seqhashsize;
+        }
+
+      if (seqfound)
+        {
+          duplicatedsequences++;
+          fatal("Duplicated sequences");
+        }
+
+      seqhashtable[seqhashindex] = seqindex_p;
+#endif
 
       seqindex_p++;
       progress_update(i);
@@ -485,9 +537,9 @@ void db_read(const char * filename)
   regfree(&db_regexp);
 
   free(hdrhashtable);
-
-  if (duplicatedidentifiers)
-    exit(1);
+#ifdef CHECKDUPLICATEDSEQS
+  free(seqhashtable);
+#endif
 }
 
 void db_qgrams_init()

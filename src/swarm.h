@@ -93,6 +93,7 @@ struct seqinfo_s
   unsigned long abundance;
   unsigned int clusterid;
   unsigned long hdrhash;
+  unsigned long seqhash;
   int abundance_start;
   int abundance_end;
 };
