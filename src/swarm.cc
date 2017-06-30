@@ -528,6 +528,7 @@ void args_init(int argc, char **argv)
   if (opt_fastidious && (opt_differences != 1))
     fatal("The fastidious option only works when the resolution (d) is 1.\n");
 
+
   /* replace filename "-" by "/dev/stdin" for input file options */
 
   if (!strcmp(input_filename, DASH_FILENAME))
@@ -606,8 +607,7 @@ void args_init(int argc, char **argv)
         fatal("Unable to open internal structure file for writing.");
     }
   else
-    internal_structure_file = stderr;
-
+    internal_structure_file = 0;
 }
 
 int main(int argc, char** argv)

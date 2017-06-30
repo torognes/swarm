@@ -461,21 +461,18 @@ void db_read(const char * filename)
 
   if (missingabundance)
     {
-      char * msg;
-      if (xsprintf(&msg,
-                   "Abundance annotations not found for %d sequences, starting on line %u.\n"
-                   ">%s\n"
-                   "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
-                   "The -z option must be used if the abundance annotation is in the latter format.\n"
-                   "Abundance annotations can be produced by dereplicating the sequences.\n"
-                   "The header is defined as the string comprised between the \">\" symbol\n"
-                   "and the first space or the end of the line, whichever comes first.\n",
-                   missingabundance,
-                   missingabundance_lineno,
-                   missingabundance_header) == -1)
-        fatal("Out of memory");
-      else
-        fatal(msg);
+      fprintf(stderr,
+              "\nError: Abundance annotations not found for %d sequences, starting on line %u.\n"
+              ">%s\n"
+              "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
+              "The -z option must be used if the abundance annotation is in the latter format.\n"
+              "Abundance annotations can be produced by dereplicating the sequences.\n"
+              "The header is defined as the string comprised between the \">\" symbol\n"
+              "and the first space or the end of the line, whichever comes first.\n\n",
+              missingabundance,
+              missingabundance_lineno,
+              missingabundance_header);
+      exit(1);
     }
 
   if (!presorted)
