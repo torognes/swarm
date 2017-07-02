@@ -475,7 +475,7 @@ void args_init(int argc, char **argv)
     input_filename = argv[optind];
   
   if ((opt_differences < 0) || (opt_differences > 255))
-    fatal("Error: number of differences specified with -d or --differences must be in the range 0 to 255.");
+    fatal("Illegal number of differences specified with -d or --differences, must be in the range 0 to 255.");
 
   if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
     fatal("Illegal number of threads specified");
