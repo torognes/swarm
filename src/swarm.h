@@ -196,8 +196,6 @@ void fatal(const char * msg);
 void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
-char * xstrchrnul(char *s, int c);
-int xsprintf(char * * ret, const char * format, ...);
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
 unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n);
 unsigned long hash_djb2(unsigned char * s, unsigned long n);

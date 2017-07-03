@@ -186,17 +186,9 @@ void db_read(const char * filename)
 
   if (fstat(fileno(fp), & fs))
     fatal("Unable to fstat on input file (%s)", filename);
+  bool is_regular = S_ISREG(fs.st_mode);
+  long filesize = is_regular ? fs.st_size : 0;
 
-  bool is_pipe = S_ISFIFO(fs.st_mode);
-
-  long filesize = 0;
-  if (! is_pipe)
-    {
-      if (fseek(fp, 0, SEEK_END))
-        fatal("Error: Unable to seek in database file (%s)", filename);
-      filesize = ftell(fp);
-      rewind(fp);
-    }
 
   char line[LINEALLOC];
   line[0] = 0;
@@ -324,7 +316,7 @@ void db_read(const char * filename)
 
       sequences++;
       
-      if (! is_pipe)
+      if (is_regular)
         progress_update(ftell(fp));
     }
   progress_done();
@@ -341,18 +333,20 @@ void db_read(const char * filename)
 
   unsigned long duplicatedidentifiers = 0;
 
-  //#define CHECKDUPLICATEDSEQS
-#ifdef CHECKDUPLICATEDSEQS
   /* set up hash to check for unique sequences */
 
   unsigned long seqhashsize = 2 * sequences;
 
-  seqinfo_t * * seqhashtable =
-    (seqinfo_t **) xmalloc(seqhashsize * sizeof(seqinfo_t *));
-  memset(seqhashtable, 0, seqhashsize * sizeof(seqinfo_t *));
+  seqinfo_t * * seqhashtable = 0;
+
+  if (opt_differences > 0)
+    {
+      seqhashtable =
+        (seqinfo_t **) xmalloc(seqhashsize * sizeof(seqinfo_t *));
+      memset(seqhashtable, 0, seqhashsize * sizeof(seqinfo_t *));
+    }
 
   unsigned long duplicatedsequences = 0;
-#endif
 
   /* create indices */
 
@@ -478,33 +472,29 @@ void db_read(const char * filename)
       hdrhashtable[hdrhashindex] = seqindex_p;
     
 
-#ifdef CHECKDUPLICATEDSEQS
-      /* check for duplicated sequences using hash table */
-
-      unsigned long seqhash = HASH((unsigned char*)seqindex_p->seq,
-                                   seqindex_p->seqlen);
-      seqindex_p->seqhash = seqhash;
-      unsigned long seqhashindex = seqhash % seqhashsize;
-
-      seqinfo_t * seqfound = 0;
-
-      while ((seqfound = seqhashtable[seqhashindex]))
+      if (opt_differences > 0)
         {
-          if ((seqfound->seqhash == seqhash) &&
-              (seqfound->seqlen == seqindex_p->seqlen) &&
-              (memcmp(seqfound->seq, seqindex_p->seq, seqfound->seqlen) == 0))
-            break;
-          seqhashindex = (seqhashindex + 1) % seqhashsize;
-        }
+          /* check for duplicated sequences using hash table */
+          unsigned long seqhash = HASH((unsigned char*)seqindex_p->seq,
+                                       seqindex_p->seqlen);
+          seqindex_p->seqhash = seqhash;
+          unsigned long seqhashindex = seqhash % seqhashsize;
+          seqinfo_t * seqfound = 0;
 
-      if (seqfound)
-        {
-          duplicatedsequences++;
-          fatal("Duplicated sequences");
-        }
+          while ((seqfound = seqhashtable[seqhashindex]))
+            {
+              if ((seqfound->seqhash == seqhash) &&
+                  (seqfound->seqlen == seqindex_p->seqlen) &&
+                  (memcmp(seqfound->seq, seqindex_p->seq, seqfound->seqlen) == 0))
+                break;
+              seqhashindex = (seqhashindex + 1) % seqhashsize;
+            }
 
-      seqhashtable[seqhashindex] = seqindex_p;
-#endif
+          if (seqfound)
+            duplicatedsequences++;
+
+          seqhashtable[seqhashindex] = seqindex_p;
+        }
 
       seqindex_p++;
       progress_update(i);
@@ -527,6 +517,14 @@ void db_read(const char * filename)
       exit(1);
     }
 
+  if (duplicatedsequences)
+    {
+      fprintf(logfile,
+              "WARNING: %lu duplicated sequences detected.\n"
+              "Please consider dereplicating your data for optimal results.\n",
+              duplicatedsequences);
+    }
+
   if (!presorted)
     {
       progress_init("Abundance sorting:", 1);
@@ -537,9 +535,12 @@ void db_read(const char * filename)
   regfree(&db_regexp);
 
   free(hdrhashtable);
-#ifdef CHECKDUPLICATEDSEQS
-  free(seqhashtable);
-#endif
+
+  if (seqhashtable)
+    {
+      free(seqhashtable);
+      seqhashtable = 0;
+    }
 }
 
 void db_qgrams_init()

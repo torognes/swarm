@@ -79,7 +79,7 @@ FILE * logfile = stderr;
 FILE * internal_structure_file;
 FILE * fp_seeds = 0;
 
-char sym_nt[] = "-acgt                           ";
+char sym_nt[] = "-ACGT                           ";
 
 char * DASH_FILENAME = (char*) "-";
 char * STDIN_NAME = (char*) "/dev/stdin";
@@ -170,7 +170,7 @@ void args_show()
   if (opt_uclust_file)
     fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file);
   fprintf(logfile, "Resolution (d):    %ld\n", opt_differences);
-  fprintf(logfile, "Threads:           %lu\n", opt_threads);
+  fprintf(logfile, "Threads:           %ld\n", opt_threads);
 
   if (opt_differences > 1)
     {
@@ -497,8 +497,8 @@ void args_init(int argc, char **argv)
     fatal("Illegal boundary specified with -b or --boundary, must be at least 2");
 
   if (used_options[2])
-    if ((opt_ceiling < 1) || (opt_ceiling > 1073741824))
-      fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 1 to 1073741824 MB");
+    if ((opt_ceiling < 3) || (opt_ceiling > 1073741824))
+      fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 3 to 1073741824 MB");
 
   if (opt_append_abundance < 0)
     fatal("Illegal abundance value specified");

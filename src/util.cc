@@ -105,32 +105,6 @@ void * xrealloc(void *ptr, size_t size)
   return t;
 }
 
-char * xstrchrnul(char *s, int c)
-{
-  char * r = strchr(s, c);
-
-  if (r)
-    return r;
-  else
-    return (char *)s + strlen(s);
-}
-
-int xsprintf(char * * ret, const char * format, ...)
-{
-  va_list ap;
-  va_start(ap, format);
-  int len = vsnprintf(0, 0, format, ap);
-  va_end(ap);
-  if (len < 0)
-    fatal("Error with vsnprintf in xsprintf");
-  char * p = (char *) xmalloc(len + 1);
-  va_start(ap, format);
-  len = vsnprintf(p, len + 1, format, ap);
-  va_end(ap);
-  *ret = p;
-  return len;
-}
-
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
 {
   const unsigned long fnv_offset = 14695981039346656037UL;
