@@ -90,7 +90,17 @@ void showseq(char * seq)
 
 void fprint_id(FILE * stream, unsigned long x)
 {
-  fprintf(stream, "%.*s", seqindex[x].headerlen, seqindex[x].header);
+  seqinfo_t * sp = seqindex + x;
+  char * h = sp->header;
+  int hdrlen = sp->headerlen;
+
+  if (opt_append_abundance && (sp->abundance_start == sp->abundance_end))
+    if (opt_usearch_abundance)
+      fprintf(stream, "%.*s;size=%lu;", hdrlen, h, sp->abundance);
+    else
+      fprintf(stream, "%.*s_%lu", hdrlen, h, sp->abundance);
+  else
+    fprintf(stream, "%.*s", hdrlen, h);
 }
 
 void fprint_id_noabundance(FILE * stream, unsigned long x)
@@ -115,9 +125,7 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
         }
     }
   else
-    {
-      fprintf(stream, "%s", h);
-    }
+    fprintf(stream, "%.*s", hdrlen, h);
 }
 
 void fprint_id_with_new_abundance(FILE * stream,
@@ -393,22 +401,32 @@ void db_read(const char * filename)
       p += seqindex_p->seqlen + 1;
 
       /* get amplicon abundance */
-      seqindex_p->abundance = 0;
       if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
         {
           seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
           seqindex_p->abundance_start = pmatch[0].rm_so;
           seqindex_p->abundance_end = pmatch[0].rm_eo;
+
+          if (seqindex_p->abundance == 0)
+            {
+              fprintf(stderr,
+                      "\nError: Illegal abundance value on line %u:\n%s\n"
+                      "Abundance values should be positive integers.\n\n",
+                      lineno,
+                      seqindex_p->header);
+              exit(1);
+            }
         }
       else
         {
           seqindex_p->abundance_start = seqindex_p->headerlen;
           seqindex_p->abundance_end = seqindex_p->headerlen;
+          seqindex_p->abundance = 0;
         }
       
       if (seqindex_p->abundance < 1)
         {
-          if (opt_append_abundance > 0)
+          if (opt_append_abundance)
             {
               seqindex_p->abundance = opt_append_abundance;
             }

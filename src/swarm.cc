@@ -474,34 +474,17 @@ void args_init(int argc, char **argv)
   if (optind < argc)
     input_filename = argv[optind];
   
+  if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
+    {
+      fprintf(stderr, "\nError: Illegal number of threads specified with -t or --threads, must be in the range 1 to %d.\n", MAX_THREADS);
+      exit(1);
+    }
+  
   if ((opt_differences < 0) || (opt_differences > 255))
     fatal("Illegal number of differences specified with -d or --differences, must be in the range 0 to 255.");
 
-  if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
-    fatal("Illegal number of threads specified");
-  
-  if ((opt_gap_opening_penalty < 0) || (opt_gap_extension_penalty < 0) ||
-      ((opt_gap_opening_penalty + opt_gap_extension_penalty) < 1))
-    fatal("Illegal gap penalties specified.");
-
-  if (opt_match_reward < 1)
-    fatal("Illegal match reward specified.");
-
-  if (opt_mismatch_penalty < 1)
-    fatal("Illegal mismatch penalty specified.");
-
-  if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
-    fatal("Illegal number of Bloom filter bits specified (must be 2..64).");
-
-  if (opt_boundary < 2)
-    fatal("Illegal boundary specified with -b or --boundary, must be at least 2");
-
-  if (used_options[2])
-    if ((opt_ceiling < 3) || (opt_ceiling > 1073741824))
-      fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 3 to 1073741824 MB");
-
-  if (opt_append_abundance < 0)
-    fatal("Illegal abundance value specified");
+  if (opt_fastidious && (opt_differences != 1))
+    fatal("Fastidious mode (specified with -f or --fastidious) only works when the resolution (specified with -d or --differences) is 1.");
 
   if (!opt_fastidious)
     {
@@ -516,17 +499,41 @@ void args_init(int argc, char **argv)
   if (opt_differences < 2)
     {
       if (used_options[12])
-        fatal("Option -m or --match-reward specified when d < 2");
+        fatal("Option -m or --match-reward specified when d < 2.");
       if (used_options[15])
-        fatal("Option -p or --mismatch-penalty specified when d < 2");
+        fatal("Option -p or --mismatch-penalty specified when d < 2.");
       if (used_options[6])
-        fatal("Option -g or --gap-opening-penalty specified when d < 2");
+        fatal("Option -g or --gap-opening-penalty specified when d < 2.");
       if (used_options[4])
-        fatal("Option -e or --gap-extension-penalty specified when d < 2");
+        fatal("Option -e or --gap-extension-penalty specified when d < 2.");
     }
 
-  if (opt_fastidious && (opt_differences != 1))
-    fatal("The fastidious option only works when the resolution (d) is 1.\n");
+  if (opt_gap_opening_penalty < 0)
+    fatal("Illegal gap opening penalty specified with -g or --gap-opening-penalty, must not be negative.");
+
+  if (opt_gap_extension_penalty < 0)
+    fatal("Illegal gap extension penalty specified with -e or --gap-extension-penalty, must not be negative.");
+
+  if ((opt_gap_opening_penalty + opt_gap_extension_penalty) < 1)
+    fatal("Illegal gap penalties specified, the sum of the gap open and the gap extension penalty must be at least 1.");
+
+  if (opt_match_reward < 1)
+    fatal("Illegal match reward specified with -m or --match-reward, must be at least 1.");
+
+  if (opt_mismatch_penalty < 1)
+    fatal("Illegal mismatch penalty specified with -p or --mismatch-penalty, must be at least 1.");
+
+  if (opt_boundary < 2)
+    fatal("Illegal boundary specified with -b or --boundary, must be at least 2.");
+
+  if (used_options[2] && ((opt_ceiling < 3) || (opt_ceiling > 1073741824)))
+    fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 3 to 1073741824 MB.");
+
+  if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
+    fatal("Illegal number of Bloom filter bits specified with -y or --bloom-bits, must be in the range 2 to 64.");
+
+  if (used_options[0] && (opt_append_abundance < 1))
+    fatal("Illegal abundance value specified with -a or --append-abundance, must be at least 1.");
 
 
   /* replace filename "-" by "/dev/stdin" for input file options */
