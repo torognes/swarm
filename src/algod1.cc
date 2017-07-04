@@ -42,7 +42,7 @@ static struct ampinfo_s
   int parent;
   int generation; 
   int next;       /* amp id of next amplicon in swarm */
-  int graft_cand; /* amp id of potential grafting parent (fastitdious) */
+  int graft_cand; /* amp id of potential grafting parent (fastidious) */
 } * ampinfo = 0;
 
 /* Information about each swarm (OTU) */
@@ -451,7 +451,20 @@ void swarm_breaker_info(int amp)
       fprint_id_noabundance(internal_structure_file, seed);
       fprintf(internal_structure_file, "\t");
       fprint_id_noabundance(internal_structure_file, amp);
-      fprintf(internal_structure_file, "\t%d", 1);
+      int diff = 1;
+      if (duplicates_found)
+        {
+          unsigned long seedseqlen = db_getsequencelen(seed);
+          unsigned long ampseqlen = db_getsequencelen(amp);
+          if (seedseqlen == ampseqlen)
+            {
+              unsigned char * seedseq = (unsigned char *) db_getsequence(seed);
+              unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
+              if (memcmp(seedseq, ampseq, seedseqlen) == 0)
+                diff = 0;
+            }
+        }
+      fprintf(internal_structure_file, "\t%d", diff);
       fprintf(internal_structure_file, "\t%d\t%d", 
               ampinfo[seed].swarmid + 1,
               ampinfo[amp].generation);

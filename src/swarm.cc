@@ -72,6 +72,8 @@ long avx2_present = 0;
 
 unsigned long dbsequencecount = 0;
 
+unsigned long duplicates_found = 0;
+
 FILE * outfile;
 FILE * statsfile;
 FILE * uclustfile;

@@ -354,8 +354,6 @@ void db_read(const char * filename)
       memset(seqhashtable, 0, seqhashsize * sizeof(seqinfo_t *));
     }
 
-  unsigned long duplicatedsequences = 0;
-
   /* create indices */
 
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
@@ -509,9 +507,9 @@ void db_read(const char * filename)
             }
 
           if (seqfound)
-            duplicatedsequences++;
-
-          seqhashtable[seqhashindex] = seqindex_p;
+            duplicates_found++;
+          else
+            seqhashtable[seqhashindex] = seqindex_p;
         }
 
       seqindex_p++;
@@ -535,12 +533,12 @@ void db_read(const char * filename)
       exit(1);
     }
 
-  if (duplicatedsequences)
+  if (duplicates_found)
     {
       fprintf(logfile,
               "WARNING: %lu duplicated sequences detected.\n"
               "Please consider dereplicating your data for optimal results.\n",
-              duplicatedsequences);
+              duplicates_found);
     }
 
   if (!presorted)

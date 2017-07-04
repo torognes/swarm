@@ -188,6 +188,7 @@ extern unsigned long longestdbsequence;
 
 extern queryinfo_t query;
 
+extern unsigned long duplicates_found;
 
 /* functions in util.cc */
 
