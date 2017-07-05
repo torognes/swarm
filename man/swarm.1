@@ -161,9 +161,10 @@ alternative way to control the memory footprint.
 .TP 9
 .BI \-a\fP,\fB\ \-\-append\-abundance\~ "positive integer"
 set abundance value to use when some or all amplicons in the input
-file lack abundance values. Warning, it is not recommended to use
-\fBswarm\fR on datasets where abundance values are all identical. We
-provide that option as a courtesy to advanced users, please use it
+file lack abundance values (_\fIinteger\fR, or ;size=\fIinteger\fR;
+when using \-z). Warning, it is not recommended to use \fBswarm\fR on
+datasets where abundance values are all identical. We provide that
+option as a courtesy to advanced users, please use it
 carefully. \fBswarm\fR exits with an error message if abundance values
 are missing and if this option is not used.
 .TP
