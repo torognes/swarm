@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "March 8, 2017" "version 2.1.13" "USER COMMANDS"
+.TH swarm 1 "July 6, 2017" "version 2.1.13" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -48,15 +48,15 @@ redirection). The amplicon identifier is defined as the string
 comprised between the '>' symbol and the first space or the end of the
 line, whichever comes first. As \fBswarm\fR outputs lists of amplicon
 identifiers, amplicon identifiers must be unique to avoid ambiguity;
-swarm exits with an error message if identifiers are not
-unique. Amplicon identifiers must end with a '_' followed by a
-positive integer representing the amplicon copy number (or abundance
-annotation; usearch/vsearch users can use the option \-z to use the
-';size=' annotation). Abundance annotations play a crucial role in the
-clustering process, and swarm exits with an error message if that
+swarm exits with an error message if identifiers are not unique.
+Amplicon identifiers must end with a '_' followed by a positive
+integer representing the amplicon copy number (or abundance
+annotation; usearch/vsearch users can use the option \-z to use
+the ';size=' annotation). Abundance annotations play a crucial role in
+the clustering process, and swarm exits with an error message if that
 information is not available. The amplicon sequence is defined as a
-string of [acgt] or [acgu] symbols (case insensitive, 'u' is replaced
-with 't' internally), starting after the end of the identifier line
+string of [ACGT] or [ACGU] symbols (case insensitive, 'U' is replaced
+with 'T' internally), starting after the end of the identifier line
 and ending before the next identifier line or the file end;
 \fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
 exits with an error message if any other symbol is present.
@@ -88,9 +88,9 @@ that two amplicons will be grouped if they have \fIinteger\fR (or
 less) differences. This is \fBswarm\fR's most important parameter. The
 number of differences is calculated as the number of mismatches
 (substitutions, insertions or deletions) between the two amplicons
-once the optimal pairwise global alignment has been found (see
-'pairwise alignment advanced options' to influence that step). Any
-\fIinteger\fR between 0 and 256 can be used, but high \fId\fR values
+once the optimal pairwise global alignment has been found
+(see 'pairwise alignment advanced options' to influence that step).
+Any \fIinteger\fR from 0 to 255 can be used, but high \fId\fR values
 will decrease the taxonomical resolution of \fBswarm\fR
 results. Commonly used \fId\fR values are 1, 2 or 3, rarely
 higher. When using \fId\fR = 0, \fBswarm\fR will output results
@@ -124,7 +124,7 @@ of \fBswarm\fR results. Default mass of a large OTU is 3.
 when using the option \-\-fastidious (\-f), define \fBswarm\fR's
 maximum memory footprint (in megabytes). \fBswarm\fR will adjust the
 \-\-bloom\-bits (\-y) value of the Bloom filter to fit within the
-specified amount of memory.
+specified amount of memory. The value must be at least 3.
 .TP
 .B \-f\fP,\fB\ \-\-fastidious
 when working with \fId\fR = 1, perform a second clustering pass to
@@ -144,8 +144,9 @@ clustering results: the output files produced by the options \-\-log
 (\-l), \-\-output\-file (\-o), \-\-mothur (\-r), \-\-uclust\-file, and
 \-\-seeds (\-w) are updated to reflect these modifications; the file
 \-\-statistics\-file (\-s) is partially updated (columns 6 and 7 are
-not updated); the output file \-\-internal\-structure (\-i) is not
-updated.
+not updated); the output file \-\-internal\-structure (\-i) is
+partially updated (column 5 is not updated for amplicons that belonged to
+the small OTU).
 .TP
 .BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
 when using the option \-\-fastidious (\-f), define the size (in bits)
