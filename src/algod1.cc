@@ -442,43 +442,11 @@ void threads_done()
   pthread_attr_destroy(&attr);
 }
 
-void swarm_breaker_info(int amp)
-{
-  /* output info for swarm_breaker script */
-  if (opt_internal_structure)
-    {
-      long seed = ampinfo[amp].parent;
-      fprint_id_noabundance(internal_structure_file, seed);
-      fprintf(internal_structure_file, "\t");
-      fprint_id_noabundance(internal_structure_file, amp);
-      int diff = 1;
-      if (duplicates_found)
-        {
-          unsigned long seedseqlen = db_getsequencelen(seed);
-          unsigned long ampseqlen = db_getsequencelen(amp);
-          if (seedseqlen == ampseqlen)
-            {
-              unsigned char * seedseq = (unsigned char *) db_getsequence(seed);
-              unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
-              if (memcmp(seedseq, ampseq, seedseqlen) == 0)
-                diff = 0;
-            }
-        }
-      fprintf(internal_structure_file, "\t%d", diff);
-      fprintf(internal_structure_file, "\t%d\t%d", 
-              ampinfo[seed].swarmid + 1,
-              ampinfo[amp].generation);
-      fprintf(internal_structure_file, "\n");
-    }
-}
-
 void add_amp_to_swarm(int amp)
 {
   /* add to swarm */
   ampinfo[current_swarm_tail].next = amp;
   current_swarm_tail = amp;
-
-  swarm_breaker_info(amp);
 }
 
 void process_seed(int subseed)
@@ -661,7 +629,12 @@ int attach_candidates(int amplicons)
       int parent = graft_array[i].parent;
       int child  = graft_array[i].child;
 
-      if (!swarminfo[ampinfo[child].swarmid].attached)
+      if (swarminfo[ampinfo[child].swarmid].attached)
+        {
+          /* this light swarm is already attached */
+          ampinfo[child].graft_cand = NO_SWARM;
+        }
+      else
         {
           /* attach child to parent */
           attach(parent, child);
@@ -1407,10 +1380,80 @@ void algo_d1_run()
     }
 
 
+  /* output internal structure */
+
+  if (opt_internal_structure)
+    {
+      unsigned int cluster_no = 0;
+
+      progress_init("Writing structure:", swarmcount);
+
+      for(unsigned int swarmid = 0; swarmid < swarmcount ; swarmid++)
+        {
+          if (!swarminfo[swarmid].attached)
+            {
+              int seed = swarminfo[swarmid].seed;
+
+              struct ampinfo_s * bp = ampinfo + seed;
+
+              for (int a = bp->next;
+                   a >= 0;
+                   a = ampinfo[a].next)
+                {
+                  long graft_parent = ampinfo[a].graft_cand;
+                  if (graft_parent != NO_SWARM)
+                    {
+                      fprint_id_noabundance(internal_structure_file, graft_parent);
+                      fprintf(internal_structure_file, "\t");
+                      fprint_id_noabundance(internal_structure_file, a);
+                      fprintf(internal_structure_file,
+                              "\t%d\t%d\t%d\n",
+                              2,
+                              cluster_no + 1,
+                              ampinfo[graft_parent].generation + 1);
+                    }
+
+                  long parent = ampinfo[a].parent;
+                  if (parent != NO_SWARM)
+                    {
+                      int diff = 1;
+                      if (duplicates_found)
+                        {
+                          unsigned long parentseqlen = db_getsequencelen(parent);
+                          unsigned long ampseqlen = db_getsequencelen(a);
+                          if (parentseqlen == ampseqlen)
+                            {
+                              unsigned char * parentseq = (unsigned char *) db_getsequence(parent);
+                              unsigned char * ampseq = (unsigned char *) db_getsequence(a);
+                              if (memcmp(parentseq, ampseq, parentseqlen) == 0)
+                                diff = 0;
+                            }
+                        }
+                      fprint_id_noabundance(internal_structure_file, parent);
+                      fprintf(internal_structure_file, "\t");
+                      fprint_id_noabundance(internal_structure_file, a);
+                      fprintf(internal_structure_file,
+                              "\t%d\t%d\t%d\n",
+                              diff,
+                              cluster_no + 1,
+                              ampinfo[a].generation);
+                    }
+                }
+
+              cluster_no++;
+            }
+          progress_update(swarmid);
+        }
+      progress_done();
+    }
+
+
   /* output swarm in uclust format */
 
   if (uclustfile)
     {
+      unsigned int cluster_no = 0;
+
       progress_init("Writing UCLUST:   ", swarmcount);
 
       for(unsigned int swarmid = 0; swarmid < swarmcount ; swarmid++)
@@ -1422,13 +1465,13 @@ void algo_d1_run()
               struct ampinfo_s * bp = ampinfo + seed;
               
               fprintf(uclustfile, "C\t%u\t%d\t*\t*\t*\t*\t*\t",
-                      swarmid,
+                      cluster_no,
                       swarminfo[swarmid].size);
               fprint_id(uclustfile, seed);
               fprintf(uclustfile, "\t*\n");
               
               fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
-                      swarmid,
+                      cluster_no,
                       db_getsequencelen(seed));
               fprint_id(uclustfile, seed);
               fprintf(uclustfile, "\t*\n");
@@ -1470,6 +1513,8 @@ void algo_d1_run()
                   if (nwalignment)
                     free(nwalignment);
                 }
+
+              cluster_no++;
             }
           progress_update(swarmid);
         }
