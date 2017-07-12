@@ -201,7 +201,7 @@ void args_usage()
   /*               0         1         2         3         4         5         6         7          */
   /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
 
-  fprintf(stderr, "Usage: swarm [OPTIONS] [filename]\n");
+  fprintf(stderr, "Usage: swarm [OPTIONS] [FASTAFILE]\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "General options:\n");
   fprintf(stderr, " -h, --help                          display this help and exit\n");
