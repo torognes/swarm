@@ -187,8 +187,12 @@ OTU number (\fIpositive integer\fR). OTUs are numbered in their order
 of delineation, starting from 1. All pairs of amplicons belonging to
 the same OTU will receive the same number.
 .IP \n+[step].
-number of steps from the OTU seed to amplicon B (\fIpositive
-integer\fR).
+cummulated number of steps from the OTU seed to amplicon B
+(\fIpositive integer\fR). When using the option \-\-fastidious (\-f),
+the actual number of steps between grafted amplicons and the OTU seed
+cannot be re-computed efficiently and is always set to 2 for the
+amplicon pair linking the small OTU to the big OTU. Cummulated number
+of steps in the small OTU (if any) are left unchanged.
 .RE
 .RE
 .TP
@@ -228,10 +232,11 @@ number of amplicons with an abundance of 1 in the OTU,
 maximum number of iterations before the OTU reached its natural
 limit,
 .IP \n+[step].
-theoretical maximum radius of the OTU. This is the cummulated number
-of differences along the path joining the seed and the furthermost
-amplicon in the OTU. Please note that the actual number of differences
-between the seed and the furthermost amplicon is usually much smaller.
+cummulated number of steps along the path joining the seed and the
+furthermost amplicon in the OTU. Please note that the actual number of
+differences between the seed and the furthermost amplicon is usually
+much smaller. When using the option \-\-fastidious (\-f), grafted
+amplicons are not taken into account.
 .RE
 .RE
 .TP
