@@ -209,11 +209,13 @@ void args_usage()
   fprintf(stderr, " -v, --version                       display version information and exit\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "Clustering options:\n");
+  fprintf(stderr, " -d, --differences INTEGER           resolution (1)\n");
+  fprintf(stderr, " -n, --no-otu-breaking               never break OTUs (not recommended!)\n");
+  fprintf(stderr, "\n");
+  fprintf(stderr, "Fastidious options (only when d = 1):\n");
   fprintf(stderr, " -b, --boundary INTEGER              min mass of large OTU for fastidious (3)\n");
   fprintf(stderr, " -c, --ceiling INTEGER               max memory in MB used for fastidious\n");
-  fprintf(stderr, " -d, --differences INTEGER           resolution (1)\n");
   fprintf(stderr, " -f, --fastidious                    link nearby low-abundance swarms\n");
-  fprintf(stderr, " -n, --no-otu-breaking               never break OTUs\n");
   fprintf(stderr, " -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "Input/output options:\n");
@@ -227,7 +229,7 @@ void args_usage()
   fprintf(stderr, " -w, --seeds FILENAME                write seed seqs with abundances to FASTA\n");
   fprintf(stderr, " -z, --usearch-abundance             abundance annotation in usearch style\n");
   fprintf(stderr, "\n");
-  fprintf(stderr, "Pairwise alignment advanced options:\n");
+  fprintf(stderr, "Pairwise alignment advanced options (only when d > 1):\n");
   fprintf(stderr, " -m, --match-reward INTEGER          reward for nucleotide match (5)\n");
   fprintf(stderr, " -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n");
   fprintf(stderr, " -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n");
