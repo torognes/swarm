@@ -197,6 +197,8 @@ void db_read(const char * filename)
   bool is_regular = S_ISREG(fs.st_mode);
   long filesize = is_regular ? fs.st_size : 0;
 
+  if (! is_regular)
+    fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
 
   char line[LINEALLOC];
   line[0] = 0;
