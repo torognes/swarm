@@ -1500,7 +1500,7 @@ void algo_d1_run()
                   
                   fprintf(uclustfile,
                           "H\t%d\t%lu\t%.1f\t+\t0\t0\t%s\t",
-                          ampinfo[seed].swarmid,
+                          cluster_no,
                           db_getsequencelen(a),
                           percentid, 
                           nwdiff > 0 ? nwalignment : "=");
