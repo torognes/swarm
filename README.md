@@ -95,7 +95,7 @@ cap swarm's memory consumption.
 
 ## Install ##
 
-Get the latest binaries for GNU/Linux or MacOSX from
+Get the latest binaries for GNU/Linux or macOS from
 [the release page](https://github.com/torognes/swarm/releases "swarm
 tagged releases"). Get the source code from
 [GitHub](https://github.com/torognes/swarm "swarm public repository")
@@ -356,7 +356,7 @@ You are welcome to:
 If you want to try alternative free and open-source clustering
 methods, here are some links:
 
-* [Vsearch](https://github.com/torognes/vsearch)
+* [VSEARCH](https://github.com/torognes/vsearch)
 * [Oligotyping](http://merenlab.org/projects/oligotyping/)
 * [DNAclust](http://dnaclust.sourceforge.net/)
 * [Sumaclust](http://metabarcoding.org/sumatra)
@@ -364,6 +364,20 @@ methods, here are some links:
 
 
 ## Version history##
+
+### version 2.2.0 ###
+
+**swarm** 2.2.0 fixes several problems and improves usability.
+Corrected output to structure and uclust files when using fastidious
+mode. Corrected abundance output in some cases. Added check for
+duplicated sequences and fixed check for duplicated sequence
+IDs. Checks for empty sequences. Sorts sequences by additional fields
+to improve stability. Improves compatibility with compilers and
+operating systems.  Outputs sequences in upper case. Allows 64-bit
+abundances. Shows message when waiting for input from stdin. Improves
+error messages and warnings. Improves checking of command line
+options. Fixes remaining errors reported by test suite. Updates
+documentation.
 
 ### version 2.1.13 ###
 

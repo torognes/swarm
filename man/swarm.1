@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "July 6, 2017" "version 2.1.13" "USER COMMANDS"
+.TH swarm 1 "October 17, 2017" "version 2.2.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -388,6 +388,19 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v2.2.0\~ "released October 17, 2017"
+Version 2.2.0 fixes several problems and improves usability. Corrected
+output to structure and uclust files when using fastidious
+mode. Corrected abundance output in some cases. Added check for
+duplicated sequences and fixed check for duplicated sequence
+IDs. Checks for empty sequences. Sorts sequences by additional fields
+to improve stability. Improves compatibility with compilers and
+operating systems.  Outputs sequences in upper case. Allows 64-bit
+abundances. Shows message when waiting for input from stdin. Improves
+error messages and warnings. Improves checking of command line
+options. Fixes remaining errors reported by test suite. Updates
+documentation.
 .TP
 .BR v2.1.13\~ "released March 8, 2017"
 Version 2.1.13 removes a bug with the progress bar when writing seeds.
