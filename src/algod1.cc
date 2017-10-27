@@ -491,7 +491,8 @@ void process_seed(int subseed)
     {
       if (global_hits_count + ti[t].hits_count > global_hits_alloc)
         {
-          global_hits_alloc <<= 1;
+          while (global_hits_count + ti[t].hits_count > global_hits_alloc)
+            global_hits_alloc <<= 1;
           global_hits_data = (int*)xrealloc(global_hits_data,
                                             global_hits_alloc * sizeof(int));
         }

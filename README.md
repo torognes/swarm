@@ -365,6 +365,10 @@ methods, here are some links:
 
 ## Version history##
 
+### version 2.2.1 ###
+
+**swarm** 2.2.1 fixes a memory allocation bug for d=1.
+
 ### version 2.2.0 ###
 
 **swarm** 2.2.0 fixes several problems and improves usability.
