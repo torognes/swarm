@@ -375,7 +375,7 @@ void * worker(void * vp)
   while (tip->work >= 0)
     {
       /* wait for work available */
-      if (tip->work == 0)
+      while (tip->work == 0)
         pthread_cond_wait(&tip->workcond, &tip->workmutex);
       if (tip->work > 0)
         {

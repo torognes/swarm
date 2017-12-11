@@ -237,7 +237,8 @@ void * search_worker(void * vp)
   while (tip->work >= 0)
     {
       /* wait for work available */
-      pthread_cond_wait(&tip->workcond, &tip->workmutex);
+      while (tip->work == 0)
+        pthread_cond_wait(&tip->workcond, &tip->workmutex);
       if (tip->work > 0)
         {
           search_worker_core(t);
