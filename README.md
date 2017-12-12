@@ -365,6 +365,11 @@ methods, here are some links:
 
 ## Version history##
 
+### version 2.2.2 ###
+
+**swarm** 2.2.2 fixes a bug causing Swarm to wait forever in very rare
+cases when multiple threads were used.
+
 ### version 2.2.1 ###
 
 **swarm** 2.2.1 fixes a memory allocation bug for d=1.

@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "October 27, 2017" "version 2.2.1" "USER COMMANDS"
+.TH swarm 1 "December 12, 2017" "version 2.2.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -388,6 +388,10 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v2.2.2\~ "released December 12, 2017"
+Version 2.2.2 fixes a bug that would cause Swarm to wait forever in
+very rare cases when multiple threads were used.
 .TP
 .BR v2.2.1\~ "released October 27, 2017"
 Version 2.2.1 fixes a memory allocation bug for \fId\fR = 1 and
