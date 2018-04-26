@@ -29,15 +29,7 @@ LIBS=-lpthread
 LINKFLAGS=$(COMMON)
 
 CXX=g++
-
-WARNINGS=-Wall -Wsign-compare -Wextra -Wno-long-long
-GCC48 := $(shell expr `g++ -dumpversion | cut -d. -f1-2` \>= 4.8)
-ifeq "$(GCC48)" "1"
-  WARNINGS += -Wpedantic
-else
-  WARNINGS += -pedantic
-endif
-
+WARNINGS=-Wall -Wsign-compare -Wextra -pedantic -Wno-long-long
 CXXFLAGS=$(COMMON) $(WARNINGS) -O3 -msse2 -mtune=core2 -Icityhash
 
 PROG=swarm
