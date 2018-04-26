@@ -35,7 +35,7 @@ void pushop(char newop, char ** cigarendp, char * op, int * count)
       char buf[25];
       int len = sprintf(buf, "%d", *count);
       *cigarendp -= len;
-      strncpy(*cigarendp, buf, len);
+      memcpy(*cigarendp, buf, len);
     }
     *op = newop;
     *count = 1;
@@ -52,7 +52,7 @@ void finishop(char ** cigarendp, char * op, int * count)
       char buf[25];
       int len = sprintf(buf, "%d", *count);
       *cigarendp -= len;
-      strncpy(*cigarendp, buf, len);
+      memcpy(*cigarendp, buf, len);
     }
     *op = 0;
     *count = 0;
