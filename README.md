@@ -363,7 +363,7 @@ methods, here are some links:
 * [Crunchclust](https://code.google.com/p/crunchclust/)
 
 
-## Version history##
+## Version history ##
 
 ### version 2.2.2 ###
 
