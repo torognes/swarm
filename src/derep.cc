@@ -67,7 +67,7 @@ void reverse_complement(char * rc, char * seq, long len)
      (identical to the length of seq + 1). */
 
   for(long i=0; i<len; i++)
-    rc[i] = map_complement[(int)(seq[len-1-i])];
+    rc[i] = map_complement[(int)(extract_nt(seq, len-1-i))];
   rc[len] = 0;
 }
 #endif
@@ -115,14 +115,16 @@ void dereplicate()
         collision when the number of sequences is about 5e9.
       */
 
-      unsigned long hash = CityHash64(seq, seqlen);
+      unsigned long hash = CityHash64(seq, nt_bytelength(seqlen));
       unsigned long j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
       
       while ((bp->mass) &&
              ((bp->hash != hash) ||
               (seqlen != db_getsequencelen(bp->seqno_first)) ||
-              (strcmp(seq, db_getsequence(bp->seqno_first)))))
+              (memcmp(seq,
+                      db_getsequence(bp->seqno_first),
+                      nt_bytelength(seqlen)))))
         {
           bp++;
           j++;
@@ -140,14 +142,16 @@ void dereplicate()
           /* check minus strand as well */
 
           reverse_complement(rc_seq, seq, seqlen);
-          unsigned long rc_hash = CityHash64(rc_seq, seqlen);
+          unsigned long rc_hash = CityHash64(rc_seq, nt_bytelength(seqlen));
           struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
           unsigned long k = rc_hash & hash_mask;
           
           while ((rc_bp->mass) &&
                  ((rc_bp->hash != rc_hash) ||
                   (seqlen != db_getsequencelen(rc_bp->seqno_first)) ||
-                  (strcmp(rc_seq, db_getsequence(rc_bp->seqno_first)))))
+                  (memcmp(rc_seq,
+                          db_getsequence(rc_bp->seqno_first),
+                          nt_bytelength(seqlen)))))
             {
               rc_bp++;
               k++;

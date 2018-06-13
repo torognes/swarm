@@ -72,21 +72,12 @@ char map_hex[256] =
 unsigned long sequences = 0;
 unsigned long nucleotides = 0;
 unsigned long headerchars = 0;
-int longest = 0;
+unsigned int longest = 0;
 int longestheader = 0;
 
 seqinfo_t * seqindex = 0;
 char * datap = 0;
 qgramvector_t * qgrams = 0;
-
-void showseq(char * seq)
-{
-  char * p = seq;
-  while (char c = *p++)
-    {
-      putchar(sym_nt[(unsigned int)c]);
-    }
-}
 
 void fprint_id(FILE * stream, unsigned long x)
 {
@@ -211,17 +202,13 @@ void db_read(const char * filename)
   while(line[0])
     {
       /* read header */
-      /* the header ends at a space character, a newline or a nul character */
+      /* the header ends at a space, cr, lf or null character */
 
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
-      
-      long headerlen = 0;
-      if (char * stop = strpbrk(line+1, " \r\n"))
-        headerlen = stop - (line+1);
-      else
-        headerlen = strlen(line+1);
-      
+
+      long headerlen = strcspn(line + 1, " \r\n");
+
       headerchars += headerlen;
       
       if (headerlen > longestheader)
@@ -259,9 +246,24 @@ void db_read(const char * filename)
       lineno++;
 
 
+      /* store a dummy sequence length */
+
+      unsigned int length = 0;
+
+      while (datalen + sizeof(unsigned int) > dataalloc)
+        {
+          dataalloc += MEMCHUNK;
+          datap = (char *) xrealloc(datap, dataalloc);
+        }
+      unsigned long datalen_seqlen = datalen;
+      memcpy(datap + datalen, & length, sizeof(unsigned int));
+      datalen += sizeof(unsigned int);
+
+
       /* read and store sequence */
 
-      unsigned long seqbegin = datalen;
+      unsigned char bytebuffer = 0;
+      unsigned int bytebufferlen = 0;
 
       while (line[0] && (line[0] != '>'))
         {
@@ -269,46 +271,53 @@ void db_read(const char * filename)
           char * p = line;
           while((c = *p++))
 	    {
-	    char m;
-            if ((m = map_nt[(int)c]) >= 0)
-              {
-                while (datalen >= dataalloc)
-                  {
-                    dataalloc += MEMCHUNK;
-                    datap = (char *) xrealloc(datap, dataalloc);
-                  }
-                
-                *(datap+datalen) = m;
-                datalen++;
-              }
-            else if ((c != 10) && (c != 13))
-              {
-                if ((c >= 32) && (c <= 126))
-                  fprintf(stderr,
-                          "Illegal character '%c' in sequence on line %u",
-                          c,
-                          lineno);
-                else
-                  fprintf(stderr,
-                          "Illegal character (ascii no %d) in sequence on line %u",
-                          c,
-                          lineno);
-                exit(1);
-              }
+              char m;
+              if ((m = map_nt[(int)c]) >= 0)
+                {
+                  bytebuffer |= ((((unsigned int)(m))-1) << (6 - 2*bytebufferlen));
+                  length++;
+                  bytebufferlen++;
+
+                  if (bytebufferlen == 4)
+                    {
+                      while (datalen + 1 > dataalloc)
+                        {
+                          dataalloc += MEMCHUNK;
+                          datap = (char *) xrealloc(datap, dataalloc);
+                        }
+
+                      *(datap+datalen) = bytebuffer;
+                      datalen++;
+
+                      bytebufferlen = 0;
+                      bytebuffer = 0;
+                    }
+                }
+              else if ((c != 10) && (c != 13))
+                {
+                  if ((c >= 32) && (c <= 126))
+                    fprintf(stderr,
+                            "Illegal character '%c' in sequence on line %u",
+                            c,
+                            lineno);
+                  else
+                    fprintf(stderr,
+                            "Illegal character (ascii no %d) in sequence on line %u",
+                            c,
+                            lineno);
+                  exit(1);
+                }
 	    }
+
           line[0] = 0;
           if (!fgets(line, LINEALLOC, fp))
             line[0] = 0;
           lineno++;
         }
       
-      while (datalen >= dataalloc)
-        {
-          dataalloc += MEMCHUNK;
-          datap = (char *) xrealloc(datap, dataalloc);
-        }
-      
-      long length = datalen - seqbegin;
+      /* fill in real length */
+
+      memcpy(datap + datalen_seqlen, & length, sizeof(unsigned int));
 
       if (length == 0)
         {
@@ -321,8 +330,22 @@ void db_read(const char * filename)
       if (length > longest)
         longest = length;
 
-      *(datap+datalen) = 0;
-      datalen++;
+
+      /* save remaining padded byte, if any */
+
+      if (bytebufferlen > 0)
+        {
+          while (datalen + 1 > dataalloc)
+            {
+              dataalloc += MEMCHUNK;
+              datap = (char *) xrealloc(datap, dataalloc);
+            }
+          *(datap+datalen) = bytebuffer;
+          datalen++;
+
+          bytebuffer = 0;
+          bytebufferlen = 0;
+        }
 
       sequences++;
       
@@ -396,9 +419,11 @@ void db_read(const char * filename)
       p += seqindex_p->headerlen + 1;
 
       /* and sequence */
+      unsigned int seqlen = *((unsigned int*)p);
+      seqindex_p->seqlen = seqlen;
+      p += sizeof(unsigned int);
       seqindex_p->seq = p;
-      seqindex_p->seqlen = strlen(p);
-      p += seqindex_p->seqlen + 1;
+      p += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
       if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
@@ -463,7 +488,8 @@ void db_read(const char * filename)
 
       /* check for duplicated identifiers using hash table */
 
-      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->abundance_start);
+      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header,
+                                   seqindex_p->abundance_start);
       seqindex_p->hdrhash = hdrhash;
       unsigned long hdrhashindex = hdrhash % hdrhashsize;
 
@@ -473,7 +499,9 @@ void db_read(const char * filename)
         {
           if ((hdrfound->hdrhash == hdrhash) &&
               (hdrfound->abundance_start == seqindex_p->abundance_start) &&
-              (strncmp(hdrfound->header, seqindex_p->header, hdrfound->abundance_start) == 0))
+              (strncmp(hdrfound->header,
+                       seqindex_p->header,
+                       hdrfound->abundance_start) == 0))
             break;
           hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
         }
@@ -494,7 +522,7 @@ void db_read(const char * filename)
         {
           /* check for duplicated sequences using hash table */
           unsigned long seqhash = HASH((unsigned char*)seqindex_p->seq,
-                                       seqindex_p->seqlen);
+                                       nt_bytelength(seqindex_p->seqlen));
           seqindex_p->seqhash = seqhash;
           unsigned long seqhashindex = seqhash % seqhashsize;
           seqinfo_t * seqfound = 0;
@@ -503,7 +531,9 @@ void db_read(const char * filename)
             {
               if ((seqfound->seqhash == seqhash) &&
                   (seqfound->seqlen == seqindex_p->seqlen) &&
-                  (memcmp(seqfound->seq, seqindex_p->seq, seqfound->seqlen) == 0))
+                  (memcmp(seqfound->seq,
+                          seqindex_p->seq,
+                          nt_bytelength(seqfound->seqlen)) == 0))
                 break;
               seqhashindex = (seqhashindex + 1) % seqhashsize;
             }
@@ -648,7 +678,7 @@ void db_putseq(long seqno)
   long len;
   db_getsequenceandlength(seqno, & seq, & len);
   for(int i=0; i<len; i++)
-    putchar(sym_nt[(int)(seq[i])]);
+    putchar(sym_nt[nt_extract(seq, i)]);
 }
 
 void db_free()
@@ -672,7 +702,7 @@ void db_fprintseq(FILE * fp, int a, int width)
     buf = (char*) xmalloc(len+1);
 
   for(int i=0; i<len; i++)
-    buf[i] = sym_nt[(int)(seq[i])];
+    buf[i] = sym_nt[nt_extract(seq, i)];
   buf[len] = 0;
 
   if (width < 1)
