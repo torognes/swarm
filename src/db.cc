@@ -262,8 +262,9 @@ void db_read(const char * filename)
 
       /* read and store sequence */
 
-      unsigned char bytebuffer = 0;
-      unsigned int bytebufferlen = 0;
+      uint64_t nt_buffer = 0;
+      unsigned int nt_bufferlen = 0;
+      const unsigned int nt_buffersize = 4 * sizeof(nt_buffer);
 
       while (line[0] && (line[0] != '>'))
         {
@@ -274,23 +275,23 @@ void db_read(const char * filename)
               char m;
               if ((m = map_nt[(int)c]) >= 0)
                 {
-                  bytebuffer |= ((((unsigned int)(m))-1) << (6 - 2*bytebufferlen));
+                  nt_buffer |= (((uint64_t)m)-1) << (2 * nt_bufferlen);
                   length++;
-                  bytebufferlen++;
+                  nt_bufferlen++;
 
-                  if (bytebufferlen == 4)
+                  if (nt_bufferlen == nt_buffersize)
                     {
-                      while (datalen + 1 > dataalloc)
+                      while (datalen + sizeof(nt_buffer) > dataalloc)
                         {
                           dataalloc += MEMCHUNK;
                           datap = (char *) xrealloc(datap, dataalloc);
                         }
 
-                      *(datap+datalen) = bytebuffer;
-                      datalen++;
+                      memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+                      datalen += sizeof(nt_buffer);
 
-                      bytebufferlen = 0;
-                      bytebuffer = 0;
+                      nt_bufferlen = 0;
+                      nt_buffer = 0;
                     }
                 }
               else if ((c != 10) && (c != 13))
@@ -331,20 +332,21 @@ void db_read(const char * filename)
         longest = length;
 
 
-      /* save remaining padded byte, if any */
+      /* save remaining padded uint64_t, if any */
 
-      if (bytebufferlen > 0)
+      if (nt_bufferlen > 0)
         {
-          while (datalen + 1 > dataalloc)
+          while (datalen + sizeof(nt_buffer) > dataalloc)
             {
               dataalloc += MEMCHUNK;
               datap = (char *) xrealloc(datap, dataalloc);
             }
-          *(datap+datalen) = bytebuffer;
-          datalen++;
 
-          bytebuffer = 0;
-          bytebufferlen = 0;
+          memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+          datalen += sizeof(nt_buffer);
+
+          nt_buffer = 0;
+          nt_bufferlen = 0;
         }
 
       sequences++;

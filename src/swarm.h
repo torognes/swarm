@@ -48,6 +48,8 @@
 #include <tmmintrin.h>
 #endif
 
+#include "twobit_vector/twobit_vector.hpp"
+
 /* constants */
 
 #ifndef LINE_MAX
@@ -195,13 +197,13 @@ extern unsigned long duplicates_found;
 inline int nt_extract(char * seq, int i)
 {
   // Extract compressed nucleotide in sequence seq at position i
-  return ((((unsigned char)(seq[i >> 2])) >> (6 - 2 * (i & 3))) & 3) + 1;
+  return 1 + (((((uint64_t *) seq)[i >> 5]) >> ((i & 0x1f) << 1)) & 3);
 }
 
 inline unsigned int nt_bytelength(unsigned int len)
 {
   // Compute number of bytes used for compressed sequence of length len
-  return (len+3) >> 2;
+  return ((len+31) >> 5) << 3;
 }
 
 /* functions in util.cc */
