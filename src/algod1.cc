@@ -30,6 +30,7 @@
 #include "swarm.h"
 
 #define HASH hash_cityhash64
+
 #define HASHFILLFACTOR 0.5
 #define POWEROFTWO
 //#define HASHSTATS
@@ -123,6 +124,9 @@ static unsigned long threads_used = 0;
 
 inline unsigned int hash_getindex(unsigned long hash)
 {
+  /* mix bits in hash to get a better distribution acorss buckets */
+  hash = hash64shift(hash);
+
 #ifdef POWEROFTWO
   return hash & hash_mask;
 #else
@@ -189,10 +193,9 @@ inline int hash_compare_value(unsigned int j, unsigned long hash)
 }
 
 inline void hash_insert(int amp,
-                        unsigned char * key,
-                        unsigned long keylen)
+                        TwobitVector seq)
 {
-  unsigned long hash = HASH(key, keylen);
+  unsigned long hash = seq.hash();
   unsigned int j = hash_getindex(hash);
   
   /* find the first empty bucket */
@@ -204,10 +207,22 @@ inline void hash_insert(int amp,
   hash_data[j] = amp;
 }
 
+TwobitVector db_get_seq_as_TwobitVector(int seqno)
+{
+  unsigned long seqlen = db_getsequencelen(seqno);
+  unsigned char * seq = (unsigned char *) db_getsequence(seqno);
+
+  auto v = TwobitVector(seqlen);
+  unsigned long words = (seqlen + 31) >> 5;
+  for(unsigned long i = 0; i < words; i++)
+    v.data_at(i) = ((uint64_t *) seq)[i];
+  return v;
+}
+
 void find_variant_matches(unsigned long thread,
-                          unsigned char * seq,
-                          unsigned long seqlen,
-                          int seed)
+                          int seed,
+                          TwobitVector seq,
+                          uint64_t hash)
 {
   unsigned long max_abundance;
 
@@ -218,7 +233,6 @@ void find_variant_matches(unsigned long thread,
 
   /* compute hash and corresponding hash table index */
 
-  unsigned long hash = HASH(seq, seqlen);
   unsigned int j = hash_getindex(hash);
 
   /* find matching buckets */
@@ -245,11 +259,9 @@ void find_variant_matches(unsigned long thread,
           if ((bp->swarmid == NO_SWARM) && 
               (db_getabundance(amp) <= max_abundance))
             {
-              unsigned long ampseqlen = db_getsequencelen(amp);
-              unsigned char * ampseq = (unsigned char *) db_getsequence(amp);
               
               /* make sure sequences are identical even though hashes are */
-              if ((ampseqlen == seqlen) && (!memcmp(ampseq, seq, seqlen)))
+              if (seq == db_get_seq_as_TwobitVector(amp))
                 {
 #ifdef HASHSTATS
                   bingo++;
@@ -293,6 +305,9 @@ void generate_variants(unsigned long thread,
                        unsigned long start,
                        unsigned long len)
 {
+  (void) start;
+  (void) len;
+
   /* 
      Generate all possible variants involving mutations from position start
      and extending len nucleotides. Insertions in front of those positions
@@ -304,64 +319,34 @@ void generate_variants(unsigned long thread,
      as well as identical sequences (no mutations).
   */
 
-  unsigned char * varseq = ti[thread].varseq;
+  /* For now, thread 0 will do all work. Start and Len are ignored. */
 
-  unsigned char * seq = (unsigned char*) db_getsequence(seed);
-  unsigned long seqlen = db_getsequencelen(seed);
-  unsigned long end = MIN(seqlen,start+len);
+  if (thread > 0)
+    return;
 
   ti[thread].hits_count = 0;
 
-  /* make an exact copy */
-  memcpy(varseq, seq, seqlen);
-  
+  TwobitVector seq = db_get_seq_as_TwobitVector(seed);
+
 #if 1
   /* identical non-variant */
-  if (thread == threads_used - 1)
-    find_variant_matches(thread, varseq, seqlen, seed);
+  find_variant_matches(thread, seed, seq, seq.hash());
 #endif
 
   /* substitutions */
-  for(unsigned int i=start; i<end; i++)
-    {
-      for (int v=1; v<5; v++)
-        if (v != seq[i])
-          {
-            varseq[i] = v;
-            find_variant_matches(thread, varseq, seqlen, seed);
-          }
-      varseq[i] = seq[i];
-    }
-
-  /* deletions */
-  memcpy(varseq, seq, start);
-  if (start < seqlen-1)
-    memcpy(varseq+start, seq+start+1, seqlen-start-1);
-  for(unsigned int i=start; i<end; i++)
-    {
-      if ((i==0) || (seq[i] != seq[i-1]))
-        {
-          find_variant_matches(thread, varseq, seqlen-1, seed);      
-        }
-      varseq[i] = seq[i];
-    }
+  auto its_end = IteratorSubstitutions();
+  for (auto its = IteratorSubstitutions(seq); its != its_end; its++)
+    find_variant_matches(thread, seed, its.vector(), its.hash());
   
+  /* deletions */
+  auto itd_end = IteratorDeletions();
+  for (auto itd = IteratorDeletions(seq); itd != itd_end; itd++)
+    find_variant_matches(thread, seed, itd.vector(), itd.hash());
+
   /* insertions */
-  memcpy(varseq, seq, start);
-  memcpy(varseq+start+1, seq+start, seqlen-start);
-  for(unsigned int i=start; i<start+len; i++)
-    {
-      for(int v=1; v<5; v++)
-        {
-          if((i==seqlen) || (v != seq[i]))
-            {
-              varseq[i] = v;
-              find_variant_matches(thread, varseq, seqlen+1, seed);
-            }
-        }
-      if (i<seqlen)
-        varseq[i] = seq[i];
-    }
+  auto iti_end = IteratorInsertions();
+  for (auto iti = IteratorInsertions(seq); iti != iti_end; iti++)
+    find_variant_matches(thread, seed, iti.vector(), iti.hash());
 }
 
 void * worker(void * vp)
@@ -1008,14 +993,12 @@ void algo_d1_run()
   progress_init("Hashing sequences:", amplicons);
   for(unsigned int i=0; i<amplicons; i++)
     {
-      unsigned long seqlen = db_getsequencelen(i);
-      unsigned char * seq = (unsigned char *) db_getsequence(i);
       struct ampinfo_s * bp = ampinfo + i;
       bp->generation = 0;
       bp->swarmid = NO_SWARM;
       bp->next = NO_SWARM;
       bp->graft_cand = NO_SWARM;
-      hash_insert(i, seq, seqlen);
+      hash_insert(i, db_get_seq_as_TwobitVector(i));
       progress_update(i);
     }
   progress_done();

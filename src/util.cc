@@ -171,3 +171,33 @@ unsigned long hash_cityhash64(unsigned char * s, unsigned long n)
 {
   return CityHash64((const char*)s, n);
 }
+
+
+unsigned long hash64shift(unsigned long key)
+{
+  key = (~key) + (key << 21); // key = (key << 21) - key - 1;
+  key = key ^ (key >> 24);
+  key = (key + (key << 3)) + (key << 8); // key * 265
+  key = key ^ (key >> 14);
+  key = (key + (key << 2)) + (key << 4); // key * 21
+  key = key ^ (key >> 28);
+  key = key + (key << 31);
+  return key;
+}
+
+unsigned long hash_xor64len(unsigned char * s, unsigned long n)
+{
+  unsigned long hash;
+
+  hash = 8 * n;
+  unsigned long * p = (unsigned long*) s;
+  for(unsigned long i = 0; i < n/8; i++)
+    hash ^= *p++;
+
+  // Only the lowest (right-most) bits are used for indexing the hash table.
+  // Make sure these bits are representative of all bits in the hash.
+
+  hash = hash64shift(hash);
+
+  return hash;
+}

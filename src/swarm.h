@@ -49,6 +49,10 @@
 #endif
 
 #include "twobit_vector/twobit_vector.hpp"
+#include "twobit_vector/iterator_substitutions.hpp"
+#include "twobit_vector/iterator_deletions.hpp"
+#include "twobit_vector/iterator_insertions.hpp"
+
 
 /* constants */
 
@@ -218,6 +222,8 @@ unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n);
 unsigned long hash_djb2(unsigned char * s, unsigned long n);
 unsigned long hash_djb2a(unsigned char * s, unsigned long n);
 unsigned long hash_cityhash64(unsigned char * s, unsigned long n);
+unsigned long hash_xor64len(unsigned char * s, unsigned long n);
+unsigned long hash64shift(unsigned long key);
 void progress_init(const char * prompt, unsigned long size);
 void progress_update(unsigned long progress);
 void progress_done();

@@ -23,6 +23,8 @@
 
 #include "swarm.h"
 
+#define HASH hash_cityhash64
+
 //#define REVCOMP
 
 struct bucket
@@ -115,7 +117,7 @@ void dereplicate()
         collision when the number of sequences is about 5e9.
       */
 
-      unsigned long hash = CityHash64(seq, nt_bytelength(seqlen));
+      unsigned long hash = HASH((unsigned char*)seq, nt_bytelength(seqlen));
       unsigned long j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
       
@@ -142,7 +144,7 @@ void dereplicate()
           /* check minus strand as well */
 
           reverse_complement(rc_seq, seq, seqlen);
-          unsigned long rc_hash = CityHash64(rc_seq, nt_bytelength(seqlen));
+          unsigned long rc_hash = HASH((unsigned char*)rc_seq, nt_bytelength(seqlen));
           struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
           unsigned long k = rc_hash & hash_mask;
           

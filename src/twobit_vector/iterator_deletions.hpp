@@ -106,34 +106,43 @@ public:
         // ACT --> pos = 2, cur = G
         // ACG --> pos = 3, cur = T
 
-        // If we are not done yet:
-        if( pos_ < vec_.size() ) {
+        // When subsequent nucleotides are identical (e.g. AA), deleting
+        // the first or the second results in the same sequence.
+        // These duplicates are now skipped.
+
+        // While we are not done:
+        while( pos_ < vec_.size() ) {
             // We will swap the value at the current position. So first, get it.
             auto tmp = vec_.get( pos_ );
 
-            // Update the hash: Remove the current value, and store the new one.
-            hash_ ^= ((
-                static_cast< TwobitVector::WordType >( tmp ) ^
-                static_cast< TwobitVector::WordType >( cur_ )
-                ) << ( 2 * ( pos_ % TwobitVector::kValuesPerWord ))
-            );
+            if ( tmp == cur_ ) {
+              // Identical values, just skip to next position
+              ++pos_;
+            } else {
+                // Update the hash: Remove the current value, and store the new one.
+                hash_ ^= ((
+                    static_cast< TwobitVector::WordType >( tmp ) ^
+                    static_cast< TwobitVector::WordType >( cur_ )
+                    ) << ( 2 * ( pos_ % TwobitVector::kValuesPerWord ))
+                );
 
-            // Now do the swap and move to the next position, so that next time,
-            // we will swap the next value.
-            vec_.set( pos_, cur_ );
-            cur_ = tmp;
-            ++pos_;
+                // Now do the swap and move to the next position, so that next time,
+                // we will swap the next value.
+                vec_.set( pos_, cur_ );
+                cur_ = tmp;
+                ++pos_;
+                return *this;
+            }
+        }
 
         // If we are done, set everything to zero, so that the iterator
         // is equal to the default-constructed end-iterator.
-        } else {
-            origin_ = nullptr;
-            vec_.clear();
-            pos_  = 0;
-            cur_  = TwobitVector::ValueType::A;
-            hash_ = 0;
-        }
 
+        origin_ = nullptr;
+        vec_.clear();
+        pos_  = 0;
+        cur_  = TwobitVector::ValueType::A;
+        hash_ = 0;
         return *this;
     }
 

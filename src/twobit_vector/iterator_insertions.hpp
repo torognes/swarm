@@ -101,70 +101,82 @@ public:
     {
         // Example:
         // Original: CAT
-        // ACAT, CCAT, GCAT, TCAT,
-        // CAAT, CCAT, CGAT, CTAT,
-        // CAAT, CACT, CAGT, CATT,
-        // CATA, CATC, CATG, CATT
+        //  ACAT,  CCAT,  GCAT,  TCAT,
+        //  CAAT, [CCAT], CGAT,  CTAT,
+        // [CAAT], CACT,  CAGT,  CATT,
+        //  CATA,  CATC,  CATG, [CATT]
         //
         // There are duplicates in there. Currently, they are not skipped - this is left as a
         // future optimization.
+        // This optimization is now in place. In the first postion any nucleotide can be
+        // inserted, however in the other positions a nucleotide identical to the previous
+        // is never inserted. So 4 possibilities in the first position and 3 the others.
 
-        // Shorthand.
-        size_t shift = ( 2 * ( pos_ % TwobitVector::kValuesPerWord ));
+        while((cnt_ < 3) || (pos_ < vec_.size() - 1)) {
 
-        // If there are still possible insertion values at the current position,
-        // use the next value.
-        if( cnt_ < 3 ) {
+            // Shorthand.
+            size_t shift = ( 2 * ( pos_ % TwobitVector::kValuesPerWord ));
 
-            // If we are not at the last value (11), we can simply move to the next one by
-            // adding one to the current position (00 -> 01, 01 -> 10, 10 -> 11).
+            // If there are still possible insertion values at the current position,
+            // use the next value.
+            if( cnt_ < 3 ) {
 
-            // Move a 1 to the position in the word and add it.
-            auto const one_shift = static_cast< TwobitVector::WordType >( 0x1 ) << shift;
-            vec_.data_at( pos_ / TwobitVector::kValuesPerWord ) += one_shift;
+                // If we are not at the last value (11), we can simply move to the next one by
+                // adding one to the current position (00 -> 01, 01 -> 10, 10 -> 11).
 
-            // Update the hash: Remove the current count value, store the next one.
-            auto hash_xor = static_cast< TwobitVector::WordType >( cnt_ ^ ( cnt_ + 1 ) );
-            hash_ ^= ( hash_xor << shift );
+                // Move a 1 to the position in the word and add it.
+                auto const one_shift = static_cast< TwobitVector::WordType >( 0x1 ) << shift;
+                vec_.data_at( pos_ / TwobitVector::kValuesPerWord ) += one_shift;
 
-            ++cnt_;
+                // Update the hash: Remove the current count value, store the next one.
+                auto hash_xor = static_cast< TwobitVector::WordType >( cnt_ ^ ( cnt_ + 1 ) );
+                hash_ ^= ( hash_xor << shift );
 
-        // If we used all four possible insertion values at the current position,
-        // but if this is not the last possible position, move to the next one.
-        } else if( pos_ < vec_.size() - 1 ) {
+                ++cnt_;
 
-            // Move the value at the next position one to the left.
-            // We can then fill is previous position with the new insertion value.
-            auto next = vec_.get( pos_ + 1 );
-            vec_.set( pos_, next );
+                // If we used all four possible insertion values at the current position,
+                // but if this is not the last possible position, move to the next one.
+            } else {
 
-            // Update the hash at the old position: Remove the last value of the insertion
-            // (which is a 11 = 3), and store the value that we just moved to that position.
-            auto hash_xor   = static_cast< TwobitVector::WordType >( next ) ^ 0x3;
-            hash_ ^= ( hash_xor << shift );
+                // Invariant: ( cnt_ == 3 ) && ( pos_ < vec_.size() - 1 )
 
-            // Move to the next position and recalculate the shift value accordingly.
-            ++pos_;
-            shift = ( 2 * (( pos_ ) % TwobitVector::kValuesPerWord ));
+                // Move the value at the next position one to the left.
+                // We can then fill is previous position with the new insertion value.
+                auto next = vec_.get( pos_ + 1 );
+                vec_.set( pos_, next );
 
-            // Update the hash at the new position: Remove the value that was there before.
-            // We do not need to store a new value here, as it will be a 0 (=A) anyway.
-            hash_xor   = static_cast< TwobitVector::WordType >( next );
-            hash_ ^= ( hash_xor << shift );
+                // Update the hash at the old position: Remove the last value of the insertion
+                // (which is a 11 = 3), and store the value that we just moved to that position.
+                auto hash_xor   = static_cast< TwobitVector::WordType >( next ) ^ 0x3;
+                hash_ ^= ( hash_xor << shift );
 
-            // Set the value at the new position to 0 (=A) and restart the counter.
-            vec_.set( pos_, TwobitVector::ValueType::A );
-            cnt_ = 0;
+                // Move to the next position and recalculate the shift value accordingly.
+                ++pos_;
+                shift = ( 2 * (( pos_ ) % TwobitVector::kValuesPerWord ));
+
+                // Update the hash at the new position: Remove the value that was there before.
+                // We do not need to store a new value here, as it will be a 0 (=A) anyway.
+                hash_xor   = static_cast< TwobitVector::WordType >( next );
+                hash_ ^= ( hash_xor << shift );
+
+                // Set the value at the new position to 0 (=A) and restart the counter.
+                vec_.set( pos_, TwobitVector::ValueType::A );
+                cnt_ = 0;
+            }
+
+            // Skip insertion of same nucleotide after another
+            if (( pos_ == 0 ) || ( cnt_ != static_cast<TwobitVector::WordType>( vec_.get( pos_ - 1 ))))
+              return *this;
+        }
 
         // If we are done, set everything to zero, so that the iterator
         // is equal to the default-constructed end-iterator.
-        } else {
-            origin_ = nullptr;
-            vec_.clear();
-            pos_  = 0;
-            cnt_  = 0;
-            hash_ = 0;
-        }
+
+        origin_ = nullptr;
+        vec_.clear();
+        pos_  = 0;
+        cnt_  = 0;
+        hash_ = 0;
 
         return *this;
     }
