@@ -97,7 +97,7 @@ public:
         return &vec_;
     }
 
-    self_type operator ++ ()
+    self_type& operator ++ ()
     {
         // Example:
         // Original: CAT

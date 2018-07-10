@@ -26,11 +26,11 @@
 COMMON=-g
 
 LIBS=-lpthread
-LINKFLAGS=$(COMMON)
+LINKFLAGS=$(COMMON) -flto
 
 CXX=g++
 WARNINGS=-Wall -Wsign-compare -Wextra -pedantic -Wno-long-long
-CXXFLAGS=$(COMMON) $(WARNINGS) -std=c++11 -O3 -msse2 -mtune=core2 -Icityhash -Itwobit_vector
+CXXFLAGS=$(COMMON) $(WARNINGS) -flto -std=c++11 -O3 -msse2 -mtune=core2 -Icityhash -Itwobit_vector
 
 PROG=swarm
 

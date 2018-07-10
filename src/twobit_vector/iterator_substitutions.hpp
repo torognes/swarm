@@ -97,7 +97,7 @@ public:
         return &vec_;
     }
 
-    self_type operator ++ ()
+    self_type& operator ++ ()
     {
         // We use four xor's at the current position to cycle through the variants:
         // The first thee are the substitutions, the last one then restores the original value.
