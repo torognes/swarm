@@ -101,7 +101,7 @@ void dereplicate()
   /* allocate memory for reverse complementary sequence */
   char * rc_seq = (char*) xmalloc(db_getlongestsequence() + 1);
 #endif
-  
+
   progress_init("Dereplicating:    ", dbsequencecount);
 
   for(long i=0; i<dbsequencecount; i++)
@@ -120,7 +120,7 @@ void dereplicate()
       unsigned long hash = HASH((unsigned char*)seq, nt_bytelength(seqlen));
       unsigned long j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
-      
+
       while ((bp->mass) &&
              ((bp->hash != hash) ||
               (seqlen != db_getsequencelen(bp->seqno_first)) ||
@@ -147,7 +147,7 @@ void dereplicate()
           unsigned long rc_hash = HASH((unsigned char*)rc_seq, nt_bytelength(seqlen));
           struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
           unsigned long k = rc_hash & hash_mask;
-          
+
           while ((rc_bp->mass) &&
                  ((rc_bp->hash != rc_hash) ||
                   (seqlen != db_getsequencelen(rc_bp->seqno_first)) ||
@@ -209,7 +209,7 @@ void dereplicate()
 #ifdef REVCOMP
   free(rc_seq);
 #endif
-  
+
   progress_init("Sorting:          ", 1);
   qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare);
   progress_done();
@@ -239,7 +239,7 @@ void dereplicate()
           fprint_id(outfile, a);
           a = nextseqtab[a];
         }
-      
+
       if (!opt_mothur)
         fputc('\n', outfile);
 
@@ -248,7 +248,7 @@ void dereplicate()
 
   if (opt_mothur)
     fputc('\n', outfile);
-  
+
   progress_done();
 
 
@@ -278,7 +278,7 @@ void dereplicate()
       for(unsigned int swarmid = 0; swarmid < swarmcount ; swarmid++)
         {
           struct bucket * bp = hashtable + swarmid;
-          
+
           int seed = bp->seqno_first;
 
           fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
@@ -286,13 +286,13 @@ void dereplicate()
                   bp->size);
           fprint_id(uclustfile, seed);
           fprintf(uclustfile, "\t*\n");
-          
+
           fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
                   swarmid,
                   db_getsequencelen(seed));
           fprint_id(uclustfile, seed);
           fprintf(uclustfile, "\t*\n");
-          
+
           int a = nextseqtab[seed];
 
           while (a)
@@ -301,7 +301,7 @@ void dereplicate()
                       "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
                       swarmid,
                       db_getsequencelen(a),
-                      100.0, 
+                      100.0,
                       "=");
               fprint_id(uclustfile, a);
               fprintf(uclustfile, "\t");
@@ -309,7 +309,7 @@ void dereplicate()
               fprintf(uclustfile, "\n");
               a = nextseqtab[a];
             }
-          
+
           progress_update(swarmid+1);
         }
       progress_done();
@@ -320,7 +320,7 @@ void dereplicate()
   if (opt_internal_structure)
     {
       progress_init("Writing structure:", swarmcount);
-      
+
       for(long i = 0; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
@@ -349,7 +349,7 @@ void dereplicate()
           struct bucket * sp = hashtable + i;
           fprintf(statsfile, "%u\t%lu\t", sp->size, sp->mass);
           fprint_id_noabundance(statsfile, sp->seqno_first);
-          fprintf(statsfile, "\t%lu\t%u\t%u\t%u\n", 
+          fprintf(statsfile, "\t%lu\t%u\t%u\t%u\n",
                   db_getabundance(sp->seqno_first),
                   sp->singletons, 0U, 0U);
           progress_update(i);

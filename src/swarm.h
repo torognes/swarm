@@ -361,7 +361,7 @@ void score_matrix_free();
 /* functions in scan.cc */
 
 void search_all(unsigned long query_no);
-void search_do(unsigned long query_no, 
+void search_do(unsigned long query_no,
                unsigned long listlength,
                unsigned long * targets,
                unsigned long * scores,

@@ -317,7 +317,7 @@ void args_init(int argc, char **argv)
     {"usearch-abundance",     no_argument,       NULL, 'z' },
     { 0, 0, 0, 0 }
   };
-  
+
   int used_options[26] = { 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0,
@@ -327,7 +327,7 @@ void args_init(int argc, char **argv)
 
   int option_index = 0;
   int c;
-  
+
   while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
   {
 
@@ -381,7 +381,7 @@ void args_init(int argc, char **argv)
         /* gap extension penalty */
         opt_gap_extension_penalty = args_long(optarg, "-e or --gap-extension-penalty");
         break;
-          
+
       case 'f':
         /* fastidious */
         opt_fastidious = 1;
@@ -474,16 +474,16 @@ void args_init(int argc, char **argv)
         break;
     }
   }
-  
+
   if (optind < argc)
     input_filename = argv[optind];
-  
+
   if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
     {
       fprintf(stderr, "\nError: Illegal number of threads specified with -t or --threads, must be in the range 1 to %d.\n", MAX_THREADS);
       exit(1);
     }
-  
+
   if ((opt_differences < 0) || (opt_differences > 255))
     fatal("Illegal number of differences specified with -d or --differences, must be in the range 0 to 255.");
 
@@ -574,7 +574,7 @@ void args_init(int argc, char **argv)
     }
   else
     outfile = stdout;
-  
+
   if (opt_seeds)
     {
       fp_seeds = fopen(opt_seeds, "w");
@@ -583,7 +583,7 @@ void args_init(int argc, char **argv)
     }
   else
     fp_seeds = 0;
-  
+
   if (opt_statistics_file)
     {
       statsfile = fopen(opt_statistics_file, "w");
@@ -592,7 +592,7 @@ void args_init(int argc, char **argv)
     }
   else
     statsfile = 0;
-  
+
   if (opt_uclust_file)
     {
       uclustfile = fopen(opt_uclust_file, "w");
@@ -627,7 +627,7 @@ int main(int argc, char** argv)
 
   if (!sse2_present)
     fatal("This program requires a processor with SSE2 instructions.\n");
-  
+
   args_init(argc, argv);
 
   if (opt_version || opt_help)
@@ -643,19 +643,19 @@ int main(int argc, char** argv)
   penalty_gapextend = opt_match_reward + 2 * opt_gap_extension_penalty;
 
   penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
-  
+
   penalty_mismatch /= penalty_factor;
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
 
   show_header();
-  
+
   args_show();
 
   fprintf(logfile, "\n");
 
   db_read(input_filename);
-  
+
   fprintf(logfile, "Database info:     %lu nt", db_getnucleotidecount());
   fprintf(logfile, " in %lu sequences,", db_getsequencecount());
   fprintf(logfile, " longest %lu nt\n", db_getlongestsequence());
@@ -665,13 +665,13 @@ int main(int argc, char** argv)
   score_matrix_init();
 
   search_begin();
-  
+
   switch (opt_differences)
     {
     case 0:
       dereplicate();
       break;
-      
+
     case 1:
       algo_d1_run();
       break;

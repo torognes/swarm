@@ -76,7 +76,7 @@ const unsigned char maskextleft = 8;
   1. left/insert/e (gap in query sequence (qseq))
   2. align/diag/h (match/mismatch)
   3. up/delete/f (gap in database sequence (dseq))
-  
+
   qseq: the reference/query/upper/vertical/from sequence
   dseq: the sample/database/lower/horisontal/to sequence
 
@@ -145,39 +145,39 @@ void nw(char * dseq,
     hep = hearray;
     long f = 2 * gapopen + (j+2) * gapextend;
     long h = (j == 0) ? 0 : (gapopen + j * gapextend);
-    
+
     for(i=0; i<qlen; i++)
     {
       long index = qlen*j+i;
-      
+
       n = *hep;
       e = *(hep+1);
       h += score_matrix[(dseq[j]<<5) + qseq[i]];
-      
+
       dir[index] |= (f < h ? maskup : 0);
       h = MIN(h, f);
       h = MIN(h, e);
       dir[index] |= (e == h ? maskleft : 0);
 
       *hep = h;
-      
+
       h += gapopen + gapextend;
       e += gapextend;
       f += gapextend;
-      
+
       dir[index] |= (f < h ? maskextup : 0);
       dir[index] |= (e < h ? maskextleft : 0);
       f = MIN(h,f);
       e = MIN(h,e);
-      
+
       *(hep+1) = e;
       h = n;
       hep += 2;
     }
   }
-  
+
   long dist = hearray[2*qlen-2];
-  
+
   /* backtrack: count differences and save alignment in cigar string */
 
   long score = 0;
@@ -238,7 +238,7 @@ void nw(char * dseq,
       pushop('M', &cigarend, &op, &count);
     }
   }
-  
+
   while(i>0)
   {
     alength++;
@@ -248,7 +248,7 @@ void nw(char * dseq,
     i--;
     pushop('D', &cigarend, &op, &count);
   }
-  
+
   while(j>0)
   {
     alength++;

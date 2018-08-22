@@ -27,7 +27,7 @@ unsigned long arch_get_memused()
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, & r_usage);
-  
+
 #if defined __APPLE__
   /* Mac: ru_maxrss gives the size in bytes */
   return r_usage.ru_maxrss;

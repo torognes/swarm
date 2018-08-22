@@ -104,13 +104,13 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
     {
       /* print start of header */
       fprintf(stream, "%.*s", sp->abundance_start, h);
-      
+
       if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
           if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen))
             fprintf(stream, ";");
-          
+
           /* print remaining part */
           fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
         }
@@ -146,12 +146,12 @@ int db_compare_abundance(const void * a, const void * b)
 {
   seqinfo_t * x = (seqinfo_t *) a;
   seqinfo_t * y = (seqinfo_t *) b;
-  
+
   if (x->abundance > y->abundance)
     return -1;
   else if (x->abundance < y->abundance)
     return +1;
-  else 
+  else
     return strcmp(x->header, y->header);
 }
 
@@ -210,13 +210,13 @@ void db_read(const char * filename)
       long headerlen = strcspn(line + 1, " \r\n");
 
       headerchars += headerlen;
-      
+
       if (headerlen > longestheader)
         longestheader = headerlen;
 
 
       /* store the line number */
-      
+
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
           dataalloc += MEMCHUNK;
@@ -315,7 +315,7 @@ void db_read(const char * filename)
             line[0] = 0;
           lineno++;
         }
-      
+
       /* fill in real length */
 
       memcpy(datap + datalen_seqlen, & length, sizeof(unsigned int));
@@ -350,7 +350,7 @@ void db_read(const char * filename)
         }
 
       sequences++;
-      
+
       if (is_regular)
         progress_update(ftell(fp));
     }
@@ -450,7 +450,7 @@ void db_read(const char * filename)
           seqindex_p->abundance_end = seqindex_p->headerlen;
           seqindex_p->abundance = 0;
         }
-      
+
       if (seqindex_p->abundance < 1)
         {
           if (opt_append_abundance)
@@ -496,7 +496,7 @@ void db_read(const char * filename)
       unsigned long hdrhashindex = hdrhash % hdrhashsize;
 
       seqinfo_t * hdrfound = 0;
-    
+
       while ((hdrfound = hdrhashtable[hdrhashindex]))
         {
           if ((hdrfound->hdrhash == hdrhash) &&
@@ -518,7 +518,7 @@ void db_read(const char * filename)
         }
 
       hdrhashtable[hdrhashindex] = seqindex_p;
-    
+
 
       if (opt_differences > 0)
         {

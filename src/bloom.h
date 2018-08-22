@@ -24,20 +24,20 @@
 class BloomFilter
 {
 private:
-  
+
   Bitmap bitmap;
   size_t m; /* total number of bits in bitmap */
   int k; /* number of hash functions */
-  
+
 public:
-  
+
   BloomFilter(unsigned long _m, int _k) : bitmap(_m)
   {
     bitmap.reset_all();
     m = _m;
     k = _k;
   }
-  
+
   bool get(const char * buf, size_t len)
   {
     uint128 hash = CityHash128(buf, len);

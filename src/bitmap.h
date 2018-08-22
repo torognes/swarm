@@ -26,7 +26,7 @@ class Bitmap
  private:
   size_t size;      /* size in bits */
   unsigned char * data;    /* the actual bitmap */
-  
+
  public:
 
   explicit Bitmap(size_t _size)
@@ -34,13 +34,13 @@ class Bitmap
     size = _size;
     data = (unsigned char *) xmalloc((size+7)/8);
   }
-  
+
   ~Bitmap()
   {
     if (data)
       free(data);
   }
-  
+
   bool get(size_t x)
   {
     return (data[x >> 3] >> (x & 7)) & 1;
@@ -50,24 +50,24 @@ class Bitmap
   {
     memset(data, 0, (size+7)/8);
   }
-  
+
   void set_all()
   {
     memset(data, 255, (size+7)/8);
   }
-  
+
   void reset(size_t x)
   {
     //    data[x >> 3] &= ~ (1 << (x & 7));
     __sync_fetch_and_and(data + (x >> 3), ~(1 << (x & 7)));
   }
-  
+
   void set(size_t x)
   {
     //    data[x >> 3] |= 1 << (x & 7);
     __sync_fetch_and_or(data + (x >> 3), 1 << (x & 7));
   }
-  
+
   void flip(size_t x)
   {
     //    data[x >> 3] ^= 1 << (x & 7);

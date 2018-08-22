@@ -36,7 +36,7 @@ PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o ssse3.o derep.o arch.o cityhash/city.o \
-	twobit_vector/twobit_vector.o twobit_vector/functions.o twobit_vector/examples.o
+	twobit_vector/twobit_vector.o twobit_vector/functions.o
 
 DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h \
 	threads.h twobit_vector/*.hpp
@@ -49,7 +49,8 @@ swarm : $(OBJS)
 	cp -a swarm ../bin
 
 clean :
-	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o twobit_vector/*.o ../man/*~ ../*~
+	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o \
+	twobit_vector/*.o ../man/*~ ../*~
 
 ssse3.o : ssse3.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<

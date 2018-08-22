@@ -24,7 +24,7 @@
 class ThreadRunner
 {
 private:
-  
+
   long thread_count;
 
   pthread_attr_t attr;
@@ -72,11 +72,11 @@ public:
 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-        
+
     /* allocate memory for thread data */
-    thread_array = (struct thread_s *) 
+    thread_array = (struct thread_s *)
       xmalloc(thread_count * sizeof(struct thread_s));
-  
+
     /* init and create worker threads */
     for(long i=0; i<thread_count; i++)
       {
@@ -104,7 +104,7 @@ public:
     for(long i=0; i<thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
-      
+
         /* tell worker to quit */
         pthread_mutex_lock(&tip->workmutex);
         tip->work = -1;

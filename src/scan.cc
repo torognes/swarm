@@ -180,34 +180,34 @@ void search_chunk(struct search_data * sdp, long bits)
             dirbufferbytes/8,
             sdp->dir_array);
 }
- 
+
 int search_getwork(unsigned long * countref, unsigned long * firstref)
 {
   // * countref = how many sequences to search
   // * firstref = index into master_targets/scores/diffs where thread should start
-  
+
   unsigned long status = 0;
-  
+
   pthread_mutex_lock(&workmutex);
-  
+
   if (master_next < master_length)
     {
-      unsigned long chunksize = 
+      unsigned long chunksize =
         ((master_length - master_next + remainingchunks - 1) / remainingchunks);
-      
+
       * countref = chunksize;
       * firstref = master_next;
-      
+
       master_next += chunksize;
       remainingchunks--;
       status = 1;
     }
-  
+
   pthread_mutex_unlock(&workmutex);
-  
+
   return status;
 }
-  
+
 void master_dump()
 {
   printf("master_dump\n");
@@ -218,7 +218,7 @@ void master_dump()
              master_scores[i], master_diffs[i]);
     }
 }
-  
+
 void search_worker_core(int t)
 {
   search_init(sd+t);
@@ -250,7 +250,7 @@ void * search_worker(void * vp)
   return 0;
 }
 
-void search_do(unsigned long query_no, 
+void search_do(unsigned long query_no,
                unsigned long listlength,
                unsigned long * targets,
                unsigned long * scores,
@@ -260,7 +260,7 @@ void search_do(unsigned long query_no,
 {
   query.qno = query_no;
   db_getsequenceandlength(query_no, &query.seq, &query.len);
-  
+
   master_next = 0;
   master_length = listlength;
   master_targets = targets;
@@ -283,7 +283,7 @@ void search_do(unsigned long query_no,
     }
 
   remainingchunks = thr;
-  
+
   if (thr == 1)
     {
       search_worker_core(0);
@@ -299,7 +299,7 @@ void search_do(unsigned long query_no,
           pthread_cond_signal(&tip->workcond);
           pthread_mutex_unlock(&tip->workmutex);
         }
-      
+
       /* wait for threads to finish their work */
       for(unsigned long t=0; t<thr; t++)
         {
@@ -315,7 +315,7 @@ void search_do(unsigned long query_no,
 void search_begin()
 {
   longestdbsequence = db_getlongestsequence();
-  
+
   sd = (struct search_data *) xmalloc(sizeof(search_data) * opt_threads);
 
   for(long t=0; t<opt_threads; t++)
@@ -325,11 +325,11 @@ void search_begin()
 
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
+
   /* allocate memory for thread info */
   ti = (struct thread_info_s *) xmalloc(opt_threads *
                                         sizeof(struct thread_info_s));
-  
+
   /* init and create worker threads */
   for(long t=0; t<opt_threads; t++)
     {
@@ -350,7 +350,7 @@ void search_end()
   for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
-      
+
       /* tell worker to quit */
       pthread_mutex_lock(&tip->workmutex);
       tip->work = -1;

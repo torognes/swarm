@@ -58,12 +58,12 @@ void score_matrix_dump()
 void score_matrix_read()
 {
   int a, b;
-  long sc, lo, hi; 
-  
+  long sc, lo, hi;
+
   score_matrix_8 = (unsigned char *) xmalloc(32*32*sizeof(char));
   score_matrix_16 = (unsigned short *) xmalloc(32*32*sizeof(short));
   score_matrix_63 = (long *) xmalloc(32*32*sizeof(long));
-  
+
   hi = -1000;
   lo = 1000;
 
@@ -82,7 +82,7 @@ void score_matrix_read()
 
   SCORELIMIT_8  = 256 - hi;
   SCORELIMIT_16 = 65536 - hi;
-  
+
   for(a=0;a<32;a++)
     for(b=0;b<32;b++)
     {

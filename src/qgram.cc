@@ -52,13 +52,13 @@ void printqgrams(unsigned char * qgramvector)
   }
 }
 
-void findqgrams(unsigned char * seq, unsigned long seqlen, 
+void findqgrams(unsigned char * seq, unsigned long seqlen,
                 unsigned char * qgramvector)
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
   memset(qgramvector, 0, QGRAMVECTORBYTES);
-  
+
   unsigned long qgram = 0;
   unsigned long i = 0;
 
@@ -71,13 +71,13 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
   while(i < seqlen)
   {
     qgram = (qgram << 2) | (seq[i] - 1);
-    qgramvector[(qgram >> 3) & (QGRAMVECTORBYTES-1)] ^= (1 << (qgram & 7)); 
+    qgramvector[(qgram >> 3) & (QGRAMVECTORBYTES-1)] ^= (1 << (qgram & 7));
     i++;
   }
 }
 
-/* 
-   Unable to get the Mac gcc compiler v 4.2.1 produce the real 
+/*
+   Unable to get the Mac gcc compiler v 4.2.1 produce the real
    popcnt instruction. Therefore resorting to assembly code.
 */
 
@@ -152,7 +152,7 @@ unsigned long compareqgramvectors_128(unsigned char * a, unsigned char * b)
 
   while ((unsigned char*)ap < a + QGRAMVECTORBYTES)
     count += popcount_128(_mm_xor_si128(*ap++, *bp++));
-  
+
   return count;
 }
 
@@ -167,7 +167,7 @@ unsigned long compareqgramvectors_64(unsigned char * a, unsigned char * b)
 
   while ((unsigned char*) ap < a + QGRAMVECTORBYTES)
     count += popcount(*ap++ ^ *bp++);
-  
+
   return count;
 }
 
@@ -227,11 +227,11 @@ void qgram_diff_init()
 {
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  
+
   /* allocate memory for thread info */
-  ti = (struct thread_info_s *) xmalloc(opt_threads * 
+  ti = (struct thread_info_s *) xmalloc(opt_threads *
                                         sizeof(struct thread_info_s));
-  
+
   /* init and create worker threads */
   for(long t=0; t<opt_threads; t++)
     {
@@ -250,7 +250,7 @@ void qgram_diff_done()
   for(long t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
-      
+
       /* tell worker to quit */
       pthread_mutex_lock(&tip->workmutex);
       tip->work = -1;
@@ -275,17 +275,17 @@ void qgram_diff_fast(unsigned long seed,
                      unsigned long * difflist)
 {
   long thr = opt_threads;
-  
+
   const unsigned long m = 150;
 
   if (listlen < m*thr)
     thr = (listlen+m-1)/m;
-  
+
   unsigned long * next_amplist = amplist;
   unsigned long * next_difflist = difflist;
   unsigned long listrest = listlen;
   unsigned long thrrest = thr;
-  
+
   /* distribute work */
   for(long t=0; t<thr; t++)
     {
@@ -318,7 +318,7 @@ void qgram_diff_fast(unsigned long seed,
           pthread_cond_signal(&tip->workcond);
           pthread_mutex_unlock(&tip->workmutex);
         }
-      
+
       /* wait for threads to finish their work */
       for(int t=0; t<thr; t++)
         {

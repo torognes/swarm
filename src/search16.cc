@@ -58,13 +58,13 @@ inline void dprofile_fill16(WORD * dprofile_word,
   __m128i xmm24, xmm25, xmm26, xmm27, xmm28, xmm29, xmm30, xmm31;
 
   // clocks? 4*(8+3*(8+4)+8) = 52*4 = 208
-  
+
   for (int j=0; j<CDEPTH; j++)
   {
     int d[CHANNELS];
     for(int z=0; z<CHANNELS; z++)
       d[z] = dseq[j*CHANNELS+z] << 5;
-      
+
     // for(int i=0; i<24; i += 8)
     // for(int i=0; i<32; i += 8)
     for(int i=0; i<8; i += 8)
@@ -77,7 +77,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
       xmm5  = _mm_load_si128((__m128i*)(score_matrix_word + d[5] + i));
       xmm6  = _mm_load_si128((__m128i*)(score_matrix_word + d[6] + i));
       xmm7  = _mm_load_si128((__m128i*)(score_matrix_word + d[7] + i));
-      
+
       xmm8  = _mm_unpacklo_epi16(xmm0,  xmm1);
       xmm9  = _mm_unpackhi_epi16(xmm0,  xmm1);
       xmm10 = _mm_unpacklo_epi16(xmm2,  xmm3);
@@ -86,7 +86,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
       xmm13 = _mm_unpackhi_epi16(xmm4,  xmm5);
       xmm14 = _mm_unpacklo_epi16(xmm6,  xmm7);
       xmm15 = _mm_unpackhi_epi16(xmm6,  xmm7);
-      
+
       xmm16 = _mm_unpacklo_epi32(xmm8,  xmm10);
       xmm17 = _mm_unpackhi_epi32(xmm8,  xmm10);
       xmm18 = _mm_unpacklo_epi32(xmm12, xmm14);
@@ -95,7 +95,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
       xmm21 = _mm_unpackhi_epi32(xmm9,  xmm11);
       xmm22 = _mm_unpacklo_epi32(xmm13, xmm15);
       xmm23 = _mm_unpackhi_epi32(xmm13, xmm15);
-      
+
       xmm24 = _mm_unpacklo_epi64(xmm16, xmm18);
       xmm25 = _mm_unpackhi_epi64(xmm16, xmm18);
       xmm26 = _mm_unpacklo_epi64(xmm17, xmm19);
@@ -104,7 +104,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
       xmm29 = _mm_unpackhi_epi64(xmm20, xmm22);
       xmm30 = _mm_unpacklo_epi64(xmm21, xmm23);
       xmm31 = _mm_unpackhi_epi64(xmm21, xmm23);
-      
+
       _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j), xmm24);
       _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j), xmm25);
       _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j), xmm26);
@@ -120,7 +120,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
 #endif
 }
 
-/* 
+/*
    Sorry for the assembler code below. This code was originally written
    several years ago when compilers were not that good at compiling
    intrinsics to optimal code.
@@ -155,7 +155,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
   "        shlq      $3, %%r12               \n"        \
   "        movq      %%r12, %%r10            \n"        \
   "        andq      $-16, %%r10             \n"        \
-  "        xorq      %%r11, %%r11            \n" 
+  "        xorq      %%r11, %%r11            \n"
 
 #define ONESTEP(H, N, F, V, DIR)                        \
   "        paddusw   " V ", " H "            \n"        \
@@ -199,55 +199,55 @@ inline void donormal16(__m128i * Sm,
 {
   __asm__
     __volatile__
-    ( 
+    (
      INITIALIZE
-     
+
      "        jmp       2f                  \n"
-     
+
      "1:      movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
      "        movdqa    0(%1,%%r11,4), %%xmm8   \n" // load N0
      "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
-     
+
      ONESTEP("%%xmm0", "%%xmm9",        "%%xmm4", " 0(%%rax)", " 0(%8,%%r11,4)")
      ONESTEP("%%xmm1", "%%xmm10",       "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
      ONESTEP("%%xmm2", "%%xmm11",       "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
      ONESTEP("%%xmm3", "0(%1,%%r11,4)", "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
+
      "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
      "        movq      8(%2,%%r11,1), %%rax    \n" // load x from qp[qi+1]
      "        movdqa    32(%1,%%r11,4), %%xmm0  \n" // load H0
      "        movdqa    48(%1,%%r11,4), %%xmm12 \n" // load E
-     
+
      ONESTEP("%%xmm8",  "%%xmm1",           "%%xmm4", "0(%%rax)" , "32(%8,%%r11,4)")
      ONESTEP("%%xmm9",  "%%xmm2",           "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
      ONESTEP("%%xmm10", "%%xmm3",           "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
      ONESTEP("%%xmm11", "32(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
-     
+
      "        movdqa    %%xmm12, 48(%1,%%r11,4) \n" // save E
      "        addq      $16, %%r11              \n" // qi++
      "2:      cmpq      %%r11, %%r10            \n" // qi = ql4 ?
      "        jne       1b                      \n" // loop
-     
-     "4:      cmpq      %%r11, %%r12            \n" 
+
+     "4:      cmpq      %%r11, %%r12            \n"
      "        je        3f                      \n"
      "        movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
      "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
-     
+
      ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
      ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
      ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
      ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
+
      "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
-     
+
      "        movdqa    %%xmm9, %%xmm1          \n"
      "        movdqa    %%xmm10, %%xmm2         \n"
      "        movdqa    %%xmm11, %%xmm3         \n"
      "        movdqa    0(%1,%%r11,4), %%xmm4   \n"
      "        jmp       5f                      \n"
-     
+
      "3:      movdqa    -32(%1,%%r11,4), %%xmm4 \n"
-     
+
      "5:      movq      %0, %%rax               \n" // save final Hs
      "        movdqa    %%xmm1, (%%rax)         \n"
      "        addq      $16, %%rax              \n"
@@ -256,15 +256,15 @@ inline void donormal16(__m128i * Sm,
      "        movdqa    %%xmm3, (%%rax)         \n"
      "        addq      $16, %%rax              \n"
      "        movdqa    %%xmm4, (%%rax)         \n"
-     
-     : 
-     : "m"(Sm), "r"(hep),  "r"(qp), "m"(Qm), 
+
+     :
+     : "m"(Sm), "r"(hep),  "r"(qp), "m"(Qm),
        "m"(Rm), "r"(ql),   "m"(Zm), "r"(F0),
        "r"(dir),"m"(H0)
-       
+
      : "xmm0",  "xmm1",  "xmm2",  "xmm3",
        "xmm4",  "xmm5",  "xmm6",  "xmm7",
-       "xmm8",  "xmm9",  "xmm10", "xmm11", 
+       "xmm8",  "xmm9",  "xmm10", "xmm11",
        "xmm12", "xmm13", "xmm14", "xmm15",
        "rax",   "r10",   "r11",   "r12",
        "rdx",   "cc"
@@ -274,9 +274,9 @@ inline void donormal16(__m128i * Sm,
 inline void domasked16(__m128i * Sm,
                        __m128i * hep,
                        __m128i ** qp,
-                       __m128i * Qm, 
-                       __m128i * Rm, 
-                       long ql,      
+                       __m128i * Qm,
+                       __m128i * Rm,
+                       long ql,
                        __m128i * Zm,
                        __m128i * F0,
                        unsigned long * dir,
@@ -286,18 +286,18 @@ inline void domasked16(__m128i * Sm,
                        __m128i * MR,
                        __m128i * MQ0)
 {
-  
+
   __asm__
     __volatile__
     (
      INITIALIZE
 
      "        jmp       2f                       \n"
-     
+
      "1:      movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
      "        movdqa    0(%1,%%r11,4), %%xmm8    \n" // load N0
      "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
-     "        movdqa    (%11), %%xmm13           \n" 
+     "        movdqa    (%11), %%xmm13           \n"
      "        psubusw   (%10), %%xmm8            \n" // mask N0
      "        psubusw   (%10), %%xmm12           \n" // mask E
      "        paddusw   %%xmm13, %%xmm8          \n" // init N0
@@ -305,12 +305,12 @@ inline void domasked16(__m128i * Sm,
      "        paddusw   (%13), %%xmm12           \n" // fix E
      "        paddusw   (%12), %%xmm13           \n" // update
      "        movdqa    %%xmm13, (%11)           \n"
-     
+
      ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
      ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
      ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
      ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
+
      "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
 
      "        movq      8(%2,%%r11,1), %%rax     \n" // load x from qp[qi+1]
@@ -324,18 +324,18 @@ inline void domasked16(__m128i * Sm,
      "        paddusw   (%13), %%xmm12           \n" // fix E
      "        paddusw   (%12), %%xmm13           \n"
      "        movdqa    %%xmm13, (%11)           \n"
-     
+
      ONESTEP("%%xmm8",  "%%xmm1",           "%%xmm4", "0(%%rax)" , "32(%8,%%r11,4)")
      ONESTEP("%%xmm9",  "%%xmm2",           "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
      ONESTEP("%%xmm10", "%%xmm3",           "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
      ONESTEP("%%xmm11", "32(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
-     
+
      "        movdqa    %%xmm12, 48(%1,%%r11,4)  \n" // save E
      "        addq      $16, %%r11               \n" // qi++
      "2:      cmpq      %%r11, %%r10             \n" // qi = ql4 ?
      "        jne       1b                       \n" // loop
-     
-     "        cmpq      %%r11, %%r12             \n" 
+
+     "        cmpq      %%r11, %%r12             \n"
      "        je        3f                       \n"
      "        movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
      "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
@@ -345,22 +345,22 @@ inline void domasked16(__m128i * Sm,
      "        paddusw   (%13), %%xmm12           \n" // fix E
      "        paddusw   (%12), %%xmm13           \n"
      "        movdqa    %%xmm13, (%11)           \n"
-     
+
      ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
      ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
      ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
      ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
+
      "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
-     
+
      "        movdqa    %%xmm9, %%xmm1           \n"
      "        movdqa    %%xmm10, %%xmm2          \n"
      "        movdqa    %%xmm11, %%xmm3          \n"
      "        movdqa    0(%1,%%r11,4), %%xmm4    \n"
      "        jmp       5f                       \n"
-     
+
      "3:      movdqa    -32(%1,%%r11,4), %%xmm4  \n"
-     
+
      "5:      movq      %0, %%rax                \n" // save final Hs
      "        movdqa    %%xmm1, (%%rax)          \n"
      "        addq      $16, %%rax               \n"
@@ -369,18 +369,18 @@ inline void domasked16(__m128i * Sm,
      "        movdqa    %%xmm3, (%%rax)          \n"
      "        addq      $16, %%rax               \n"
      "        movdqa    %%xmm4, (%%rax)          \n"
-     
-     : 
-     
-     : "m"(Sm), "r"(hep),"r"(qp), "m"(Qm), 
+
+     :
+
+     : "m"(Sm), "r"(hep),"r"(qp), "m"(Qm),
        "m"(Rm), "r"(ql), "m"(Zm), "r"(F0),
        "r"(dir),
        "m"(H0), "r"(Mm), "r"(MQ), "r"(MR),
        "r"(MQ0)
-       
+
      : "xmm0",  "xmm1",  "xmm2",  "xmm3",
        "xmm4",  "xmm5",  "xmm6",  "xmm7",
-       "xmm8",  "xmm9",  "xmm10", "xmm11", 
+       "xmm8",  "xmm9",  "xmm10", "xmm11",
        "xmm12", "xmm13", "xmm14", "xmm15",
        "rax",   "r10",   "r11",   "r12",
        "rdx",   "cc"
@@ -472,7 +472,7 @@ unsigned long backtrack16(char * qseq,
   {
     aligned++;
 
-    unsigned long d = 
+    unsigned long d =
       dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dirbuffersize];
 
     if ((op == 'I') && (d & maskextleft))
@@ -556,9 +556,9 @@ void search16(WORD * * q_start,
   unsigned long d_offset[CHANNELS];
   BYTE * d_address[CHANNELS];
   unsigned long d_length[CHANNELS];
-  
+
   __m128i dseqalloc[CDEPTH];
-  
+
   __m128i H0;
   __m128i F0;
   __m128i S[4];
@@ -569,7 +569,7 @@ void search16(WORD * * q_start,
   long seq_id[CHANNELS];
   unsigned long next_id = 0;
   unsigned long done;
-  
+
   T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
   Q  = _mm_set1_epi16(gap_open_penalty+gap_extend_penalty);
   R  = _mm_set1_epi16(gap_extend_penalty);
@@ -586,10 +586,10 @@ void search16(WORD * * q_start,
     d_end[c] = d_begin[c];
     seq_id[c] = -1;
   }
-  
+
   F0 = _mm_setzero_si128();
   H0 = _mm_setzero_si128();
-  
+
   int easy = 0;
 
   unsigned long * dir = dirbuffer;
@@ -618,12 +618,12 @@ void search16(WORD * * q_start,
         dprofile_shuffle16(dprofile, score_matrix, dseq);
       else
         dprofile_fill16(dprofile, score_matrix, dseq);
-      
+
       donormal16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0);
     }
     else
     {
-      // One or more sequences ended in the previous block 
+      // One or more sequences ended in the previous block
       // We have to switch over to a new sequence
 
       easy = 1;
@@ -654,7 +654,7 @@ void search16(WORD * * q_start,
           M = _mm_xor_si128(M, T);
 
           long cand_id = seq_id[c];
-          
+
           if (cand_id >= 0)
           {
             // printf("Completed channel %d, sequence %ld\n", c, cand_id);
@@ -665,7 +665,7 @@ void search16(WORD * * q_start,
             long z = (dbseqlen+3) % 4;
             long score = ((WORD*)S)[z*CHANNELS+c];
             scores[cand_id] = score;
-            
+
             unsigned long diff;
 
             if (score < 65535)
@@ -682,7 +682,7 @@ void search16(WORD * * q_start,
                 diff = MIN((65535 / penalty_mismatch),
                            (65535 - penalty_gapopen) / penalty_gapextend);
               }
-            
+
             diffs[cand_id] = diff;
 
             done++;
@@ -697,7 +697,7 @@ void search16(WORD * * q_start,
             long length;
 
             db_getsequenceandlength(seqno, & address, & length);
-            
+
             // printf("Seqno: %ld Address: %p\n", seqno, address);
             d_address[c] = (BYTE*) address;
             d_length[c] = length;
@@ -706,11 +706,11 @@ void search16(WORD * * q_start,
             d_end[c] = (unsigned char*) address + length;
             d_offset[c] = dir - dirbuffer;
             next_id++;
-            
+
             ((WORD*)&H0)[c] = 0;
             ((WORD*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
-            
-            
+
+
             // fill channel
             for(int j=0; j<CDEPTH; j++)
             {
@@ -740,20 +740,20 @@ void search16(WORD * * q_start,
 
       if (done == sequences)
         break;
-          
+
       if (ssse3_present)
         dprofile_shuffle16(dprofile, score_matrix, dseq);
       else
         dprofile_fill16(dprofile, score_matrix, dseq);
-          
+
       MQ = _mm_and_si128(M, Q);
       MR = _mm_and_si128(M, R);
       MQ0 = MQ;
-      
+
       domasked16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR,
                  &MQ0);
     }
-    
+
     F0 = _mm_adds_epu16(F0, R);
     F0 = _mm_adds_epu16(F0, R);
     F0 = _mm_adds_epu16(F0, R);
@@ -762,7 +762,7 @@ void search16(WORD * * q_start,
 
 
     dir += 4*longestdbsequence;
-    
+
     if (dir >= dirbuffer + dirbuffersize)
     {
       dir -= dirbuffersize;

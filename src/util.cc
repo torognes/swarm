@@ -33,7 +33,7 @@ void progress_init(const char * prompt, unsigned long size)
 {
   progress_prompt = prompt;
   progress_size = size;
-  progress_chunk = size < progress_granularity ? 
+  progress_chunk = size < progress_granularity ?
     1 : size / progress_granularity;
   progress_next = 0;
   if (opt_log)
