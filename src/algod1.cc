@@ -122,10 +122,19 @@ static int global_hits_count = 0;
 
 static unsigned long threads_used = 0;
 
+inline unsigned long mix64(unsigned long x)
+{
+  /* simple and quick mixer function that seems to work well */
+  x ^= x >> 17;
+  x ^= x >> 28;
+  x ^= x >> 43;
+  return x;
+}
+
 inline unsigned int hash_getindex(unsigned long hash)
 {
-  /* mix bits in hash to get a better distribution acorss buckets */
-  hash = hash64shift(hash);
+  /* mix bits in hash to get a better distribution across buckets */
+  hash = mix64(hash);
 
 #ifdef POWEROFTWO
   return hash & hash_mask;
@@ -278,17 +287,20 @@ void find_variant_matches(unsigned long thread,
                     }
 
                   tip->hits_data[tip->hits_count++] = amp;
+                  break;
                 }
 #ifdef HASHSTATS
               else
                 {
                   collisions++;
 
+#ifdef HASHDETAILS
                   fprintf(logfile, "Hash collision between ");
                   fprint_id_noabundance(logfile, seed);
                   fprintf(logfile, " and ");
                   fprint_id_noabundance(logfile, amp);
                   fprintf(logfile, ".\n");
+#endif
                 }
 #endif
             }
