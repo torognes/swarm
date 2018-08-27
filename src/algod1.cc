@@ -34,6 +34,7 @@
 #define HASHFILLFACTOR 0.5
 #define POWEROFTWO
 //#define HASHSTATS
+#define HASH_BITMAP_FACTOR 8
 
 /* Information about each amplicon */
 
@@ -102,8 +103,8 @@ static struct thread_info_s
 static pthread_attr_t attr;
 
 #ifdef HASHSTATS
-unsigned long probes = 0;
 unsigned long hits = 0;
+unsigned long bloom_matches = 0;
 unsigned long success = 0;
 unsigned long tries  = 0;
 unsigned long bingo = 0;
@@ -115,6 +116,8 @@ static unsigned long hash_mask;
 static unsigned char * hash_occupied = 0;
 static unsigned long * hash_values = 0;
 static int * hash_data = 0;
+static Bitmap * hash_bitmap = 0;
+static unsigned long hash_bitmap_mask;
 
 static int * global_hits_data = 0;
 static int global_hits_alloc = 0;
@@ -134,7 +137,7 @@ inline unsigned long mix64(unsigned long x)
 inline unsigned int hash_getindex(unsigned long hash)
 {
   /* mix bits in hash to get a better distribution across buckets */
-  hash = mix64(hash);
+  hash = hash64shift(hash);
 
 #ifdef POWEROFTWO
   return hash & hash_mask;
@@ -172,10 +175,15 @@ void hash_alloc(unsigned long amplicons)
 
   hash_data =
     (int *) xmalloc(hash_tablesize * sizeof(int));
+
+  hash_bitmap = new Bitmap(HASH_BITMAP_FACTOR * hash_tablesize);
+  hash_bitmap->reset_all();
+  hash_bitmap_mask = (HASH_BITMAP_FACTOR * hash_tablesize) - 1;
 }
 
 void hash_free()
 {
+  delete hash_bitmap;
   free(hash_occupied);
   free(hash_values);
   free(hash_data);
@@ -214,6 +222,8 @@ inline void hash_insert(int amp,
   hash_set_occupied(j);
   hash_set_value(j, hash);
   hash_data[j] = amp;
+
+  hash_bitmap->set(mix64(hash) & hash_bitmap_mask);
 }
 
 TwobitVector db_get_seq_as_TwobitVector(int seqno)
@@ -248,7 +258,15 @@ void find_variant_matches(unsigned long thread,
 
 #ifdef HASHSTATS
   tries++;
-  probes++;
+#endif
+
+#if 1
+  if (!(hash_bitmap->get(mix64(hash) & hash_bitmap_mask)))
+    return;
+#endif
+
+#ifdef HASHSTATS
+  bloom_matches++;
 #endif
 
   while (hash_is_occupied(j))
@@ -306,9 +324,6 @@ void find_variant_matches(unsigned long thread,
             }
         }
       j = hash_getnextindex(j);
-#ifdef HASHSTATS
-      probes++;
-#endif
     }
 }
 
@@ -1571,11 +1586,11 @@ void algo_d1_run()
     }
 
 #ifdef HASHSTATS
-  fprintf(logfile, "Tries: %lu\n", tries);
-  fprintf(logfile, "Probes: %lu\n", probes);
-  fprintf(logfile, "Hits: %lu\n", hits);
-  fprintf(logfile, "Success: %lu\n", success);
-  fprintf(logfile, "Bingo: %lu\n", bingo);
-  fprintf(logfile, "Collisions: %lu\n", collisions);
+  fprintf(logfile, "Tries:      %12lu\n", tries);
+  fprintf(logfile, "Bloom m:    %12lu\n", bloom_matches);
+  fprintf(logfile, "Hits:       %12lu\n", hits);
+  fprintf(logfile, "Success:    %12lu\n", success);
+  fprintf(logfile, "Bingo:      %12lu\n", bingo);
+  fprintf(logfile, "Collisions: %12lu\n", collisions);
 #endif
 }

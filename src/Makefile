@@ -50,7 +50,7 @@ swarm : $(OBJS)
 
 clean :
 	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o \
-	twobit_vector/*.o ../man/*~ ../*~
+	twobit_vector/*.o twobit_vector/*~ ../man/*~ ../*~
 
 ssse3.o : ssse3.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<
