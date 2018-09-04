@@ -87,19 +87,6 @@ size_t TwobitVector::data_size() const
     return data_.size();
 }
 
-TwobitVector::ValueType TwobitVector::get( size_t index ) const
-{
-    if (index >= size_) {
-        throw std::out_of_range( "TwobitVector::get: Invalid index." );
-    }
-
-    // Get the two-bit value at index, still at its original position in the word.
-    auto segment = data_[ index / kValuesPerWord ] & bit_mask_[ index % kValuesPerWord ];
-
-    // Shift it to the right, so that we can cast it to a value type.
-    return static_cast< ValueType >( segment >> ( 2 * ( index % kValuesPerWord )));
-}
-
 TwobitVector::ValueType TwobitVector::operator [] ( size_t index ) const
 {
     return get( index );
@@ -117,10 +104,14 @@ TwobitVector::WordType& TwobitVector::data_at( size_t index )
 
 TwobitVector::WordType TwobitVector::hash() const
 {
+#ifdef ZOBRIST
+    WordType result = zobrist_hash((unsigned char*)(data_.data()), size());
+#else
     WordType result = static_cast< WordType >( size() );
     for( auto s : data_ ) {
         result ^= s;
     }
+#endif
     return result;
 }
 
@@ -175,22 +166,6 @@ void TwobitVector::clear()
 {
     size_ = 0;
     data_.clear();
-}
-
-void TwobitVector::set( size_t index, TwobitVector::ValueType value )
-{
-    if( index >= size_ ) {
-        throw std::out_of_range( "TwobitVector::set: Invalid index." );
-    }
-
-    // Shift the value to the correct position within the word.
-    auto const tmp = static_cast< WordType >( value ) << ( 2 * ( index % kValuesPerWord ));
-
-    // Unset the bits at the position in the word, and reset them to the value.
-    // (Unfortunately, we are not operation on single bits, so a simple `and` or `or`
-    // does not work here. Maybe there are smarter ways, but this one works for now.)
-    data_[ index / kValuesPerWord ] &= ~ bit_mask_[ index % kValuesPerWord ];
-    data_[ index / kValuesPerWord ] |= tmp;
 }
 
 // ================================================================================================

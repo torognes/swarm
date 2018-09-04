@@ -34,7 +34,8 @@
 #define HASHFILLFACTOR 0.5
 #define POWEROFTWO
 //#define HASHSTATS
-#define HASH_BITMAP_FACTOR 8
+#define BLOOM_PATTERN_BITS 12
+#define BLOOM_PATTERN_COUNT (1 << BLOOM_PATTERN_BITS)
 
 /* Information about each amplicon */
 
@@ -116,14 +117,77 @@ static unsigned long hash_mask;
 static unsigned char * hash_occupied = 0;
 static unsigned long * hash_values = 0;
 static int * hash_data = 0;
-static Bitmap * hash_bitmap = 0;
-static unsigned long hash_bitmap_mask;
+
+static unsigned long * hash_bloom = 0;
+static unsigned long bit_patterns[BLOOM_PATTERN_COUNT];
+static unsigned long bloom_size_bytes = 0;
+static unsigned long bloom_mask = 0;
+static unsigned long bloom_pattern_mask = 0;
 
 static int * global_hits_data = 0;
 static int global_hits_alloc = 0;
 static int global_hits_count = 0;
 
 static unsigned long threads_used = 0;
+
+void generate_bit_patterns()
+{
+  progress_init("Bloom patterns:   ", BLOOM_PATTERN_COUNT);
+  for (unsigned int i = 0; i < BLOOM_PATTERN_COUNT; i++)
+    {
+      unsigned long pattern = 0;
+      for (unsigned int j = 0; j < 8; j++)
+        {
+          unsigned long onebit = 1ULL << (random() & 63);
+          while (pattern & onebit)
+            onebit = 1ULL << (random() & 63);
+          pattern |= onebit;
+        }
+      bit_patterns[i] = pattern;
+      // printf("Bloom pattern %4d: %016lx\n", i, pattern);
+      progress_update(i);
+    }
+  progress_done();
+}
+
+inline void bloom_init()
+{
+  bloom_size_bytes = hash_tablesize;
+  bloom_mask = (bloom_size_bytes >> 3) - 1;
+  hash_bloom = (unsigned long *) xmalloc(bloom_size_bytes);
+  memset(hash_bloom, 0, bloom_size_bytes);
+
+  bloom_pattern_mask = BLOOM_PATTERN_COUNT - 1;
+  generate_bit_patterns();
+}
+
+inline void bloom_exit()
+{
+  free(hash_bloom);
+}
+
+inline void bloom_set(unsigned long hash)
+{
+  //hash_bloom->set(mix64(hash) & hash_bloom_mask);
+  //hash_bloom->set(hash & hash_bloom_mask);
+  //hash_bloom->set((hash >> 32) & hash_bloom_mask);
+
+  unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
+  hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask] |= bloom_pattern;
+}
+
+inline bool bloom_get(unsigned long hash)
+{
+  //if (!(hash_bloom->get(mix64(hash) & hash_bloom_mask)))
+  //if (!(hash_bloom->get(hash & hash_bloom_mask)))
+  //if (!(hash_bloom->get((hash >> 32) & hash_bloom_mask)))
+
+  unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
+  unsigned long bloom_bits
+    = hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask];
+  
+  return (bloom_bits & bloom_pattern) == bloom_pattern;
+}
 
 inline unsigned long mix64(unsigned long x)
 {
@@ -134,10 +198,20 @@ inline unsigned long mix64(unsigned long x)
   return x;
 }
 
-inline unsigned int hash_getindex(unsigned long hash)
+inline unsigned int hash_getindex(unsigned long hash1)
 {
   /* mix bits in hash to get a better distribution across buckets */
-  hash = hash64shift(hash);
+  //unsigned long hash = hash64shift(hash1);
+  //unsigned long hash = mix64(hash1);
+
+  //unsigned long hash = hash1;
+  // Shift bits right to get independence from the simple Bloom filter hash
+  unsigned long hash = hash1 >> 38;
+
+#if 0
+  fprintf(stderr, "Hash: %016lx Index: %05lx  Mixed: %016lx Index: %05lx\n",
+          hash1, hash1 & hash_mask, hash, hash & hash_mask);
+#endif
 
 #ifdef POWEROFTWO
   return hash & hash_mask;
@@ -176,14 +250,14 @@ void hash_alloc(unsigned long amplicons)
   hash_data =
     (int *) xmalloc(hash_tablesize * sizeof(int));
 
-  hash_bitmap = new Bitmap(HASH_BITMAP_FACTOR * hash_tablesize);
-  hash_bitmap->reset_all();
-  hash_bitmap_mask = (HASH_BITMAP_FACTOR * hash_tablesize) - 1;
+  bloom_init();
 }
+
 
 void hash_free()
 {
-  delete hash_bitmap;
+  bloom_exit();
+
   free(hash_occupied);
   free(hash_values);
   free(hash_data);
@@ -223,7 +297,7 @@ inline void hash_insert(int amp,
   hash_set_value(j, hash);
   hash_data[j] = amp;
 
-  hash_bitmap->set(mix64(hash) & hash_bitmap_mask);
+  bloom_set(hash);
 }
 
 TwobitVector db_get_seq_as_TwobitVector(int seqno)
@@ -238,11 +312,21 @@ TwobitVector db_get_seq_as_TwobitVector(int seqno)
   return v;
 }
 
-void find_variant_matches(unsigned long thread,
-                          int seed,
-                          TwobitVector const& seq,
-                          uint64_t hash)
+inline void find_variant_matches(unsigned long thread,
+                                 int seed,
+                                 TwobitVector const& seq,
+                                 uint64_t hash)
 {
+#if 0
+  uint64_t h = seq.hash();
+  if (h != hash)
+    printf("Hashes differ: %016llx vs %016llx\n", hash, h);
+#if 0
+  else
+    printf("Hashes equal: %016llx\n", h);
+#endif
+#endif
+
   unsigned long max_abundance;
 
   if (opt_no_otu_breaking)
@@ -261,7 +345,7 @@ void find_variant_matches(unsigned long thread,
 #endif
 
 #if 1
-  if (!(hash_bitmap->get(mix64(hash) & hash_bitmap_mask)))
+  if (!bloom_get(hash))
     return;
 #endif
 
@@ -1014,6 +1098,8 @@ void algo_d1_run()
   unsigned long longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
+  zobrist_init(longestamplicon);
+
   threads_init();
 
   ampinfo = (struct ampinfo_s *)
@@ -1593,4 +1679,6 @@ void algo_d1_run()
   fprintf(logfile, "Bingo:      %12lu\n", bingo);
   fprintf(logfile, "Collisions: %12lu\n", collisions);
 #endif
+
+  zobrist_exit();
 }

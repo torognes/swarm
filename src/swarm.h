@@ -48,6 +48,9 @@
 #include <tmmintrin.h>
 #endif
 
+#define ZOBRIST
+#include "../zobrist.h"
+
 #include "twobit_vector/twobit_vector.hpp"
 #include "twobit_vector/iterator_substitutions.hpp"
 #include "twobit_vector/iterator_deletions.hpp"

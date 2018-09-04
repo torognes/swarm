@@ -116,15 +116,23 @@ public:
         auto cycle = [&] ( size_t pos, size_t& cnt ) {
 
             // Shorthand.
-            size_t shift = ( 2 * ( pos % TwobitVector::kValuesPerWord ));
+            size_t shift = (pos & 31) << 1;
 
             // Move the needed xor value to the position in the word and apply it.
-            TwobitVector::WordType xor_val = ( cnt % 2 == 0 ? 0x1 : 0x3 );
-            vec_.data_at( pos / TwobitVector::kValuesPerWord ) ^= ( xor_val << shift );
+            TwobitVector::WordType xor_val = 1 + ((cnt & 1) << 1); // ( cnt % 2 == 0 ? 0x1 : 0x3 );
+            auto old = vec_.data_at(pos >> 5);
+            vec_.data_at(pos >> 5) = old ^ (xor_val << shift);
 
             // Update the hash: Remove the current value, store the new one.
             // (We can simply reuse the xor value, as a^b=c <=> b^c=a)
+#ifdef ZOBRIST
+            unsigned char x1 = (old >> shift) & 3;
+            unsigned char x2 = x1 ^ xor_val;
+            hash_ ^= zobrist_value(pos, x1);
+            hash_ ^= zobrist_value(pos, x2);
+#else
             hash_ ^= ( xor_val << shift );
+#endif
 
             ++cnt;
         };

@@ -120,12 +120,16 @@ public:
               ++pos_;
             } else {
                 // Update the hash: Remove the current value, and store the new one.
+#ifdef ZOBRIST
+              hash_ ^= zobrist_value(pos_, (unsigned char)(cur_));
+              hash_ ^= zobrist_value(pos_, (unsigned char)(tmp));
+#else
                 hash_ ^= ((
                     static_cast< TwobitVector::WordType >( tmp ) ^
                     static_cast< TwobitVector::WordType >( cur_ )
                     ) << ( 2 * ( pos_ % TwobitVector::kValuesPerWord ))
                 );
-
+#endif
                 // Now do the swap and move to the next position, so that next time,
                 // we will swap the next value.
                 vec_.set( pos_, cur_ );

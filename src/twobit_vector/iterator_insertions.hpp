@@ -129,8 +129,15 @@ public:
                 vec_.data_at( pos_ / TwobitVector::kValuesPerWord ) += one_shift;
 
                 // Update the hash: Remove the current count value, store the next one.
+#ifdef ZOBRIST
+                unsigned char x2 = (unsigned char) vec_.get(pos_);
+                unsigned char x1 = x2 - 1;
+                hash_ ^= zobrist_value(pos_, x1);
+                hash_ ^= zobrist_value(pos_, x2);
+#else
                 auto hash_xor = static_cast< TwobitVector::WordType >( cnt_ ^ ( cnt_ + 1 ) );
                 hash_ ^= ( hash_xor << shift );
+#endif
 
                 ++cnt_;
 
@@ -147,8 +154,13 @@ public:
 
                 // Update the hash at the old position: Remove the last value of the insertion
                 // (which is a 11 = 3), and store the value that we just moved to that position.
+#ifdef ZOBRIST
+                hash_ ^= zobrist_value(pos_, 3);
+                hash_ ^= zobrist_value(pos_, (unsigned char) next);
+#else
                 auto hash_xor   = static_cast< TwobitVector::WordType >( next ) ^ 0x3;
                 hash_ ^= ( hash_xor << shift );
+#endif
 
                 // Move to the next position and recalculate the shift value accordingly.
                 ++pos_;
@@ -156,8 +168,13 @@ public:
 
                 // Update the hash at the new position: Remove the value that was there before.
                 // We do not need to store a new value here, as it will be a 0 (=A) anyway.
+#ifdef ZOBRIST
+                hash_ ^= zobrist_value(pos_, (unsigned char) next);
+                hash_ ^= zobrist_value(pos_, 0);
+#else
                 hash_xor   = static_cast< TwobitVector::WordType >( next );
                 hash_ ^= ( hash_xor << shift );
+#endif
 
                 // Set the value at the new position to 0 (=A) and restart the counter.
                 vec_.set( pos_, TwobitVector::ValueType::A );

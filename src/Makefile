@@ -30,16 +30,22 @@ LINKFLAGS=$(COMMON) -flto
 
 CXX=g++
 WARNINGS=-Wall -Wsign-compare -Wextra -pedantic -Wno-long-long
-CXXFLAGS=$(COMMON) $(WARNINGS) -flto -std=c++11 -O3 -msse2 -mtune=core2 -Icityhash -Itwobit_vector
+CXXFLAGS=$(COMMON) $(WARNINGS) -flto -std=c++11 -O3 -march=native -msse2 \
+	-Icityhash -Itwobit_vector
 
 PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o ssse3.o derep.o arch.o cityhash/city.o \
-	twobit_vector/twobit_vector.o twobit_vector/functions.o
+	zobrist.o twobit_vector/twobit_vector.o
 
 DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h \
-	threads.h twobit_vector/*.hpp
+	threads.h zobrist.h \
+	twobit_vector/twobit_vector.hpp \
+	twobit_vector/range.hpp \
+	twobit_vector/iterator_substitutions.hpp \
+	twobit_vector/iterator_deletions.hpp \
+	twobit_vector/iterator_insertions.hpp
 
 all : $(PROG)
 
