@@ -125,3 +125,47 @@ unsigned long zobrist_hash(unsigned char * s, unsigned int len)
 
   return z;
 }
+
+unsigned long zobrist_hash_delete_first(unsigned char * s, unsigned int len)
+{
+  /* compute the Zobrist hash function of sequence s of length len. */
+  /* len is the actual number of bases in the sequence */
+  /* it is encoded in (len+3)/4 bytes or (len+31)/32 uint64's */
+
+  /* delete the first base */
+
+  unsigned long * q = (unsigned long *) s;
+  unsigned long x = q[0];
+  unsigned long z = 0;
+  for(unsigned int p = 1; p < len; p++)
+    {
+      if ((p & 31) == 0)
+        x = q[p / 32];
+      else
+        x >>= 2;
+      z ^= zobrist_value(p - 1, x & 3);
+    }
+  return z;
+}
+
+unsigned long zobrist_hash_insert_first(unsigned char * s, unsigned int len)
+{
+  /* compute the Zobrist hash function of sequence s of length len. */
+  /* len is the actual number of bases in the sequence */
+  /* it is encoded in (len+3)/4 bytes or (len+31)/32 uint64's */
+
+  /* insert a gap (no value) before the first base */
+
+  unsigned long * q = (unsigned long *) s;
+  unsigned long x = 0;
+  unsigned long z = 0;
+  for(unsigned int p = 0; p < len; p++)
+    {
+      if ((p & 31) == 0)
+        x = q[p / 32];
+      else
+        x >>= 2;
+      z ^= zobrist_value(p + 1, x & 3);
+    }
+  return z;
+}

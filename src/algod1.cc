@@ -30,12 +30,8 @@
 #include "swarm.h"
 
 #define HASH hash_cityhash64
-
 #define HASHFILLFACTOR 0.5
-#define POWEROFTWO
 //#define HASHSTATS
-#define BLOOM_PATTERN_BITS 12
-#define BLOOM_PATTERN_COUNT (1 << BLOOM_PATTERN_BITS)
 
 /* Information about each amplicon */
 
@@ -118,6 +114,9 @@ static unsigned char * hash_occupied = 0;
 static unsigned long * hash_values = 0;
 static int * hash_data = 0;
 
+#define BLOOM_PATTERN_BITS 12
+#define BLOOM_PATTERN_COUNT (1 << BLOOM_PATTERN_BITS)
+
 static unsigned long * hash_bloom = 0;
 static unsigned long bit_patterns[BLOOM_PATTERN_COUNT];
 static unsigned long bloom_size_bytes = 0;
@@ -132,7 +131,6 @@ static unsigned long threads_used = 0;
 
 void generate_bit_patterns()
 {
-  progress_init("Bloom patterns:   ", BLOOM_PATTERN_COUNT);
   for (unsigned int i = 0; i < BLOOM_PATTERN_COUNT; i++)
     {
       unsigned long pattern = 0;
@@ -144,13 +142,10 @@ void generate_bit_patterns()
           pattern |= onebit;
         }
       bit_patterns[i] = pattern;
-      // printf("Bloom pattern %4d: %016lx\n", i, pattern);
-      progress_update(i);
     }
-  progress_done();
 }
 
-inline void bloom_init()
+void bloom_init()
 {
   bloom_size_bytes = hash_tablesize;
   bloom_mask = (bloom_size_bytes >> 3) - 1;
@@ -161,72 +156,35 @@ inline void bloom_init()
   generate_bit_patterns();
 }
 
-inline void bloom_exit()
+void bloom_exit()
 {
   free(hash_bloom);
 }
 
 inline void bloom_set(unsigned long hash)
 {
-  //hash_bloom->set(mix64(hash) & hash_bloom_mask);
-  //hash_bloom->set(hash & hash_bloom_mask);
-  //hash_bloom->set((hash >> 32) & hash_bloom_mask);
-
   unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
   hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask] |= bloom_pattern;
 }
 
 inline bool bloom_get(unsigned long hash)
 {
-  //if (!(hash_bloom->get(mix64(hash) & hash_bloom_mask)))
-  //if (!(hash_bloom->get(hash & hash_bloom_mask)))
-  //if (!(hash_bloom->get((hash >> 32) & hash_bloom_mask)))
-
   unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
   unsigned long bloom_bits
     = hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask];
-  
   return (bloom_bits & bloom_pattern) == bloom_pattern;
 }
 
-inline unsigned long mix64(unsigned long x)
+inline unsigned int hash_getindex(unsigned long hash)
 {
-  /* simple and quick mixer function that seems to work well */
-  x ^= x >> 17;
-  x ^= x >> 28;
-  x ^= x >> 43;
-  return x;
-}
-
-inline unsigned int hash_getindex(unsigned long hash1)
-{
-  /* mix bits in hash to get a better distribution across buckets */
-  //unsigned long hash = hash64shift(hash1);
-  //unsigned long hash = mix64(hash1);
-
-  //unsigned long hash = hash1;
   // Shift bits right to get independence from the simple Bloom filter hash
-  unsigned long hash = hash1 >> 38;
-
-#if 0
-  fprintf(stderr, "Hash: %016lx Index: %05lx  Mixed: %016lx Index: %05lx\n",
-          hash1, hash1 & hash_mask, hash, hash & hash_mask);
-#endif
-
-#ifdef POWEROFTWO
+  hash = hash >> 38;
   return hash & hash_mask;
-#else
-  return hash % hash_tablesize;
-#endif
 }
 
 inline unsigned int hash_getnextindex(unsigned int j)
 {
-#ifdef POWEROFTWO
   return (j+1) & hash_mask;
-#else
-  return (j+1) % hash_tablesize;
-#endif
 }
 
 void hash_alloc(unsigned long amplicons)
@@ -283,13 +241,12 @@ inline int hash_compare_value(unsigned int j, unsigned long hash)
   return (hash_values[j] == hash);
 }
 
-inline void hash_insert(int amp,
-                        TwobitVector const& seq)
+inline void hash_insert(int amp)
 {
-  unsigned long hash = seq.hash();
-  unsigned int j = hash_getindex(hash);
-
   /* find the first empty bucket */
+  unsigned long hash = zobrist_hash((unsigned char*)db_getsequence(amp),
+                                    db_getsequencelen(amp));
+  unsigned int j = hash_getindex(hash);
   while (hash_is_occupied(j))
     j = hash_getnextindex(j);
 
@@ -300,46 +257,113 @@ inline void hash_insert(int amp,
   bloom_set(hash);
 }
 
-TwobitVector db_get_seq_as_TwobitVector(int seqno)
-{
-  unsigned long seqlen = db_getsequencelen(seqno);
-  unsigned char * seq = (unsigned char *) db_getsequence(seqno);
+enum variant_enum
+  {
+    original,
+    substitution,
+    deletion,
+    insertion
+  };
 
-  auto v = TwobitVector(seqlen);
-  unsigned long words = (seqlen + 31) >> 5;
-  for(unsigned long i = 0; i < words; i++)
-    v.data_at(i) = ((uint64_t *) seq)[i];
-  return v;
+inline void nt_set(char * seq, unsigned long i, unsigned char base)
+{
+  // Set compressed nucleotide in sequence seq at position i to given value
+  unsigned long * p = ((unsigned long *) seq) + (i >> 5);
+  unsigned long shift = (i & 31ULL) << 1; // 0, 2, 4, ... 62
+  unsigned long mask = 3ULL << shift;     // 3,12,48, ...
+  unsigned long val  = ((unsigned long) base) << shift;
+  *p = (*p & ~mask) | val;
+}
+
+inline char * create_variant_sequence(int seed,
+                                      variant_enum vartype,
+                                      unsigned long pos,
+                                      unsigned char base)
+{
+  /* create the given sequence variant */
+
+  char * sequence = db_getsequence(seed);
+  unsigned int seqlen = db_getsequencelen(seed);
+
+  unsigned long needed;
+  char * var;
+
+  switch(vartype)
+    {
+    case original:
+      needed = nt_bytelength(seqlen);
+      var = (char *) xmalloc(needed);
+      memcpy(var, sequence, needed);
+      break;
+
+    case substitution:
+      needed = nt_bytelength(seqlen);
+      var = (char *) xmalloc(needed);
+      memcpy(var, sequence, needed);
+      nt_set(var, pos, base);
+      break;
+
+#if 0
+    case deletion:
+      needed = nt_bytelength(seqlen-1);
+      var = (char *) xmalloc(needed);
+      /* copy initial bytes */
+      memcpy(var, sequence, (pos+3)/4);
+      /* handle the rest */
+      for (int p = pos; p < seqlen; p++)
+        {
+          nt_set(var, pos, );
+        }
+      for (p = pos)
+      /* ... */
+      break;
+
+    case insertion:
+      break;
+#endif
+
+    default:
+      fprintf(stderr, "Variant type not implemented.\n");
+      exit(1);
+    }
+
+  return var;
+}
+
+inline bool check_variant(int seed,
+                          variant_enum vartype,
+                          unsigned long pos,
+                          unsigned char base,
+                          int amp)
+{
+  /* check if amp is identical to seed with the given variant */
+#if 1
+  (void) seed;
+  (void) vartype;
+  (void) pos;
+  (void) base;
+  (void) amp;
+
+  return true;
+#else
+  /* make sure sequences are identical even though hashes are */
+  char * seq = db_getsequence(amp);
+  int seqlen = db_getsequencelen(amp);
+  char * variant = create_variant_sequence(seed, vartype, pos, base);
+  bool hit = memcmp(variant, seq, nt_bytelength(seqlen)) == 0;
+  free(variant);
+  return hit;
+#endif
 }
 
 inline void find_variant_matches(unsigned long thread,
                                  int seed,
-                                 TwobitVector const& seq,
-                                 uint64_t hash)
+                                 unsigned long hash,
+                                 variant_enum vartype,
+                                 unsigned int pos,
+                                 unsigned int base,
+                                 unsigned long max_abundance)
 {
-#if 0
-  uint64_t h = seq.hash();
-  if (h != hash)
-    printf("Hashes differ: %016llx vs %016llx\n", hash, h);
-#if 0
-  else
-    printf("Hashes equal: %016llx\n", h);
-#endif
-#endif
-
-  unsigned long max_abundance;
-
-  if (opt_no_otu_breaking)
-    max_abundance = ULONG_MAX;
-  else
-    max_abundance = db_getabundance(seed);
-
-  /* compute hash and corresponding hash table index */
-
-  unsigned int j = hash_getindex(hash);
-
-  /* find matching buckets */
-
 #ifdef HASHSTATS
   tries++;
 #endif
@@ -352,6 +376,12 @@ inline void find_variant_matches(unsigned long thread,
 #ifdef HASHSTATS
   bloom_matches++;
 #endif
+
+  /* compute hash and corresponding hash table index */
+
+  unsigned int j = hash_getindex(hash);
+
+  /* find matching buckets */
 
   while (hash_is_occupied(j))
     {
@@ -371,8 +401,7 @@ inline void find_variant_matches(unsigned long thread,
               (db_getabundance(amp) <= max_abundance))
             {
 
-              /* make sure sequences are identical even though hashes are */
-              if (seq == db_get_seq_as_TwobitVector(amp))
+              if(check_variant(seed, vartype, pos, base, amp))
                 {
 #ifdef HASHSTATS
                   bingo++;
@@ -418,6 +447,8 @@ void generate_variants(unsigned long thread,
 {
   (void) start;
   (void) len;
+  if (thread > 0)
+    return;
 
   /*
      Generate all possible variants involving mutations from position start
@@ -432,41 +463,65 @@ void generate_variants(unsigned long thread,
 
   /* For now, thread 0 will do all work. Start and Len are ignored. */
 
-  if (thread > 0)
-    return;
-
   ti[thread].hits_count = 0;
+  unsigned long m = opt_no_otu_breaking ? ULONG_MAX : db_getabundance(seed);
+  char * sequence = db_getsequence(seed);
+  unsigned int seqlen = db_getsequencelen(seed);
 
-  TwobitVector seq = db_get_seq_as_TwobitVector(seed);
-
-#if 1
   /* identical non-variant */
-  find_variant_matches(thread, seed, seq, seq.hash());
-#endif
+
+  unsigned long hash = zobrist_hash((unsigned char *) sequence, seqlen);
+  find_variant_matches(thread, seed, hash, original, 0, 0, m);
 
   /* substitutions */
-  auto its = IteratorSubstitutions(seq);
-  auto its_end = IteratorSubstitutions();
-  while( its != its_end ){
-      find_variant_matches(thread, seed, its.vector(), its.hash());
-      ++its;
-  }
+
+  for(unsigned int i = 0; i < seqlen; i++)
+    {
+      unsigned int base = nt_extract(sequence, i) - 1;
+      uint64_t hash1 = hash ^ zobrist_value(i, base);
+      for (unsigned int v = 0; v < 4; v ++)
+        if (v != base)
+          {
+            uint64_t hash2 = hash1 ^ zobrist_value(i, v);
+            find_variant_matches(thread, seed, hash2, substitution, i, v, m);
+          }
+    }
 
   /* deletions */
-  auto itd = IteratorDeletions(seq);
-  auto itd_end = IteratorDeletions();
-  while( itd != itd_end ) {
-      find_variant_matches(thread, seed, itd.vector(), itd.hash());
-      ++itd;
-  }
+
+  hash = zobrist_hash_delete_first((unsigned char *) sequence, seqlen);
+  find_variant_matches(thread, seed, hash, deletion, 0, 0, m);
+  unsigned int base = nt_extract(sequence, 0) - 1;;
+  for(unsigned int i = 1; i < seqlen; i++)
+    {
+      unsigned int v = nt_extract(sequence, i) - 1;
+      if (v != base)
+        {
+          hash ^= zobrist_value(i - 1, base) ^ zobrist_value(i - 1, v);
+          find_variant_matches(thread, seed, hash, deletion, i, 0, m);
+          base = v;
+        }
+    }
 
   /* insertions */
-  auto iti = IteratorInsertions(seq);
-  auto iti_end = IteratorInsertions();
-  while( iti != iti_end ){
-      find_variant_matches(thread, seed, iti.vector(), iti.hash());
-      ++iti;
-  }
+
+  hash = zobrist_hash_insert_first((unsigned char *) sequence, seqlen);
+  for (unsigned int v = 0; v < 4; v++)
+    {
+      unsigned long hash1 = hash ^ zobrist_value(0, v);
+      find_variant_matches(thread, seed, hash1, insertion, 0, v, m);
+    }
+  for (unsigned int i = 0; i < seqlen; i++)
+    {
+      unsigned int base = nt_extract(sequence, i) - 1;
+      hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);
+      for (unsigned int v = 0; v < 4; v++)
+        if (v != base)
+          {
+            unsigned long hash1 = hash ^ zobrist_value(i+1, v);
+            find_variant_matches(thread, seed, hash1, insertion, i+1, v, m);
+          }
+    }
 }
 
 void * worker(void * vp)
@@ -1120,7 +1175,7 @@ void algo_d1_run()
       bp->swarmid = NO_SWARM;
       bp->next = NO_SWARM;
       bp->graft_cand = NO_SWARM;
-      hash_insert(i, db_get_seq_as_TwobitVector(i));
+      hash_insert(i);
       progress_update(i);
     }
   progress_done();

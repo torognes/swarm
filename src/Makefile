@@ -22,30 +22,24 @@
 # Makefile for SWARM
 
 # Profiling options
-#COMMON=-pg -g
-COMMON=-g
+#COMMON=-pg -g -flto -O3 -march=native -msse2
+COMMON=-g -flto -O3 -march=native -msse2
 
 LIBS=-lpthread
-LINKFLAGS=$(COMMON) -flto
+LINKFLAGS=$(COMMON)
 
 CXX=g++
 WARNINGS=-Wall -Wsign-compare -Wextra -pedantic -Wno-long-long
-CXXFLAGS=$(COMMON) $(WARNINGS) -flto -std=c++11 -O3 -march=native -msse2 \
-	-Icityhash -Itwobit_vector
+CXXFLAGS=$(COMMON) $(WARNINGS) -Icityhash
 
 PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o ssse3.o derep.o arch.o cityhash/city.o \
-	zobrist.o twobit_vector/twobit_vector.o
+	zobrist.o
 
 DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h \
-	threads.h zobrist.h \
-	twobit_vector/twobit_vector.hpp \
-	twobit_vector/range.hpp \
-	twobit_vector/iterator_substitutions.hpp \
-	twobit_vector/iterator_deletions.hpp \
-	twobit_vector/iterator_insertions.hpp
+	threads.h zobrist.h
 
 all : $(PROG)
 
@@ -56,7 +50,7 @@ swarm : $(OBJS)
 
 clean :
 	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o \
-	twobit_vector/*.o twobit_vector/*~ ../man/*~ ../*~
+	../man/*~ ../*~
 
 ssse3.o : ssse3.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<

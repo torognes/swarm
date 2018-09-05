@@ -51,12 +51,6 @@
 #define ZOBRIST
 #include "../zobrist.h"
 
-#include "twobit_vector/twobit_vector.hpp"
-#include "twobit_vector/iterator_substitutions.hpp"
-#include "twobit_vector/iterator_deletions.hpp"
-#include "twobit_vector/iterator_insertions.hpp"
-
-
 /* constants */
 
 #ifndef LINE_MAX

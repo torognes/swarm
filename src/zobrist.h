@@ -31,6 +31,8 @@ void zobrist_init(unsigned int longest);
 void zobrist_exit();
 
 unsigned long zobrist_hash(unsigned char * s, unsigned int len);
+unsigned long zobrist_hash_delete_first(unsigned char * s, unsigned int len);
+unsigned long zobrist_hash_insert_first(unsigned char * s, unsigned int len);
 
 inline unsigned long zobrist_value(unsigned int pos, unsigned char x)
 {
