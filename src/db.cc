@@ -262,7 +262,7 @@ void db_read(const char * filename)
 
       /* read and store sequence */
 
-      uint64_t nt_buffer = 0;
+      unsigned long nt_buffer = 0;
       unsigned int nt_bufferlen = 0;
       const unsigned int nt_buffersize = 4 * sizeof(nt_buffer);
 
@@ -275,7 +275,7 @@ void db_read(const char * filename)
               char m;
               if ((m = map_nt[(int)c]) >= 0)
                 {
-                  nt_buffer |= (((uint64_t)m)-1) << (2 * nt_bufferlen);
+                  nt_buffer |= (((unsigned long)m)-1) << (2 * nt_bufferlen);
                   length++;
                   nt_bufferlen++;
 
@@ -332,7 +332,7 @@ void db_read(const char * filename)
         longest = length;
 
 
-      /* save remaining padded uint64_t, if any */
+      /* save remaining padded unsigned long, if any */
 
       if (nt_bufferlen > 0)
         {
@@ -360,7 +360,7 @@ void db_read(const char * filename)
 
   /* init zobrist hashing */
 
-  zobrist_init(longest);
+  zobrist_init(longest + 2);  // add 2 for two insertions
 
   /* set up hash to check for unique headers */
 
@@ -691,7 +691,7 @@ void db_putseq(long seqno)
   long len;
   db_getsequenceandlength(seqno, & seq, & len);
   for(int i=0; i<len; i++)
-    putchar(sym_nt[nt_extract(seq, i)]);
+    putchar(sym_nt[1+nt_extract(seq, i)]);
 }
 
 void db_free()
@@ -717,7 +717,7 @@ void db_fprintseq(FILE * fp, int a, int width)
     buf = (char*) xmalloc(len+1);
 
   for(int i=0; i<len; i++)
-    buf[i] = sym_nt[nt_extract(seq, i)];
+    buf[i] = sym_nt[1+nt_extract(seq, i)];
   buf[len] = 0;
 
   if (width < 1)

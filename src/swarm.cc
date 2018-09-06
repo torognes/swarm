@@ -628,6 +628,8 @@ int main(int argc, char** argv)
   if (!sse2_present)
     fatal("This program requires a processor with SSE2 instructions.\n");
 
+  srandom(1);
+
   args_init(argc, argv);
 
   if (opt_version || opt_help)

@@ -25,9 +25,7 @@
 
 unsigned long * zobrist_tab_base = 0;
 
-static unsigned long * zobrist_tab_byte = 0;
-
-void zobrist_init(unsigned int longest)
+void zobrist_init(unsigned int n)
 {
   /*
     Generate n random 64-bit numbers, where n is 4 * longest.
@@ -36,11 +34,9 @@ void zobrist_init(unsigned int longest)
     that sequence.
   */
 
-  srandom(1);
+  zobrist_tab_base = (unsigned long *) xmalloc(8 * 4 * n);
 
-  zobrist_tab_base = (unsigned long *) xmalloc(8 * 4 * longest);
-
-  for (unsigned int i = 0; i < 4 * longest; i++)
+  for (unsigned int i = 0; i < 4 * n; i++)
     {
       unsigned long z;
       z = random();
@@ -52,37 +48,10 @@ void zobrist_init(unsigned int longest)
       z ^= random();
       zobrist_tab_base[i] = z;
     }
-
-
-  /* 
-     For increased performance, we make a table of precomputed values
-     for every possible 4-base sequence (represented as one byte) in any
-     position (0, 4, 8, ...).
-  */
-
-  zobrist_tab_byte = (unsigned long *) xmalloc(8 * 256 * (longest/4));
-
-  for (unsigned int p = 0; p < longest / 4; p++)
-    for (unsigned int x = 0; x < 256; x++)
-      {
-        unsigned long z = 0;
-        for (unsigned int i = 0; i < 4; i++)
-          z ^= zobrist_tab_base[(4 * (4 * p + i)) + ((x >> (2*i)) & 3)];
-        zobrist_tab_byte[256 * p + x] = z;
-
-#if 0
-        fprintf(stderr,
-                "Zobrist hash pos %3u byte %02x: %016lx\n",
-                p,
-                x,
-                z);
-#endif
-      }
 }
 
 void zobrist_exit()
 {
-  free(zobrist_tab_byte);
   free(zobrist_tab_base);
 }
 
@@ -92,47 +61,24 @@ unsigned long zobrist_hash(unsigned char * s, unsigned int len)
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len+3)/4 bytes */
 
+  unsigned long * q = (unsigned long *) s;
+  unsigned long x = 0;
   unsigned long z = 0;
-
-  for (unsigned int i = 0; i < (len / 4); i++)
-    z ^= zobrist_tab_byte[256 * i + (unsigned int)(s[i])];
-
-  if ((len & 3) > 0)
+  for(unsigned int p = 0; p < len; p++)
     {
-      unsigned char x = s[len/4];
-      for(unsigned int p = 4 * (len / 4); p < len; p++)
-        {
-          z ^= zobrist_value(p, x & 3);
-          x >>= 2;
-        }
+      if ((p & 31) == 0)
+        x = q[p / 32];
+      else
+        x >>= 2;
+      z ^= zobrist_value(p, x & 3);
     }
-
-#if 0
-  unsigned long z2 = 0;
-  for (unsigned int p = 0; p < len ; p++)
-    {
-      unsigned char x = (s[p/4] >> (2*(p & 3))) & 3;
-      z2 ^= zobrist_tab_base[4*p + x];
-    }
-  if (z != z2)
-    {
-      fprintf(stderr,
-              "Zobrist mismatch: z=%016lx z2=%016lx\n",
-              z,
-              z2);
-    }
-#endif
-
   return z;
 }
 
 unsigned long zobrist_hash_delete_first(unsigned char * s, unsigned int len)
 {
-  /* compute the Zobrist hash function of sequence s of length len. */
-  /* len is the actual number of bases in the sequence */
-  /* it is encoded in (len+3)/4 bytes or (len+31)/32 uint64's */
-
-  /* delete the first base */
+  /* compute the Zobrist hash function of sequence s,
+     but delete the first base */
 
   unsigned long * q = (unsigned long *) s;
   unsigned long x = q[0];
@@ -150,11 +96,8 @@ unsigned long zobrist_hash_delete_first(unsigned char * s, unsigned int len)
 
 unsigned long zobrist_hash_insert_first(unsigned char * s, unsigned int len)
 {
-  /* compute the Zobrist hash function of sequence s of length len. */
-  /* len is the actual number of bases in the sequence */
-  /* it is encoded in (len+3)/4 bytes or (len+31)/32 uint64's */
-
-  /* insert a gap (no value) before the first base */
+  /* compute the Zobrist hash function of sequence s,
+     but insert a gap (no value) before the first base */
 
   unsigned long * q = (unsigned long *) s;
   unsigned long x = 0;

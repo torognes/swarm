@@ -195,7 +195,7 @@ extern unsigned long duplicates_found;
 inline int nt_extract(char * seq, int i)
 {
   // Extract compressed nucleotide in sequence seq at position i
-  return 1 + (((((uint64_t *) seq)[i >> 5]) >> ((i & 0x1f) << 1)) & 3);
+  return ((((unsigned long *) seq)[i >> 5]) >> ((i & 31) << 1)) & 3;
 }
 
 inline unsigned int nt_bytelength(unsigned int len)
