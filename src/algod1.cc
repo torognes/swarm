@@ -263,69 +263,19 @@ enum variant_enum
     insertion
   };
 
-inline void nt_set(char * seq, unsigned long i, unsigned char base)
+bool seq_identical(char * a,
+                   int a_start,
+                   char * b,
+                   int b_start,
+                   int length)
 {
-  // Set compressed nucleotide in sequence seq at position i to given value
-  unsigned long * p = ((unsigned long *) seq) + (i >> 5);
-  unsigned long shift = (i & 31ULL) << 1; // 0, 2, 4, ... 62
-  unsigned long mask = 3ULL << shift;     // 3,12,48, ...
-  unsigned long val  = ((unsigned long) base) << shift;
-  *p = (*p & ~mask) | val;
-}
+  /* compare parts of two compressed sequences a and b */
+  /* return false if different, true if identical */
 
-inline char * create_variant_sequence(int seed,
-                                      variant_enum vartype,
-                                      unsigned long pos,
-                                      unsigned char base)
-{
-  /* create the given sequence variant */
-
-  char * sequence = db_getsequence(seed);
-  unsigned int seqlen = db_getsequencelen(seed);
-
-  unsigned long needed;
-  char * var;
-
-  switch(vartype)
-    {
-    case original:
-      needed = nt_bytelength(seqlen);
-      var = (char *) xmalloc(needed);
-      memcpy(var, sequence, needed);
-      break;
-
-    case substitution:
-      needed = nt_bytelength(seqlen);
-      var = (char *) xmalloc(needed);
-      memcpy(var, sequence, needed);
-      nt_set(var, pos, base);
-      break;
-
-#if 0
-    case deletion:
-      needed = nt_bytelength(seqlen-1);
-      var = (char *) xmalloc(needed);
-      /* copy initial bytes */
-      memcpy(var, sequence, (pos+3)/4);
-      /* handle the rest */
-      for (int p = pos; p < seqlen; p++)
-        {
-          nt_set(var, pos, );
-        }
-      for (p = pos)
-      /* ... */
-      break;
-
-    case insertion:
-      break;
-#endif
-
-    default:
-      fprintf(stderr, "Variant type not implemented.\n");
-      exit(1);
-    }
-
-  return var;
+  for(int i = 0; i < length; i++)
+    if (nt_extract(a, a_start + i) != nt_extract(b, b_start + i))
+      return false;
+  return true;
 }
 
 inline bool check_variant(int seed,
@@ -335,23 +285,90 @@ inline bool check_variant(int seed,
                           int amp)
 {
   /* check if amp is identical to seed with the given variant */
-#if 1
-  (void) seed;
-  (void) vartype;
-  (void) pos;
-  (void) base;
-  (void) amp;
+
+  char * seed_sequence = db_getsequence(seed);
+  unsigned int seed_seqlen = db_getsequencelen(seed);
+
+  char * amp_sequence = db_getsequence(amp);
+  unsigned int amp_seqlen = db_getsequencelen(amp);
+
+  switch (vartype)
+    {
+
+    case original:
+
+      if (seed_seqlen != amp_seqlen)
+        return false;
+
+      if (! seq_identical(seed_sequence, 0,
+                          amp_sequence, 0,
+                          seed_seqlen))
+        return false;
+
+      break;
+
+    case substitution:
+
+      if (seed_seqlen != amp_seqlen)
+        return false;
+
+      if (nt_extract(amp_sequence, pos) != base)
+        return false;
+
+      if (! seq_identical(seed_sequence, 0,
+                          amp_sequence, 0,
+                          pos))
+        return false;
+
+      if (! seq_identical(seed_sequence, pos + 1,
+                          amp_sequence,  pos + 1,
+                          seed_seqlen - pos - 1))
+        return false;
+
+      break;
+
+    case deletion:
+
+      if ((seed_seqlen - 1) != amp_seqlen)
+        return false;
+
+      if (! seq_identical(seed_sequence, 0,
+                          amp_sequence, 0,
+                          pos))
+        return false;
+
+      if (! seq_identical(seed_sequence, pos + 1,
+                          amp_sequence,  pos,
+                          seed_seqlen - pos - 1))
+        return false;
+      break;
+
+    case insertion:
+
+      if ((seed_seqlen + 1) != amp_seqlen)
+        return false;
+
+      if (nt_extract(amp_sequence, pos) != base)
+        return false;
+
+      if (! seq_identical(seed_sequence, 0,
+                          amp_sequence, 0,
+                          pos))
+        return false;
+
+      if (! seq_identical(seed_sequence, pos,
+                          amp_sequence,  pos + 1,
+                          seed_seqlen - pos))
+        return false;
+
+      break;
+
+    default:
+
+      break;
+    }
 
   return true;
-#else
-  /* make sure sequences are identical even though hashes are */
-  char * seq = db_getsequence(amp);
-  int seqlen = db_getsequencelen(amp);
-  char * variant = create_variant_sequence(seed, vartype, pos, base);
-  bool hit = memcmp(variant, seq, nt_bytelength(seqlen)) == 0;
-  free(variant);
-  return hit;
-#endif
 }
 
 void find_variant_matches2(unsigned long thread,
