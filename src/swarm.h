@@ -48,9 +48,6 @@
 #include <tmmintrin.h>
 #endif
 
-#define ZOBRIST
-#include "../zobrist.h"
-
 /* constants */
 
 #ifndef LINE_MAX
@@ -252,6 +249,8 @@ seqinfo_t * db_getseqinfo(unsigned long seqno);
 char * db_getsequence(unsigned long seqno);
 unsigned long db_getsequencelen(unsigned long seqno);
 
+unsigned long db_gethash(unsigned long seqno);
+
 void db_getsequenceandlength(unsigned long seqno,
                              char ** address,
                              long * length);
@@ -391,3 +390,4 @@ unsigned long arch_get_memtotal();
 #include "bitmap.h"
 #include "bloom.h"
 #include "threads.h"
+#include "zobrist.h"

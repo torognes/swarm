@@ -1,6 +1,3 @@
-#ifndef SWARM_ZOBRIST_H
-#define SWARM_ZOBRIST_H
-
 /*
     SWARM
 
@@ -38,5 +35,3 @@ inline unsigned long zobrist_value(unsigned int pos, unsigned char x)
 {
   return zobrist_tab_base[4 * pos + x];
 }
-
-#endif

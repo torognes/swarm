@@ -29,7 +29,6 @@
 
 #include "swarm.h"
 
-#define HASH hash_cityhash64
 #define HASHFILLFACTOR 0.5
 //#define HASHSTATS
 
@@ -114,7 +113,7 @@ static unsigned char * hash_occupied = 0;
 static unsigned long * hash_values = 0;
 static int * hash_data = 0;
 
-#define BLOOM_PATTERN_BITS 12
+#define BLOOM_PATTERN_BITS 10
 #define BLOOM_PATTERN_COUNT (1 << BLOOM_PATTERN_BITS)
 
 static unsigned long * hash_bloom = 0;
@@ -150,7 +149,7 @@ void bloom_init()
   bloom_size_bytes = hash_tablesize;
   bloom_mask = (bloom_size_bytes >> 3) - 1;
   hash_bloom = (unsigned long *) xmalloc(bloom_size_bytes);
-  memset(hash_bloom, 0, bloom_size_bytes);
+  memset(hash_bloom, 0xff, bloom_size_bytes);
 
   bloom_pattern_mask = BLOOM_PATTERN_COUNT - 1;
   generate_bit_patterns();
@@ -164,7 +163,7 @@ void bloom_exit()
 inline void bloom_set(unsigned long hash)
 {
   unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
-  hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask] |= bloom_pattern;
+  hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask] &= ~bloom_pattern;
 }
 
 inline bool bloom_get(unsigned long hash)
@@ -172,7 +171,7 @@ inline bool bloom_get(unsigned long hash)
   unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
   unsigned long bloom_bits
     = hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask];
-  return (bloom_bits & bloom_pattern) == bloom_pattern;
+  return (bloom_bits & bloom_pattern) == 0;
 }
 
 inline unsigned int hash_getindex(unsigned long hash)
@@ -244,8 +243,7 @@ inline int hash_compare_value(unsigned int j, unsigned long hash)
 inline void hash_insert(int amp)
 {
   /* find the first empty bucket */
-  unsigned long hash = zobrist_hash((unsigned char*)db_getsequence(amp),
-                                    db_getsequencelen(amp));
+  unsigned long hash = db_gethash(amp);
   unsigned int j = hash_getindex(hash);
   while (hash_is_occupied(j))
     j = hash_getnextindex(j);
@@ -356,13 +354,13 @@ inline bool check_variant(int seed,
 #endif
 }
 
-inline void find_variant_matches(unsigned long thread,
-                                 int seed,
-                                 unsigned long hash,
-                                 variant_enum vartype,
-                                 unsigned int pos,
-                                 unsigned int base,
-                                 unsigned long max_abundance)
+void find_variant_matches(unsigned long thread,
+                          int seed,
+                          unsigned long hash,
+                          variant_enum vartype,
+                          unsigned int pos,
+                          unsigned int base,
+                          unsigned long max_abundance)
 {
 #ifdef HASHSTATS
   tries++;
@@ -411,6 +409,7 @@ inline void find_variant_matches(unsigned long thread,
 
                   if (tip->hits_count + 1 > tip->hits_alloc)
                     {
+                      printf("Realloc hits list!\n");
                       tip->hits_alloc <<= 1;
                       tip->hits_data = (int*)realloc(tip->hits_data,
                                                      tip->hits_alloc *
@@ -470,7 +469,7 @@ void generate_variants(unsigned long thread,
 
   /* identical non-variant */
 
-  unsigned long hash = zobrist_hash((unsigned char *) sequence, seqlen);
+  unsigned long hash = db_gethash(seed);
   find_variant_matches(thread, seed, hash, original, 0, 0, m);
 
   /* substitutions */
@@ -814,7 +813,7 @@ bool hash_check_attach(char * seq,
 {
   /* compute hash and corresponding hash table index */
 
-  unsigned long hash = HASH((unsigned char*)seq, seqlen);
+  unsigned long hash = zobrist_hash((unsigned char*)seq, seqlen);
   unsigned int j = hash_getindex(hash);
 
   /* find matching buckets */
@@ -1152,8 +1151,6 @@ void algo_d1_run()
 {
   unsigned long longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
-
-  zobrist_init(longestamplicon);
 
   threads_init();
 
@@ -1734,6 +1731,4 @@ void algo_d1_run()
   fprintf(logfile, "Bingo:      %12lu\n", bingo);
   fprintf(logfile, "Collisions: %12lu\n", collisions);
 #endif
-
-  zobrist_exit();
 }

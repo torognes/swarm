@@ -358,6 +358,10 @@ void db_read(const char * filename)
 
   fclose(fp);
 
+  /* init zobrist hashing */
+
+  zobrist_init(longest);
+
   /* set up hash to check for unique headers */
 
   unsigned long hdrhashsize = 2 * sequences;
@@ -519,23 +523,24 @@ void db_read(const char * filename)
 
       hdrhashtable[hdrhashindex] = seqindex_p;
 
+#if 1
+      /* hash sequence */
+      seqindex_p->seqhash = zobrist_hash((unsigned char*)seqindex_p->seq,
+                                         seqindex_p->seqlen);
 
       if (opt_differences > 0)
         {
           /* check for duplicated sequences using hash table */
-          unsigned long seqhash = HASH((unsigned char*)seqindex_p->seq,
-                                       nt_bytelength(seqindex_p->seqlen));
-          seqindex_p->seqhash = seqhash;
-          unsigned long seqhashindex = seqhash % seqhashsize;
+          unsigned long seqhashindex = seqindex_p->seqhash % seqhashsize;
           seqinfo_t * seqfound = 0;
 
           while ((seqfound = seqhashtable[seqhashindex]))
             {
-              if ((seqfound->seqhash == seqhash) &&
+              if ((seqfound->seqhash == seqindex_p->seqhash) &&
                   (seqfound->seqlen == seqindex_p->seqlen) &&
                   (memcmp(seqfound->seq,
                           seqindex_p->seq,
-                          nt_bytelength(seqfound->seqlen)) == 0))
+                          nt_bytelength(seqindex_p->seqlen)) == 0))
                 break;
               seqhashindex = (seqhashindex + 1) % seqhashsize;
             }
@@ -545,6 +550,7 @@ void db_read(const char * filename)
           else
             seqhashtable[seqhashindex] = seqindex_p;
         }
+#endif
 
       seqindex_p++;
       progress_update(i);
@@ -641,6 +647,11 @@ seqinfo_t * db_getseqinfo(unsigned long seqno)
   return seqindex+seqno;
 }
 
+unsigned long db_gethash(unsigned long seqno)
+{
+  return seqindex[seqno].seqhash;
+}
+
 char * db_getsequence(unsigned long seqno)
 {
   return seqindex[seqno].seq;
@@ -685,6 +696,8 @@ void db_putseq(long seqno)
 
 void db_free()
 {
+  zobrist_exit();
+
   if (datap)
     free(datap);
   if (seqindex)
