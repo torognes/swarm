@@ -255,13 +255,19 @@ inline void hash_insert(int amp)
   bloom_set(hash);
 }
 
-enum variant_enum
-  {
-    original,
-    substitution,
-    deletion,
-    insertion
-  };
+#define original 0
+#define substitution 1
+#define deletion 2
+#define insertion 3
+
+struct var_s
+{
+  unsigned long hash;
+  unsigned int pos;
+  unsigned char vartype;
+  unsigned char base;
+  unsigned short dummy;
+};
 
 bool seq_identical(char * a,
                    int a_start,
@@ -279,12 +285,11 @@ bool seq_identical(char * a,
 }
 
 inline bool check_variant(int seed,
-                          variant_enum vartype,
-                          unsigned long pos,
-                          unsigned char base,
+                          struct var_s * var,
                           int amp)
 {
-  /* check if amp is identical to seed with the given variant */
+  /* make sure seed with given variant is really identical to amp */
+  /* we know the hashes are identical */
 
   char * seed_sequence = db_getsequence(seed);
   unsigned int seed_seqlen = db_getsequencelen(seed);
@@ -292,7 +297,7 @@ inline bool check_variant(int seed,
   char * amp_sequence = db_getsequence(amp);
   unsigned int amp_seqlen = db_getsequencelen(amp);
 
-  switch (vartype)
+  switch (var->vartype)
     {
 
     case original:
@@ -312,17 +317,17 @@ inline bool check_variant(int seed,
       if (seed_seqlen != amp_seqlen)
         return false;
 
-      if (nt_extract(amp_sequence, pos) != base)
+      if (nt_extract(amp_sequence, var->pos) != var->base)
         return false;
 
       if (! seq_identical(seed_sequence, 0,
                           amp_sequence, 0,
-                          pos))
+                          var->pos))
         return false;
 
-      if (! seq_identical(seed_sequence, pos + 1,
-                          amp_sequence,  pos + 1,
-                          seed_seqlen - pos - 1))
+      if (! seq_identical(seed_sequence, var->pos + 1,
+                          amp_sequence,  var->pos + 1,
+                          seed_seqlen - var->pos - 1))
         return false;
 
       break;
@@ -334,12 +339,12 @@ inline bool check_variant(int seed,
 
       if (! seq_identical(seed_sequence, 0,
                           amp_sequence, 0,
-                          pos))
+                          var->pos))
         return false;
 
-      if (! seq_identical(seed_sequence, pos + 1,
-                          amp_sequence,  pos,
-                          seed_seqlen - pos - 1))
+      if (! seq_identical(seed_sequence, var->pos + 1,
+                          amp_sequence,  var->pos,
+                          seed_seqlen - var->pos - 1))
         return false;
       break;
 
@@ -348,17 +353,17 @@ inline bool check_variant(int seed,
       if ((seed_seqlen + 1) != amp_seqlen)
         return false;
 
-      if (nt_extract(amp_sequence, pos) != base)
+      if (nt_extract(amp_sequence, var->pos) != var->base)
         return false;
 
       if (! seq_identical(seed_sequence, 0,
                           amp_sequence, 0,
-                          pos))
+                          var->pos))
         return false;
 
-      if (! seq_identical(seed_sequence, pos,
-                          amp_sequence,  pos + 1,
-                          seed_seqlen - pos))
+      if (! seq_identical(seed_sequence, var->pos,
+                          amp_sequence,  var->pos + 1,
+                          seed_seqlen - var->pos))
         return false;
 
       break;
@@ -371,13 +376,10 @@ inline bool check_variant(int seed,
   return true;
 }
 
-void find_variant_matches2(unsigned long thread,
-                           int seed,
-                           unsigned long hash,
-                           variant_enum vartype,
-                           unsigned int pos,
-                           unsigned int base,
-                           unsigned long max_abundance)
+inline void find_variant_matches(unsigned long thread,
+                                 int seed,
+                                 struct var_s * var,
+                                 unsigned long max_abundance)
 {
 #ifdef HASHSTATS
   bloom_matches++;
@@ -385,7 +387,7 @@ void find_variant_matches2(unsigned long thread,
 
   /* compute hash and corresponding hash table index */
 
-  unsigned int j = hash_getindex(hash);
+  unsigned int j = hash_getindex(var->hash);
 
   /* find matching buckets */
 
@@ -396,7 +398,7 @@ void find_variant_matches2(unsigned long thread,
 #ifdef HASHSTATS
       hits++;
 #endif
-      if (hash_compare_value(j, hash))
+      if (hash_compare_value(j, var->hash))
         {
 #ifdef HASHSTATS
           success++;
@@ -407,7 +409,7 @@ void find_variant_matches2(unsigned long thread,
           if ((ampinfo[amp].swarmid == NO_SWARM) &&
               (db_getabundance(amp) <= max_abundance))
             {
-              if (check_variant(seed, vartype, pos, base, amp))
+              if (check_variant(seed, var, amp))
                 {
 #ifdef HASHSTATS
                   bingo++;
@@ -435,26 +437,26 @@ void find_variant_matches2(unsigned long thread,
     }
 }
 
-inline void find_variant_matches(unsigned long thread,
-                                 int seed,
-                                 unsigned long hash,
-                                 variant_enum vartype,
-                                 unsigned int pos,
-                                 unsigned int base,
-                                 unsigned long max_abundance)
+static struct var_s variant_list[4096]; /* longest * 7 + 4 + 1 */
+static unsigned long variant_count;
+
+inline void add_variant(unsigned long hash,
+                        unsigned char vartype,
+                        unsigned int pos,
+                        unsigned int base)
 {
 #ifdef HASHSTATS
   tries++;
 #endif
 
   if (bloom_get(hash))
-    find_variant_matches2(thread,
-                          seed,
-                          hash,
-                          vartype,
-                          pos,
-                          base,
-                          max_abundance);
+    {
+      struct var_s * v = variant_list + variant_count++;
+      v->hash = hash;
+      v->vartype = vartype;
+      v->pos = pos;
+      v->base = base;
+    }
 }
 
 void generate_variants(unsigned long thread,
@@ -486,13 +488,17 @@ void generate_variants(unsigned long thread,
   unsigned int seqlen = db_getsequencelen(seed);
   unsigned long hash = db_gethash(seed);
 
+  unsigned int end = seqlen;
+
+  variant_count = 0;
+
   /* identical non-variant */
 
-  find_variant_matches(thread, seed, hash, original, 0, 0, m);
+  add_variant(hash, original, 0, 0);
 
   /* substitutions */
 
-  for(unsigned int i = 0; i < seqlen; i++)
+  for(unsigned int i = 0; i < end; i++)
     {
       unsigned int base = nt_extract(sequence, i);
       unsigned long hash1 = hash ^ zobrist_value(i, base);
@@ -500,22 +506,22 @@ void generate_variants(unsigned long thread,
         if (v != base)
           {
             unsigned long hash2 = hash1 ^ zobrist_value(i, v);
-            find_variant_matches(thread, seed, hash2, substitution, i, v, m);
+            add_variant(hash2, substitution, i, v);
           }
     }
 
   /* deletions */
 
   hash = zobrist_hash_delete_first((unsigned char *) sequence, seqlen);
-  find_variant_matches(thread, seed, hash, deletion, 0, 0, m);
+  add_variant(hash, deletion, 0, 0);
   unsigned int base = nt_extract(sequence, 0);
-  for(unsigned int i = 1; i < seqlen; i++)
+  for(unsigned int i = 1; i < end; i++)
     {
       unsigned int v = nt_extract(sequence, i);
       if (v != base)
         {
           hash ^= zobrist_value(i - 1, base) ^ zobrist_value(i - 1, v);
-          find_variant_matches(thread, seed, hash, deletion, i, 0, m);
+          add_variant(hash, deletion, i, 0);
           base = v;
         }
     }
@@ -526,9 +532,9 @@ void generate_variants(unsigned long thread,
   for (unsigned int v = 0; v < 4; v++)
     {
       unsigned long hash1 = hash ^ zobrist_value(0, v);
-      find_variant_matches(thread, seed, hash1, insertion, 0, v, m);
+      add_variant(hash1, insertion, 0, v);
     }
-  for (unsigned int i = 0; i < seqlen; i++)
+  for (unsigned int i = 0; i < end; i++)
     {
       unsigned int base = nt_extract(sequence, i);
       hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);
@@ -536,9 +542,12 @@ void generate_variants(unsigned long thread,
         if (v != base)
           {
             unsigned long hash1 = hash ^ zobrist_value(i + 1, v);
-            find_variant_matches(thread, seed, hash1, insertion, i + 1, v, m);
+            add_variant(hash1, insertion, i + 1, v);
           }
     }
+
+  for(unsigned int i=0; i < variant_count; i++)
+    find_variant_matches(thread, seed, variant_list + i, m);
 }
 
 void * worker(void * vp)
@@ -581,7 +590,7 @@ void threads_init()
     {
       struct thread_info_s * tip = ti + t;
       tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
-      tip->hits_alloc = 7 * longestamplicon + 4;
+      tip->hits_alloc = 7 * longestamplicon + 4 + 1;
       tip->hits_data = (int*) xmalloc(tip->hits_alloc * sizeof(int));
       tip->work = 0;
       pthread_mutex_init(&tip->workmutex, NULL);
@@ -1167,6 +1176,13 @@ void check_heavy_thread(long t)
 
 void algo_d1_run()
 {
+#if 0
+  if (opt_threads != 1)
+    fprintf(stderr, "Swarm only works with 1 thread for the moment.");
+  if (opt_fastidious)
+    fprintf(stderr, "Swarm does not work in fastidious mode for the moment.");
+#endif
+
   unsigned long longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
