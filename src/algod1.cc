@@ -128,6 +128,25 @@ static int global_hits_count = 0;
 
 static unsigned long threads_used = 0;
 
+static unsigned long longestamplicon = 0;
+
+#define original 0
+#define substitution 1
+#define deletion 2
+#define insertion 3
+
+struct var_s
+{
+  unsigned long hash;
+  unsigned int pos;
+  unsigned char vartype;
+  unsigned char base;
+  unsigned short dummy;
+};
+
+static var_s * variant_list;
+static unsigned long variant_count;
+
 void generate_bit_patterns()
 {
   for (unsigned int i = 0; i < BLOOM_PATTERN_COUNT; i++)
@@ -255,20 +274,6 @@ inline void hash_insert(int amp)
   bloom_set(hash);
 }
 
-#define original 0
-#define substitution 1
-#define deletion 2
-#define insertion 3
-
-struct var_s
-{
-  unsigned long hash;
-  unsigned int pos;
-  unsigned char vartype;
-  unsigned char base;
-  unsigned short dummy;
-};
-
 bool seq_identical(char * a,
                    int a_start,
                    char * b,
@@ -285,7 +290,7 @@ bool seq_identical(char * a,
 }
 
 inline bool check_variant(int seed,
-                          struct var_s * var,
+                          var_s * var,
                           int amp)
 {
   /* make sure seed with given variant is really identical to amp */
@@ -378,7 +383,7 @@ inline bool check_variant(int seed,
 
 inline void find_variant_matches(unsigned long thread,
                                  int seed,
-                                 struct var_s * var,
+                                 var_s * var,
                                  unsigned long max_abundance)
 {
 #ifdef HASHSTATS
@@ -437,9 +442,6 @@ inline void find_variant_matches(unsigned long thread,
     }
 }
 
-static struct var_s variant_list[4096]; /* longest * 7 + 4 + 1 */
-static unsigned long variant_count;
-
 inline void add_variant(unsigned long hash,
                         unsigned char vartype,
                         unsigned int pos,
@@ -451,7 +453,7 @@ inline void add_variant(unsigned long hash,
 
   if (bloom_get(hash))
     {
-      struct var_s * v = variant_list + variant_count++;
+      var_s * v = variant_list + variant_count++;
       v->hash = hash;
       v->vartype = vartype;
       v->pos = pos;
@@ -466,8 +468,6 @@ void generate_variants(unsigned long thread,
 {
   (void) start;
   (void) len;
-  if (thread > 0)
-    return;
 
   /*
      Generate all possible variants involving mutations from position start
@@ -1176,14 +1176,12 @@ void check_heavy_thread(long t)
 
 void algo_d1_run()
 {
-#if 0
   if (opt_threads != 1)
     fprintf(stderr, "Swarm only works with 1 thread for the moment.");
   if (opt_fastidious)
     fprintf(stderr, "Swarm does not work in fastidious mode for the moment.");
-#endif
 
-  unsigned long longestamplicon = db_getlongestsequence();
+  longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
   threads_init();
@@ -1191,8 +1189,9 @@ void algo_d1_run()
   ampinfo = (struct ampinfo_s *)
     xmalloc(amplicons * sizeof(struct ampinfo_s));
 
-  global_hits_alloc = longestamplicon * 7 + 4;
+  global_hits_alloc = longestamplicon * 7 + 4 + 1;
   global_hits_data = (int *) xmalloc(global_hits_alloc * sizeof(int));
+  variant_list = (var_s *) xmalloc(global_hits_alloc * sizeof(var_s));
 
   /* compute hash for all amplicons and store them in a hash table */
 
@@ -1756,6 +1755,8 @@ void algo_d1_run()
       free(dir);
       free(hearray);
     }
+
+  free(variant_list);
 
 #ifdef HASHSTATS
   fprintf(logfile, "Tries:      %12lu\n", tries);
