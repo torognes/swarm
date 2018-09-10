@@ -49,8 +49,8 @@ void progress_update(unsigned long progress)
       fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
               100.0 * progress / progress_size);
       progress_next = progress + progress_chunk;
+      fflush(logfile);
     }
-  fflush(logfile);
 }
 
 void progress_done()

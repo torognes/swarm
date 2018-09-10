@@ -79,6 +79,10 @@ seqinfo_t * seqindex = 0;
 char * datap = 0;
 qgramvector_t * qgrams = 0;
 
+static int missingabundance = 0;
+static unsigned long missingabundance_lineno = 0;
+static char * missingabundance_header = 0;
+
 void fprint_id(FILE * stream, unsigned long x)
 {
   seqinfo_t * sp = seqindex + x;
@@ -155,6 +159,172 @@ int db_compare_abundance(const void * a, const void * b)
     return strcmp(x->header, y->header);
 }
 
+bool find_swarm_abundance(const char * header,
+                          int * start,
+                          int * end)
+{
+  /*
+    Identify the first occurence of the pattern (_)([0-9]+)$
+    in the header string.
+  */
+
+  const char * digit_chars = "0123456789";
+
+  if (!header)
+    return false;
+
+  const char * us = strrchr(header, '_');
+
+  if (!us)
+    return false;
+
+  size_t digits = strspn(us + 1, digit_chars);
+
+  if (us[1+digits] == 0)
+    {
+      *start = us - header + 1;
+      *end = *start + digits;
+      return true;
+    }
+  else
+    return false;
+}
+
+bool find_usearch_abundance(const char * header,
+                            int * start,
+                            int * end)
+{
+  /*
+    Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
+    in the header string.
+  */
+
+  const char * attribute = "size=";
+  const char * digit_chars = "0123456789";
+
+  if ((! header) || (! attribute))
+    return false;
+
+  int hlen = strlen(header);
+  int alen = strlen(attribute);
+
+  int i = 0;
+
+  while (i < hlen - alen)
+    {
+      char * r = (char *) strstr(header + i, attribute);
+
+      /* no match */
+      if (r == NULL)
+        break;
+
+      i = r - header;
+
+      /* check for ';' in front */
+      if ((i > 0) && (header[i-1] != ';'))
+        {
+          i += alen + 1;
+          continue;
+        }
+
+      int digits = (int) strspn(header + i + alen, digit_chars);
+
+      /* check for at least one digit */
+      if (digits == 0)
+        {
+          i += alen + 1;
+          continue;
+        }
+
+      /* check for ';' after */
+      if ((i + alen + digits < hlen) && (header[i + alen + digits] != ';'))
+        {
+          i += alen + digits + 2;
+          continue;
+        }
+
+      /* ok */
+      * start = i + alen;
+      * end = i + alen + digits;
+      return true;
+    }
+  return false;
+}
+
+void find_abundance(struct seqinfo_s * sp, unsigned long lineno)
+{
+  char * header = sp->header;
+
+  /* read size/abundance annotation */
+  long abundance = 0;
+  int start = 0;
+  int end = 0;
+
+  if (opt_usearch_abundance)
+    {
+      /* (^|;)size=([0-9]+)(;|$) */
+
+      if (find_usearch_abundance(header, & start, & end))
+        {
+          long number = atol(header + start);
+          if (number > 0)
+            abundance = number;
+          else
+            {
+              fprintf(stderr,
+                      "\nError: Illegal abundance value on line %lu:\n%s\n"
+                      "Abundance values should be positive integers.\n\n",
+                      lineno,
+                      header);
+              exit(1);
+            }
+        }
+    }
+  else
+    {
+      /* (_)([0-9]+)$ */
+
+      if (find_swarm_abundance(header, & start, & end))
+        {
+          long number = atol(header + start);
+
+          if (number > 0)
+            abundance = number;
+          else
+            {
+              fprintf(stderr,
+                      "\nError: Illegal abundance value on line %lu:\n%s\n"
+                      "Abundance values should be positive integers.\n\n",
+                      lineno,
+                      header);
+              exit(1);
+            }
+        }
+    }
+
+  if (abundance == 0)
+    {
+      start = strlen(header);
+      end = start;
+
+      if (opt_append_abundance)
+        abundance = opt_append_abundance;
+      else
+        {
+          missingabundance++;
+          if (missingabundance == 1)
+            {
+              missingabundance_lineno = lineno;
+              missingabundance_header = header;
+            }
+        }
+    }
+
+  sp->abundance = abundance;
+  sp->abundance_start = start;
+  sp->abundance_end = end;
+}
+
 void db_read(const char * filename)
 {
   /* allocate space */
@@ -198,7 +368,8 @@ void db_read(const char * filename)
 
   unsigned int lineno = 1;
 
-  progress_init("Reading database: ", filesize);
+  progress_init("Reading sequences:", filesize);
+
   while(line[0])
     {
       /* read header */
@@ -390,26 +561,9 @@ void db_read(const char * filename)
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
   seqinfo_t * seqindex_p = seqindex;
 
-  regex_t db_regexp;
-  regmatch_t pmatch[4];
-
-  if (opt_usearch_abundance)
-    {
-      if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-        fatal("Regular expression compilation failed");
-    }
-  else
-    {
-      if (regcomp(&db_regexp, "(_)([0-9]+)$", REG_EXTENDED))
-        fatal("Regular expression compilation failed");
-    }
-
   seqinfo_t * lastseq = 0;
 
   int presorted = 1;
-  int missingabundance = 0;
-  unsigned int missingabundance_lineno = 0;
-  char * missingabundance_header = 0;
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
@@ -432,49 +586,10 @@ void db_read(const char * filename)
       p += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
-      if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
-        {
-          seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
-          seqindex_p->abundance_start = pmatch[0].rm_so;
-          seqindex_p->abundance_end = pmatch[0].rm_eo;
-
-          if (seqindex_p->abundance == 0)
-            {
-              fprintf(stderr,
-                      "\nError: Illegal abundance value on line %u:\n%s\n"
-                      "Abundance values should be positive integers.\n\n",
-                      lineno,
-                      seqindex_p->header);
-              exit(1);
-            }
-        }
-      else
-        {
-          seqindex_p->abundance_start = seqindex_p->headerlen;
-          seqindex_p->abundance_end = seqindex_p->headerlen;
-          seqindex_p->abundance = 0;
-        }
-
-      if (seqindex_p->abundance < 1)
-        {
-          if (opt_append_abundance)
-            {
-              seqindex_p->abundance = opt_append_abundance;
-            }
-          else
-            {
-              missingabundance++;
-              if (missingabundance == 1)
-                {
-                  missingabundance_lineno = lineno;
-                  missingabundance_header = seqindex_p->header;
-                }
-            }
-        }
+      find_abundance(seqindex_p, lineno);
 
       if (seqindex_p->abundance_start == 0)
-          fatal("Empty sequence identifier");
-
+        fatal("Empty sequence identifier");
 
       /* check if the sequences are presorted by abundance and header */
 
@@ -492,6 +607,7 @@ void db_read(const char * filename)
       lastseq = seqindex_p;
 
 
+#if 1
       /* check for duplicated identifiers using hash table */
 
       unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header,
@@ -522,6 +638,7 @@ void db_read(const char * filename)
         }
 
       hdrhashtable[hdrhashindex] = seqindex_p;
+#endif
 
 #if 1
       /* hash sequence */
@@ -560,7 +677,7 @@ void db_read(const char * filename)
   if (missingabundance)
     {
       fprintf(stderr,
-              "\nError: Abundance annotations not found for %d sequences, starting on line %u.\n"
+              "\nError: Abundance annotations not found for %d sequences, starting on line %lu.\n"
               ">%s\n"
               "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
               "The -z option must be used if the abundance annotation is in the latter format.\n"
@@ -587,8 +704,6 @@ void db_read(const char * filename)
       qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
       progress_done();
     }
-
-  regfree(&db_regexp);
 
   free(hdrhashtable);
 

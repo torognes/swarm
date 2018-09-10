@@ -41,6 +41,8 @@ static struct ampinfo_s
   int generation;
   int next;       /* amp id of next amplicon in swarm */
   int graft_cand; /* amp id of potential grafting parent (fastidious) */
+  int link_start;
+  int link_count;
 } * ampinfo = 0;
 
 /* Information about each swarm (OTU) */
@@ -81,23 +83,6 @@ static int swarmsize = 0;
 static int swarm_maxgen = 0;
 static unsigned long swarm_sumlen = 0;
 
-static struct thread_data_s
-{
-  pthread_t pthread;
-  pthread_mutex_t workmutex;
-  pthread_cond_t workcond;
-  int work;
-  unsigned char * varseq;
-  int seed;
-  int * hits_data;
-  int hits_alloc;
-  int hits_count;
-  unsigned int variant_start;
-  unsigned int variant_count;
-} * ti;
-
-static pthread_attr_t attr;
-
 #ifdef HASHSTATS
 unsigned long hits = 0;
 unsigned long bloom_matches = 0;
@@ -126,9 +111,9 @@ static int * global_hits_data = 0;
 static int global_hits_alloc = 0;
 static int global_hits_count = 0;
 
-static unsigned long threads_used = 0;
-
 static unsigned long longestamplicon = 0;
+
+static long amplicons;
 
 #define original 0
 #define substitution 1
@@ -143,9 +128,6 @@ struct var_s
   unsigned char base;
   unsigned short dummy;
 };
-
-static var_s * variant_list;
-static unsigned long variant_count;
 
 void generate_bit_patterns()
 {
@@ -385,10 +367,10 @@ inline bool check_variant(int seed,
   return true;
 }
 
-inline void find_variant_matches(unsigned long thread,
-                                 int seed,
+inline void find_variant_matches(int seed,
                                  var_s * var,
-                                 unsigned long max_abundance)
+                                 int * hits_data,
+                                 int * hits_count)
 {
 #ifdef HASHSTATS
   bloom_matches++;
@@ -399,8 +381,6 @@ inline void find_variant_matches(unsigned long thread,
   unsigned int j = hash_getindex(var->hash);
 
   /* find matching buckets */
-
-  struct thread_data_s * tip = ti + thread;
 
   while (hash_is_occupied(j))
     {
@@ -413,17 +393,16 @@ inline void find_variant_matches(unsigned long thread,
           success++;
 #endif
 
-          /* check if not already swarmed */
+          /* avoid self */
           int amp = hash_data[j];
-          if ((ampinfo[amp].swarmid == NO_SWARM) &&
-              (db_getabundance(amp) <= max_abundance))
+          if (seed != amp)
             {
               if (check_variant(seed, var, amp))
                 {
 #ifdef HASHSTATS
                   bingo++;
 #endif
-                  tip->hits_data[tip->hits_count++] = amp;
+                  hits_data[(*hits_count)++] = amp;
                   break;
                 }
 #ifdef HASHSTATS
@@ -446,47 +425,51 @@ inline void find_variant_matches(unsigned long thread,
     }
 }
 
-void examine_variants(unsigned long thread,
-                      int seed)
+void examine_variants(int seed,
+                      var_s * variant_list,
+                      unsigned int variant_count,
+                      int * hits_data,
+                      int * hits_count)
 {
-  struct thread_data_s * tip = ti + thread;
-  tip->hits_count = 0;
-  unsigned long m = opt_no_otu_breaking ? ULONG_MAX : db_getabundance(seed);
-  for(unsigned int i = 0; i < tip->variant_count; i++)
+  * hits_count = 0;
+  for(unsigned int i = 0; i < variant_count; i++)
     {
-      var_s * v = variant_list + tip->variant_start + i;
+      var_s * v = variant_list + i;
       if (bloom_get(v->hash))
-        find_variant_matches(thread, seed, v, m);
+        find_variant_matches(seed, v, hits_data, hits_count);
     }
 }
 
 inline void add_variant(unsigned long hash,
                         unsigned char vartype,
                         unsigned int pos,
-                        unsigned int base)
+                        unsigned int base,
+                        var_s * variant_list,
+                        unsigned int * variant_count)
 {
 #ifdef HASHSTATS
   tries++;
 #endif
 
-  var_s * v = variant_list + variant_count++;
+  var_s * v = variant_list + (*variant_count)++;
   v->hash = hash;
   v->vartype = vartype;
   v->pos = pos;
   v->base = base;
+
 }
 
-void generate_variants(int seed)
+void generate_variants(int seed,
+                       var_s * variant_list,
+                       unsigned int * variant_count)
 {
   char * sequence = db_getsequence(seed);
   unsigned int seqlen = db_getsequencelen(seed);
   unsigned long hash = db_gethash(seed);
 
-  variant_count = 0;
-
   /* identical non-variant */
 
-  add_variant(hash, original, 0, 0);
+  add_variant(hash, original, 0, 0, variant_list, variant_count);
 
   /* substitutions */
 
@@ -498,14 +481,14 @@ void generate_variants(int seed)
         if (v != base)
           {
             unsigned long hash2 = hash1 ^ zobrist_value(i, v);
-            add_variant(hash2, substitution, i, v);
+            add_variant(hash2, substitution, i, v, variant_list, variant_count);
           }
     }
 
   /* deletions */
 
   hash = zobrist_hash_delete_first((unsigned char *) sequence, seqlen);
-  add_variant(hash, deletion, 0, 0);
+  add_variant(hash, deletion, 0, 0, variant_list, variant_count);
   unsigned int base = nt_extract(sequence, 0);
   for(unsigned int i = 1; i < seqlen; i++)
     {
@@ -513,7 +496,7 @@ void generate_variants(int seed)
       if (v != base)
         {
           hash ^= zobrist_value(i - 1, base) ^ zobrist_value(i - 1, v);
-          add_variant(hash, deletion, i, 0);
+          add_variant(hash, deletion, i, 0, variant_list, variant_count);
           base = v;
         }
     }
@@ -524,7 +507,7 @@ void generate_variants(int seed)
   for (unsigned int v = 0; v < 4; v++)
     {
       unsigned long hash1 = hash ^ zobrist_value(0, v);
-      add_variant(hash1, insertion, 0, v);
+      add_variant(hash1, insertion, 0, v, variant_list, variant_count);
     }
   for (unsigned int i = 0; i < seqlen; i++)
     {
@@ -534,176 +517,13 @@ void generate_variants(int seed)
         if (v != base)
           {
             unsigned long hash1 = hash ^ zobrist_value(i + 1, v);
-            add_variant(hash1, insertion, i + 1, v);
+            add_variant(hash1, insertion, i + 1, v, variant_list, variant_count);
           }
     }
 }
 
-void * worker(void * vp)
-{
-  long t = (long) vp;
-  struct thread_data_s * tip = ti + t;
 
-  pthread_mutex_lock(&tip->workmutex);
-
-  /* loop until signalled to quit */
-  while (tip->work >= 0)
-    {
-      /* wait for work available */
-      while (tip->work == 0)
-        pthread_cond_wait(&tip->workcond, &tip->workmutex);
-      if (tip->work > 0)
-        {
-          examine_variants(t, tip->seed);
-          tip->work = 0;
-          pthread_cond_signal(&tip->workcond);
-        }
-    }
-
-  pthread_mutex_unlock(&tip->workmutex);
-  return 0;
-}
-
-void threads_init()
-{
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  /* allocate memory for thread info, incl the variant sequences */
-  unsigned long longestamplicon = db_getlongestsequence();
-  ti = (struct thread_data_s *)
-    xmalloc(opt_threads * sizeof(struct thread_data_s));
-
-  /* init and create worker threads */
-  for(long t=0; t<opt_threads; t++)
-    {
-      struct thread_data_s * tip = ti + t;
-      tip->varseq = (unsigned char*) xmalloc(longestamplicon+1);
-      tip->hits_alloc = 7 * longestamplicon + 4 + 1;
-      tip->hits_data = (int*) xmalloc(tip->hits_alloc * sizeof(int));
-      tip->work = 0;
-      pthread_mutex_init(&tip->workmutex, NULL);
-      pthread_cond_init(&tip->workcond, NULL);
-      if (pthread_create(&tip->pthread, &attr, worker, (void*)(long)t))
-        fatal("Cannot create thread");
-    }
-}
-
-void threads_done()
-{
-  /* finish and clean up worker threads */
-  for(long t=0; t<opt_threads; t++)
-    {
-      struct thread_data_s * tip = ti + t;
-
-      /* tell worker to quit */
-      pthread_mutex_lock(&tip->workmutex);
-      tip->work = -1;
-      pthread_cond_signal(&tip->workcond);
-      pthread_mutex_unlock(&tip->workmutex);
-
-      /* wait for worker to quit */
-      if (pthread_join(tip->pthread, NULL))
-        fatal("Cannot join thread");
-
-      pthread_cond_destroy(&tip->workcond);
-      pthread_mutex_destroy(&tip->workmutex);
-      free(tip->varseq);
-      free(tip->hits_data);
-    }
-
-  free(ti);
-
-  pthread_attr_destroy(&attr);
-}
-
-void add_amp_to_swarm(int amp)
-{
-  /* add to swarm */
-  ampinfo[current_swarm_tail].next = amp;
-  current_swarm_tail = amp;
-}
-
-void process_seed(int subseed)
-{
-  unsigned long seqlen = db_getsequencelen(subseed);
-
-  generate_variants(subseed);
-
-  threads_used = opt_threads;
-  if (threads_used > seqlen + 1)
-    threads_used = seqlen+1;
-
-  /* prepare work for the threads */
-  unsigned int var_start = 0;
-  for(unsigned long t=0; t<threads_used; t++)
-    {
-      struct thread_data_s * tip = ti + t;
-      tip->seed = subseed;
-
-      unsigned int var_count
-        = (variant_count - var_start + threads_used - t - 1)
-        / (threads_used - t);
-      tip->variant_start = var_start;
-      tip->variant_count = var_count;
-      var_start += var_count;
-
-      pthread_mutex_lock(&tip->workmutex);
-      tip->work = 1;
-      pthread_cond_signal(&tip->workcond);
-      pthread_mutex_unlock(&tip->workmutex);
-    }
-
-  /* wait for threads to finish their work */
-  for(unsigned int t=0; t<threads_used; t++)
-    {
-      struct thread_data_s * tip = ti + t;
-      pthread_mutex_lock(&tip->workmutex);
-      while (tip->work > 0)
-        pthread_cond_wait(&tip->workcond, &tip->workmutex);
-      pthread_mutex_unlock(&tip->workmutex);
-    }
-
-  /* join hits from the threads */
-
-  for(unsigned int t=0; t<threads_used; t++)
-    {
-      if (global_hits_count + ti[t].hits_count > global_hits_alloc)
-        {
-          while (global_hits_count + ti[t].hits_count > global_hits_alloc)
-            global_hits_alloc <<= 1;
-          global_hits_data = (int*)xrealloc(global_hits_data,
-                                            global_hits_alloc * sizeof(int));
-        }
-      for(int i=0; i < ti[t].hits_count; i++)
-        {
-          long amp = ti[t].hits_data[i];
-
-          /* add to list for this generation */
-          global_hits_data[global_hits_count++] = amp;
-
-          /* update info */
-          ampinfo[amp].swarmid = ampinfo[subseed].swarmid;
-          ampinfo[amp].generation = ampinfo[subseed].generation + 1;
-          ampinfo[amp].parent = subseed;
-        }
-    }
-}
-
-void update_stats(int amp)
-{
-  /* update swarm stats */
-  struct ampinfo_s * bp = ampinfo + amp;
-
-  swarmsize++;
-  if (bp->generation > swarm_maxgen)
-    swarm_maxgen = bp->generation;
-  unsigned long abundance = db_getabundance(amp);
-  abundance_sum += abundance;
-  if (abundance == 1)
-    singletons++;
-  swarm_sumlen += db_getsequencelen(amp);
-}
+/******************** FASTIDIOUS START ********************/
 
 void attach(int seed, int amp)
 {
@@ -1093,19 +913,6 @@ void fastidious_check_large_var(BloomFilter * bloom,
 #endif
 }
 
-
-int compare_amp(const void * a, const void * b)
-{
-  int * x = (int*) a;
-  int * y = (int*) b;
-  if (*x < *y)
-    return -1;
-  else if (*x > *y)
-    return +1;
-  else
-    return 0;
-}
-
 static pthread_mutex_t light_mutex;
 static long light_variants;
 static long light_progress;
@@ -1140,7 +947,6 @@ static long heavy_variants;
 static long heavy_progress;
 static long heavy_amplicon_count;
 static int heavy_amplicon;
-static long amplicons;
 
 void check_heavy_thread(long t)
 {
@@ -1167,6 +973,129 @@ void check_heavy_thread(long t)
   free(buffer1);
 }
 
+
+/******************** FASTIDIOUS END ********************/
+
+static unsigned long network_alloc = 1024 * 1024;
+static int * network = 0;
+static unsigned long network_count = 0;
+
+static pthread_mutex_t network_mutex;
+static long network_amp = 0;
+
+void network_thread(long t)
+{
+  (void) t;
+
+  int hits_count = 0;
+  int * hits_data
+    = (int *) xmalloc((7 * longestamplicon + 5) * sizeof(int));
+
+  unsigned int variant_count = 0;
+  struct var_s * variant_list
+    = (var_s *) xmalloc((7 * longestamplicon + 5) * sizeof(struct var_s));
+
+  pthread_mutex_lock(&network_mutex);
+  while (network_amp < amplicons)
+    {
+      int amp = network_amp++;
+      progress_update(amp);
+
+      pthread_mutex_unlock(&network_mutex);
+
+      variant_count = 0;
+      hits_count = 0;
+      generate_variants(amp, variant_list, & variant_count);
+      examine_variants(amp, variant_list, variant_count, hits_data, & hits_count);
+      pthread_mutex_lock(&network_mutex);
+
+      ampinfo[amp].link_start = network_count;
+      ampinfo[amp].link_count = hits_count;
+
+      if (network_count + hits_count > network_alloc)
+        {
+          while (network_count + hits_count > network_alloc)
+            network_alloc += 1024 * 1024;
+          network = (int*) xrealloc(network, network_alloc * sizeof(int));
+        }
+
+      for(int i=0; i < hits_count; i++)
+        network[network_count++] = hits_data[i];
+    }
+  pthread_mutex_unlock(&network_mutex);
+
+  free(variant_list);
+  free(hits_data);
+}
+
+void add_amp_to_swarm(int amp)
+{
+  /* add to swarm */
+  ampinfo[current_swarm_tail].next = amp;
+  current_swarm_tail = amp;
+}
+
+
+void update_stats(int amp)
+{
+  /* update swarm stats */
+  struct ampinfo_s * bp = ampinfo + amp;
+
+  swarmsize++;
+  if (bp->generation > swarm_maxgen)
+    swarm_maxgen = bp->generation;
+  unsigned long abundance = db_getabundance(amp);
+  abundance_sum += abundance;
+  if (abundance == 1)
+    singletons++;
+  swarm_sumlen += db_getsequencelen(amp);
+}
+
+
+int compare_amp(const void * a, const void * b)
+{
+  int * x = (int*) a;
+  int * y = (int*) b;
+  if (*x < *y)
+    return -1;
+  else if (*x > *y)
+    return +1;
+  else
+    return 0;
+}
+
+void process_seed(int subseed)
+{
+  int s = ampinfo[subseed].link_start;
+  int c = ampinfo[subseed].link_count;
+
+  if (global_hits_count + c > global_hits_alloc)
+    {
+      while (global_hits_count + c > global_hits_alloc)
+        global_hits_alloc += 4096;
+      global_hits_data = (int*)xrealloc(global_hits_data,
+                                        global_hits_alloc * sizeof(int));
+    }
+
+  unsigned long m = opt_no_otu_breaking ? ULONG_MAX : db_getabundance(subseed);
+
+  for(int i = 0; i < c; i++)
+    {
+      int amp = network[s + i];
+
+      if ((ampinfo[amp].swarmid == NO_SWARM) &&
+          (db_getabundance(amp) <= m))
+        {
+          global_hits_data[global_hits_count++] = amp;
+
+          /* update info */
+          ampinfo[amp].swarmid = ampinfo[subseed].swarmid;
+          ampinfo[amp].generation = ampinfo[subseed].generation + 1;
+          ampinfo[amp].parent = subseed;
+        }
+    }
+}
+
 void algo_d1_run()
 {
   if (opt_fastidious)
@@ -1175,14 +1104,11 @@ void algo_d1_run()
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
-  threads_init();
-
   ampinfo = (struct ampinfo_s *)
     xmalloc(amplicons * sizeof(struct ampinfo_s));
 
   global_hits_alloc = longestamplicon * 7 + 4 + 1;
   global_hits_data = (int *) xmalloc(global_hits_alloc * sizeof(int));
-  variant_list = (var_s *) xmalloc(global_hits_alloc * sizeof(var_s));
 
   /* compute hash for all amplicons and store them in a hash table */
 
@@ -1211,7 +1137,25 @@ void algo_d1_run()
         xmalloc(2 * longestamplicon * sizeof(unsigned long));
     }
 
+  /* for all amplicons, generate list of matching amplicons */
+
+  network = (int*) xmalloc(network_alloc * sizeof(int));
+  network_count = 0;
+
+  pthread_mutex_init(&network_mutex, NULL);
+  network_amp = 0;
+  progress_init("Building network: ", amplicons);
+  ThreadRunner * network_tr = new ThreadRunner(opt_threads, network_thread);
+  network_tr->run();
+  delete network_tr;
+  pthread_mutex_destroy(&network_mutex);
+
+  progress_done();
+
+  printf("Number of links:   %lu\n", network_count);
+
   /* for each non-swarmed amplicon look for subseeds ... */
+
   long swarmid = 0;
   progress_init("Clustering:       ", amplicons);
   for(unsigned int seed = 0; seed < amplicons; seed++)
@@ -1730,8 +1674,6 @@ void algo_d1_run()
   fprintf(logfile, "Largest swarm:     %d\n", largest);
   fprintf(logfile, "Max generations:   %d\n", maxgen);
 
-  threads_done();
-
   hash_free();
 
   if(swarminfo)
@@ -1746,8 +1688,6 @@ void algo_d1_run()
       free(dir);
       free(hearray);
     }
-
-  free(variant_list);
 
 #ifdef HASHSTATS
   fprintf(logfile, "Tries:      %12lu\n", tries);
