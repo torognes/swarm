@@ -50,6 +50,7 @@ void progress_update(unsigned long progress)
               100.0 * progress / progress_size);
       progress_next = progress + progress_chunk;
     }
+  fflush(logfile);
 }
 
 void progress_done()
@@ -58,6 +59,7 @@ void progress_done()
     fprintf(logfile, " %.0f%%\n", 100.0);
   else
     fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+  fflush(logfile);
 }
 
 long gcd(long a, long b)

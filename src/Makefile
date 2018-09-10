@@ -22,8 +22,10 @@
 # Makefile for SWARM
 
 # Profiling options
-#COMMON=-pg -g -flto -O3 -march=native -msse2
-COMMON=-g -flto -O3 -march=native -msse2 -std=c++11
+# PROFILING=-pg
+PROFILING=
+
+COMMON=$(PROFILING) -g -flto -O3 -march=native -msse2 -std=c++11
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
