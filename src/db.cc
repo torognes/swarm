@@ -549,7 +549,7 @@ void db_read(const char * filename)
 
   seqinfo_t * * seqhashtable = 0;
 
-  if (opt_differences > 0)
+  if (opt_differences > 1)
     {
       seqhashtable =
         (seqinfo_t **) xmalloc(seqhashsize * sizeof(seqinfo_t *));
@@ -606,8 +606,6 @@ void db_read(const char * filename)
 
       lastseq = seqindex_p;
 
-
-#if 1
       /* check for duplicated identifiers using hash table */
 
       unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header,
@@ -638,16 +636,16 @@ void db_read(const char * filename)
         }
 
       hdrhashtable[hdrhashindex] = seqindex_p;
-#endif
 
-#if 1
       /* hash sequence */
       seqindex_p->seqhash = zobrist_hash((unsigned char*)seqindex_p->seq,
                                          seqindex_p->seqlen);
 
-      if (opt_differences > 0)
+      if (opt_differences > 1)
         {
-          /* check for duplicated sequences using hash table */
+          /* Check for duplicated sequences using hash table, */
+          /* but only for d>1. Handled internally for d=1.    */
+
           unsigned long seqhashindex = seqindex_p->seqhash % seqhashsize;
           seqinfo_t * seqfound = 0;
 
@@ -667,7 +665,6 @@ void db_read(const char * filename)
           else
             seqhashtable[seqhashindex] = seqindex_p;
         }
-#endif
 
       seqindex_p++;
       progress_update(i);

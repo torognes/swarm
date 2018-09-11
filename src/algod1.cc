@@ -29,7 +29,7 @@
 
 #include "swarm.h"
 
-#define HASHFILLFACTOR 0.5
+#define HASHFILLFACTOR 0.7
 //#define HASHSTATS
 
 /* Information about each amplicon */
@@ -92,7 +92,6 @@ unsigned long bingo = 0;
 unsigned long collisions = 0;
 #endif
 
-static int hash_shift;
 static unsigned long hash_mask;
 static unsigned char * hash_occupied = 0;
 static unsigned long * hash_values = 0;
@@ -161,15 +160,15 @@ void bloom_exit()
   free(hash_bloom);
 }
 
-inline void bloom_set(unsigned long hash)
-{
-  unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
-  hash_bloom[(hash >> BLOOM_PATTERN_BITS) & bloom_mask] &= ~bloom_pattern;
-}
-
 inline unsigned long * bloom_adr(unsigned long hash)
 {
   return hash_bloom + ((hash >> BLOOM_PATTERN_BITS) & bloom_mask);
+}
+
+inline void bloom_set(unsigned long hash)
+{
+  unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
+  * bloom_adr(hash) &= ~bloom_pattern;
 }
 
 inline bool bloom_get(unsigned long hash)
@@ -182,7 +181,7 @@ inline bool bloom_get(unsigned long hash)
 inline unsigned int hash_getindex(unsigned long hash)
 {
   // Shift bits right to get independence from the simple Bloom filter hash
-  hash = hash >> 38;
+  hash = hash >> 32;
   return hash & hash_mask;
 }
 
@@ -194,12 +193,8 @@ inline unsigned int hash_getnextindex(unsigned int j)
 void hash_alloc(unsigned long amplicons)
 {
   hash_tablesize = 1;
-  hash_shift = 0;
   while (amplicons > HASHFILLFACTOR * hash_tablesize)
-    {
-      hash_tablesize <<= 1;
-      hash_shift++;
-    }
+    hash_tablesize <<= 1;
   hash_mask = hash_tablesize - 1;
 
   hash_occupied =
@@ -251,7 +246,26 @@ inline void hash_insert(int amp)
   unsigned long hash = db_gethash(amp);
   unsigned int j = hash_getindex(hash);
   while (hash_is_occupied(j))
-    j = hash_getnextindex(j);
+    {
+      if (hash_compare_value(j, hash))
+        {
+          int hit = hash_data[j];
+          unsigned int amp_seqlen = db_getsequencelen(amp);
+          unsigned int hit_seqlen = db_getsequencelen(hit);
+
+          if (amp_seqlen == hit_seqlen)
+            {
+              char * amp_sequence = db_getsequence(amp);
+              char * hit_sequence = db_getsequence(hit);
+
+              if (memcmp(amp_sequence,
+                         hit_sequence,
+                         nt_bytelength(amp_seqlen)) == 0)
+                duplicates_found++;
+            }
+        }
+      j = hash_getnextindex(j);
+    }
 
   hash_set_occupied(j);
   hash_set_value(j, hash);
@@ -1114,6 +1128,8 @@ void algo_d1_run()
 
   hash_alloc(amplicons);
 
+  duplicates_found = 0;
+
   progress_init("Hashing sequences:", amplicons);
   for(unsigned int i=0; i<amplicons; i++)
     {
@@ -1126,6 +1142,14 @@ void algo_d1_run()
       progress_update(i);
     }
   progress_done();
+
+  if (duplicates_found)
+    {
+      fprintf(logfile,
+              "WARNING: %lu duplicated sequences detected.\n"
+              "Please consider dereplicating your data for optimal results.\n",
+              duplicates_found);
+    }
 
   unsigned char * dir = 0;
   unsigned long * hearray = 0;
@@ -1152,7 +1176,7 @@ void algo_d1_run()
 
   progress_done();
 
-  printf("Number of links:   %lu\n", network_count);
+  fprintf(logfile, "Number of links:   %lu\n", network_count);
 
   /* for each non-swarmed amplicon look for subseeds ... */
 
