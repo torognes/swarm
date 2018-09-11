@@ -1282,6 +1282,11 @@ void algo_d1_run()
     }
   progress_done();
 
+  free(global_hits_data);
+
+  free(network);
+  network = 0;
+
   long swarmcount = swarmid;
 
   swarmcount_adjusted = swarmcount;
@@ -1692,7 +1697,6 @@ void algo_d1_run()
       progress_done();
     }
 
-
   fprintf(logfile, "\n");
   fprintf(logfile, "Number of swarms:  %ld\n", swarmcount_adjusted);
   fprintf(logfile, "Largest swarm:     %d\n", largest);
@@ -1700,12 +1704,10 @@ void algo_d1_run()
 
   hash_free();
 
-  if(swarminfo)
+  if (swarminfo)
     free(swarminfo);
 
   free(ampinfo);
-
-  free(global_hits_data);
 
   if (uclustfile)
     {
