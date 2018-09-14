@@ -35,7 +35,7 @@ void progress_init(const char * prompt, unsigned long size)
   progress_size = size;
   progress_chunk = size < progress_granularity ?
     1 : size / progress_granularity;
-  progress_next = 0;
+  progress_next = 1;
   if (opt_log)
     fprintf(logfile, "%s", prompt);
   else

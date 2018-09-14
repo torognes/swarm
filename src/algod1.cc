@@ -97,15 +97,6 @@ static unsigned char * hash_occupied = 0;
 static unsigned long * hash_values = 0;
 static int * hash_data = 0;
 
-#define BLOOM_PATTERN_BITS 10
-#define BLOOM_PATTERN_COUNT (1 << BLOOM_PATTERN_BITS)
-
-static unsigned long * hash_bloom = 0;
-static unsigned long bit_patterns[BLOOM_PATTERN_COUNT];
-static unsigned long bloom_size_bytes = 0;
-static unsigned long bloom_mask = 0;
-static unsigned long bloom_pattern_mask = 0;
-
 static int * global_hits_data = 0;
 static int global_hits_alloc = 0;
 static int global_hits_count = 0;
@@ -114,7 +105,7 @@ static unsigned long longestamplicon = 0;
 
 static long amplicons;
 
-#define original 0
+#define identical 0
 #define substitution 1
 #define deletion 2
 #define insertion 3
@@ -125,58 +116,7 @@ struct var_s
   unsigned int pos;
   unsigned char vartype;
   unsigned char base;
-  unsigned short dummy;
 };
-
-void generate_bit_patterns()
-{
-  for (unsigned int i = 0; i < BLOOM_PATTERN_COUNT; i++)
-    {
-      unsigned long pattern = 0;
-      for (unsigned int j = 0; j < 8; j++)
-        {
-          unsigned long onebit = 1ULL << (random() & 63);
-          while (pattern & onebit)
-            onebit = 1ULL << (random() & 63);
-          pattern |= onebit;
-        }
-      bit_patterns[i] = pattern;
-    }
-}
-
-void bloom_init()
-{
-  bloom_size_bytes = hash_tablesize;
-  bloom_mask = (bloom_size_bytes >> 3) - 1;
-  hash_bloom = (unsigned long *) xmalloc(bloom_size_bytes);
-  memset(hash_bloom, 0xff, bloom_size_bytes);
-
-  bloom_pattern_mask = BLOOM_PATTERN_COUNT - 1;
-  generate_bit_patterns();
-}
-
-void bloom_exit()
-{
-  free(hash_bloom);
-}
-
-inline unsigned long * bloom_adr(unsigned long hash)
-{
-  return hash_bloom + ((hash >> BLOOM_PATTERN_BITS) & bloom_mask);
-}
-
-inline void bloom_set(unsigned long hash)
-{
-  unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
-  * bloom_adr(hash) &= ~bloom_pattern;
-}
-
-inline bool bloom_get(unsigned long hash)
-{
-  unsigned long bloom_pattern = bit_patterns[hash & bloom_pattern_mask];
-  unsigned long bloom_bits = * bloom_adr(hash);
-  return (bloom_bits & bloom_pattern) == 0;
-}
 
 inline unsigned int hash_getindex(unsigned long hash)
 {
@@ -207,7 +147,7 @@ void hash_alloc(unsigned long amplicons)
   hash_data =
     (int *) xmalloc(hash_tablesize * sizeof(int));
 
-  bloom_init();
+  bloom_init(hash_tablesize);
 }
 
 
@@ -305,16 +245,14 @@ inline bool check_variant(int seed,
   switch (var->vartype)
     {
 
-    case original:
+    case identical:
 
       if (seed_seqlen != amp_seqlen)
         return false;
 
-      if (! seq_identical(seed_sequence, 0,
-                          amp_sequence, 0,
-                          seed_seqlen))
-        return false;
-
+      return seq_identical(seed_sequence, 0,
+                           amp_sequence, 0,
+                           seed_seqlen);
       break;
 
     case substitution:
@@ -330,11 +268,9 @@ inline bool check_variant(int seed,
                           var->pos))
         return false;
 
-      if (! seq_identical(seed_sequence, var->pos + 1,
-                          amp_sequence,  var->pos + 1,
-                          seed_seqlen - var->pos - 1))
-        return false;
-
+      return seq_identical(seed_sequence, var->pos + 1,
+                           amp_sequence,  var->pos + 1,
+                           seed_seqlen - var->pos - 1);
       break;
 
     case deletion:
@@ -347,10 +283,9 @@ inline bool check_variant(int seed,
                           var->pos))
         return false;
 
-      if (! seq_identical(seed_sequence, var->pos + 1,
-                          amp_sequence,  var->pos,
-                          seed_seqlen - var->pos - 1))
-        return false;
+      return seq_identical(seed_sequence, var->pos + 1,
+                           amp_sequence,  var->pos,
+                           seed_seqlen - var->pos - 1);
       break;
 
     case insertion:
@@ -366,10 +301,9 @@ inline bool check_variant(int seed,
                           var->pos))
         return false;
 
-      if (! seq_identical(seed_sequence, var->pos,
-                          amp_sequence,  var->pos + 1,
-                          seed_seqlen - var->pos))
-        return false;
+      return seq_identical(seed_sequence, var->pos,
+                           amp_sequence,  var->pos + 1,
+                           seed_seqlen - var->pos);
 
       break;
 
@@ -411,28 +345,32 @@ inline void find_variant_matches(int seed,
           int amp = hash_data[j];
           if (seed != amp)
             {
-              if (check_variant(seed, var, amp))
+              if (opt_no_otu_breaking ||
+                  (db_getabundance(seed) >= db_getabundance(amp)))
                 {
+                  if (check_variant(seed, var, amp))
+                    {
 #ifdef HASHSTATS
-                  bingo++;
+                      bingo++;
 #endif
-                  hits_data[(*hits_count)++] = amp;
-                  break;
-                }
+                      hits_data[(*hits_count)++] = amp;
+                      break;
+                    }
 #ifdef HASHSTATS
-              else
-                {
-                  collisions++;
+                  else
+                    {
+                      collisions++;
 
 #ifdef HASHDETAILS
-                  fprintf(logfile, "Hash collision between ");
-                  fprint_id_noabundance(logfile, seed);
-                  fprintf(logfile, " and ");
-                  fprint_id_noabundance(logfile, amp);
-                  fprintf(logfile, ".\n");
+                      fprintf(logfile, "Hash collision between ");
+                      fprint_id_noabundance(logfile, seed);
+                      fprintf(logfile, " and ");
+                      fprint_id_noabundance(logfile, amp);
+                      fprintf(logfile, ".\n");
+#endif
+                    }
 #endif
                 }
-#endif
             }
         }
       j = hash_getnextindex(j);
@@ -448,6 +386,9 @@ void examine_variants(int seed,
   * hits_count = 0;
   for(unsigned int i = 0; i < variant_count; i++)
     {
+#ifdef HASHSTATS
+      tries++;
+#endif
       var_s * v = variant_list + i;
       if (bloom_get(v->hash))
         find_variant_matches(seed, v, hits_data, hits_count);
@@ -461,16 +402,11 @@ inline void add_variant(unsigned long hash,
                         var_s * variant_list,
                         unsigned int * variant_count)
 {
-#ifdef HASHSTATS
-  tries++;
-#endif
-
   var_s * v = variant_list + (*variant_count)++;
   v->hash = hash;
   v->vartype = vartype;
   v->pos = pos;
   v->base = base;
-
 }
 
 void generate_variants(int seed,
@@ -483,7 +419,7 @@ void generate_variants(int seed,
 
   /* identical non-variant */
 
-  add_variant(hash, original, 0, 0, variant_list, variant_count);
+  add_variant(hash, identical, 0, 0, variant_list, variant_count);
 
   /* substitutions */
 
@@ -495,7 +431,8 @@ void generate_variants(int seed,
         if (v != base)
           {
             unsigned long hash2 = hash1 ^ zobrist_value(i, v);
-            add_variant(hash2, substitution, i, v, variant_list, variant_count);
+            add_variant(hash2, substitution, i, v,
+                        variant_list, variant_count);
           }
     }
 
@@ -531,7 +468,8 @@ void generate_variants(int seed,
         if (v != base)
           {
             unsigned long hash1 = hash ^ zobrist_value(i + 1, v);
-            add_variant(hash1, insertion, i + 1, v, variant_list, variant_count);
+            add_variant(hash1, insertion, i + 1, v,
+                        variant_list, variant_count);
           }
     }
 }
@@ -774,7 +712,8 @@ long fastidious_mark_small_var(BloomFilter * bloom,
 #if 0
   long e = expected_variant_count((char*)seq, seqlen);
   if (variants != e)
-    fprintf(logfile, "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
+    fprintf(logfile,
+            "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
 #endif
   return variants;
 }
@@ -923,7 +862,8 @@ void fastidious_check_large_var(BloomFilter * bloom,
 #if 0
   long e = expected_variant_count((char*)seq, seqlen);
   if (variants != e)
-    fprintf(logfile, "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
+    fprintf(logfile,
+            "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
 #endif
 }
 
@@ -969,7 +909,8 @@ void check_heavy_thread(long t)
   char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
   char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
   pthread_mutex_lock(&heavy_mutex);
-  while ((heavy_amplicon < amplicons) && (heavy_progress < heavy_amplicon_count))
+  while ((heavy_amplicon < amplicons) &&
+         (heavy_progress < heavy_amplicon_count))
     {
       int a = heavy_amplicon++;
       if (swarminfo[ampinfo[a].swarmid].mass >= opt_boundary)
@@ -1020,7 +961,8 @@ void network_thread(long t)
       variant_count = 0;
       hits_count = 0;
       generate_variants(amp, variant_list, & variant_count);
-      examine_variants(amp, variant_list, variant_count, hits_data, & hits_count);
+      examine_variants(amp, variant_list, variant_count,
+                       hits_data, & hits_count);
       pthread_mutex_lock(&network_mutex);
 
       ampinfo[amp].link_start = network_count;
@@ -1042,29 +984,46 @@ void network_thread(long t)
   free(hits_data);
 }
 
-void add_amp_to_swarm(int amp)
-{
-  /* add to swarm */
-  ampinfo[current_swarm_tail].next = amp;
-  current_swarm_tail = amp;
-}
-
-
-void update_stats(int amp)
+void process_seed(int seed)
 {
   /* update swarm stats */
-  struct ampinfo_s * bp = ampinfo + amp;
+  struct ampinfo_s * bp = ampinfo + seed;
 
   swarmsize++;
   if (bp->generation > swarm_maxgen)
     swarm_maxgen = bp->generation;
-  unsigned long abundance = db_getabundance(amp);
+  unsigned long abundance = db_getabundance(seed);
   abundance_sum += abundance;
   if (abundance == 1)
     singletons++;
-  swarm_sumlen += db_getsequencelen(amp);
-}
+  swarm_sumlen += db_getsequencelen(seed);
 
+  int s = ampinfo[seed].link_start;
+  int c = ampinfo[seed].link_count;
+
+  if (global_hits_count + c > global_hits_alloc)
+    {
+      while (global_hits_count + c > global_hits_alloc)
+        global_hits_alloc += 4096;
+      global_hits_data = (int*)xrealloc(global_hits_data,
+                                        global_hits_alloc * sizeof(int));
+    }
+
+  for(int i = 0; i < c; i++)
+    {
+      int amp = network[s + i];
+
+      if (ampinfo[amp].swarmid == NO_SWARM)
+        {
+          global_hits_data[global_hits_count++] = amp;
+
+          /* update info */
+          ampinfo[amp].swarmid = ampinfo[seed].swarmid;
+          ampinfo[amp].generation = ampinfo[seed].generation + 1;
+          ampinfo[amp].parent = seed;
+        }
+    }
+}
 
 int compare_amp(const void * a, const void * b)
 {
@@ -1078,36 +1037,11 @@ int compare_amp(const void * a, const void * b)
     return 0;
 }
 
-void process_seed(int subseed)
+inline void add_amp_to_swarm(int amp)
 {
-  int s = ampinfo[subseed].link_start;
-  int c = ampinfo[subseed].link_count;
-
-  if (global_hits_count + c > global_hits_alloc)
-    {
-      while (global_hits_count + c > global_hits_alloc)
-        global_hits_alloc += 4096;
-      global_hits_data = (int*)xrealloc(global_hits_data,
-                                        global_hits_alloc * sizeof(int));
-    }
-
-  unsigned long m = opt_no_otu_breaking ? ULONG_MAX : db_getabundance(subseed);
-
-  for(int i = 0; i < c; i++)
-    {
-      int amp = network[s + i];
-
-      if ((ampinfo[amp].swarmid == NO_SWARM) &&
-          (db_getabundance(amp) <= m))
-        {
-          global_hits_data[global_hits_count++] = amp;
-
-          /* update info */
-          ampinfo[amp].swarmid = ampinfo[subseed].swarmid;
-          ampinfo[amp].generation = ampinfo[subseed].generation + 1;
-          ampinfo[amp].parent = subseed;
-        }
-    }
+  /* add to swarm */
+  ampinfo[current_swarm_tail].next = amp;
+  current_swarm_tail = amp;
 }
 
 void algo_d1_run()
@@ -1176,7 +1110,9 @@ void algo_d1_run()
 
   progress_done();
 
+#if 0
   fprintf(logfile, "Number of links:   %lu\n", network_count);
+#endif
 
   /* for each non-swarmed amplicon look for subseeds ... */
 
@@ -1205,8 +1141,6 @@ void algo_d1_run()
           singletons = 0;
           swarm_sumlen = 0;
 
-          update_stats(seed);
-
           /* init list */
           global_hits_count = 0;
 
@@ -1227,10 +1161,10 @@ void algo_d1_run()
             {
               /* process all subseeds of this generation */
               global_hits_count = 0;
+
               while(subseed != NO_SWARM)
                 {
                   process_seed(subseed);
-                  update_stats(subseed);
                   subseed = ampinfo[subseed].next;
                 }
 
@@ -1252,11 +1186,11 @@ void algo_d1_run()
           if (swarmid >= swarminfo_alloc)
             {
               /* allocate memory for more swarms... */
-              swarminfo_alloc += 1000;
+              swarminfo_alloc += 1024;
               swarminfo =
-                (struct swarminfo_s *) xrealloc (swarminfo,
-                                                 swarminfo_alloc *
-                                                 sizeof(swarminfo_s));
+                (struct swarminfo_s *) xrealloc(swarminfo,
+                                                swarminfo_alloc *
+                                                sizeof(swarminfo_s));
             }
 
           struct swarminfo_s * sp = swarminfo + swarmid;
@@ -1403,7 +1337,8 @@ void algo_d1_run()
             {
               if (swarminfo[ampinfo[a].swarmid].mass < opt_boundary)
                 {
-                  light_variants += fastidious_mark_small_var(bloomp, buffer1, a);
+                  light_variants += fastidious_mark_small_var(bloomp,
+                                                              buffer1, a);
                   x++;
                   progress_update(x);
                 }
@@ -1414,7 +1349,8 @@ void algo_d1_run()
           progress_done();
 
           fprintf(logfile,
-                  "Generated %ld variants from light swarms\n", light_variants);
+                  "Generated %ld variants from light swarms\n",
+                  light_variants);
 
           progress_init("Checking heavy swarm amplicons against Bloom filter",
                         amplicons_in_large_otus);
@@ -1558,7 +1494,8 @@ void algo_d1_run()
                   long graft_parent = ampinfo[a].graft_cand;
                   if (graft_parent != NO_SWARM)
                     {
-                      fprint_id_noabundance(internal_structure_file, graft_parent);
+                      fprint_id_noabundance(internal_structure_file,
+                                            graft_parent);
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,

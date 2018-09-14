@@ -38,14 +38,14 @@ PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o ssse3.o derep.o arch.o cityhash/city.o \
-	zobrist.o
+	zobrist.o bloompat.o
 
 DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h \
-	threads.h zobrist.h
+	threads.h zobrist.h bloompat.h
 
 all : $(PROG)
 
-swarm : $(OBJS)
+swarm : $(OBJS) $(DEPS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 	mkdir -p ../bin
 	cp -a swarm ../bin
@@ -53,6 +53,9 @@ swarm : $(OBJS)
 clean :
 	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o \
 	../man/*~ ../*~
+
+.o : .cc $(DEPS)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 ssse3.o : ssse3.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<
