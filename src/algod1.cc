@@ -105,6 +105,8 @@ static unsigned long longestamplicon = 0;
 
 static long amplicons;
 
+static struct bloom_s * bloom = 0;
+
 #define identical 0
 #define substitution 1
 #define deletion 2
@@ -114,7 +116,7 @@ struct var_s
 {
   unsigned long hash;
   unsigned int pos;
-  unsigned char vartype;
+  unsigned char type;
   unsigned char base;
 };
 
@@ -147,13 +149,13 @@ void hash_alloc(unsigned long amplicons)
   hash_data =
     (int *) xmalloc(hash_tablesize * sizeof(int));
 
-  bloom_init(hash_tablesize);
+  bloom = bloom_init(hash_tablesize);
 }
 
 
 void hash_free()
 {
-  bloom_exit();
+  bloom_exit(bloom);
 
   free(hash_occupied);
   free(hash_values);
@@ -211,7 +213,7 @@ inline void hash_insert(int amp)
   hash_set_value(j, hash);
   hash_data[j] = amp;
 
-  bloom_set(hash);
+  bloom_set(bloom, hash);
 }
 
 bool seq_identical(char * a,
@@ -229,90 +231,136 @@ bool seq_identical(char * a,
   return true;
 }
 
-inline bool check_variant(int seed,
+void nt_set(char * seq, unsigned int pos, unsigned int base)
+{
+  unsigned int whichlong = pos >> 5;
+  unsigned long shift = (pos & 31) << 1;
+  unsigned long mask = 3ULL << shift;
+  unsigned long x = ((unsigned long *) seq)[whichlong];
+  x &= ~ mask;
+  x |= ((unsigned long)base) << shift;
+  ((unsigned long *) seq)[whichlong] = x;
+}
+
+void seq_copy(char * a,
+              int a_start,
+              char * b,
+              int b_start,
+              int length)
+{
+  /* copy part of the compressed sequence b to a */
+  for(int i = 0; i < length; i++)
+    nt_set(a, a_start + i, nt_extract(b, b_start + i));
+}
+
+void generate_variant_sequence(char * seed_sequence,
+                               unsigned int seed_seqlen,
+                               struct var_s * var,
+                               char * seq,
+                               int * seqlen)
+{
+  /* generate the actual sequence of a variant */
+
+  switch (var->type)
+    {
+    case identical:
+      memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
+      * seqlen = seed_seqlen;
+      break;
+
+    case substitution:
+      memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
+      nt_set(seq, var->pos, var->base);
+      * seqlen = seed_seqlen;
+      break;
+
+    case deletion:
+      seq_copy(seq, 0,
+               seed_sequence, 0,
+               var->pos);
+      seq_copy(seq, var->pos,
+               seed_sequence, var->pos + 1,
+               seed_seqlen - var->pos - 1);
+      * seqlen = seed_seqlen - 1;
+      break;
+
+    case insertion:
+      seq_copy(seq, 0,
+               seed_sequence, 0,
+               var->pos);
+      nt_set(seq, var->pos, var->base);
+      seq_copy(seq, var->pos + 1,
+               seed_sequence, var->pos,
+               seed_seqlen - var->pos);
+      * seqlen = seed_seqlen + 1;
+      break;
+
+    default:
+      fatal("Unknown variant");
+      break;
+    }
+}
+
+
+inline bool check_variant(char * seed_sequence,
+                          unsigned int seed_seqlen,
                           var_s * var,
-                          int amp)
+                          char * amp_sequence,
+                          unsigned int amp_seqlen)
 {
   /* make sure seed with given variant is really identical to amp */
   /* we know the hashes are identical */
 
-  char * seed_sequence = db_getsequence(seed);
-  unsigned int seed_seqlen = db_getsequencelen(seed);
-
-  char * amp_sequence = db_getsequence(amp);
-  unsigned int amp_seqlen = db_getsequencelen(amp);
-
-  switch (var->vartype)
+  switch (var->type)
     {
-
     case identical:
-
       if (seed_seqlen != amp_seqlen)
         return false;
-
       return seq_identical(seed_sequence, 0,
                            amp_sequence, 0,
                            seed_seqlen);
-      break;
 
     case substitution:
-
       if (seed_seqlen != amp_seqlen)
         return false;
-
-      if (nt_extract(amp_sequence, var->pos) != var->base)
-        return false;
-
       if (! seq_identical(seed_sequence, 0,
                           amp_sequence, 0,
                           var->pos))
         return false;
-
+      if (nt_extract(amp_sequence, var->pos) != var->base)
+        return false;
       return seq_identical(seed_sequence, var->pos + 1,
                            amp_sequence,  var->pos + 1,
                            seed_seqlen - var->pos - 1);
-      break;
 
     case deletion:
-
       if ((seed_seqlen - 1) != amp_seqlen)
         return false;
-
       if (! seq_identical(seed_sequence, 0,
                           amp_sequence, 0,
                           var->pos))
         return false;
-
       return seq_identical(seed_sequence, var->pos + 1,
                            amp_sequence,  var->pos,
                            seed_seqlen - var->pos - 1);
-      break;
 
     case insertion:
-
       if ((seed_seqlen + 1) != amp_seqlen)
         return false;
-
-      if (nt_extract(amp_sequence, var->pos) != var->base)
-        return false;
-
       if (! seq_identical(seed_sequence, 0,
                           amp_sequence, 0,
                           var->pos))
         return false;
-
+      if (nt_extract(amp_sequence, var->pos) != var->base)
+        return false;
       return seq_identical(seed_sequence, var->pos,
                            amp_sequence,  var->pos + 1,
                            seed_seqlen - var->pos);
 
-      break;
-
     default:
-
-      break;
+      fatal("Unknown variant");
+      return false;
     }
-
-  return true;
 }
 
 inline void find_variant_matches(int seed,
@@ -348,7 +396,15 @@ inline void find_variant_matches(int seed,
               if (opt_no_otu_breaking ||
                   (db_getabundance(seed) >= db_getabundance(amp)))
                 {
-                  if (check_variant(seed, var, amp))
+                  char * seed_sequence = db_getsequence(seed);
+                  unsigned int seed_seqlen = db_getsequencelen(seed);
+
+                  char * amp_sequence = db_getsequence(amp);
+                  unsigned int amp_seqlen = db_getsequencelen(amp);
+
+                  if (check_variant(seed_sequence, seed_seqlen,
+                                    var,
+                                    amp_sequence, amp_seqlen))
                     {
 #ifdef HASHSTATS
                       bingo++;
@@ -377,49 +433,37 @@ inline void find_variant_matches(int seed,
     }
 }
 
-void examine_variants(int seed,
-                      var_s * variant_list,
-                      unsigned int variant_count,
-                      int * hits_data,
-                      int * hits_count)
-{
-  * hits_count = 0;
-  for(unsigned int i = 0; i < variant_count; i++)
-    {
-#ifdef HASHSTATS
-      tries++;
-#endif
-      var_s * v = variant_list + i;
-      if (bloom_get(v->hash))
-        find_variant_matches(seed, v, hits_data, hits_count);
-    }
-}
-
 inline void add_variant(unsigned long hash,
-                        unsigned char vartype,
+                        unsigned char type,
                         unsigned int pos,
                         unsigned int base,
                         var_s * variant_list,
                         unsigned int * variant_count)
 {
-  var_s * v = variant_list + (*variant_count)++;
-  v->hash = hash;
-  v->vartype = vartype;
-  v->pos = pos;
-  v->base = base;
+#ifdef HASHSTATS
+  tries++;
+#endif
+  //  if (bloom_get(bloom, hash))
+    {
+      var_s * v = variant_list + (*variant_count)++;
+      v->hash = hash;
+      v->type = type;
+      v->pos = pos;
+      v->base = base;
+    }
 }
 
-void generate_variants(int seed,
+void generate_variants(char * sequence,
+                       unsigned int seqlen,
+                       unsigned long hash,
                        var_s * variant_list,
-                       unsigned int * variant_count)
+                       unsigned int * variant_count,
+                       bool include_identical)
 {
-  char * sequence = db_getsequence(seed);
-  unsigned int seqlen = db_getsequencelen(seed);
-  unsigned long hash = db_gethash(seed);
-
   /* identical non-variant */
 
-  add_variant(hash, identical, 0, 0, variant_list, variant_count);
+  if (include_identical)
+    add_variant(hash, identical, 0, 0, variant_list, variant_count);
 
   /* substitutions */
 
@@ -472,6 +516,25 @@ void generate_variants(int seed,
                         variant_list, variant_count);
           }
     }
+}
+
+void check_variants(int seed,
+                    var_s * variant_list,
+                    int * hits_data,
+                    int * hits_count)
+{
+  unsigned int variant_count = 0;
+  * hits_count = 0;
+
+  char * sequence = db_getsequence(seed);
+  unsigned int seqlen = db_getsequencelen(seed);
+  unsigned long hash = db_gethash(seed);
+  generate_variants(sequence, seqlen, hash,
+                    variant_list, & variant_count, true);
+
+  for(unsigned int i = 0; i < variant_count; i++)
+    if (bloom_get(bloom, variant_list[i].hash))
+      find_variant_matches(seed, variant_list + i, hits_data, hits_count);
 }
 
 
@@ -637,6 +700,48 @@ bool hash_check_attach(char * seq,
   return 0;
 }
 
+bool hash_check_attach_new(char * seq,
+                           unsigned int seqlen,
+                           struct var_s * var,
+                           int seed)
+{
+  /* seed is the original large swarm seed */
+
+  /* compute hash and corresponding hash table index */
+  unsigned long hash = var->hash;
+  unsigned int j = hash_getindex(hash);
+
+  /* find matching buckets */
+
+  if (!bloom_get(bloom, var->hash))
+    return 0;
+
+  while (hash_is_occupied(j))
+    {
+      if (hash_compare_value(j, hash))
+        {
+          /* check that mass is below threshold */
+          int amp = hash_data[j];
+
+          struct swarminfo_s * smallp = swarminfo + ampinfo[amp].swarmid;
+
+          if (smallp->mass < opt_boundary)
+            {
+              /* make absolutely sure sequences are identical */
+              char * ampseq = db_getsequence(amp);
+              unsigned long ampseqlen = db_getsequencelen(amp);
+              if (check_variant(seq, seqlen, var, ampseq, ampseqlen))
+                {
+                  add_graft_candidate(seed, amp);
+                  return true;
+                }
+            }
+        }
+      j = hash_getnextindex(j);
+    }
+  return false;
+}
+
 long expected_variant_count(char * seq, int len)
 {
   int c = 0;
@@ -647,224 +752,98 @@ long expected_variant_count(char * seq, int len)
 }
 
 
+void add_small_variant(BloomFilter * bloom, const char * seq, size_t seqlen)
+{
+  bloom->set(seq, seqlen);
+}
+
 long fastidious_mark_small_var(BloomFilter * bloom,
-                               char * varseq,
-                               int seed)
+                               int seed,
+                               struct var_s * variant_list)
 {
   /*
     add all microvariants of seed to Bloom filter
 
     bloom is a BloomFilter in which to enter the variants
-    buffer is a buffer large enough to hold all sequences + 1 insertion
     seed is the original seed
   */
 
-  long variants = 0;
+  unsigned int variant_count = 0;
 
-  unsigned char * seq = (unsigned char*) db_getsequence(seed);
-  unsigned long seqlen = db_getsequencelen(seed);
+  char * sequence = db_getsequence(seed);
+  unsigned int seqlen = db_getsequencelen(seed);
+  unsigned long hash = db_gethash(seed);
+  generate_variants(sequence, seqlen, hash,
+                    variant_list, & variant_count, false);
 
-  /* make an exact copy */
-  memcpy(varseq, seq, seqlen);
+  for(unsigned int i = 0; i < variant_count; i++)
+    add_small_variant(bloom, (char*)(& variant_list[i].hash), 8);
 
-  /* substitutions */
-  for(unsigned int i=0; i<seqlen; i++)
-    {
-      for (int v=1; v<5; v++)
-        if (v != seq[i])
-          {
-            varseq[i] = v;
-            bloom->set(varseq, seqlen);
-            variants++;
-          }
-      varseq[i] = seq[i];
-    }
-
-  /* deletions */
-  if (seqlen > 1)
-    memcpy(varseq, seq+1, seqlen-1);
-  for(unsigned int i=0; i<seqlen; i++)
-    {
-      if ((i==0) || (seq[i] != seq[i-1]))
-        {
-          bloom->set(varseq, seqlen-1);
-          variants++;
-        }
-      varseq[i] = seq[i];
-    }
-
-  /* insertions */
-  memcpy(varseq+1, seq, seqlen);
-  for(unsigned int i=0; i<seqlen+1; i++)
-    {
-      for(int v=1; v<5; v++)
-        {
-          if((i==seqlen) || (v != seq[i]))
-            {
-              varseq[i] = v;
-              bloom->set(varseq, seqlen+1);
-              variants++;
-            }
-        }
-      if (i<seqlen)
-        varseq[i] = seq[i];
-    }
-#if 0
-  long e = expected_variant_count((char*)seq, seqlen);
-  if (variants != e)
-    fprintf(logfile,
-            "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
-#endif
-  return variants;
+  return variant_count;
 }
 
 long fastidious_check_large_var_2(char * seq,
                                   size_t seqlen,
-                                  char * varseq,
-                                  int seed)
+                                  int seed,
+                                  struct var_s * variant_list)
 {
-  /* generate second generation variants from seq of length seqlen.
-     Use buffer varseq for variants.
-     The original sequences came from seed */
-
   long matches = 0;
 
-  /* make an exact copy */
-  memcpy(varseq, seq, seqlen);
+  unsigned int variant_count = 0;
 
-  /* substitutions */
-  for(unsigned int i=0; i<seqlen; i++)
-    {
-      for (int v=1; v<5; v++)
-        if (v != seq[i])
-          {
-            varseq[i] = v;
-            if (hash_check_attach(varseq, seqlen, seed))
-              matches++;
-          }
-      varseq[i] = seq[i];
-    }
+  unsigned long hash = zobrist_hash((unsigned char*)seq, seqlen);
+  generate_variants(seq, seqlen, hash,
+                    variant_list, & variant_count, false);
 
-  /* deletions */
-  if (seqlen > 1)
-    memcpy(varseq, seq+1, seqlen-1);
-  for(unsigned int i=0; i<seqlen; i++)
-    {
-      if ((i==0) || (seq[i] != seq[i-1]))
-        {
-          if (hash_check_attach(varseq, seqlen-1, seed))
-            matches++;
-        }
-      varseq[i] = seq[i];
-    }
+  for(unsigned int i=0; i < variant_count; i++)
+    if (hash_check_attach_new(seq, seqlen, variant_list + i, seed))
+      matches++;
 
-  /* insertions */
-  memcpy(varseq+1, seq, seqlen);
-  for(unsigned int i=0; i<seqlen+1; i++)
-    {
-      for(int v=1; v<5; v++)
-        {
-          if((i==seqlen) || (v != seq[i]))
-            {
-              varseq[i] = v;
-              if (hash_check_attach(varseq, seqlen+1, seed))
-                matches++;
-            }
-        }
-      if (i<seqlen)
-        varseq[i] = seq[i];
-    }
   return matches;
 }
 
 void fastidious_check_large_var(BloomFilter * bloom,
                                 char * varseq,
-                                char * buffer2,
                                 int seed,
                                 long * m,
-                                long * v)
+                                long * v,
+                                struct var_s * variant_list,
+                                struct var_s * variant_list2)
 {
   /*
     bloom is a BloomFilter in which to enter the variants
-    buffer1 is a buffer large enough to hold all sequences + 1 insertion
-    buffer2 is a buffer large enough to hold all sequences + 2 insertions
+    varseq is a buffer large enough to hold all sequences + 1 insertion
     seed is the original seed
     m is where to store number of matches
     v is where to store number of variants
   */
 
-  long variants = 0;
+  unsigned int variant_count = 0;
   long matches = 0;
 
-  unsigned char * seq = (unsigned char*) db_getsequence(seed);
-  unsigned long seqlen = db_getsequencelen(seed);
+  char * sequence = db_getsequence(seed);
+  unsigned int seqlen = db_getsequencelen(seed);
+  unsigned long hash = db_gethash(seed);
+  generate_variants(sequence, seqlen, hash,
+                    variant_list, & variant_count, false);
 
-  /* make an exact copy */
-  memcpy(varseq, seq, seqlen);
-
-  /* substitutions */
-  for(unsigned int i=0; i<seqlen; i++)
+  for(unsigned int i = 0; i < variant_count; i++)
     {
-      for (int v=1; v<5; v++)
-        if (v != seq[i])
-          {
-            varseq[i] = v;
-            variants++;
-            if (bloom->get(varseq, seqlen))
-              matches += fastidious_check_large_var_2(varseq,
-                                                      seqlen,
-                                                      buffer2,
-                                                      seed);
-          }
-      varseq[i] = seq[i];
-    }
-
-  /* deletions */
-  if (seqlen > 1)
-    memcpy(varseq, seq+1, seqlen-1);
-  for(unsigned int i=0; i<seqlen; i++)
-    {
-      if ((i==0) || (seq[i] != seq[i-1]))
+      struct var_s * var = variant_list + i;
+      if (bloom->get((char*)(& var->hash), 8))
         {
-          variants++;
-          if (bloom->get(varseq, seqlen-1))
-            matches += fastidious_check_large_var_2(varseq,
-                                                    seqlen-1,
-                                                    buffer2,
-                                                    seed);
+          int varlen = 0;
+          generate_variant_sequence(sequence, seqlen,
+                                    var, varseq, & varlen);
+          matches += fastidious_check_large_var_2(varseq,
+                                                  varlen,
+                                                  seed,
+                                                  variant_list2);
         }
-      varseq[i] = seq[i];
     }
 
-  /* insertions */
-  memcpy(varseq+1, seq, seqlen);
-  for(unsigned int i=0; i<seqlen+1; i++)
-    {
-      for(int v=1; v<5; v++)
-        {
-          if((i==seqlen) || (v != seq[i]))
-            {
-              varseq[i] = v;
-              variants++;
-              if (bloom->get(varseq, seqlen+1))
-                matches += fastidious_check_large_var_2(varseq,
-                                                        seqlen+1,
-                                                        buffer2,
-                                                        seed);
-            }
-        }
-      if (i<seqlen)
-        varseq[i] = seq[i];
-    }
   *m = matches;
-  *v = variants;
-
-#if 0
-  long e = expected_variant_count((char*)seq, seqlen);
-  if (variants != e)
-    fprintf(logfile,
-            "Incorrect number of variants: %ld Expected: %ld\n", variants, e);
-#endif
+  *v = variant_count;
 }
 
 static pthread_mutex_t light_mutex;
@@ -878,7 +857,10 @@ void mark_light_thread(long t)
 {
   (void) t;
 
-  char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
+  struct var_s * variant_list
+    = (struct var_s *) xmalloc(sizeof(struct var_s) *
+                               (7 * longestamplicon + 4));
+
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
     {
@@ -887,13 +869,14 @@ void mark_light_thread(long t)
         {
           progress_update(++light_progress);
           pthread_mutex_unlock(&light_mutex);
-          long v = fastidious_mark_small_var(bloomp, buffer1, a);
+          long v = fastidious_mark_small_var(bloomp, a, variant_list);
           pthread_mutex_lock(&light_mutex);
           light_variants += v;
         }
     }
   pthread_mutex_unlock(&light_mutex);
-  free(buffer1);
+
+  free(variant_list);
 }
 
 static pthread_mutex_t heavy_mutex;
@@ -906,8 +889,14 @@ void check_heavy_thread(long t)
 {
   (void) t;
 
+  struct var_s * variant_list
+    = (struct var_s *) xmalloc(sizeof(struct var_s) *
+                               (7 * longestamplicon + 4));
+  struct var_s * variant_list2
+    = (struct var_s *) xmalloc(sizeof(struct var_s) *
+                               (7 * (longestamplicon+1) + 4));
+
   char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
-  char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
   pthread_mutex_lock(&heavy_mutex);
   while ((heavy_amplicon < amplicons) &&
          (heavy_progress < heavy_amplicon_count))
@@ -918,14 +907,17 @@ void check_heavy_thread(long t)
           progress_update(++heavy_progress);
           pthread_mutex_unlock(&heavy_mutex);
           long m, v;
-          fastidious_check_large_var(bloomp, buffer1, buffer2, a, &m, &v);
+          fastidious_check_large_var(bloomp, buffer1, a, &m, &v,
+                                     variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += v;
         }
     }
   pthread_mutex_unlock(&heavy_mutex);
-  free(buffer2);
   free(buffer1);
+
+  free(variant_list2);
+  free(variant_list);
 }
 
 
@@ -946,7 +938,6 @@ void network_thread(long t)
   int * hits_data
     = (int *) xmalloc((7 * longestamplicon + 5) * sizeof(int));
 
-  unsigned int variant_count = 0;
   struct var_s * variant_list
     = (var_s *) xmalloc((7 * longestamplicon + 5) * sizeof(struct var_s));
 
@@ -958,11 +949,8 @@ void network_thread(long t)
 
       pthread_mutex_unlock(&network_mutex);
 
-      variant_count = 0;
       hits_count = 0;
-      generate_variants(amp, variant_list, & variant_count);
-      examine_variants(amp, variant_list, variant_count,
-                       hits_data, & hits_count);
+      check_variants(amp, variant_list, hits_data, & hits_count);
       pthread_mutex_lock(&network_mutex);
 
       ampinfo[amp].link_start = network_count;
@@ -1046,9 +1034,6 @@ inline void add_amp_to_swarm(int amp)
 
 void algo_d1_run()
 {
-  if (opt_fastidious)
-    fatal("Swarm does not work in fastidious mode for the moment.");
-
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
@@ -1109,10 +1094,6 @@ void algo_d1_run()
   pthread_mutex_destroy(&network_mutex);
 
   progress_done();
-
-#if 0
-  fprintf(logfile, "Number of links:   %lu\n", network_count);
-#endif
 
   /* for each non-swarmed amplicon look for subseeds ... */
 
@@ -1309,9 +1290,8 @@ void algo_d1_run()
                   "Bloom filter: bits=%ld, m=%ld, k=%ld, size=%.1fMB\n",
                   bits, m, k, 1.0 * m / (8*1024*1024));
 
+
           bloomp = new BloomFilter(m, k);
-          char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
-          char * buffer2 = (char*) xmalloc(db_getlongestsequence() + 3);
 
           progress_init("Adding light swarm amplicons to Bloom filter",
                         amplicons_in_small_otus);
@@ -1321,7 +1301,6 @@ void algo_d1_run()
 
           light_variants = 0;
 
-#if 1
           pthread_mutex_init(&light_mutex, NULL);
           light_progress = 0;
           light_amplicon_count = amplicons_in_small_otus;
@@ -1330,21 +1309,6 @@ void algo_d1_run()
           tr->run();
           delete tr;
           pthread_mutex_destroy(&light_mutex);
-#else
-          int a = amplicons - 1;
-          long x = 0;
-          while (x < amplicons_in_small_otus)
-            {
-              if (swarminfo[ampinfo[a].swarmid].mass < opt_boundary)
-                {
-                  light_variants += fastidious_mark_small_var(bloomp,
-                                                              buffer1, a);
-                  x++;
-                  progress_update(x);
-                }
-              a--;
-            }
-#endif
 
           progress_done();
 
@@ -1362,7 +1326,6 @@ void algo_d1_run()
 
           heavy_variants = 0;
 
-#if 1
           pthread_mutex_init(&heavy_mutex, NULL);
           heavy_progress = 0;
           heavy_amplicon_count = amplicons_in_large_otus;
@@ -1372,28 +1335,8 @@ void algo_d1_run()
           heavy_tr->run();
           delete heavy_tr;
           pthread_mutex_destroy(&heavy_mutex);
-#else
-          long i = 0;
-
-          for(int a = 0; (a < amplicons) && (i < amplicons_in_large_otus); a++)
-            {
-              int swarmid = ampinfo[a].swarmid;
-              int mass = swarminfo[swarmid].mass;
-              if (mass >= opt_boundary)
-                {
-                  long m, v;
-                  fastidious_check_large_var(bloomp, buffer1, buffer2,
-                                             a, &m, &v);
-                  heavy_variants += v;
-                  progress_update(++i);
-                }
-            }
-#endif
 
           progress_done();
-
-          free(buffer1);
-          free(buffer2);
 
           delete bloomp;
 
