@@ -29,24 +29,6 @@
 
 #include "swarm.h"
 
-#define HASHFILLFACTOR 0.7
-//#define HASHSTATS
-
-/* Variant information */
-
-#define identical 0
-#define substitution 1
-#define deletion 2
-#define insertion 3
-
-struct var_s
-{
-  unsigned long hash;
-  unsigned int pos;
-  unsigned char type;
-  unsigned char base;
-};
-
 /* Information about each amplicon */
 
 static struct ampinfo_s
@@ -84,8 +66,6 @@ static pthread_mutex_t graft_mutex;
 
 static int current_swarm_tail;
 
-static unsigned long hash_tablesize = 0;
-
 /* overall statistics */
 static int maxgen = 0;
 static int largest = 0;
@@ -97,20 +77,6 @@ static unsigned long abundance_sum = 0; /* = mass */
 static int swarmsize = 0;
 static int swarm_maxgen = 0;
 static unsigned long swarm_sumlen = 0;
-
-#ifdef HASHSTATS
-unsigned long hits = 0;
-unsigned long bloom_matches = 0;
-unsigned long success = 0;
-unsigned long tries  = 0;
-unsigned long bingo = 0;
-unsigned long collisions = 0;
-#endif
-
-static unsigned long hash_mask;
-static unsigned char * hash_occupied = 0;
-static unsigned long * hash_values = 0;
-static int * hash_data = 0;
 
 static int * global_hits_data = 0;
 static int global_hits_alloc = 0;
@@ -148,71 +114,23 @@ struct graft_cand
   int child;
 } * graft_array;
 
-
-inline unsigned int hash_getindex(unsigned long hash)
+inline bool check_amp_identical(unsigned int amp1,
+                                unsigned int amp2)
 {
-  // Shift bits right to get independence from the simple Bloom filter hash
-  hash = hash >> 32;
-  return hash & hash_mask;
-}
-
-inline unsigned int hash_getnextindex(unsigned int j)
-{
-  return (j+1) & hash_mask;
-}
-
-void hash_zap()
-{
-  memset(hash_occupied, 0, (hash_tablesize + 63) / 8);
-}
-
-void hash_alloc(unsigned long amplicons)
-{
-  hash_tablesize = 1;
-  while (amplicons > HASHFILLFACTOR * hash_tablesize)
-    hash_tablesize <<= 1;
-  hash_mask = hash_tablesize - 1;
-
-  hash_occupied =
-    (unsigned char *) xmalloc((hash_tablesize + 63) / 8);
-  hash_zap();
-
-  hash_values =
-    (unsigned long *) xmalloc(hash_tablesize * sizeof(unsigned long));
-
-  hash_data =
-    (int *) xmalloc(hash_tablesize * sizeof(int));
-
-  bloom = bloom_init(hash_tablesize);
-}
-
-void hash_free()
-{
-  bloom_exit(bloom);
-
-  free(hash_occupied);
-  free(hash_values);
-  free(hash_data);
-}
-
-inline void hash_set_occupied(unsigned int j)
-{
-  hash_occupied[j >> 3] |= (1 << (j & 7));
-}
-
-inline int hash_is_occupied(unsigned int j)
-{
-  return hash_occupied[j >> 3] & (1 << (j & 7));
-}
-
-inline void hash_set_value(unsigned int j, unsigned long hash)
-{
-  hash_values[j] = hash;
-}
-
-inline int hash_compare_value(unsigned int j, unsigned long hash)
-{
-  return (hash_values[j] == hash);
+  unsigned int amp1_seqlen = db_getsequencelen(amp1);
+  unsigned int amp2_seqlen = db_getsequencelen(amp2);
+  
+  if (amp1_seqlen == amp2_seqlen)
+    {
+      char * amp1_sequence = db_getsequence(amp1);
+      char * amp2_sequence = db_getsequence(amp2);
+      
+      return memcmp(amp1_sequence,
+                    amp2_sequence,
+                    nt_bytelength(amp1_seqlen)) == 0;
+    }
+  else
+    return false;
 }
 
 inline void hash_insert(int amp)
@@ -222,178 +140,17 @@ inline void hash_insert(int amp)
   unsigned int j = hash_getindex(hash);
   while (hash_is_occupied(j))
     {
-      if (hash_compare_value(j, hash))
-        {
-          int hit = hash_data[j];
-          unsigned int amp_seqlen = db_getsequencelen(amp);
-          unsigned int hit_seqlen = db_getsequencelen(hit);
-
-          if (amp_seqlen == hit_seqlen)
-            {
-              char * amp_sequence = db_getsequence(amp);
-              char * hit_sequence = db_getsequence(hit);
-
-              if (memcmp(amp_sequence,
-                         hit_sequence,
-                         nt_bytelength(amp_seqlen)) == 0)
-                duplicates_found++;
-            }
-        }
+      if (hash_compare_value(j, hash) &&
+          check_amp_identical(amp, hash_get_data(j)))
+        duplicates_found++;
       j = hash_getnextindex(j);
     }
-
+  
   hash_set_occupied(j);
   hash_set_value(j, hash);
-  hash_data[j] = amp;
+  hash_set_data(j, amp);
 
   bloom_set(bloom, hash);
-}
-
-bool seq_identical(char * a,
-                   int a_start,
-                   char * b,
-                   int b_start,
-                   int length)
-{
-  /* compare parts of two compressed sequences a and b */
-  /* return false if different, true if identical */
-
-  for(int i = 0; i < length; i++)
-    if (nt_extract(a, a_start + i) != nt_extract(b, b_start + i))
-      return false;
-  return true;
-}
-
-void nt_set(char * seq, unsigned int pos, unsigned int base)
-{
-  unsigned int whichlong = pos >> 5;
-  unsigned long shift = (pos & 31) << 1;
-  unsigned long mask = 3ULL << shift;
-  unsigned long x = ((unsigned long *) seq)[whichlong];
-  x &= ~ mask;
-  x |= ((unsigned long)base) << shift;
-  ((unsigned long *) seq)[whichlong] = x;
-}
-
-void seq_copy(char * a,
-              int a_start,
-              char * b,
-              int b_start,
-              int length)
-{
-  /* copy part of the compressed sequence b to a */
-  for(int i = 0; i < length; i++)
-    nt_set(a, a_start + i, nt_extract(b, b_start + i));
-}
-
-void generate_variant_sequence(char * seed_sequence,
-                               unsigned int seed_seqlen,
-                               struct var_s * var,
-                               char * seq,
-                               int * seqlen)
-{
-  /* generate the actual sequence of a variant */
-
-  switch (var->type)
-    {
-    case identical:
-      memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
-      * seqlen = seed_seqlen;
-      break;
-
-    case substitution:
-      memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
-      nt_set(seq, var->pos, var->base);
-      * seqlen = seed_seqlen;
-      break;
-
-    case deletion:
-      seq_copy(seq, 0,
-               seed_sequence, 0,
-               var->pos);
-      seq_copy(seq, var->pos,
-               seed_sequence, var->pos + 1,
-               seed_seqlen - var->pos - 1);
-      * seqlen = seed_seqlen - 1;
-      break;
-
-    case insertion:
-      seq_copy(seq, 0,
-               seed_sequence, 0,
-               var->pos);
-      nt_set(seq, var->pos, var->base);
-      seq_copy(seq, var->pos + 1,
-               seed_sequence, var->pos,
-               seed_seqlen - var->pos);
-      * seqlen = seed_seqlen + 1;
-      break;
-
-    default:
-      fatal("Unknown variant");
-      break;
-    }
-}
-
-
-inline bool check_variant(char * seed_sequence,
-                          unsigned int seed_seqlen,
-                          var_s * var,
-                          char * amp_sequence,
-                          unsigned int amp_seqlen)
-{
-  /* make sure seed with given variant is really identical to amp */
-  /* we know the hashes are identical */
-
-  switch (var->type)
-    {
-    case identical:
-      if (seed_seqlen != amp_seqlen)
-        return false;
-      return seq_identical(seed_sequence, 0,
-                           amp_sequence, 0,
-                           seed_seqlen);
-
-    case substitution:
-      if (seed_seqlen != amp_seqlen)
-        return false;
-      if (! seq_identical(seed_sequence, 0,
-                          amp_sequence, 0,
-                          var->pos))
-        return false;
-      if (nt_extract(amp_sequence, var->pos) != var->base)
-        return false;
-      return seq_identical(seed_sequence, var->pos + 1,
-                           amp_sequence,  var->pos + 1,
-                           seed_seqlen - var->pos - 1);
-
-    case deletion:
-      if ((seed_seqlen - 1) != amp_seqlen)
-        return false;
-      if (! seq_identical(seed_sequence, 0,
-                          amp_sequence, 0,
-                          var->pos))
-        return false;
-      return seq_identical(seed_sequence, var->pos + 1,
-                           amp_sequence,  var->pos,
-                           seed_seqlen - var->pos - 1);
-
-    case insertion:
-      if ((seed_seqlen + 1) != amp_seqlen)
-        return false;
-      if (! seq_identical(seed_sequence, 0,
-                          amp_sequence, 0,
-                          var->pos))
-        return false;
-      if (nt_extract(amp_sequence, var->pos) != var->base)
-        return false;
-      return seq_identical(seed_sequence, var->pos,
-                           amp_sequence,  var->pos + 1,
-                           seed_seqlen - var->pos);
-
-    default:
-      fatal("Unknown variant");
-      return false;
-    }
 }
 
 inline void find_variant_matches(int seed,
@@ -404,10 +161,6 @@ inline void find_variant_matches(int seed,
   if (! bloom_get(bloom, var->hash))
     return;
 
-#ifdef HASHSTATS
-  bloom_matches++;
-#endif
-
   /* compute hash and corresponding hash table index */
 
   unsigned int j = hash_getindex(var->hash);
@@ -416,138 +169,31 @@ inline void find_variant_matches(int seed,
 
   while (hash_is_occupied(j))
     {
-#ifdef HASHSTATS
-      hits++;
-#endif
       if (hash_compare_value(j, var->hash))
         {
-#ifdef HASHSTATS
-          success++;
-#endif
+          int amp = hash_get_data(j);
 
           /* avoid self */
-          int amp = hash_data[j];
           if (seed != amp)
-            {
-              if (opt_no_otu_breaking ||
-                  (db_getabundance(seed) >= db_getabundance(amp)))
-                {
-                  char * seed_sequence = db_getsequence(seed);
-                  unsigned int seed_seqlen = db_getsequencelen(seed);
+            if (opt_no_otu_breaking ||
+                (db_getabundance(seed) >= db_getabundance(amp)))
+              {
+                char * seed_sequence = db_getsequence(seed);
+                unsigned int seed_seqlen = db_getsequencelen(seed);
 
-                  char * amp_sequence = db_getsequence(amp);
-                  unsigned int amp_seqlen = db_getsequencelen(amp);
+                char * amp_sequence = db_getsequence(amp);
+                unsigned int amp_seqlen = db_getsequencelen(amp);
 
-                  if (check_variant(seed_sequence, seed_seqlen,
-                                    var,
-                                    amp_sequence, amp_seqlen))
-                    {
-#ifdef HASHSTATS
-                      bingo++;
-#endif
-                      hits_data[(*hits_count)++] = amp;
-                      break;
-                    }
-#ifdef HASHSTATS
-                  else
-                    {
-                      collisions++;
-
-#ifdef HASHDETAILS
-                      fprintf(logfile, "Hash collision between ");
-                      fprint_id_noabundance(logfile, seed);
-                      fprintf(logfile, " and ");
-                      fprint_id_noabundance(logfile, amp);
-                      fprintf(logfile, ".\n");
-#endif
-                    }
-#endif
-                }
-            }
+                if (check_variant(seed_sequence, seed_seqlen,
+                                  var,
+                                  amp_sequence, amp_seqlen))
+                  {
+                    hits_data[(*hits_count)++] = amp;
+                    break;
+                  }
+              }
         }
       j = hash_getnextindex(j);
-    }
-}
-
-inline void add_variant(unsigned long hash,
-                        unsigned char type,
-                        unsigned int pos,
-                        unsigned int base,
-                        var_s * variant_list,
-                        unsigned int * variant_count)
-{
-#ifdef HASHSTATS
-  tries++;
-#endif
-  var_s * v = variant_list + (*variant_count)++;
-  v->hash = hash;
-  v->type = type;
-  v->pos = pos;
-  v->base = base;
-}
-
-void generate_variants(char * sequence,
-                       unsigned int seqlen,
-                       unsigned long hash,
-                       var_s * variant_list,
-                       unsigned int * variant_count,
-                       bool include_identical)
-{
-  /* identical non-variant */
-
-  if (include_identical)
-    add_variant(hash, identical, 0, 0, variant_list, variant_count);
-
-  /* substitutions */
-
-  for(unsigned int i = 0; i < seqlen; i++)
-    {
-      unsigned int base = nt_extract(sequence, i);
-      unsigned long hash1 = hash ^ zobrist_value(i, base);
-      for (unsigned int v = 0; v < 4; v ++)
-        if (v != base)
-          {
-            unsigned long hash2 = hash1 ^ zobrist_value(i, v);
-            add_variant(hash2, substitution, i, v,
-                        variant_list, variant_count);
-          }
-    }
-
-  /* deletions */
-
-  hash = zobrist_hash_delete_first((unsigned char *) sequence, seqlen);
-  add_variant(hash, deletion, 0, 0, variant_list, variant_count);
-  unsigned int base = nt_extract(sequence, 0);
-  for(unsigned int i = 1; i < seqlen; i++)
-    {
-      unsigned int v = nt_extract(sequence, i);
-      if (v != base)
-        {
-          hash ^= zobrist_value(i - 1, base) ^ zobrist_value(i - 1, v);
-          add_variant(hash, deletion, i, 0, variant_list, variant_count);
-          base = v;
-        }
-    }
-
-  /* insertions */
-
-  hash = zobrist_hash_insert_first((unsigned char *) sequence, seqlen);
-  for (unsigned int v = 0; v < 4; v++)
-    {
-      unsigned long hash1 = hash ^ zobrist_value(0, v);
-      add_variant(hash1, insertion, 0, v, variant_list, variant_count);
-    }
-  for (unsigned int i = 0; i < seqlen; i++)
-    {
-      unsigned int base = nt_extract(sequence, i);
-      hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);
-      for (unsigned int v = 0; v < 4; v++)
-        if (v != base)
-          {
-            unsigned long hash1 = hash ^ zobrist_value(i + 1, v);
-            add_variant(hash1, insertion, i + 1, v,
-                        variant_list, variant_count);
-          }
     }
 }
 
@@ -696,7 +342,7 @@ bool hash_check_attach(char * seq,
       if (hash_compare_value(j, hash))
         {
           /* check that mass is below threshold */
-          int amp = hash_data[j];
+          int amp = hash_get_data(j);
 
           /* make absolutely sure sequences are identical */
           char * ampseq = db_getsequence(amp);
@@ -998,6 +644,7 @@ void algo_d1_run()
   /* compute hash for all amplicons and store them in a hash table */
 
   hash_alloc(amplicons);
+  bloom = bloom_init(hash_get_tablesize());
 
   duplicates_found = 0;
 
@@ -1543,6 +1190,7 @@ void algo_d1_run()
   fprintf(logfile, "Largest swarm:     %d\n", largest);
   fprintf(logfile, "Max generations:   %d\n", maxgen);
 
+  bloom_exit(bloom);
   hash_free();
 
   if (swarminfo)

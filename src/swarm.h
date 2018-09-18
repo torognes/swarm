@@ -391,3 +391,5 @@ unsigned long arch_get_memtotal();
 #include "zobrist.h"
 #include "bloompat.h"
 #include "bloomflex.h"
+#include "variants.h"
+#include "hashtable.h"

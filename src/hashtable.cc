@@ -21,40 +21,42 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#define BLOOM_PATTERN_SHIFT 10
-#define BLOOM_PATTERN_COUNT (1 << BLOOM_PATTERN_SHIFT)
-#define BLOOM_PATTERN_MASK (BLOOM_PATTERN_COUNT - 1)
+#include "swarm.h"
 
-struct bloom_s
+#define HASHFILLFACTOR 0.7
+
+unsigned long hash_mask;
+unsigned char * hash_occupied = 0;
+unsigned long * hash_values = 0;
+int * hash_data = 0;
+unsigned long hash_tablesize = 0;
+
+void hash_zap()
 {
-  unsigned long size;
-  unsigned long mask;
-  unsigned long * bitmap;
-  unsigned long patterns[BLOOM_PATTERN_COUNT];
-};
-
-void bloom_zap(struct bloom_s * b);
-
-struct bloom_s * bloom_init(unsigned long size);
-
-void bloom_exit(struct bloom_s * b);
-
-inline unsigned long * bloom_adr(struct bloom_s * b, unsigned long h)
-{
-  return b->bitmap + ((h >> BLOOM_PATTERN_SHIFT) & b->mask);
+  memset(hash_occupied, 0, (hash_tablesize + 63) / 8);
 }
 
-inline unsigned long bloom_pat(struct bloom_s * b, unsigned long h)
+void hash_alloc(unsigned long amplicons)
 {
-  return b->patterns[h & BLOOM_PATTERN_MASK];
+  hash_tablesize = 1;
+  while (amplicons > HASHFILLFACTOR * hash_tablesize)
+    hash_tablesize <<= 1;
+  hash_mask = hash_tablesize - 1;
+
+  hash_occupied =
+    (unsigned char *) xmalloc((hash_tablesize + 63) / 8);
+  hash_zap();
+
+  hash_values =
+    (unsigned long *) xmalloc(hash_tablesize * sizeof(unsigned long));
+
+  hash_data =
+    (int *) xmalloc(hash_tablesize * sizeof(int));
 }
 
-inline void bloom_set(struct bloom_s * b, unsigned long h)
+void hash_free()
 {
-  * bloom_adr(b, h) &= ~ bloom_pat(b, h);
-}
-
-inline bool bloom_get(struct bloom_s * b, unsigned long h)
-{
-  return ! (* bloom_adr(b, h) & bloom_pat(b, h));
+  free(hash_occupied);
+  free(hash_values);
+  free(hash_data);
 }
