@@ -38,10 +38,10 @@ PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o ssse3.o derep.o arch.o cityhash/city.o \
-	zobrist.o bloompat.o
+	zobrist.o bloompat.o bloomflex.o
 
-DEPS=Makefile swarm.h bitmap.h bloom.h cityhash/config.h cityhash/city.h \
-	threads.h zobrist.h bloompat.h
+DEPS=Makefile swarm.h cityhash/config.h cityhash/city.h \
+	threads.h zobrist.h bloompat.h bloomflex.h
 
 all : $(PROG)
 

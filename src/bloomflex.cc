@@ -33,13 +33,17 @@
 
 #include "swarm.h"
 
-void bloom_patterns_generate(struct bloom_s * b)
+void bloomflex_patterns_generate(struct bloomflex_s * b)
 {
-  const unsigned int k = 8;
-  for (unsigned int i = 0; i < BLOOM_PATTERN_COUNT; i++)
+#if 0
+  printf("Generating %lu patterns with %lu bits set.\n",
+         b->pattern_count,
+         b->pattern_k);
+#endif
+  for (unsigned int i = 0; i < b->pattern_count; i++)
     {
       unsigned long pattern = 0;
-      for (unsigned int j = 0; j < k; j++)
+      for (unsigned int j = 0; j < b->pattern_k; j++)
         {
           unsigned long onebit;
           onebit = 1ULL << (random() & 63);
@@ -51,32 +55,30 @@ void bloom_patterns_generate(struct bloom_s * b)
     }
 }
 
-void bloom_zap(struct bloom_s * b)
+struct bloomflex_s * bloomflex_init(unsigned long size, unsigned int k)
 {
-  memset(b->bitmap, 0xff, b->size);
-}
+  /* Input size is in bytes for full bitmap */
 
-struct bloom_s * bloom_init(unsigned long size)
-{
-  // Size is in bytes for full bitmap, must be power of 2
+  struct bloomflex_s * b = (struct bloomflex_s *) xmalloc(sizeof(struct bloomflex_s));
+  b->size = size >> 3;
 
-  struct bloom_s * b = (struct bloom_s *) xmalloc(sizeof(struct bloom_s));
+  b->pattern_shift = 16;
+  b->pattern_count = 1 << b->pattern_shift;
+  b->pattern_mask = b->pattern_count - 1;
+  b->pattern_k = k;
 
-  b->size = size;
-
-  b->mask = (size >> 3) - 1;
+  b->patterns = (unsigned long *) xmalloc(b->pattern_count * 8);
+  bloomflex_patterns_generate(b);
 
   b->bitmap = (unsigned long *) xmalloc(size);
-
-  bloom_zap(b);
-
-  bloom_patterns_generate(b);
+  memset(b->bitmap, 0xff, size);
 
   return b;
 }
 
-void bloom_exit(struct bloom_s * b)
+void bloomflex_exit(struct bloomflex_s * b)
 {
   free(b->bitmap);
+  free(b->patterns);
   free(b);
 }

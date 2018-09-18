@@ -387,8 +387,7 @@ unsigned long arch_get_memtotal();
 
 /* new header files */
 
-#include "bitmap.h"
-#include "bloom.h"
 #include "threads.h"
 #include "zobrist.h"
 #include "bloompat.h"
+#include "bloomflex.h"
