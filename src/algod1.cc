@@ -56,7 +56,11 @@ static struct swarminfo_s
   bool attached; /* this is a small swarm attached to a large (fastidious) */
 } * swarminfo = 0;
 
-static long swarminfo_alloc = 0;
+static struct graft_cand
+{
+  int parent;
+  int child;
+} * graft_array = 0;
 
 /* Information about potential grafts */
 static long graft_candidates = 0;
@@ -64,7 +68,9 @@ static pthread_mutex_t graft_mutex;
 
 #define NO_SWARM (-1)
 
-static int current_swarm_tail;
+static int current_swarm_tail = 0;
+
+static long swarminfo_alloc = 0;
 
 /* overall statistics */
 static int maxgen = 0;
@@ -84,21 +90,19 @@ static int global_hits_count = 0;
 
 static unsigned long longestamplicon = 0;
 
-static long amplicons;
-
-static struct bloom_s * bloom = 0;
+static long amplicons = 0;
 
 static pthread_mutex_t heavy_mutex;
-static long heavy_variants;
-static long heavy_progress;
-static long heavy_amplicon_count;
-static int heavy_amplicon;
+static long heavy_variants = 0;
+static long heavy_progress = 0;
+static long heavy_amplicon_count = 0;
+static int heavy_amplicon = 0;
 
 static pthread_mutex_t light_mutex;
-static long light_variants;
-static long light_progress;
-static long light_amplicon_count;
-static int light_amplicon;
+static long light_variants = 0;
+static long light_progress = 0;
+static long light_amplicon_count = 0;
+static int light_amplicon = 0;
 
 static unsigned long network_alloc = 1024 * 1024;
 static int * network = 0;
@@ -106,13 +110,9 @@ static unsigned long network_count = 0;
 static pthread_mutex_t network_mutex;
 static long network_amp = 0;
 
-struct bloomflex_s * bloomp;
+static struct bloom_s * bloom_a = 0; // Bloom filter for amplicons
 
-struct graft_cand
-{
-  int parent;
-  int child;
-} * graft_array;
+struct bloomflex_s * bloom_f = 0; // Huge Bloom filter for fastidious
 
 inline bool check_amp_identical(unsigned int amp1,
                                 unsigned int amp2)
@@ -150,73 +150,12 @@ inline void hash_insert(int amp)
   hash_set_value(j, hash);
   hash_set_data(j, amp);
 
-  bloom_set(bloom, hash);
-}
-
-inline void find_variant_matches(int seed,
-                                 var_s * var,
-                                 int * hits_data,
-                                 int * hits_count)
-{
-  if (! bloom_get(bloom, var->hash))
-    return;
-
-  /* compute hash and corresponding hash table index */
-
-  unsigned int j = hash_getindex(var->hash);
-
-  /* find matching buckets */
-
-  while (hash_is_occupied(j))
-    {
-      if (hash_compare_value(j, var->hash))
-        {
-          int amp = hash_get_data(j);
-
-          /* avoid self */
-          if (seed != amp)
-            if (opt_no_otu_breaking ||
-                (db_getabundance(seed) >= db_getabundance(amp)))
-              {
-                char * seed_sequence = db_getsequence(seed);
-                unsigned int seed_seqlen = db_getsequencelen(seed);
-
-                char * amp_sequence = db_getsequence(amp);
-                unsigned int amp_seqlen = db_getsequencelen(amp);
-
-                if (check_variant(seed_sequence, seed_seqlen,
-                                  var,
-                                  amp_sequence, amp_seqlen))
-                  {
-                    hits_data[(*hits_count)++] = amp;
-                    break;
-                  }
-              }
-        }
-      j = hash_getnextindex(j);
-    }
-}
-
-void check_variants(int seed,
-                    var_s * variant_list,
-                    int * hits_data,
-                    int * hits_count)
-{
-  unsigned int variant_count = 0;
-  * hits_count = 0;
-
-  char * sequence = db_getsequence(seed);
-  unsigned int seqlen = db_getsequencelen(seed);
-  unsigned long hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash,
-                    variant_list, & variant_count, true);
-
-  for(unsigned int i = 0; i < variant_count; i++)
-    find_variant_matches(seed, variant_list + i, hits_data, hits_count);
+  bloom_set(bloom_a, hash);
 }
 
 
 /******************** FASTIDIOUS START ********************/
+
 
 void attach(int seed, int amp)
 {
@@ -358,10 +297,10 @@ bool hash_check_attach(char * seq,
   return false;
 }
 
-inline long fastidious_check_large_var_2(char * seq,
-                                  size_t seqlen,
-                                  int seed,
-                                  struct var_s * variant_list)
+inline long check_heavy_var_2(char * seq,
+                              size_t seqlen,
+                              int seed,
+                              struct var_s * variant_list)
 {
   /* Check second generation microvariants of the heavy swarm amplicons
      and see if any of them are identical to a light swarm amplicon. */
@@ -374,20 +313,20 @@ inline long fastidious_check_large_var_2(char * seq,
                     variant_list, & variant_count, false);
 
   for(unsigned int i=0; i < variant_count; i++)
-    if (bloom_get(bloom, variant_list[i].hash) &&
+    if (bloom_get(bloom_a, variant_list[i].hash) &&
         hash_check_attach(seq, seqlen, variant_list + i, seed))
       matches++;
 
   return matches;
 }
 
-void fastidious_check_large_var(struct bloomflex_s * bloom,
-                                char * varseq,
-                                int seed,
-                                long * m,
-                                long * v,
-                                struct var_s * variant_list,
-                                struct var_s * variant_list2)
+void check_heavy_var(struct bloomflex_s * bloom,
+                     char * varseq,
+                     int seed,
+                     long * m,
+                     long * v,
+                     struct var_s * variant_list,
+                     struct var_s * variant_list2)
 {
   /*
     bloom is a bloom filter in which to check the variants
@@ -395,18 +334,18 @@ void fastidious_check_large_var(struct bloomflex_s * bloom,
     seed is the original seed
     m is where to store number of matches
     v is where to store number of variants
-    variant_list and variant_list2 are list to hold the 1st and 2nd
+    variant_list and variant_list2 are lists to hold the 1st and 2nd
     generation of microvariants
   */
 
   /*
-    Generate microvariants of the heavy amplicons, forming
+    Generate microvariants of the heavy swarm amplicons, forming
     "virtual" amplicons. Check with the bloom filter if any
     of these are identical to the microvariants of the
-    "light" amplicons. If there is a match we have a potential
+    light swarm amplicons. If there is a match we have a potential
     link. To find which light amplicon it could link to, we have
     to generate the second generation microvariants and check
-    these against the light amplicons.
+    these against the light swarm amplicons.
   */
 
   unsigned int variant_count = 0;
@@ -426,10 +365,10 @@ void fastidious_check_large_var(struct bloomflex_s * bloom,
           int varlen = 0;
           generate_variant_sequence(sequence, seqlen,
                                     var, varseq, & varlen);
-          matches += fastidious_check_large_var_2(varseq,
-                                                  varlen,
-                                                  seed,
-                                                  variant_list2);
+          matches += check_heavy_var_2(varseq,
+                                       varlen,
+                                       seed,
+                                       variant_list2);
         }
     }
 
@@ -459,8 +398,8 @@ void check_heavy_thread(long t)
           progress_update(++heavy_progress);
           pthread_mutex_unlock(&heavy_mutex);
           long m, v;
-          fastidious_check_large_var(bloomp, buffer1, a, &m, &v,
-                                     variant_list, variant_list2);
+          check_heavy_var(bloom_f, buffer1, a, &m, &v,
+                          variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += v;
         }
@@ -472,9 +411,9 @@ void check_heavy_thread(long t)
   free(variant_list);
 }
 
-long fastidious_mark_small_var(struct bloomflex_s * bloom,
-                               int seed,
-                               struct var_s * variant_list)
+long mark_light_var(struct bloomflex_s * bloom,
+                    int seed,
+                    struct var_s * variant_list)
 {
   /*
     add all microvariants of seed to Bloom filter
@@ -515,7 +454,7 @@ void mark_light_thread(long t)
         {
           progress_update(++light_progress);
           pthread_mutex_unlock(&light_mutex);
-          long v = fastidious_mark_small_var(bloomp, a, variant_list);
+          long v = mark_light_var(bloom_f, a, variant_list);
           pthread_mutex_lock(&light_mutex);
           light_variants += v;
         }
@@ -527,6 +466,69 @@ void mark_light_thread(long t)
 
 
 /******************** FASTIDIOUS END ********************/
+
+
+inline void find_variant_matches(int seed,
+                                 var_s * var,
+                                 int * hits_data,
+                                 int * hits_count)
+{
+  if (! bloom_get(bloom_a, var->hash))
+    return;
+
+  /* compute hash and corresponding hash table index */
+
+  unsigned int j = hash_getindex(var->hash);
+
+  /* find matching buckets */
+
+  while (hash_is_occupied(j))
+    {
+      if (hash_compare_value(j, var->hash))
+        {
+          int amp = hash_get_data(j);
+
+          /* avoid self */
+          if (seed != amp)
+            if (opt_no_otu_breaking ||
+                (db_getabundance(seed) >= db_getabundance(amp)))
+              {
+                char * seed_sequence = db_getsequence(seed);
+                unsigned int seed_seqlen = db_getsequencelen(seed);
+
+                char * amp_sequence = db_getsequence(amp);
+                unsigned int amp_seqlen = db_getsequencelen(amp);
+
+                if (check_variant(seed_sequence, seed_seqlen,
+                                  var,
+                                  amp_sequence, amp_seqlen))
+                  {
+                    hits_data[(*hits_count)++] = amp;
+                    break;
+                  }
+              }
+        }
+      j = hash_getnextindex(j);
+    }
+}
+
+void check_variants(int seed,
+                    var_s * variant_list,
+                    int * hits_data,
+                    int * hits_count)
+{
+  unsigned int variant_count = 0;
+  * hits_count = 0;
+
+  char * sequence = db_getsequence(seed);
+  unsigned int seqlen = db_getsequencelen(seed);
+  unsigned long hash = db_gethash(seed);
+  generate_variants(sequence, seqlen, hash,
+                    variant_list, & variant_count, true);
+
+  for(unsigned int i = 0; i < variant_count; i++)
+    find_variant_matches(seed, variant_list + i, hits_data, hits_count);
+}
 
 void network_thread(long t)
 {
@@ -644,7 +646,7 @@ void algo_d1_run()
   /* compute hash for all amplicons and store them in a hash table */
 
   hash_alloc(amplicons);
-  bloom = bloom_init(hash_get_tablesize());
+  bloom_a = bloom_init(hash_get_tablesize());
 
   duplicates_found = 0;
 
@@ -892,14 +894,14 @@ void algo_d1_run()
                   bits, m, k, 1.0 * m / (8*1024*1024));
 
 
-          bloomp = bloomflex_init(m/8, k);
+          bloom_f = bloomflex_init(m/8, k);
 
 
           /* Empty the old hash and bloom filter
              before we reinsert only the light swarm amplicons */
 
           hash_zap();
-          bloom_zap(bloom);
+          bloom_zap(bloom_a);
 
           progress_init("Adding light swarm amplicons to Bloom filter",
                         amplicons_in_small_otus);
@@ -946,7 +948,7 @@ void algo_d1_run()
 
           progress_done();
 
-          bloomflex_exit(bloomp);
+          bloomflex_exit(bloom_f);
 
           pthread_mutex_destroy(&graft_mutex);
 
@@ -1190,7 +1192,7 @@ void algo_d1_run()
   fprintf(logfile, "Largest swarm:     %d\n", largest);
   fprintf(logfile, "Max generations:   %d\n", maxgen);
 
-  bloom_exit(bloom);
+  bloom_exit(bloom_a);
   hash_free();
 
   if (swarminfo)
