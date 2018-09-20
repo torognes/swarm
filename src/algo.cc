@@ -52,6 +52,8 @@ static unsigned long seeded;
 
 void algo_run()
 {
+  search_begin();
+
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
 
@@ -428,16 +430,16 @@ void algo_run()
               unsigned long hit = hits[i];
 
               char * dseq = db_getsequence(hit);
-              char * dend = dseq + db_getsequencelen(hit);
+              unsigned long dlen = db_getsequencelen(hit);
               char * qseq = db_getsequence(seedampliconid);
-              char * qend = qseq + db_getsequencelen(seedampliconid);
+              unsigned long qlen = db_getsequencelen(seedampliconid);
 
               unsigned long nwscore = 0;
               unsigned long nwdiff = 0;
               char * nwalignment = NULL;
               unsigned long nwalignmentlength = 0;
 
-              nw(dseq, dend, qseq, qend,
+              nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                  dir, hearray, 0, 0);
@@ -607,5 +609,6 @@ void algo_run()
            amplicons / (amplicons+1)));
 #endif
 
+    search_end();
 }
 

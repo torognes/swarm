@@ -64,13 +64,13 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
 
   while((i < QGRAMLENGTH-1) && (i<seqlen))
   {
-    qgram = (qgram << 2) | (seq[i] - 1);
+    qgram = (qgram << 2) | nt_extract((char *)seq, i);
     i++;
   }
 
   while(i < seqlen)
   {
-    qgram = (qgram << 2) | (seq[i] - 1);
+    qgram = (qgram << 2) | nt_extract((char*)seq, i);
     qgramvector[(qgram >> 3) & (QGRAMVECTORBYTES-1)] ^= (1 << (qgram & 7));
     i++;
   }

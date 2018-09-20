@@ -1126,16 +1126,16 @@ void algo_d1_run()
                    a = ampinfo[a].next)
                 {
                   char * dseq = db_getsequence(a);
-                  char * dend = dseq + db_getsequencelen(a);
+                  unsigned long dlen = db_getsequencelen(a);
                   char * qseq = db_getsequence(seed);
-                  char * qend = qseq + db_getsequencelen(seed);
+                  unsigned long qlen = db_getsequencelen(seed);
 
                   unsigned long nwscore = 0;
                   unsigned long nwdiff = 0;
                   char * nwalignment = NULL;
                   unsigned long nwalignmentlength = 0;
 
-                  nw(dseq, dend, qseq, qend,
+                  nw(dseq, dlen, qseq, qlen,
                      score_matrix_63, penalty_gapopen, penalty_gapextend,
                      & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                      dir, hearray, 0, 0);

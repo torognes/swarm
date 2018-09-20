@@ -105,8 +105,8 @@ void search_init(struct search_data * sdp)
 {
   for (long i = 0; i < query.len; i++ )
   {
-    sdp->qtable[i] = sdp->dprofile + 64*query.seq[i];
-    sdp->qtable_w[i] = sdp->dprofile_w + 32*query.seq[i];
+    sdp->qtable[i] = sdp->dprofile + 64 * (nt_extract(query.seq, i) + 1);
+    sdp->qtable_w[i] = sdp->dprofile_w + 32 * (nt_extract(query.seq, i) + 1);
   }
 }
 
@@ -126,8 +126,8 @@ void search_chunk(struct search_data * sdp, long bits)
     unsigned long seqno = master_targets[sdp->target_index + i];
     db_getsequenceandlength(seqno, & dseq, & dlen);
 
-    nw(dseq, dseq + dlen,
-       query.seq, query.seq + query.len,
+    nw(dseq, dlen,
+       query.seq, query.len,
        score_matrix_63,
        penalty_gapopen, penalty_gapextend,
        master_scores + sdp->target_index + i,

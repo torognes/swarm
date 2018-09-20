@@ -779,7 +779,7 @@ unsigned long backtrack(char * qseq,
     }
     else
     {
-      if (qseq[i] == dseq[j])
+      if (nt_extract(qseq, i) == nt_extract(dseq, j))
         matches++;
       i--;
       j--;
@@ -836,10 +836,9 @@ void search8(BYTE * * q_start,
   __m128i Q, R, T, M, T0, MQ, MR, MQ0;
   __m128i *hep, **qp;
 
-  BYTE * d_begin[CHANNELS];
-  BYTE * d_end[CHANNELS];
+  unsigned long d_pos[CHANNELS];
   unsigned long d_offset[CHANNELS];
-  BYTE * d_address[CHANNELS];
+  char * d_address[CHANNELS];
   unsigned long d_length[CHANNELS];
 
   __m128i dseqalloc[CDEPTH];
@@ -848,7 +847,6 @@ void search8(BYTE * * q_start,
   __m128i S[4];
 
   BYTE * dseq = (BYTE*) & dseqalloc;
-  BYTE zero;
 
   long seq_id[CHANNELS];
   unsigned long next_id = 0;
@@ -858,7 +856,6 @@ void search8(BYTE * * q_start,
   Q  = _mm_set1_epi8(gap_open_penalty+gap_extend_penalty);
   R  = _mm_set1_epi8(gap_extend_penalty);
 
-  zero = 0;
   done = 0;
 
   hep = (__m128i*) hearray;
@@ -866,8 +863,9 @@ void search8(BYTE * * q_start,
 
   for (int c=0; c<CHANNELS; c++)
   {
-    d_begin[c] = &zero;
-    d_end[c] = d_begin[c];
+    d_address[c] = 0;
+    d_pos[c] = 0;
+    d_length[c] = 0;
     seq_id[c] = -1;
   }
 
@@ -889,12 +887,12 @@ void search8(BYTE * * q_start,
       {
         for(int j=0; j<CDEPTH; j++)
         {
-          if (d_begin[c] < d_end[c])
-            dseq[CHANNELS*j+c] = *(d_begin[c]++);
+          if (d_pos[c] < d_length[c])
+            dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
           else
             dseq[CHANNELS*j+c] = 0;
         }
-        if (d_begin[c] == d_end[c])
+        if (d_pos[c] == d_length[c])
           easy = 0;
       }
 
@@ -916,18 +914,18 @@ void search8(BYTE * * q_start,
       T = T0;
       for (int c=0; c<CHANNELS; c++)
       {
-        if (d_begin[c] < d_end[c])
+        if (d_pos[c] < d_length[c])
         {
           // this channel has more sequence
 
           for(int j=0; j<CDEPTH; j++)
           {
-            if (d_begin[c] < d_end[c])
-              dseq[CHANNELS*j+c] = *(d_begin[c]++);
+            if (d_pos[c] < d_length[c])
+              dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
             else
               dseq[CHANNELS*j+c] = 0;
           }
-          if (d_begin[c] == d_end[c])
+          if (d_pos[c] == d_length[c])
             easy = 0;
         }
         else
@@ -981,11 +979,10 @@ void search8(BYTE * * q_start,
 
             db_getsequenceandlength(seqno, & address, & length);
 
-            d_address[c] = (BYTE*) address;
+            d_address[c] = address;
             d_length[c] = length;
 
-            d_begin[c] = (unsigned char*) address;
-            d_end[c] = (unsigned char*) address + length;
+            d_pos[c] = 0;
             d_offset[c] = dir - dirbuffer;
             next_id++;
 
@@ -995,20 +992,21 @@ void search8(BYTE * * q_start,
             // fill channel
             for(int j=0; j<CDEPTH; j++)
             {
-              if (d_begin[c] < d_end[c])
-                dseq[CHANNELS*j+c] = *(d_begin[c]++);
+              if (d_pos[c] < d_length[c])
+                dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
               else
                 dseq[CHANNELS*j+c] = 0;
             }
-            if (d_begin[c] == d_end[c])
+            if (d_pos[c] == d_length[c])
               easy = 0;
           }
           else
           {
             // no more sequences, empty channel
             seq_id[c] = -1;
-            d_begin[c] = &zero;
-            d_end[c] = d_begin[c];
+            d_address[c] = 0;
+            d_pos[c] = 0;
+            d_length[c] = 0;
             for (int j=0; j<CDEPTH; j++)
               dseq[CHANNELS*j+c] = 0;
           }

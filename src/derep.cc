@@ -69,7 +69,7 @@ void reverse_complement(char * rc, char * seq, long len)
      (identical to the length of seq + 1). */
 
   for(long i=0; i<len; i++)
-    rc[i] = map_complement[(int)(extract_nt(seq, len-1-i))];
+    rc[i] = map_complement[(int)(1 + nt_extract(seq, len-1-i))];
   rc[len] = 0;
 }
 #endif

@@ -666,8 +666,6 @@ int main(int argc, char** argv)
 
   score_matrix_init();
 
-  search_begin();
-
   switch (opt_differences)
     {
     case 0:
@@ -682,8 +680,6 @@ int main(int argc, char** argv)
       algo_run();
       break;
     }
-
-  search_end();
 
   score_matrix_free();
 

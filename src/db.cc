@@ -161,7 +161,8 @@ int db_compare_abundance(const void * a, const void * b)
 
 bool find_swarm_abundance(const char * header,
                           int * start,
-                          int * end)
+                          int * end,
+                          long * number)
 {
   /*
     Identify the first occurence of the pattern (_)([0-9]+)$
@@ -180,19 +181,26 @@ bool find_swarm_abundance(const char * header,
 
   size_t digits = strspn(us + 1, digit_chars);
 
-  if (us[1+digits] == 0)
+  if (us[1 + digits] == 0)
     {
-      *start = us - header + 1;
-      *end = *start + digits;
+      * start = us - header;
+      * end = *start + digits;
+      * number = atol(us + 1);
       return true;
     }
   else
-    return false;
+    {
+      * start = 0;
+      * end = 0;
+      * number = 0;
+      return false;
+    }
 }
 
 bool find_usearch_abundance(const char * header,
                             int * start,
-                            int * end)
+                            int * end,
+                            long * number)
 {
   /*
     Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -244,10 +252,14 @@ bool find_usearch_abundance(const char * header,
         }
 
       /* ok */
-      * start = i + alen;
-      * end = i + alen + digits;
+      * start = MAX(0, i - 1);
+      * end   = MIN(i + alen + digits + 1, hlen);
+      * number = atol(header + i + alen);
       return true;
     }
+  * start = 0;
+  * end = 0;
+  * number = 0;
   return false;
 }
 
@@ -259,14 +271,14 @@ void find_abundance(struct seqinfo_s * sp, unsigned long lineno)
   long abundance = 0;
   int start = 0;
   int end = 0;
+  long number = 0;
 
   if (opt_usearch_abundance)
     {
       /* (^|;)size=([0-9]+)(;|$) */
 
-      if (find_usearch_abundance(header, & start, & end))
+      if (find_usearch_abundance(header, & start, & end, & number))
         {
-          long number = atol(header + start);
           if (number > 0)
             abundance = number;
           else
@@ -284,10 +296,8 @@ void find_abundance(struct seqinfo_s * sp, unsigned long lineno)
     {
       /* (_)([0-9]+)$ */
 
-      if (find_swarm_abundance(header, & start, & end))
+      if (find_swarm_abundance(header, & start, & end, & number))
         {
-          long number = atol(header + start);
-
           if (number > 0)
             abundance = number;
           else

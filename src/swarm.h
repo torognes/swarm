@@ -332,9 +332,9 @@ void search16(WORD * * q_start,
 /* functions in nw.cc */
 
 void nw(char * dseq,
-        char * dend,
+        unsigned long dlen,
         char * qseq,
-        char * qend,
+        unsigned long qlen,
         long * score_matrix,
         unsigned long gapopen,
         unsigned long gapextend,

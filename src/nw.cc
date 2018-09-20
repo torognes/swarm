@@ -106,9 +106,9 @@ const unsigned char maskextleft = 8;
 */
 
 void nw(char * dseq,
-        char * dend,
+        unsigned long dlen,
         char * qseq,
-        char * qend,
+        unsigned long qlen,
         long * score_matrix,
         unsigned long gapopen,
         unsigned long gapextend,
@@ -126,12 +126,9 @@ void nw(char * dseq,
 
   long n, e;
 
-  long qlen = qend - qseq;
-  long dlen = dend - dseq;
-
   memset(dir, 0, qlen*dlen);
 
-  long i, j;
+  unsigned long i, j;
 
   for(i=0; i<qlen; i++)
   {
@@ -152,7 +149,8 @@ void nw(char * dseq,
 
       n = *hep;
       e = *(hep+1);
-      h += score_matrix[(dseq[j]<<5) + qseq[i]];
+      h += score_matrix[((nt_extract(dseq, j) + 1) << 5) +
+                        (nt_extract(qseq, i) + 1)];
 
       dir[index] |= (f < h ? maskup : 0);
       h = MIN(h, f);
@@ -230,8 +228,10 @@ void nw(char * dseq,
     }
     else
     {
-      score += score_matrix[(dseq[j-1] << 5) + qseq[i-1]];
-      if (qseq[i-1] == dseq[j-1])
+      score += score_matrix[((nt_extract(dseq, j - 1) + 1) << 5) +
+                             (nt_extract(qseq, i - 1) + 1)];
+
+      if (nt_extract(qseq, i - 1) == nt_extract(dseq, j - 1))
         matches++;
       i--;
       j--;
