@@ -71,6 +71,10 @@
 #define MIN(x,y) ((x)<(y)?(x):(y))
 #endif
 
+#ifndef MAX
+#define MAX(x,y) ((x)>(y)?(x):(y))
+#endif
+
 #define QGRAMLENGTH 5
 #define QGRAMVECTORBITS (1<<(2*QGRAMLENGTH))
 #define QGRAMVECTORBYTES (QGRAMVECTORBITS/8)
