@@ -80,7 +80,7 @@ format is possible with the option `-z`, please see the
 [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
 **requires** each fasta entry to present a number of occurrences to
 work properly. That crucial information can be produced during the
-[dereplication](#dereplication) step.
+[dereplication](#dereplication-mandatory) step.
 
 Use `swarm -h` to get a short help, or see the
   [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)
