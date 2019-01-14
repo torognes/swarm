@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -59,6 +59,8 @@ void bloom_zap(struct bloom_s * b)
 struct bloom_s * bloom_init(unsigned long size)
 {
   // Size is in bytes for full bitmap, must be power of 2
+  // at least 8
+  size = MAX(size, 8);
 
   struct bloom_s * b = (struct bloom_s *) xmalloc(sizeof(struct bloom_s));
 
