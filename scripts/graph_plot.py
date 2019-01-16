@@ -80,6 +80,7 @@ def parse_files(swarms, internal_structure, OTU, drop):
         for i, swarm in enumerate(swarms):
             if i == OTU - 1:
                 # Deal with ";size=" in a rather clumsy way... but it works
+                print("Reading target OTU", file=sys.stdout)
                 amplicons = [
                     tuple(
                         item.replace(";size=", "_").rstrip(";").rsplit("_", 1))
@@ -88,6 +89,7 @@ def parse_files(swarms, internal_structure, OTU, drop):
 
     # Drop amplicons with a low abundance (remove connections too)
     if drop:
+        print("Excluding amplicons below threshold", file=sys.stdout)
         amplicons = [amplicon for amplicon in amplicons
                      if int(amplicon[1]) > drop]
 
@@ -99,6 +101,7 @@ def parse_files(swarms, internal_structure, OTU, drop):
     # List pairwise relations
     relations = list()
     with open(internal_structure, "rU") as internal_structure:
+        print("Parsing amplicon relationships", file=sys.stdout)
         for line in internal_structure:
             # Get the first four elements of the line
             ampliconA, ampliconB, d, OTU_number = line.strip().split("\t")[0:4]
@@ -149,6 +152,7 @@ def build_graph(amplicons, relations):
     node_colors = list()
     node_sizes = list()
     node_labels = list()
+    print("Building graph", file=sys.stdout)
     for abundance in abundances:
         # Color is coded by a 3-tuple of float values (0.0 to 1.0)
         # Start from a max color in rgb(red, green, blue)
