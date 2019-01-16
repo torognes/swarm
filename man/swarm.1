@@ -44,22 +44,30 @@ not available, \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR can read nucleotide amplicons in fasta format from a
 normal file or from the standard input (using a pipe or a
-redirection). The amplicon label is defined as the string comprised
-between the '>' symbol and the first space or the end of the line,
-whichever comes first. As \fBswarm\fR outputs lists of amplicon
-labels, amplicon labels must be unique to avoid ambiguity; swarm exits
-with an error message if labels are not unique. Amplicon labels must
-end with a '_' followed by a positive integer representing the
-amplicon copy number (or abundance annotation; usearch/vsearch users
-can use the option \-z to use the ';size=' annotation). Abundance
-annotations play a crucial role in the clustering process, and swarm
-exits with an error message if that information is not available. The
-amplicon sequence is defined as a string of [ACGT] or [ACGU] symbols
-(case insensitive, 'U' is replaced with 'T' internally), starting
-after the end of the label line and ending before the next label line
-or the file end; \fBswarm\fR silently removes newline symbols ('\\n'
-or '\\r') and exits with an error message if any other symbol is
-present.
+redirection). The amplicon \fIheader\fR is defined as the string
+comprised between the '>' symbol and the first space or the end of the
+line, whichever comes first. Each header must end with an \fIabundance
+annotation\fR representing the amplicon copy number and defined as '_'
+followed by a positive integer. See option \-z for input data using
+usearch/vsearch's abundance annotation format
+(';size=\fIinteger\fR[;]'). Once stripped from the abundance
+annotation, the remaining part of the header is call the
+\fIlabel\fR. In summary:
+.PP
+.ce 1
+\f[CR]>header[[:blank:]]\f[]   and   \f[CR]header = label_[1-9][0-9]*$\f[]
+.ce 0
+.PP
+Abundance annotations play a crucial role in the clustering process,
+and swarm exits with an error message if that information is not
+available. As \fBswarm\fR outputs lists of amplicon labels, amplicon
+labels must be unique to avoid any ambiguity; swarm exits with an
+error message if labels are not unique. The amplicon sequence is
+defined as a string of [ACGT] or [ACGU] symbols (case insensitive, 'U'
+is replaced with 'T' internally), starting after the end of the header
+line and ending before the next header line or the file end;
+\fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
+exits with an error message if any other symbol is present.
 .\" ----------------------------------------------------------------------------
 .SS General options
 .TP 9
@@ -176,9 +184,9 @@ a five-columns tab-delimited format:
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-amplicon A label (without abundance annotations).
+amplicon A label (header without abundance annotations).
 .IP \n+[step].
-amplicon B label (without abundance annotations).
+amplicon B label (header without abundance annotations).
 .IP \n+[step].
 number of differences between amplicons A and B (\fIpositive
 integer\fR).
@@ -204,7 +212,7 @@ in situations where writing to \fIstandard error\fR is problematic
 .TP
 .BI \-o\fP,\fB\ \-\-output\-file \0filename
 output clustering results to \fIfilename\fR. Results consist of a list
-of OTUs, one OTU per line. An OTU is a list of amplicon labels
+of OTUs, one OTU per line. An OTU is a list of amplicon headers
 separated by spaces. That output format can be modified by the option
 \-\-mothur (\-r). Default is to write to standard output.
 .TP
@@ -223,7 +231,7 @@ number of unique amplicons in the OTU,
 .IP \n+[step].
 total abundance of amplicons in the OTU,
 .IP \n+[step].
-label of the initial seed (without abundance annotations),
+label of the initial seed (header without abundance annotations),
 .IP \n+[step].
 initial seed abundance,
 .IP \n+[step].
@@ -245,7 +253,7 @@ uclust-like format with 10 columns and 3 different type of entries (S,
 H or C). That option does not modify \fBswarm\fR's default output
 format. Each fasta sequence in the input file can be either a cluster
 centroid (S) or a hit (H) assigned to a cluster. Cluster records (C)
-summarize information (size, centroid label) for each cluster. Column
+summarize information (size, centroid header) for each cluster. Column
 content varies with the type of entry (S, H or C):
 .RS
 .RS
@@ -272,9 +280,9 @@ Alignment Report): M (match), D (deletion) and I (insertion). The
 equal sign '=' indicates that the query is identical to the centroid
 sequence.
 .IP \n+[step].
-Label of the query sequence (H), or of the centroid sequence (S, C).
+Header of the query sequence (H), or of the centroid sequence (S, C).
 .IP \n+[step].
-Label of the centroid sequence (H), or set to '*' (S, C).
+Header of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .RE
 .TP
