@@ -280,9 +280,11 @@ Label of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .TP
 .BI \-w\fP,\fB\ \-\-seeds \0filename
-output OTU representatives to \fIfilename\fR in fasta format. The
-abundance value of each OTU representative is the sum of the abundances of
-all the amplicons in the OTU.
+output OTU representative sequences to \fIfilename\fR in fasta
+format. The abundance value of each OTU representative is the sum of
+the abundances of all the amplicons in the OTU. Fasta headers are
+formated as follows: '>label_\fIinteger\fR',
+or '>label;size=\fIinteger\fR;' if the \-z option is used.
 .TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
 accept amplicon abundance values in usearch/vsearch's style
