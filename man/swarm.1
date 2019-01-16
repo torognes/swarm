@@ -44,22 +44,22 @@ not available, \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR can read nucleotide amplicons in fasta format from a
 normal file or from the standard input (using a pipe or a
-redirection). The amplicon identifier is defined as the string
-comprised between the '>' symbol and the first space or the end of the
-line, whichever comes first. As \fBswarm\fR outputs lists of amplicon
-identifiers, amplicon identifiers must be unique to avoid ambiguity;
-swarm exits with an error message if identifiers are not unique.
-Amplicon identifiers must end with a '_' followed by a positive
-integer representing the amplicon copy number (or abundance
-annotation; usearch/vsearch users can use the option \-z to use
-the ';size=' annotation). Abundance annotations play a crucial role in
-the clustering process, and swarm exits with an error message if that
-information is not available. The amplicon sequence is defined as a
-string of [ACGT] or [ACGU] symbols (case insensitive, 'U' is replaced
-with 'T' internally), starting after the end of the identifier line
-and ending before the next identifier line or the file end;
-\fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
-exits with an error message if any other symbol is present.
+redirection). The amplicon label is defined as the string comprised
+between the '>' symbol and the first space or the end of the line,
+whichever comes first. As \fBswarm\fR outputs lists of amplicon
+labels, amplicon labels must be unique to avoid ambiguity; swarm exits
+with an error message if labels are not unique.  Amplicon labels must
+end with a '_' followed by a positive integer representing the
+amplicon copy number (or abundance annotation; usearch/vsearch users
+can use the option \-z to use the ';size=' annotation). Abundance
+annotations play a crucial role in the clustering process, and swarm
+exits with an error message if that information is not available. The
+amplicon sequence is defined as a string of [ACGT] or [ACGU] symbols
+(case insensitive, 'U' is replaced with 'T' internally), starting
+after the end of the label line and ending before the next label line
+or the file end; \fBswarm\fR silently removes newline symbols ('\\n'
+or '\\r') and exits with an error message if any other symbol is
+present.
 .\" ----------------------------------------------------------------------------
 .SS General options
 .TP 9
@@ -145,8 +145,8 @@ clustering results: the output files produced by the options \-\-log
 \-\-seeds (\-w) are updated to reflect these modifications; the file
 \-\-statistics\-file (\-s) is partially updated (columns 6 and 7 are
 not updated); the output file \-\-internal\-structure (\-i) is
-partially updated (column 5 is not updated for amplicons that belonged to
-the small OTU).
+partially updated (column 5 is not updated for amplicons that belonged
+to the small OTU).
 .TP
 .BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
 when using the option \-\-fastidious (\-f), define the size (in bits)
@@ -204,7 +204,7 @@ in situations where writing to \fIstandard error\fR is problematic
 .TP
 .BI \-o\fP,\fB\ \-\-output\-file \0filename
 output clustering results to \fIfilename\fR. Results consist of a list
-of OTUs, one OTU per line. An OTU is a list of amplicon identifiers
+of OTUs, one OTU per line. An OTU is a list of amplicon labels
 separated by spaces. That output format can be modified by the option
 \-\-mothur (\-r). Default is to write to standard output.
 .TP
@@ -223,14 +223,13 @@ number of unique amplicons in the OTU,
 .IP \n+[step].
 total abundance of amplicons in the OTU,
 .IP \n+[step].
-identifier of the initial seed,
+label of the initial seed,
 .IP \n+[step].
 initial seed abundance,
 .IP \n+[step].
 number of amplicons with an abundance of 1 in the OTU,
 .IP \n+[step].
-maximum number of iterations before the OTU reached its natural
-limit,
+maximum number of iterations before the OTU reached its natural limit,
 .IP \n+[step].
 cummulated number of steps along the path joining the seed and the
 furthermost amplicon in the OTU. Please note that the actual number of
@@ -339,13 +338,13 @@ option) using 4 computation threads. OTUs are written to the file
 Concept by Frédéric Mahé, implementation by Torbjørn Rognes.
 .\" ============================================================================
 .SH CITATION
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014)
-Swarm: robust and fast clustering method for amplicon-based studies.
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm:
+robust and fast clustering method for amplicon-based studies.
 \fIPeerJ\fR 2:e593 <https://doi.org/10.7717/peerj.593>
 .PP
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015)
-Swarm v2: highly-scalable and high-resolution amplicon clustering.
-\fIPeerJ\fR 3:e1420 <https://doi.org/10.7717/peerj.1420>
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015) Swarm v2:
+highly-scalable and high-resolution amplicon clustering.  \fIPeerJ\fR
+3:e1420 <https://doi.org/10.7717/peerj.1420>
 .\" ============================================================================
 .SH REPORTING BUGS
 Submit suggestions and bug-reports at
@@ -355,7 +354,8 @@ curmudgeonly e-mail to Frédéric Mahé <mahe@rhrk.uni-kl.de> and
 Torbjørn Rognes <torognes@ifi.uio.no>.
 .\" ============================================================================
 .SH AVAILABILITY
-Source code and binaries are available at <https://github.com/torognes/swarm>
+Source code and binaries are available at
+<https://github.com/torognes/swarm>
 .\" ============================================================================
 .SH COPYRIGHT
 Copyright (C) 2012-2017 Frédéric Mahé & Torbjørn Rognes
@@ -419,9 +419,9 @@ Version 2.1.13 removes a bug with the progress bar when writing seeds.
 Version 2.1.12 removes a debugging message.
 .TP
 .BR v2.1.11\~ "released January 16, 2017"
-Version 2.1.11 fixes two bugs related to the SIMD implementation
-of alignment that might result in incorrect alignments and scores.
-The bug only applies when \fId\fR > 1.
+Version 2.1.11 fixes two bugs related to the SIMD implementation of
+alignment that might result in incorrect alignments and scores.  The
+bug only applies when \fId\fR > 1.
 .TP
 .BR v2.1.10\~ "released December 22, 2016"
 Version 2.1.10 fixes two bugs related to gap penalties of alignments.
@@ -441,9 +441,9 @@ shown when \fId\fR = 1.
 .BR v2.1.7\~ "released February 24, 2016"
 Version 2.1.7 fixes a bug in the output of seeds with the \-w option
 when \fId\fR > 1 that was not properly fixed in version 2.1.6. It also
-handles ascii character #13 (CR) in FASTA files better. Swarm will
-now exit with status 0 if the \-h or the \-v option is specified. The
-help text and some error messages have been improved.
+handles ascii character #13 (CR) in FASTA files better. Swarm will now
+exit with status 0 if the \-h or the \-v option is specified. The help
+text and some error messages have been improved.
 .TP
 .BR v2.1.6\~ "released December 14, 2015"
 Version 2.1.6 fixes problems with older compilers that do not have the
@@ -522,7 +522,7 @@ new options to control swarm output (options \-i and \-l).
 .TP
 .BR v1.2.19\~ "released October 3, 2014"
 Version 1.2.19 fixes a problem related to abundance information when
-the sequence identifier includes multiple underscore characters.
+the sequence label includes multiple underscore characters.
 .TP
 .BR v1.2.18\~ "released September 29, 2014"
 Version 1.2.18 reenables the possibility of reading sequences from
