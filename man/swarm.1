@@ -48,7 +48,7 @@ redirection). The amplicon label is defined as the string comprised
 between the '>' symbol and the first space or the end of the line,
 whichever comes first. As \fBswarm\fR outputs lists of amplicon
 labels, amplicon labels must be unique to avoid ambiguity; swarm exits
-with an error message if labels are not unique.  Amplicon labels must
+with an error message if labels are not unique. Amplicon labels must
 end with a '_' followed by a positive integer representing the
 amplicon copy number (or abundance annotation; usearch/vsearch users
 can use the option \-z to use the ';size=' annotation). Abundance
@@ -176,9 +176,9 @@ a five-columns tab-delimited format:
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-amplicon A label.
+amplicon A label (without abundance annotations).
 .IP \n+[step].
-amplicon B label.
+amplicon B label (without abundance annotations).
 .IP \n+[step].
 number of differences between amplicons A and B (\fIpositive
 integer\fR).
