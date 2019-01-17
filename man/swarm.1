@@ -389,18 +389,21 @@ value, modifying model parameters has a stronger impact.
 .\" ============================================================================
 .SH EXAMPLES
 .PP
-Clusterize the data set \fImyfile.fasta\fR into OTUs with the finest
-resolution possible (1 difference, built-in breaking, fastidious
-option) using 4 computation threads. OTUs are written to the file
-\fImyfile.swarms\fR, and OTU representatives are written to
-\fImyfile.representatives.fasta\fR.
-.PP
+Clusterize the compressed data set \fImyfile.fasta\fR into OTUs using
+the finest resolution possible (1 difference by default, built-in
+breaking, fastidious option) using 4 computation threads. OTUs are
+written to the file \fImyfile.swarms\fR, and OTU representatives are
+written to \fImyfile.representatives.fasta\fR:
+.EX
 .RS
-.B swarm
-\-t 4 \-f \-w
-.I myfile.representatives.fasta < myfile.fasta > myfile.swarms
+zcat myfile.fasta.gz | \\
+    swarm \\
+        \-t 4 \\
+        \-f \\
+        \-w myfile.representatives.fasta \\
+        \-o myfile.swarms
 .RE
-.LP
+.EE
 .\" ============================================================================
 .\" .SH LIMITATIONS
 .\" List known limitations or bugs.
