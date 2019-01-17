@@ -4,12 +4,74 @@
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
 .\" ============================================================================
+.\" swarm version and help
 .SH SYNOPSIS
-.B swarm
-[
-.I options
+.SY swarm
+.B \-h|v
+.YS
+.\" swarm default usage
+.SY swarm
+.RI [ filename
 ]
-.I filename
+.YS
+.\" swarm d = 1
+.SY swarm
+[
+.B \-d
+1 ]
+.OP \-nrz
+.OP \-a int
+.OP \-i filename
+.OP \-l filename
+.OP \-o filename
+.OP \-s filename
+.OP \-t int
+.OP \-u filename
+.OP \-w filename
+.RI [ filename
+]
+.YS
+.\" swarm fastidious
+.SY swarm
+[
+.B \-d
+1 ]
+.B \-f
+.OP \-nrz
+.OP \-a int
+.OP \-b int
+.OP \-c|y int
+.OP \-i filename
+.OP \-l filename
+.OP \-o filename
+.OP \-s filename
+.OP \-t int
+.OP \-u filename
+.OP \-w filename
+.RI [ filename
+]
+.YS
+.\" swarm d > 1
+.SY swarm
+[
+.B \-d
+2+ ]
+.OP \-nrz
+.OP \-a int
+.OP \-e int
+.OP \-g int
+.OP \-i filename
+.OP \-l filename
+.OP \-m int
+.OP \-o filename
+.OP \-p int
+.OP \-s filename
+.OP \-t int
+.OP \-u filename
+.OP \-w filename
+.RI [ filename
+]
+.YS
 .\" ============================================================================
 .SH DESCRIPTION
 Environmental or clinical molecular studies generate large volumes of
@@ -108,12 +170,13 @@ requires fasta entries to present abundance values. Default number of
 differences \fId\fR is 1.
 .TP
 .B \-n\fP,\fB\ \-\-no\-otu\-breaking
-deactivate the built-in OTU refinement (not recommended). Amplicon
-abundance values are used to identify transitions among in-contact
-OTUs and to separate them, yielding higher-resolution clustering
-results. That option prevents that separation, and in practice, allows
-the creation of a link between amplicons A and B, even if the
-abundance of B is higher than the abundance of A.
+when working with \fId\fR = 1, deactivate the built-in OTU refinement
+(not recommended). Amplicon abundance values are used to identify
+transitions among in-contact OTUs and to separate them, yielding
+higher-resolution clustering results. That option prevents that
+separation, and in practice, allows the creation of a link between
+amplicons A and B, even if the abundance of B is higher than the
+abundance of A.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Fastidious options
