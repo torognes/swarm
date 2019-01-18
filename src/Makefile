@@ -25,7 +25,7 @@
 # PROFILING=-pg
 PROFILING=
 
-COMMON=$(PROFILING) -g -flto -O3 -march=native -msse2 -std=c++11
+COMMON=$(PROFILING) -g -flto -O3 -march=x86-64 -mtune=generic -std=c++11
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)

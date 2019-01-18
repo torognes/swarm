@@ -119,12 +119,12 @@ inline bool check_amp_identical(unsigned int amp1,
 {
   unsigned int amp1_seqlen = db_getsequencelen(amp1);
   unsigned int amp2_seqlen = db_getsequencelen(amp2);
-  
+
   if (amp1_seqlen == amp2_seqlen)
     {
       char * amp1_sequence = db_getsequence(amp1);
       char * amp2_sequence = db_getsequence(amp2);
-      
+
       return memcmp(amp1_sequence,
                     amp2_sequence,
                     nt_bytelength(amp1_seqlen)) == 0;
@@ -145,7 +145,7 @@ inline void hash_insert(int amp)
         duplicates_found++;
       j = hash_getnextindex(j);
     }
-  
+
   hash_set_occupied(j);
   hash_set_value(j, hash);
   hash_set_data(j, amp);
