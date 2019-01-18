@@ -241,7 +241,7 @@ void args_usage()
 void show_header()
 {
   char title[] = "Swarm " SWARM_VERSION;
-  char ref[] = "Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe";
+  char ref[] = "Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe";
   char url[] = "https://github.com/torognes/swarm";
   fprintf(logfile, "%s [%s %s]\n%s\n%s\n\n",
           title, __DATE__, __TIME__, ref, url);
