@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -54,7 +54,7 @@
 #define LINE_MAX 2048
 #endif
 
-#define SWARM_VERSION "2.2.2"
+#define SWARM_VERSION "3.0.0"
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
