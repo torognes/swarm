@@ -387,7 +387,8 @@ void check_heavy_thread(long t)
     = (struct var_s *) xmalloc(sizeof(struct var_s) *
                                (7 * (longestamplicon+1) + 4));
 
-  char * buffer1 = (char*) xmalloc(db_getlongestsequence() + 2);
+  size_t size = 8 * ((db_getlongestsequence() + 2 + 31) / 32);
+  char * buffer1 = (char*) xmalloc(size);
   pthread_mutex_lock(&heavy_mutex);
   while ((heavy_amplicon < amplicons) &&
          (heavy_progress < heavy_amplicon_count))
