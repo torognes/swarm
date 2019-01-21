@@ -698,4 +698,7 @@ int main(int argc, char** argv)
 
   if (opt_output_file)
     fclose(outfile);
+
+  if (opt_log)
+    fclose(logfile);
 }
