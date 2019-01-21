@@ -28,6 +28,49 @@
 
 #define SHUFFLE 1
 
+#ifdef __PPC__
+
+#error Architecture ppcle64 not implemented yet
+
+#elif __aarch64__
+
+#error Architecture aarch64 not implemented yet
+
+#elif __x86_64__
+
+typedef __m128i VECTOR_SHORT;
+
+#define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
+#define v_load(a) _mm_load_si128((VECTOR_SHORT *)(a))
+#define v_store(a, b) _mm_store_si128((VECTOR_SHORT *)(a), (b))
+#define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
+#define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
+#define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
+#define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
+#define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
+#define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
+#define v_add(a, b) _mm_adds_epi16((a), (b))
+#define v_add_unsigned(a, b) _mm_adds_epu16((a), (b))
+#define v_sub(a, b) _mm_subs_epi16((a), (b))
+#define v_sub_unsigned(a, b) _mm_subs_epu16((a), (b))
+#define v_max(a, b) _mm_max_epi16((a), (b))
+#define v_min(a, b) _mm_min_epi16((a), (b))
+#define v_max_unsigned(a, b) _mm_max_epu16((a), (b))
+#define v_min_unsigned(a, b) _mm_min_epu16((a), (b))
+#define v_dup(a) _mm_set1_epi16(a)
+#define v_zero v_dup(0)
+#define v_and(a, b) _mm_and_si128((a), (b))
+#define v_xor(a, b) _mm_xor_si128((a), (b))
+#define v_shift_left(a) _mm_slli_si128((a), 2)
+#define v_mask_gt(a, b) _mm_movemask_epi8(_mm_cmpgt_epi16((a), (b)))
+#define v_mask_eq(a, b) _mm_movemask_epi8(_mm_cmpeq_epi16((a), (b)))
+
+#else
+
+#error Unknown Architecture
+
+#endif
+
 void dprofile_dump16(WORD * dprofile)
 {
   char * s = sym_nt;
@@ -52,12 +95,10 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE * dseq)
 {
-  __m128i xmm0,  xmm1,  xmm2,  xmm3,  xmm4,  xmm5,  xmm6,  xmm7;
-  __m128i xmm8,  xmm9,  xmm10, xmm11, xmm12, xmm13, xmm14, xmm15;
-  __m128i xmm16, xmm17, xmm18, xmm19, xmm20, xmm21, xmm22, xmm23;
-  __m128i xmm24, xmm25, xmm26, xmm27, xmm28, xmm29, xmm30, xmm31;
-
-  // clocks? 4*(8+3*(8+4)+8) = 52*4 = 208
+  VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
+  VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
+  VECTOR_SHORT reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
+  VECTOR_SHORT reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
 
   for (int j=0; j<CDEPTH; j++)
   {
@@ -65,54 +106,52 @@ inline void dprofile_fill16(WORD * dprofile_word,
     for(int z=0; z<CHANNELS; z++)
       d[z] = dseq[j*CHANNELS+z] << 5;
 
-    // for(int i=0; i<24; i += 8)
-    // for(int i=0; i<32; i += 8)
     for(int i=0; i<8; i += 8)
     {
-      xmm0  = _mm_load_si128((__m128i*)(score_matrix_word + d[0] + i));
-      xmm1  = _mm_load_si128((__m128i*)(score_matrix_word + d[1] + i));
-      xmm2  = _mm_load_si128((__m128i*)(score_matrix_word + d[2] + i));
-      xmm3  = _mm_load_si128((__m128i*)(score_matrix_word + d[3] + i));
-      xmm4  = _mm_load_si128((__m128i*)(score_matrix_word + d[4] + i));
-      xmm5  = _mm_load_si128((__m128i*)(score_matrix_word + d[5] + i));
-      xmm6  = _mm_load_si128((__m128i*)(score_matrix_word + d[6] + i));
-      xmm7  = _mm_load_si128((__m128i*)(score_matrix_word + d[7] + i));
+      reg0  = v_load(score_matrix_word + d[0] + i);
+      reg1  = v_load(score_matrix_word + d[1] + i);
+      reg2  = v_load(score_matrix_word + d[2] + i);
+      reg3  = v_load(score_matrix_word + d[3] + i);
+      reg4  = v_load(score_matrix_word + d[4] + i);
+      reg5  = v_load(score_matrix_word + d[5] + i);
+      reg6  = v_load(score_matrix_word + d[6] + i);
+      reg7  = v_load(score_matrix_word + d[7] + i);
 
-      xmm8  = _mm_unpacklo_epi16(xmm0,  xmm1);
-      xmm9  = _mm_unpackhi_epi16(xmm0,  xmm1);
-      xmm10 = _mm_unpacklo_epi16(xmm2,  xmm3);
-      xmm11 = _mm_unpackhi_epi16(xmm2,  xmm3);
-      xmm12 = _mm_unpacklo_epi16(xmm4,  xmm5);
-      xmm13 = _mm_unpackhi_epi16(xmm4,  xmm5);
-      xmm14 = _mm_unpacklo_epi16(xmm6,  xmm7);
-      xmm15 = _mm_unpackhi_epi16(xmm6,  xmm7);
+      reg8  = v_merge_lo_16(reg0,  reg1);
+      reg9  = v_merge_hi_16(reg0,  reg1);
+      reg10 = v_merge_lo_16(reg2,  reg3);
+      reg11 = v_merge_hi_16(reg2,  reg3);
+      reg12 = v_merge_lo_16(reg4,  reg5);
+      reg13 = v_merge_hi_16(reg4,  reg5);
+      reg14 = v_merge_lo_16(reg6,  reg7);
+      reg15 = v_merge_hi_16(reg6,  reg7);
 
-      xmm16 = _mm_unpacklo_epi32(xmm8,  xmm10);
-      xmm17 = _mm_unpackhi_epi32(xmm8,  xmm10);
-      xmm18 = _mm_unpacklo_epi32(xmm12, xmm14);
-      xmm19 = _mm_unpackhi_epi32(xmm12, xmm14);
-      xmm20 = _mm_unpacklo_epi32(xmm9,  xmm11);
-      xmm21 = _mm_unpackhi_epi32(xmm9,  xmm11);
-      xmm22 = _mm_unpacklo_epi32(xmm13, xmm15);
-      xmm23 = _mm_unpackhi_epi32(xmm13, xmm15);
+      reg16 = v_merge_lo_32(reg8,  reg10);
+      reg17 = v_merge_hi_32(reg8,  reg10);
+      reg18 = v_merge_lo_32(reg12, reg14);
+      reg19 = v_merge_hi_32(reg12, reg14);
+      reg20 = v_merge_lo_32(reg9,  reg11);
+      reg21 = v_merge_hi_32(reg9,  reg11);
+      reg22 = v_merge_lo_32(reg13, reg15);
+      reg23 = v_merge_hi_32(reg13, reg15);
 
-      xmm24 = _mm_unpacklo_epi64(xmm16, xmm18);
-      xmm25 = _mm_unpackhi_epi64(xmm16, xmm18);
-      xmm26 = _mm_unpacklo_epi64(xmm17, xmm19);
-      xmm27 = _mm_unpackhi_epi64(xmm17, xmm19);
-      xmm28 = _mm_unpacklo_epi64(xmm20, xmm22);
-      xmm29 = _mm_unpackhi_epi64(xmm20, xmm22);
-      xmm30 = _mm_unpacklo_epi64(xmm21, xmm23);
-      xmm31 = _mm_unpackhi_epi64(xmm21, xmm23);
+      reg24 = v_merge_lo_64(reg16, reg18);
+      reg25 = v_merge_hi_64(reg16, reg18);
+      reg26 = v_merge_lo_64(reg17, reg19);
+      reg27 = v_merge_hi_64(reg17, reg19);
+      reg28 = v_merge_lo_64(reg20, reg22);
+      reg29 = v_merge_hi_64(reg20, reg22);
+      reg30 = v_merge_lo_64(reg21, reg23);
+      reg31 = v_merge_hi_64(reg21, reg23);
 
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j), xmm24);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j), xmm25);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j), xmm26);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j), xmm27);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j), xmm28);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j), xmm29);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j), xmm30);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j), xmm31);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j, reg24);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j, reg25);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j, reg26);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j, reg27);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j, reg28);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j, reg29);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j, reg30);
+      v_store(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j, reg31);
     }
   }
 #if 0
@@ -120,271 +159,228 @@ inline void dprofile_fill16(WORD * dprofile_word,
 #endif
 }
 
-/*
-   Sorry for the assembler code below. This code was originally written
-   several years ago when compilers were not that good at compiling
-   intrinsics to optimal code.
-   Similar code using intrinsics instead of assembler is available in
-   the vsearch codebase.
-*/
+/* The code works only with 15-bit values */
 
-// Due to the use of pminsw instead of pminuw (which is sse4) below,
-// the code works only with 15-bit values
+#define ONESTEP(H, N, F, V, DIR, E, QR, R)                              \
+  H = v_add_unsigned(H, V);                                             \
+  *(DIR+0) = v_mask_gt(H, F);                                           \
+  H = v_min(H, F);                                                      \
+  H = v_min(H, E);                                                      \
+  *(DIR+1) = v_mask_eq(H, E);                                           \
+  N = H;                                                                \
+  H = v_add_unsigned(H, QR);                                            \
+  F = v_add_unsigned(F, R);                                             \
+  E = v_add_unsigned(E, R);                                             \
+  *(DIR+2) = v_mask_gt(H, F);                                           \
+  *(DIR+3) = v_mask_gt(H, E);                                           \
+  E = v_min(H, E);                                                      \
+  F = v_min(H, F);
 
-#define INITIALIZE                                      \
-  "        movq      %3, %%rax               \n"        \
-  "        movdqa    (%%rax), %%xmm14        \n"        \
-  "        movq      %4, %%rax               \n"        \
-  "        movdqa    (%%rax), %%xmm15        \n"        \
-  "        movq      %9, %%rax               \n"        \
-  "        movdqa    (%%rax), %%xmm0         \n"        \
-  "        movdqa    (%7), %%xmm7            \n"        \
-  "        movdqa    %%xmm7, %%xmm3          \n"        \
-  "        psubusw   %%xmm14, %%xmm3         \n"        \
-  "        movdqa    %%xmm3, %%xmm1          \n"        \
-  "        paddusw   %%xmm15, %%xmm3         \n"        \
-  "        movdqa    %%xmm3, %%xmm2          \n"        \
-  "        paddusw   %%xmm15, %%xmm3         \n"        \
-  "        movdqa    %%xmm7, %%xmm4          \n"        \
-  "        paddusw   %%xmm15, %%xmm7         \n"        \
-  "        movdqa    %%xmm7, %%xmm5          \n"        \
-  "        paddusw   %%xmm15, %%xmm7         \n"        \
-  "        movdqa    %%xmm7, %%xmm6          \n"        \
-  "        paddusw   %%xmm15, %%xmm7         \n"        \
-  "        movq      %5, %%r12               \n"        \
-  "        shlq      $3, %%r12               \n"        \
-  "        movq      %%r12, %%r10            \n"        \
-  "        andq      $-16, %%r10             \n"        \
-  "        xorq      %%r11, %%r11            \n"
-
-#define ONESTEP(H, N, F, V, DIR)                        \
-  "        paddusw   " V ", " H "            \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpgtw   " F ", %%xmm13          \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 0+" DIR "         \n"        \
-  "        pminsw    " F ", " H "            \n"        \
-  "        pminsw    %%xmm12, " H "          \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpeqw   %%xmm12, %%xmm13        \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 2+" DIR "         \n"        \
-  "        movdqa    " H ", " N "            \n"        \
-  "        paddusw   %%xmm14, " H "          \n"        \
-  "        paddusw   %%xmm15, " F "          \n"        \
-  "        paddusw   %%xmm15, %%xmm12        \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpgtw   " F ", %%xmm13          \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 4+" DIR "         \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpgtw   %%xmm12, %%xmm13        \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 6+" DIR "         \n"        \
-  "        pminsw    " H ", %%xmm12          \n"        \
-  "        pminsw    " H ", " F "            \n"
-
-
-inline void donormal16(__m128i * Sm,
-                       __m128i * hep,
-                       __m128i ** qp,
-                       __m128i * Qm,
-                       __m128i * Rm,
+inline void donormal16(VECTOR_SHORT * Sm,
+                       VECTOR_SHORT * hep,
+                       VECTOR_SHORT ** qp,
+                       VECTOR_SHORT * Qm,
+                       VECTOR_SHORT * Rm,
                        long ql,
-                       __m128i * Zm,
-                       __m128i * F0,
-                       unsigned long * dir,
-                       __m128i * H0
-                      )
+                       VECTOR_SHORT * F0,
+                       unsigned long * dir_long,
+                       VECTOR_SHORT * H0)
 {
-  __asm__
-    __volatile__
-    (
-     INITIALIZE
+  VECTOR_SHORT Q, R, E;
+  VECTOR_SHORT h0, h1, h2, h3, h4, h5, h6, h7, h8;
+  VECTOR_SHORT f0, f1, f2, f3;
+  VECTOR_SHORT * x;
+  long z, i;
 
-     "        jmp       2f                  \n"
+  signed short * dir = (signed short *) dir_long;
 
-     "1:      movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
-     "        movdqa    0(%1,%%r11,4), %%xmm8   \n" // load N0
-     "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
+  Q = *Qm;
+  R = *Rm;
 
-     ONESTEP("%%xmm0", "%%xmm9",        "%%xmm4", " 0(%%rax)", " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1", "%%xmm10",       "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2", "%%xmm11",       "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3", "0(%1,%%r11,4)", "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
+  f0 = *F0;
+  f1 = v_add(f0, R);
+  f2 = v_add(f1, R);
+  f3 = v_add(f2, R);
 
-     "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
-     "        movq      8(%2,%%r11,1), %%rax    \n" // load x from qp[qi+1]
-     "        movdqa    32(%1,%%r11,4), %%xmm0  \n" // load H0
-     "        movdqa    48(%1,%%r11,4), %%xmm12 \n" // load E
+  h0 = *H0;
+  h1 = v_sub(f0, Q);
+  h2 = v_add(h1, R);
+  h3 = v_add(h2, R);
 
-     ONESTEP("%%xmm8",  "%%xmm1",           "%%xmm4", "0(%%rax)" , "32(%8,%%r11,4)")
-     ONESTEP("%%xmm9",  "%%xmm2",           "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
-     ONESTEP("%%xmm10", "%%xmm3",           "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
-     ONESTEP("%%xmm11", "32(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
+  z = ql - (ql & 1);
+  i = 0;
+  while (i < z)
+    {
+      h4 = hep[2*i + 0];
+      E  = hep[2*i + 1];
+      x = qp[i + 0];
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
+      hep[2*i + 0] = h8;
+      hep[2*i + 1] = E;
 
-     "        movdqa    %%xmm12, 48(%1,%%r11,4) \n" // save E
-     "        addq      $16, %%r11              \n" // qi++
-     "2:      cmpq      %%r11, %%r10            \n" // qi = ql4 ?
-     "        jne       1b                      \n" // loop
+      h0 = hep[2*i + 2];
+      E  = hep[2*i + 3];
+      x = qp[i +  1];
+      ONESTEP(h4, h1, f0, x[0], dir + 16*i + 16, E, Q, R);
+      ONESTEP(h5, h2, f1, x[1], dir + 16*i + 20, E, Q, R);
+      ONESTEP(h6, h3, f2, x[2], dir + 16*i + 24, E, Q, R);
+      ONESTEP(h7, h4, f3, x[3], dir + 16*i + 28, E, Q, R);
+      hep[2*i + 2] = h4;
+      hep[2*i + 3] = E;
 
-     "4:      cmpq      %%r11, %%r12            \n"
-     "        je        3f                      \n"
-     "        movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
-     "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
+      i += 2;
+    }
 
-     ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
+  if (i < ql)
+    {
+      E  = hep[2*i + 1];
+      x = qp[i + 0];
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
+      hep[2*i + 0] = h8;
+      hep[2*i + 1] = E;
 
-     "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
-
-     "        movdqa    %%xmm9, %%xmm1          \n"
-     "        movdqa    %%xmm10, %%xmm2         \n"
-     "        movdqa    %%xmm11, %%xmm3         \n"
-     "        movdqa    0(%1,%%r11,4), %%xmm4   \n"
-     "        jmp       5f                      \n"
-
-     "3:      movdqa    -32(%1,%%r11,4), %%xmm4 \n"
-
-     "5:      movq      %0, %%rax               \n" // save final Hs
-     "        movdqa    %%xmm1, (%%rax)         \n"
-     "        addq      $16, %%rax              \n"
-     "        movdqa    %%xmm2, (%%rax)         \n"
-     "        addq      $16, %%rax              \n"
-     "        movdqa    %%xmm3, (%%rax)         \n"
-     "        addq      $16, %%rax              \n"
-     "        movdqa    %%xmm4, (%%rax)         \n"
-
-     :
-     : "m"(Sm), "r"(hep),  "r"(qp), "m"(Qm),
-       "m"(Rm), "r"(ql),   "m"(Zm), "r"(F0),
-       "r"(dir),"m"(H0)
-
-     : "xmm0",  "xmm1",  "xmm2",  "xmm3",
-       "xmm4",  "xmm5",  "xmm6",  "xmm7",
-       "xmm8",  "xmm9",  "xmm10", "xmm11",
-       "xmm12", "xmm13", "xmm14", "xmm15",
-       "rax",   "r10",   "r11",   "r12",
-       "rdx",   "cc"
-      );
+      Sm[0] = h5;
+      Sm[1] = h6;
+      Sm[2] = h7;
+      Sm[3] = h8;
+    }
+  else
+    {
+      Sm[0] = h1;
+      Sm[1] = h2;
+      Sm[2] = h3;
+      Sm[3] = h4;
+    }
 }
 
-inline void domasked16(__m128i * Sm,
-                       __m128i * hep,
-                       __m128i ** qp,
-                       __m128i * Qm,
-                       __m128i * Rm,
+inline void domasked16(VECTOR_SHORT * Sm,
+                       VECTOR_SHORT * hep,
+                       VECTOR_SHORT ** qp,
+                       VECTOR_SHORT * Qm,
+                       VECTOR_SHORT * Rm,
                        long ql,
-                       __m128i * Zm,
-                       __m128i * F0,
-                       unsigned long * dir,
-                       __m128i * H0,
-                       __m128i * Mm,
-                       __m128i * MQ,
-                       __m128i * MR,
-                       __m128i * MQ0)
+                       VECTOR_SHORT * F0,
+                       unsigned long * dir_long,
+                       VECTOR_SHORT * H0,
+                       VECTOR_SHORT * Mm,
+                       VECTOR_SHORT * MQ,
+                       VECTOR_SHORT * MR,
+                       VECTOR_SHORT * MQ0)
 {
+  VECTOR_SHORT Q, R, E;
+  VECTOR_SHORT h0, h1, h2, h3, h4, h5, h6, h7, h8;
+  VECTOR_SHORT f0, f1, f2, f3;
+  VECTOR_SHORT * x;
+  long z, i;
 
-  __asm__
-    __volatile__
-    (
-     INITIALIZE
+  signed short * dir = (signed short *) dir_long;
 
-     "        jmp       2f                       \n"
+  Q = *Qm;
+  R = *Rm;
 
-     "1:      movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
-     "        movdqa    0(%1,%%r11,4), %%xmm8    \n" // load N0
-     "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
-     "        movdqa    (%11), %%xmm13           \n"
-     "        psubusw   (%10), %%xmm8            \n" // mask N0
-     "        psubusw   (%10), %%xmm12           \n" // mask E
-     "        paddusw   %%xmm13, %%xmm8          \n" // init N0
-     "        paddusw   %%xmm13, %%xmm12         \n" // init E
-     "        paddusw   (%13), %%xmm12           \n" // fix E
-     "        paddusw   (%12), %%xmm13           \n" // update
-     "        movdqa    %%xmm13, (%11)           \n"
+  f0 = *F0;
+  f1 = v_add(f0, R);
+  f2 = v_add(f1, R);
+  f3 = v_add(f2, R);
 
-     ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
+  h0 = *H0;
+  h1 = v_sub(f0, Q);
+  h2 = v_add(h1, R);
+  h3 = v_add(h2, R);
 
-     "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
+  z = ql - (ql & 1);
+  i = 0;
+  while (i < z)
+    {
+      h4 = hep[2*i + 0];
+      E  = hep[2*i + 1];
+      x = qp[i + 0];
 
-     "        movq      8(%2,%%r11,1), %%rax     \n" // load x from qp[qi+1]
-     "        movdqa    32(%1,%%r11,4), %%xmm0   \n" // load H0
-     "        movdqa    48(%1,%%r11,4), %%xmm12  \n" // load E
-     "        movdqa    (%11), %%xmm13           \n"
-     "        psubusw   (%10), %%xmm0            \n" // mask H0
-     "        psubusw   (%10), %%xmm12           \n" // mask E
-     "        paddusw   %%xmm13, %%xmm0          \n"
-     "        paddusw   %%xmm13, %%xmm12         \n"
-     "        paddusw   (%13), %%xmm12           \n" // fix E
-     "        paddusw   (%12), %%xmm13           \n"
-     "        movdqa    %%xmm13, (%11)           \n"
+      /* mask h4 and E */
+      h4 = v_sub_unsigned(h4, *Mm);
+      E  = v_sub_unsigned(E,  *Mm);
 
-     ONESTEP("%%xmm8",  "%%xmm1",           "%%xmm4", "0(%%rax)" , "32(%8,%%r11,4)")
-     ONESTEP("%%xmm9",  "%%xmm2",           "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
-     ONESTEP("%%xmm10", "%%xmm3",           "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
-     ONESTEP("%%xmm11", "32(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
+      /* init h4 and E */
+      h4 = v_add_unsigned(h4, *MQ);
+      E  = v_add_unsigned(E,  *MQ);
+      E  = v_add_unsigned(E,  *MQ0);
 
-     "        movdqa    %%xmm12, 48(%1,%%r11,4)  \n" // save E
-     "        addq      $16, %%r11               \n" // qi++
-     "2:      cmpq      %%r11, %%r10             \n" // qi = ql4 ?
-     "        jne       1b                       \n" // loop
+      /* update MQ */
+      *MQ = v_add_unsigned(*MQ,  *MR);
 
-     "        cmpq      %%r11, %%r12             \n"
-     "        je        3f                       \n"
-     "        movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
-     "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
-     "        movdqa    (%11), %%xmm13           \n"
-     "        psubusw   (%10), %%xmm12           \n" // mask E
-     "        paddusw   %%xmm13, %%xmm12         \n"
-     "        paddusw   (%13), %%xmm12           \n" // fix E
-     "        paddusw   (%12), %%xmm13           \n"
-     "        movdqa    %%xmm13, (%11)           \n"
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
+      hep[2*i + 0] = h8;
+      hep[2*i + 1] = E;
 
-     ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
+      h0 = hep[2*i + 2];
+      E  = hep[2*i + 3];
+      x = qp[i +  1];
 
-     "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
+      /* mask h0 and E */
+      h0 = v_sub_unsigned(h0, *Mm);
+      E  = v_sub_unsigned(E,  *Mm);
 
-     "        movdqa    %%xmm9, %%xmm1           \n"
-     "        movdqa    %%xmm10, %%xmm2          \n"
-     "        movdqa    %%xmm11, %%xmm3          \n"
-     "        movdqa    0(%1,%%r11,4), %%xmm4    \n"
-     "        jmp       5f                       \n"
+      /* init h0 and E */
+      h0 = v_add_unsigned(h0, *MQ);
+      E  = v_add_unsigned(E,  *MQ);
+      E  = v_add_unsigned(E,  *MQ0);
 
-     "3:      movdqa    -32(%1,%%r11,4), %%xmm4  \n"
+      /* update MQ */
+      *MQ = v_add_unsigned(*MQ, *MR);
 
-     "5:      movq      %0, %%rax                \n" // save final Hs
-     "        movdqa    %%xmm1, (%%rax)          \n"
-     "        addq      $16, %%rax               \n"
-     "        movdqa    %%xmm2, (%%rax)          \n"
-     "        addq      $16, %%rax               \n"
-     "        movdqa    %%xmm3, (%%rax)          \n"
-     "        addq      $16, %%rax               \n"
-     "        movdqa    %%xmm4, (%%rax)          \n"
+      ONESTEP(h4, h1, f0, x[0], dir + 16*i + 16, E, Q, R);
+      ONESTEP(h5, h2, f1, x[1], dir + 16*i + 20, E, Q, R);
+      ONESTEP(h6, h3, f2, x[2], dir + 16*i + 24, E, Q, R);
+      ONESTEP(h7, h4, f3, x[3], dir + 16*i + 28, E, Q, R);
+      hep[2*i + 2] = h4;
+      hep[2*i + 3] = E;
 
-     :
+      i += 2;
+    }
 
-     : "m"(Sm), "r"(hep),"r"(qp), "m"(Qm),
-       "m"(Rm), "r"(ql), "m"(Zm), "r"(F0),
-       "r"(dir),
-       "m"(H0), "r"(Mm), "r"(MQ), "r"(MR),
-       "r"(MQ0)
+  if (i < ql)
+    {
+      E  = hep[2*i + 1];
+      x = qp[i + 0];
 
-     : "xmm0",  "xmm1",  "xmm2",  "xmm3",
-       "xmm4",  "xmm5",  "xmm6",  "xmm7",
-       "xmm8",  "xmm9",  "xmm10", "xmm11",
-       "xmm12", "xmm13", "xmm14", "xmm15",
-       "rax",   "r10",   "r11",   "r12",
-       "rdx",   "cc"
-     );
+      /* mask E */
+      E  = v_sub_unsigned(E,  *Mm);
+
+      /* init E */
+      E  = v_add_unsigned(E,  *MQ);
+      E  = v_add_unsigned(E,  *MQ0);
+
+      /* update MQ */
+      *MQ = v_add_unsigned(*MQ,  *MR);
+
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
+      hep[2*i + 0] = h8;
+      hep[2*i + 1] = E;
+
+      Sm[0] = h5;
+      Sm[1] = h6;
+      Sm[2] = h7;
+      Sm[3] = h8;
+    }
+  else
+    {
+      Sm[0] = h1;
+      Sm[1] = h2;
+      Sm[2] = h3;
+      Sm[3] = h4;
+    }
 }
 
 unsigned long backtrack16(char * qseq,
@@ -548,19 +544,19 @@ void search16(WORD * * q_start,
               unsigned long dirbuffersize,
               unsigned long * dirbuffer)
 {
-  __m128i Q, R, T, M, T0, MQ, MR, MQ0;
-  __m128i *hep, **qp;
+  VECTOR_SHORT Q, R, T, M, T0, MQ, MR, MQ0;
+  VECTOR_SHORT *hep, **qp;
 
   unsigned long d_pos[CHANNELS];
   unsigned long d_offset[CHANNELS];
   char * d_address[CHANNELS];
   unsigned long d_length[CHANNELS];
 
-  __m128i dseqalloc[CDEPTH];
+  VECTOR_SHORT dseqalloc[CDEPTH];
 
-  __m128i H0;
-  __m128i F0;
-  __m128i S[4];
+  VECTOR_SHORT H0;
+  VECTOR_SHORT F0;
+  VECTOR_SHORT S[4];
 
   BYTE * dseq = (BYTE*) & dseqalloc;
 
@@ -574,8 +570,8 @@ void search16(WORD * * q_start,
 
   done = 0;
 
-  hep = (__m128i*) hearray;
-  qp = (__m128i**) q_start;
+  hep = (VECTOR_SHORT*) hearray;
+  qp = (VECTOR_SHORT**) q_start;
 
   for (int c=0; c<CHANNELS; c++)
   {
@@ -617,7 +613,7 @@ void search16(WORD * * q_start,
       else
         dprofile_fill16(dprofile, score_matrix, dseq);
 
-      donormal16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0);
+      donormal16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
     }
     else
     {
@@ -748,8 +744,7 @@ void search16(WORD * * q_start,
       MR = _mm_and_si128(M, R);
       MQ0 = MQ;
 
-      domasked16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR,
-                 &MQ0);
+      domasked16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
     }
 
     F0 = _mm_adds_epu16(F0, R);
