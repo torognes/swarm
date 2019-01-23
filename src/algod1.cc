@@ -138,13 +138,17 @@ inline void hash_insert(int amp)
   /* find the first empty bucket */
   unsigned long hash = db_gethash(amp);
   unsigned int j = hash_getindex(hash);
+  bool duplicate = false;
   while (hash_is_occupied(j))
     {
       if (hash_compare_value(j, hash) &&
           check_amp_identical(amp, hash_get_data(j)))
-        duplicates_found++;
+        duplicate = true;
       j = hash_getnextindex(j);
     }
+
+  if (duplicate)
+    duplicates_found++;
 
   hash_set_occupied(j);
   hash_set_value(j, hash);
