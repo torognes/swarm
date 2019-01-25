@@ -26,8 +26,6 @@
 #define CHANNELS 8
 #define CDEPTH 4
 
-#define SHUFFLE 1
-
 #ifdef __PPC__
 
 #error Architecture ppcle64 not implemented yet
@@ -38,11 +36,12 @@
 
 #elif __x86_64__
 
-typedef __m128i VECTOR_SHORT;
+typedef signed short VECTORELEMENTTYPE;
+typedef __m128i VECTORTYPE;
 
 #define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
-#define v_load(a) _mm_load_si128((VECTOR_SHORT *)(a))
-#define v_store(a, b) _mm_store_si128((VECTOR_SHORT *)(a), (b))
+#define v_load(a) _mm_load_si128((VECTORTYPE *)(a))
+#define v_store(a, b) _mm_store_si128((VECTORTYPE *)(a), (b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
 #define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
@@ -50,13 +49,13 @@ typedef __m128i VECTOR_SHORT;
 #define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
 #define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
 #define v_add(a, b) _mm_adds_epi16((a), (b))
-#define v_add_unsigned(a, b) _mm_adds_epu16((a), (b))
 #define v_sub(a, b) _mm_subs_epi16((a), (b))
-#define v_sub_unsigned(a, b) _mm_subs_epu16((a), (b))
 #define v_max(a, b) _mm_max_epi16((a), (b))
 #define v_min(a, b) _mm_min_epi16((a), (b))
-#define v_max_unsigned(a, b) _mm_max_epu16((a), (b))
-#define v_min_unsigned(a, b) _mm_min_epu16((a), (b))
+#define v_add_u(a, b) _mm_adds_epu16((a), (b))
+#define v_sub_u(a, b) _mm_subs_epu16((a), (b))
+#define v_max_u(a, b) _mm_max_epu16((a), (b))
+#define v_min_u(a, b) _mm_min_epu16((a), (b))
 #define v_dup(a) _mm_set1_epi16(a)
 #define v_zero v_dup(0)
 #define v_and(a, b) _mm_and_si128((a), (b))
@@ -95,10 +94,10 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE * dseq)
 {
-  VECTOR_SHORT reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
-  VECTOR_SHORT reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
-  VECTOR_SHORT reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
-  VECTOR_SHORT reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
+  VECTORTYPE reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
+  VECTORTYPE reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
+  VECTORTYPE reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
+  VECTORTYPE reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
 
   for (int j=0; j<CDEPTH; j++)
   {
@@ -162,50 +161,51 @@ inline void dprofile_fill16(WORD * dprofile_word,
 /* The code works only with 15-bit values */
 
 #define ONESTEP(H, N, F, V, DIR, E, QR, R)                              \
-  H = v_add_unsigned(H, V);                                             \
+  H = v_add_u(H, V);                                                    \
   *(DIR+0) = v_mask_gt(H, F);                                           \
   H = v_min(H, F);                                                      \
   H = v_min(H, E);                                                      \
   *(DIR+1) = v_mask_eq(H, E);                                           \
   N = H;                                                                \
-  H = v_add_unsigned(H, QR);                                            \
-  F = v_add_unsigned(F, R);                                             \
-  E = v_add_unsigned(E, R);                                             \
+  H = v_add_u(H, QR);                                                   \
+  F = v_add_u(F, R);                                                    \
+  E = v_add_u(E, R);                                                    \
   *(DIR+2) = v_mask_gt(H, F);                                           \
   *(DIR+3) = v_mask_gt(H, E);                                           \
   E = v_min(H, E);                                                      \
   F = v_min(H, F);
 
-inline void donormal16(VECTOR_SHORT * Sm,
-                       VECTOR_SHORT * hep,
-                       VECTOR_SHORT ** qp,
-                       VECTOR_SHORT * Qm,
-                       VECTOR_SHORT * Rm,
+inline void donormal16(VECTORTYPE * Sm,
+                       VECTORTYPE * hep,
+                       VECTORTYPE ** qp,
+                       VECTORTYPE * Qm,
+                       VECTORTYPE * Rm,
                        long ql,
-                       VECTOR_SHORT * F0,
+                       VECTORTYPE * F0,
                        unsigned long * dir_long,
-                       VECTOR_SHORT * H0)
+                       VECTORTYPE * H0)
 {
-  VECTOR_SHORT Q, R, E;
-  VECTOR_SHORT h0, h1, h2, h3, h4, h5, h6, h7, h8;
-  VECTOR_SHORT f0, f1, f2, f3;
-  VECTOR_SHORT * x;
+  VECTORTYPE Q, R, E;
+  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
+  VECTORTYPE f0, f1, f2, f3;
+  VECTORTYPE * x;
   long z, i;
 
-  signed short * dir = (signed short *) dir_long;
+  VECTORELEMENTTYPE * dir = (VECTORELEMENTTYPE *) dir_long;
 
   Q = *Qm;
   R = *Rm;
 
   f0 = *F0;
-  f1 = v_add(f0, R);
-  f2 = v_add(f1, R);
-  f3 = v_add(f2, R);
+  f1 = v_add_u(f0, R);
+  f2 = v_add_u(f1, R);
+  f3 = v_add_u(f2, R);
 
   h0 = *H0;
-  h1 = v_sub(f0, Q);
-  h2 = v_add(h1, R);
-  h3 = v_add(h2, R);
+  h1 = v_sub_u(f0, Q);
+  h2 = v_add_u(h1, R);
+  h3 = v_add_u(h2, R);
+  h4 = v_zero;
 
   z = ql - (ql & 1);
   i = 0;
@@ -259,27 +259,27 @@ inline void donormal16(VECTOR_SHORT * Sm,
     }
 }
 
-inline void domasked16(VECTOR_SHORT * Sm,
-                       VECTOR_SHORT * hep,
-                       VECTOR_SHORT ** qp,
-                       VECTOR_SHORT * Qm,
-                       VECTOR_SHORT * Rm,
+inline void domasked16(VECTORTYPE * Sm,
+                       VECTORTYPE * hep,
+                       VECTORTYPE ** qp,
+                       VECTORTYPE * Qm,
+                       VECTORTYPE * Rm,
                        long ql,
-                       VECTOR_SHORT * F0,
+                       VECTORTYPE * F0,
                        unsigned long * dir_long,
-                       VECTOR_SHORT * H0,
-                       VECTOR_SHORT * Mm,
-                       VECTOR_SHORT * MQ,
-                       VECTOR_SHORT * MR,
-                       VECTOR_SHORT * MQ0)
+                       VECTORTYPE * H0,
+                       VECTORTYPE * Mm,
+                       VECTORTYPE * MQ,
+                       VECTORTYPE * MR,
+                       VECTORTYPE * MQ0)
 {
-  VECTOR_SHORT Q, R, E;
-  VECTOR_SHORT h0, h1, h2, h3, h4, h5, h6, h7, h8;
-  VECTOR_SHORT f0, f1, f2, f3;
-  VECTOR_SHORT * x;
+  VECTORTYPE Q, R, E;
+  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
+  VECTORTYPE f0, f1, f2, f3;
+  VECTORTYPE * x;
   long z, i;
 
-  signed short * dir = (signed short *) dir_long;
+  VECTORELEMENTTYPE * dir = (VECTORELEMENTTYPE *) dir_long;
 
   Q = *Qm;
   R = *Rm;
@@ -293,6 +293,7 @@ inline void domasked16(VECTOR_SHORT * Sm,
   h1 = v_sub(f0, Q);
   h2 = v_add(h1, R);
   h3 = v_add(h2, R);
+  h4 = v_zero;
 
   z = ql - (ql & 1);
   i = 0;
@@ -303,16 +304,16 @@ inline void domasked16(VECTOR_SHORT * Sm,
       x = qp[i + 0];
 
       /* mask h4 and E */
-      h4 = v_sub_unsigned(h4, *Mm);
-      E  = v_sub_unsigned(E,  *Mm);
+      h4 = v_sub_u(h4, *Mm);
+      E  = v_sub_u(E,  *Mm);
 
       /* init h4 and E */
-      h4 = v_add_unsigned(h4, *MQ);
-      E  = v_add_unsigned(E,  *MQ);
-      E  = v_add_unsigned(E,  *MQ0);
+      h4 = v_add_u(h4, *MQ);
+      E  = v_add_u(E,  *MQ);
+      E  = v_add_u(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add_unsigned(*MQ,  *MR);
+      *MQ = v_add_u(*MQ,  *MR);
 
       ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
       ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
@@ -326,16 +327,16 @@ inline void domasked16(VECTOR_SHORT * Sm,
       x = qp[i +  1];
 
       /* mask h0 and E */
-      h0 = v_sub_unsigned(h0, *Mm);
-      E  = v_sub_unsigned(E,  *Mm);
+      h0 = v_sub_u(h0, *Mm);
+      E  = v_sub_u(E,  *Mm);
 
       /* init h0 and E */
-      h0 = v_add_unsigned(h0, *MQ);
-      E  = v_add_unsigned(E,  *MQ);
-      E  = v_add_unsigned(E,  *MQ0);
+      h0 = v_add_u(h0, *MQ);
+      E  = v_add_u(E,  *MQ);
+      E  = v_add_u(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add_unsigned(*MQ, *MR);
+      *MQ = v_add_u(*MQ, *MR);
 
       ONESTEP(h4, h1, f0, x[0], dir + 16*i + 16, E, Q, R);
       ONESTEP(h5, h2, f1, x[1], dir + 16*i + 20, E, Q, R);
@@ -353,14 +354,14 @@ inline void domasked16(VECTOR_SHORT * Sm,
       x = qp[i + 0];
 
       /* mask E */
-      E  = v_sub_unsigned(E,  *Mm);
+      E  = v_sub_u(E,  *Mm);
 
       /* init E */
-      E  = v_add_unsigned(E,  *MQ);
-      E  = v_add_unsigned(E,  *MQ0);
+      E  = v_add_u(E,  *MQ);
+      E  = v_add_u(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add_unsigned(*MQ,  *MR);
+      *MQ = v_add_u(*MQ,  *MR);
 
       ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
       ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
@@ -544,19 +545,19 @@ void search16(WORD * * q_start,
               unsigned long dirbuffersize,
               unsigned long * dirbuffer)
 {
-  VECTOR_SHORT Q, R, T, M, T0, MQ, MR, MQ0;
-  VECTOR_SHORT *hep, **qp;
+  VECTORTYPE Q, R, T, M, T0, MQ, MR, MQ0;
+  VECTORTYPE *hep, **qp;
 
   unsigned long d_pos[CHANNELS];
   unsigned long d_offset[CHANNELS];
   char * d_address[CHANNELS];
   unsigned long d_length[CHANNELS];
 
-  VECTOR_SHORT dseqalloc[CDEPTH];
+  VECTORTYPE dseqalloc[CDEPTH];
 
-  VECTOR_SHORT H0;
-  VECTOR_SHORT F0;
-  VECTOR_SHORT S[4];
+  VECTORTYPE H0;
+  VECTORTYPE F0;
+  VECTORTYPE S[4];
 
   BYTE * dseq = (BYTE*) & dseqalloc;
 
@@ -564,14 +565,14 @@ void search16(WORD * * q_start,
   unsigned long next_id = 0;
   unsigned long done;
 
-  T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
-  Q  = _mm_set1_epi16(gap_open_penalty+gap_extend_penalty);
-  R  = _mm_set1_epi16(gap_extend_penalty);
+  T0 = v_init(-1, 0, 0, 0, 0, 0, 0, 0);
+  Q  = v_dup(gap_open_penalty+gap_extend_penalty);
+  R  = v_dup(gap_extend_penalty);
 
   done = 0;
 
-  hep = (VECTOR_SHORT*) hearray;
-  qp = (VECTOR_SHORT**) q_start;
+  hep = (VECTORTYPE*) hearray;
+  qp = (VECTORTYPE**) q_start;
 
   for (int c=0; c<CHANNELS; c++)
   {
@@ -581,8 +582,8 @@ void search16(WORD * * q_start,
     seq_id[c] = -1;
   }
 
-  F0 = _mm_setzero_si128();
-  H0 = _mm_setzero_si128();
+  F0 = v_zero;
+  H0 = v_zero;
 
   int easy = 0;
 
@@ -622,7 +623,7 @@ void search16(WORD * * q_start,
 
       easy = 1;
 
-      M = _mm_setzero_si128();
+      M = v_zero;
       T = T0;
       for (int c=0; c<CHANNELS; c++)
       {
@@ -645,7 +646,7 @@ void search16(WORD * * q_start,
           // sequence in channel c ended
           // change of sequence
 
-          M = _mm_xor_si128(M, T);
+          M = v_xor(M, T);
 
           long cand_id = seq_id[c];
 
@@ -692,7 +693,6 @@ void search16(WORD * * q_start,
 
             db_getsequenceandlength(seqno, & address, & length);
 
-            // printf("Seqno: %ld Address: %p\n", seqno, address);
             d_address[c] = address;
             d_length[c] = length;
 
@@ -729,7 +729,7 @@ void search16(WORD * * q_start,
 
         }
 
-        T = _mm_slli_si128(T, 2);
+        T = v_shift_left(T);
       }
 
       if (done == sequences)
@@ -740,25 +740,23 @@ void search16(WORD * * q_start,
       else
         dprofile_fill16(dprofile, score_matrix, dseq);
 
-      MQ = _mm_and_si128(M, Q);
-      MR = _mm_and_si128(M, R);
+      MQ = v_and(M, Q);
+      MR = v_and(M, R);
       MQ0 = MQ;
 
       domasked16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
     }
 
-    F0 = _mm_adds_epu16(F0, R);
-    F0 = _mm_adds_epu16(F0, R);
-    F0 = _mm_adds_epu16(F0, R);
-    H0 = _mm_subs_epu16(F0, Q);
-    F0 = _mm_adds_epu16(F0, R);
+    F0 = v_add_u(F0, R);
+    F0 = v_add_u(F0, R);
+    F0 = v_add_u(F0, R);
+    H0 = v_sub_u(F0, Q);
+    F0 = v_add_u(F0, R);
 
 
     dir += 4*longestdbsequence;
 
     if (dir >= dirbuffer + dirbuffersize)
-    {
       dir -= dirbuffersize;
-    }
   }
 }
