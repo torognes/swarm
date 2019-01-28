@@ -50,9 +50,7 @@ typedef __m128i VECTORTYPE;
 #define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
 #define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
 #define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
-#define v_max(a, b) _mm_max_epi8((a), (b))
 #define v_min(a, b) _mm_min_epi8((a), (b))
-#define v_max_u(a, b) _mm_max_epu8((a), (b))
 #define v_min_u(a, b) _mm_min_epu8((a), (b))
 #define v_add(a, b) _mm_adds_epu8((a), (b))
 #define v_sub(a, b) _mm_subs_epu8((a), (b))
@@ -439,21 +437,20 @@ inline void dprofile_fill8(BYTE * dprofile,
   E = v_min_u(H, E);                            \
   *((DIR) + 3) = v_mask_eq(H, E);
 
-inline void align_cells_regular(VECTORTYPE * Sm,
-                                VECTORTYPE * hep,
-                                VECTORTYPE ** qp,
-                                VECTORTYPE * Qm,
-                                VECTORTYPE * Rm,
-                                long ql,
-                                VECTORTYPE * F0,
-                                unsigned long * dir_long,
-                                VECTORTYPE * H0)
+void align_cells_regular_8(VECTORTYPE * Sm,
+                           VECTORTYPE * hep,
+                           VECTORTYPE ** qp,
+                           VECTORTYPE * Qm,
+                           VECTORTYPE * Rm,
+                           long ql,
+                           VECTORTYPE * F0,
+                           unsigned long * dir_long,
+                           VECTORTYPE * H0)
 {
   VECTORTYPE Q, R, E, W;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
   VECTORTYPE * x;
-  long z, i;
 
   unsigned short * dir = (unsigned short *) dir_long;
 
@@ -469,73 +466,43 @@ inline void align_cells_regular(VECTORTYPE * Sm,
   h1 = v_sub(f0, Q);
   h2 = v_add(h1, R);
   h3 = v_add(h2, R);
-  h4 = v_zero;
 
-  z = ql - (ql & 1);
-  i = 0;
-  while (i < z)
+  for(long i = 0; i < ql; i++)
     {
+      x = qp[i + 0];
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
-      x = qp[i + 0];
       ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
       ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
       ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
       ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
-
-      h0 = hep[2*i + 2];
-      E  = hep[2*i + 3];
-      x = qp[i +  1];
-      ONESTEP(h4, h1, f0, x[0], dir + 16*i + 16, E, Q, R, W);
-      ONESTEP(h5, h2, f1, x[1], dir + 16*i + 20, E, Q, R, W);
-      ONESTEP(h6, h3, f2, x[2], dir + 16*i + 24, E, Q, R, W);
-      ONESTEP(h7, h4, f3, x[3], dir + 16*i + 28, E, Q, R, W);
-      hep[2*i + 2] = h4;
-      hep[2*i + 3] = E;
-
-      i += 2;
+      h0 = h4;
+      h1 = h5;
+      h2 = h6;
+      h3 = h7;
     }
 
-  if (i < ql)
-    {
-      E  = hep[2*i + 1];
-      x = qp[i + 0];
-      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
-      hep[2*i + 0] = h8;
-      hep[2*i + 1] = E;
-
-      Sm[0] = h5;
-      Sm[1] = h6;
-      Sm[2] = h7;
-      Sm[3] = h8;
-    }
-  else
-    {
-      Sm[0] = h1;
-      Sm[1] = h2;
-      Sm[2] = h3;
-      Sm[3] = h4;
-    }
+  Sm[0] = h5;
+  Sm[1] = h6;
+  Sm[2] = h7;
+  Sm[3] = h8;
 }
 
-inline void align_cells_masked(VECTORTYPE * Sm,
-                               VECTORTYPE * hep,
-                               VECTORTYPE ** qp,
-                               VECTORTYPE * Qm,
-                               VECTORTYPE * Rm,
-                               long ql,
-                               VECTORTYPE * F0,
-                               unsigned long * dir_long,
-                               VECTORTYPE * H0,
-                               VECTORTYPE * Mm,
-                               VECTORTYPE * MQ,
-                               VECTORTYPE * MR,
-                               VECTORTYPE * MQ0)
+inline void align_cells_masked_8(VECTORTYPE * Sm,
+                                 VECTORTYPE * hep,
+                                 VECTORTYPE ** qp,
+                                 VECTORTYPE * Qm,
+                                 VECTORTYPE * Rm,
+                                 long ql,
+                                 VECTORTYPE * F0,
+                                 unsigned long * dir_long,
+                                 VECTORTYPE * H0,
+                                 VECTORTYPE * Mm,
+                                 VECTORTYPE * MQ,
+                                 VECTORTYPE * MR,
+                                 VECTORTYPE * MQ0)
 {
   VECTORTYPE Q, R, E, W;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
@@ -648,15 +615,15 @@ inline void align_cells_masked(VECTORTYPE * Sm,
     }
 }
 
-inline unsigned long backtrack(char * qseq,
-                               char * dseq,
-                               unsigned long qlen,
-                               unsigned long dlen,
-                               unsigned long * dirbuffer,
-                               unsigned long offset,
-                               unsigned long dirbuffersize,
-                               unsigned long channel,
-                               unsigned long * alignmentlengthp)
+inline unsigned long backtrack_8(char * qseq,
+                                 char * dseq,
+                                 unsigned long qlen,
+                                 unsigned long dlen,
+                                 unsigned long * dirbuffer,
+                                 unsigned long offset,
+                                 unsigned long dirbuffersize,
+                                 unsigned long channel,
+                                 unsigned long * alignmentlengthp)
 {
   unsigned long maskup      = 1UL << (channel+ 0);
   unsigned long maskleft    = 1UL << (channel+16);
@@ -879,7 +846,7 @@ void search8(BYTE * * q_start,
           else
             dprofile_fill8(dprofile, score_matrix, dseq);
 
-          align_cells_regular(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
+          align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
         }
       else
         {
@@ -930,11 +897,11 @@ void search8(BYTE * * q_start,
                       if (score < 255)
                         {
                           long offset = d_offset[c];
-                          diff = backtrack(query.seq, dbseq, qlen, dbseqlen,
-                                           dirbuffer,
-                                           offset,
-                                           dirbuffersize, c,
-                                           alignmentlengths + cand_id);
+                          diff = backtrack_8(query.seq, dbseq, qlen, dbseqlen,
+                                             dirbuffer,
+                                             offset,
+                                             dirbuffersize, c,
+                                             alignmentlengths + cand_id);
                         }
                       else
                         {
@@ -1004,7 +971,7 @@ void search8(BYTE * * q_start,
           MR = v_and(M, R);
           MQ0 = MQ;
 
-          align_cells_masked(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
+          align_cells_masked_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
         }
 
       F0 = v_add(F0, R);
