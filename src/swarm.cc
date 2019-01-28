@@ -530,8 +530,8 @@ void args_init(int argc, char **argv)
   if (opt_boundary < 2)
     fatal("Illegal boundary specified with -b or --boundary, must be at least 2.");
 
-  if (used_options[2] && ((opt_ceiling < 3) || (opt_ceiling > 1073741824)))
-    fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 3 to 1073741824 MB.");
+  if (used_options[2] && ((opt_ceiling < 8) || (opt_ceiling > 1073741824)))
+    fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 8 to 1073741824 MB.");
 
   if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
     fatal("Illegal number of Bloom filter bits specified with -y or --bloom-bits, must be in the range 2 to 64.");
