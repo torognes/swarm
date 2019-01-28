@@ -479,12 +479,12 @@ void db_read(const char * filename)
                 {
                   if ((c >= 32) && (c <= 126))
                     fprintf(stderr,
-                            "\nIllegal character '%c' in sequence on line %u\n",
+                            "\nError: Illegal character '%c' in sequence on line %u\n",
                             c,
                             lineno);
                   else
                     fprintf(stderr,
-                            "\nIllegal character (ascii no %d) in sequence on line %u\n",
+                            "\nError: Illegal character (ascii no %d) in sequence on line %u\n",
                             c,
                             lineno);
                   exit(1);

@@ -530,8 +530,8 @@ void args_init(int argc, char **argv)
   if (opt_boundary < 2)
     fatal("Illegal boundary specified with -b or --boundary, must be at least 2.");
 
-  if (used_options[2] && ((opt_ceiling < 3) || (opt_ceiling > 1073741824)))
-    fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 3 to 1073741824 MB.");
+  if (used_options[2] && ((opt_ceiling < 8) || (opt_ceiling > 1073741824)))
+    fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 8 to 1073741824 MB.");
 
   if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
     fatal("Illegal number of Bloom filter bits specified with -y or --bloom-bits, must be in the range 2 to 64.");
@@ -562,9 +562,20 @@ void args_init(int argc, char **argv)
   while(char * * stdout_opt = stdout_options[o++])
     if ((*stdout_opt) && (!strcmp(*stdout_opt, DASH_FILENAME)))
       *stdout_opt = STDOUT_NAME;
+}
 
-
+void open_files()
+{
   /* open files */
+
+  if (opt_log)
+    {
+      logfile = fopen(opt_log, "w");
+      if (! logfile)
+        fatal("Unable to open log file for writing.");
+    }
+  else
+    logfile = stderr;
 
   if (opt_output_file)
     {
@@ -602,15 +613,6 @@ void args_init(int argc, char **argv)
   else
     uclustfile = 0;
 
-  if (opt_log)
-    {
-      logfile = fopen(opt_log, "w");
-      if (! logfile)
-        fatal("Unable to open log file for writing.");
-    }
-  else
-    logfile = stderr;
-
   if (opt_internal_structure)
     {
       internal_structure_file = fopen(opt_internal_structure, "w");
@@ -619,6 +621,27 @@ void args_init(int argc, char **argv)
     }
   else
     internal_structure_file = 0;
+}
+
+void close_files()
+{
+  if (opt_internal_structure)
+    fclose(internal_structure_file);
+
+  if (uclustfile)
+    fclose(uclustfile);
+
+  if (statsfile)
+    fclose(statsfile);
+
+  if (opt_seeds)
+    fclose(fp_seeds);
+
+  if (opt_output_file)
+    fclose(outfile);
+
+  if (opt_log)
+    fclose(logfile);
 }
 
 int main(int argc, char** argv)
@@ -632,11 +655,14 @@ int main(int argc, char** argv)
 
   args_init(argc, argv);
 
+  open_files();
+
   if (opt_version || opt_help)
     {
       show_header();
       if (opt_help)
         args_usage();
+      close_files();
       exit(0);
     }
 
@@ -685,18 +711,5 @@ int main(int argc, char** argv)
 
   db_free();
 
-  if (opt_seeds)
-    fclose(fp_seeds);
-
-  if (uclustfile)
-    fclose(uclustfile);
-
-  if (statsfile)
-    fclose(statsfile);
-
-  if (opt_output_file)
-    fclose(outfile);
-
-  if (opt_log)
-    fclose(logfile);
+  close_files();
 }
