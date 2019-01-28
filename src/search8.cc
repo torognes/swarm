@@ -36,7 +36,6 @@
 
 #elif __x86_64__
 
-typedef unsigned char VECTORELEMENTTYPE;
 typedef __m128i VECTORTYPE;
 
 #define v_init(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) _mm_set_epi8(p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a)
@@ -51,14 +50,12 @@ typedef __m128i VECTORTYPE;
 #define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
 #define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
 #define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
-#define v_add(a, b) _mm_adds_epi8((a), (b))
-#define v_sub(a, b) _mm_subs_epi8((a), (b))
 #define v_max(a, b) _mm_max_epi8((a), (b))
 #define v_min(a, b) _mm_min_epi8((a), (b))
-#define v_add_u(a, b) _mm_adds_epu8((a), (b))
-#define v_sub_u(a, b) _mm_subs_epu8((a), (b))
 #define v_max_u(a, b) _mm_max_epu8((a), (b))
 #define v_min_u(a, b) _mm_min_epu8((a), (b))
+#define v_add(a, b) _mm_adds_epu8((a), (b))
+#define v_sub(a, b) _mm_subs_epu8((a), (b))
 #define v_dup(a) _mm_set1_epi8(a)
 #define v_zero v_dup(0)
 #define v_and(a, b) _mm_and_si128((a), (b))
@@ -79,16 +76,16 @@ void dprofile_dump8(BYTE * dprofile)
 
   printf("\ndprofile:\n");
   for(int k=0; k<4; k++)
-  {
-    printf("k=%d 0 1 2 3 4 5 6 7 8 9 a b c d e f\n", k);
-    for(int i=0; i<16; i++)
     {
-      printf("%c: ",ss[i]);
-      for(int j=0; j<16; j++)
-        printf("%2d", (char) dprofile[i*64+16*k+j]);
-      printf("\n");
+      printf("k=%d 0 1 2 3 4 5 6 7 8 9 a b c d e f\n", k);
+      for(int i=0; i<16; i++)
+        {
+          printf("%c: ",ss[i]);
+          for(int j=0; j<16; j++)
+            printf("%2d", (char) dprofile[i*64+16*k+j]);
+          printf("\n");
+        }
     }
-  }
   printf("\n");
   exit(1);
 }
@@ -101,24 +98,24 @@ void dseq_dump8(BYTE * dseq)
   char * s = sym_nt;
 
   if (dumpcounter < 21)
-  {
-    for(int i=0; i<CHANNELS; i++)
     {
-      for(int j=0; j<CDEPTH; j++)
-      {
-        lines[4000*i+4*dumpcounter+j] = s[dseq[j*CHANNELS+i]];
-      }
+      for(int i=0; i<CHANNELS; i++)
+        {
+          for(int j=0; j<CDEPTH; j++)
+            {
+              lines[4000*i+4*dumpcounter+j] = s[dseq[j*CHANNELS+i]];
+            }
+        }
+      dumpcounter++;
     }
-    dumpcounter++;
-  }
   else
-  {
-    for(int i=0; i<16; i++)
     {
-      printf("%.1000s\n", lines+4000*i);
+      for(int i=0; i<16; i++)
+        {
+          printf("%.1000s\n", lines+4000*i);
+        }
+      exit(1);
     }
-    exit(1);
-  }
 }
 
 
@@ -130,327 +127,327 @@ inline void dprofile_fill8(BYTE * dprofile,
   __m128i reg8,  reg9, reg10, reg11, reg12, reg13, reg14, reg15;
 
   for(int j=0; j<CDEPTH; j++)
-  {
-    unsigned d[CHANNELS];
-    for(int i=0; i<CHANNELS; i++)
-      d[i] = dseq[j*CHANNELS+i] << 5;
+    {
+      unsigned d[CHANNELS];
+      for(int i=0; i<CHANNELS; i++)
+        d[i] = dseq[j*CHANNELS+i] << 5;
 
-    reg0  = v_load_64(score_matrix + d[ 0]);
-    reg2  = v_load_64(score_matrix + d[ 2]);
-    reg4  = v_load_64(score_matrix + d[ 4]);
-    reg6  = v_load_64(score_matrix + d[ 6]);
-    reg8  = v_load_64(score_matrix + d[ 8]);
-    reg10 = v_load_64(score_matrix + d[10]);
-    reg12 = v_load_64(score_matrix + d[12]);
-    reg14 = v_load_64(score_matrix + d[14]);
+      reg0  = v_load_64(score_matrix + d[ 0]);
+      reg2  = v_load_64(score_matrix + d[ 2]);
+      reg4  = v_load_64(score_matrix + d[ 4]);
+      reg6  = v_load_64(score_matrix + d[ 6]);
+      reg8  = v_load_64(score_matrix + d[ 8]);
+      reg10 = v_load_64(score_matrix + d[10]);
+      reg12 = v_load_64(score_matrix + d[12]);
+      reg14 = v_load_64(score_matrix + d[14]);
 
-    reg0  = v_merge_lo_8(reg0,  *(VECTORTYPE*)(score_matrix + d[ 1]));
-    reg2  = v_merge_lo_8(reg2,  *(VECTORTYPE*)(score_matrix + d[ 3]));
-    reg4  = v_merge_lo_8(reg4,  *(VECTORTYPE*)(score_matrix + d[ 5]));
-    reg6  = v_merge_lo_8(reg6,  *(VECTORTYPE*)(score_matrix + d[ 7]));
-    reg8  = v_merge_lo_8(reg8,  *(VECTORTYPE*)(score_matrix + d[ 9]));
-    reg10 = v_merge_lo_8(reg10, *(VECTORTYPE*)(score_matrix + d[11]));
-    reg12 = v_merge_lo_8(reg12, *(VECTORTYPE*)(score_matrix + d[13]));
-    reg14 = v_merge_lo_8(reg14, *(VECTORTYPE*)(score_matrix + d[15]));
+      reg0  = v_merge_lo_8(reg0,  *(VECTORTYPE*)(score_matrix + d[ 1]));
+      reg2  = v_merge_lo_8(reg2,  *(VECTORTYPE*)(score_matrix + d[ 3]));
+      reg4  = v_merge_lo_8(reg4,  *(VECTORTYPE*)(score_matrix + d[ 5]));
+      reg6  = v_merge_lo_8(reg6,  *(VECTORTYPE*)(score_matrix + d[ 7]));
+      reg8  = v_merge_lo_8(reg8,  *(VECTORTYPE*)(score_matrix + d[ 9]));
+      reg10 = v_merge_lo_8(reg10, *(VECTORTYPE*)(score_matrix + d[11]));
+      reg12 = v_merge_lo_8(reg12, *(VECTORTYPE*)(score_matrix + d[13]));
+      reg14 = v_merge_lo_8(reg14, *(VECTORTYPE*)(score_matrix + d[15]));
 
-    reg1 = reg0;
-    reg0 = v_merge_lo_16(reg0, reg2);
-    reg1 = v_merge_hi_16(reg1, reg2);
-    reg5 = reg4;
-    reg4 = v_merge_lo_16(reg4, reg6);
-    reg5 = v_merge_hi_16(reg5, reg6);
-    reg9 = reg8;
-    reg8 = v_merge_lo_16(reg8, reg10);
-    reg9 = v_merge_hi_16(reg9, reg10);
-    reg13 = reg12;
-    reg12 = v_merge_lo_16(reg12, reg14);
-    reg13 = v_merge_hi_16(reg13, reg14);
+      reg1 = reg0;
+      reg0 = v_merge_lo_16(reg0, reg2);
+      reg1 = v_merge_hi_16(reg1, reg2);
+      reg5 = reg4;
+      reg4 = v_merge_lo_16(reg4, reg6);
+      reg5 = v_merge_hi_16(reg5, reg6);
+      reg9 = reg8;
+      reg8 = v_merge_lo_16(reg8, reg10);
+      reg9 = v_merge_hi_16(reg9, reg10);
+      reg13 = reg12;
+      reg12 = v_merge_lo_16(reg12, reg14);
+      reg13 = v_merge_hi_16(reg13, reg14);
 
-    reg2  = reg0;
-    reg0  = v_merge_lo_32(reg0, reg4);
-    reg2  = v_merge_hi_32(reg2, reg4);
-    reg6  = reg1;
-    reg1  = v_merge_lo_32(reg1, reg5);
-    reg6  = v_merge_hi_32(reg6, reg5);
-    reg10 = reg8;
-    reg8  = v_merge_lo_32(reg8, reg12);
-    reg10 = v_merge_hi_32(reg10, reg12);
-    reg14 = reg9;
-    reg9  = v_merge_lo_32(reg9, reg13);
-    reg14 = v_merge_hi_32(reg14, reg13);
+      reg2  = reg0;
+      reg0  = v_merge_lo_32(reg0, reg4);
+      reg2  = v_merge_hi_32(reg2, reg4);
+      reg6  = reg1;
+      reg1  = v_merge_lo_32(reg1, reg5);
+      reg6  = v_merge_hi_32(reg6, reg5);
+      reg10 = reg8;
+      reg8  = v_merge_lo_32(reg8, reg12);
+      reg10 = v_merge_hi_32(reg10, reg12);
+      reg14 = reg9;
+      reg9  = v_merge_lo_32(reg9, reg13);
+      reg14 = v_merge_hi_32(reg14, reg13);
 
-    reg3  = reg0;
-    reg0  = v_merge_lo_64(reg0, reg8);
-    reg3  = v_merge_hi_64(reg3, reg8);
-    reg7  = reg2;
-    reg2  = v_merge_lo_64(reg2, reg10);
-    reg7  = v_merge_hi_64(reg7, reg10);
-    reg11 = reg1;
-    reg1  = v_merge_lo_64(reg1, reg9);
-    reg11 = v_merge_hi_64(reg11, reg9);
-    reg15 = reg6;
-    reg6  = v_merge_lo_64(reg6, reg14);
-    reg15 = v_merge_hi_64(reg15, reg14);
+      reg3  = reg0;
+      reg0  = v_merge_lo_64(reg0, reg8);
+      reg3  = v_merge_hi_64(reg3, reg8);
+      reg7  = reg2;
+      reg2  = v_merge_lo_64(reg2, reg10);
+      reg7  = v_merge_hi_64(reg7, reg10);
+      reg11 = reg1;
+      reg1  = v_merge_lo_64(reg1, reg9);
+      reg11 = v_merge_hi_64(reg11, reg9);
+      reg15 = reg6;
+      reg6  = v_merge_lo_64(reg6, reg14);
+      reg15 = v_merge_hi_64(reg15, reg14);
 
-    v_store(dprofile+16*j+  0, reg0);
-    v_store(dprofile+16*j+ 64, reg3);
-    v_store(dprofile+16*j+128, reg2);
-    v_store(dprofile+16*j+192, reg7);
-    v_store(dprofile+16*j+256, reg1);
-    v_store(dprofile+16*j+320, reg11);
-    v_store(dprofile+16*j+384, reg6);
-    v_store(dprofile+16*j+448, reg15);
-
-
-    // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
-
-    reg0  = v_load_64(score_matrix + 8 + d[0 ]);
-    reg1  = v_load_64(score_matrix + 8 + d[1 ]);
-    reg2  = v_load_64(score_matrix + 8 + d[2 ]);
-    reg3  = v_load_64(score_matrix + 8 + d[3 ]);
-    reg4  = v_load_64(score_matrix + 8 + d[4 ]);
-    reg5  = v_load_64(score_matrix + 8 + d[5 ]);
-    reg6  = v_load_64(score_matrix + 8 + d[6 ]);
-    reg7  = v_load_64(score_matrix + 8 + d[7 ]);
-    reg8  = v_load_64(score_matrix + 8 + d[8 ]);
-    reg9  = v_load_64(score_matrix + 8 + d[9 ]);
-    reg10 = v_load_64(score_matrix + 8 + d[10]);
-    reg11 = v_load_64(score_matrix + 8 + d[11]);
-    reg12 = v_load_64(score_matrix + 8 + d[12]);
-    reg13 = v_load_64(score_matrix + 8 + d[13]);
-    reg14 = v_load_64(score_matrix + 8 + d[14]);
-    reg15 = v_load_64(score_matrix + 8 + d[15]);
-
-    reg0  = v_merge_lo_8(reg0,  reg1);
-    reg2  = v_merge_lo_8(reg2,  reg3);
-    reg4  = v_merge_lo_8(reg4,  reg5);
-    reg6  = v_merge_lo_8(reg6,  reg7);
-    reg8  = v_merge_lo_8(reg8,  reg9);
-    reg10 = v_merge_lo_8(reg10, reg11);
-    reg12 = v_merge_lo_8(reg12, reg13);
-    reg14 = v_merge_lo_8(reg14, reg15);
-
-    reg1 = reg0;
-    reg0 = v_merge_lo_16(reg0, reg2);
-    reg1 = v_merge_hi_16(reg1, reg2);
-    reg5 = reg4;
-    reg4 = v_merge_lo_16(reg4, reg6);
-    reg5 = v_merge_hi_16(reg5, reg6);
-    reg9 = reg8;
-    reg8 = v_merge_lo_16(reg8, reg10);
-    reg9 = v_merge_hi_16(reg9, reg10);
-    reg13 = reg12;
-    reg12 = v_merge_lo_16(reg12, reg14);
-    reg13 = v_merge_hi_16(reg13, reg14);
-
-    reg2  = reg0;
-    reg0  = v_merge_lo_32(reg0, reg4);
-    reg2  = v_merge_hi_32(reg2, reg4);
-    reg6  = reg1;
-    reg1  = v_merge_lo_32(reg1, reg5);
-    reg6  = v_merge_hi_32(reg6, reg5);
-    reg10 = reg8;
-    reg8  = v_merge_lo_32(reg8, reg12);
-    reg10 = v_merge_hi_32(reg10, reg12);
-    reg14 = reg9;
-    reg9  = v_merge_lo_32(reg9, reg13);
-    reg14 = v_merge_hi_32(reg14, reg13);
-
-    reg3  = reg0;
-    reg0  = v_merge_lo_64(reg0, reg8);
-    reg3  = v_merge_hi_64(reg3, reg8);
-    reg7  = reg2;
-    reg2  = v_merge_lo_64(reg2, reg10);
-    reg7  = v_merge_hi_64(reg7, reg10);
-    reg11 = reg1;
-    reg1  = v_merge_lo_64(reg1, reg9);
-    reg11 = v_merge_hi_64(reg11, reg9);
-    reg15 = reg6;
-    reg6  = v_merge_lo_64(reg6, reg14);
-    reg15 = v_merge_hi_64(reg15, reg14);
-
-    v_store(dprofile+16*j+512+  0, reg0);
-    v_store(dprofile+16*j+512+ 64, reg3);
-    v_store(dprofile+16*j+512+128, reg2);
-    v_store(dprofile+16*j+512+192, reg7);
-    v_store(dprofile+16*j+512+256, reg1);
-    v_store(dprofile+16*j+512+320, reg11);
-    v_store(dprofile+16*j+512+384, reg6);
-    v_store(dprofile+16*j+512+448, reg15);
+      v_store(dprofile+16*j+  0, reg0);
+      v_store(dprofile+16*j+ 64, reg3);
+      v_store(dprofile+16*j+128, reg2);
+      v_store(dprofile+16*j+192, reg7);
+      v_store(dprofile+16*j+256, reg1);
+      v_store(dprofile+16*j+320, reg11);
+      v_store(dprofile+16*j+384, reg6);
+      v_store(dprofile+16*j+448, reg15);
 
 
-    reg0  = v_load_64(score_matrix + 16 + d[0 ]);
-    reg2  = v_load_64(score_matrix + 16 + d[2 ]);
-    reg4  = v_load_64(score_matrix + 16 + d[4 ]);
-    reg6  = v_load_64(score_matrix + 16 + d[6 ]);
-    reg8  = v_load_64(score_matrix + 16 + d[8 ]);
-    reg10 = v_load_64(score_matrix + 16 + d[10]);
-    reg12 = v_load_64(score_matrix + 16 + d[12]);
-    reg14 = v_load_64(score_matrix + 16 + d[14]);
+      // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
 
-    reg0  = v_merge_lo_8(reg0,  *(VECTORTYPE*)(score_matrix + 16 + d[ 1]));
-    reg2  = v_merge_lo_8(reg2,  *(VECTORTYPE*)(score_matrix + 16 + d[ 3]));
-    reg4  = v_merge_lo_8(reg4,  *(VECTORTYPE*)(score_matrix + 16 + d[ 5]));
-    reg6  = v_merge_lo_8(reg6,  *(VECTORTYPE*)(score_matrix + 16 + d[ 7]));
-    reg8  = v_merge_lo_8(reg8,  *(VECTORTYPE*)(score_matrix + 16 + d[ 9]));
-    reg10 = v_merge_lo_8(reg10, *(VECTORTYPE*)(score_matrix + 16 + d[11]));
-    reg12 = v_merge_lo_8(reg12, *(VECTORTYPE*)(score_matrix + 16 + d[13]));
-    reg14 = v_merge_lo_8(reg14, *(VECTORTYPE*)(score_matrix + 16 + d[15]));
+      reg0  = v_load_64(score_matrix + 8 + d[0 ]);
+      reg1  = v_load_64(score_matrix + 8 + d[1 ]);
+      reg2  = v_load_64(score_matrix + 8 + d[2 ]);
+      reg3  = v_load_64(score_matrix + 8 + d[3 ]);
+      reg4  = v_load_64(score_matrix + 8 + d[4 ]);
+      reg5  = v_load_64(score_matrix + 8 + d[5 ]);
+      reg6  = v_load_64(score_matrix + 8 + d[6 ]);
+      reg7  = v_load_64(score_matrix + 8 + d[7 ]);
+      reg8  = v_load_64(score_matrix + 8 + d[8 ]);
+      reg9  = v_load_64(score_matrix + 8 + d[9 ]);
+      reg10 = v_load_64(score_matrix + 8 + d[10]);
+      reg11 = v_load_64(score_matrix + 8 + d[11]);
+      reg12 = v_load_64(score_matrix + 8 + d[12]);
+      reg13 = v_load_64(score_matrix + 8 + d[13]);
+      reg14 = v_load_64(score_matrix + 8 + d[14]);
+      reg15 = v_load_64(score_matrix + 8 + d[15]);
 
-    reg1 = reg0;
-    reg0 = v_merge_lo_16(reg0, reg2);
-    reg1 = v_merge_hi_16(reg1, reg2);
-    reg5 = reg4;
-    reg4 = v_merge_lo_16(reg4, reg6);
-    reg5 = v_merge_hi_16(reg5, reg6);
-    reg9 = reg8;
-    reg8 = v_merge_lo_16(reg8, reg10);
-    reg9 = v_merge_hi_16(reg9, reg10);
-    reg13 = reg12;
-    reg12 = v_merge_lo_16(reg12, reg14);
-    reg13 = v_merge_hi_16(reg13, reg14);
+      reg0  = v_merge_lo_8(reg0,  reg1);
+      reg2  = v_merge_lo_8(reg2,  reg3);
+      reg4  = v_merge_lo_8(reg4,  reg5);
+      reg6  = v_merge_lo_8(reg6,  reg7);
+      reg8  = v_merge_lo_8(reg8,  reg9);
+      reg10 = v_merge_lo_8(reg10, reg11);
+      reg12 = v_merge_lo_8(reg12, reg13);
+      reg14 = v_merge_lo_8(reg14, reg15);
 
-    reg2  = reg0;
-    reg0  = v_merge_lo_32(reg0, reg4);
-    reg2  = v_merge_hi_32(reg2, reg4);
-    reg6  = reg1;
-    reg1  = v_merge_lo_32(reg1, reg5);
-    reg6  = v_merge_hi_32(reg6, reg5);
-    reg10 = reg8;
-    reg8  = v_merge_lo_32(reg8, reg12);
-    reg10 = v_merge_hi_32(reg10, reg12);
-    reg14 = reg9;
-    reg9  = v_merge_lo_32(reg9, reg13);
-    reg14 = v_merge_hi_32(reg14, reg13);
+      reg1 = reg0;
+      reg0 = v_merge_lo_16(reg0, reg2);
+      reg1 = v_merge_hi_16(reg1, reg2);
+      reg5 = reg4;
+      reg4 = v_merge_lo_16(reg4, reg6);
+      reg5 = v_merge_hi_16(reg5, reg6);
+      reg9 = reg8;
+      reg8 = v_merge_lo_16(reg8, reg10);
+      reg9 = v_merge_hi_16(reg9, reg10);
+      reg13 = reg12;
+      reg12 = v_merge_lo_16(reg12, reg14);
+      reg13 = v_merge_hi_16(reg13, reg14);
 
-    reg3  = reg0;
-    reg0  = v_merge_lo_64(reg0, reg8);
-    reg3  = v_merge_hi_64(reg3, reg8);
-    reg7  = reg2;
-    reg2  = v_merge_lo_64(reg2, reg10);
-    reg7  = v_merge_hi_64(reg7, reg10);
-    reg11 = reg1;
-    reg1  = v_merge_lo_64(reg1, reg9);
-    reg11 = v_merge_hi_64(reg11, reg9);
-    reg15 = reg6;
-    reg6  = v_merge_lo_64(reg6, reg14);
-    reg15 = v_merge_hi_64(reg15, reg14);
+      reg2  = reg0;
+      reg0  = v_merge_lo_32(reg0, reg4);
+      reg2  = v_merge_hi_32(reg2, reg4);
+      reg6  = reg1;
+      reg1  = v_merge_lo_32(reg1, reg5);
+      reg6  = v_merge_hi_32(reg6, reg5);
+      reg10 = reg8;
+      reg8  = v_merge_lo_32(reg8, reg12);
+      reg10 = v_merge_hi_32(reg10, reg12);
+      reg14 = reg9;
+      reg9  = v_merge_lo_32(reg9, reg13);
+      reg14 = v_merge_hi_32(reg14, reg13);
 
-    v_store(dprofile+16*j+1024+  0, reg0);
-    v_store(dprofile+16*j+1024+ 64, reg3);
-    v_store(dprofile+16*j+1024+128, reg2);
-    v_store(dprofile+16*j+1024+192, reg7);
-    v_store(dprofile+16*j+1024+256, reg1);
-    v_store(dprofile+16*j+1024+320, reg11);
-    v_store(dprofile+16*j+1024+384, reg6);
-    v_store(dprofile+16*j+1024+448, reg15);
+      reg3  = reg0;
+      reg0  = v_merge_lo_64(reg0, reg8);
+      reg3  = v_merge_hi_64(reg3, reg8);
+      reg7  = reg2;
+      reg2  = v_merge_lo_64(reg2, reg10);
+      reg7  = v_merge_hi_64(reg7, reg10);
+      reg11 = reg1;
+      reg1  = v_merge_lo_64(reg1, reg9);
+      reg11 = v_merge_hi_64(reg11, reg9);
+      reg15 = reg6;
+      reg6  = v_merge_lo_64(reg6, reg14);
+      reg15 = v_merge_hi_64(reg15, reg14);
+
+      v_store(dprofile+16*j+512+  0, reg0);
+      v_store(dprofile+16*j+512+ 64, reg3);
+      v_store(dprofile+16*j+512+128, reg2);
+      v_store(dprofile+16*j+512+192, reg7);
+      v_store(dprofile+16*j+512+256, reg1);
+      v_store(dprofile+16*j+512+320, reg11);
+      v_store(dprofile+16*j+512+384, reg6);
+      v_store(dprofile+16*j+512+448, reg15);
 
 
-    // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
+      reg0  = v_load_64(score_matrix + 16 + d[0 ]);
+      reg2  = v_load_64(score_matrix + 16 + d[2 ]);
+      reg4  = v_load_64(score_matrix + 16 + d[4 ]);
+      reg6  = v_load_64(score_matrix + 16 + d[6 ]);
+      reg8  = v_load_64(score_matrix + 16 + d[8 ]);
+      reg10 = v_load_64(score_matrix + 16 + d[10]);
+      reg12 = v_load_64(score_matrix + 16 + d[12]);
+      reg14 = v_load_64(score_matrix + 16 + d[14]);
 
-    reg0  = v_load_64(score_matrix + 24 + d[ 0]);
-    reg1  = v_load_64(score_matrix + 24 + d[ 1]);
-    reg2  = v_load_64(score_matrix + 24 + d[ 2]);
-    reg3  = v_load_64(score_matrix + 24 + d[ 3]);
-    reg4  = v_load_64(score_matrix + 24 + d[ 4]);
-    reg5  = v_load_64(score_matrix + 24 + d[ 5]);
-    reg6  = v_load_64(score_matrix + 24 + d[ 6]);
-    reg7  = v_load_64(score_matrix + 24 + d[ 7]);
-    reg8  = v_load_64(score_matrix + 24 + d[ 8]);
-    reg9  = v_load_64(score_matrix + 24 + d[ 9]);
-    reg10 = v_load_64(score_matrix + 24 + d[10]);
-    reg11 = v_load_64(score_matrix + 24 + d[11]);
-    reg12 = v_load_64(score_matrix + 24 + d[12]);
-    reg13 = v_load_64(score_matrix + 24 + d[13]);
-    reg14 = v_load_64(score_matrix + 24 + d[14]);
-    reg15 = v_load_64(score_matrix + 24 + d[15]);
+      reg0  = v_merge_lo_8(reg0,  *(VECTORTYPE*)(score_matrix + 16 + d[ 1]));
+      reg2  = v_merge_lo_8(reg2,  *(VECTORTYPE*)(score_matrix + 16 + d[ 3]));
+      reg4  = v_merge_lo_8(reg4,  *(VECTORTYPE*)(score_matrix + 16 + d[ 5]));
+      reg6  = v_merge_lo_8(reg6,  *(VECTORTYPE*)(score_matrix + 16 + d[ 7]));
+      reg8  = v_merge_lo_8(reg8,  *(VECTORTYPE*)(score_matrix + 16 + d[ 9]));
+      reg10 = v_merge_lo_8(reg10, *(VECTORTYPE*)(score_matrix + 16 + d[11]));
+      reg12 = v_merge_lo_8(reg12, *(VECTORTYPE*)(score_matrix + 16 + d[13]));
+      reg14 = v_merge_lo_8(reg14, *(VECTORTYPE*)(score_matrix + 16 + d[15]));
 
-    reg0  = v_merge_lo_8(reg0,  reg1);
-    reg2  = v_merge_lo_8(reg2,  reg3);
-    reg4  = v_merge_lo_8(reg4,  reg5);
-    reg6  = v_merge_lo_8(reg6,  reg7);
-    reg8  = v_merge_lo_8(reg8,  reg9);
-    reg10 = v_merge_lo_8(reg10, reg11);
-    reg12 = v_merge_lo_8(reg12, reg13);
-    reg14 = v_merge_lo_8(reg14, reg15);
+      reg1 = reg0;
+      reg0 = v_merge_lo_16(reg0, reg2);
+      reg1 = v_merge_hi_16(reg1, reg2);
+      reg5 = reg4;
+      reg4 = v_merge_lo_16(reg4, reg6);
+      reg5 = v_merge_hi_16(reg5, reg6);
+      reg9 = reg8;
+      reg8 = v_merge_lo_16(reg8, reg10);
+      reg9 = v_merge_hi_16(reg9, reg10);
+      reg13 = reg12;
+      reg12 = v_merge_lo_16(reg12, reg14);
+      reg13 = v_merge_hi_16(reg13, reg14);
 
-    reg1 = reg0;
-    reg0 = v_merge_lo_16(reg0, reg2);
-    reg1 = v_merge_hi_16(reg1, reg2);
-    reg5 = reg4;
-    reg4 = v_merge_lo_16(reg4, reg6);
-    reg5 = v_merge_hi_16(reg5, reg6);
-    reg9 = reg8;
-    reg8 = v_merge_lo_16(reg8, reg10);
-    reg9 = v_merge_hi_16(reg9, reg10);
-    reg13 = reg12;
-    reg12 = v_merge_lo_16(reg12, reg14);
-    reg13 = v_merge_hi_16(reg13, reg14);
+      reg2  = reg0;
+      reg0  = v_merge_lo_32(reg0, reg4);
+      reg2  = v_merge_hi_32(reg2, reg4);
+      reg6  = reg1;
+      reg1  = v_merge_lo_32(reg1, reg5);
+      reg6  = v_merge_hi_32(reg6, reg5);
+      reg10 = reg8;
+      reg8  = v_merge_lo_32(reg8, reg12);
+      reg10 = v_merge_hi_32(reg10, reg12);
+      reg14 = reg9;
+      reg9  = v_merge_lo_32(reg9, reg13);
+      reg14 = v_merge_hi_32(reg14, reg13);
 
-    reg2  = reg0;
-    reg0  = v_merge_lo_32(reg0, reg4);
-    reg2  = v_merge_hi_32(reg2, reg4);
-    reg6  = reg1;
-    reg1  = v_merge_lo_32(reg1, reg5);
-    reg6  = v_merge_hi_32(reg6, reg5);
-    reg10 = reg8;
-    reg8  = v_merge_lo_32(reg8, reg12);
-    reg10 = v_merge_hi_32(reg10, reg12);
-    reg14 = reg9;
-    reg9  = v_merge_lo_32(reg9, reg13);
-    reg14 = v_merge_hi_32(reg14, reg13);
+      reg3  = reg0;
+      reg0  = v_merge_lo_64(reg0, reg8);
+      reg3  = v_merge_hi_64(reg3, reg8);
+      reg7  = reg2;
+      reg2  = v_merge_lo_64(reg2, reg10);
+      reg7  = v_merge_hi_64(reg7, reg10);
+      reg11 = reg1;
+      reg1  = v_merge_lo_64(reg1, reg9);
+      reg11 = v_merge_hi_64(reg11, reg9);
+      reg15 = reg6;
+      reg6  = v_merge_lo_64(reg6, reg14);
+      reg15 = v_merge_hi_64(reg15, reg14);
 
-    reg3  = reg0;
-    reg0  = v_merge_lo_64(reg0, reg8);
-    reg3  = v_merge_hi_64(reg3, reg8);
-    reg7  = reg2;
-    reg2  = v_merge_lo_64(reg2, reg10);
-    reg7  = v_merge_hi_64(reg7, reg10);
-    reg11 = reg1;
-    reg1  = v_merge_lo_64(reg1, reg9);
-    reg11 = v_merge_hi_64(reg11, reg9);
-    reg15 = reg6;
-    reg6  = v_merge_lo_64(reg6, reg14);
-    reg15 = v_merge_hi_64(reg15, reg14);
+      v_store(dprofile+16*j+1024+  0, reg0);
+      v_store(dprofile+16*j+1024+ 64, reg3);
+      v_store(dprofile+16*j+1024+128, reg2);
+      v_store(dprofile+16*j+1024+192, reg7);
+      v_store(dprofile+16*j+1024+256, reg1);
+      v_store(dprofile+16*j+1024+320, reg11);
+      v_store(dprofile+16*j+1024+384, reg6);
+      v_store(dprofile+16*j+1024+448, reg15);
 
-    v_store(dprofile+16*j+1536+  0, reg0);
-    v_store(dprofile+16*j+1536+ 64, reg3);
-    v_store(dprofile+16*j+1536+128, reg2);
-    v_store(dprofile+16*j+1536+192, reg7);
-    v_store(dprofile+16*j+1536+256, reg1);
-    v_store(dprofile+16*j+1536+320, reg11);
-    v_store(dprofile+16*j+1536+384, reg6);
-    v_store(dprofile+16*j+1536+448, reg15);
-  }
+
+      // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
+
+      reg0  = v_load_64(score_matrix + 24 + d[ 0]);
+      reg1  = v_load_64(score_matrix + 24 + d[ 1]);
+      reg2  = v_load_64(score_matrix + 24 + d[ 2]);
+      reg3  = v_load_64(score_matrix + 24 + d[ 3]);
+      reg4  = v_load_64(score_matrix + 24 + d[ 4]);
+      reg5  = v_load_64(score_matrix + 24 + d[ 5]);
+      reg6  = v_load_64(score_matrix + 24 + d[ 6]);
+      reg7  = v_load_64(score_matrix + 24 + d[ 7]);
+      reg8  = v_load_64(score_matrix + 24 + d[ 8]);
+      reg9  = v_load_64(score_matrix + 24 + d[ 9]);
+      reg10 = v_load_64(score_matrix + 24 + d[10]);
+      reg11 = v_load_64(score_matrix + 24 + d[11]);
+      reg12 = v_load_64(score_matrix + 24 + d[12]);
+      reg13 = v_load_64(score_matrix + 24 + d[13]);
+      reg14 = v_load_64(score_matrix + 24 + d[14]);
+      reg15 = v_load_64(score_matrix + 24 + d[15]);
+
+      reg0  = v_merge_lo_8(reg0,  reg1);
+      reg2  = v_merge_lo_8(reg2,  reg3);
+      reg4  = v_merge_lo_8(reg4,  reg5);
+      reg6  = v_merge_lo_8(reg6,  reg7);
+      reg8  = v_merge_lo_8(reg8,  reg9);
+      reg10 = v_merge_lo_8(reg10, reg11);
+      reg12 = v_merge_lo_8(reg12, reg13);
+      reg14 = v_merge_lo_8(reg14, reg15);
+
+      reg1 = reg0;
+      reg0 = v_merge_lo_16(reg0, reg2);
+      reg1 = v_merge_hi_16(reg1, reg2);
+      reg5 = reg4;
+      reg4 = v_merge_lo_16(reg4, reg6);
+      reg5 = v_merge_hi_16(reg5, reg6);
+      reg9 = reg8;
+      reg8 = v_merge_lo_16(reg8, reg10);
+      reg9 = v_merge_hi_16(reg9, reg10);
+      reg13 = reg12;
+      reg12 = v_merge_lo_16(reg12, reg14);
+      reg13 = v_merge_hi_16(reg13, reg14);
+
+      reg2  = reg0;
+      reg0  = v_merge_lo_32(reg0, reg4);
+      reg2  = v_merge_hi_32(reg2, reg4);
+      reg6  = reg1;
+      reg1  = v_merge_lo_32(reg1, reg5);
+      reg6  = v_merge_hi_32(reg6, reg5);
+      reg10 = reg8;
+      reg8  = v_merge_lo_32(reg8, reg12);
+      reg10 = v_merge_hi_32(reg10, reg12);
+      reg14 = reg9;
+      reg9  = v_merge_lo_32(reg9, reg13);
+      reg14 = v_merge_hi_32(reg14, reg13);
+
+      reg3  = reg0;
+      reg0  = v_merge_lo_64(reg0, reg8);
+      reg3  = v_merge_hi_64(reg3, reg8);
+      reg7  = reg2;
+      reg2  = v_merge_lo_64(reg2, reg10);
+      reg7  = v_merge_hi_64(reg7, reg10);
+      reg11 = reg1;
+      reg1  = v_merge_lo_64(reg1, reg9);
+      reg11 = v_merge_hi_64(reg11, reg9);
+      reg15 = reg6;
+      reg6  = v_merge_lo_64(reg6, reg14);
+      reg15 = v_merge_hi_64(reg15, reg14);
+
+      v_store(dprofile+16*j+1536+  0, reg0);
+      v_store(dprofile+16*j+1536+ 64, reg3);
+      v_store(dprofile+16*j+1536+128, reg2);
+      v_store(dprofile+16*j+1536+192, reg7);
+      v_store(dprofile+16*j+1536+256, reg1);
+      v_store(dprofile+16*j+1536+320, reg11);
+      v_store(dprofile+16*j+1536+384, reg6);
+      v_store(dprofile+16*j+1536+448, reg15);
+    }
 
   //  dprofile_dump8(dprofile);
 }
 
-#define ONESTEP(H, N, F, V, DIR, E, QR, R, W)                           \
-  H = v_add_u(H, V);                                                    \
-  W = H;                                                                \
-  H = v_min_u(H, F);                                                    \
-  *((DIR) + 0) = v_mask_eq(W, H);                                       \
-  H = v_min_u(H, E);                                                    \
-  *((DIR) + 2) = v_mask_eq(H, E);                                       \
-  N = H;                                                                \
-  H = v_add_u(H, QR);                                                   \
-  F = v_add_u(F, R);                                                    \
-  E = v_add_u(E, R);                                                    \
-  F = v_min_u(H, F);                                                    \
-  *((DIR) + 4) = v_mask_eq(H, F);                                       \
-  E = v_min_u(H, E);                                                    \
-  *((DIR) + 6) = v_mask_eq(H, E);
+#define ONESTEP(H, N, F, V, DIR, E, QR, R, W)   \
+  H = v_add(H, V);                              \
+  W = H;                                        \
+  H = v_min_u(H, F);                            \
+  *((DIR) + 0) = v_mask_eq(W, H);               \
+  H = v_min_u(H, E);                            \
+  *((DIR) + 1) = v_mask_eq(H, E);               \
+  N = H;                                        \
+  H = v_add(H, QR);                             \
+  F = v_add(F, R);                              \
+  E = v_add(E, R);                              \
+  F = v_min_u(H, F);                            \
+  *((DIR) + 2) = v_mask_eq(H, F);               \
+  E = v_min_u(H, E);                            \
+  *((DIR) + 3) = v_mask_eq(H, E);
 
-inline void donormal08(VECTORTYPE * Sm,
-                       VECTORTYPE * hep,
-                       VECTORTYPE ** qp,
-                       VECTORTYPE * Qm,
-                       VECTORTYPE * Rm,
-                       long ql,
-                       VECTORTYPE * F0,
-                       unsigned long * dir_long,
-                       VECTORTYPE * H0)
+inline void align_cells_regular(VECTORTYPE * Sm,
+                                VECTORTYPE * hep,
+                                VECTORTYPE ** qp,
+                                VECTORTYPE * Qm,
+                                VECTORTYPE * Rm,
+                                long ql,
+                                VECTORTYPE * F0,
+                                unsigned long * dir_long,
+                                VECTORTYPE * H0)
 {
   VECTORTYPE Q, R, E, W;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
@@ -458,20 +455,20 @@ inline void donormal08(VECTORTYPE * Sm,
   VECTORTYPE * x;
   long z, i;
 
-  VECTORELEMENTTYPE * dir = (VECTORELEMENTTYPE *) dir_long;
+  unsigned short * dir = (unsigned short *) dir_long;
 
   Q = *Qm;
   R = *Rm;
 
   f0 = *F0;
-  f1 = v_add_u(f0, R);
-  f2 = v_add_u(f1, R);
-  f3 = v_add_u(f2, R);
+  f1 = v_add(f0, R);
+  f2 = v_add(f1, R);
+  f3 = v_add(f2, R);
 
   h0 = *H0;
-  h1 = v_sub_u(f0, Q);
-  h2 = v_add_u(h1, R);
-  h3 = v_add_u(h2, R);
+  h1 = v_sub(f0, Q);
+  h2 = v_add(h1, R);
+  h3 = v_add(h2, R);
   h4 = v_zero;
 
   z = ql - (ql & 1);
@@ -481,20 +478,20 @@ inline void donormal08(VECTORTYPE * Sm,
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
       x = qp[i + 0];
-      ONESTEP(h0, h5, f0, x[0], dir + 32*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 32*i +  8, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 32*i + 16, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 32*i + 24, E, Q, R, W);
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
 
       h0 = hep[2*i + 2];
       E  = hep[2*i + 3];
       x = qp[i +  1];
-      ONESTEP(h4, h1, f0, x[0], dir + 32*i + 32, E, Q, R, W);
-      ONESTEP(h5, h2, f1, x[1], dir + 32*i + 40, E, Q, R, W);
-      ONESTEP(h6, h3, f2, x[2], dir + 32*i + 48, E, Q, R, W);
-      ONESTEP(h7, h4, f3, x[3], dir + 32*i + 56, E, Q, R, W);
+      ONESTEP(h4, h1, f0, x[0], dir + 16*i + 16, E, Q, R, W);
+      ONESTEP(h5, h2, f1, x[1], dir + 16*i + 20, E, Q, R, W);
+      ONESTEP(h6, h3, f2, x[2], dir + 16*i + 24, E, Q, R, W);
+      ONESTEP(h7, h4, f3, x[3], dir + 16*i + 28, E, Q, R, W);
       hep[2*i + 2] = h4;
       hep[2*i + 3] = E;
 
@@ -505,10 +502,10 @@ inline void donormal08(VECTORTYPE * Sm,
     {
       E  = hep[2*i + 1];
       x = qp[i + 0];
-      ONESTEP(h0, h5, f0, x[0], dir + 32*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 32*i +  8, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 32*i + 16, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 32*i + 24, E, Q, R, W);
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
 
@@ -526,19 +523,19 @@ inline void donormal08(VECTORTYPE * Sm,
     }
 }
 
-inline void domasked08(VECTORTYPE * Sm,
-                       VECTORTYPE * hep,
-                       VECTORTYPE ** qp,
-                       VECTORTYPE * Qm,
-                       VECTORTYPE * Rm,
-                       long ql,
-                       VECTORTYPE * F0,
-                       unsigned long * dir_long,
-                       VECTORTYPE * H0,
-                       VECTORTYPE * Mm,
-                       VECTORTYPE * MQ,
-                       VECTORTYPE * MR,
-                       VECTORTYPE * MQ0)
+inline void align_cells_masked(VECTORTYPE * Sm,
+                               VECTORTYPE * hep,
+                               VECTORTYPE ** qp,
+                               VECTORTYPE * Qm,
+                               VECTORTYPE * Rm,
+                               long ql,
+                               VECTORTYPE * F0,
+                               unsigned long * dir_long,
+                               VECTORTYPE * H0,
+                               VECTORTYPE * Mm,
+                               VECTORTYPE * MQ,
+                               VECTORTYPE * MR,
+                               VECTORTYPE * MQ0)
 {
   VECTORTYPE Q, R, E, W;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
@@ -546,7 +543,7 @@ inline void domasked08(VECTORTYPE * Sm,
   VECTORTYPE * x;
   long z, i;
 
-  VECTORELEMENTTYPE * dir = (VECTORELEMENTTYPE *) dir_long;
+  unsigned short * dir = (unsigned short *) dir_long;
 
   Q = *Qm;
   R = *Rm;
@@ -571,21 +568,21 @@ inline void domasked08(VECTORTYPE * Sm,
       x = qp[i + 0];
 
       /* mask h4 and E */
-      h4 = v_sub_u(h4, *Mm);
-      E  = v_sub_u(E,  *Mm);
+      h4 = v_sub(h4, *Mm);
+      E  = v_sub(E,  *Mm);
 
       /* init h4 and E */
-      h4 = v_add_u(h4, *MQ);
-      E  = v_add_u(E,  *MQ);
-      E  = v_add_u(E,  *MQ0);
+      h4 = v_add(h4, *MQ);
+      E  = v_add(E,  *MQ);
+      E  = v_add(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add_u(*MQ,  *MR);
+      *MQ = v_add(*MQ,  *MR);
 
-      ONESTEP(h0, h5, f0, x[0], dir + 32*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 32*i +  8, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 32*i + 16, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 32*i + 24, E, Q, R, W);
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
 
@@ -594,21 +591,21 @@ inline void domasked08(VECTORTYPE * Sm,
       x = qp[i +  1];
 
       /* mask h0 and E */
-      h0 = v_sub_u(h0, *Mm);
-      E  = v_sub_u(E,  *Mm);
+      h0 = v_sub(h0, *Mm);
+      E  = v_sub(E,  *Mm);
 
       /* init h0 and E */
-      h0 = v_add_u(h0, *MQ);
-      E  = v_add_u(E,  *MQ);
-      E  = v_add_u(E,  *MQ0);
+      h0 = v_add(h0, *MQ);
+      E  = v_add(E,  *MQ);
+      E  = v_add(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add_u(*MQ, *MR);
+      *MQ = v_add(*MQ, *MR);
 
-      ONESTEP(h4, h1, f0, x[0], dir + 32*i + 32, E, Q, R, W);
-      ONESTEP(h5, h2, f1, x[1], dir + 32*i + 40, E, Q, R, W);
-      ONESTEP(h6, h3, f2, x[2], dir + 32*i + 48, E, Q, R, W);
-      ONESTEP(h7, h4, f3, x[3], dir + 32*i + 56, E, Q, R, W);
+      ONESTEP(h4, h1, f0, x[0], dir + 16*i + 16, E, Q, R, W);
+      ONESTEP(h5, h2, f1, x[1], dir + 16*i + 20, E, Q, R, W);
+      ONESTEP(h6, h3, f2, x[2], dir + 16*i + 24, E, Q, R, W);
+      ONESTEP(h7, h4, f3, x[3], dir + 16*i + 28, E, Q, R, W);
       hep[2*i + 2] = h4;
       hep[2*i + 3] = E;
 
@@ -621,19 +618,19 @@ inline void domasked08(VECTORTYPE * Sm,
       x = qp[i + 0];
 
       /* mask E */
-      E  = v_sub_u(E,  *Mm);
+      E  = v_sub(E,  *Mm);
 
       /* init E */
-      E  = v_add_u(E,  *MQ);
-      E  = v_add_u(E,  *MQ0);
+      E  = v_add(E,  *MQ);
+      E  = v_add(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add_u(*MQ,  *MR);
+      *MQ = v_add(*MQ,  *MR);
 
-      ONESTEP(h0, h5, f0, x[0], dir + 32*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 32*i +  8, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 32*i + 16, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 32*i + 24, E, Q, R, W);
+      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
+      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
+      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
+      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
 
@@ -651,15 +648,15 @@ inline void domasked08(VECTORTYPE * Sm,
     }
 }
 
-unsigned long backtrack08(char * qseq,
-                          char * dseq,
-                          unsigned long qlen,
-                          unsigned long dlen,
-                          unsigned long * dirbuffer,
-                          unsigned long offset,
-                          unsigned long dirbuffersize,
-                          unsigned long channel,
-                          unsigned long * alignmentlengthp)
+inline unsigned long backtrack(char * qseq,
+                               char * dseq,
+                               unsigned long qlen,
+                               unsigned long dlen,
+                               unsigned long * dirbuffer,
+                               unsigned long offset,
+                               unsigned long dirbuffersize,
+                               unsigned long channel,
+                               unsigned long * alignmentlengthp)
 {
   unsigned long maskup      = 1UL << (channel+ 0);
   unsigned long maskleft    = 1UL << (channel+16);
@@ -674,7 +671,8 @@ unsigned long backtrack08(char * qseq,
     {
       for(unsigned long j=0; j<dlen; j++)
         {
-          unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dirbuffersize];
+          unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+                                       + 4*i + (j&3)) % dirbuffersize];
           if (d & maskleft)
             {
               printf("<");
@@ -726,6 +724,7 @@ unsigned long backtrack08(char * qseq,
   unsigned long matches = 0;
   char op = 0;
 
+#define SHOWALIGNMENT
 #undef SHOWALIGNMENT
 #ifdef SHOWALIGNMENT
   printf("alignment, reversed: ");
@@ -842,12 +841,12 @@ void search8(BYTE * * q_start,
   qp = (VECTORTYPE**) q_start;
 
   for (int c=0; c<CHANNELS; c++)
-  {
-    d_address[c] = 0;
-    d_pos[c] = 0;
-    d_length[c] = 0;
-    seq_id[c] = -1;
-  }
+    {
+      d_address[c] = 0;
+      d_pos[c] = 0;
+      d_length[c] = 0;
+      seq_id[c] = -1;
+    }
 
   F0 = v_zero;
   H0 = v_zero;
@@ -857,169 +856,165 @@ void search8(BYTE * * q_start,
   unsigned long * dir = dirbuffer;
 
   while(1)
-  {
-
-    if (easy)
     {
-      // fill all channels
-
-      for(int c=0; c<CHANNELS; c++)
-      {
-        for(int j=0; j<CDEPTH; j++)
+      if (easy)
         {
-          if (d_pos[c] < d_length[c])
-            dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+          // fill all channels
+
+          for(int c=0; c<CHANNELS; c++)
+            {
+              for(int j=0; j<CDEPTH; j++)
+                {
+                  if (d_pos[c] < d_length[c])
+                    dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                  else
+                    dseq[CHANNELS*j+c] = 0;
+                }
+              if (d_pos[c] == d_length[c])
+                easy = 0;
+            }
+
+          if (ssse3_present)
+            dprofile_shuffle8(dprofile, score_matrix, dseq);
           else
-            dseq[CHANNELS*j+c] = 0;
-        }
-        if (d_pos[c] == d_length[c])
-          easy = 0;
-      }
+            dprofile_fill8(dprofile, score_matrix, dseq);
 
-      if (ssse3_present)
-        dprofile_shuffle8(dprofile, score_matrix, dseq);
+          align_cells_regular(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
+        }
       else
-        dprofile_fill8(dprofile, score_matrix, dseq);
-
-      donormal08(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
-    }
-    else
-    {
-      // One or more sequences ended in the previous block
-      // We have to switch over to a new sequence
-
-      easy = 1;
-
-      M = v_zero;
-      T = T0;
-      for (int c=0; c<CHANNELS; c++)
-      {
-        if (d_pos[c] < d_length[c])
         {
-          // this channel has more sequence
+          // One or more sequences ended in the previous block
+          // We have to switch over to a new sequence
 
-          for(int j=0; j<CDEPTH; j++)
-          {
-            if (d_pos[c] < d_length[c])
-              dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
-            else
-              dseq[CHANNELS*j+c] = 0;
-          }
-          if (d_pos[c] == d_length[c])
-            easy = 0;
-        }
-        else
-        {
-          // sequence in channel c ended
-          // change of sequence
+          easy = 1;
 
-          M = v_xor(M, T);
-
-          long cand_id = seq_id[c];
-
-
-          if (cand_id >= 0)
-          {
-            // save score
-
-            char * dbseq = (char*) d_address[c];
-            long dbseqlen = d_length[c];
-            long z = (dbseqlen+3) % 4;
-            long score = ((BYTE*)S)[z*CHANNELS+c];
-            scores[cand_id] = score;
-
-            unsigned long diff;
-
-            if (score < 255)
-            {
-              long offset = d_offset[c];
-              diff = backtrack08(query.seq, dbseq, qlen, dbseqlen,
-                                 dirbuffer,
-                                 offset,
-                                 dirbuffersize, c,
-                                 alignmentlengths + cand_id);
-            }
-            else
-            {
-              diff = 255;
-            }
-
-            diffs[cand_id] = diff;
-
-            done++;
-          }
-
-          if (next_id < sequences)
-          {
-            // get next sequence
-            seq_id[c] = next_id;
-            long seqno = seqnos[next_id];
-            char* address;
-            long length;
-
-            db_getsequenceandlength(seqno, & address, & length);
-
-            d_address[c] = address;
-            d_length[c] = length;
-
-            d_pos[c] = 0;
-            d_offset[c] = dir - dirbuffer;
-            next_id++;
-
-            ((BYTE*)&H0)[c] = 0;
-            ((BYTE*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
-
-            // fill channel
-            for(int j=0; j<CDEPTH; j++)
+          M = v_zero;
+          T = T0;
+          for (int c=0; c<CHANNELS; c++)
             {
               if (d_pos[c] < d_length[c])
-                dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                {
+                  // this channel has more sequence
+
+                  for(int j=0; j<CDEPTH; j++)
+                    {
+                      if (d_pos[c] < d_length[c])
+                        dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                      else
+                        dseq[CHANNELS*j+c] = 0;
+                    }
+                  if (d_pos[c] == d_length[c])
+                    easy = 0;
+                }
               else
-                dseq[CHANNELS*j+c] = 0;
+                {
+                  // sequence in channel c ended
+                  // change of sequence
+
+                  M = v_xor(M, T);
+
+                  long cand_id = seq_id[c];
+
+                  if (cand_id >= 0)
+                    {
+                      // save score
+
+                      char * dbseq = (char*) d_address[c];
+                      long dbseqlen = d_length[c];
+                      long z = (dbseqlen+3) % 4;
+                      long score = ((BYTE*)S)[z*CHANNELS+c];
+                      scores[cand_id] = score;
+
+                      unsigned long diff;
+
+                      if (score < 255)
+                        {
+                          long offset = d_offset[c];
+                          diff = backtrack(query.seq, dbseq, qlen, dbseqlen,
+                                           dirbuffer,
+                                           offset,
+                                           dirbuffersize, c,
+                                           alignmentlengths + cand_id);
+                        }
+                      else
+                        {
+                          diff = 255;
+                        }
+
+                      diffs[cand_id] = diff;
+
+                      done++;
+                    }
+
+                  if (next_id < sequences)
+                    {
+                      // get next sequence
+                      seq_id[c] = next_id;
+                      long seqno = seqnos[next_id];
+                      char* address;
+                      long length;
+
+                      db_getsequenceandlength(seqno, & address, & length);
+
+                      d_address[c] = address;
+                      d_length[c] = length;
+
+                      d_pos[c] = 0;
+                      d_offset[c] = dir - dirbuffer;
+                      next_id++;
+
+                      ((BYTE*)&H0)[c] = 0;
+                      ((BYTE*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
+
+                      // fill channel
+                      for(int j=0; j<CDEPTH; j++)
+                        {
+                          if (d_pos[c] < d_length[c])
+                            dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                          else
+                            dseq[CHANNELS*j+c] = 0;
+                        }
+                      if (d_pos[c] == d_length[c])
+                        easy = 0;
+                    }
+                  else
+                    {
+                      // no more sequences, empty channel
+                      seq_id[c] = -1;
+                      d_address[c] = 0;
+                      d_pos[c] = 0;
+                      d_length[c] = 0;
+                      for (int j=0; j<CDEPTH; j++)
+                        dseq[CHANNELS*j+c] = 0;
+                    }
+                }
+
+              T = v_shift_left(T);
             }
-            if (d_pos[c] == d_length[c])
-              easy = 0;
-          }
+
+          if (done == sequences)
+            break;
+
+          if (ssse3_present)
+            dprofile_shuffle8(dprofile, score_matrix, dseq);
           else
-          {
-            // no more sequences, empty channel
-            seq_id[c] = -1;
-            d_address[c] = 0;
-            d_pos[c] = 0;
-            d_length[c] = 0;
-            for (int j=0; j<CDEPTH; j++)
-              dseq[CHANNELS*j+c] = 0;
-          }
+            dprofile_fill8(dprofile, score_matrix, dseq);
 
+          MQ = v_and(M, Q);
+          MR = v_and(M, R);
+          MQ0 = MQ;
 
+          align_cells_masked(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
         }
 
-        T = v_shift_left(T);
-      }
+      F0 = v_add(F0, R);
+      F0 = v_add(F0, R);
+      F0 = v_add(F0, R);
+      H0 = v_sub(F0, Q);
+      F0 = v_add(F0, R);
 
-      if (done == sequences)
-        break;
-
-      if (ssse3_present)
-        dprofile_shuffle8(dprofile, score_matrix, dseq);
-      else
-        dprofile_fill8(dprofile, score_matrix, dseq);
-
-      MQ = v_and(M, Q);
-      MR = v_and(M, R);
-      MQ0 = MQ;
-
-      domasked08(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
+      dir += 4*longestdbsequence;
+      if (dir >= dirbuffer + dirbuffersize)
+        dir -= dirbuffersize;
     }
-
-    F0 = v_add_u(F0, R);
-    F0 = v_add_u(F0, R);
-    F0 = v_add_u(F0, R);
-    H0 = v_sub_u(F0, Q);
-    F0 = v_add_u(F0, R);
-
-    dir += 4*longestdbsequence;
-    if (dir >= dirbuffer + dirbuffersize)
-      dir -= dirbuffersize;
-  }
 }
