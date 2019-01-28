@@ -421,21 +421,32 @@ inline void dprofile_fill8(BYTE * dprofile,
   //  dprofile_dump8(dprofile);
 }
 
-#define ONESTEP(H, N, F, V, DIR, E, QR, R, W)   \
-  H = v_add(H, V);                              \
-  W = H;                                        \
-  H = v_min_u(H, F);                            \
-  *((DIR) + 0) = v_mask_eq(W, H);               \
-  H = v_min_u(H, E);                            \
-  *((DIR) + 1) = v_mask_eq(H, E);               \
-  N = H;                                        \
-  H = v_add(H, QR);                             \
-  F = v_add(F, R);                              \
-  E = v_add(E, R);                              \
-  F = v_min_u(H, F);                            \
-  *((DIR) + 2) = v_mask_eq(H, F);               \
-  E = v_min_u(H, E);                            \
+inline void onestep_8(VECTORTYPE & H,
+                      VECTORTYPE & N,
+                      VECTORTYPE & F,
+                      VECTORTYPE V,
+                      unsigned short * DIR,
+                      VECTORTYPE & E,
+                      VECTORTYPE QR,
+                      VECTORTYPE R)
+{
+  VECTORTYPE W;
+
+  H = v_add(H, V);
+  W = H;
+  H = v_min_u(H, F);
+  *((DIR) + 0) = v_mask_eq(W, H);
+  H = v_min_u(H, E);
+  *((DIR) + 1) = v_mask_eq(H, E);
+  N = H;
+  H = v_add(H, QR);
+  F = v_add(F, R);
+  E = v_add(E, R);
+  F = v_min_u(H, F);
+  *((DIR) + 2) = v_mask_eq(H, F);
+  E = v_min_u(H, E);
   *((DIR) + 3) = v_mask_eq(H, E);
+}
 
 void align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
@@ -447,7 +458,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            unsigned long * dir_long,
                            VECTORTYPE * H0)
 {
-  VECTORTYPE Q, R, E, W;
+  VECTORTYPE Q, R, E;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
   VECTORTYPE * x;
@@ -472,10 +483,10 @@ void align_cells_regular_8(VECTORTYPE * Sm,
       x = qp[i + 0];
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
-      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
+      onestep_8(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
       h0 = h4;
@@ -504,11 +515,10 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
                                  VECTORTYPE * MR,
                                  VECTORTYPE * MQ0)
 {
-  VECTORTYPE Q, R, E, W;
+  VECTORTYPE Q, R, E;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
   VECTORTYPE * x;
-  long z, i;
 
   unsigned short * dir = (unsigned short *) dir_long;
 
@@ -524,11 +534,8 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
   h1 = v_sub(f0, Q);
   h2 = v_add(h1, R);
   h3 = v_add(h2, R);
-  h4 = v_zero;
 
-  z = ql - (ql & 1);
-  i = 0;
-  while (i < z)
+  for(long i = 0; i < ql; i++)
     {
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
@@ -546,73 +553,23 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add(*MQ,  *MR);
 
-      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
+      onestep_8(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
 
-      h0 = hep[2*i + 2];
-      E  = hep[2*i + 3];
-      x = qp[i +  1];
-
-      /* mask h0 and E */
-      h0 = v_sub(h0, *Mm);
-      E  = v_sub(E,  *Mm);
-
-      /* init h0 and E */
-      h0 = v_add(h0, *MQ);
-      E  = v_add(E,  *MQ);
-      E  = v_add(E,  *MQ0);
-
-      /* update MQ */
-      *MQ = v_add(*MQ, *MR);
-
-      ONESTEP(h4, h1, f0, x[0], dir + 16*i + 16, E, Q, R, W);
-      ONESTEP(h5, h2, f1, x[1], dir + 16*i + 20, E, Q, R, W);
-      ONESTEP(h6, h3, f2, x[2], dir + 16*i + 24, E, Q, R, W);
-      ONESTEP(h7, h4, f3, x[3], dir + 16*i + 28, E, Q, R, W);
-      hep[2*i + 2] = h4;
-      hep[2*i + 3] = E;
-
-      i += 2;
+      h0 = h4;
+      h1 = h5;
+      h2 = h6;
+      h3 = h7;
     }
 
-  if (i < ql)
-    {
-      E  = hep[2*i + 1];
-      x = qp[i + 0];
-
-      /* mask E */
-      E  = v_sub(E,  *Mm);
-
-      /* init E */
-      E  = v_add(E,  *MQ);
-      E  = v_add(E,  *MQ0);
-
-      /* update MQ */
-      *MQ = v_add(*MQ,  *MR);
-
-      ONESTEP(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R, W);
-      ONESTEP(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R, W);
-      ONESTEP(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R, W);
-      ONESTEP(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R, W);
-      hep[2*i + 0] = h8;
-      hep[2*i + 1] = E;
-
-      Sm[0] = h5;
-      Sm[1] = h6;
-      Sm[2] = h7;
-      Sm[3] = h8;
-    }
-  else
-    {
-      Sm[0] = h1;
-      Sm[1] = h2;
-      Sm[2] = h3;
-      Sm[3] = h4;
-    }
+  Sm[0] = h5;
+  Sm[1] = h6;
+  Sm[2] = h7;
+  Sm[3] = h8;
 }
 
 inline unsigned long backtrack_8(char * qseq,
