@@ -1,3 +1,4 @@
+
 /*
     SWARM
 
@@ -67,11 +68,10 @@ typedef __m128i VECTORTYPE;
 
 void dprofile_dump16(WORD * dprofile)
 {
-  char * s = sym_nt;
   printf("\ndprofile:\n");
   for(int i=0; i<32; i++)
     {
-      printf("%c: ",s[i]);
+      printf("%c: ", sym_nt[i]);
       for(int k=0; k<CDEPTH; k++)
         {
           printf("[");
@@ -152,8 +152,6 @@ inline void dprofile_fill16(WORD * dprofile_word,
   dprofile_dump16(dprofile_word);
 #endif
 }
-
-/* The code works only with 15-bit values */
 
 inline void onestep_16(VECTORTYPE & H,
                        VECTORTYPE & N,

@@ -70,17 +70,15 @@ typedef __m128i VECTORTYPE;
 
 void dprofile_dump8(BYTE * dprofile)
 {
-  char * ss = sym_nt;
-
   printf("\ndprofile:\n");
   for(int k=0; k<4; k++)
     {
       printf("k=%d 0 1 2 3 4 5 6 7 8 9 a b c d e f\n", k);
       for(int i=0; i<16; i++)
         {
-          printf("%c: ",ss[i]);
-          for(int j=0; j<16; j++)
-            printf("%2d", (char) dprofile[i*64+16*k+j]);
+          printf("%c: ", sym_nt[i]);
+          for(int j = 0; j < 16; j++)
+            printf("%2d", (char) dprofile[i*64+16*k + j]);
           printf("\n");
         }
     }
@@ -88,41 +86,12 @@ void dprofile_dump8(BYTE * dprofile)
   exit(1);
 }
 
-int dumpcounter = 0;
-char lines[4*16*1000];
-
-void dseq_dump8(BYTE * dseq)
-{
-  char * s = sym_nt;
-
-  if (dumpcounter < 21)
-    {
-      for(int i=0; i<CHANNELS; i++)
-        {
-          for(int j=0; j<CDEPTH; j++)
-            {
-              lines[4000*i+4*dumpcounter+j] = s[dseq[j*CHANNELS+i]];
-            }
-        }
-      dumpcounter++;
-    }
-  else
-    {
-      for(int i=0; i<16; i++)
-        {
-          printf("%.1000s\n", lines+4000*i);
-        }
-      exit(1);
-    }
-}
-
-
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
 {
-  __m128i reg0,  reg1, reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
-  __m128i reg8,  reg9, reg10, reg11, reg12, reg13, reg14, reg15;
+  VECTORTYPE reg0,  reg1, reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
+  VECTORTYPE reg8,  reg9, reg10, reg11, reg12, reg13, reg14, reg15;
 
   for(int j=0; j<CDEPTH; j++)
     {
@@ -417,8 +386,9 @@ inline void dprofile_fill8(BYTE * dprofile,
       v_store(dprofile+16*j+1536+384, reg6);
       v_store(dprofile+16*j+1536+448, reg15);
     }
-
-  //  dprofile_dump8(dprofile);
+#if 0
+  dprofile_dump8(dprofile);
+#endif
 }
 
 inline void onestep_8(VECTORTYPE & H,
@@ -648,7 +618,6 @@ inline unsigned long backtrack_8(char * qseq,
   unsigned long matches = 0;
   char op = 0;
 
-#define SHOWALIGNMENT
 #undef SHOWALIGNMENT
 #ifdef SHOWALIGNMENT
   printf("alignment, reversed: ");
