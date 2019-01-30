@@ -206,6 +206,11 @@ void align_cells_regular_16(VECTORTYPE * Sm,
   h1 = v_sub(f0, Q);
   h2 = v_add(h1, R);
   h3 = v_add(h2, R);
+  h4 = v_zero;
+  h5 = v_zero;
+  h6 = v_zero;
+  h7 = v_zero;
+  h8 = v_zero;
 
   for(long i = 0; i < ql; i++)
     {
@@ -263,6 +268,11 @@ void align_cells_masked_16(VECTORTYPE * Sm,
   h1 = v_sub(f0, Q);
   h2 = v_add(h1, R);
   h3 = v_add(h2, R);
+  h4 = v_zero;
+  h5 = v_zero;
+  h6 = v_zero;
+  h7 = v_zero;
+  h8 = v_zero;
 
   for(long i = 0; i < ql; i++)
     {
