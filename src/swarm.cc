@@ -277,7 +277,7 @@ void args_init(int argc, char **argv)
   opt_mismatch_penalty = 4;
   opt_mothur = 0;
   opt_no_otu_breaking = 0;
-  opt_output_file = DASH_FILENAME;
+  opt_output_file = 0;
   opt_seeds = 0;
   opt_statistics_file = 0;
   opt_threads = 1;
