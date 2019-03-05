@@ -35,13 +35,10 @@ WARNINGS=-Wall -Wsign-compare -Wextra -pedantic -Wno-long-long
 CXXFLAGS=$(COMMON) $(WARNINGS) -Icityhash
 
 PROG=swarm
-MAN=../man/swarm.1
 
-SRCS=swarm.cc db.cc search8.cc search16.cc nw.cc matrix.cc util.cc scan.cc \
-	algo.cc algod1.cc qgram.cc ssse3.cc derep.cc arch.cc cityhash/city.cc \
-	zobrist.cc bloompat.cc bloomflex.cc variants.cc hashtable.cc
-
-OBJS=$(SRCS:.cc=.o)
+OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
+	algo.o algod1.o qgram.o ssse3.o derep.o arch.o cityhash/city.o \
+	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o
 
 DEPS=Makefile swarm.h cityhash/config.h cityhash/city.h \
 	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h
@@ -52,15 +49,10 @@ swarm : $(OBJS) $(DEPS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 	mkdir -p ../bin
 	cp -a swarm ../bin
-	gzip -kf $(MAN)
-
-install : $(PROG) $(MAN)
-	/usr/bin/install -c $(PROG) '/usr/local/bin'
-	/usr/bin/install -c $(MAN:.1=.1.gz) '/usr/local/share/man/man1'
 
 clean :
 	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o \
-	../man/*~ ../man/*.gz ../*~
+	../man/*~ ../*~
 
 .o : .cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
