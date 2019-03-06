@@ -9,7 +9,9 @@ swarm \(em find clusters of nearly-identical nucleotide amplicons
 .SY swarm
 .B \-h|v
 .YS
+.PP
 .\" swarm default usage
+High-precision clustering:
 .SY swarm
 .RI [ filename ]
 .YS
@@ -44,9 +46,11 @@ swarm \(em find clusters of nearly-identical nucleotide amplicons
 .OP \-w filename
 .RI [ filename ]
 .YS
+.PP
 .\" swarm d > 1
+Conservative clustering:
 .SY swarm
-.RB [ \-d " 2+" ]
+.RB \-d " 2+"
 .OP \-nrz
 .OP \-a int
 .OP \-e int
@@ -58,6 +62,21 @@ swarm \(em find clusters of nearly-identical nucleotide amplicons
 .OP \-p int
 .OP \-s filename
 .OP \-t int
+.OP \-u filename
+.OP \-w filename
+.RI [ filename ]
+.YS
+.PP
+.\" swarm d = 0
+Dereplication (merge strictly identical sequences):
+.SY swarm
+.RB \-d " 0"
+.OP \-rz
+.OP \-a int
+.OP \-i filename
+.OP \-l filename
+.OP \-o filename
+.OP \-s filename
 .OP \-u filename
 .OP \-w filename
 .RI [ filename ]
