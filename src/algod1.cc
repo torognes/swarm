@@ -665,16 +665,24 @@ void algo_d1_run()
       bp->graft_cand = NO_SWARM;
       hash_insert(i);
       progress_update(i);
+      if (duplicates_found)
+        break;
     }
-  progress_done();
 
   if (duplicates_found)
     {
       fprintf(logfile,
-              "WARNING: %lu duplicated sequences detected.\n"
-              "Please consider dereplicating your data for optimal results.\n",
-              duplicates_found);
+              "\n\n"
+              "Error: some fasta entries have identical sequences.\n"
+              "Swarm expects dereplicated fasta files.\n"
+              "Such files can be produced with swarm or vsearch:\n"
+              " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
+              "or\n"
+              " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
+      exit(1);
     }
+
+  progress_done();
 
   unsigned char * dir = 0;
   unsigned long * hearray = 0;
