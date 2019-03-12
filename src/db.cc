@@ -671,7 +671,10 @@ void db_read(const char * filename)
             }
 
           if (seqfound)
-            duplicates_found++;
+            {
+              duplicates_found++;
+              break;
+            }
           else
             seqhashtable[seqhashindex] = seqindex_p;
         }
@@ -679,6 +682,20 @@ void db_read(const char * filename)
       seqindex_p++;
       progress_update(i);
     }
+
+  if (duplicates_found)
+    {
+      fprintf(logfile,
+              "\n\n"
+              "Error: some fasta entries have identical sequences.\n"
+              "Swarm expects dereplicated fasta files.\n"
+              "Such files can be produced with swarm or vsearch:\n"
+              " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
+              "or\n"
+              " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
+      exit(1);
+    }
+
   progress_done();
 
   if (missingabundance)
@@ -695,14 +712,6 @@ void db_read(const char * filename)
               missingabundance_lineno,
               missingabundance_header);
       exit(1);
-    }
-
-  if (duplicates_found)
-    {
-      fprintf(logfile,
-              "WARNING: %lu duplicated sequences detected.\n"
-              "Please consider dereplicating your data for optimal results.\n",
-              duplicates_found);
     }
 
   if (!presorted)
