@@ -453,7 +453,7 @@ void db_read(const char * filename)
           char * p = line;
           while((c = *p++))
 	    {
-              char m;
+              signed char m;
               if ((m = map_nt[(unsigned int)c]) >= 0)
                 {
                   nt_buffer |= (((unsigned long)m)-1) << (2 * nt_bufferlen);
