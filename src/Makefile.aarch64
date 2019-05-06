@@ -25,7 +25,7 @@
 # PROFILING=-pg
 PROFILING=
 
-COMMON=$(PROFILING) -g -flto -std=c++11 -O3 -mtune=generic -march=x86-64
+COMMON=$(PROFILING) -g -flto -std=c++11 -O3 -mtune=generic -march=armv8-a+simd -flax-vector-conversions
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
@@ -38,8 +38,7 @@ PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o derep.o arch.o cityhash/city.o \
-	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o \
-        ssse3.o
+	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o
 
 DEPS=Makefile swarm.h cityhash/config.h cityhash/city.h \
 	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h
@@ -57,6 +56,3 @@ clean :
 
 .o : .cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
-ssse3.o : ssse3.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<

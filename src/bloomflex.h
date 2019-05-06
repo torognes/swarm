@@ -21,8 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "immintrin.h"
-
 struct bloomflex_s
 {
   unsigned long size; /* size in number of longs (8 bytes) */

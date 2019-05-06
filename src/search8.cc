@@ -32,7 +32,35 @@
 
 #elif __aarch64__
 
-#error Architecture aarch64 not implemented yet
+typedef int8x16_t VECTORTYPE;
+
+const uint16x8_t neon_mask =
+  {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
+
+#define v_init(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) (const VECTORTYPE){a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p}
+
+#define v_load(a) vld1q_s8((const int8_t *)(a))
+#define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
+#define v_store(a, b) vst1q_s8((int8_t *)(a), (b))
+#define v_merge_lo_8(a, b) vzip1q_s8((a),(b))
+#define v_merge_hi_8(a, b) vzip2q_s8((a),(b))
+#define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
+#define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
+#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_low_s64(vreinterpretq_s64_s16(a)), vget_low_s64(vreinterpretq_s64_s16(b))))
+#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_high_s64(vreinterpretq_s64_s16(a)), vget_high_s64(vreinterpretq_s64_s16(b))))
+#define v_min(a, b) vminq_s8((a), (b))
+#define v_min_u(a, b) vminq_u8((a), (b))
+#define v_add(a, b) vqaddq_u8((a), (b))
+#define v_sub(a, b) vqsubq_u8((a), (b))
+#define v_dup(a) vdupq_n_u8(a)
+#define v_zero v_dup(0)
+#define v_and(a, b) vandq_u8((a), (b))
+#define v_xor(a, b) veorq_u8((a), (b))
+#define v_shift_left(a) vextq_u8((v_zero), (a), 15)
+#define v_mask_gt(a, b) vaddvq_u8(vandq_u8((vcgtq_s8((a), (b))), neon_mask))
+#define v_mask_eq(a, b) vaddvq_u8(vandq_u8((vceqq_s8((a), (b))), neon_mask))
 
 #elif __x86_64__
 

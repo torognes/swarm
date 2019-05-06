@@ -76,6 +76,26 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
   }
 }
 
+#ifdef __PPC__
+
+#error Architecture ppcle64 not implemented yet
+
+#elif __aarch64__
+
+unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+{
+  uint8x16_t * ap = (uint8x16_t *) a;
+  uint8x16_t * bp = (uint8x16_t *) b;
+  unsigned long count = 0;
+
+  while ((unsigned char*)ap < a + QGRAMVECTORBYTES)
+    count += vaddvq_u8(vcntq_u8(veorq_u8(*ap++, *bp++)));
+
+  return count;
+}
+
+#elif __x86_64__
+
 /*
    Unable to get the Mac gcc compiler v 4.2.1 produce the real
    popcnt instruction. Therefore resorting to assembly code.
@@ -179,6 +199,7 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
     return compareqgramvectors_128(a,b);
 }
 
+#endif
 
 inline unsigned long qgram_diff(unsigned long a, unsigned long b)
 {

@@ -87,6 +87,8 @@ char * DASH_FILENAME = (char*) "-";
 char * STDIN_NAME = (char*) "/dev/stdin";
 char * STDOUT_NAME = (char*) "/dev/stdout";
 
+#ifdef __x86_64__
+
 void cpuid(unsigned int f1,
            unsigned int f2,
            unsigned int & a,
@@ -153,6 +155,8 @@ void cpu_features_show()
   fprintf(logfile, "\n");
 }
 
+#endif
+
 long args_long(char * str, const char * option)
 {
   char * endptr;
@@ -164,7 +168,10 @@ long args_long(char * str, const char * option)
 
 void args_show()
 {
+#ifdef __x86_64__
   cpu_features_show();
+#endif
+
   fprintf(logfile, "Database file:     %s\n", input_filename);
   fprintf(logfile, "Output file:       %s\n", opt_output_file);
   if (opt_statistics_file)
@@ -646,10 +653,12 @@ void close_files()
 
 int main(int argc, char** argv)
 {
+#ifdef __x86_64__
   cpu_features_detect();
 
   if (!sse2_present)
     fatal("This program requires a processor with SSE2 instructions.\n");
+#endif
 
   srandom(1);
 

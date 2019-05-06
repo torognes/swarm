@@ -40,12 +40,24 @@
 #include <sys/sysinfo.h>
 #endif
 
+#ifdef __x86_64__
+
 #ifdef __SSE2__
 #include <emmintrin.h>
 #endif
 
 #ifdef __SSSE3__
 #include <tmmintrin.h>
+#endif
+
+#elif __aarch64__
+
+#include <arm_neon.h>
+
+#elif __PPC__
+
+#error Unknown architecture (not ppc64le, aarch64 or x86_64)
+
 #endif
 
 /* constants */
