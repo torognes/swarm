@@ -25,7 +25,17 @@
 # PROFILING=-pg
 PROFILING=
 
-COMMON=$(PROFILING) -g -flto -std=c++11 -O3 -mtune=generic -march=x86-64
+# Architecture specific
+MACHINE=$(shell uname -m)
+ifeq ($(MACHINE), x86_64)
+	ARCHOPT = -march=x86-64
+	EXTRAOBJ = ssse3.o
+else ifeq ($(MACHINE), aarch64)
+	ARCHOPT = -march=armv8-a+simd -flax-vector-conversions
+	EXTRAOBJ =
+endif
+
+COMMON=$(PROFILING) -g -flto -std=c++11 -O3 -mtune=generic $(ARCHOPT)
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)
@@ -39,7 +49,7 @@ PROG=swarm
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o derep.o arch.o cityhash/city.o \
 	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o \
-        ssse3.o
+	$(EXTRAOBJ)
 
 DEPS=Makefile swarm.h cityhash/config.h cityhash/city.h \
 	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h

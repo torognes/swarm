@@ -26,11 +26,7 @@
 #define CHANNELS 16
 #define CDEPTH 4
 
-#ifdef __PPC__
-
-#error Architecture ppcle64 not implemented yet
-
-#elif __aarch64__
+#ifdef __aarch64__
 
 typedef int8x16_t VECTORTYPE;
 
@@ -89,6 +85,10 @@ typedef __m128i VECTORTYPE;
 #define v_shift_left(a) _mm_slli_si128((a), 1)
 #define v_mask_gt(a, b) _mm_movemask_epi8(_mm_cmpgt_epi8((a), (b)))
 #define v_mask_eq(a, b) _mm_movemask_epi8(_mm_cmpeq_epi8((a), (b)))
+
+#elif __PPC__
+
+#error Architecture ppcle64 not implemented yet
 
 #else
 

@@ -40,7 +40,11 @@
 #include <sys/sysinfo.h>
 #endif
 
-#ifdef __x86_64__
+#ifdef __aarch64__
+
+#include <arm_neon.h>
+
+#elif __x86_64__
 
 #ifdef __SSE2__
 #include <emmintrin.h>
@@ -50,13 +54,13 @@
 #include <tmmintrin.h>
 #endif
 
-#elif __aarch64__
-
-#include <arm_neon.h>
-
 #elif __PPC__
 
-#error Unknown architecture (not ppc64le, aarch64 or x86_64)
+#error Architecture ppc64le not implemented yet
+
+#else
+
+#error Unknown architecture
 
 #endif
 

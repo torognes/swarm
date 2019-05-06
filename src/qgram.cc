@@ -76,11 +76,7 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
   }
 }
 
-#ifdef __PPC__
-
-#error Architecture ppcle64 not implemented yet
-
-#elif __aarch64__
+#ifdef __aarch64__
 
 unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
 {
@@ -198,6 +194,14 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
   else
     return compareqgramvectors_128(a,b);
 }
+
+#elif __PPC__
+
+#error Architecture ppcle64 not implemented yet
+
+#else
+
+#error Unknown architecture
 
 #endif
 
