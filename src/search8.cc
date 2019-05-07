@@ -30,10 +30,14 @@
 
 typedef int8x16_t VECTORTYPE;
 
-const uint16x8_t neon_mask =
-  {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
+const uint8x16_t neon_mask =
+  { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
+    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
 
-#define v_init(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) (const VECTORTYPE){a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p}
+const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
+
+const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0 };
 
 #define v_load(a) vld1q_s8((const int8_t *)(a))
 #define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
@@ -55,14 +59,16 @@ const uint16x8_t neon_mask =
 #define v_and(a, b) vandq_u8((a), (b))
 #define v_xor(a, b) veorq_u8((a), (b))
 #define v_shift_left(a) vextq_u8((v_zero), (a), 15)
-#define v_mask_gt(a, b) vaddvq_u8(vandq_u8((vcgtq_s8((a), (b))), neon_mask))
-#define v_mask_eq(a, b) vaddvq_u8(vandq_u8((vceqq_s8((a), (b))), neon_mask))
+#define v_mask_gt(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8((vcgtq_s8((a), (b))), neon_mask)), neon_shift))
+#define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8((vceqq_s8((a), (b))), neon_mask)), neon_shift))
 
 #elif __x86_64__
 
 typedef __m128i VECTORTYPE;
 
-#define v_init(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) _mm_set_epi8(p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a)
+const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 0, 0, -1);
+
 #define v_load(a) _mm_load_si128((VECTORTYPE *)(a))
 #define v_load_64(a) _mm_loadl_epi64((VECTORTYPE *)(a))
 #define v_store(a, b) _mm_store_si128((VECTORTYPE *)(a), (b))
@@ -762,7 +768,7 @@ void search8(BYTE * * q_start,
   unsigned long next_id = 0;
   unsigned long done;
 
-  T0 = v_init(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  T0 = T0_init;
   Q  = v_dup(gap_open_penalty+gap_extend_penalty);
   R  = v_dup(gap_extend_penalty);
 
@@ -805,9 +811,11 @@ void search8(BYTE * * q_start,
                 easy = 0;
             }
 
+#ifdef __x86_64__
           if (ssse3_present)
             dprofile_shuffle8(dprofile, score_matrix, dseq);
           else
+#endif
             dprofile_fill8(dprofile, score_matrix, dseq);
 
           align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
@@ -926,9 +934,11 @@ void search8(BYTE * * q_start,
           if (done == sequences)
             break;
 
+#ifdef __x86_64__
           if (ssse3_present)
             dprofile_shuffle8(dprofile, score_matrix, dseq);
           else
+#endif
             dprofile_fill8(dprofile, score_matrix, dseq);
 
           MQ = v_and(M, Q);

@@ -34,6 +34,8 @@ typedef int16x8_t VECTORTYPE;
 const uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
 
+const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
+
 #define v_init(a,b,c,d,e,f,g,h) (const VECTORTYPE){a,b,c,d,e,f,g,h}
 #define v_load(a) vld1q_s16((const int16_t *)(a))
 #define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
@@ -59,7 +61,8 @@ const uint16x8_t neon_mask =
 
 typedef __m128i VECTORTYPE;
 
-#define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
+const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
+
 #define v_load(a) _mm_load_si128((VECTORTYPE *)(a))
 #define v_store(a, b) _mm_store_si128((VECTORTYPE *)(a), (b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
@@ -516,7 +519,7 @@ void search16(WORD * * q_start,
   unsigned long next_id = 0;
   unsigned long done;
 
-  T0 = v_init(-1, 0, 0, 0, 0, 0, 0, 0);
+  T0 = T0_init;
   Q  = v_dup(gap_open_penalty+gap_extend_penalty);
   R  = v_dup(gap_extend_penalty);
 

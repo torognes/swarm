@@ -149,7 +149,13 @@ void search_chunk(struct search_data * sdp, long bits)
 
 #endif
 
+#ifdef __aarch64__
+  /* always use 16-bit version on aarch64 because it is faster */
+  (void) bits;
+  if (1)
+#else
   if (bits == 16)
+#endif
     search16(sdp->qtable_w,
              penalty_gapopen,
              penalty_gapextend,
