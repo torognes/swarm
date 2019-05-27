@@ -26,18 +26,20 @@
 #define CHANNELS 16
 #define CDEPTH 4
 
+/* uses 16 unsigned 8-bit values */
+
 #ifdef __aarch64__
 
 typedef int8x16_t VECTORTYPE;
+
+const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0 };
 
 const uint8x16_t neon_mask =
   { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
 
 const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
-
-const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0 };
 
 #define v_load(a) vld1q_s8((const int8_t *)(a))
 #define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
@@ -50,8 +52,7 @@ const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0,
 #define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
 #define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_low_s64(vreinterpretq_s64_s16(a)), vget_low_s64(vreinterpretq_s64_s16(b))))
 #define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_high_s64(vreinterpretq_s64_s16(a)), vget_high_s64(vreinterpretq_s64_s16(b))))
-#define v_min(a, b) vminq_s8((a), (b))
-#define v_min_u(a, b) vminq_u8((a), (b))
+#define v_min(a, b) vminq_u8((a), (b))
 #define v_add(a, b) vqaddq_u8((a), (b))
 #define v_sub(a, b) vqsubq_u8((a), (b))
 #define v_dup(a) vdupq_n_u8(a)
@@ -59,7 +60,6 @@ const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0,
 #define v_and(a, b) vandq_u8((a), (b))
 #define v_xor(a, b) veorq_u8((a), (b))
 #define v_shift_left(a) vextq_u8((v_zero), (a), 15)
-#define v_mask_gt(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8((vcgtq_s8((a), (b))), neon_mask)), neon_shift))
 #define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8((vceqq_s8((a), (b))), neon_mask)), neon_shift))
 
 #elif __x86_64__
@@ -80,8 +80,7 @@ const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
 #define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
 #define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
 #define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
-#define v_min(a, b) _mm_min_epi8((a), (b))
-#define v_min_u(a, b) _mm_min_epu8((a), (b))
+#define v_min(a, b) _mm_min_epu8((a), (b))
 #define v_add(a, b) _mm_adds_epu8((a), (b))
 #define v_sub(a, b) _mm_subs_epu8((a), (b))
 #define v_dup(a) _mm_set1_epi8(a)
@@ -89,12 +88,58 @@ const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
 #define v_and(a, b) _mm_and_si128((a), (b))
 #define v_xor(a, b) _mm_xor_si128((a), (b))
 #define v_shift_left(a) _mm_slli_si128((a), 1)
-#define v_mask_gt(a, b) _mm_movemask_epi8(_mm_cmpgt_epi8((a), (b)))
 #define v_mask_eq(a, b) _mm_movemask_epi8(_mm_cmpeq_epi8((a), (b)))
 
 #elif __PPC__
 
-#error Architecture ppcle64 not implemented yet
+typedef vector unsigned char VECTORTYPE;
+
+const VECTORTYPE T0_init =
+  { (unsigned char)(-1), 0, 0, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0, 0, 0, 0, 0 };
+
+const vector unsigned char perm_merge_long_low =
+  {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
+
+const vector unsigned char perm_merge_long_high =
+  {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+   0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
+
+const vector unsigned char perm_bits =
+  { 0x78, 0x70, 0x68, 0x60, 0x58, 0x50, 0x48, 0x40,
+    0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00 };
+
+#define v_load(a) *((VECTORTYPE *)(a))
+#define v_load_64(a) (VECTORTYPE)vec_splats(*((unsigned long long*)(a)))
+#define v_store(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE*)(a))
+#define v_merge_lo_8(a, b) vec_mergeh((a), (b))
+#define v_merge_hi_8(a, b) vec_mergel((a), (b))
+#define v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a),\
+                                                   (vector short)(b))
+#define v_merge_hi_16(a, b) (VECTORTYPE)vec_mergel((vector short)(a),\
+                                                   (vector short)(b))
+#define v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), \
+                                                   (vector int)(b))
+#define v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), \
+                                                   (vector int)(b))
+#define v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), \
+                                                 (vector long long)(b), \
+                                                 perm_merge_long_low)
+#define v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), \
+                                                 (vector long long)(b), \
+                                                 perm_merge_long_high)
+#define v_min(a, b) vec_min((a), (b))
+#define v_add(a, b) vec_adds((a), (b))
+#define v_sub(a, b) vec_subs((a), (b))
+#define v_dup(a) vec_splats((unsigned char)(a));
+#define v_zero vec_splat_u8(0)
+#define v_and(a, b) vec_and((a), (b))
+#define v_xor(a, b) vec_xor((a), (b))
+#define v_shift_left(a) vec_sld((a), v_zero, 1)
+#define v_mask_eq(a, b) ((vector unsigned short) \
+                         vec_vbpermq((vector unsigned char)             \
+                                     vec_cmpeq((a), (b)), perm_bits))[4]
 
 #else
 
@@ -438,17 +483,17 @@ inline void onestep_8(VECTORTYPE & H,
 
   H = v_add(H, V);
   W = H;
-  H = v_min_u(H, F);
+  H = v_min(H, F);
   *((DIR) + 0) = v_mask_eq(W, H);
-  H = v_min_u(H, E);
+  H = v_min(H, E);
   *((DIR) + 1) = v_mask_eq(H, E);
   N = H;
   H = v_add(H, QR);
   F = v_add(F, R);
   E = v_add(E, R);
-  F = v_min_u(H, F);
+  F = v_min(H, F);
   *((DIR) + 2) = v_mask_eq(H, F);
-  E = v_min_u(H, E);
+  E = v_min(H, E);
   *((DIR) + 3) = v_mask_eq(H, E);
 }
 

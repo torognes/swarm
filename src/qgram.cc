@@ -90,6 +90,20 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
   return count;
 }
 
+#elif __PPC__
+
+unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+{
+  vector unsigned char * ap = (vector unsigned char *) a;
+  vector unsigned char * bp = (vector unsigned char *) b;
+  vector unsigned long long count_vector = { 0, 0 };
+
+  while ((unsigned char *)ap < a + QGRAMVECTORBYTES)
+    count_vector += vec_vpopcnt((vector unsigned long long)(vec_xor(*ap++, *bp++)));
+
+  return count_vector[0] + count_vector[1];
+}
+
 #elif __x86_64__
 
 /*
@@ -194,10 +208,6 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
   else
     return compareqgramvectors_128(a,b);
 }
-
-#elif __PPC__
-
-#error Architecture ppcle64 not implemented yet
 
 #else
 

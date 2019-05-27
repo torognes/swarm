@@ -31,12 +31,11 @@
 
 typedef int16x8_t VECTORTYPE;
 
+const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
+
 const uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
 
-const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
-
-#define v_init(a,b,c,d,e,f,g,h) (const VECTORTYPE){a,b,c,d,e,f,g,h}
 #define v_load(a) vld1q_s16((const int16_t *)(a))
 #define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
 #define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
@@ -85,7 +84,50 @@ const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 
 #elif __PPC__
 
-#error Architecture ppcle64 not implemented yet
+typedef vector unsigned short VECTORTYPE;
+
+const VECTORTYPE T0_init = { (unsigned short)(-1), 0, 0, 0, 0, 0, 0, 0 };
+
+const vector unsigned char perm_merge_long_low =
+  {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
+
+const vector unsigned char perm_merge_long_high =
+  {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+   0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
+
+const vector unsigned char perm_bits =
+  { 0x78, 0x70, 0x68, 0x60, 0x58, 0x50, 0x48, 0x40,
+    0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00 };
+
+#define v_load(a) *(VECTORTYPE *)(a)
+#define v_store(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE *)(a))
+#define v_merge_lo_16(a, b) vec_mergeh((VECTORTYPE)(a), (VECTORTYPE)(b))
+#define v_merge_hi_16(a, b) vec_mergel((VECTORTYPE)(a), (VECTORTYPE)(b))
+#define v_merge_lo_32(a, b) (VECTORTYPE) vec_mergeh((vector int)(a),    \
+                                                    (vector int)(b))
+#define v_merge_hi_32(a, b) (VECTORTYPE) vec_mergel((vector int)(a),    \
+                                                    (vector int)(b))
+#define v_merge_lo_64(a, b) (VECTORTYPE) vec_perm((vector long long)(a), \
+                                                  (vector long long)(b), \
+                                                  perm_merge_long_low)
+#define v_merge_hi_64(a, b) (VECTORTYPE) vec_perm((vector long long)(a), \
+                                                  (vector long long)(b), \
+                                                  perm_merge_long_high)
+#define v_min(a, b) (VECTORTYPE) vec_min((vector signed short) (a),     \
+                                         (vector signed short) (b))
+#define v_min_u(a, b) vec_min((a), (b))
+#define v_add(a, b) vec_adds((a), (b))
+#define v_sub(a, b) vec_subs((a), (b))
+#define v_dup(a) vec_splats((unsigned short)(a));
+#define v_zero vec_splat_u16(0)
+#define v_and(a, b) vec_and((a), (b))
+#define v_xor(a, b) vec_xor((a), (b))
+#define v_shift_left(a) vec_sld((a), v_zero, 2)
+#define v_mask_gt(a, b) ((vector unsigned short) \
+  vec_vbpermq((vector unsigned char) vec_cmpgt((a), (b)), perm_bits))[4]
+#define v_mask_eq(a, b) ((vector unsigned short) \
+  vec_vbpermq((vector unsigned char) vec_cmpeq((a), (b)), perm_bits))[4]
 
 #else
 

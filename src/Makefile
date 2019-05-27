@@ -28,14 +28,17 @@ PROFILING=
 # Architecture specific
 MACHINE=$(shell uname -m)
 ifeq ($(MACHINE), x86_64)
-	ARCHOPT = -march=x86-64
+	ARCHOPT = -march=x86-64 -mtune=generic
 	EXTRAOBJ = ssse3.o
 else ifeq ($(MACHINE), aarch64)
-	ARCHOPT = -march=armv8-a+simd -flax-vector-conversions
+	ARCHOPT = -march=armv8-a+simd -flax-vector-conversions -mtune=generic
+	EXTRAOBJ =
+else ifeq ($(MACHINE), ppc64le)
+	ARCHOPT = -mcpu=power8 -std=gnu++11
 	EXTRAOBJ =
 endif
 
-COMMON=$(PROFILING) -g -flto -std=c++11 -O3 -mtune=generic $(ARCHOPT)
+COMMON=$(PROFILING) -g -flto -std=c++11 -O3 $(ARCHOPT)
 
 LIBS=-lpthread
 LINKFLAGS=$(COMMON)

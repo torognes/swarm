@@ -56,7 +56,11 @@
 
 #elif __PPC__
 
-#error Architecture ppc64le not implemented yet
+#ifdef __LITTLE_ENDIAN__
+#include <altivec.h>
+#else
+#error Big endian ppc64 CPUs not supported
+#endif
 
 #else
 
