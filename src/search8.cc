@@ -42,7 +42,7 @@ const uint8x16_t neon_mask =
 const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
 #define v_load(a) vld1q_s8((const int8_t *)(a))
-#define v_load_64(a) vld1q_dup_u64((const unsigned long long *)(a))
+#define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
 #define v_store(a, b) vst1q_s8((int8_t *)(a), (b))
 #define v_merge_lo_8(a, b) vzip1q_s8((a),(b))
 #define v_merge_hi_8(a, b) vzip2q_s8((a),(b))
@@ -111,7 +111,7 @@ const vector unsigned char perm_bits =
     0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00 };
 
 #define v_load(a) *((VECTORTYPE *)(a))
-#define v_load_64(a) (VECTORTYPE)vec_splats(*((uint64_t *)(a)))
+#define v_load_64(a) (VECTORTYPE)vec_splats(*((unsigned long long *)(a)))
 #define v_store(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE*)(a))
 #define v_merge_lo_8(a, b) vec_mergeh((a), (b))
 #define v_merge_hi_8(a, b) vec_mergel((a), (b))
