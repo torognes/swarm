@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#define __STDC_FORMAT_MACROS
+
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -30,13 +33,20 @@
 #include <limits.h>
 #include <city.h>
 #include <stdarg.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
-#include <sys/resource.h>
 #include <sys/stat.h>
+//#include <sys/uio.h>
 
 #ifdef __APPLE__
+#include <sys/resource.h>
 #include <sys/sysctl.h>
+#elif _WIN32
+#include <windows.h>
+#include <psapi.h>
 #else
+#include <sys/resource.h>
 #include <sys/sysinfo.h>
 #endif
 
@@ -114,10 +124,10 @@ struct seqinfo_s
   char * seq;
   int headerlen;
   unsigned int seqlen;
-  unsigned long abundance;
+  uint64_t abundance;
   unsigned int clusterid;
-  unsigned long hdrhash;
-  unsigned long seqhash;
+  uint64_t hdrhash;
+  uint64_t seqhash;
   int abundance_start;
   int abundance_end;
 };
@@ -129,8 +139,8 @@ extern qgramvector_t * qgrams;
 
 struct queryinfo
 {
-  unsigned long qno;
-  long len;
+  uint64_t qno;
+  int64_t len;
   char * seq;
 };
 
@@ -144,22 +154,22 @@ extern char * opt_output_file;
 extern char * opt_seeds;
 extern char * opt_statistics_file;
 extern char * opt_uclust_file;
-extern long opt_append_abundance;
-extern long opt_bloom_bits;
-extern long opt_boundary;
-extern long opt_ceiling;
-extern long opt_differences;
-extern long opt_fastidious;
-extern long opt_gap_extension_penalty;
-extern long opt_gap_opening_penalty;
-extern long opt_help;
-extern long opt_match_reward;
-extern long opt_mismatch_penalty;
-extern long opt_mothur;
-extern long opt_no_otu_breaking;
-extern long opt_threads;
-extern long opt_usearch_abundance;
-extern long opt_version;
+extern int64_t opt_append_abundance;
+extern int64_t opt_bloom_bits;
+extern int64_t opt_boundary;
+extern int64_t opt_ceiling;
+extern int64_t opt_differences;
+extern int64_t opt_fastidious;
+extern int64_t opt_gap_extension_penalty;
+extern int64_t opt_gap_opening_penalty;
+extern int64_t opt_help;
+extern int64_t opt_match_reward;
+extern int64_t opt_mismatch_penalty;
+extern int64_t opt_mothur;
+extern int64_t opt_no_otu_breaking;
+extern int64_t opt_threads;
+extern int64_t opt_usearch_abundance;
+extern int64_t opt_version;
 
 extern char * queryname;
 extern char * matrixname;
@@ -171,10 +181,10 @@ extern char map_ncbi_nt16[];
 extern char map_ncbi_aa[];
 extern char map_sound[];
 
-extern long penalty_factor;
-extern long penalty_gapextend;
-extern long penalty_gapopen;
-extern long penalty_mismatch;
+extern int64_t penalty_factor;
+extern int64_t penalty_gapextend;
+extern int64_t penalty_gapopen;
+extern int64_t penalty_mismatch;
 
 extern FILE * outfile;
 extern FILE * statsfile;
@@ -184,42 +194,42 @@ extern FILE * logfile;
 extern FILE * fp_seeds;
 
 
-extern long SCORELIMIT_7;
-extern long SCORELIMIT_8;
-extern long SCORELIMIT_16;
-extern long SCORELIMIT_32;
-extern long SCORELIMIT_63;
+extern int64_t SCORELIMIT_7;
+extern int64_t SCORELIMIT_8;
+extern int64_t SCORELIMIT_16;
+extern int64_t SCORELIMIT_32;
+extern int64_t SCORELIMIT_63;
 extern char BIAS;
 
-extern long mmx_present;
-extern long sse_present;
-extern long sse2_present;
-extern long sse3_present;
-extern long ssse3_present;
-extern long sse41_present;
-extern long sse42_present;
-extern long popcnt_present;
-extern long avx_present;
-extern long avx2_present;
+extern int64_t mmx_present;
+extern int64_t sse_present;
+extern int64_t sse2_present;
+extern int64_t sse3_present;
+extern int64_t ssse3_present;
+extern int64_t sse41_present;
+extern int64_t sse42_present;
+extern int64_t popcnt_present;
+extern int64_t avx_present;
+extern int64_t avx2_present;
 
 extern unsigned char * score_matrix_8;
 extern unsigned short * score_matrix_16;
-extern long * score_matrix_63;
+extern int64_t * score_matrix_63;
 
 extern char sym_nt[];
 
-extern unsigned long longestdbsequence;
+extern uint64_t longestdbsequence;
 
 extern queryinfo_t query;
 
-extern unsigned long duplicates_found;
+extern uint64_t duplicates_found;
 
 /* inline functions */
 
 inline int nt_extract(char * seq, int i)
 {
   // Extract compressed nucleotide in sequence seq at position i
-  return ((((unsigned long *) seq)[i >> 5]) >> ((i & 31) << 1)) & 3;
+  return ((((uint64_t *) seq)[i >> 5]) >> ((i & 31) << 1)) & 3;
 }
 
 inline unsigned int nt_bytelength(unsigned int len)
@@ -230,31 +240,34 @@ inline unsigned int nt_bytelength(unsigned int len)
 
 /* functions in util.cc */
 
-long gcd(long a, long b);
+int64_t gcd(int64_t a, int64_t b);
 void fatal(const char * msg);
 void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
-unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n);
-unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n);
-unsigned long hash_djb2(unsigned char * s, unsigned long n);
-unsigned long hash_djb2a(unsigned char * s, unsigned long n);
-unsigned long hash_cityhash64(unsigned char * s, unsigned long n);
-unsigned long hash_xor64len(unsigned char * s, unsigned long n);
-unsigned long hash64shift(unsigned long key);
-void progress_init(const char * prompt, unsigned long size);
-void progress_update(unsigned long progress);
+void xfree(void * ptr);
+uint64_t hash_fnv_1a_64(unsigned char * s, uint64_t n);
+unsigned int hash_fnv_1a_32(unsigned char * s, uint64_t n);
+uint64_t hash_djb2(unsigned char * s, uint64_t n);
+uint64_t hash_djb2a(unsigned char * s, uint64_t n);
+uint64_t hash_cityhash64(unsigned char * s, uint64_t n);
+uint64_t hash_xor64len(unsigned char * s, uint64_t n);
+uint64_t hash64shift(uint64_t key);
+void progress_init(const char * prompt, uint64_t size);
+void progress_update(uint64_t progress);
 void progress_done();
+FILE * fopen_input(const char * filename);
+FILE * fopen_output(const char * filename);
 
 /* functions in qgram.cc */
 
-void findqgrams(unsigned char * seq, unsigned long seqlen,
+void findqgrams(unsigned char * seq, uint64_t seqlen,
                 unsigned char * qgramvector);
-unsigned long qgram_diff(unsigned long a, unsigned long b);
-void qgram_diff_fast(unsigned long seed,
-                     unsigned long listlen,
-                     unsigned long * amplist,
-                     unsigned long * difflist);
+uint64_t qgram_diff(uint64_t a, uint64_t b);
+void qgram_diff_fast(uint64_t seed,
+                     uint64_t listlen,
+                     uint64_t * amplist,
+                     uint64_t * difflist);
 void qgram_diff_init();
 void qgram_diff_done();
 
@@ -262,48 +275,48 @@ void qgram_diff_done();
 
 void db_read(const char * filename);
 
-unsigned long db_getsequencecount();
-unsigned long db_getnucleotidecount();
+uint64_t db_getsequencecount();
+uint64_t db_getnucleotidecount();
 
-unsigned long db_getlongestheader();
-unsigned long db_getlongestsequence();
+uint64_t db_getlongestheader();
+uint64_t db_getlongestsequence();
 
-seqinfo_t * db_getseqinfo(unsigned long seqno);
+seqinfo_t * db_getseqinfo(uint64_t seqno);
 
-char * db_getsequence(unsigned long seqno);
-unsigned long db_getsequencelen(unsigned long seqno);
+char * db_getsequence(uint64_t seqno);
+uint64_t db_getsequencelen(uint64_t seqno);
 
-unsigned long db_gethash(unsigned long seqno);
+uint64_t db_gethash(uint64_t seqno);
 
-void db_getsequenceandlength(unsigned long seqno,
+void db_getsequenceandlength(uint64_t seqno,
                              char ** address,
-                             long * length);
+                             int64_t * length);
 
-char * db_getheader(unsigned long seqno);
-unsigned long db_getheaderlen(unsigned long seqno);
+char * db_getheader(uint64_t seqno);
+uint64_t db_getheaderlen(uint64_t seqno);
 
-unsigned long db_getabundance(unsigned long seqno);
+uint64_t db_getabundance(uint64_t seqno);
 
 void db_showall();
 void db_free();
 
-void db_putseq(long seqno);
+void db_putseq(int64_t seqno);
 
 void db_qgrams_init();
 void db_qgrams_done();
 
 void db_fprintseq(FILE * fp, int a, int width);
 
-inline unsigned char * db_getqgramvector(unsigned long seqno)
+inline unsigned char * db_getqgramvector(uint64_t seqno)
 {
   return (unsigned char*)(qgrams + seqno);
 }
 
-void fprint_id(FILE * stream, unsigned long x);
-void fprint_id_noabundance(FILE * stream, unsigned long x);
+void fprint_id(FILE * stream, uint64_t x);
+void fprint_id_noabundance(FILE * stream, uint64_t x);
 void fprint_id_with_new_abundance(FILE * stream,
-                                  unsigned long seqno,
-                                  unsigned long abundance);
+                                  uint64_t seqno,
+                                  uint64_t abundance);
 
 
 /* functions in ssse3.cc */
@@ -325,14 +338,14 @@ void search8(BYTE * * q_start,
              BYTE * score_matrix,
              BYTE * dprofile,
              BYTE * hearray,
-             unsigned long sequences,
-             unsigned long * seqnos,
-             unsigned long * scores,
-             unsigned long * diffs,
-             unsigned long * alignmentlengths,
-             unsigned long qlen,
-             unsigned long dirbuffersize,
-             unsigned long * dirbuffer);
+             uint64_t sequences,
+             uint64_t * seqnos,
+             uint64_t * scores,
+             uint64_t * diffs,
+             uint64_t * alignmentlengths,
+             uint64_t qlen,
+             uint64_t dirbuffersize,
+             uint64_t * dirbuffer);
 
 
 /* functions in search16.cc */
@@ -343,33 +356,33 @@ void search16(WORD * * q_start,
               WORD * score_matrix,
               WORD * dprofile,
               WORD * hearray,
-              unsigned long sequences,
-              unsigned long * seqnos,
-              unsigned long * scores,
-              unsigned long * diffs,
-              unsigned long * alignmentlengths,
-              unsigned long qlen,
-              unsigned long dirbuffersize,
-              unsigned long * dirbuffer);
+              uint64_t sequences,
+              uint64_t * seqnos,
+              uint64_t * scores,
+              uint64_t * diffs,
+              uint64_t * alignmentlengths,
+              uint64_t qlen,
+              uint64_t dirbuffersize,
+              uint64_t * dirbuffer);
 
 
 /* functions in nw.cc */
 
 void nw(char * dseq,
-        unsigned long dlen,
+        uint64_t dlen,
         char * qseq,
-        unsigned long qlen,
-        long * score_matrix,
-        unsigned long gapopen,
-        unsigned long gapextend,
-        unsigned long * nwscore,
-        unsigned long * nwdiff,
-        unsigned long * nwalignmentlength,
+        uint64_t qlen,
+        int64_t * score_matrix,
+        uint64_t gapopen,
+        uint64_t gapextend,
+        uint64_t * nwscore,
+        uint64_t * nwdiff,
+        uint64_t * nwalignmentlength,
         char ** nwalignment,
         unsigned char * dir,
-        unsigned long * hearray,
-        unsigned long queryno,
-        unsigned long dbseqno);
+        uint64_t * hearray,
+        uint64_t queryno,
+        uint64_t dbseqno);
 
 
 /* functions in matrix.cc */
@@ -380,14 +393,14 @@ void score_matrix_free();
 
 /* functions in scan.cc */
 
-void search_all(unsigned long query_no);
-void search_do(unsigned long query_no,
-               unsigned long listlength,
-               unsigned long * targets,
-               unsigned long * scores,
-               unsigned long * diffs,
-               unsigned long * alignlengths,
-               long bits);
+void search_all(uint64_t query_no);
+void search_do(uint64_t query_no,
+               uint64_t listlength,
+               uint64_t * targets,
+               uint64_t * scores,
+               uint64_t * diffs,
+               uint64_t * alignlengths,
+               int64_t bits);
 void search_begin();
 void search_end();
 
@@ -405,8 +418,10 @@ void dereplicate();
 
 /* functions in arch.cc */
 
-unsigned long arch_get_memused();
-unsigned long arch_get_memtotal();
+uint64_t arch_get_memused();
+uint64_t arch_get_memtotal();
+void arch_srandom(unsigned int seed);
+uint64_t arch_random();
 
 
 /* new header files */

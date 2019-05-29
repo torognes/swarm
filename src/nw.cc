@@ -106,29 +106,29 @@ const unsigned char maskextleft = 8;
 */
 
 void nw(char * dseq,
-        unsigned long dlen,
+        uint64_t dlen,
         char * qseq,
-        unsigned long qlen,
-        long * score_matrix,
-        unsigned long gapopen,
-        unsigned long gapextend,
-        unsigned long * nwscore,
-        unsigned long * nwdiff,
-        unsigned long * nwalignmentlength,
+        uint64_t qlen,
+        int64_t * score_matrix,
+        uint64_t gapopen,
+        uint64_t gapextend,
+        uint64_t * nwscore,
+        uint64_t * nwdiff,
+        uint64_t * nwalignmentlength,
         char ** nwalignment,
         unsigned char * dir,
-        unsigned long * hearray,
-        unsigned long queryno,
-        unsigned long dbseqno)
+        uint64_t * hearray,
+        uint64_t queryno,
+        uint64_t dbseqno)
 {
   /* dir must point to at least qlen*dlen bytes of allocated memory
      hearray must point to at least 2*qlen longs of allocated memory (8*qlen bytes) */
 
-  long n, e;
+  int64_t n, e;
 
   memset(dir, 0, qlen*dlen);
 
-  unsigned long i, j;
+  uint64_t i, j;
 
   for(i=0; i<qlen; i++)
   {
@@ -138,14 +138,14 @@ void nw(char * dseq,
 
   for(j=0; j<dlen; j++)
   {
-    long unsigned *hep;
+    uint64_t *hep;
     hep = hearray;
-    long f = 2 * gapopen + (j+2) * gapextend;
-    long h = (j == 0) ? 0 : (gapopen + j * gapextend);
+    int64_t f = 2 * gapopen + (j+2) * gapextend;
+    int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
     for(i=0; i<qlen; i++)
     {
-      long index = qlen*j+i;
+      int64_t index = qlen*j+i;
 
       n = *hep;
       e = *(hep+1);
@@ -174,13 +174,13 @@ void nw(char * dseq,
     }
   }
 
-  long dist = hearray[2*qlen-2];
+  int64_t dist = hearray[2*qlen-2];
 
   /* backtrack: count differences and save alignment in cigar string */
 
-  long score = 0;
-  long alength = 0;
-  long matches = 0;
+  int64_t score = 0;
+  int64_t alength = 0;
+  int64_t matches = 0;
 
   char * cigar = (char *) xmalloc(qlen + dlen + 1);
   char * cigarend = cigar+qlen+dlen+1;
@@ -263,7 +263,7 @@ void nw(char * dseq,
 
   /* move and reallocate cigar */
 
-  long cigarlength = cigar+qlen+dlen-cigarend;
+  int64_t cigarlength = cigar+qlen+dlen-cigarend;
   memmove(cigar, cigarend, cigarlength+1);
   cigar = (char*) xrealloc(cigar, cigarlength+1);
 
@@ -274,8 +274,8 @@ void nw(char * dseq,
 
   if (score != dist)
   {
-    fprintf(stderr, "WARNING: Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
-    fprintf(stderr, "Initial and recomputed alignment score disagreement: %ld %ld\n", dist, score);
+    fprintf(stderr, "WARNING: Error with query no %" PRIu64 " and db sequence no %" PRIu64 ":\n", queryno, dbseqno);
+    fprintf(stderr, "Initial and recomputed alignment score disagreement: %" PRId64 " %" PRId64 "\n", dist, score);
     fprintf(stderr, "Alignment: %s\n", cigar);
   }
 }

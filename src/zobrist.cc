@@ -23,7 +23,7 @@
 
 #include "swarm.h"
 
-unsigned long * zobrist_tab_base = 0;
+uint64_t * zobrist_tab_base = 0;
 
 void zobrist_init(unsigned int n)
 {
@@ -34,36 +34,36 @@ void zobrist_init(unsigned int n)
     that sequence.
   */
 
-  zobrist_tab_base = (unsigned long *) xmalloc(8 * 4 * n);
+  zobrist_tab_base = (uint64_t *) xmalloc(8 * 4 * n);
 
   for (unsigned int i = 0; i < 4 * n; i++)
     {
-      unsigned long z;
-      z = random();
+      uint64_t z;
+      z = arch_random();
       z <<= 16;
-      z ^= random();
+      z ^= arch_random();
       z <<= 16;
-      z ^= random();
+      z ^= arch_random();
       z <<= 16;
-      z ^= random();
+      z ^= arch_random();
       zobrist_tab_base[i] = z;
     }
 }
 
 void zobrist_exit()
 {
-  free(zobrist_tab_base);
+  xfree(zobrist_tab_base);
 }
 
-unsigned long zobrist_hash(unsigned char * s, unsigned int len)
+uint64_t zobrist_hash(unsigned char * s, unsigned int len)
 {
   /* compute the Zobrist hash function of sequence s of length len. */
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len+3)/4 bytes */
 
-  unsigned long * q = (unsigned long *) s;
-  unsigned long x = 0;
-  unsigned long z = 0;
+  uint64_t * q = (uint64_t *) s;
+  uint64_t x = 0;
+  uint64_t z = 0;
   for(unsigned int p = 0; p < len; p++)
     {
       if ((p & 31) == 0)
@@ -75,14 +75,14 @@ unsigned long zobrist_hash(unsigned char * s, unsigned int len)
   return z;
 }
 
-unsigned long zobrist_hash_delete_first(unsigned char * s, unsigned int len)
+uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len)
 {
   /* compute the Zobrist hash function of sequence s,
      but delete the first base */
 
-  unsigned long * q = (unsigned long *) s;
-  unsigned long x = q[0];
-  unsigned long z = 0;
+  uint64_t * q = (uint64_t *) s;
+  uint64_t x = q[0];
+  uint64_t z = 0;
   for(unsigned int p = 1; p < len; p++)
     {
       if ((p & 31) == 0)
@@ -94,14 +94,14 @@ unsigned long zobrist_hash_delete_first(unsigned char * s, unsigned int len)
   return z;
 }
 
-unsigned long zobrist_hash_insert_first(unsigned char * s, unsigned int len)
+uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len)
 {
   /* compute the Zobrist hash function of sequence s,
      but insert a gap (no value) before the first base */
 
-  unsigned long * q = (unsigned long *) s;
-  unsigned long x = 0;
-  unsigned long z = 0;
+  uint64_t * q = (uint64_t *) s;
+  uint64_t x = 0;
+  uint64_t z = 0;
   for(unsigned int p = 0; p < len; p++)
     {
       if ((p & 31) == 0)

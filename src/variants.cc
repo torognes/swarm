@@ -26,12 +26,12 @@
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 {
   unsigned int whichlong = pos >> 5;
-  unsigned long shift = (pos & 31) << 1;
-  unsigned long mask = 3ULL << shift;
-  unsigned long x = ((unsigned long *) seq)[whichlong];
+  uint64_t shift = (pos & 31) << 1;
+  uint64_t mask = 3ULL << shift;
+  uint64_t x = ((uint64_t *) seq)[whichlong];
   x &= ~ mask;
-  x |= ((unsigned long)base) << shift;
-  ((unsigned long *) seq)[whichlong] = x;
+  x |= ((uint64_t)base) << shift;
+  ((uint64_t *) seq)[whichlong] = x;
 }
 
 inline void seq_copy(char * a,
@@ -170,7 +170,7 @@ bool check_variant(char * seed_sequence,
     }
 }
 
-inline void add_variant(unsigned long hash,
+inline void add_variant(uint64_t hash,
                         unsigned char type,
                         unsigned int pos,
                         unsigned int base,
@@ -189,7 +189,7 @@ inline void add_variant(unsigned long hash,
 
 void generate_variants(char * sequence,
                        unsigned int seqlen,
-                       unsigned long hash,
+                       uint64_t hash,
                        var_s * variant_list,
                        unsigned int * variant_count,
                        bool include_identical)
@@ -204,11 +204,11 @@ void generate_variants(char * sequence,
   for(unsigned int i = 0; i < seqlen; i++)
     {
       unsigned int base = nt_extract(sequence, i);
-      unsigned long hash1 = hash ^ zobrist_value(i, base);
+      uint64_t hash1 = hash ^ zobrist_value(i, base);
       for (unsigned int v = 0; v < 4; v ++)
         if (v != base)
           {
-            unsigned long hash2 = hash1 ^ zobrist_value(i, v);
+            uint64_t hash2 = hash1 ^ zobrist_value(i, v);
             add_variant(hash2, substitution, i, v,
                         variant_list, variant_count);
           }
@@ -235,7 +235,7 @@ void generate_variants(char * sequence,
   hash = zobrist_hash_insert_first((unsigned char *) sequence, seqlen);
   for (unsigned int v = 0; v < 4; v++)
     {
-      unsigned long hash1 = hash ^ zobrist_value(0, v);
+      uint64_t hash1 = hash ^ zobrist_value(0, v);
       add_variant(hash1, insertion, 0, v, variant_list, variant_count);
     }
   for (unsigned int i = 0; i < seqlen; i++)
@@ -245,7 +245,7 @@ void generate_variants(char * sequence,
       for (unsigned int v = 0; v < 4; v++)
         if (v != base)
           {
-            unsigned long hash1 = hash ^ zobrist_value(i + 1, v);
+            uint64_t hash1 = hash ^ zobrist_value(i + 1, v);
             add_variant(hash1, insertion, i + 1, v,
                         variant_list, variant_count);
           }

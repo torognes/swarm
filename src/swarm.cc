@@ -35,44 +35,44 @@ char * opt_seeds;
 char * opt_statistics_file;
 char * opt_uclust_file;
 
-long opt_append_abundance;
-long opt_bloom_bits;
-long opt_boundary;
-long opt_ceiling;
-long opt_differences;
-long opt_fastidious;
-long opt_gap_extension_penalty;
-long opt_gap_opening_penalty;
-long opt_help;
-long opt_match_reward;
-long opt_mismatch_penalty;
-long opt_mothur;
-long opt_no_otu_breaking;
-long opt_threads;
-long opt_usearch_abundance;
-long opt_version;
+int64_t opt_append_abundance;
+int64_t opt_bloom_bits;
+int64_t opt_boundary;
+int64_t opt_ceiling;
+int64_t opt_differences;
+int64_t opt_fastidious;
+int64_t opt_gap_extension_penalty;
+int64_t opt_gap_opening_penalty;
+int64_t opt_help;
+int64_t opt_match_reward;
+int64_t opt_mismatch_penalty;
+int64_t opt_mothur;
+int64_t opt_no_otu_breaking;
+int64_t opt_threads;
+int64_t opt_usearch_abundance;
+int64_t opt_version;
 
-long penalty_factor;
-long penalty_gapextend;
-long penalty_gapopen;
-long penalty_mismatch;
+int64_t penalty_factor;
+int64_t penalty_gapextend;
+int64_t penalty_gapopen;
+int64_t penalty_mismatch;
 
 /* Other variables */
 
-long mmx_present = 0;
-long sse_present = 0;
-long sse2_present = 0;
-long sse3_present = 0;
-long ssse3_present = 0;
-long sse41_present = 0;
-long sse42_present = 0;
-long popcnt_present = 0;
-long avx_present = 0;
-long avx2_present = 0;
+int64_t mmx_present = 0;
+int64_t sse_present = 0;
+int64_t sse2_present = 0;
+int64_t sse3_present = 0;
+int64_t ssse3_present = 0;
+int64_t sse41_present = 0;
+int64_t sse42_present = 0;
+int64_t popcnt_present = 0;
+int64_t avx_present = 0;
+int64_t avx2_present = 0;
 
-unsigned long dbsequencecount = 0;
+uint64_t dbsequencecount = 0;
 
-unsigned long duplicates_found = 0;
+uint64_t duplicates_found = 0;
 
 FILE * outfile;
 FILE * statsfile;
@@ -84,8 +84,6 @@ FILE * fp_seeds = 0;
 char sym_nt[] = "-ACGT                           ";
 
 char * DASH_FILENAME = (char*) "-";
-char * STDIN_NAME = (char*) "/dev/stdin";
-char * STDOUT_NAME = (char*) "/dev/stdout";
 
 #ifdef __x86_64__
 
@@ -157,10 +155,10 @@ void cpu_features_show()
 
 #endif
 
-long args_long(char * str, const char * option)
+int64_t args_long(char * str, const char * option)
 {
   char * endptr;
-  long temp = strtol(str, & endptr, 10);
+  int64_t temp = strtol(str, & endptr, 10);
   if (*endptr)
     fatal("Invalid numeric argument for option %s", option);
   return temp;
@@ -178,26 +176,26 @@ void args_show()
     fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file);
   if (opt_uclust_file)
     fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file);
-  fprintf(logfile, "Resolution (d):    %ld\n", opt_differences);
-  fprintf(logfile, "Threads:           %ld\n", opt_threads);
+  fprintf(logfile, "Resolution (d):    %" PRId64 "\n", opt_differences);
+  fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
 
   if (opt_differences > 1)
     {
       fprintf(logfile,
-              "Scores:            match: %ld, mismatch: %ld\n",
+              "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
               opt_match_reward, opt_mismatch_penalty);
       fprintf(logfile,
-              "Gap penalties:     opening: %ld, extension: %ld\n",
+              "Gap penalties:     opening: %" PRId64 ", extension: %" PRId64 "\n",
               opt_gap_opening_penalty, opt_gap_extension_penalty);
       fprintf(logfile,
-              "Converted costs:   mismatch: %ld, gap opening: %ld, "
-              "gap extension: %ld\n",
+              "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
+              "gap extension: %" PRId64 "\n",
               penalty_mismatch, penalty_gapopen, penalty_gapextend);
     }
   fprintf(logfile, "Break OTUs:        %s\n",
           opt_no_otu_breaking ? "No" : "Yes");
   if (opt_fastidious)
-    fprintf(logfile, "Fastidious:        Yes, with boundary %ld\n",
+    fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
             opt_boundary);
   else
     fprintf(logfile, "Fastidious:        No\n");
@@ -241,8 +239,11 @@ void args_usage()
   fprintf(stderr, " -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n");
   fprintf(stderr, " -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n");
   fprintf(stderr, " -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
+
+#ifndef __WIN32
   fprintf(stderr, "\n");
   fprintf(stderr, "See 'man swarm' for more details.\n");
+#endif
 }
 
 void show_header()
@@ -284,7 +285,7 @@ void args_init(int argc, char **argv)
   opt_mismatch_penalty = 4;
   opt_mothur = 0;
   opt_no_otu_breaking = 0;
-  opt_output_file = 0;
+  opt_output_file = DASH_FILENAME;
   opt_seeds = 0;
   opt_statistics_file = 0;
   opt_threads = 1;
@@ -545,30 +546,6 @@ void args_init(int argc, char **argv)
 
   if (used_options[0] && (opt_append_abundance < 1))
     fatal("Illegal abundance value specified with -a or --append-abundance, must be at least 1.");
-
-
-  /* replace filename "-" by "/dev/stdin" for input file options */
-
-  if (!strcmp(input_filename, DASH_FILENAME))
-    input_filename = STDIN_NAME;
-
-  /* replace filename "-" by "/dev/stdout" for output file options */
-
-  char * * stdout_options[] =
-    {
-      & opt_internal_structure,
-      & opt_log,
-      & opt_output_file,
-      & opt_statistics_file,
-      & opt_uclust_file,
-      & opt_seeds,
-      0
-    };
-
-  int o = 0;
-  while(char * * stdout_opt = stdout_options[o++])
-    if ((*stdout_opt) && (!strcmp(*stdout_opt, DASH_FILENAME)))
-      *stdout_opt = STDOUT_NAME;
 }
 
 void open_files()
@@ -577,7 +554,7 @@ void open_files()
 
   if (opt_log)
     {
-      logfile = fopen(opt_log, "w");
+      logfile = fopen_output(opt_log);
       if (! logfile)
         fatal("Unable to open log file for writing.");
     }
@@ -586,7 +563,7 @@ void open_files()
 
   if (opt_output_file)
     {
-      outfile = fopen(opt_output_file, "w");
+      outfile = fopen_output(opt_output_file);
       if (! outfile)
         fatal("Unable to open output file for writing.");
     }
@@ -595,7 +572,7 @@ void open_files()
 
   if (opt_seeds)
     {
-      fp_seeds = fopen(opt_seeds, "w");
+      fp_seeds = fopen_output(opt_seeds);
       if (! fp_seeds)
         fatal("Unable to open seeds file for writing.");
     }
@@ -604,7 +581,7 @@ void open_files()
 
   if (opt_statistics_file)
     {
-      statsfile = fopen(opt_statistics_file, "w");
+      statsfile = fopen_output(opt_statistics_file);
       if (! statsfile)
         fatal("Unable to open statistics file for writing.");
     }
@@ -613,7 +590,7 @@ void open_files()
 
   if (opt_uclust_file)
     {
-      uclustfile = fopen(opt_uclust_file, "w");
+      uclustfile = fopen_output(opt_uclust_file);
       if (! uclustfile)
         fatal("Unable to open uclust file for writing.");
     }
@@ -622,7 +599,7 @@ void open_files()
 
   if (opt_internal_structure)
     {
-      internal_structure_file = fopen(opt_internal_structure, "w");
+      internal_structure_file = fopen_output(opt_internal_structure);
       if (! internal_structure_file)
         fatal("Unable to open internal structure file for writing.");
     }
@@ -660,7 +637,7 @@ int main(int argc, char** argv)
     fatal("This program requires a processor with SSE2 instructions.\n");
 #endif
 
-  srandom(1);
+  arch_srandom(1);
 
   args_init(argc, argv);
 
@@ -693,9 +670,9 @@ int main(int argc, char** argv)
 
   db_read(input_filename);
 
-  fprintf(logfile, "Database info:     %lu nt", db_getnucleotidecount());
-  fprintf(logfile, " in %lu sequences,", db_getsequencecount());
-  fprintf(logfile, " longest %lu nt\n", db_getlongestsequence());
+  fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
+  fprintf(logfile, " in %" PRIu64 " sequences,", db_getsequencecount());
+  fprintf(logfile, " longest %" PRIu64 " nt\n", db_getlongestsequence());
 
   dbsequencecount = db_getsequencecount();
 

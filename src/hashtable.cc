@@ -25,18 +25,18 @@
 
 #define HASHFILLFACTOR 0.7
 
-unsigned long hash_mask;
+uint64_t hash_mask;
 unsigned char * hash_occupied = 0;
-unsigned long * hash_values = 0;
+uint64_t * hash_values = 0;
 int * hash_data = 0;
-unsigned long hash_tablesize = 0;
+uint64_t hash_tablesize = 0;
 
 void hash_zap()
 {
   memset(hash_occupied, 0, (hash_tablesize + 63) / 8);
 }
 
-void hash_alloc(unsigned long amplicons)
+void hash_alloc(uint64_t amplicons)
 {
   hash_tablesize = 1;
   while (amplicons > HASHFILLFACTOR * hash_tablesize)
@@ -48,7 +48,7 @@ void hash_alloc(unsigned long amplicons)
   hash_zap();
 
   hash_values =
-    (unsigned long *) xmalloc(hash_tablesize * sizeof(unsigned long));
+    (uint64_t *) xmalloc(hash_tablesize * sizeof(uint64_t));
 
   hash_data =
     (int *) xmalloc(hash_tablesize * sizeof(int));
@@ -56,7 +56,7 @@ void hash_alloc(unsigned long amplicons)
 
 void hash_free()
 {
-  free(hash_occupied);
-  free(hash_values);
-  free(hash_data);
+  xfree(hash_occupied);
+  xfree(hash_values);
+  xfree(hash_data);
 }

@@ -21,17 +21,17 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-extern unsigned long * zobrist_tab_base;
+extern uint64_t * zobrist_tab_base;
 
 void zobrist_init(unsigned int longest);
 
 void zobrist_exit();
 
-unsigned long zobrist_hash(unsigned char * s, unsigned int len);
-unsigned long zobrist_hash_delete_first(unsigned char * s, unsigned int len);
-unsigned long zobrist_hash_insert_first(unsigned char * s, unsigned int len);
+uint64_t zobrist_hash(unsigned char * s, unsigned int len);
+uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len);
+uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len);
 
-inline unsigned long zobrist_value(unsigned int pos, unsigned char x)
+inline uint64_t zobrist_value(unsigned int pos, unsigned char x)
 {
   return zobrist_tab_base[4 * pos + x];
 }

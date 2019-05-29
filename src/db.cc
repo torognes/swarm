@@ -69,9 +69,9 @@ signed char map_hex[256] =
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
   };
 
-unsigned long sequences = 0;
-unsigned long nucleotides = 0;
-unsigned long headerchars = 0;
+uint64_t sequences = 0;
+uint64_t nucleotides = 0;
+uint64_t headerchars = 0;
 unsigned int longest = 0;
 int longestheader = 0;
 
@@ -80,10 +80,10 @@ char * datap = 0;
 qgramvector_t * qgrams = 0;
 
 static int missingabundance = 0;
-static unsigned long missingabundance_lineno = 0;
+static uint64_t missingabundance_lineno = 0;
 static char * missingabundance_header = 0;
 
-void fprint_id(FILE * stream, unsigned long x)
+void fprint_id(FILE * stream, uint64_t x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -91,14 +91,14 @@ void fprint_id(FILE * stream, unsigned long x)
 
   if (opt_append_abundance && (sp->abundance_start == sp->abundance_end))
     if (opt_usearch_abundance)
-      fprintf(stream, "%.*s;size=%lu;", hdrlen, h, sp->abundance);
+      fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, h, sp->abundance);
     else
-      fprintf(stream, "%.*s_%lu", hdrlen, h, sp->abundance);
+      fprintf(stream, "%.*s_%" PRIu64, hdrlen, h, sp->abundance);
   else
     fprintf(stream, "%.*s", hdrlen, h);
 }
 
-void fprint_id_noabundance(FILE * stream, unsigned long x)
+void fprint_id_noabundance(FILE * stream, uint64_t x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -124,14 +124,14 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
 }
 
 void fprint_id_with_new_abundance(FILE * stream,
-                                  unsigned long seqno,
-                                  unsigned long abundance)
+                                  uint64_t seqno,
+                                  uint64_t abundance)
 {
   seqinfo_t * sp = seqindex + seqno;
 
   if (opt_usearch_abundance)
     fprintf(stream,
-            "%.*s%ssize=%lu;%.*s",
+            "%.*s%ssize=%" PRIu64 ";%.*s",
             sp->abundance_start,
             sp->header,
             sp->abundance_start > 0 ? ";" : "",
@@ -140,7 +140,7 @@ void fprint_id_with_new_abundance(FILE * stream,
             sp->header + sp->abundance_end);
   else
     fprintf(stream,
-            "%.*s_%lu",
+            "%.*s_%" PRIu64,
             sp->abundance_start,
             sp->header,
             abundance);
@@ -162,7 +162,7 @@ int db_compare_abundance(const void * a, const void * b)
 bool find_swarm_abundance(const char * header,
                           int * start,
                           int * end,
-                          long * number)
+                          int64_t * number)
 {
   /*
     Identify the first occurence of the pattern (_)([0-9]+)$
@@ -200,7 +200,7 @@ bool find_swarm_abundance(const char * header,
 bool find_usearch_abundance(const char * header,
                             int * start,
                             int * end,
-                            long * number)
+                            int64_t * number)
 {
   /*
     Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -263,15 +263,15 @@ bool find_usearch_abundance(const char * header,
   return false;
 }
 
-void find_abundance(struct seqinfo_s * sp, unsigned long lineno)
+void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
 {
   char * header = sp->header;
 
   /* read size/abundance annotation */
-  long abundance = 0;
+  int64_t abundance = 0;
   int start = 0;
   int end = 0;
-  long number = 0;
+  int64_t number = 0;
 
   if (opt_usearch_abundance)
     {
@@ -284,7 +284,7 @@ void find_abundance(struct seqinfo_s * sp, unsigned long lineno)
           else
             {
               fprintf(stderr,
-                      "\nError: Illegal abundance value on line %lu:\n%s\n"
+                      "\nError: Illegal abundance value on line %" PRIu64 ":\n%s\n"
                       "Abundance values should be positive integers.\n\n",
                       lineno,
                       header);
@@ -303,7 +303,7 @@ void find_abundance(struct seqinfo_s * sp, unsigned long lineno)
           else
             {
               fprintf(stderr,
-                      "\nError: Illegal abundance value on line %lu:\n%s\n"
+                      "\nError: Illegal abundance value on line %" PRIu64 ":\n%s\n"
                       "Abundance values should be positive integers.\n\n",
                       lineno,
                       header);
@@ -339,9 +339,9 @@ void db_read(const char * filename)
 {
   /* allocate space */
 
-  unsigned long dataalloc = MEMCHUNK;
+  uint64_t dataalloc = MEMCHUNK;
   datap = (char *) xmalloc(dataalloc);
-  unsigned long datalen = 0;
+  uint64_t datalen = 0;
 
   longest = 0;
   longestheader = 0;
@@ -352,7 +352,7 @@ void db_read(const char * filename)
   FILE * fp = NULL;
   if (filename)
     {
-      fp = fopen(filename, "r");
+      fp = fopen_input(filename);
       if (!fp)
         fatal("Error: Unable to open input data file (%s).", filename);
     }
@@ -366,7 +366,7 @@ void db_read(const char * filename)
   if (fstat(fileno(fp), & fs))
     fatal("Unable to fstat on input file (%s)", filename);
   bool is_regular = S_ISREG(fs.st_mode);
-  long filesize = is_regular ? fs.st_size : 0;
+  int64_t filesize = is_regular ? fs.st_size : 0;
 
   if (! is_regular)
     fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
@@ -388,7 +388,7 @@ void db_read(const char * filename)
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
 
-      long headerlen = strcspn(line + 1, " \r\n");
+      int64_t headerlen = strcspn(line + 1, " \r\n");
 
       headerchars += headerlen;
 
@@ -436,14 +436,14 @@ void db_read(const char * filename)
           dataalloc += MEMCHUNK;
           datap = (char *) xrealloc(datap, dataalloc);
         }
-      unsigned long datalen_seqlen = datalen;
+      uint64_t datalen_seqlen = datalen;
       memcpy(datap + datalen, & length, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
 
       /* read and store sequence */
 
-      unsigned long nt_buffer = 0;
+      uint64_t nt_buffer = 0;
       unsigned int nt_bufferlen = 0;
       const unsigned int nt_buffersize = 4 * sizeof(nt_buffer);
 
@@ -456,7 +456,7 @@ void db_read(const char * filename)
               signed char m;
               if ((m = map_nt[(unsigned int)c]) >= 0)
                 {
-                  nt_buffer |= (((unsigned long)m)-1) << (2 * nt_bufferlen);
+                  nt_buffer |= (((uint64_t)m)-1) << (2 * nt_bufferlen);
                   length++;
                   nt_bufferlen++;
 
@@ -513,7 +513,7 @@ void db_read(const char * filename)
         longest = length;
 
 
-      /* save remaining padded unsigned long, if any */
+      /* save remaining padded 64-bit value with nt's, if any */
 
       if (nt_bufferlen > 0)
         {
@@ -545,17 +545,17 @@ void db_read(const char * filename)
 
   /* set up hash to check for unique headers */
 
-  unsigned long hdrhashsize = 2 * sequences;
+  uint64_t hdrhashsize = 2 * sequences;
 
   seqinfo_t * * hdrhashtable =
     (seqinfo_t **) xmalloc(hdrhashsize * sizeof(seqinfo_t *));
   memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
 
-  unsigned long duplicatedidentifiers = 0;
+  uint64_t duplicatedidentifiers = 0;
 
   /* set up hash to check for unique sequences */
 
-  unsigned long seqhashsize = 2 * sequences;
+  uint64_t seqhashsize = 2 * sequences;
 
   seqinfo_t * * seqhashtable = 0;
 
@@ -577,7 +577,7 @@ void db_read(const char * filename)
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
-  for(unsigned long i=0; i<sequences; i++)
+  for(uint64_t i=0; i<sequences; i++)
     {
       /* get line number */
       unsigned int lineno = *((unsigned int*)p);
@@ -618,10 +618,10 @@ void db_read(const char * filename)
 
       /* check for duplicated identifiers using hash table */
 
-      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header,
+      uint64_t hdrhash = HASH((unsigned char*)seqindex_p->header,
                                    seqindex_p->abundance_start);
       seqindex_p->hdrhash = hdrhash;
-      unsigned long hdrhashindex = hdrhash % hdrhashsize;
+      uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
       seqinfo_t * hdrfound = 0;
 
@@ -656,7 +656,7 @@ void db_read(const char * filename)
           /* Check for duplicated sequences using hash table, */
           /* but only for d>1. Handled internally for d=1.    */
 
-          unsigned long seqhashindex = seqindex_p->seqhash % seqhashsize;
+          uint64_t seqhashindex = seqindex_p->seqhash % seqhashsize;
           seqinfo_t * seqfound = 0;
 
           while ((seqfound = seqhashtable[seqhashindex]))
@@ -701,7 +701,7 @@ void db_read(const char * filename)
   if (missingabundance)
     {
       fprintf(stderr,
-              "\nError: Abundance annotations not found for %d sequences, starting on line %lu.\n"
+              "\nError: Abundance annotations not found for %d sequences, starting on line %" PRIu64 ".\n"
               ">%s\n"
               "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
               "The -z option must be used if the abundance annotation is in the latter format.\n"
@@ -721,11 +721,11 @@ void db_read(const char * filename)
       progress_done();
     }
 
-  free(hdrhashtable);
+  xfree(hdrhashtable);
 
   if (seqhashtable)
     {
-      free(seqhashtable);
+      xfree(seqhashtable);
       seqhashtable = 0;
     }
 }
@@ -750,76 +750,76 @@ void db_qgrams_init()
 
 void db_qgrams_done()
 {
-  free(qgrams);
+  xfree(qgrams);
 }
 
-unsigned long db_getsequencecount()
+uint64_t db_getsequencecount()
 {
   return sequences;
 }
 
-unsigned long db_getnucleotidecount()
+uint64_t db_getnucleotidecount()
 {
   return nucleotides;
 }
 
-unsigned long db_getlongestheader()
+uint64_t db_getlongestheader()
 {
   return longestheader;
 }
 
-unsigned long db_getlongestsequence()
+uint64_t db_getlongestsequence()
 {
   return longest;
 }
 
-seqinfo_t * db_getseqinfo(unsigned long seqno)
+seqinfo_t * db_getseqinfo(uint64_t seqno)
 {
   return seqindex+seqno;
 }
 
-unsigned long db_gethash(unsigned long seqno)
+uint64_t db_gethash(uint64_t seqno)
 {
   return seqindex[seqno].seqhash;
 }
 
-char * db_getsequence(unsigned long seqno)
+char * db_getsequence(uint64_t seqno)
 {
   return seqindex[seqno].seq;
 }
 
-void db_getsequenceandlength(unsigned long seqno,
+void db_getsequenceandlength(uint64_t seqno,
                              char ** address,
-                             long * length)
+                             int64_t * length)
 {
   *address = seqindex[seqno].seq;
-  *length = (long)(seqindex[seqno].seqlen);
+  *length = (int64_t)(seqindex[seqno].seqlen);
 }
 
-unsigned long db_getsequencelen(unsigned long seqno)
+uint64_t db_getsequencelen(uint64_t seqno)
 {
   return seqindex[seqno].seqlen;
 }
 
-char * db_getheader(unsigned long seqno)
+char * db_getheader(uint64_t seqno)
 {
   return seqindex[seqno].header;
 }
 
-unsigned long db_getheaderlen(unsigned long seqno)
+uint64_t db_getheaderlen(uint64_t seqno)
 {
   return seqindex[seqno].headerlen;
 }
 
-unsigned long db_getabundance(unsigned long seqno)
+uint64_t db_getabundance(uint64_t seqno)
 {
   return seqindex[seqno].abundance;
 }
 
-void db_putseq(long seqno)
+void db_putseq(int64_t seqno)
 {
   char * seq;
-  long len;
+  int64_t len;
   db_getsequenceandlength(seqno, & seq, & len);
   for(int i=0; i<len; i++)
     putchar(sym_nt[1+nt_extract(seq, i)]);
@@ -830,9 +830,9 @@ void db_free()
   zobrist_exit();
 
   if (datap)
-    free(datap);
+    xfree(datap);
   if (seqindex)
-    free(seqindex);
+    xfree(seqindex);
 }
 
 void db_fprintseq(FILE * fp, int a, int width)
@@ -855,7 +855,7 @@ void db_fprintseq(FILE * fp, int a, int width)
     fprintf(fp, "%.*s\n", (int)(len), buf);
   else
     {
-      long rest = len;
+      int64_t rest = len;
       for(int i=0; i<len; i += width)
         {
           fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), buf+i);
@@ -864,5 +864,5 @@ void db_fprintseq(FILE * fp, int a, int width)
     }
 
   if (len >= 1025)
-    free(buf);
+    xfree(buf);
 }

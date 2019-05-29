@@ -38,13 +38,13 @@ void bloom_patterns_generate(struct bloom_s * b)
   const unsigned int k = 8;
   for (unsigned int i = 0; i < BLOOM_PATTERN_COUNT; i++)
     {
-      unsigned long pattern = 0;
+      uint64_t pattern = 0;
       for (unsigned int j = 0; j < k; j++)
         {
-          unsigned long onebit;
-          onebit = 1ULL << (random() & 63);
+          uint64_t onebit;
+          onebit = 1ULL << (arch_random() & 63);
           while (pattern & onebit)
-            onebit = 1ULL << (random() & 63);
+            onebit = 1ULL << (arch_random() & 63);
           pattern |= onebit;
         }
       b->patterns[i] = pattern;
@@ -56,7 +56,7 @@ void bloom_zap(struct bloom_s * b)
   memset(b->bitmap, 0xff, b->size);
 }
 
-struct bloom_s * bloom_init(unsigned long size)
+struct bloom_s * bloom_init(uint64_t size)
 {
   // Size is in bytes for full bitmap, must be power of 2
   // at least 8
@@ -68,7 +68,7 @@ struct bloom_s * bloom_init(unsigned long size)
 
   b->mask = (size >> 3) - 1;
 
-  b->bitmap = (unsigned long *) xmalloc(size);
+  b->bitmap = (uint64_t *) xmalloc(size);
 
   bloom_zap(b);
 
@@ -79,6 +79,6 @@ struct bloom_s * bloom_init(unsigned long size)
 
 void bloom_exit(struct bloom_s * b)
 {
-  free(b->bitmap);
-  free(b);
+  xfree(b->bitmap);
+  xfree(b);
 }

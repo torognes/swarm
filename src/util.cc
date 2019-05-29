@@ -24,12 +24,13 @@
 #include "swarm.h"
 
 static const char * progress_prompt;
-static unsigned long progress_next;
-static unsigned long progress_size;
-static unsigned long progress_chunk;
-static const unsigned long progress_granularity = 200;
+static uint64_t progress_next;
+static uint64_t progress_size;
+static uint64_t progress_chunk;
+static const uint64_t progress_granularity = 200;
+const size_t memalignment = 16;
 
-void progress_init(const char * prompt, unsigned long size)
+void progress_init(const char * prompt, uint64_t size)
 {
   progress_prompt = prompt;
   progress_size = size;
@@ -42,7 +43,7 @@ void progress_init(const char * prompt, unsigned long size)
     fprintf(logfile, "%s %.0f%%", prompt, 0.0);
 }
 
-void progress_update(unsigned long progress)
+void progress_update(uint64_t progress)
 {
   if ((!opt_log) && (progress >= progress_next))
     {
@@ -62,7 +63,7 @@ void progress_done()
   fflush(logfile);
 }
 
-long gcd(long a, long b)
+int64_t gcd(int64_t a, int64_t b)
 {
   if (b == 0)
   {
@@ -90,10 +91,15 @@ void fatal(const char * format, const char * message)
 
 void * xmalloc(size_t size)
 {
-  const size_t alignment = 16;
-  void * t = NULL;
-  if (posix_memalign(& t, alignment, size))
-    fatal("Unable to allocate enough memory.");
+  if (size == 0)
+    size = 1;
+  void * t = 0;
+#ifdef _WIN32
+  t = _aligned_malloc(size, memalignment);
+#else
+  if (posix_memalign(& t, memalignment, size))
+    t = 0;
+#endif
   if (!t)
     fatal("Unable to allocate enough memory.");
   return t;
@@ -101,20 +107,40 @@ void * xmalloc(size_t size)
 
 void * xrealloc(void *ptr, size_t size)
 {
+  if (size == 0)
+    size = 1;
+#ifdef _WIN32
+  void * t = _aligned_realloc(ptr, size, memalignment);
+#else
   void * t = realloc(ptr, size);
+#endif
   if (!t)
-    fatal("Unable to allocate enough memory.");
+    fatal("Unable to reallocate enough memory.");
   return t;
 }
 
-unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
+void xfree(void * ptr)
 {
-  const unsigned long fnv_offset = 14695981039346656037UL;
-  const unsigned long fnv_prime = 1099511628211; /* 2^40 - 435 */
+  if (ptr)
+    {
+#ifdef _WIN32
+      _aligned_free(ptr);
+#else
+      free(ptr);
+#endif
+    }
+  else
+    fatal("Trying to free a null pointer");
+}
 
-  unsigned long hash = fnv_offset;
+uint64_t hash_fnv_1a_64(unsigned char * s, uint64_t n)
+{
+  const uint64_t fnv_offset = 14695981039346656037UL;
+  const uint64_t fnv_prime = 1099511628211; /* 2^40 - 435 */
 
-  for(unsigned long i = 0; i < n; i++)
+  uint64_t hash = fnv_offset;
+
+  for(uint64_t i = 0; i < n; i++)
     {
       unsigned char c = *s++;
       hash = (hash ^ c) * fnv_prime;
@@ -123,14 +149,14 @@ unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
   return hash;
 }
 
-unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n)
+unsigned int hash_fnv_1a_32(unsigned char * s, uint64_t n)
 {
   const unsigned int fnv_offset = 2166136261;
   const unsigned int fnv_prime = 16777619;
 
   unsigned int hash = fnv_offset;
 
-  for(unsigned long i = 0; i < n; i++)
+  for(uint64_t i = 0; i < n; i++)
     {
       unsigned char c = *s++;
       hash = (hash ^ c) * fnv_prime;
@@ -139,13 +165,13 @@ unsigned int hash_fnv_1a_32(unsigned char * s, unsigned long n)
   return hash;
 }
 
-unsigned long hash_djb2(unsigned char * s, unsigned long n)
+uint64_t hash_djb2(unsigned char * s, uint64_t n)
 {
-  const unsigned long djb2_offset = 5381;
+  const uint64_t djb2_offset = 5381;
 
-  unsigned long hash = djb2_offset;
+  uint64_t hash = djb2_offset;
 
-  for(unsigned long i = 0; i < n; i++)
+  for(uint64_t i = 0; i < n; i++)
     {
       unsigned char c = *s++;
       hash = ((hash << 5) + hash) + c; /* hash = hash * 33 + c */
@@ -154,13 +180,13 @@ unsigned long hash_djb2(unsigned char * s, unsigned long n)
   return hash;
 }
 
-unsigned long hash_djb2a(unsigned char * s, unsigned long n)
+uint64_t hash_djb2a(unsigned char * s, uint64_t n)
 {
-  const unsigned long djb2_offset = 5381;
+  const uint64_t djb2_offset = 5381;
 
-  unsigned long hash = djb2_offset;
+  uint64_t hash = djb2_offset;
 
-  for(unsigned long i = 0; i < n; i++)
+  for(uint64_t i = 0; i < n; i++)
     {
       unsigned char c = *s++;
       hash = ((hash << 5) + hash) ^ c; /* hash = hash * 33 ^ c */
@@ -169,13 +195,13 @@ unsigned long hash_djb2a(unsigned char * s, unsigned long n)
   return hash;
 }
 
-unsigned long hash_cityhash64(unsigned char * s, unsigned long n)
+uint64_t hash_cityhash64(unsigned char * s, uint64_t n)
 {
   return CityHash64((const char*)s, n);
 }
 
 
-unsigned long hash64shift(unsigned long key)
+uint64_t hash64shift(uint64_t key)
 {
   key = (~key) + (key << 21); // key = (key << 21) - key - 1;
   key = key ^ (key >> 24);
@@ -187,13 +213,13 @@ unsigned long hash64shift(unsigned long key)
   return key;
 }
 
-unsigned long hash_xor64len(unsigned char * s, unsigned long n)
+uint64_t hash_xor64len(unsigned char * s, uint64_t n)
 {
-  unsigned long hash;
+  uint64_t hash;
 
   hash = 8 * n;
-  unsigned long * p = (unsigned long*) s;
-  for(unsigned long i = 0; i < n/8; i++)
+  uint64_t * p = (uint64_t*) s;
+  for(uint64_t i = 0; i < n/8; i++)
     hash ^= *p++;
 
   // Only the lowest (right-most) bits are used for indexing the hash table.
@@ -202,4 +228,34 @@ unsigned long hash_xor64len(unsigned char * s, unsigned long n)
   hash = hash64shift(hash);
 
   return hash;
+}
+
+FILE * fopen_input(const char * filename)
+{
+  /* open the input stream given by filename, but use stdin if name is - */
+  if (strcmp(filename, "-") == 0)
+    {
+      int fd = dup(STDIN_FILENO);
+      if (fd < 0)
+        return NULL;
+      else
+        return fdopen(fd, "rb");
+    }
+  else
+    return fopen(filename, "rb");
+}
+
+FILE * fopen_output(const char * filename)
+{
+  /* open the output stream given by filename, but use stdout if name is - */
+  if (strcmp(filename, "-") == 0)
+    {
+      int fd = dup(STDOUT_FILENO);
+      if (fd < 0)
+        return NULL;
+      else
+        return fdopen(fd, "w");
+    }
+  else
+    return fopen(filename, "w");
 }

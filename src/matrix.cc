@@ -23,16 +23,16 @@
 
 #include "swarm.h"
 
-long SCORELIMIT_7 = 0;
-long SCORELIMIT_8;
-long SCORELIMIT_16;
-long SCORELIMIT_32;
-long SCORELIMIT_63;
+int64_t SCORELIMIT_7 = 0;
+int64_t SCORELIMIT_8;
+int64_t SCORELIMIT_16;
+int64_t SCORELIMIT_32;
+int64_t SCORELIMIT_63;
 char BIAS;
 
 unsigned char * score_matrix_8 = NULL;
 unsigned short * score_matrix_16 = NULL;
-long * score_matrix_63 = NULL;
+int64_t * score_matrix_63 = NULL;
 
 void score_matrix_dump()
 {
@@ -49,7 +49,7 @@ void score_matrix_dump()
     fprintf(logfile, "%2d %c ", i, sym_nt[i]);
     for(int j=0; j<16; j++)
       {
-        fprintf(logfile, "%2ld", score_matrix_63[(i<<5) + j]);
+        fprintf(logfile, "%2" PRId64, score_matrix_63[(i<<5) + j]);
       }
     fprintf(logfile, "\n");
   }
@@ -58,11 +58,11 @@ void score_matrix_dump()
 void score_matrix_read()
 {
   int a, b;
-  long sc, lo, hi;
+  int64_t sc, lo, hi;
 
   score_matrix_8 = (unsigned char *) xmalloc(32*32*sizeof(char));
   score_matrix_16 = (unsigned short *) xmalloc(32*32*sizeof(short));
-  score_matrix_63 = (long *) xmalloc(32*32*sizeof(long));
+  score_matrix_63 = (int64_t *) xmalloc(32*32*sizeof(int64_t));
 
   hi = -1000;
   lo = 1000;
@@ -100,10 +100,10 @@ void score_matrix_init()
 
 void score_matrix_free()
 {
-  free(score_matrix_8);
+  xfree(score_matrix_8);
   score_matrix_8 = NULL;
-  free(score_matrix_16);
+  xfree(score_matrix_16);
   score_matrix_16 = NULL;
-  free(score_matrix_63);
+  xfree(score_matrix_63);
   score_matrix_63 = NULL;
 }

@@ -23,36 +23,36 @@
 
 struct bloomflex_s
 {
-  unsigned long size; /* size in number of longs (8 bytes) */
-  unsigned long pattern_shift;
-  unsigned long pattern_count;
-  unsigned long pattern_mask;
-  unsigned long pattern_k;
-  unsigned long * bitmap;
-  unsigned long * patterns;
+  uint64_t size; /* size in number of longs (8 bytes) */
+  uint64_t pattern_shift;
+  uint64_t pattern_count;
+  uint64_t pattern_mask;
+  uint64_t pattern_k;
+  uint64_t * bitmap;
+  uint64_t * patterns;
 };
 
-struct bloomflex_s * bloomflex_init(unsigned long size, unsigned int k);
+struct bloomflex_s * bloomflex_init(uint64_t size, unsigned int k);
 
 void bloomflex_exit(struct bloomflex_s * b);
 
-inline unsigned long * bloomflex_adr(struct bloomflex_s * b, unsigned long h)
+inline uint64_t * bloomflex_adr(struct bloomflex_s * b, uint64_t h)
 {
   return b->bitmap + ((h >> b->pattern_shift) % b->size);
 }
 
-inline unsigned long bloomflex_pat(struct bloomflex_s * b,
-                                     unsigned long h)
+inline uint64_t bloomflex_pat(struct bloomflex_s * b,
+                                     uint64_t h)
 {
   return b->patterns[h & b->pattern_mask];
 }
 
-inline void bloomflex_set(struct bloomflex_s * b, unsigned long h)
+inline void bloomflex_set(struct bloomflex_s * b, uint64_t h)
 {
   * bloomflex_adr(b, h) &= ~ bloomflex_pat(b, h);
 }
 
-inline bool bloomflex_get(struct bloomflex_s * b, unsigned long h)
+inline bool bloomflex_get(struct bloomflex_s * b, uint64_t h)
 {
   return ! (* bloomflex_adr(b, h) & bloomflex_pat(b, h));
 }

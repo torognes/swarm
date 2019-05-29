@@ -42,7 +42,7 @@ const uint8x16_t neon_mask =
 const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
 #define v_load(a) vld1q_s8((const int8_t *)(a))
-#define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
+#define v_load_64(a) vld1q_dup_u64((const unsigned long long *)(a))
 #define v_store(a, b) vst1q_s8((int8_t *)(a), (b))
 #define v_merge_lo_8(a, b) vzip1q_s8((a),(b))
 #define v_merge_hi_8(a, b) vzip2q_s8((a),(b))
@@ -111,7 +111,7 @@ const vector unsigned char perm_bits =
     0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00 };
 
 #define v_load(a) *((VECTORTYPE *)(a))
-#define v_load_64(a) (VECTORTYPE)vec_splats(*((unsigned long long*)(a)))
+#define v_load_64(a) (VECTORTYPE)vec_splats(*((uint64_t *)(a)))
 #define v_store(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE*)(a))
 #define v_merge_lo_8(a, b) vec_mergeh((a), (b))
 #define v_merge_hi_8(a, b) vec_mergel((a), (b))
@@ -502,9 +502,9 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE ** qp,
                            VECTORTYPE * Qm,
                            VECTORTYPE * Rm,
-                           long ql,
+                           int64_t ql,
                            VECTORTYPE * F0,
-                           unsigned long * dir_long,
+                           uint64_t * dir_long,
                            VECTORTYPE * H0)
 {
   VECTORTYPE Q, R, E;
@@ -532,7 +532,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   h7 = v_zero;
   h8 = v_zero;
 
-  for(long i = 0; i < ql; i++)
+  for(int64_t i = 0; i < ql; i++)
     {
       x = qp[i + 0];
       h4 = hep[2*i + 0];
@@ -560,9 +560,9 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
                                  VECTORTYPE ** qp,
                                  VECTORTYPE * Qm,
                                  VECTORTYPE * Rm,
-                                 long ql,
+                                 int64_t ql,
                                  VECTORTYPE * F0,
-                                 unsigned long * dir_long,
+                                 uint64_t * dir_long,
                                  VECTORTYPE * H0,
                                  VECTORTYPE * Mm,
                                  VECTORTYPE * MQ,
@@ -594,7 +594,7 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
   h7 = v_zero;
   h8 = v_zero;
 
-  for(long i = 0; i < ql; i++)
+  for(int64_t i = 0; i < ql; i++)
     {
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
@@ -631,31 +631,31 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
   Sm[3] = h8;
 }
 
-inline unsigned long backtrack_8(char * qseq,
-                                 char * dseq,
-                                 unsigned long qlen,
-                                 unsigned long dlen,
-                                 unsigned long * dirbuffer,
-                                 unsigned long offset,
-                                 unsigned long dirbuffersize,
-                                 unsigned long channel,
-                                 unsigned long * alignmentlengthp)
+inline uint64_t backtrack_8(char * qseq,
+                            char * dseq,
+                            uint64_t qlen,
+                            uint64_t dlen,
+                            uint64_t * dirbuffer,
+                            uint64_t offset,
+                            uint64_t dirbuffersize,
+                            uint64_t channel,
+                            uint64_t * alignmentlengthp)
 {
-  unsigned long maskup      = 1UL << (channel+ 0);
-  unsigned long maskleft    = 1UL << (channel+16);
-  unsigned long maskextup   = 1UL << (channel+32);
-  unsigned long maskextleft = 1UL << (channel+48);
+  uint64_t maskup      = 1UL << (channel+ 0);
+  uint64_t maskleft    = 1UL << (channel+16);
+  uint64_t maskextup   = 1UL << (channel+32);
+  uint64_t maskextleft = 1UL << (channel+48);
 
 #if 0
 
   printf("Dumping backtracking array\n");
 
-  for(unsigned long i=0; i<qlen; i++)
+  for(uint64_t i=0; i<qlen; i++)
     {
-      for(unsigned long j=0; j<dlen; j++)
+      for(uint64_t j=0; j<dlen; j++)
         {
-          unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
-                                       + 4*i + (j&3)) % dirbuffersize];
+          uint64_t d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+                                  + 4*i + (j&3)) % dirbuffersize];
           if (d & maskleft)
             {
               printf("<");
@@ -674,12 +674,12 @@ inline unsigned long backtrack_8(char * qseq,
 
   printf("Dumping gap extension array\n");
 
-  for(unsigned long i=0; i<qlen; i++)
+  for(uint64_t i=0; i<qlen; i++)
     {
-      for(unsigned long j=0; j<dlen; j++)
+      for(uint64_t j=0; j<dlen; j++)
         {
-          unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
-                                       + 4*i + (j&3)) % dirbuffersize];
+          uint64_t d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+                                  + 4*i + (j&3)) % dirbuffersize];
           if (!(d & maskextup))
             {
               if (!(d & maskextleft))
@@ -701,10 +701,10 @@ inline unsigned long backtrack_8(char * qseq,
 
 #endif
 
-  long i = qlen - 1;
-  long j = dlen - 1;
-  unsigned long aligned = 0;
-  unsigned long matches = 0;
+  int64_t i = qlen - 1;
+  int64_t j = dlen - 1;
+  uint64_t aligned = 0;
+  uint64_t matches = 0;
   char op = 0;
 
 #undef SHOWALIGNMENT
@@ -716,7 +716,7 @@ inline unsigned long backtrack_8(char * qseq,
     {
       aligned++;
 
-      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
+      uint64_t d = dirbuffer[(offset + longestdbsequence*4*(j/4)
                                    + 4*i + (j&3)) % dirbuffersize];
 
       if ((op == 'I') && (!(d & maskextleft)))
@@ -784,22 +784,22 @@ void search8(BYTE * * q_start,
              BYTE * score_matrix,
              BYTE * dprofile,
              BYTE * hearray,
-             unsigned long sequences,
-             unsigned long * seqnos,
-             unsigned long * scores,
-             unsigned long * diffs,
-             unsigned long * alignmentlengths,
-             unsigned long qlen,
-             unsigned long dirbuffersize,
-             unsigned long * dirbuffer)
+             uint64_t sequences,
+             uint64_t * seqnos,
+             uint64_t * scores,
+             uint64_t * diffs,
+             uint64_t * alignmentlengths,
+             uint64_t qlen,
+             uint64_t dirbuffersize,
+             uint64_t * dirbuffer)
 {
   VECTORTYPE Q, R, T, M, T0, MQ, MR, MQ0;
   VECTORTYPE *hep, **qp;
 
-  unsigned long d_pos[CHANNELS];
-  unsigned long d_offset[CHANNELS];
+  uint64_t d_pos[CHANNELS];
+  uint64_t d_offset[CHANNELS];
   char * d_address[CHANNELS];
-  unsigned long d_length[CHANNELS];
+  uint64_t d_length[CHANNELS];
 
   VECTORTYPE dseqalloc[CDEPTH];
 
@@ -809,9 +809,9 @@ void search8(BYTE * * q_start,
 
   BYTE * dseq = (BYTE*) & dseqalloc;
 
-  long seq_id[CHANNELS];
-  unsigned long next_id = 0;
-  unsigned long done;
+  int64_t seq_id[CHANNELS];
+  uint64_t next_id = 0;
+  uint64_t done;
 
   T0 = T0_init;
   Q  = v_dup(gap_open_penalty+gap_extend_penalty);
@@ -835,7 +835,7 @@ void search8(BYTE * * q_start,
 
   int easy = 0;
 
-  unsigned long * dir = dirbuffer;
+  uint64_t * dir = dirbuffer;
 
   while(1)
     {
@@ -897,23 +897,23 @@ void search8(BYTE * * q_start,
 
                   M = v_xor(M, T);
 
-                  long cand_id = seq_id[c];
+                  int64_t cand_id = seq_id[c];
 
                   if (cand_id >= 0)
                     {
                       // save score
 
                       char * dbseq = (char*) d_address[c];
-                      long dbseqlen = d_length[c];
-                      long z = (dbseqlen+3) % 4;
-                      long score = ((BYTE*)S)[z*CHANNELS+c];
+                      int64_t dbseqlen = d_length[c];
+                      int64_t z = (dbseqlen+3) % 4;
+                      int64_t score = ((BYTE*)S)[z*CHANNELS+c];
                       scores[cand_id] = score;
 
-                      unsigned long diff;
+                      uint64_t diff;
 
                       if (score < 255)
                         {
-                          long offset = d_offset[c];
+                          int64_t offset = d_offset[c];
                           diff = backtrack_8(query.seq, dbseq, qlen, dbseqlen,
                                              dirbuffer,
                                              offset,
@@ -934,9 +934,9 @@ void search8(BYTE * * q_start,
                     {
                       // get next sequence
                       seq_id[c] = next_id;
-                      long seqno = seqnos[next_id];
+                      int64_t seqno = seqnos[next_id];
                       char* address;
-                      long length;
+                      int64_t length;
 
                       db_getsequenceandlength(seqno, & address, & length);
 

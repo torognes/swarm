@@ -51,8 +51,8 @@ static struct swarminfo_s
   int size; /* total number of amplicons in this swarm */
   int singletons; /* number of amplicons with abundance 1 */
   int maxgen; /* the generation of the amplicon farthest from the seed */
-  long mass; /* the sum of abundances of amplicons in this swarm */
-  long sumlen; /* sum of length of amplicons in swarm */
+  int64_t mass; /* the sum of abundances of amplicons in this swarm */
+  int64_t sumlen; /* sum of length of amplicons in swarm */
   bool attached; /* this is a small swarm attached to a large (fastidious) */
 } * swarminfo = 0;
 
@@ -63,52 +63,52 @@ static struct graft_cand
 } * graft_array = 0;
 
 /* Information about potential grafts */
-static long graft_candidates = 0;
+static int64_t graft_candidates = 0;
 static pthread_mutex_t graft_mutex;
 
 #define NO_SWARM (-1)
 
 static int current_swarm_tail = 0;
 
-static long swarminfo_alloc = 0;
+static int64_t swarminfo_alloc = 0;
 
 /* overall statistics */
 static int maxgen = 0;
 static int largest = 0;
-static long swarmcount_adjusted = 0;
+static int64_t swarmcount_adjusted = 0;
 
 /* per swarm statistics */
-static unsigned long singletons = 0;
-static unsigned long abundance_sum = 0; /* = mass */
+static uint64_t singletons = 0;
+static uint64_t abundance_sum = 0; /* = mass */
 static int swarmsize = 0;
 static int swarm_maxgen = 0;
-static unsigned long swarm_sumlen = 0;
+static uint64_t swarm_sumlen = 0;
 
 static int * global_hits_data = 0;
 static int global_hits_alloc = 0;
 static int global_hits_count = 0;
 
-static unsigned long longestamplicon = 0;
+static uint64_t longestamplicon = 0;
 
-static long amplicons = 0;
+static int64_t amplicons = 0;
 
 static pthread_mutex_t heavy_mutex;
-static long heavy_variants = 0;
-static long heavy_progress = 0;
-static long heavy_amplicon_count = 0;
+static int64_t heavy_variants = 0;
+static int64_t heavy_progress = 0;
+static int64_t heavy_amplicon_count = 0;
 static int heavy_amplicon = 0;
 
 static pthread_mutex_t light_mutex;
-static long light_variants = 0;
-static long light_progress = 0;
-static long light_amplicon_count = 0;
+static int64_t light_variants = 0;
+static int64_t light_progress = 0;
+static int64_t light_amplicon_count = 0;
 static int light_amplicon = 0;
 
-static unsigned long network_alloc = 1024 * 1024;
+static uint64_t network_alloc = 1024 * 1024;
 static int * network = 0;
-static unsigned long network_count = 0;
+static uint64_t network_count = 0;
 static pthread_mutex_t network_mutex;
-static long network_amp = 0;
+static int64_t network_amp = 0;
 
 static struct bloom_s * bloom_a = 0; // Bloom filter for amplicons
 
@@ -136,7 +136,7 @@ inline bool check_amp_identical(unsigned int amp1,
 inline void hash_insert(int amp)
 {
   /* find the first empty bucket */
-  unsigned long hash = db_gethash(amp);
+  uint64_t hash = db_gethash(amp);
   unsigned int j = hash_getindex(hash);
   bool duplicate = false;
   while (hash_is_occupied(j))
@@ -263,7 +263,7 @@ int attach_candidates(int amplicons)
       progress_update(i+1);
     }
   progress_done();
-  free(graft_array);
+  xfree(graft_array);
   return grafts;
 }
 
@@ -275,7 +275,7 @@ bool hash_check_attach(char * seq,
   /* seed is the original large swarm seed */
 
   /* compute hash and corresponding hash table index */
-  unsigned long hash = var->hash;
+  uint64_t hash = var->hash;
   unsigned int j = hash_getindex(hash);
 
   /* find matching buckets */
@@ -289,7 +289,7 @@ bool hash_check_attach(char * seq,
 
           /* make absolutely sure sequences are identical */
           char * ampseq = db_getsequence(amp);
-          unsigned long ampseqlen = db_getsequencelen(amp);
+          uint64_t ampseqlen = db_getsequencelen(amp);
           if (check_variant(seq, seqlen, var, ampseq, ampseqlen))
             {
               add_graft_candidate(seed, amp);
@@ -301,7 +301,7 @@ bool hash_check_attach(char * seq,
   return false;
 }
 
-inline long check_heavy_var_2(char * seq,
+inline int64_t check_heavy_var_2(char * seq,
                               size_t seqlen,
                               int seed,
                               struct var_s * variant_list)
@@ -309,10 +309,10 @@ inline long check_heavy_var_2(char * seq,
   /* Check second generation microvariants of the heavy swarm amplicons
      and see if any of them are identical to a light swarm amplicon. */
 
-  long matches = 0;
+  int64_t matches = 0;
   unsigned int variant_count = 0;
 
-  unsigned long hash = zobrist_hash((unsigned char*)seq, seqlen);
+  uint64_t hash = zobrist_hash((unsigned char*)seq, seqlen);
   generate_variants(seq, seqlen, hash,
                     variant_list, & variant_count, false);
 
@@ -327,8 +327,8 @@ inline long check_heavy_var_2(char * seq,
 void check_heavy_var(struct bloomflex_s * bloom,
                      char * varseq,
                      int seed,
-                     long * m,
-                     long * v,
+                     int64_t * m,
+                     int64_t * v,
                      struct var_s * variant_list,
                      struct var_s * variant_list2)
 {
@@ -353,11 +353,11 @@ void check_heavy_var(struct bloomflex_s * bloom,
   */
 
   unsigned int variant_count = 0;
-  long matches = 0;
+  int64_t matches = 0;
 
   char * sequence = db_getsequence(seed);
   unsigned int seqlen = db_getsequencelen(seed);
-  unsigned long hash = db_gethash(seed);
+  uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash,
                     variant_list, & variant_count, false);
 
@@ -380,7 +380,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
   *v = variant_count;
 }
 
-void check_heavy_thread(long t)
+void check_heavy_thread(int64_t t)
 {
   (void) t;
 
@@ -402,7 +402,7 @@ void check_heavy_thread(long t)
         {
           progress_update(++heavy_progress);
           pthread_mutex_unlock(&heavy_mutex);
-          long m, v;
+          int64_t m, v;
           check_heavy_var(bloom_f, buffer1, a, &m, &v,
                           variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
@@ -410,13 +410,13 @@ void check_heavy_thread(long t)
         }
     }
   pthread_mutex_unlock(&heavy_mutex);
-  free(buffer1);
+  xfree(buffer1);
 
-  free(variant_list2);
-  free(variant_list);
+  xfree(variant_list2);
+  xfree(variant_list);
 }
 
-long mark_light_var(struct bloomflex_s * bloom,
+int64_t mark_light_var(struct bloomflex_s * bloom,
                     int seed,
                     struct var_s * variant_list)
 {
@@ -433,7 +433,7 @@ long mark_light_var(struct bloomflex_s * bloom,
 
   char * sequence = db_getsequence(seed);
   unsigned int seqlen = db_getsequencelen(seed);
-  unsigned long hash = db_gethash(seed);
+  uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash,
                     variant_list, & variant_count, false);
 
@@ -443,7 +443,7 @@ long mark_light_var(struct bloomflex_s * bloom,
   return variant_count;
 }
 
-void mark_light_thread(long t)
+void mark_light_thread(int64_t t)
 {
   (void) t;
 
@@ -459,14 +459,14 @@ void mark_light_thread(long t)
         {
           progress_update(++light_progress);
           pthread_mutex_unlock(&light_mutex);
-          long v = mark_light_var(bloom_f, a, variant_list);
+          int64_t v = mark_light_var(bloom_f, a, variant_list);
           pthread_mutex_lock(&light_mutex);
           light_variants += v;
         }
     }
   pthread_mutex_unlock(&light_mutex);
 
-  free(variant_list);
+  xfree(variant_list);
 }
 
 
@@ -527,7 +527,7 @@ void check_variants(int seed,
 
   char * sequence = db_getsequence(seed);
   unsigned int seqlen = db_getsequencelen(seed);
-  unsigned long hash = db_gethash(seed);
+  uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash,
                     variant_list, & variant_count, true);
 
@@ -535,7 +535,7 @@ void check_variants(int seed,
     find_variant_matches(seed, variant_list + i, hits_data, hits_count);
 }
 
-void network_thread(long t)
+void network_thread(int64_t t)
 {
   (void) t;
 
@@ -573,8 +573,8 @@ void network_thread(long t)
     }
   pthread_mutex_unlock(&network_mutex);
 
-  free(variant_list);
-  free(hits_data);
+  xfree(variant_list);
+  xfree(hits_data);
 }
 
 void process_seed(int seed)
@@ -585,7 +585,7 @@ void process_seed(int seed)
   swarmsize++;
   if (bp->generation > swarm_maxgen)
     swarm_maxgen = bp->generation;
-  unsigned long abundance = db_getabundance(seed);
+  uint64_t abundance = db_getabundance(seed);
   abundance_sum += abundance;
   if (abundance == 1)
     singletons++;
@@ -685,13 +685,13 @@ void algo_d1_run()
   progress_done();
 
   unsigned char * dir = 0;
-  unsigned long * hearray = 0;
+  uint64_t * hearray = 0;
 
   if (uclustfile)
     {
       dir = (unsigned char *) xmalloc(longestamplicon*longestamplicon);
-      hearray = (unsigned long *)
-        xmalloc(2 * longestamplicon * sizeof(unsigned long));
+      hearray = (uint64_t *)
+        xmalloc(2 * longestamplicon * sizeof(uint64_t));
     }
 
   /* for all amplicons, generate list of matching amplicons */
@@ -711,8 +711,9 @@ void algo_d1_run()
 
   /* for each non-swarmed amplicon look for subseeds ... */
 
-  long swarmid = 0;
+  int64_t swarmid = 0;
   progress_init("Clustering:       ", amplicons);
+
   for(unsigned int seed = 0; seed < amplicons; seed++)
     {
       struct ampinfo_s * ap = ampinfo + seed;
@@ -811,12 +812,12 @@ void algo_d1_run()
     }
   progress_done();
 
-  free(global_hits_data);
+  xfree(global_hits_data);
 
-  free(network);
+  xfree(network);
   network = 0;
 
-  long swarmcount = swarmid;
+  int64_t swarmcount = swarmid;
 
   swarmcount_adjusted = swarmcount;
 
@@ -826,18 +827,18 @@ void algo_d1_run()
     {
       fprintf(logfile, "\n");
       fprintf(logfile, "Results before fastidious processing:\n");
-      fprintf(logfile, "Number of swarms:  %ld\n", swarmcount);
+      fprintf(logfile, "Number of swarms:  %" PRId64 "\n", swarmcount);
       fprintf(logfile, "Largest swarm:     %d\n", largest);
       fprintf(logfile, "\n");
 
-      long small_otus = 0;
-      long amplicons_in_small_otus = 0;
-      long nucleotides_in_small_otus = 0;
+      int64_t small_otus = 0;
+      int64_t amplicons_in_small_otus = 0;
+      int64_t nucleotides_in_small_otus = 0;
 
       progress_init("Counting amplicons in heavy and light swarms",
                     swarmcount);
 
-      for(long i = 0; i < swarmcount; i++)
+      for(int64_t i = 0; i < swarmcount; i++)
         {
           struct swarminfo_s * sp = swarminfo + i;
           if (sp->mass < opt_boundary)
@@ -850,14 +851,14 @@ void algo_d1_run()
         }
       progress_done();
 
-      long amplicons_in_large_otus = amplicons - amplicons_in_small_otus;
-      long large_otus = swarmcount - small_otus;
+      int64_t amplicons_in_large_otus = amplicons - amplicons_in_small_otus;
+      int64_t large_otus = swarmcount - small_otus;
 
-      fprintf(logfile, "Heavy swarms: %ld, with %ld amplicons\n",
+      fprintf(logfile, "Heavy swarms: %" PRId64 ", with %" PRId64 " amplicons\n",
               large_otus, amplicons_in_large_otus);
-      fprintf(logfile, "Light swarms: %ld, with %ld amplicons\n",
+      fprintf(logfile, "Light swarms: %" PRId64 ", with %" PRId64 " amplicons\n",
               small_otus, amplicons_in_small_otus);
-      fprintf(logfile, "Total length of amplicons in light swarms: %ld\n",
+      fprintf(logfile, "Total length of amplicons in light swarms: %" PRId64 "\n",
               nucleotides_in_small_otus);
 
       if ((small_otus == 0) || (large_otus == 0))
@@ -872,18 +873,18 @@ void algo_d1_run()
           /* n: number of entries in the bloom filter */
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
-          long bits = opt_bloom_bits; /* 16 */
-          // long k = int(bits * 0.693);    /* 11 */
-          long k = int(bits * 0.4);    /* 6 */
-          long m = bits * 7 * nucleotides_in_small_otus;
+          int64_t bits = opt_bloom_bits; /* 16 */
+          // int64_t k = int(bits * 0.693);    /* 11 */
+          int64_t k = int(bits * 0.4);    /* 6 */
+          int64_t m = bits * 7 * nucleotides_in_small_otus;
 
-          long memtotal = arch_get_memtotal();
-          long memused = arch_get_memused();
+          int64_t memtotal = arch_get_memtotal();
+          int64_t memused = arch_get_memused();
 
           if (opt_ceiling)
             {
-              long memrest = 1024 * 1024 * opt_ceiling - memused;
-              long new_bits = 8 * memrest / (7 * nucleotides_in_small_otus);
+              int64_t memrest = 1024 * 1024 * opt_ceiling - memused;
+              int64_t new_bits = 8 * memrest / (7 * nucleotides_in_small_otus);
               if (new_bits < bits)
                 {
                   if (new_bits < 2)
@@ -903,7 +904,7 @@ void algo_d1_run()
             }
 
           fprintf(logfile,
-                  "Bloom filter: bits=%ld, m=%ld, k=%ld, size=%.1fMB\n",
+                  "Bloom filter: bits=%" PRId64 ", m=%" PRId64 ", k=%" PRId64 ", size=%.1fMB\n",
                   bits, m, k, 1.0 * m / (8*1024*1024));
 
 
@@ -936,7 +937,7 @@ void algo_d1_run()
           progress_done();
 
           fprintf(logfile,
-                  "Generated %ld variants from light swarms\n",
+                  "Generated %" PRId64 " variants from light swarms\n",
                   light_variants);
 
           progress_init("Checking heavy swarm amplicons against Bloom filter",
@@ -965,8 +966,8 @@ void algo_d1_run()
 
           pthread_mutex_destroy(&graft_mutex);
 
-          fprintf(logfile, "Heavy variants: %ld\n", heavy_variants);
-          fprintf(logfile, "Got %ld graft candidates\n", graft_candidates);
+          fprintf(logfile, "Heavy variants: %" PRId64 "\n", heavy_variants);
+          fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
           int grafts = attach_candidates(amplicons);
           fprintf(logfile, "Made %d grafts\n", grafts);
           fprintf(logfile, "\n");
@@ -979,7 +980,7 @@ void algo_d1_run()
   progress_init("Writing swarms:   ", swarmcount);
 
   if (opt_mothur)
-    fprintf(outfile, "swarm_%ld\t%ld", opt_differences, swarmcount_adjusted);
+    fprintf(outfile, "swarm_%" PRId64 "\t%" PRId64, opt_differences, swarmcount_adjusted);
 
   for(int i = 0; i < swarmcount; i++)
     {
@@ -1057,7 +1058,7 @@ void algo_d1_run()
                    a >= 0;
                    a = ampinfo[a].next)
                 {
-                  long graft_parent = ampinfo[a].graft_cand;
+                  int64_t graft_parent = ampinfo[a].graft_cand;
                   if (graft_parent != NO_SWARM)
                     {
                       fprint_id_noabundance(internal_structure_file,
@@ -1071,14 +1072,14 @@ void algo_d1_run()
                               ampinfo[graft_parent].generation + 1);
                     }
 
-                  long parent = ampinfo[a].parent;
+                  int64_t parent = ampinfo[a].parent;
                   if (parent != NO_SWARM)
                     {
                       int diff = 1;
                       if (duplicates_found)
                         {
-                          unsigned long parentseqlen = db_getsequencelen(parent);
-                          unsigned long ampseqlen = db_getsequencelen(a);
+                          uint64_t parentseqlen = db_getsequencelen(parent);
+                          uint64_t ampseqlen = db_getsequencelen(a);
                           if (parentseqlen == ampseqlen)
                             {
                               unsigned char * parentseq = (unsigned char *) db_getsequence(parent);
@@ -1128,7 +1129,7 @@ void algo_d1_run()
               fprint_id(uclustfile, seed);
               fprintf(uclustfile, "\t*\n");
 
-              fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
+              fprintf(uclustfile, "S\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                       cluster_no,
                       db_getsequencelen(seed));
               fprint_id(uclustfile, seed);
@@ -1139,14 +1140,14 @@ void algo_d1_run()
                    a = ampinfo[a].next)
                 {
                   char * dseq = db_getsequence(a);
-                  unsigned long dlen = db_getsequencelen(a);
+                  uint64_t dlen = db_getsequencelen(a);
                   char * qseq = db_getsequence(seed);
-                  unsigned long qlen = db_getsequencelen(seed);
+                  uint64_t qlen = db_getsequencelen(seed);
 
-                  unsigned long nwscore = 0;
-                  unsigned long nwdiff = 0;
+                  uint64_t nwscore = 0;
+                  uint64_t nwdiff = 0;
                   char * nwalignment = NULL;
-                  unsigned long nwalignmentlength = 0;
+                  uint64_t nwalignmentlength = 0;
 
                   nw(dseq, dlen, qseq, qlen,
                      score_matrix_63, penalty_gapopen, penalty_gapextend,
@@ -1157,7 +1158,7 @@ void algo_d1_run()
                     nwalignmentlength;
 
                   fprintf(uclustfile,
-                          "H\t%d\t%lu\t%.1f\t+\t0\t0\t%s\t",
+                          "H\t%d\t%" PRIu64 "\t%.1f\t+\t0\t0\t%s\t",
                           cluster_no,
                           db_getsequencelen(a),
                           percentid,
@@ -1169,7 +1170,7 @@ void algo_d1_run()
                   fprintf(uclustfile, "\n");
 
                   if (nwalignment)
-                    free(nwalignment);
+                    xfree(nwalignment);
                 }
 
               cluster_no++;
@@ -1184,14 +1185,14 @@ void algo_d1_run()
   if (statsfile)
     {
       progress_init("Writing stats:    ", swarmcount);
-      for(long i = 0; i < swarmcount; i++)
+      for(int64_t i = 0; i < swarmcount; i++)
         {
           swarminfo_s * sp = swarminfo + i;
           if (!sp->attached)
             {
-              fprintf(statsfile, "%d\t%ld\t", sp->size, sp->mass);
+              fprintf(statsfile, "%d\t%" PRId64 "\t", sp->size, sp->mass);
               fprint_id_noabundance(statsfile, sp->seed);
-              fprintf(statsfile, "\t%lu\t%d\t%d\t%d\n",
+              fprintf(statsfile, "\t%" PRIu64 "\t%d\t%d\t%d\n",
                       db_getabundance(sp->seed),
                       sp->singletons, sp->maxgen, sp->maxgen);
             }
@@ -1201,7 +1202,7 @@ void algo_d1_run()
     }
 
   fprintf(logfile, "\n");
-  fprintf(logfile, "Number of swarms:  %ld\n", swarmcount_adjusted);
+  fprintf(logfile, "Number of swarms:  %" PRId64 "\n", swarmcount_adjusted);
   fprintf(logfile, "Largest swarm:     %d\n", largest);
   fprintf(logfile, "Max generations:   %d\n", maxgen);
 
@@ -1209,14 +1210,14 @@ void algo_d1_run()
   hash_free();
 
   if (swarminfo)
-    free(swarminfo);
+    xfree(swarminfo);
 
-  free(ampinfo);
+  xfree(ampinfo);
 
   if (uclustfile)
     {
-      free(dir);
-      free(hearray);
+      xfree(dir);
+      xfree(hearray);
     }
 
 #ifdef HASHSTATS

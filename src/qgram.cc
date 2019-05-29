@@ -34,10 +34,10 @@ static struct thread_info_s
   int work;
 
   /* specialized thread info */
-  unsigned long seed;
-  unsigned long listlen;
-  unsigned long * amplist;
-  unsigned long * difflist;
+  uint64_t seed;
+  uint64_t listlen;
+  uint64_t * amplist;
+  uint64_t * difflist;
 } * ti;
 
 void printqgrams(unsigned char * qgramvector)
@@ -52,15 +52,15 @@ void printqgrams(unsigned char * qgramvector)
   }
 }
 
-void findqgrams(unsigned char * seq, unsigned long seqlen,
+void findqgrams(unsigned char * seq, uint64_t seqlen,
                 unsigned char * qgramvector)
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
   memset(qgramvector, 0, QGRAMVECTORBYTES);
 
-  unsigned long qgram = 0;
-  unsigned long i = 0;
+  uint64_t qgram = 0;
+  uint64_t i = 0;
 
   while((i < QGRAMLENGTH-1) && (i<seqlen))
   {
@@ -78,11 +78,11 @@ void findqgrams(unsigned char * seq, unsigned long seqlen,
 
 #ifdef __aarch64__
 
-unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
   uint8x16_t * ap = (uint8x16_t *) a;
   uint8x16_t * bp = (uint8x16_t *) b;
-  unsigned long count = 0;
+  uint64_t count = 0;
 
   while ((unsigned char*)ap < a + QGRAMVECTORBYTES)
     count += vaddvq_u8(vcntq_u8(veorq_u8(*ap++, *bp++)));
@@ -92,7 +92,7 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
 
 #elif __PPC__
 
-unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
   vector unsigned char * ap = (vector unsigned char *) a;
   vector unsigned char * bp = (vector unsigned char *) b;
@@ -114,14 +114,14 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
 #define popcnt_asm(x,y)                                         \
   __asm__ __volatile__ ("popcnt %1,%0" : "=r"(y) : "r"(x));
 
-inline unsigned long popcount(unsigned long x)
+inline uint64_t popcount(uint64_t x)
 {
-  unsigned long y;
+  uint64_t y;
   popcnt_asm(x,y);
   return y;
 }
 
-unsigned long popcount_128(__m128i x)
+uint64_t popcount_128(__m128i x)
 {
   __m128i mask1 = _mm_set_epi8(0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
                                0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55);
@@ -165,12 +165,12 @@ unsigned long popcount_128(__m128i x)
 
   /* return low 64 bits: return value is always in range 0 to 128 */
 
-  unsigned long o = (unsigned long) _mm_movepi64_pi64(n);
+  uint64_t o = (uint64_t) _mm_movepi64_pi64(n);
 
   return o;
 }
 
-unsigned long compareqgramvectors_128(unsigned char * a, unsigned char * b)
+uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b)
 {
   /* Count number of different bits */
   /* Uses SSE2 but not POPCNT instruction */
@@ -178,7 +178,7 @@ unsigned long compareqgramvectors_128(unsigned char * a, unsigned char * b)
 
   __m128i * ap = (__m128i *) a;
   __m128i * bp = (__m128i *) b;
-  unsigned long count = 0;
+  uint64_t count = 0;
 
   while ((unsigned char*)ap < a + QGRAMVECTORBYTES)
     count += popcount_128(_mm_xor_si128(*ap++, *bp++));
@@ -186,14 +186,14 @@ unsigned long compareqgramvectors_128(unsigned char * a, unsigned char * b)
   return count;
 }
 
-unsigned long compareqgramvectors_64(unsigned char * a, unsigned char * b)
+uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
 {
   /* Count number of different bits */
   /* Uses the POPCNT instruction, requires CPU with this feature */
 
-  unsigned long *ap = (unsigned long*)a;
-  unsigned long *bp = (unsigned long*)b;
-  unsigned long count = 0;
+  uint64_t *ap = (uint64_t*)a;
+  uint64_t *bp = (uint64_t*)b;
+  uint64_t count = 0;
 
   while ((unsigned char*) ap < a + QGRAMVECTORBYTES)
     count += popcount(*ap++ ^ *bp++);
@@ -201,7 +201,7 @@ unsigned long compareqgramvectors_64(unsigned char * a, unsigned char * b)
   return count;
 }
 
-unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
+uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
   if (popcnt_present)
     return compareqgramvectors_64(a,b);
@@ -215,28 +215,28 @@ unsigned long compareqgramvectors(unsigned char * a, unsigned char * b)
 
 #endif
 
-inline unsigned long qgram_diff(unsigned long a, unsigned long b)
+inline uint64_t qgram_diff(uint64_t a, uint64_t b)
 {
-  unsigned long diffqgrams = compareqgramvectors(db_getqgramvector(a),
+  uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
                                                  db_getqgramvector(b));
-  unsigned long mindiff = (diffqgrams + 2*QGRAMLENGTH - 1)/(2*QGRAMLENGTH);
+  uint64_t mindiff = (diffqgrams + 2*QGRAMLENGTH - 1)/(2*QGRAMLENGTH);
   return mindiff;
 }
 
 void qgram_work_diff(thread_info_s * tip)
 {
-  unsigned long seed = tip->seed;
-  unsigned long listlen = tip->listlen;
-  unsigned long * amplist = tip->amplist;
-  unsigned long * difflist = tip->difflist;
+  uint64_t seed = tip->seed;
+  uint64_t listlen = tip->listlen;
+  uint64_t * amplist = tip->amplist;
+  uint64_t * difflist = tip->difflist;
 
-  for(unsigned long i=0; i<listlen; i++)
+  for(uint64_t i=0; i<listlen; i++)
     difflist[i] = qgram_diff(seed, amplist[i]);
 }
 
 void * qgram_worker(void * vp)
 {
-  long t = (long) vp;
+  int64_t t = (int64_t) vp;
   struct thread_info_s * tip = ti + t;
 
   pthread_mutex_lock(&tip->workmutex);
@@ -268,13 +268,13 @@ void qgram_diff_init()
                                         sizeof(struct thread_info_s));
 
   /* init and create worker threads */
-  for(long t=0; t<opt_threads; t++)
+  for(int64_t t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
       pthread_mutex_init(&tip->workmutex, NULL);
       pthread_cond_init(&tip->workcond, NULL);
-      if (pthread_create(&tip->pthread, &attr, qgram_worker, (void*)(long)t))
+      if (pthread_create(&tip->pthread, &attr, qgram_worker, (void*)t))
         fatal("Cannot create thread");
     }
 }
@@ -282,7 +282,7 @@ void qgram_diff_init()
 void qgram_diff_done()
 {
   /* finish and clean up worker threads */
-  for(long t=0; t<opt_threads; t++)
+  for(int64_t t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
 
@@ -300,32 +300,32 @@ void qgram_diff_done()
       pthread_mutex_destroy(&tip->workmutex);
     }
 
-  free(ti);
+  xfree(ti);
   pthread_attr_destroy(&attr);
 }
 
-void qgram_diff_fast(unsigned long seed,
-                     unsigned long listlen,
-                     unsigned long * amplist,
-                     unsigned long * difflist)
+void qgram_diff_fast(uint64_t seed,
+                     uint64_t listlen,
+                     uint64_t * amplist,
+                     uint64_t * difflist)
 {
-  long thr = opt_threads;
+  int64_t thr = opt_threads;
 
-  const unsigned long m = 150;
+  const uint64_t m = 150;
 
   if (listlen < m*thr)
     thr = (listlen+m-1)/m;
 
-  unsigned long * next_amplist = amplist;
-  unsigned long * next_difflist = difflist;
-  unsigned long listrest = listlen;
-  unsigned long thrrest = thr;
+  uint64_t * next_amplist = amplist;
+  uint64_t * next_difflist = difflist;
+  uint64_t listrest = listlen;
+  uint64_t thrrest = thr;
 
   /* distribute work */
-  for(long t=0; t<thr; t++)
+  for(int64_t t=0; t<thr; t++)
     {
       thread_info_s * tip = ti + t;
-      unsigned long chunk = (listrest + thrrest - 1) / thrrest;
+      uint64_t chunk = (listrest + thrrest - 1) / thrrest;
 
       tip->seed = seed;
       tip->amplist = next_amplist;
@@ -345,7 +345,7 @@ void qgram_diff_fast(unsigned long seed,
   else
     {
       /* wake up threads */
-      for(long t=0; t<thr; t++)
+      for(int64_t t=0; t<thr; t++)
         {
           struct thread_info_s * tip = ti + t;
           pthread_mutex_lock(&tip->workmutex);

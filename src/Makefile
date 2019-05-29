@@ -25,36 +25,47 @@
 # PROFILING=-pg
 PROFILING=
 
-# Architecture specific
+# Machine specific
 MACHINE=$(shell uname -m)
 ifeq ($(MACHINE), x86_64)
-	ARCHOPT = -march=x86-64 -mtune=generic
+	ARCHOPT = -march=x86-64 -mtune=generic -std=c++11
 	EXTRAOBJ = ssse3.o
 else ifeq ($(MACHINE), aarch64)
-	ARCHOPT = -march=armv8-a+simd -flax-vector-conversions -mtune=generic
+	ARCHOPT = -march=armv8-a+simd -mtune=generic \
+	          -flax-vector-conversions -std=c++11
 	EXTRAOBJ =
 else ifeq ($(MACHINE), ppc64le)
 	ARCHOPT = -mcpu=power8 -std=gnu++11
 	EXTRAOBJ =
 endif
 
-COMMON=$(PROFILING) -g -flto -std=c++11 -O3 $(ARCHOPT)
+# OS specific
+ifeq ($(CXX), x86_64-w64-mingw32-g++)
+	LIBS = -lpthread -lpsapi
+	WARNOPT =
+	LINKOPT = -static
+else
+	LIBS = -lpthread
+	WARNOPT = -pedantic
+	LINKOPT =
+endif
 
-LIBS=-lpthread
-LINKFLAGS=$(COMMON)
+WARNINGS = -Wall -Wsign-compare -Wextra -Wno-long-long $(WARNOPT)
 
-CXX=g++
-WARNINGS=-Wall -Wsign-compare -Wextra -pedantic -Wno-long-long
+COMMON=$(PROFILING) -g -flto -O3 $(ARCHOPT)
+
+LINKFLAGS=$(COMMON) $(LINKOPT)
+
 CXXFLAGS=$(COMMON) $(WARNINGS) -Icityhash
 
 PROG=swarm
 
 OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
-	algo.o algod1.o qgram.o derep.o arch.o cityhash/city.o \
+	algo.o algod1.o qgram.o derep.o arch.o city.o \
 	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o \
 	$(EXTRAOBJ)
 
-DEPS=Makefile swarm.h cityhash/config.h cityhash/city.h \
+DEPS=Makefile swarm.h city.h citycrc.h \
 	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h
 
 all : $(PROG)
@@ -65,8 +76,7 @@ swarm : $(OBJS) $(DEPS)
 	cp -a swarm ../bin
 
 clean :
-	rm -rf swarm *.o *~ ../bin/ gmon.out cityhash/*.o \
-	../man/*~ ../*~
+	rm -rf swarm *.o *~ gmon.out
 
 .o : .cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

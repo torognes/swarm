@@ -25,14 +25,14 @@ class ThreadRunner
 {
 private:
 
-  long thread_count;
+  int64_t thread_count;
 
   pthread_attr_t attr;
 
   struct thread_s
   {
-    long t;
-    void (*fun)(long t);
+    int64_t t;
+    void (*fun)(int64_t t);
     pthread_t pthread;
     pthread_mutex_t workmutex;
     pthread_cond_t workcond;
@@ -66,7 +66,7 @@ private:
 
 public:
 
-  ThreadRunner(int t, void (*f)(long t))
+  ThreadRunner(int t, void (*f)(int64_t t))
   {
     thread_count = t;
 
@@ -78,7 +78,7 @@ public:
       xmalloc(thread_count * sizeof(struct thread_s));
 
     /* init and create worker threads */
-    for(long i=0; i<thread_count; i++)
+    for(int64_t i=0; i<thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
         tip->t = i;
@@ -101,7 +101,7 @@ public:
     /* destroy threads */
     /* finish and clean up worker threads */
 
-    for(long i=0; i<thread_count; i++)
+    for(int64_t i=0; i<thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
 
@@ -119,14 +119,14 @@ public:
         pthread_mutex_destroy(&tip->workmutex);
       }
 
-    free(thread_array);
+    xfree(thread_array);
     pthread_attr_destroy(&attr);
   }
 
   void run()
   {
     /* wake up threads */
-    for(long i=0; i<thread_count; i++)
+    for(int64_t i=0; i<thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
         pthread_mutex_lock(&tip->workmutex);
@@ -136,7 +136,7 @@ public:
       }
 
     /* wait for threads to finish their work */
-    for(long i=0; i<thread_count; i++)
+    for(int64_t i=0; i<thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
         pthread_mutex_lock(&tip->workmutex);

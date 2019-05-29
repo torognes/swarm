@@ -30,7 +30,7 @@
 
 struct var_s
 {
-  unsigned long hash;
+  uint64_t hash;
   unsigned int pos;
   unsigned char type;
   unsigned char base;
@@ -50,7 +50,7 @@ bool check_variant(char * seed_sequence,
 
 void generate_variants(char * sequence,
                        unsigned int seqlen,
-                       unsigned long hash,
+                       uint64_t hash,
                        struct var_s * variant_list,
                        unsigned int * variant_count,
                        bool include_identical);

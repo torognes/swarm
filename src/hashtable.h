@@ -21,18 +21,18 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-extern unsigned long hash_mask;
+extern uint64_t hash_mask;
 extern unsigned char * hash_occupied;
-extern unsigned long * hash_values;
+extern uint64_t * hash_values;
 extern int * hash_data;
-extern unsigned long hash_tablesize;
+extern uint64_t hash_tablesize;
 
-inline unsigned long hash_get_tablesize()
+inline uint64_t hash_get_tablesize()
 {
   return hash_tablesize;
 }
 
-inline unsigned int hash_getindex(unsigned long hash)
+inline uint64_t hash_getindex(uint64_t hash)
 {
   // Shift bits right to get independence from the simple Bloom filter hash
   hash = hash >> 32;
@@ -54,12 +54,12 @@ inline int hash_is_occupied(unsigned int j)
   return hash_occupied[j >> 3] & (1 << (j & 7));
 }
 
-inline void hash_set_value(unsigned int j, unsigned long hash)
+inline void hash_set_value(unsigned int j, uint64_t hash)
 {
   hash_values[j] = hash;
 }
 
-inline int hash_compare_value(unsigned int j, unsigned long hash)
+inline int hash_compare_value(unsigned int j, uint64_t hash)
 {
   return (hash_values[j] == hash);
 }
@@ -76,6 +76,6 @@ inline void hash_set_data(unsigned int j, int x)
 
 void hash_zap();
 
-void hash_alloc(unsigned long amplicons);
+void hash_alloc(uint64_t amplicons);
 
 void hash_free();

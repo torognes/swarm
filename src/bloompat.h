@@ -27,34 +27,34 @@
 
 struct bloom_s
 {
-  unsigned long size;
-  unsigned long mask;
-  unsigned long * bitmap;
-  unsigned long patterns[BLOOM_PATTERN_COUNT];
+  uint64_t size;
+  uint64_t mask;
+  uint64_t * bitmap;
+  uint64_t patterns[BLOOM_PATTERN_COUNT];
 };
 
 void bloom_zap(struct bloom_s * b);
 
-struct bloom_s * bloom_init(unsigned long size);
+struct bloom_s * bloom_init(uint64_t size);
 
 void bloom_exit(struct bloom_s * b);
 
-inline unsigned long * bloom_adr(struct bloom_s * b, unsigned long h)
+inline uint64_t * bloom_adr(struct bloom_s * b, uint64_t h)
 {
   return b->bitmap + ((h >> BLOOM_PATTERN_SHIFT) & b->mask);
 }
 
-inline unsigned long bloom_pat(struct bloom_s * b, unsigned long h)
+inline uint64_t bloom_pat(struct bloom_s * b, uint64_t h)
 {
   return b->patterns[h & BLOOM_PATTERN_MASK];
 }
 
-inline void bloom_set(struct bloom_s * b, unsigned long h)
+inline void bloom_set(struct bloom_s * b, uint64_t h)
 {
   * bloom_adr(b, h) &= ~ bloom_pat(b, h);
 }
 
-inline bool bloom_get(struct bloom_s * b, unsigned long h)
+inline bool bloom_get(struct bloom_s * b, uint64_t h)
 {
   return ! (* bloom_adr(b, h) & bloom_pat(b, h));
 }

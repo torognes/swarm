@@ -29,10 +29,10 @@
 
 struct bucket
 {
-  unsigned long hash;
+  uint64_t hash;
   unsigned int seqno_first;
   unsigned int seqno_last;
-  unsigned long mass;
+  uint64_t mass;
   unsigned int size;
   unsigned int singletons;
 };
@@ -62,13 +62,13 @@ int derep_compare(const void * a, const void * b)
 #ifdef REVCOMP
 char map_complement[5] = { 0, 4, 3, 2, 1 };
 
-void reverse_complement(char * rc, char * seq, long len)
+void reverse_complement(char * rc, char * seq, int64_t len)
 {
   /* Write the reverse complementary sequence to rc.
      The memory for rc must be long enough for the rc of the sequence
      (identical to the length of seq + 1). */
 
-  for(long i=0; i<len; i++)
+  for(int64_t i=0; i<len; i++)
     rc[i] = map_complement[(int)(1 + nt_extract(seq, len-1-i))];
   rc[len] = 0;
 }
@@ -77,8 +77,8 @@ void reverse_complement(char * rc, char * seq, long len)
 void dereplicate()
 {
   /* adjust size of hash table for 2/3 fill rate */
-  long dbsequencecount = db_getsequencecount();
-  long hashtablesize = 1;
+  int64_t dbsequencecount = db_getsequencecount();
+  int64_t hashtablesize = 1;
   while (1.0 * dbsequencecount / hashtablesize > 0.7)
     hashtablesize <<= 1;
   int hash_mask = hashtablesize - 1;
@@ -88,8 +88,8 @@ void dereplicate()
 
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
 
-  long swarmcount = 0;
-  unsigned long maxmass = 0;
+  int64_t swarmcount = 0;
+  uint64_t maxmass = 0;
   unsigned int maxsize = 0;
 
   /* alloc and init table of links to other sequences in cluster */
@@ -104,7 +104,7 @@ void dereplicate()
 
   progress_init("Dereplicating:    ", dbsequencecount);
 
-  for(long i=0; i<dbsequencecount; i++)
+  for(int64_t i=0; i<dbsequencecount; i++)
     {
       unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
@@ -117,8 +117,8 @@ void dereplicate()
         collision when the number of sequences is about 5e9.
       */
 
-      unsigned long hash = HASH((unsigned char*)seq, nt_bytelength(seqlen));
-      unsigned long j = hash & hash_mask;
+      uint64_t hash = HASH((unsigned char*)seq, nt_bytelength(seqlen));
+      uint64_t j = hash & hash_mask;
       struct bucket * bp = hashtable + j;
 
       while ((bp->mass) &&
@@ -144,9 +144,9 @@ void dereplicate()
           /* check minus strand as well */
 
           reverse_complement(rc_seq, seq, seqlen);
-          unsigned long rc_hash = HASH((unsigned char*)rc_seq, nt_bytelength(seqlen));
+          uint64_t rc_hash = HASH((unsigned char*)rc_seq, nt_bytelength(seqlen));
           struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
-          unsigned long k = rc_hash & hash_mask;
+          uint64_t k = rc_hash & hash_mask;
 
           while ((rc_bp->mass) &&
                  ((rc_bp->hash != rc_hash) ||
@@ -172,7 +172,7 @@ void dereplicate()
         }
 #endif
 
-      long ab = db_getabundance(i);
+      int64_t ab = db_getabundance(i);
 
       if (bp->mass)
         {
@@ -207,7 +207,7 @@ void dereplicate()
   progress_done();
 
 #ifdef REVCOMP
-  free(rc_seq);
+  xfree(rc_seq);
 #endif
 
   progress_init("Sorting:          ", 1);
@@ -220,7 +220,7 @@ void dereplicate()
   progress_init("Writing swarms:   ", swarmcount);
 
   if (opt_mothur)
-    fprintf(outfile, "swarm_%ld\t%ld", opt_differences, swarmcount);
+    fprintf(outfile, "swarm_%" PRId64 "\t%" PRId64, opt_differences, swarmcount);
 
   for(int i = 0; i < swarmcount; i++)
     {
@@ -287,7 +287,7 @@ void dereplicate()
           fprint_id(uclustfile, seed);
           fprintf(uclustfile, "\t*\n");
 
-          fprintf(uclustfile, "S\t%u\t%lu\t*\t*\t*\t*\t*\t",
+          fprintf(uclustfile, "S\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid,
                   db_getsequencelen(seed));
           fprint_id(uclustfile, seed);
@@ -298,7 +298,7 @@ void dereplicate()
           while (a)
             {
               fprintf(uclustfile,
-                      "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
+                      "H\t%u\t%" PRIu64 "\t%.1f\t+\t0\t0\t%s\t",
                       swarmid,
                       db_getsequencelen(a),
                       100.0,
@@ -321,17 +321,17 @@ void dereplicate()
     {
       progress_init("Writing structure:", swarmcount);
 
-      for(long i = 0; i < swarmcount; i++)
+      for(int64_t i = 0; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
-          long seed = sp->seqno_first;
+          int64_t seed = sp->seqno_first;
           int a = nextseqtab[seed];
           while (a)
             {
               fprint_id_noabundance(internal_structure_file, seed);
               fprintf(internal_structure_file, "\t");
               fprint_id_noabundance(internal_structure_file, a);
-              fprintf(internal_structure_file, "\t%d\t%ld\t%d\n", 0, i+1, 0);
+              fprintf(internal_structure_file, "\t%d\t%" PRId64 "\t%d\n", 0, i+1, 0);
               a = nextseqtab[a];
             }
           progress_update(i);
@@ -344,12 +344,12 @@ void dereplicate()
   if (statsfile)
     {
       progress_init("Writing stats:    ", swarmcount);
-      for(long i = 0; i < swarmcount; i++)
+      for(int64_t i = 0; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
-          fprintf(statsfile, "%u\t%lu\t", sp->size, sp->mass);
+          fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
           fprint_id_noabundance(statsfile, sp->seqno_first);
-          fprintf(statsfile, "\t%lu\t%u\t%u\t%u\n",
+          fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                   db_getabundance(sp->seqno_first),
                   sp->singletons, 0U, 0U);
           progress_update(i);
@@ -359,10 +359,10 @@ void dereplicate()
 
 
   fprintf(logfile, "\n");
-  fprintf(logfile, "Number of swarms:  %ld\n", swarmcount);
+  fprintf(logfile, "Number of swarms:  %" PRId64 "\n", swarmcount);
   fprintf(logfile, "Largest swarm:     %u\n", maxsize);
-  fprintf(logfile, "Heaviest swarm:    %lu\n", maxmass);
+  fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
 
-  free(nextseqtab);
-  free(hashtable);
+  xfree(nextseqtab);
+  xfree(hashtable);
 }

@@ -34,10 +34,10 @@ static struct thread_info_s
   int work;
 
   /* specialized thread info */
-  unsigned long seed;
-  unsigned long listlen;
-  unsigned long * amplist;
-  unsigned long * difflist;
+  uint64_t seed;
+  uint64_t listlen;
+  uint64_t * amplist;
+  uint64_t * difflist;
 } * ti;
 
 
@@ -55,27 +55,27 @@ struct search_data
 
   BYTE * hearray;
 
-  unsigned long * dir_array;
+  uint64_t * dir_array;
 
-  unsigned long target_count;
-  unsigned long target_index;
+  uint64_t target_count;
+  uint64_t target_index;
 };
 
 struct search_data * sd;
 
-unsigned long master_next;
-unsigned long master_length;
+uint64_t master_next;
+uint64_t master_length;
 
-unsigned long remainingchunks;
+uint64_t remainingchunks;
 
-unsigned long * master_targets;
-unsigned long * master_scores;
-unsigned long * master_diffs;
-unsigned long * master_alignlengths;
+uint64_t * master_targets;
+uint64_t * master_scores;
+uint64_t * master_diffs;
+uint64_t * master_alignlengths;
 int master_bits;
 
-unsigned long longestdbsequence;
-unsigned long dirbufferbytes;
+uint64_t longestdbsequence;
+uint64_t dirbufferbytes;
 
 void search_alloc(struct search_data * sdp)
 {
@@ -85,7 +85,7 @@ void search_alloc(struct search_data * sdp)
   sdp->dprofile = (BYTE*) xmalloc(4*16*32);
   sdp->dprofile_w = (WORD*) xmalloc(4*2*8*32);
   sdp->hearray = (BYTE*) xmalloc(longestdbsequence * 32);
-  sdp->dir_array = (unsigned long *) xmalloc(dirbufferbytes);
+  sdp->dir_array = (uint64_t *) xmalloc(dirbufferbytes);
 
   memset(sdp->hearray, 0, longestdbsequence*32);
   memset(sdp->dir_array, 0, dirbufferbytes);
@@ -93,37 +93,37 @@ void search_alloc(struct search_data * sdp)
 
 void search_free(struct search_data * sdp)
 {
-  free(sdp->qtable);
-  free(sdp->qtable_w);
-  free(sdp->dprofile);
-  free(sdp->dprofile_w);
-  free(sdp->hearray);
-  free(sdp->dir_array);
+  xfree(sdp->qtable);
+  xfree(sdp->qtable_w);
+  xfree(sdp->dprofile);
+  xfree(sdp->dprofile_w);
+  xfree(sdp->hearray);
+  xfree(sdp->dir_array);
 }
 
 void search_init(struct search_data * sdp)
 {
-  for (long i = 0; i < query.len; i++ )
+  for (int64_t i = 0; i < query.len; i++ )
   {
     sdp->qtable[i] = sdp->dprofile + 64 * (nt_extract(query.seq, i) + 1);
     sdp->qtable_w[i] = sdp->dprofile_w + 32 * (nt_extract(query.seq, i) + 1);
   }
 }
 
-void search_chunk(struct search_data * sdp, long bits)
+void search_chunk(struct search_data * sdp, int64_t bits)
 {
   if (sdp->target_count == 0)
     return;
 
 #if 0
 
-  for(unsigned long i=0; i<sdp->target_count; i++)
+  for(uint64_t i=0; i<sdp->target_count; i++)
     {
     char * dseq;
-    long dlen;
+    int64_t dlen;
     char * nwalignment;
 
-    unsigned long seqno = master_targets[sdp->target_index + i];
+    uint64_t seqno = master_targets[sdp->target_index + i];
     db_getsequenceandlength(seqno, & dseq, & dlen);
 
     nw(dseq, dlen,
@@ -135,14 +135,14 @@ void search_chunk(struct search_data * sdp, long bits)
        master_alignlengths + sdp->target_index + i,
        & nwalignment,
        (unsigned char *) sdp->dir_array,
-       (unsigned long int *) sdp->hearray,
+       (uint64_t int *) sdp->hearray,
        query.qno, seqno);
 
 #if 0
     printf("\nAlignment: %s\n", nwalignment);
 #endif
 
-    free(nwalignment);
+    xfree(nwalignment);
   }
 
   return;
@@ -187,18 +187,18 @@ void search_chunk(struct search_data * sdp, long bits)
             sdp->dir_array);
 }
 
-int search_getwork(unsigned long * countref, unsigned long * firstref)
+int search_getwork(uint64_t * countref, uint64_t * firstref)
 {
   // * countref = how many sequences to search
   // * firstref = index into master_targets/scores/diffs where thread should start
 
-  unsigned long status = 0;
+  uint64_t status = 0;
 
   pthread_mutex_lock(&workmutex);
 
   if (master_next < master_length)
     {
-      unsigned long chunksize =
+      uint64_t chunksize =
         ((master_length - master_next + remainingchunks - 1) / remainingchunks);
 
       * countref = chunksize;
@@ -218,10 +218,10 @@ void master_dump()
 {
   printf("master_dump\n");
   printf("   i    t    s    d\n");
-  for(unsigned long i=0; i< 1403; i++)
+  for(uint64_t i=0; i< 1403; i++)
     {
-      printf("%4lu %4lu %4lu %4lu\n", i, master_targets[i],
-             master_scores[i], master_diffs[i]);
+      printf("%4" PRIu64 " %4" PRIu64 " %4" PRIu64 " %4" PRIu64 "\n",
+             i, master_targets[i], master_scores[i], master_diffs[i]);
     }
 }
 
@@ -234,7 +234,7 @@ void search_worker_core(int t)
 
 void * search_worker(void * vp)
 {
-  long t = (long) vp;
+  int64_t t = (int64_t) vp;
   struct thread_info_s * tip = ti + t;
 
   pthread_mutex_lock(&tip->workmutex);
@@ -256,13 +256,13 @@ void * search_worker(void * vp)
   return 0;
 }
 
-void search_do(unsigned long query_no,
-               unsigned long listlength,
-               unsigned long * targets,
-               unsigned long * scores,
-               unsigned long * diffs,
-               unsigned long * alignlengths,
-               long bits)
+void search_do(uint64_t query_no,
+               uint64_t listlength,
+               uint64_t * targets,
+               uint64_t * scores,
+               uint64_t * diffs,
+               uint64_t * alignlengths,
+               int64_t bits)
 {
   query.qno = query_no;
   db_getsequenceandlength(query_no, &query.seq, &query.len);
@@ -275,16 +275,16 @@ void search_do(unsigned long query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  unsigned long thr = opt_threads;
+  uint64_t thr = opt_threads;
 
   if (bits == 8)
     {
-      if (master_length <= (unsigned long)(15 * thr) )
+      if (master_length <= (uint64_t)(15 * thr) )
         thr = (master_length + 15) / 16;
     }
   else
     {
-      if (master_length <= (unsigned long)(7 * thr) )
+      if (master_length <= (uint64_t)(7 * thr) )
         thr = (master_length + 7) / 8;
     }
 
@@ -297,7 +297,7 @@ void search_do(unsigned long query_no,
   else
     {
       /* wake up threads */
-      for(unsigned long t=0; t<thr; t++)
+      for(uint64_t t=0; t<thr; t++)
         {
           struct thread_info_s * tip = ti + t;
           pthread_mutex_lock(&tip->workmutex);
@@ -307,7 +307,7 @@ void search_do(unsigned long query_no,
         }
 
       /* wait for threads to finish their work */
-      for(unsigned long t=0; t<thr; t++)
+      for(uint64_t t=0; t<thr; t++)
         {
           struct thread_info_s * tip = ti + t;
           pthread_mutex_lock(&tip->workmutex);
@@ -324,7 +324,7 @@ void search_begin()
 
   sd = (struct search_data *) xmalloc(sizeof(search_data) * opt_threads);
 
-  for(long t=0; t<opt_threads; t++)
+  for(int64_t t=0; t<opt_threads; t++)
     search_alloc(sd+t);
 
   /* start threads */
@@ -337,13 +337,13 @@ void search_begin()
                                         sizeof(struct thread_info_s));
 
   /* init and create worker threads */
-  for(long t=0; t<opt_threads; t++)
+  for(int64_t t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
       pthread_mutex_init(&tip->workmutex, NULL);
       pthread_cond_init(&tip->workcond, NULL);
-      if (pthread_create(&tip->pthread, &attr, search_worker, (void*)(long)t))
+      if (pthread_create(&tip->pthread, &attr, search_worker, (void*)(int64_t)t))
         fatal("Cannot create thread");
     }
 
@@ -353,7 +353,7 @@ void search_end()
 {
   /* finish and clean up worker threads */
 
-  for(long t=0; t<opt_threads; t++)
+  for(int64_t t=0; t<opt_threads; t++)
     {
       struct thread_info_s * tip = ti + t;
 
@@ -371,10 +371,10 @@ void search_end()
       pthread_mutex_destroy(&tip->workmutex);
     }
 
-  free(ti);
+  xfree(ti);
   pthread_attr_destroy(&attr);
 
-  for(long t=0; t<opt_threads; t++)
+  for(int64_t t=0; t<opt_threads; t++)
     search_free(sd+t);
-  free(sd);
+  xfree(sd);
 }

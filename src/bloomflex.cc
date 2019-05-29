@@ -36,26 +36,26 @@
 void bloomflex_patterns_generate(struct bloomflex_s * b)
 {
 #if 0
-  printf("Generating %lu patterns with %lu bits set.\n",
+  printf("Generating %" PRIu64 " patterns with %" PRIu64 " bits set.\n",
          b->pattern_count,
          b->pattern_k);
 #endif
   for (unsigned int i = 0; i < b->pattern_count; i++)
     {
-      unsigned long pattern = 0;
+      uint64_t pattern = 0;
       for (unsigned int j = 0; j < b->pattern_k; j++)
         {
-          unsigned long onebit;
-          onebit = 1ULL << (random() & 63);
+          uint64_t onebit;
+          onebit = 1ULL << (arch_random() & 63);
           while (pattern & onebit)
-            onebit = 1ULL << (random() & 63);
+            onebit = 1ULL << (arch_random() & 63);
           pattern |= onebit;
         }
       b->patterns[i] = pattern;
     }
 }
 
-struct bloomflex_s * bloomflex_init(unsigned long size, unsigned int k)
+struct bloomflex_s * bloomflex_init(uint64_t size, unsigned int k)
 {
   /* Input size is in bytes for full bitmap */
 
@@ -67,10 +67,10 @@ struct bloomflex_s * bloomflex_init(unsigned long size, unsigned int k)
   b->pattern_mask = b->pattern_count - 1;
   b->pattern_k = k;
 
-  b->patterns = (unsigned long *) xmalloc(b->pattern_count * 8);
+  b->patterns = (uint64_t *) xmalloc(b->pattern_count * 8);
   bloomflex_patterns_generate(b);
 
-  b->bitmap = (unsigned long *) xmalloc(size);
+  b->bitmap = (uint64_t *) xmalloc(size);
   memset(b->bitmap, 0xff, size);
 
   return b;
@@ -78,7 +78,7 @@ struct bloomflex_s * bloomflex_init(unsigned long size, unsigned int k)
 
 void bloomflex_exit(struct bloomflex_s * b)
 {
-  free(b->bitmap);
-  free(b->patterns);
-  free(b);
+  xfree(b->bitmap);
+  xfree(b->patterns);
+  xfree(b);
 }
