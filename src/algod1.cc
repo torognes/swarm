@@ -630,6 +630,22 @@ int compare_amp(const void * a, const void * b)
     return 0;
 }
 
+int compare_mass(const void * a, const void * b)
+{
+  swarminfo_s * x = swarminfo + *((int *)a);
+  swarminfo_s * y = swarminfo + *((int *)b);
+
+  int64_t m = x->mass;
+  int64_t n = y->mass;
+
+  if (m > n)
+    return -1;
+  else if (m < n)
+    return +1;
+  else
+    return strcmp(db_getheader(x->seed), db_getheader(y->seed));
+}
+
 inline void add_amp_to_swarm(int amp)
 {
   /* add to swarm */
@@ -1022,8 +1038,15 @@ void algo_d1_run()
   if (opt_seeds)
     {
       progress_init("Writing seeds:    ", swarmcount);
+
+      int * sorter = (int *) xmalloc(swarmcount * sizeof(int));
       for(int i=0; i < swarmcount; i++)
+        sorter[i] = i;
+      qsort(sorter, swarmcount, sizeof(int), compare_mass);
+
+      for(int j=0; j < swarmcount; j++)
         {
+          int i = sorter[j];
           if (!swarminfo[i].attached)
             {
               int seed = swarminfo[i].seed;
@@ -1034,6 +1057,9 @@ void algo_d1_run()
             }
           progress_update(i+1);
         }
+
+      xfree(sorter);
+
       progress_done();
     }
 
