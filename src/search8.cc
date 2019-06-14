@@ -641,10 +641,10 @@ inline uint64_t backtrack_8(char * qseq,
                             uint64_t channel,
                             uint64_t * alignmentlengthp)
 {
-  uint64_t maskup      = 1UL << (channel+ 0);
-  uint64_t maskleft    = 1UL << (channel+16);
-  uint64_t maskextup   = 1UL << (channel+32);
-  uint64_t maskextleft = 1UL << (channel+48);
+  uint64_t maskup      = 1ULL << (channel+ 0);
+  uint64_t maskleft    = 1ULL << (channel+16);
+  uint64_t maskextup   = 1ULL << (channel+32);
+  uint64_t maskextleft = 1ULL << (channel+48);
 
 #if 0
 

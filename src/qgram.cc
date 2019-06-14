@@ -218,7 +218,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 inline uint64_t qgram_diff(uint64_t a, uint64_t b)
 {
   uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
-                                                 db_getqgramvector(b));
+                                            db_getqgramvector(b));
   uint64_t mindiff = (diffqgrams + 2*QGRAMLENGTH - 1)/(2*QGRAMLENGTH);
   return mindiff;
 }

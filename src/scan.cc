@@ -151,7 +151,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
 
 #ifdef __aarch64__
   /* always use 16-bit version on aarch64 because it is faster */
-  (void) bits;
+ (void) bits;
   if (1)
 #else
   if (bits == 16)

@@ -389,10 +389,10 @@ uint64_t backtrack_16(char * qseq,
                       uint64_t channel,
                       uint64_t * alignmentlengthp)
 {
-  uint64_t maskup      = 3UL << (2*channel+ 0);
-  uint64_t maskleft    = 3UL << (2*channel+16);
-  uint64_t maskextup   = 3UL << (2*channel+32);
-  uint64_t maskextleft = 3UL << (2*channel+48);
+  uint64_t maskup      = 3ULL << (2*channel+ 0);
+  uint64_t maskleft    = 3ULL << (2*channel+16);
+  uint64_t maskextup   = 3ULL << (2*channel+32);
+  uint64_t maskextleft = 3ULL << (2*channel+48);
 
 #if 0
 
@@ -604,9 +604,11 @@ void search16(WORD * * q_start,
                 easy = 0;
             }
 
+#ifdef __x86_64__
           if (ssse3_present)
             dprofile_shuffle16(dprofile, score_matrix, dseq);
           else
+#endif
             dprofile_fill16(dprofile, score_matrix, dseq);
 
           align_cells_regular_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
@@ -726,9 +728,11 @@ void search16(WORD * * q_start,
           if (done == sequences)
             break;
 
+#ifdef __x86_64__
           if (ssse3_present)
             dprofile_shuffle16(dprofile, score_matrix, dseq);
           else
+#endif
             dprofile_fill16(dprofile, score_matrix, dseq);
 
           MQ = v_and(M, Q);

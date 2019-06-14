@@ -135,7 +135,7 @@ void xfree(void * ptr)
 
 uint64_t hash_fnv_1a_64(unsigned char * s, uint64_t n)
 {
-  const uint64_t fnv_offset = 14695981039346656037UL;
+  const uint64_t fnv_offset = 14695981039346656037ULL;
   const uint64_t fnv_prime = 1099511628211; /* 2^40 - 435 */
 
   uint64_t hash = fnv_offset;
