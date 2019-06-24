@@ -139,6 +139,11 @@ is replaced with 'T' internally), starting after the end of the header
 line and ending before the next header line or the file end;
 \fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
 exits with an error message if any other symbol is present.
+.PP
+Clusters are written to output files (specified with \-i, \-o, \-s,
+\-u and \-w) in the order they are generated, with the exception of
+the seeds (\-w). Seeds are sorted by decreasing abundance, and then by
+alphabetical order of the sequence labels.
 .\" ----------------------------------------------------------------------------
 .SS General options
 .TP 9
