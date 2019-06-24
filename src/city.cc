@@ -29,7 +29,7 @@
 
 /* Minor modifications by TR to adapt to Swarm */
 
-#include <city.h>
+#include "city.h"
 
 #include <algorithm>
 #include <string.h>  // for memcpy and memset
