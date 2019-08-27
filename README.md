@@ -105,14 +105,14 @@ using the
 
 ```sh
 git clone https://github.com/torognes/swarm.git
-cd swarm/src/
+cd swarm/
 make
-cd ../bin/
 ```
 
 If you have administrator privileges, you can make **swarm**
-accessible for all users. Simply copy the binary to `/usr/bin/`. The
-man page can be installed this way:
+accessible for all users. Simply copy the binary `./bin/swarm` to
+`/usr/local/bin/` or to `/usr/bin/`. The man page can be installed
+this way:
 
 ```sh
 cd ./man/
