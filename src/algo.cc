@@ -318,7 +318,7 @@ void algo_run()
 
               targetcount = 0;
 
-              uint64_t listlen=0;
+              uint64_t subseedlistlen=0;
               for(uint64_t i=swarmed; i<amplicons; i++)
                 {
                   uint64_t targetampliconid = amps[i].ampliconid;
@@ -328,20 +328,20 @@ void algo_run()
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
                     {
-                      qgramamps[listlen] = targetampliconid;
-                      qgramindices[listlen] = i;
-                      listlen++;
+                      qgramamps[subseedlistlen] = targetampliconid;
+                      qgramindices[subseedlistlen] = i;
+                      subseedlistlen++;
                     }
                 }
 
-              qgram_diff_fast(subseedampliconid, listlen, qgramamps,
+              qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps,
                               qgramdiffs);
 
 #ifdef VERBOSE
-              estimates += listlen;
+              estimates += subseedlistlen;
 #endif
 
-              for(uint64_t i=0; i < listlen; i++)
+              for(uint64_t i=0; i < subseedlistlen; i++)
                 if ((int64_t)qgramdiffs[i] <= opt_differences)
                   {
                     targetindices[targetcount] = qgramindices[i];
