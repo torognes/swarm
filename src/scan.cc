@@ -214,6 +214,10 @@ int search_getwork(uint64_t * countref, uint64_t * firstref)
   return status;
 }
 
+#if 0
+
+/* never used */
+
 void master_dump()
 {
   printf("master_dump\n");
@@ -224,6 +228,8 @@ void master_dump()
              i, master_targets[i], master_scores[i], master_diffs[i]);
     }
 }
+
+#endif
 
 void search_worker_core(int t)
 {

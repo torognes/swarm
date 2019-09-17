@@ -544,7 +544,7 @@ void network_thread(int64_t t)
     = (int *) xmalloc((7 * longestamplicon + 5) * sizeof(int));
 
   struct var_s * variant_list
-    = (var_s *) xmalloc((7 * longestamplicon + 5) * sizeof(struct var_s));
+    = (struct var_s *) xmalloc((7 * longestamplicon + 5) * sizeof(struct var_s));
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
@@ -1092,7 +1092,7 @@ void algo_d1_run()
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
-                              "\t%d\t%d\t%d\n",
+                              "\t%d\t%u\t%d\n",
                               2,
                               cluster_no + 1,
                               ampinfo[graft_parent].generation + 1);
@@ -1118,7 +1118,7 @@ void algo_d1_run()
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
-                              "\t%d\t%d\t%d\n",
+                              "\t%d\t%u\t%d\n",
                               diff,
                               cluster_no + 1,
                               ampinfo[a].generation);

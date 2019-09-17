@@ -134,6 +134,7 @@ const vector unsigned char perm_bits =
 
 #endif
 
+#if 0
 void dprofile_dump16(WORD * dprofile)
 {
   printf("\ndprofile:\n");
@@ -151,7 +152,7 @@ void dprofile_dump16(WORD * dprofile)
     }
   exit(1);
 }
-
+#endif
 
 inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
@@ -258,7 +259,6 @@ void align_cells_regular_16(VECTORTYPE * Sm,
   VECTORTYPE Q, R, E;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
-  VECTORTYPE * x;
 
   unsigned short * dir = (unsigned short *) dir_long;
 
@@ -282,6 +282,8 @@ void align_cells_regular_16(VECTORTYPE * Sm,
 
   for(int64_t i = 0; i < ql; i++)
     {
+      VECTORTYPE * x;
+
       x = qp[i + 0];
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
@@ -320,7 +322,6 @@ void align_cells_masked_16(VECTORTYPE * Sm,
   VECTORTYPE Q, R, E;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
-  VECTORTYPE * x;
 
   unsigned short * dir = (unsigned short *) dir_long;
 
@@ -344,6 +345,8 @@ void align_cells_masked_16(VECTORTYPE * Sm,
 
   for(int64_t i = 0; i < ql; i++)
     {
+      VECTORTYPE * x;
+
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
       x = qp[i + 0];

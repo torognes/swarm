@@ -58,8 +58,8 @@ struct swarminfo_t
 
 int compare_mass_seed(const void * a, const void * b)
 {
-  swarminfo_t * x = (swarminfo_t *) a;
-  swarminfo_t * y = (swarminfo_t *) b;
+  swarminfo_t * x = (struct swarminfo_t *) a;
+  swarminfo_t * y = (struct swarminfo_t *) b;
 
   int m = x->mass;
   int n = y->mass;
@@ -559,9 +559,9 @@ void algo_run()
 
   /* dump seeds in fasta format with sum of abundances */
 
-  int swarmcount = 0;
   if ((opt_seeds) && (amplicons > 0))
     {
+      int swarmcount = 0;
       progress_init("Sorting seeds:    ", amplicons);
       struct swarminfo_t * swarminfo = (struct swarminfo_t *) xmalloc(swarmed * sizeof(struct swarminfo_t));
       uint64_t mass = 0;

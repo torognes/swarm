@@ -133,6 +133,10 @@ void xfree(void * ptr)
     fatal("Trying to free a null pointer");
 }
 
+#if 0
+
+/* never used */
+
 uint64_t hash_fnv_1a_64(unsigned char * s, uint64_t n)
 {
   const uint64_t fnv_offset = 14695981039346656037ULL;
@@ -165,6 +169,7 @@ unsigned int hash_fnv_1a_32(unsigned char * s, uint64_t n)
   return hash;
 }
 
+
 uint64_t hash_djb2(unsigned char * s, uint64_t n)
 {
   const uint64_t djb2_offset = 5381;
@@ -195,12 +200,6 @@ uint64_t hash_djb2a(unsigned char * s, uint64_t n)
   return hash;
 }
 
-uint64_t hash_cityhash64(unsigned char * s, uint64_t n)
-{
-  return CityHash64((const char*)s, n);
-}
-
-
 uint64_t hash64shift(uint64_t key)
 {
   key = (~key) + (key << 21); // key = (key << 21) - key - 1;
@@ -229,6 +228,14 @@ uint64_t hash_xor64len(unsigned char * s, uint64_t n)
 
   return hash;
 }
+
+#endif
+
+uint64_t hash_cityhash64(unsigned char * s, uint64_t n)
+{
+  return CityHash64((const char*)s, n);
+}
+
 
 FILE * fopen_input(const char * filename)
 {

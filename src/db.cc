@@ -763,19 +763,9 @@ uint64_t db_getnucleotidecount()
   return nucleotides;
 }
 
-uint64_t db_getlongestheader()
-{
-  return longestheader;
-}
-
 uint64_t db_getlongestsequence()
 {
   return longest;
-}
-
-seqinfo_t * db_getseqinfo(uint64_t seqno)
-{
-  return seqindex+seqno;
 }
 
 uint64_t db_gethash(uint64_t seqno)
@@ -806,23 +796,9 @@ char * db_getheader(uint64_t seqno)
   return seqindex[seqno].header;
 }
 
-uint64_t db_getheaderlen(uint64_t seqno)
-{
-  return seqindex[seqno].headerlen;
-}
-
 uint64_t db_getabundance(uint64_t seqno)
 {
   return seqindex[seqno].abundance;
-}
-
-void db_putseq(int64_t seqno)
-{
-  char * seq;
-  int64_t len;
-  db_getsequenceandlength(seqno, & seq, & len);
-  for(int i=0; i<len; i++)
-    putchar(sym_nt[1+nt_extract(seq, i)]);
 }
 
 void db_free()
@@ -866,3 +842,34 @@ void db_fprintseq(FILE * fp, int a, int width)
   if (len >= 1025)
     xfree(buf);
 }
+
+
+#if 0
+
+/* Unused functions */
+
+uint64_t db_getheaderlen(uint64_t seqno)
+{
+  return seqindex[seqno].headerlen;
+}
+
+uint64_t db_getlongestheader()
+{
+  return longestheader;
+}
+
+seqinfo_t * db_getseqinfo(uint64_t seqno)
+{
+  return seqindex+seqno;
+}
+
+void db_putseq(int64_t seqno)
+{
+  char * seq;
+  int64_t len;
+  db_getsequenceandlength(seqno, & seq, & len);
+  for(int i=0; i<len; i++)
+    putchar(sym_nt[1+nt_extract(seq, i)]);
+}
+
+#endif
