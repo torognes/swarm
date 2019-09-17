@@ -834,16 +834,16 @@ void fastidious_check_large_var(BloomFilter * bloom,
                                 char * varseq,
                                 char * buffer2,
                                 int seed,
-                                long * m,
-                                long * v)
+                                long * matches_p,
+                                long * variants_p)
 {
   /*
     bloom is a BloomFilter in which to enter the variants
     buffer1 is a buffer large enough to hold all sequences + 1 insertion
     buffer2 is a buffer large enough to hold all sequences + 2 insertions
     seed is the original seed
-    m is where to store number of matches
-    v is where to store number of variants
+    matches_p is where to store number of matches
+    variants_p is where to store number of variants
   */
 
   long variants = 0;
@@ -909,8 +909,8 @@ void fastidious_check_large_var(BloomFilter * bloom,
       if (i<seqlen)
         varseq[i] = seq[i];
     }
-  *m = matches;
-  *v = variants;
+  *matches_p = matches;
+  *variants_p = variants;
 
 #if 0
   long e = expected_variant_count((char*)seq, seqlen);
@@ -1036,7 +1036,7 @@ void algo_d1_run()
     }
   
   /* for each non-swarmed amplicon look for subseeds ... */
-  long swarmid = 0;
+  long swarmcount = 0;
   progress_init("Clustering:       ", amplicons);
   for(unsigned int seed = 0; seed < amplicons; seed++)
     {
@@ -1046,7 +1046,7 @@ void algo_d1_run()
         {
           /* start a new swarm with a new initial seed */
 
-          ap->swarmid = swarmid;
+          ap->swarmid = swarmcount;
           ap->generation = 0;
           ap->parent = NO_SWARM;
           ap->next = NO_SWARM;
@@ -1105,7 +1105,7 @@ void algo_d1_run()
                 subseed = NO_SWARM;
             }
 
-          if (swarmid >= swarminfo_alloc)
+          if (swarmcount >= swarminfo_alloc)
             {
               /* allocate memory for more swarms... */
               swarminfo_alloc += 1000;
@@ -1115,7 +1115,7 @@ void algo_d1_run()
                                                  sizeof(swarminfo_s));
             }
 
-          struct swarminfo_s * sp = swarminfo + swarmid;
+          struct swarminfo_s * sp = swarminfo + swarmcount;
 
           sp->seed = seed;
           sp->size = swarmsize;
@@ -1132,13 +1132,11 @@ void algo_d1_run()
           if (swarm_maxgen > maxgen)
             maxgen = swarm_maxgen;
 
-          swarmid++;
+          swarmcount++;
         }
       progress_update(seed+1);
     }
   progress_done();
-
-  long swarmcount = swarmid;
 
   swarmcount_adjusted = swarmcount;
 

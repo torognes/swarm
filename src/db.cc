@@ -393,7 +393,7 @@ void db_read(const char * filename)
   for(unsigned long i=0; i<sequences; i++)
     {
       /* get line number */
-      unsigned int lineno = *((unsigned int*)p);
+      unsigned int line_number = *((unsigned int*)p);
       p += sizeof(unsigned int);
 
       /* get header */
@@ -418,7 +418,7 @@ void db_read(const char * filename)
               fprintf(stderr,
                       "\nError: Illegal abundance value on line %u:\n%s\n"
                       "Abundance values should be positive integers.\n\n",
-                      lineno,
+                      line_number,
                       seqindex_p->header);
               exit(1);
             }
@@ -441,7 +441,7 @@ void db_read(const char * filename)
               missingabundance++;
               if (missingabundance == 1)
                 {
-                  missingabundance_lineno = lineno;
+                  missingabundance_lineno = line_number;
                   missingabundance_header = seqindex_p->header;
                 }
             }
