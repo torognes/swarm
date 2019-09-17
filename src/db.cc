@@ -79,6 +79,10 @@ seqinfo_t * seqindex = 0;
 char * datap = 0;
 qgramvector_t * qgrams = 0;
 
+#if 0
+
+/* never used */
+
 void showseq(char * seq)
 {
   char * p = seq;
@@ -87,6 +91,8 @@ void showseq(char * seq)
       putchar(sym_nt[(unsigned int)c]);
     }
 }
+
+#endif
 
 void fprint_id(FILE * stream, unsigned long x)
 {
@@ -594,20 +600,32 @@ unsigned long db_getnucleotidecount()
   return nucleotides;
 }
 
+#if 0
+
+/* never used */
+
 unsigned long db_getlongestheader()
 {
   return longestheader;
 }
+
+#endif
 
 unsigned long db_getlongestsequence()
 {
   return longest;
 }
 
+#if 0
+
+/* never used */
+
 seqinfo_t * db_getseqinfo(unsigned long seqno)
 {
   return seqindex+seqno;
 }
+
+#endif
 
 char * db_getsequence(unsigned long seqno)
 {
@@ -627,6 +645,10 @@ unsigned long db_getsequencelen(unsigned long seqno)
   return seqindex[seqno].seqlen;
 }
 
+#if 0
+
+/* never used */
+
 char * db_getheader(unsigned long seqno)
 {
   return seqindex[seqno].header;
@@ -637,10 +659,16 @@ unsigned long db_getheaderlen(unsigned long seqno)
   return seqindex[seqno].headerlen;
 }
 
+#endif
+
 unsigned long db_getabundance(unsigned long seqno)
 {
   return seqindex[seqno].abundance;
 }
+
+#if 0
+
+/* never used */
 
 void db_putseq(long seqno)
 {
@@ -650,6 +678,8 @@ void db_putseq(long seqno)
   for(int i=0; i<len; i++)
     putchar(sym_nt[(int)(seq[i])]);
 }
+
+#endif
 
 void db_free()
 {

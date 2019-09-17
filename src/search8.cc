@@ -28,6 +28,10 @@
 
 #define MATRIXWIDTH 16
 
+#if 0
+
+/* never used */
+
 void dprofile_dump8(BYTE * dprofile)
 {
   char * ss = sym_nt;
@@ -76,6 +80,7 @@ void dseq_dump8(BYTE * dseq)
   }
 }
 
+#endif
 
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,

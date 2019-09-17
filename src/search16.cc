@@ -28,6 +28,10 @@
 
 #define SHUFFLE 1
 
+#if 0
+
+/* never used */
+
 void dprofile_dump16(WORD * dprofile)
 {
   char * s = sym_nt;
@@ -47,6 +51,7 @@ void dprofile_dump16(WORD * dprofile)
   exit(1);
 }
 
+#endif
 
 inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,

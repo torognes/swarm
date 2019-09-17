@@ -34,6 +34,10 @@ unsigned char * score_matrix_8 = NULL;
 unsigned short * score_matrix_16 = NULL;
 long * score_matrix_63 = NULL;
 
+#if 0
+
+/* never used */
+
 void score_matrix_dump()
 {
   fprintf(logfile, "     ");
@@ -54,6 +58,8 @@ void score_matrix_dump()
     fprintf(logfile, "\n");
   }
 }
+
+#endif
 
 void score_matrix_read()
 {

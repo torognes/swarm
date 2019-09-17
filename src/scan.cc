@@ -208,6 +208,10 @@ int search_getwork(unsigned long * countref, unsigned long * firstref)
   return status;
 }
   
+#if 0
+
+/* never used */
+
 void master_dump()
 {
   printf("master_dump\n");
@@ -219,6 +223,8 @@ void master_dump()
     }
 }
   
+#endif
+
 void search_worker_core(int t)
 {
   search_init(sd+t);

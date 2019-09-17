@@ -686,6 +686,10 @@ bool hash_check_attach(char * seq,
   return 0;
 }
 
+#if 0
+
+/* never used */
+
 long expected_variant_count(char * seq, int len)
 {
   int c = 0;
@@ -695,6 +699,7 @@ long expected_variant_count(char * seq, int len)
   return 6*len+5+c;
 }
 
+#endif
 
 long fastidious_mark_small_var(BloomFilter * bloom,
                                char * varseq,
@@ -1408,7 +1413,7 @@ void algo_d1_run()
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
-                              "\t%d\t%d\t%d\n",
+                              "\t%d\t%u\t%d\n",
                               2,
                               cluster_no + 1,
                               ampinfo[graft_parent].generation + 1);
@@ -1434,7 +1439,7 @@ void algo_d1_run()
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
-                              "\t%d\t%d\t%d\n",
+                              "\t%d\t%u\t%d\n",
                               diff,
                               cluster_no + 1,
                               ampinfo[a].generation);
@@ -1500,7 +1505,7 @@ void algo_d1_run()
                     nwalignmentlength;
                   
                   fprintf(uclustfile,
-                          "H\t%d\t%lu\t%.1f\t+\t0\t0\t%s\t",
+                          "H\t%u\t%lu\t%.1f\t+\t0\t0\t%s\t",
                           cluster_no,
                           db_getsequencelen(a),
                           percentid, 

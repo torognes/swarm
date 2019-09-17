@@ -105,6 +105,10 @@ void * xrealloc(void *ptr, size_t size)
   return t;
 }
 
+#if 0
+
+/* never used */
+
 unsigned long hash_fnv_1a_64(unsigned char * s, unsigned long n)
 {
   const unsigned long fnv_offset = 14695981039346656037UL;
@@ -166,6 +170,8 @@ unsigned long hash_djb2a(unsigned char * s, unsigned long n)
 
   return hash;
 }
+
+#endif
 
 unsigned long hash_cityhash64(unsigned char * s, unsigned long n)
 {

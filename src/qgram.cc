@@ -40,6 +40,10 @@ static struct thread_info_s
   unsigned long * difflist;
 } * ti;
 
+#if 0
+
+/* never used */
+
 void printqgrams(unsigned char * qgramvector)
 {
   /* print qgramvector */
@@ -51,6 +55,8 @@ void printqgrams(unsigned char * qgramvector)
       fprintf(logfile, "\n");
   }
 }
+
+#endif
 
 void findqgrams(unsigned char * seq, unsigned long seqlen, 
                 unsigned char * qgramvector)
