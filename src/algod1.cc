@@ -215,11 +215,11 @@ int compare_grafts(const void * a, const void * b)
       return 0;
 }
 
-int attach_candidates(int amplicons)
+int attach_candidates(int amplicon_count)
 {
   /* count pairs */
   int pair_count = 0;
-  for(int i=0; i < amplicons; i++)
+  for(int i=0; i < amplicon_count; i++)
     if (ampinfo[i].graft_cand != NO_SWARM)
       pair_count++;
 
@@ -232,7 +232,7 @@ int attach_candidates(int amplicons)
 
   /* fill in */
   int j = 0;
-  for(int i=0; i < amplicons; i++)
+  for(int i=0; i < amplicon_count; i++)
     if (ampinfo[i].graft_cand != NO_SWARM)
       {
         graft_array[j].parent = ampinfo[i].graft_cand;
@@ -727,7 +727,7 @@ void algo_d1_run()
 
   /* for each non-swarmed amplicon look for subseeds ... */
 
-  int64_t swarmid = 0;
+  int64_t swarmcount = 0;
   progress_init("Clustering:       ", amplicons);
 
   for(unsigned int seed = 0; seed < amplicons; seed++)
@@ -738,7 +738,7 @@ void algo_d1_run()
         {
           /* start a new swarm with a new initial seed */
 
-          ap->swarmid = swarmid;
+          ap->swarmid = swarmcount;
           ap->generation = 0;
           ap->parent = NO_SWARM;
           ap->next = NO_SWARM;
@@ -795,7 +795,7 @@ void algo_d1_run()
                 subseed = NO_SWARM;
             }
 
-          if (swarmid >= swarminfo_alloc)
+          if (swarmcount >= swarminfo_alloc)
             {
               /* allocate memory for more swarms... */
               swarminfo_alloc += 1024;
@@ -805,7 +805,7 @@ void algo_d1_run()
                                                 sizeof(swarminfo_s));
             }
 
-          struct swarminfo_s * sp = swarminfo + swarmid;
+          struct swarminfo_s * sp = swarminfo + swarmcount;
 
           sp->seed = seed;
           sp->size = swarmsize;
@@ -822,7 +822,7 @@ void algo_d1_run()
           if (swarm_maxgen > maxgen)
             maxgen = swarm_maxgen;
 
-          swarmid++;
+          swarmcount++;
         }
       progress_update(seed+1);
     }
@@ -832,8 +832,6 @@ void algo_d1_run()
 
   xfree(network);
   network = 0;
-
-  int64_t swarmcount = swarmid;
 
   swarmcount_adjusted = swarmcount;
 

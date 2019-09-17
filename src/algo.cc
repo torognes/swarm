@@ -592,13 +592,13 @@ void algo_run()
       progress_init("Writing seeds:    ", swarmcount);
       for (int i = 0; i < swarmcount; i++)
         {
-          uint64_t mass = swarminfo[i].mass;
-          int seed = swarminfo[i].seed;
+          uint64_t swarm_mass = swarminfo[i].mass;
+          int swarm_seed = swarminfo[i].seed;
 
           fprintf(fp_seeds, ">");
-          fprint_id_with_new_abundance(fp_seeds, seed, mass);
+          fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass);
           fprintf(fp_seeds, "\n");
-          db_fprintseq(fp_seeds, seed, 0);
+          db_fprintseq(fp_seeds, swarm_seed, 0);
           progress_update(i);
         }
       xfree(swarminfo);

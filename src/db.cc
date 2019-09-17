@@ -580,7 +580,7 @@ void db_read(const char * filename)
   for(uint64_t i=0; i<sequences; i++)
     {
       /* get line number */
-      unsigned int lineno = *((unsigned int*)p);
+      unsigned int line_number = *((unsigned int*)p);
       p += sizeof(unsigned int);
 
       /* get header */
@@ -596,7 +596,7 @@ void db_read(const char * filename)
       p += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
-      find_abundance(seqindex_p, lineno);
+      find_abundance(seqindex_p, line_number);
 
       if (seqindex_p->abundance_start == 0)
         fatal("Empty sequence identifier");

@@ -81,7 +81,7 @@ void dereplicate()
   int64_t hashtablesize = 1;
   while (1.0 * dbsequencecount / hashtablesize > 0.7)
     hashtablesize <<= 1;
-  int hash_mask = hashtablesize - 1;
+  int derep_hash_mask = hashtablesize - 1;
 
   struct bucket * hashtable =
     (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
@@ -118,7 +118,7 @@ void dereplicate()
       */
 
       uint64_t hash = HASH((unsigned char*)seq, nt_bytelength(seqlen));
-      uint64_t j = hash & hash_mask;
+      uint64_t j = hash & derep_hash_mask;
       struct bucket * bp = hashtable + j;
 
       while ((bp->mass) &&
@@ -146,7 +146,7 @@ void dereplicate()
           reverse_complement(rc_seq, seq, seqlen);
           uint64_t rc_hash = HASH((unsigned char*)rc_seq, nt_bytelength(seqlen));
           struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
-          uint64_t k = rc_hash & hash_mask;
+          uint64_t k = rc_hash & derep_hash_mask;
 
           while ((rc_bp->mass) &&
                  ((rc_bp->hash != rc_hash) ||

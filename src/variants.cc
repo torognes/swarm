@@ -218,15 +218,15 @@ void generate_variants(char * sequence,
 
   hash = zobrist_hash_delete_first((unsigned char *) sequence, seqlen);
   add_variant(hash, deletion, 0, 0, variant_list, variant_count);
-  unsigned int base = nt_extract(sequence, 0);
+  unsigned int base_deleted = nt_extract(sequence, 0);
   for(unsigned int i = 1; i < seqlen; i++)
     {
       unsigned int v = nt_extract(sequence, i);
-      if (v != base)
+      if (v != base_deleted)
         {
-          hash ^= zobrist_value(i - 1, base) ^ zobrist_value(i - 1, v);
+          hash ^= zobrist_value(i - 1, base_deleted) ^ zobrist_value(i - 1, v);
           add_variant(hash, deletion, i, 0, variant_list, variant_count);
-          base = v;
+          base_deleted = v;
         }
     }
 
