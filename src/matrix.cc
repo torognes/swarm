@@ -30,9 +30,9 @@ int64_t SCORELIMIT_32;
 int64_t SCORELIMIT_63;
 char BIAS;
 
-unsigned char * score_matrix_8 = NULL;
-unsigned short * score_matrix_16 = NULL;
-int64_t * score_matrix_63 = NULL;
+unsigned char * score_matrix_8 = nullptr;
+unsigned short * score_matrix_16 = nullptr;
+int64_t * score_matrix_63 = nullptr;
 
 #if 0
 
@@ -107,9 +107,9 @@ void score_matrix_init()
 void score_matrix_free()
 {
   xfree(score_matrix_8);
-  score_matrix_8 = NULL;
+  score_matrix_8 = nullptr;
   xfree(score_matrix_16);
-  score_matrix_16 = NULL;
+  score_matrix_16 = nullptr;
   xfree(score_matrix_63);
-  score_matrix_63 = NULL;
+  score_matrix_63 = nullptr;
 }

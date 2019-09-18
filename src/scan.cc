@@ -41,9 +41,8 @@ static struct thread_info_s
 } * ti;
 
 
-pthread_mutex_t workmutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t workmutex = PTHREAD_MUTEX_INITIALIZER;
 
-queryinfo_t query;
 
 struct search_data
 {
@@ -61,21 +60,19 @@ struct search_data
   uint64_t target_index;
 };
 
-struct search_data * sd;
+static struct search_data * sd;
+static uint64_t master_next;
+static uint64_t master_length;
+static uint64_t remainingchunks;
+static uint64_t * master_targets;
+static uint64_t * master_scores;
+static uint64_t * master_diffs;
+static uint64_t * master_alignlengths;
+static int master_bits;
+static uint64_t dirbufferbytes;
 
-uint64_t master_next;
-uint64_t master_length;
-
-uint64_t remainingchunks;
-
-uint64_t * master_targets;
-uint64_t * master_scores;
-uint64_t * master_diffs;
-uint64_t * master_alignlengths;
-int master_bits;
-
+queryinfo_t query;
 uint64_t longestdbsequence;
-uint64_t dirbufferbytes;
 
 void search_alloc(struct search_data * sdp)
 {
@@ -259,7 +256,7 @@ void * search_worker(void * vp)
         }
     }
   pthread_mutex_unlock(&tip->workmutex);
-  return 0;
+  return nullptr;
 }
 
 void search_do(uint64_t query_no,
@@ -347,8 +344,8 @@ void search_begin()
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
-      pthread_mutex_init(&tip->workmutex, NULL);
-      pthread_cond_init(&tip->workcond, NULL);
+      pthread_mutex_init(&tip->workmutex, nullptr);
+      pthread_cond_init(&tip->workcond, nullptr);
       if (pthread_create(&tip->pthread, &attr, search_worker, (void*)(int64_t)t))
         fatal("Cannot create thread");
     }
@@ -370,7 +367,7 @@ void search_end()
       pthread_mutex_unlock(&tip->workmutex);
 
       /* wait for worker to quit */
-      if (pthread_join(tip->pthread, NULL))
+      if (pthread_join(tip->pthread, nullptr))
         fatal("Cannot join thread");
 
       pthread_cond_destroy(&tip->workcond);

@@ -75,13 +75,13 @@ int64_t gcd(int64_t a, int64_t b)
   }
 }
 
-void fatal(const char * msg)
+[[ noreturn ]] void fatal(const char * msg)
 {
   fprintf(stderr, "\nError: %s\n", msg);
   exit(1);
 }
 
-void fatal(const char * format, const char * message)
+[[ noreturn ]] void fatal(const char * format, const char * message)
 {
   fprintf(stderr, "\n");
   fprintf(stderr, format, message);
@@ -93,12 +93,12 @@ void * xmalloc(size_t size)
 {
   if (size == 0)
     size = 1;
-  void * t = 0;
+  void * t = nullptr;
 #ifdef _WIN32
   t = _aligned_malloc(size, memalignment);
 #else
   if (posix_memalign(& t, memalignment, size))
-    t = 0;
+    t = nullptr;
 #endif
   if (!t)
     fatal("Unable to allocate enough memory.");
@@ -244,7 +244,7 @@ FILE * fopen_input(const char * filename)
     {
       int fd = dup(STDIN_FILENO);
       if (fd < 0)
-        return NULL;
+        return nullptr;
       else
         return fdopen(fd, "rb");
     }
@@ -259,7 +259,7 @@ FILE * fopen_output(const char * filename)
     {
       int fd = dup(STDOUT_FILENO);
       if (fd < 0)
-        return NULL;
+        return nullptr;
       else
         return fdopen(fd, "w");
     }

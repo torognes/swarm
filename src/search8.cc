@@ -41,11 +41,9 @@ const uint8x16_t neon_mask =
 
 const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
-#define v_load(a) vld1q_s8((const int8_t *)(a))
 #define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
 #define v_store(a, b) vst1q_s8((int8_t *)(a), (b))
 #define v_merge_lo_8(a, b) vzip1q_s8((a),(b))
-#define v_merge_hi_8(a, b) vzip2q_s8((a),(b))
 #define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
 #define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
 #define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
@@ -62,18 +60,16 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 #define v_shift_left(a) vextq_u8((v_zero), (a), 15)
 #define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8((vceqq_s8((a), (b))), neon_mask)), neon_shift))
 
-#elif __x86_64__
+#elif defined __x86_64__
 
 typedef __m128i VECTORTYPE;
 
 const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, -1);
 
-#define v_load(a) _mm_load_si128((VECTORTYPE *)(a))
 #define v_load_64(a) _mm_loadl_epi64((VECTORTYPE *)(a))
 #define v_store(a, b) _mm_store_si128((VECTORTYPE *)(a), (b))
 #define v_merge_lo_8(a, b) _mm_unpacklo_epi8((a),(b))
-#define v_merge_hi_8(a, b) _mm_unpackhi_epi8((a),(b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
 #define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
@@ -90,7 +86,7 @@ const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
 #define v_shift_left(a) _mm_slli_si128((a), 1)
 #define v_mask_eq(a, b) _mm_movemask_epi8(_mm_cmpeq_epi8((a), (b)))
 
-#elif __PPC__
+#elif defined __PPC__
 
 typedef vector unsigned char VECTORTYPE;
 
@@ -110,11 +106,9 @@ const vector unsigned char perm_bits =
   { 0x78, 0x70, 0x68, 0x60, 0x58, 0x50, 0x48, 0x40,
     0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00 };
 
-#define v_load(a) *((VECTORTYPE *)(a))
 #define v_load_64(a) (VECTORTYPE)vec_splats(*((unsigned long long *)(a)))
 #define v_store(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE*)(a))
 #define v_merge_lo_8(a, b) vec_mergeh((a), (b))
-#define v_merge_hi_8(a, b) vec_mergel((a), (b))
 #define v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a),\
                                                    (vector short)(b))
 #define v_merge_hi_16(a, b) (VECTORTYPE)vec_mergel((vector short)(a),\
@@ -828,7 +822,7 @@ void search8(BYTE * * q_start,
 
   for (int c=0; c<CHANNELS; c++)
     {
-      d_address[c] = 0;
+      d_address[c] = nullptr;
       d_pos[c] = 0;
       d_length[c] = 0;
       seq_id[c] = -1;
@@ -969,7 +963,7 @@ void search8(BYTE * * q_start,
                     {
                       // no more sequences, empty channel
                       seq_id[c] = -1;
-                      d_address[c] = 0;
+                      d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
                       for (int j=0; j<CDEPTH; j++)

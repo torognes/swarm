@@ -42,7 +42,7 @@
 #ifdef __APPLE__
 #include <sys/resource.h>
 #include <sys/sysctl.h>
-#elif _WIN32
+#elif defined _WIN32
 #include <windows.h>
 #include <psapi.h>
 #else
@@ -54,7 +54,7 @@
 
 #include <arm_neon.h>
 
-#elif __x86_64__
+#elif defined __x86_64__
 
 #ifdef __SSE2__
 #include <emmintrin.h>
@@ -64,7 +64,7 @@
 #include <tmmintrin.h>
 #endif
 
-#elif __PPC__
+#elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
 #include <altivec.h>
@@ -75,7 +75,6 @@
 #else
 
 #error Unknown architecture
-
 #endif
 
 /* constants */
@@ -241,8 +240,8 @@ inline unsigned int nt_bytelength(unsigned int len)
 /* functions in util.cc */
 
 int64_t gcd(int64_t a, int64_t b);
-void fatal(const char * msg);
-void fatal(const char * format, const char * message);
+[[ noreturn ]] void fatal(const char * msg);
+[[ noreturn ]] void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
 void xfree(void * ptr);

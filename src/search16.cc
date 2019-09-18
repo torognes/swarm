@@ -44,7 +44,6 @@ const uint16x8_t neon_mask =
 #define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_low_s64(vreinterpretq_s64_s16(a)), vget_low_s64(vreinterpretq_s64_s16(b))))
 #define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_high_s64(vreinterpretq_s64_s16(a)), vget_high_s64(vreinterpretq_s64_s16(b))))
 #define v_min(a, b) vminq_s16((a), (b))
-#define v_min_u(a, b) vminq_u16((a), (b))
 #define v_add(a, b) vqaddq_u16((a), (b))
 #define v_sub(a, b) vqsubq_u16((a), (b))
 #define v_dup(a) vdupq_n_s16(a)
@@ -55,7 +54,7 @@ const uint16x8_t neon_mask =
 #define v_mask_gt(a, b) vaddvq_u16(vandq_u16((vcgtq_s16((a), (b))), neon_mask))
 #define v_mask_eq(a, b) vaddvq_u16(vandq_u16((vceqq_s16((a), (b))), neon_mask))
 
-#elif __x86_64__
+#elif defined __x86_64__
 
 typedef __m128i VECTORTYPE;
 
@@ -70,7 +69,6 @@ const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 #define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
 #define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
 #define v_min(a, b) _mm_min_epi16((a), (b))
-#define v_min_u(a, b) _mm_min_epu16((a), (b))
 #define v_add(a, b) _mm_adds_epu16((a), (b))
 #define v_sub(a, b) _mm_subs_epu16((a), (b))
 #define v_dup(a) _mm_set1_epi16(a)
@@ -81,7 +79,7 @@ const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 #define v_mask_gt(a, b) _mm_movemask_epi8(_mm_cmpgt_epi16((a), (b)))
 #define v_mask_eq(a, b) _mm_movemask_epi8(_mm_cmpeq_epi16((a), (b)))
 
-#elif __PPC__
+#elif defined __PPC__
 
 typedef vector unsigned short VECTORTYPE;
 
@@ -115,7 +113,6 @@ const vector unsigned char perm_bits =
                                                   perm_merge_long_high)
 #define v_min(a, b) (VECTORTYPE) vec_min((vector signed short) (a),     \
                                          (vector signed short) (b))
-#define v_min_u(a, b) vec_min((a), (b))
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
 #define v_dup(a) vec_splats((unsigned short)(a));
@@ -574,7 +571,7 @@ void search16(WORD * * q_start,
 
   for (int c=0; c<CHANNELS; c++)
     {
-      d_address[c] = 0;
+      d_address[c] = nullptr;
       d_pos[c] = 0;
       d_length[c] = 0;
       seq_id[c] = -1;
@@ -717,7 +714,7 @@ void search16(WORD * * q_start,
                     {
                       // no more sequences, empty channel
                       seq_id[c] = -1;
-                      d_address[c] = 0;
+                      d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
                       for (int j=0; j<CDEPTH; j++)

@@ -23,8 +23,6 @@
 
 #include "swarm.h"
 
-#define BITS 8
-
 static uint64_t count_comparisons_8;
 static uint64_t count_comparisons_16;
 
@@ -113,8 +111,8 @@ void algo_run()
                                  255 / (penalty_gapopen +
                                         penalty_gapextend));
 
-  unsigned char * dir = 0;
-  uint64_t * hearray = 0;
+  unsigned char * dir = nullptr;
+  uint64_t * hearray = nullptr;
 
   if (uclustfile)
     {
@@ -466,7 +464,7 @@ void algo_run()
 
               uint64_t nwscore = 0;
               uint64_t nwdiff = 0;
-              char * nwalignment = NULL;
+              char * nwalignment = nullptr;
               uint64_t nwalignmentlength = 0;
 
               nw(dseq, dlen, qseq, qlen,

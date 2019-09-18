@@ -61,7 +61,7 @@ private:
       }
 
     pthread_mutex_unlock(&tip->workmutex);
-    return 0;
+    return nullptr;
   }
 
 public:
@@ -84,8 +84,8 @@ public:
         tip->t = i;
         tip->work = 0;
         tip->fun = f;
-        pthread_mutex_init(&tip->workmutex, NULL);
-        pthread_cond_init(&tip->workcond, NULL);
+        pthread_mutex_init(&tip->workmutex, nullptr);
+        pthread_cond_init(&tip->workcond, nullptr);
         if (pthread_create(&tip->pthread,
                            &attr,
                            worker,
@@ -112,7 +112,7 @@ public:
         pthread_mutex_unlock(&tip->workmutex);
 
         /* wait for worker to quit */
-        if (pthread_join(tip->pthread, NULL))
+        if (pthread_join(tip->pthread, nullptr))
           fatal("Cannot join thread");
 
         pthread_cond_destroy(&tip->workcond);

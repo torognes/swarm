@@ -96,7 +96,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
   return count;
 }
 
-#elif __PPC__
+#elif defined __PPC__
 
 uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
@@ -110,7 +110,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
   return count_vector[0] + count_vector[1];
 }
 
-#elif __x86_64__
+#elif defined __x86_64__
 
 /*
    Unable to get the Mac gcc compiler v 4.2.1 produce the real
@@ -261,7 +261,7 @@ void * qgram_worker(void * vp)
         }
     }
   pthread_mutex_unlock(&tip->workmutex);
-  return 0;
+  return nullptr;
 }
 
 void qgram_diff_init()
@@ -278,8 +278,8 @@ void qgram_diff_init()
     {
       struct thread_info_s * tip = ti + t;
       tip->work = 0;
-      pthread_mutex_init(&tip->workmutex, NULL);
-      pthread_cond_init(&tip->workcond, NULL);
+      pthread_mutex_init(&tip->workmutex, nullptr);
+      pthread_cond_init(&tip->workcond, nullptr);
       if (pthread_create(&tip->pthread, &attr, qgram_worker, (void*)t))
         fatal("Cannot create thread");
     }
@@ -299,7 +299,7 @@ void qgram_diff_done()
       pthread_mutex_unlock(&tip->workmutex);
 
       /* wait for worker to quit */
-      if (pthread_join(tip->pthread, NULL))
+      if (pthread_join(tip->pthread, nullptr))
         fatal("Cannot join thread");
 
       pthread_cond_destroy(&tip->workcond);

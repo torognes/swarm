@@ -40,7 +40,7 @@ static struct ampinfo_s
   int graft_cand; /* amp id of potential grafting parent (fastidious) */
   int link_start;
   int link_count;
-} * ampinfo = 0;
+} * ampinfo = nullptr;
 
 /* Information about each swarm (OTU) */
 
@@ -54,13 +54,13 @@ static struct swarminfo_s
   int64_t mass; /* the sum of abundances of amplicons in this swarm */
   int64_t sumlen; /* sum of length of amplicons in swarm */
   bool attached; /* this is a small swarm attached to a large (fastidious) */
-} * swarminfo = 0;
+} * swarminfo = nullptr;
 
 static struct graft_cand
 {
   int parent;
   int child;
-} * graft_array = 0;
+} * graft_array = nullptr;
 
 /* Information about potential grafts */
 static int64_t graft_candidates = 0;
@@ -84,7 +84,7 @@ static int swarmsize = 0;
 static int swarm_maxgen = 0;
 static uint64_t swarm_sumlen = 0;
 
-static int * global_hits_data = 0;
+static int * global_hits_data = nullptr;
 static int global_hits_alloc = 0;
 static int global_hits_count = 0;
 
@@ -105,14 +105,14 @@ static int64_t light_amplicon_count = 0;
 static int light_amplicon = 0;
 
 static uint64_t network_alloc = 1024 * 1024;
-static int * network = 0;
+static int * network = nullptr;
 static uint64_t network_count = 0;
 static pthread_mutex_t network_mutex;
 static int64_t network_amp = 0;
 
-static struct bloom_s * bloom_a = 0; // Bloom filter for amplicons
+static struct bloom_s * bloom_a = nullptr; // Bloom filter for amplicons
 
-struct bloomflex_s * bloom_f = 0; // Huge Bloom filter for fastidious
+static struct bloomflex_s * bloom_f = nullptr; // Huge Bloom filter for fastidious
 
 inline bool check_amp_identical(unsigned int amp1,
                                 unsigned int amp2)
@@ -700,8 +700,8 @@ void algo_d1_run()
 
   progress_done();
 
-  unsigned char * dir = 0;
-  uint64_t * hearray = 0;
+  unsigned char * dir = nullptr;
+  uint64_t * hearray = nullptr;
 
   if (uclustfile)
     {
@@ -715,7 +715,7 @@ void algo_d1_run()
   network = (int*) xmalloc(network_alloc * sizeof(int));
   network_count = 0;
 
-  pthread_mutex_init(&network_mutex, NULL);
+  pthread_mutex_init(&network_mutex, nullptr);
   network_amp = 0;
   progress_init("Building network: ", amplicons);
   ThreadRunner * network_tr = new ThreadRunner(opt_threads, network_thread);
@@ -831,7 +831,7 @@ void algo_d1_run()
   xfree(global_hits_data);
 
   xfree(network);
-  network = 0;
+  network = nullptr;
 
   swarmcount_adjusted = swarmcount;
 
@@ -939,7 +939,7 @@ void algo_d1_run()
 
           light_variants = 0;
 
-          pthread_mutex_init(&light_mutex, NULL);
+          pthread_mutex_init(&light_mutex, nullptr);
           light_progress = 0;
           light_amplicon_count = amplicons_in_small_otus;
           light_amplicon = amplicons - 1;
@@ -960,11 +960,11 @@ void algo_d1_run()
           /* process amplicons in order from most to least abundant */
           /* but stop when all amplicons in large otus are processed */
 
-          pthread_mutex_init(&graft_mutex, NULL);
+          pthread_mutex_init(&graft_mutex, nullptr);
 
           heavy_variants = 0;
 
-          pthread_mutex_init(&heavy_mutex, NULL);
+          pthread_mutex_init(&heavy_mutex, nullptr);
           heavy_progress = 0;
           heavy_amplicon_count = amplicons_in_large_otus;
           heavy_amplicon = 0;
@@ -1170,7 +1170,7 @@ void algo_d1_run()
 
                   uint64_t nwscore = 0;
                   uint64_t nwdiff = 0;
-                  char * nwalignment = NULL;
+                  char * nwalignment = nullptr;
                   uint64_t nwalignmentlength = 0;
 
                   nw(dseq, dlen, qseq, qlen,

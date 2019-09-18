@@ -25,7 +25,7 @@
 
 /* OPTIONS */
 
-char * progname;
+static char * progname;
 char * input_filename;
 
 char * opt_internal_structure;
@@ -70,20 +70,20 @@ int64_t popcnt_present = 0;
 int64_t avx_present = 0;
 int64_t avx2_present = 0;
 
-uint64_t dbsequencecount = 0;
+static uint64_t dbsequencecount = 0;
 
 uint64_t duplicates_found = 0;
 
 FILE * outfile;
 FILE * statsfile;
 FILE * uclustfile;
-FILE * logfile = stderr;
+FILE * logfile;
 FILE * internal_structure_file;
-FILE * fp_seeds = 0;
+FILE * fp_seeds = nullptr;
 
 char sym_nt[] = "-ACGT                           ";
 
-char * DASH_FILENAME = (char*) "-";
+static char * DASH_FILENAME = (char*) "-";
 
 #ifdef __x86_64__
 
@@ -279,17 +279,17 @@ void args_init(int argc, char **argv)
   opt_gap_extension_penalty = 4;
   opt_gap_opening_penalty = 12;
   opt_help = 0;
-  opt_internal_structure = 0;
-  opt_log = 0;
+  opt_internal_structure = nullptr;
+  opt_log = nullptr;
   opt_match_reward = 5;
   opt_mismatch_penalty = 4;
   opt_mothur = 0;
   opt_no_otu_breaking = 0;
   opt_output_file = DASH_FILENAME;
-  opt_seeds = 0;
-  opt_statistics_file = 0;
+  opt_seeds = nullptr;
+  opt_statistics_file = nullptr;
   opt_threads = 1;
-  opt_uclust_file = 0;
+  opt_uclust_file = nullptr;
   opt_usearch_abundance = 0;
   opt_version = 0;
 
@@ -301,29 +301,29 @@ void args_init(int argc, char **argv)
 
   static struct option long_options[] =
   {
-    {"append-abundance",      required_argument, NULL, 'a' },
-    {"boundary",              required_argument, NULL, 'b' },
-    {"ceiling",               required_argument, NULL, 'c' },
-    {"differences",           required_argument, NULL, 'd' },
-    {"gap-extension-penalty", required_argument, NULL, 'e' },
-    {"fastidious",            no_argument,       NULL, 'f' },
-    {"gap-opening-penalty",   required_argument, NULL, 'g' },
-    {"help",                  no_argument,       NULL, 'h' },
-    {"internal-structure",    required_argument, NULL, 'i' },
-    {"log",                   required_argument, NULL, 'l' },
-    {"match-reward",          required_argument, NULL, 'm' },
-    {"no-otu-breaking",       no_argument,       NULL, 'n' },
-    {"output-file",           required_argument, NULL, 'o' },
-    {"mismatch-penalty",      required_argument, NULL, 'p' },
-    {"mothur",                no_argument,       NULL, 'r' },
-    {"statistics-file",       required_argument, NULL, 's' },
-    {"threads",               required_argument, NULL, 't' },
-    {"uclust-file",           required_argument, NULL, 'u' },
-    {"version",               no_argument,       NULL, 'v' },
-    {"seeds",                 required_argument, NULL, 'w' },
-    {"bloom-bits",            required_argument, NULL, 'y' },
-    {"usearch-abundance",     no_argument,       NULL, 'z' },
-    { 0, 0, 0, 0 }
+    {"append-abundance",      required_argument, nullptr, 'a' },
+    {"boundary",              required_argument, nullptr, 'b' },
+    {"ceiling",               required_argument, nullptr, 'c' },
+    {"differences",           required_argument, nullptr, 'd' },
+    {"gap-extension-penalty", required_argument, nullptr, 'e' },
+    {"fastidious",            no_argument,       nullptr, 'f' },
+    {"gap-opening-penalty",   required_argument, nullptr, 'g' },
+    {"help",                  no_argument,       nullptr, 'h' },
+    {"internal-structure",    required_argument, nullptr, 'i' },
+    {"log",                   required_argument, nullptr, 'l' },
+    {"match-reward",          required_argument, nullptr, 'm' },
+    {"no-otu-breaking",       no_argument,       nullptr, 'n' },
+    {"output-file",           required_argument, nullptr, 'o' },
+    {"mismatch-penalty",      required_argument, nullptr, 'p' },
+    {"mothur",                no_argument,       nullptr, 'r' },
+    {"statistics-file",       required_argument, nullptr, 's' },
+    {"threads",               required_argument, nullptr, 't' },
+    {"uclust-file",           required_argument, nullptr, 'u' },
+    {"version",               no_argument,       nullptr, 'v' },
+    {"seeds",                 required_argument, nullptr, 'w' },
+    {"bloom-bits",            required_argument, nullptr, 'y' },
+    {"usearch-abundance",     no_argument,       nullptr, 'z' },
+    {nullptr,                 0,                 nullptr, 0 }
   };
 
   int used_options[26] = { 0, 0, 0, 0, 0,
@@ -479,7 +479,6 @@ void args_init(int argc, char **argv)
         show_header();
         args_usage();
         exit(1);
-        break;
     }
   }
 
@@ -558,8 +557,6 @@ void open_files()
       if (! logfile)
         fatal("Unable to open log file for writing.");
     }
-  else
-    logfile = stderr;
 
   if (opt_output_file)
     {
@@ -577,7 +574,7 @@ void open_files()
         fatal("Unable to open seeds file for writing.");
     }
   else
-    fp_seeds = 0;
+    fp_seeds = nullptr;
 
   if (opt_statistics_file)
     {
@@ -586,7 +583,7 @@ void open_files()
         fatal("Unable to open statistics file for writing.");
     }
   else
-    statsfile = 0;
+    statsfile = nullptr;
 
   if (opt_uclust_file)
     {
@@ -595,7 +592,7 @@ void open_files()
         fatal("Unable to open uclust file for writing.");
     }
   else
-    uclustfile = 0;
+    uclustfile = nullptr;
 
   if (opt_internal_structure)
     {
@@ -604,7 +601,7 @@ void open_files()
         fatal("Unable to open internal structure file for writing.");
     }
   else
-    internal_structure_file = 0;
+    internal_structure_file = nullptr;
 }
 
 void close_files()
@@ -630,6 +627,8 @@ void close_files()
 
 int main(int argc, char** argv)
 {
+  logfile = stderr;
+
 #ifdef __x86_64__
   cpu_features_detect();
 

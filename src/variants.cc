@@ -104,7 +104,6 @@ void generate_variant_sequence(char * seed_sequence,
 
     default:
       fatal("Unknown variant");
-      break;
     }
 }
 

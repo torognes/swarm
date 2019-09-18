@@ -23,7 +23,7 @@
 
 #include "swarm.h"
 
-uint64_t * zobrist_tab_base = 0;
+uint64_t * zobrist_tab_base = nullptr;
 
 void zobrist_init(unsigned int n)
 {

@@ -29,7 +29,7 @@
 #define MEMCHUNK 1048576
 #define LINEALLOC LINE_MAX
 
-signed char map_nt[256] =
+static signed char map_nt[256] =
   {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -49,39 +49,18 @@ signed char map_nt[256] =
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
   };
 
-signed char map_hex[256] =
-  {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
-    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-  };
-
-uint64_t sequences = 0;
-uint64_t nucleotides = 0;
-uint64_t headerchars = 0;
-unsigned int longest = 0;
-int longestheader = 0;
-
-seqinfo_t * seqindex = 0;
-char * datap = 0;
-qgramvector_t * qgrams = 0;
-
+static uint64_t sequences = 0;
+static uint64_t nucleotides = 0;
+static uint64_t headerchars = 0;
+static unsigned int longest = 0;
+static int longestheader = 0;
+static char * datap = nullptr;
 static int missingabundance = 0;
 static uint64_t missingabundance_lineno = 0;
-static char * missingabundance_header = 0;
+static char * missingabundance_header = nullptr;
+
+seqinfo_t * seqindex = nullptr;
+qgramvector_t * qgrams = nullptr;
 
 void fprint_id(FILE * stream, uint64_t x)
 {
@@ -223,7 +202,7 @@ bool find_usearch_abundance(const char * header,
       char * r = (char *) strstr(header + i, attribute);
 
       /* no match */
-      if (r == NULL)
+      if (r == nullptr)
         break;
 
       i = r - header;
@@ -349,7 +328,7 @@ void db_read(const char * filename)
   nucleotides = 0;
   headerchars = 0;
 
-  FILE * fp = NULL;
+  FILE * fp = nullptr;
   if (filename)
     {
       fp = fopen_input(filename);
@@ -557,7 +536,7 @@ void db_read(const char * filename)
 
   uint64_t seqhashsize = 2 * sequences;
 
-  seqinfo_t * * seqhashtable = 0;
+  seqinfo_t * * seqhashtable = nullptr;
 
   if (opt_differences > 1)
     {
@@ -571,7 +550,7 @@ void db_read(const char * filename)
   seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
   seqinfo_t * seqindex_p = seqindex;
 
-  seqinfo_t * lastseq = 0;
+  seqinfo_t * lastseq = nullptr;
 
   int presorted = 1;
 
@@ -623,7 +602,7 @@ void db_read(const char * filename)
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
-      seqinfo_t * hdrfound = 0;
+      seqinfo_t * hdrfound = nullptr;
 
       while ((hdrfound = hdrhashtable[hdrhashindex]))
         {
@@ -657,7 +636,7 @@ void db_read(const char * filename)
           /* but only for d>1. Handled internally for d=1.    */
 
           uint64_t seqhashindex = seqindex_p->seqhash % seqhashsize;
-          seqinfo_t * seqfound = 0;
+          seqinfo_t * seqfound = nullptr;
 
           while ((seqfound = seqhashtable[seqhashindex]))
             {
@@ -726,7 +705,7 @@ void db_read(const char * filename)
   if (seqhashtable)
     {
       xfree(seqhashtable);
-      seqhashtable = 0;
+      seqhashtable = nullptr;
     }
 }
 

@@ -26,9 +26,9 @@
 #define HASHFILLFACTOR 0.7
 
 uint64_t hash_mask;
-unsigned char * hash_occupied = 0;
-uint64_t * hash_values = 0;
-int * hash_data = 0;
+unsigned char * hash_occupied = nullptr;
+uint64_t * hash_values = nullptr;
+int * hash_data = nullptr;
 uint64_t hash_tablesize = 0;
 
 void hash_zap()
