@@ -165,7 +165,6 @@ bool check_variant(char * seed_sequence,
 
     default:
       fatal("Unknown variant");
-      return false;
     }
 }
 

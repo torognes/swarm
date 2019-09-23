@@ -83,8 +83,7 @@ FILE * fp_seeds = nullptr;
 
 char sym_nt[] = "-ACGT                           ";
 
-char dash[] = "-";
-
+static char dash[] = "-";
 static char * DASH_FILENAME = dash;
 
 #ifdef __x86_64__
@@ -162,7 +161,10 @@ int64_t args_long(char * str, const char * option)
   char * endptr;
   int64_t temp = strtol(str, & endptr, 10);
   if (*endptr)
-    fatal("Invalid numeric argument for option %s", option);
+    {
+      fprintf(stderr, "\nInvalid numeric argument for option %s\n", option);
+      exit(1);
+    }
   return temp;
 }
 
@@ -253,8 +255,8 @@ void show_header()
   char title[] = "Swarm " SWARM_VERSION;
   char ref[] = "Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe";
   char url[] = "https://github.com/torognes/swarm";
-  fprintf(logfile, "%s [%s %s]\n%s\n%s\n\n",
-          title, __DATE__, __TIME__, ref, url);
+  fprintf(logfile, "%s\n%s\n%s\n\n",
+          title, ref, url);
   fprintf(logfile, "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
   fprintf(logfile, "Swarm: robust and fast clustering method for amplicon-based studies\n");
   fprintf(logfile, "PeerJ 2:e593 https://doi.org/10.7717/peerj.593\n");
@@ -263,6 +265,7 @@ void show_header()
   fprintf(logfile, "Swarm v2: highly-scalable and high-resolution amplicon clustering\n");
   fprintf(logfile, "PeerJ 3:e1420 https://doi.org/10.7717/peerj.1420\n");
   fprintf(logfile, "\n");
+  fprintf(logfile, "PRIu64: " PRIu64 " PRId64: " PRId64 "\n");
 }
 
 void args_init(int argc, char **argv)

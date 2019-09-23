@@ -30,7 +30,7 @@
 
 typedef int16x8_t VECTORTYPE;
 
-const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
+#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
 const uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
@@ -64,8 +64,6 @@ const uint16x8_t neon_mask =
 
 typedef __m128i VECTORTYPE;
 
-const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
-
 #define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
 #define v_load(a) _mm_load_si128(CAST_VECTOR_p(a))
@@ -91,7 +89,7 @@ const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 
 typedef vector unsigned short VECTORTYPE;
 
-const VECTORTYPE T0_init = { (unsigned short)(-1), 0, 0, 0, 0, 0, 0, 0 };
+#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
 const vector unsigned char perm_merge_long_low =
   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -568,7 +566,16 @@ void search16(WORD * * q_start,
   uint64_t next_id = 0;
   uint64_t done;
 
+#ifdef __aarch64__
+  const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
+#elif defined __x86_64__
+  const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
+#elif defined __PPC__
+  const VECTORTYPE T0_init = { (unsigned short)(-1), 0, 0, 0, 0, 0, 0, 0 };
+#endif
+
   T0 = T0_init;
+
   Q  = v_dup(gap_open_penalty+gap_extend_penalty);
   R  = v_dup(gap_extend_penalty);
 

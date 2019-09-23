@@ -333,7 +333,10 @@ void db_read(const char * filename)
     {
       fp = fopen_input(filename);
       if (!fp)
-        fatal("Error: Unable to open input data file (%s).", filename);
+        {
+          fprintf(stderr, "\nError: Unable to open input data file (%s).\n", filename);
+          exit(1);
+        }
     }
   else
     fp = stdin;
@@ -343,7 +346,10 @@ void db_read(const char * filename)
   struct stat fs;
 
   if (fstat(fileno(fp), & fs))
-    fatal("Unable to fstat on input file (%s)", filename);
+    {
+      fprintf(stderr, "\nUnable to fstat on input file (%s)\n", filename);
+      exit(1);
+    }
   bool is_regular = S_ISREG(fs.st_mode);
   int64_t filesize = is_regular ? fs.st_size : 0;
 

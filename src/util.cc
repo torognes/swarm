@@ -81,14 +81,6 @@ int64_t gcd(int64_t a, int64_t b)
   exit(1);
 }
 
-[[ noreturn ]] void fatal(const char * format, const char * message)
-{
-  fprintf(stderr, "\n");
-  fprintf(stderr, format, message);
-  fprintf(stderr, "\n");
-  exit(1);
-}
-
 void * xmalloc(size_t size)
 {
   if (size == 0)

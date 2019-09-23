@@ -118,7 +118,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 */
 
 #define popcnt_asm(x,y)                                         \
-  __asm__ __volatile__ ("popcnt %1,%0" : "=r"(y) : "r"(x));
+  __asm__ __volatile__ ("popcnt %1,%0" : "=r"(y) : "r"(x))
 
 inline uint64_t popcount(uint64_t x)
 {

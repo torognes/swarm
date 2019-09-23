@@ -21,9 +21,24 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#define __STDC_FORMAT_MACROS
-
 #include <inttypes.h>
+
+#ifndef PRIu64
+#ifdef _WIN32
+#define PRIu64 "I64u"
+#else
+#define PRIu64 "lu"
+#endif
+#endif
+
+#ifndef PRId64
+#ifdef _WIN32
+#define PRId64 "I64d"
+#else
+#define PRId64 "ld"
+#endif
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -243,7 +258,6 @@ inline unsigned int nt_bytelength(unsigned int len)
 
 int64_t gcd(int64_t a, int64_t b);
 [[ noreturn ]] void fatal(const char * msg);
-[[ noreturn ]] void fatal(const char * format, const char * message);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
 void xfree(void * ptr);
