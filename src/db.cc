@@ -127,8 +127,8 @@ void fprint_id_with_new_abundance(FILE * stream,
 
 int db_compare_abundance(const void * a, const void * b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
+  const seqinfo_t * x = reinterpret_cast<const seqinfo_t *>(a);
+  const seqinfo_t * y = reinterpret_cast<const seqinfo_t *>(b);
 
   if (x->abundance > y->abundance)
     return -1;
@@ -199,7 +199,7 @@ bool find_usearch_abundance(const char * header,
 
   while (i < hlen - alen)
     {
-      char * r = (char *) strstr(header + i, attribute);
+      char * r = const_cast<char *>(strstr(header + i, attribute));
 
       /* no match */
       if (r == nullptr)
@@ -214,7 +214,7 @@ bool find_usearch_abundance(const char * header,
           continue;
         }
 
-      int digits = (int) strspn(header + i + alen, digit_chars);
+      int digits = static_cast<int>(strspn(header + i + alen, digit_chars));
 
       /* check for at least one digit */
       if (digits == 0)
@@ -319,7 +319,7 @@ void db_read(const char * filename)
   /* allocate space */
 
   uint64_t dataalloc = MEMCHUNK;
-  datap = (char *) xmalloc(dataalloc);
+  datap = static_cast<char *>(xmalloc(dataalloc));
   uint64_t datalen = 0;
 
   longest = 0;
@@ -380,7 +380,7 @@ void db_read(const char * filename)
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
           dataalloc += MEMCHUNK;
-          datap = (char *) xrealloc(datap, dataalloc);
+          datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       memcpy(datap + datalen, & lineno, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
@@ -391,7 +391,7 @@ void db_read(const char * filename)
       while (datalen + headerlen + 1 > dataalloc)
         {
           dataalloc += MEMCHUNK;
-          datap = (char *) xrealloc(datap, dataalloc);
+          datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       memcpy(datap + datalen, line + 1, headerlen);
       *(datap + datalen + headerlen) = 0;
@@ -413,7 +413,7 @@ void db_read(const char * filename)
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
           dataalloc += MEMCHUNK;
-          datap = (char *) xrealloc(datap, dataalloc);
+          datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       uint64_t datalen_seqlen = datalen;
       memcpy(datap + datalen, & length, sizeof(unsigned int));
@@ -433,9 +433,9 @@ void db_read(const char * filename)
           while((c = *p++))
 	    {
               signed char m;
-              if ((m = map_nt[(unsigned int)c]) >= 0)
+              if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
                 {
-                  nt_buffer |= (((uint64_t)m)-1) << (2 * nt_bufferlen);
+                  nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
                   length++;
                   nt_bufferlen++;
 
@@ -444,7 +444,7 @@ void db_read(const char * filename)
                       while (datalen + sizeof(nt_buffer) > dataalloc)
                         {
                           dataalloc += MEMCHUNK;
-                          datap = (char *) xrealloc(datap, dataalloc);
+                          datap = static_cast<char *>(xrealloc(datap, dataalloc));
                         }
 
                       memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
@@ -499,7 +499,7 @@ void db_read(const char * filename)
           while (datalen + sizeof(nt_buffer) > dataalloc)
             {
               dataalloc += MEMCHUNK;
-              datap = (char *) xrealloc(datap, dataalloc);
+              datap = static_cast<char *>(xrealloc(datap, dataalloc));
             }
 
           memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
@@ -527,7 +527,7 @@ void db_read(const char * filename)
   uint64_t hdrhashsize = 2 * sequences;
 
   seqinfo_t * * hdrhashtable =
-    (seqinfo_t **) xmalloc(hdrhashsize * sizeof(seqinfo_t *));
+    static_cast<seqinfo_t **>(xmalloc(hdrhashsize * sizeof(seqinfo_t *)));
   memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
 
   uint64_t duplicatedidentifiers = 0;
@@ -541,13 +541,13 @@ void db_read(const char * filename)
   if (opt_differences > 1)
     {
       seqhashtable =
-        (seqinfo_t **) xmalloc(seqhashsize * sizeof(seqinfo_t *));
+        static_cast<seqinfo_t **>(xmalloc(seqhashsize * sizeof(seqinfo_t *)));
       memset(seqhashtable, 0, seqhashsize * sizeof(seqinfo_t *));
     }
 
   /* create indices */
 
-  seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
+  seqindex = static_cast<seqinfo_t *>(xmalloc(sequences * sizeof(seqinfo_t)));
   seqinfo_t * seqindex_p = seqindex;
 
   seqinfo_t * lastseq = nullptr;
@@ -559,7 +559,7 @@ void db_read(const char * filename)
   for(uint64_t i=0; i<sequences; i++)
     {
       /* get line number */
-      unsigned int line_number = *((unsigned int*)p);
+      unsigned int line_number = *(reinterpret_cast<unsigned int*>(p));
       p += sizeof(unsigned int);
 
       /* get header */
@@ -568,7 +568,7 @@ void db_read(const char * filename)
       p += seqindex_p->headerlen + 1;
 
       /* and sequence */
-      unsigned int seqlen = *((unsigned int*)p);
+      unsigned int seqlen = *(reinterpret_cast<unsigned int*>(p));
       seqindex_p->seqlen = seqlen;
       p += sizeof(unsigned int);
       seqindex_p->seq = p;
@@ -597,8 +597,9 @@ void db_read(const char * filename)
 
       /* check for duplicated identifiers using hash table */
 
-      uint64_t hdrhash = HASH((unsigned char*)seqindex_p->header,
-                                   seqindex_p->abundance_start);
+      uint64_t hdrhash = HASH(reinterpret_cast<unsigned char*>
+                              (seqindex_p->header),
+                              seqindex_p->abundance_start);
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
@@ -627,7 +628,8 @@ void db_read(const char * filename)
       hdrhashtable[hdrhashindex] = seqindex_p;
 
       /* hash sequence */
-      seqindex_p->seqhash = zobrist_hash((unsigned char*)seqindex_p->seq,
+      seqindex_p->seqhash = zobrist_hash(reinterpret_cast<unsigned char*>
+                                         (seqindex_p->seq),
                                          seqindex_p->seqlen);
 
       if (opt_differences > 1)
@@ -711,14 +713,15 @@ void db_read(const char * filename)
 
 void db_qgrams_init()
 {
-  qgrams = (qgramvector_t *) xmalloc(sequences * sizeof(qgramvector_t));
+  qgrams = static_cast<qgramvector_t *>
+    (xmalloc(sequences * sizeof(qgramvector_t)));
 
   seqinfo_t * seqindex_p = seqindex;
   progress_init("Find qgram vects: ", sequences);
   for(unsigned int i=0; i<sequences; i++)
     {
       /* find qgrams */
-      findqgrams((unsigned char*) seqindex_p->seq,
+      findqgrams(reinterpret_cast<unsigned char*>(seqindex_p->seq),
                  seqindex_p->seqlen,
                  qgrams[i]);
       seqindex_p++;
@@ -762,7 +765,7 @@ void db_getsequenceandlength(uint64_t seqno,
                              int64_t * length)
 {
   *address = seqindex[seqno].seq;
-  *length = (int64_t)(seqindex[seqno].seqlen);
+  *length = static_cast<int64_t>(seqindex[seqno].seqlen);
 }
 
 uint64_t db_getsequencelen(uint64_t seqno)
@@ -800,20 +803,20 @@ void db_fprintseq(FILE * fp, int a, int width)
   if (len < 1025)
     buf = buffer;
   else
-    buf = (char*) xmalloc(len+1);
+    buf = static_cast<char*>(xmalloc(len+1));
 
   for(int i=0; i<len; i++)
     buf[i] = sym_nt[1+nt_extract(seq, i)];
   buf[len] = 0;
 
   if (width < 1)
-    fprintf(fp, "%.*s\n", (int)(len), buf);
+    fprintf(fp, "%.*s\n", len, buf);
   else
     {
-      int64_t rest = len;
+      int rest = len;
       for(int i=0; i<len; i += width)
         {
-          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), buf+i);
+          fprintf(fp, "%.*s\n", MIN(rest, width), buf+i);
           rest -= width;
         }
     }

@@ -233,7 +233,7 @@ uint64_t hash_xor64len(unsigned char * s, uint64_t n)
 
 uint64_t hash_cityhash64(unsigned char * s, uint64_t n)
 {
-  return CityHash64((const char*)s, n);
+  return CityHash64(reinterpret_cast<const char *>(s), n);
 }
 
 

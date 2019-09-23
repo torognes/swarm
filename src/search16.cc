@@ -39,10 +39,16 @@ const uint16x8_t neon_mask =
 #define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
 #define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
 #define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
-#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_low_s64(vreinterpretq_s64_s16(a)), vget_low_s64(vreinterpretq_s64_s16(b))))
-#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_high_s64(vreinterpretq_s64_s16(a)), vget_high_s64(vreinterpretq_s64_s16(b))))
+#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32 \
+          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32 \
+          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
+          (vget_low_s64(vreinterpretq_s64_s16(a)), \
+           vget_low_s64(vreinterpretq_s64_s16(b))))
+#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
+          (vget_high_s64(vreinterpretq_s64_s16(a)), \
+           vget_high_s64(vreinterpretq_s64_s16(b))))
 #define v_min(a, b) vminq_s16((a), (b))
 #define v_add(a, b) vqaddq_u16((a), (b))
 #define v_sub(a, b) vqsubq_u16((a), (b))
@@ -60,8 +66,10 @@ typedef __m128i VECTORTYPE;
 
 const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 
-#define v_load(a) _mm_load_si128((VECTORTYPE *)(a))
-#define v_store(a, b) _mm_store_si128((VECTORTYPE *)(a), (b))
+#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
+
+#define v_load(a) _mm_load_si128(CAST_VECTOR_p(a))
+#define v_store(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
 #define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
@@ -97,8 +105,8 @@ const vector unsigned char perm_bits =
   { 0x78, 0x70, 0x68, 0x60, 0x58, 0x50, 0x48, 0x40,
     0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00 };
 
-#define v_load(a) *(VECTORTYPE *)(a)
-#define v_store(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE *)(a))
+#define v_load(a) *CAST_VECTOR_p(a)
+#define v_store(a, b) vec_st((VECTORTYPE)(b), 0, CAST_VECTOR_p(a))
 #define v_merge_lo_16(a, b) vec_mergeh((VECTORTYPE)(a), (VECTORTYPE)(b))
 #define v_merge_hi_16(a, b) vec_mergel((VECTORTYPE)(a), (VECTORTYPE)(b))
 #define v_merge_lo_32(a, b) (VECTORTYPE) vec_mergeh((vector int)(a),    \
@@ -257,7 +265,7 @@ void align_cells_regular_16(VECTORTYPE * Sm,
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
 
-  unsigned short * dir = (unsigned short *) dir_long;
+  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
   Q = *Qm;
   R = *Rm;
@@ -320,7 +328,7 @@ void align_cells_masked_16(VECTORTYPE * Sm,
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
 
-  unsigned short * dir = (unsigned short *) dir_long;
+  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
   Q = *Qm;
   R = *Rm;
@@ -554,7 +562,7 @@ void search16(WORD * * q_start,
   VECTORTYPE F0;
   VECTORTYPE S[4];
 
-  BYTE * dseq = (BYTE*) & dseqalloc;
+  BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
 
   int64_t seq_id[CHANNELS];
   uint64_t next_id = 0;
@@ -566,8 +574,8 @@ void search16(WORD * * q_start,
 
   done = 0;
 
-  hep = (VECTORTYPE*) hearray;
-  qp = (VECTORTYPE**) q_start;
+  hep = CAST_VECTOR_p(hearray);
+  qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   for (int c=0; c<CHANNELS; c++)
     {
@@ -651,10 +659,10 @@ void search16(WORD * * q_start,
                     {
                       // save score
 
-                      char * dbseq = (char*) d_address[c];
+                      char * dbseq = reinterpret_cast<char*>(d_address[c]);
                       int64_t dbseqlen = d_length[c];
                       int64_t z = (dbseqlen+3) % 4;
-                      int64_t score = ((WORD*)S)[z*CHANNELS+c];
+                      int64_t score = (reinterpret_cast<WORD*>(S))[z*CHANNELS+c];
                       scores[cand_id] = score;
 
                       uint64_t diff;
@@ -696,8 +704,8 @@ void search16(WORD * * q_start,
                       d_offset[c] = dir - dirbuffer;
                       next_id++;
 
-                      ((WORD*)&H0)[c] = 0;
-                      ((WORD*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
+                      (reinterpret_cast<WORD*>(&H0))[c] = 0;
+                      (reinterpret_cast<WORD*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
 
                       // fill channel
                       for(int j=0; j<CDEPTH; j++)

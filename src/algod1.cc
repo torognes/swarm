@@ -200,8 +200,8 @@ void add_graft_candidate(int seed, int amp)
 
 int compare_grafts(const void * a, const void * b)
 {
-  struct graft_cand * x = (struct graft_cand *) a;
-  struct graft_cand * y = (struct graft_cand *) b;
+  const struct graft_cand * x = static_cast<const struct graft_cand *>(a);
+  const struct graft_cand * y = static_cast<const struct graft_cand *>(b);
   if (x->parent < y->parent)
     return -1;
   else if (x->parent > y->parent)
@@ -227,8 +227,8 @@ int attach_candidates(int amplicon_count)
   progress_init("Grafting light swarms on heavy swarms", pair_count);
 
   /* allocate memory */
-  graft_array = (struct graft_cand *)
-    xmalloc(pair_count * sizeof(struct graft_cand));
+  graft_array = static_cast<struct graft_cand *>
+    (xmalloc(pair_count * sizeof(struct graft_cand)));
 
   /* fill in */
   int j = 0;
@@ -312,7 +312,7 @@ inline int64_t check_heavy_var_2(char * seq,
   int64_t matches = 0;
   unsigned int variant_count = 0;
 
-  uint64_t hash = zobrist_hash((unsigned char*)seq, seqlen);
+  uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
   generate_variants(seq, seqlen, hash,
                     variant_list, & variant_count, false);
 
@@ -384,15 +384,13 @@ void check_heavy_thread(int64_t t)
 {
   (void) t;
 
-  struct var_s * variant_list
-    = (struct var_s *) xmalloc(sizeof(struct var_s) *
-                               (7 * longestamplicon + 4));
-  struct var_s * variant_list2
-    = (struct var_s *) xmalloc(sizeof(struct var_s) *
-                               (7 * (longestamplicon+1) + 4));
+  struct var_s * variant_list = static_cast<struct var_s *>
+    (xmalloc(sizeof(struct var_s) * (7 * longestamplicon + 4)));
+  struct var_s * variant_list2 = static_cast<struct var_s *>
+    (xmalloc(sizeof(struct var_s) * (7 * (longestamplicon+1) + 4)));
 
   size_t size = 8 * ((db_getlongestsequence() + 2 + 31) / 32);
-  char * buffer1 = (char*) xmalloc(size);
+  char * buffer1 = static_cast<char *>(xmalloc(size));
   pthread_mutex_lock(&heavy_mutex);
   while ((heavy_amplicon < amplicons) &&
          (heavy_progress < heavy_amplicon_count))
@@ -447,9 +445,8 @@ void mark_light_thread(int64_t t)
 {
   (void) t;
 
-  struct var_s * variant_list
-    = (struct var_s *) xmalloc(sizeof(struct var_s) *
-                               (7 * longestamplicon + 4));
+  struct var_s * variant_list = static_cast<struct var_s *>
+    (xmalloc(sizeof(struct var_s) * (7 * longestamplicon + 4)));
 
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
@@ -540,11 +537,11 @@ void network_thread(int64_t t)
   (void) t;
 
   int hits_count = 0;
-  int * hits_data
-    = (int *) xmalloc((7 * longestamplicon + 5) * sizeof(int));
+  int * hits_data = static_cast<int *>
+    (xmalloc((7 * longestamplicon + 5) * sizeof(int)));
 
-  struct var_s * variant_list
-    = (struct var_s *) xmalloc((7 * longestamplicon + 5) * sizeof(struct var_s));
+  struct var_s * variant_list = static_cast<struct var_s *>
+    (xmalloc((7 * longestamplicon + 5) * sizeof(struct var_s)));
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
@@ -565,7 +562,8 @@ void network_thread(int64_t t)
         {
           while (network_count + hits_count > network_alloc)
             network_alloc += 1024 * 1024;
-          network = (int*) xrealloc(network, network_alloc * sizeof(int));
+          network = static_cast<int*>
+            (xrealloc(network, network_alloc * sizeof(int)));
         }
 
       for(int i=0; i < hits_count; i++)
@@ -598,8 +596,8 @@ void process_seed(int seed)
     {
       while (global_hits_count + c > global_hits_alloc)
         global_hits_alloc += 4096;
-      global_hits_data = (int*)xrealloc(global_hits_data,
-                                        global_hits_alloc * sizeof(int));
+      global_hits_data = static_cast<int *>
+        (xrealloc(global_hits_data, global_hits_alloc * sizeof(int)));
     }
 
   for(int i = 0; i < c; i++)
@@ -620,8 +618,8 @@ void process_seed(int seed)
 
 int compare_amp(const void * a, const void * b)
 {
-  int * x = (int*) a;
-  int * y = (int*) b;
+  const int * x = static_cast<const int*>(a);
+  const int * y = static_cast<const int*>(b);
   if (*x < *y)
     return -1;
   else if (*x > *y)
@@ -632,8 +630,8 @@ int compare_amp(const void * a, const void * b)
 
 int compare_mass(const void * a, const void * b)
 {
-  swarminfo_s * x = swarminfo + *((int *)a);
-  swarminfo_s * y = swarminfo + *((int *)b);
+  const swarminfo_s * x = swarminfo + *(static_cast<const int *>(a));
+  const swarminfo_s * y = swarminfo + *(static_cast<const int *>(b));
 
   int64_t m = x->mass;
   int64_t n = y->mass;
@@ -658,11 +656,12 @@ void algo_d1_run()
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
-  ampinfo = (struct ampinfo_s *)
-    xmalloc(amplicons * sizeof(struct ampinfo_s));
+  ampinfo = static_cast<struct ampinfo_s *>
+    (xmalloc(amplicons * sizeof(struct ampinfo_s)));
 
   global_hits_alloc = longestamplicon * 7 + 4 + 1;
-  global_hits_data = (int *) xmalloc(global_hits_alloc * sizeof(int));
+  global_hits_data = static_cast<int *>
+    (xmalloc(global_hits_alloc * sizeof(int)));
 
   /* compute hash for all amplicons and store them in a hash table */
 
@@ -705,14 +704,16 @@ void algo_d1_run()
 
   if (uclustfile)
     {
-      dir = (unsigned char *) xmalloc(longestamplicon*longestamplicon);
-      hearray = (uint64_t *)
-        xmalloc(2 * longestamplicon * sizeof(uint64_t));
+      dir = static_cast<unsigned char *>
+        (xmalloc(longestamplicon*longestamplicon));
+      hearray = static_cast<uint64_t *>
+        (xmalloc(2 * longestamplicon * sizeof(uint64_t)));
     }
 
   /* for all amplicons, generate list of matching amplicons */
 
-  network = (int*) xmalloc(network_alloc * sizeof(int));
+  network = static_cast<int*>
+    (xmalloc(network_alloc * sizeof(int)));
   network_count = 0;
 
   pthread_mutex_init(&network_mutex, nullptr);
@@ -799,10 +800,8 @@ void algo_d1_run()
             {
               /* allocate memory for more swarms... */
               swarminfo_alloc += 1024;
-              swarminfo =
-                (struct swarminfo_s *) xrealloc(swarminfo,
-                                                swarminfo_alloc *
-                                                sizeof(swarminfo_s));
+              swarminfo = static_cast<struct swarminfo_s *>
+                (xrealloc(swarminfo, swarminfo_alloc * sizeof(swarminfo_s)));
             }
 
           struct swarminfo_s * sp = swarminfo + swarmcount;
@@ -1037,7 +1036,8 @@ void algo_d1_run()
     {
       progress_init("Writing seeds:    ", swarmcount);
 
-      int * sorter = (int *) xmalloc(swarmcount * sizeof(int));
+      int * sorter = static_cast<int *>
+        (xmalloc(swarmcount * sizeof(int)));
       for(int i=0; i < swarmcount; i++)
         sorter[i] = i;
       qsort(sorter, swarmcount, sizeof(int), compare_mass);
@@ -1106,8 +1106,10 @@ void algo_d1_run()
                           uint64_t ampseqlen = db_getsequencelen(a);
                           if (parentseqlen == ampseqlen)
                             {
-                              unsigned char * parentseq = (unsigned char *) db_getsequence(parent);
-                              unsigned char * ampseq = (unsigned char *) db_getsequence(a);
+                              unsigned char * parentseq = reinterpret_cast
+                                <unsigned char *>(db_getsequence(parent));
+                              unsigned char * ampseq = reinterpret_cast
+                                <unsigned char *>(db_getsequence(a));
                               if (memcmp(parentseq, ampseq, parentseqlen) == 0)
                                 diff = 0;
                             }

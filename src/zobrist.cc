@@ -34,7 +34,7 @@ void zobrist_init(unsigned int n)
     that sequence.
   */
 
-  zobrist_tab_base = (uint64_t *) xmalloc(8 * 4 * n);
+  zobrist_tab_base = static_cast<uint64_t *>(xmalloc(8 * 4 * n));
 
   for (unsigned int i = 0; i < 4 * n; i++)
     {
@@ -61,7 +61,7 @@ uint64_t zobrist_hash(unsigned char * s, unsigned int len)
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len+3)/4 bytes */
 
-  uint64_t * q = (uint64_t *) s;
+  uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = 0;
   uint64_t z = 0;
   for(unsigned int p = 0; p < len; p++)
@@ -80,7 +80,7 @@ uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len)
   /* compute the Zobrist hash function of sequence s,
      but delete the first base */
 
-  uint64_t * q = (uint64_t *) s;
+  uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = q[0];
   uint64_t z = 0;
   for(unsigned int p = 1; p < len; p++)
@@ -99,7 +99,7 @@ uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len)
   /* compute the Zobrist hash function of sequence s,
      but insert a gap (no value) before the first base */
 
-  uint64_t * q = (uint64_t *) s;
+  uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = 0;
   uint64_t z = 0;
   for(unsigned int p = 0; p < len; p++)

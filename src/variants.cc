@@ -28,10 +28,10 @@ inline void nt_set(char * seq, unsigned int pos, unsigned int base)
   unsigned int whichlong = pos >> 5;
   uint64_t shift = (pos & 31) << 1;
   uint64_t mask = 3ULL << shift;
-  uint64_t x = ((uint64_t *) seq)[whichlong];
+  uint64_t x = (reinterpret_cast<uint64_t *>(seq))[whichlong];
   x &= ~ mask;
-  x |= ((uint64_t)base) << shift;
-  ((uint64_t *) seq)[whichlong] = x;
+  x |= (static_cast<uint64_t>(base)) << shift;
+  (reinterpret_cast<uint64_t *>(seq))[whichlong] = x;
 }
 
 inline void seq_copy(char * a,
@@ -215,7 +215,7 @@ void generate_variants(char * sequence,
 
   /* deletions */
 
-  hash = zobrist_hash_delete_first((unsigned char *) sequence, seqlen);
+  hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
   add_variant(hash, deletion, 0, 0, variant_list, variant_count);
   unsigned int base_deleted = nt_extract(sequence, 0);
   for(unsigned int i = 1; i < seqlen; i++)
@@ -231,7 +231,7 @@ void generate_variants(char * sequence,
 
   /* insertions */
 
-  hash = zobrist_hash_insert_first((unsigned char *) sequence, seqlen);
+  hash = zobrist_hash_insert_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
   for (unsigned int v = 0; v < 4; v++)
     {
       uint64_t hash1 = hash ^ zobrist_value(0, v);

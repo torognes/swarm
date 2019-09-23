@@ -39,8 +39,8 @@ struct bucket
 
 int derep_compare(const void * a, const void * b)
 {
-  struct bucket * x = (struct bucket *) a;
-  struct bucket * y = (struct bucket *) b;
+  const struct bucket * x = static_cast<const struct bucket *>(a);
+  const struct bucket * y = static_cast<const struct bucket *>(b);
 
   /* highest abundance first, otherwise keep order */
 
@@ -84,7 +84,7 @@ void dereplicate()
   int derep_hash_mask = hashtablesize - 1;
 
   struct bucket * hashtable =
-    (struct bucket *) xmalloc(sizeof(bucket) * hashtablesize);
+    static_cast<struct bucket *>(xmalloc(sizeof(bucket) * hashtablesize));
 
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
 
@@ -93,8 +93,8 @@ void dereplicate()
   unsigned int maxsize = 0;
 
   /* alloc and init table of links to other sequences in cluster */
-  unsigned int * nextseqtab = (unsigned int *)
-    xmalloc(sizeof(unsigned int) * dbsequencecount);
+  unsigned int * nextseqtab = static_cast<unsigned int *>
+    (xmalloc(sizeof(unsigned int) * dbsequencecount));
   memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
 
 #ifdef REVCOMP
@@ -117,7 +117,8 @@ void dereplicate()
         collision when the number of sequences is about 5e9.
       */
 
-      uint64_t hash = HASH((unsigned char*)seq, nt_bytelength(seqlen));
+      uint64_t hash = HASH(reinterpret_cast<unsigned char *>(seq),
+                           nt_bytelength(seqlen));
       uint64_t j = hash & derep_hash_mask;
       struct bucket * bp = hashtable + j;
 

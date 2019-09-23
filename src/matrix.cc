@@ -66,9 +66,9 @@ void score_matrix_read()
   int a, b;
   int64_t sc, lo, hi;
 
-  score_matrix_8 = (unsigned char *) xmalloc(32*32*sizeof(char));
-  score_matrix_16 = (unsigned short *) xmalloc(32*32*sizeof(short));
-  score_matrix_63 = (int64_t *) xmalloc(32*32*sizeof(int64_t));
+  score_matrix_8 = static_cast<unsigned char*>(xmalloc(32*32*sizeof(char)));
+  score_matrix_16 = static_cast<unsigned short*>(xmalloc(32*32*sizeof(short)));
+  score_matrix_63 = static_cast<int64_t *>(xmalloc(32*32*sizeof(int64_t)));
 
   hi = -1000;
   lo = 1000;
@@ -93,8 +93,8 @@ void score_matrix_read()
     for(b=0;b<32;b++)
     {
       sc = score_matrix_63[(a<<5) + b];
-      score_matrix_8[(a<<5) + b] = (unsigned char) sc;
-      score_matrix_16[(a<<5) + b] = (unsigned short) sc;
+      score_matrix_8[(a<<5) + b] = static_cast<unsigned char>(sc);
+      score_matrix_16[(a<<5) + b] = static_cast<unsigned short>(sc);
     }
 }
 

@@ -41,7 +41,7 @@ private:
 
   static void * worker(void * vp)
   {
-    struct thread_s * tip = (struct thread_s *) vp;
+    struct thread_s * tip = static_cast<struct thread_s *>(vp);
 
     pthread_mutex_lock(&tip->workmutex);
 
@@ -74,8 +74,8 @@ public:
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
     /* allocate memory for thread data */
-    thread_array = (struct thread_s *)
-      xmalloc(thread_count * sizeof(struct thread_s));
+    thread_array = static_cast<struct thread_s *>
+      (xmalloc(static_cast<unsigned long long>(thread_count) * sizeof(struct thread_s)));
 
     /* init and create worker threads */
     for(int64_t i=0; i<thread_count; i++)
@@ -89,7 +89,7 @@ public:
         if (pthread_create(&tip->pthread,
                            &attr,
                            worker,
-                           (void*)(thread_array + i)))
+                           static_cast<void*>(thread_array + i)))
           fatal("Cannot create thread");
       }
   }

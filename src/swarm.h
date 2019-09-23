@@ -64,6 +64,8 @@
 #include <tmmintrin.h>
 #endif
 
+#define CAST_m128i_ptr(x) (reinterpret_cast<__m128i*>(x))
+
 #elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
@@ -228,7 +230,7 @@ extern uint64_t duplicates_found;
 inline int nt_extract(char * seq, int i)
 {
   // Extract compressed nucleotide in sequence seq at position i
-  return ((((uint64_t *) seq)[i >> 5]) >> ((i & 31) << 1)) & 3;
+  return (((reinterpret_cast<uint64_t*>(seq))[i >> 5]) >> ((i & 31) << 1)) & 3;
 }
 
 inline unsigned int nt_bytelength(unsigned int len)
@@ -308,7 +310,7 @@ void db_fprintseq(FILE * fp, int a, int width);
 
 inline unsigned char * db_getqgramvector(uint64_t seqno)
 {
-  return (unsigned char*)(qgrams + seqno);
+  return reinterpret_cast<unsigned char*>(qgrams + seqno);
 }
 
 void fprint_id(FILE * stream, uint64_t x);

@@ -56,8 +56,8 @@ struct swarminfo_t
 
 int compare_mass_seed(const void * a, const void * b)
 {
-  swarminfo_t * x = (struct swarminfo_t *) a;
-  swarminfo_t * y = (struct swarminfo_t *) b;
+  const swarminfo_t * x = static_cast<const struct swarminfo_t *>(a);
+  const swarminfo_t * y = static_cast<const struct swarminfo_t *>(b);
 
   int m = x->mass;
   int n = y->mass;
@@ -93,19 +93,29 @@ void algo_run()
 
   qgram_diff_init();
 
-  amps = (struct ampliconinfo_s *) xmalloc(amplicons * sizeof(struct ampliconinfo_s));
+  amps = static_cast<struct ampliconinfo_s *>
+    (xmalloc(amplicons * sizeof(struct ampliconinfo_s)));
 
-  targetampliconids = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
-  targetindices = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
-  scores = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
-  diffs = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
-  alignlengths = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
+  targetampliconids = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  targetindices = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  scores = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  diffs = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  alignlengths = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
 
-  qgramamps = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
-  qgramdiffs = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
-  qgramindices = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
+  qgramamps = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  qgramdiffs = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  qgramindices = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
 
-  uint64_t * hits = (uint64_t *) xmalloc(amplicons * sizeof(uint64_t));
+  uint64_t * hits = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
 
   uint64_t diff_saturation = MIN(255 / penalty_mismatch,
                                  255 / (penalty_gapopen +
@@ -116,8 +126,10 @@ void algo_run()
 
   if (uclustfile)
     {
-      dir = (unsigned char *) xmalloc(longestamplicon*longestamplicon);
-      hearray = (uint64_t *) xmalloc(2 * longestamplicon * sizeof(uint64_t));
+      dir = static_cast<unsigned char *>
+        (xmalloc(longestamplicon*longestamplicon));
+      hearray = static_cast<uint64_t *>
+        (xmalloc(2 * longestamplicon * sizeof(uint64_t)));
     }
 
   /* set ampliconid for all */
@@ -128,7 +140,7 @@ void algo_run()
 
   uint64_t bits;
 
-  if ((uint64_t)opt_differences <= diff_saturation)
+  if (static_cast<uint64_t>(opt_differences) <= diff_saturation)
     bits = 8;
   else
     bits = 16;
@@ -240,7 +252,7 @@ void algo_run()
 
               unsigned diff = diffs[t];
 
-              if (diff <= (uint64_t) opt_differences)
+              if (diff <= static_cast<uint64_t>(opt_differences))
                 {
                   unsigned i = targetindices[t];
 
@@ -340,7 +352,7 @@ void algo_run()
 #endif
 
               for(uint64_t i=0; i < subseedlistlen; i++)
-                if ((int64_t)qgramdiffs[i] <= opt_differences)
+                if (qgramdiffs[i] <= static_cast<uint64_t>(opt_differences))
                   {
                     targetindices[targetcount] = qgramindices[i];
                     targetampliconids[targetcount] = qgramamps[i];
@@ -364,7 +376,7 @@ void algo_run()
                     {
                       unsigned diff = diffs[t];
 
-                      if (diff <= (uint64_t) opt_differences)
+                      if (diff <= static_cast<uint64_t>(opt_differences))
                         {
                           unsigned i = targetindices[t];
 
@@ -561,7 +573,8 @@ void algo_run()
     {
       int swarmcount = 0;
       progress_init("Sorting seeds:    ", amplicons);
-      struct swarminfo_t * swarminfo = (struct swarminfo_t *) xmalloc(swarmed * sizeof(struct swarminfo_t));
+      struct swarminfo_t * swarminfo = static_cast<struct swarminfo_t *>
+        (xmalloc(swarmed * sizeof(struct swarminfo_t)));
       uint64_t mass = 0;
       unsigned previd = amps[0].swarmid;
       unsigned seed = amps[0].ampliconid;

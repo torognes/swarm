@@ -46,10 +46,16 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 #define v_merge_lo_8(a, b) vzip1q_s8((a),(b))
 #define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
 #define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
-#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_low_s64(vreinterpretq_s64_s16(a)), vget_low_s64(vreinterpretq_s64_s16(b))))
-#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64(vget_high_s64(vreinterpretq_s64_s16(a)), vget_high_s64(vreinterpretq_s64_s16(b))))
+#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32 \
+          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32 \
+          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
+          (vget_low_s64(vreinterpretq_s64_s16(a)), \
+           vget_low_s64(vreinterpretq_s64_s16(b))))
+#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
+          (vget_high_s64(vreinterpretq_s64_s16(a)), \
+           vget_high_s64(vreinterpretq_s64_s16(b))))
 #define v_min(a, b) vminq_u8((a), (b))
 #define v_add(a, b) vqaddq_u8((a), (b))
 #define v_sub(a, b) vqsubq_u8((a), (b))
@@ -58,17 +64,20 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 #define v_and(a, b) vandq_u8((a), (b))
 #define v_xor(a, b) veorq_u8((a), (b))
 #define v_shift_left(a) vextq_u8((v_zero), (a), 15)
-#define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8((vceqq_s8((a), (b))), neon_mask)), neon_shift))
+#define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8 \
+          ((vceqq_s8((a), (b))), neon_mask)), neon_shift))
 
 #elif defined __x86_64__
 
 typedef __m128i VECTORTYPE;
 
+#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
+
 const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 0, 0, -1);
 
-#define v_load_64(a) _mm_loadl_epi64((VECTORTYPE *)(a))
-#define v_store(a, b) _mm_store_si128((VECTORTYPE *)(a), (b))
+#define v_load_64(a) _mm_loadl_epi64(CAST_VECTOR_p(a))
+#define v_store(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
 #define v_merge_lo_8(a, b) _mm_unpacklo_epi8((a),(b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
@@ -183,14 +192,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg12 = v_load_64(score_matrix + d[12]);
       reg14 = v_load_64(score_matrix + d[14]);
 
-      reg0  = v_merge_lo_8(reg0,  *(VECTORTYPE*)(score_matrix + d[ 1]));
-      reg2  = v_merge_lo_8(reg2,  *(VECTORTYPE*)(score_matrix + d[ 3]));
-      reg4  = v_merge_lo_8(reg4,  *(VECTORTYPE*)(score_matrix + d[ 5]));
-      reg6  = v_merge_lo_8(reg6,  *(VECTORTYPE*)(score_matrix + d[ 7]));
-      reg8  = v_merge_lo_8(reg8,  *(VECTORTYPE*)(score_matrix + d[ 9]));
-      reg10 = v_merge_lo_8(reg10, *(VECTORTYPE*)(score_matrix + d[11]));
-      reg12 = v_merge_lo_8(reg12, *(VECTORTYPE*)(score_matrix + d[13]));
-      reg14 = v_merge_lo_8(reg14, *(VECTORTYPE*)(score_matrix + d[15]));
+      reg0  = v_merge_lo_8(reg0,  *CAST_VECTOR_p(score_matrix + d[ 1]));
+      reg2  = v_merge_lo_8(reg2,  *CAST_VECTOR_p(score_matrix + d[ 3]));
+      reg4  = v_merge_lo_8(reg4,  *CAST_VECTOR_p(score_matrix + d[ 5]));
+      reg6  = v_merge_lo_8(reg6,  *CAST_VECTOR_p(score_matrix + d[ 7]));
+      reg8  = v_merge_lo_8(reg8,  *CAST_VECTOR_p(score_matrix + d[ 9]));
+      reg10 = v_merge_lo_8(reg10, *CAST_VECTOR_p(score_matrix + d[11]));
+      reg12 = v_merge_lo_8(reg12, *CAST_VECTOR_p(score_matrix + d[13]));
+      reg14 = v_merge_lo_8(reg14, *CAST_VECTOR_p(score_matrix + d[15]));
 
       reg1 = reg0;
       reg0 = v_merge_lo_16(reg0, reg2);
@@ -327,14 +336,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg12 = v_load_64(score_matrix + 16 + d[12]);
       reg14 = v_load_64(score_matrix + 16 + d[14]);
 
-      reg0  = v_merge_lo_8(reg0,  *(VECTORTYPE*)(score_matrix + 16 + d[ 1]));
-      reg2  = v_merge_lo_8(reg2,  *(VECTORTYPE*)(score_matrix + 16 + d[ 3]));
-      reg4  = v_merge_lo_8(reg4,  *(VECTORTYPE*)(score_matrix + 16 + d[ 5]));
-      reg6  = v_merge_lo_8(reg6,  *(VECTORTYPE*)(score_matrix + 16 + d[ 7]));
-      reg8  = v_merge_lo_8(reg8,  *(VECTORTYPE*)(score_matrix + 16 + d[ 9]));
-      reg10 = v_merge_lo_8(reg10, *(VECTORTYPE*)(score_matrix + 16 + d[11]));
-      reg12 = v_merge_lo_8(reg12, *(VECTORTYPE*)(score_matrix + 16 + d[13]));
-      reg14 = v_merge_lo_8(reg14, *(VECTORTYPE*)(score_matrix + 16 + d[15]));
+      reg0  = v_merge_lo_8(reg0,  *CAST_VECTOR_p(score_matrix + 16 + d[ 1]));
+      reg2  = v_merge_lo_8(reg2,  *CAST_VECTOR_p(score_matrix + 16 + d[ 3]));
+      reg4  = v_merge_lo_8(reg4,  *CAST_VECTOR_p(score_matrix + 16 + d[ 5]));
+      reg6  = v_merge_lo_8(reg6,  *CAST_VECTOR_p(score_matrix + 16 + d[ 7]));
+      reg8  = v_merge_lo_8(reg8,  *CAST_VECTOR_p(score_matrix + 16 + d[ 9]));
+      reg10 = v_merge_lo_8(reg10, *CAST_VECTOR_p(score_matrix + 16 + d[11]));
+      reg12 = v_merge_lo_8(reg12, *CAST_VECTOR_p(score_matrix + 16 + d[13]));
+      reg14 = v_merge_lo_8(reg14, *CAST_VECTOR_p(score_matrix + 16 + d[15]));
 
       reg1 = reg0;
       reg0 = v_merge_lo_16(reg0, reg2);
@@ -507,7 +516,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
 
-  unsigned short * dir = (unsigned short *) dir_long;
+  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
   Q = *Qm;
   R = *Rm;
@@ -570,7 +579,7 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
   VECTORTYPE f0, f1, f2, f3;
 
-  unsigned short * dir = (unsigned short *) dir_long;
+  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
   Q = *Qm;
   R = *Rm;
@@ -805,7 +814,7 @@ void search8(BYTE * * q_start,
   VECTORTYPE F0;
   VECTORTYPE S[4];
 
-  BYTE * dseq = (BYTE*) & dseqalloc;
+  BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
 
   int64_t seq_id[CHANNELS];
   uint64_t next_id = 0;
@@ -817,8 +826,8 @@ void search8(BYTE * * q_start,
 
   done = 0;
 
-  hep = (VECTORTYPE*) hearray;
-  qp = (VECTORTYPE**) q_start;
+  hep = CAST_VECTOR_p(hearray);
+  qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   for (int c=0; c<CHANNELS; c++)
     {
@@ -901,10 +910,10 @@ void search8(BYTE * * q_start,
                     {
                       // save score
 
-                      char * dbseq = (char*) d_address[c];
+                      char * dbseq = reinterpret_cast<char*>(d_address[c]);
                       int64_t dbseqlen = d_length[c];
                       int64_t z = (dbseqlen+3) % 4;
-                      int64_t score = ((BYTE*)S)[z*CHANNELS+c];
+                      int64_t score = (reinterpret_cast<BYTE*>(S))[z*CHANNELS+c];
                       scores[cand_id] = score;
 
                       uint64_t diff;
@@ -945,8 +954,8 @@ void search8(BYTE * * q_start,
                       d_offset[c] = dir - dirbuffer;
                       next_id++;
 
-                      ((BYTE*)&H0)[c] = 0;
-                      ((BYTE*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
+                      (reinterpret_cast<BYTE*>(&H0))[c] = 0;
+                      (reinterpret_cast<BYTE*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
 
                       // fill channel
                       for(int j=0; j<CDEPTH; j++)

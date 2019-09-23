@@ -44,14 +44,14 @@ void hash_alloc(uint64_t amplicons)
   hash_mask = hash_tablesize - 1;
 
   hash_occupied =
-    (unsigned char *) xmalloc((hash_tablesize + 63) / 8);
+    static_cast<unsigned char *>(xmalloc((hash_tablesize + 63) / 8));
   hash_zap();
 
   hash_values =
-    (uint64_t *) xmalloc(hash_tablesize * sizeof(uint64_t));
+    static_cast<uint64_t *>(xmalloc(hash_tablesize * sizeof(uint64_t)));
 
   hash_data =
-    (int *) xmalloc(hash_tablesize * sizeof(int));
+    static_cast<int *>(xmalloc(hash_tablesize * sizeof(int)));
 }
 
 void hash_free()

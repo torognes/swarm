@@ -77,12 +77,18 @@ uint64_t longestdbsequence;
 void search_alloc(struct search_data * sdp)
 {
   dirbufferbytes = 8 * longestdbsequence * ((longestdbsequence+3)/4) * 4;
-  sdp->qtable = (BYTE**) xmalloc(longestdbsequence * sizeof(BYTE*));
-  sdp->qtable_w = (WORD**) xmalloc(longestdbsequence * sizeof(WORD*));
-  sdp->dprofile = (BYTE*) xmalloc(4*16*32);
-  sdp->dprofile_w = (WORD*) xmalloc(4*2*8*32);
-  sdp->hearray = (BYTE*) xmalloc(longestdbsequence * 32);
-  sdp->dir_array = (uint64_t *) xmalloc(dirbufferbytes);
+  sdp->qtable = static_cast<BYTE**>
+    (xmalloc(longestdbsequence * sizeof(BYTE*)));
+  sdp->qtable_w = static_cast<WORD**>
+    (xmalloc(longestdbsequence * sizeof(WORD*)));
+  sdp->dprofile = static_cast<BYTE*>
+    (xmalloc(4*16*32));
+  sdp->dprofile_w = static_cast<WORD*>
+    (xmalloc(4*2*8*32));
+  sdp->hearray = static_cast<BYTE*>
+    (xmalloc(longestdbsequence * 32));
+  sdp->dir_array = static_cast<uint64_t *>
+    (xmalloc(dirbufferbytes));
 
   memset(sdp->hearray, 0, longestdbsequence*32);
   memset(sdp->dir_array, 0, dirbufferbytes);
@@ -156,9 +162,9 @@ void search_chunk(struct search_data * sdp, int64_t bits)
     search16(sdp->qtable_w,
              penalty_gapopen,
              penalty_gapextend,
-             (WORD*) score_matrix_16,
+             static_cast<WORD*>(score_matrix_16),
              sdp->dprofile_w,
-             (WORD*) sdp->hearray,
+             reinterpret_cast<WORD*>(sdp->hearray),
              sdp->target_count,
              master_targets + sdp->target_index,
              master_scores + sdp->target_index,
@@ -171,7 +177,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
     search8(sdp->qtable,
             penalty_gapopen,
             penalty_gapextend,
-            (BYTE*) score_matrix_8,
+            static_cast<BYTE*>(score_matrix_8),
             sdp->dprofile,
             sdp->hearray,
             sdp->target_count,
@@ -237,7 +243,7 @@ void search_worker_core(int t)
 
 void * search_worker(void * vp)
 {
-  int64_t t = (int64_t) vp;
+  int64_t t = reinterpret_cast<int64_t>(vp);
   struct thread_info_s * tip = ti + t;
 
   pthread_mutex_lock(&tip->workmutex);
@@ -282,12 +288,12 @@ void search_do(uint64_t query_no,
 
   if (bits == 8)
     {
-      if (master_length <= (uint64_t)(15 * thr) )
+      if (master_length <= 15 * thr)
         thr = (master_length + 15) / 16;
     }
   else
     {
-      if (master_length <= (uint64_t)(7 * thr) )
+      if (master_length <= 7 * thr)
         thr = (master_length + 7) / 8;
     }
 
@@ -325,7 +331,8 @@ void search_begin()
 {
   longestdbsequence = db_getlongestsequence();
 
-  sd = (struct search_data *) xmalloc(sizeof(search_data) * opt_threads);
+  sd = static_cast<struct search_data *>
+    (xmalloc(sizeof(search_data) * opt_threads));
 
   for(int64_t t=0; t<opt_threads; t++)
     search_alloc(sd+t);
@@ -336,8 +343,8 @@ void search_begin()
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* allocate memory for thread info */
-  ti = (struct thread_info_s *) xmalloc(opt_threads *
-                                        sizeof(struct thread_info_s));
+  ti = static_cast<struct thread_info_s *>
+    (xmalloc(opt_threads * sizeof(struct thread_info_s)));
 
   /* init and create worker threads */
   for(int64_t t=0; t<opt_threads; t++)
@@ -346,10 +353,12 @@ void search_begin()
       tip->work = 0;
       pthread_mutex_init(&tip->workmutex, nullptr);
       pthread_cond_init(&tip->workcond, nullptr);
-      if (pthread_create(&tip->pthread, &attr, search_worker, (void*)(int64_t)t))
+      if (pthread_create(&tip->pthread,
+                         &attr,
+                         search_worker,
+                         reinterpret_cast<void*>(t)))
         fatal("Cannot create thread");
     }
-
 }
 
 void search_end()

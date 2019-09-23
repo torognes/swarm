@@ -62,13 +62,13 @@ struct bloom_s * bloom_init(uint64_t size)
   // at least 8
   size = MAX(size, 8);
 
-  struct bloom_s * b = (struct bloom_s *) xmalloc(sizeof(struct bloom_s));
+  struct bloom_s * b = static_cast<struct bloom_s *>(xmalloc(sizeof(struct bloom_s)));
 
   b->size = size;
 
   b->mask = (size >> 3) - 1;
 
-  b->bitmap = (uint64_t *) xmalloc(size);
+  b->bitmap = static_cast<uint64_t *>(xmalloc(size));
 
   bloom_zap(b);
 

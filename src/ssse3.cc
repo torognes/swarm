@@ -34,7 +34,7 @@ void dprofile_shuffle8(BYTE * dprofile,
                        BYTE * dseq_byte)
 {
   __m128i m0, m1, m2, m3, t0, t1, t2, t3, t4;
-  __m128i * dseq = (__m128i*) dseq_byte;
+  __m128i * dseq = CAST_m128i_ptr(dseq_byte);
 
   m0 = _mm_load_si128(dseq);
   m1 = _mm_load_si128(dseq+1);
@@ -42,15 +42,15 @@ void dprofile_shuffle8(BYTE * dprofile,
   m3 = _mm_load_si128(dseq+3);
 
 #define profline8(j)                                    \
-  t0 = _mm_load_si128((__m128i*)(score_matrix)+2*j);    \
+  t0 = _mm_load_si128(CAST_m128i_ptr(score_matrix)+2*j);    \
   t1 = _mm_shuffle_epi8(t0, m0);                        \
   t2 = _mm_shuffle_epi8(t0, m1);                        \
   t3 = _mm_shuffle_epi8(t0, m2);                        \
   t4 = _mm_shuffle_epi8(t0, m3);                        \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+0, t1);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+1, t2);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+2, t3);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+3, t4)
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+0, t1);      \
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+1, t2);      \
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+2, t3);      \
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+3, t4)
 
   profline8(0);
   profline8(1);
@@ -70,7 +70,7 @@ void dprofile_shuffle16(WORD * dprofile,
   __m128i t0, t1, t2, t3, t4, t5;
   __m128i u0, u1, u2, u3, u4;
   __m128i zero, one;
-  __m128i * dseq = (__m128i*) dseq_byte;
+  __m128i * dseq = CAST_m128i_ptr(dseq_byte);
 
   zero = _mm_setzero_si128();
   one  = _mm_set1_epi16(1);
@@ -104,15 +104,15 @@ void dprofile_shuffle16(WORD * dprofile,
   m3 = _mm_or_si128(m3, t5);
 
 #define profline16(j)                                   \
-  u0 = _mm_load_si128((__m128i*)(score_matrix)+4*j);    \
+  u0 = _mm_load_si128(CAST_m128i_ptr(score_matrix)+4*j);    \
   u1 = _mm_shuffle_epi8(u0, m0);                        \
   u2 = _mm_shuffle_epi8(u0, m1);                        \
   u3 = _mm_shuffle_epi8(u0, m2);                        \
   u4 = _mm_shuffle_epi8(u0, m3);                        \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+0, u1);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+1, u2);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+2, u3);      \
-  _mm_store_si128((__m128i*)(dprofile)+4*j+3, u4)
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+0, u1);      \
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+1, u2);      \
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+2, u3);      \
+  _mm_store_si128(CAST_m128i_ptr(dprofile)+4*j+3, u4)
 
   profline16(0);
   profline16(1);

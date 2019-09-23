@@ -182,7 +182,7 @@ void nw(char * dseq,
   int64_t alength = 0;
   int64_t matches = 0;
 
-  char * cigar = (char *) xmalloc(qlen + dlen + 1);
+  char * cigar = static_cast<char *>(xmalloc(qlen + dlen + 1));
   char * cigarend = cigar+qlen+dlen+1;
 
   char op = 0;
@@ -265,7 +265,7 @@ void nw(char * dseq,
 
   int64_t cigarlength = cigar+qlen+dlen-cigarend;
   memmove(cigar, cigarend, cigarlength+1);
-  cigar = (char*) xrealloc(cigar, cigarlength+1);
+  cigar = static_cast<char*>(xrealloc(cigar, cigarlength+1));
 
   * nwscore = dist;
   * nwdiff = alength - matches;

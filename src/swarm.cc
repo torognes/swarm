@@ -83,7 +83,9 @@ FILE * fp_seeds = nullptr;
 
 char sym_nt[] = "-ACGT                           ";
 
-static char * DASH_FILENAME = (char*) "-";
+char dash[] = "-";
+
+static char * DASH_FILENAME = dash;
 
 #ifdef __x86_64__
 
@@ -487,15 +489,18 @@ void args_init(int argc, char **argv)
 
   if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
     {
-      fprintf(stderr, "\nError: Illegal number of threads specified with -t or --threads, must be in the range 1 to %d.\n", MAX_THREADS);
+      fprintf(stderr, "\nError: Illegal number of threads specified with "
+              "-t or --threads, must be in the range 1 to %d.\n", MAX_THREADS);
       exit(1);
     }
 
   if ((opt_differences < 0) || (opt_differences > 255))
-    fatal("Illegal number of differences specified with -d or --differences, must be in the range 0 to 255.");
+    fatal("Illegal number of differences specified with -d or --differences, "
+          "must be in the range 0 to 255.");
 
   if (opt_fastidious && (opt_differences != 1))
-    fatal("Fastidious mode (specified with -f or --fastidious) only works when the resolution (specified with -d or --differences) is 1.");
+    fatal("Fastidious mode (specified with -f or --fastidious) only works "
+          "when the resolution (specified with -d or --differences) is 1.");
 
   if (!opt_fastidious)
     {
@@ -520,31 +525,40 @@ void args_init(int argc, char **argv)
     }
 
   if (opt_gap_opening_penalty < 0)
-    fatal("Illegal gap opening penalty specified with -g or --gap-opening-penalty, must not be negative.");
+    fatal("Illegal gap opening penalty specified with -g or "
+          "--gap-opening-penalty, must not be negative.");
 
   if (opt_gap_extension_penalty < 0)
-    fatal("Illegal gap extension penalty specified with -e or --gap-extension-penalty, must not be negative.");
+    fatal("Illegal gap extension penalty specified with -e or "
+          "--gap-extension-penalty, must not be negative.");
 
   if ((opt_gap_opening_penalty + opt_gap_extension_penalty) < 1)
-    fatal("Illegal gap penalties specified, the sum of the gap open and the gap extension penalty must be at least 1.");
+    fatal("Illegal gap penalties specified, the sum of the gap open and "
+          "the gap extension penalty must be at least 1.");
 
   if (opt_match_reward < 1)
-    fatal("Illegal match reward specified with -m or --match-reward, must be at least 1.");
+    fatal("Illegal match reward specified with -m or --match-reward, "
+          "must be at least 1.");
 
   if (opt_mismatch_penalty < 1)
-    fatal("Illegal mismatch penalty specified with -p or --mismatch-penalty, must be at least 1.");
+    fatal("Illegal mismatch penalty specified with -p or --mismatch-penalty, "
+          "must be at least 1.");
 
   if (opt_boundary < 2)
-    fatal("Illegal boundary specified with -b or --boundary, must be at least 2.");
+    fatal("Illegal boundary specified with -b or --boundary, "
+          "must be at least 2.");
 
   if (used_options[2] && ((opt_ceiling < 8) || (opt_ceiling > 1073741824)))
-    fatal("Illegal memory ceiling specified with -c or --ceiling, must be in the range 8 to 1073741824 MB.");
+    fatal("Illegal memory ceiling specified with -c or --ceiling, "
+          "must be in the range 8 to 1073741824 MB.");
 
   if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
-    fatal("Illegal number of Bloom filter bits specified with -y or --bloom-bits, must be in the range 2 to 64.");
+    fatal("Illegal number of Bloom filter bits specified with -y or "
+          "--bloom-bits, must be in the range 2 to 64.");
 
   if (used_options[0] && (opt_append_abundance < 1))
-    fatal("Illegal abundance value specified with -a or --append-abundance, must be at least 1.");
+    fatal("Illegal abundance value specified with -a or --append-abundance, "
+          "must be at least 1.");
 }
 
 void open_files()
