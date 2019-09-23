@@ -265,7 +265,6 @@ void show_header()
   fprintf(logfile, "Swarm v2: highly-scalable and high-resolution amplicon clustering\n");
   fprintf(logfile, "PeerJ 3:e1420 https://doi.org/10.7717/peerj.1420\n");
   fprintf(logfile, "\n");
-  fprintf(logfile, "PRIu64: " PRIu64 " PRId64: " PRId64 "\n");
 }
 
 void args_init(int argc, char **argv)
