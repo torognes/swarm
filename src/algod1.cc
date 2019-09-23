@@ -887,8 +887,12 @@ void algo_d1_run()
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
           int64_t bits = opt_bloom_bits; /* 16 */
+
           // int64_t k = int(bits * 0.693);    /* 11 */
           int64_t k = int(bits * 0.4);    /* 6 */
+          if (k < 1)
+            k = 1;
+
           int64_t m = bits * 7 * nucleotides_in_small_otus;
 
           int64_t memtotal = arch_get_memtotal();
@@ -906,9 +910,15 @@ void algo_d1_run()
                   bits = new_bits;
                   // k = int(bits * 0.693);
                   k = int(bits * 0.4);
+                  if (k < 1)
+                    k = 1;
+
                   m = bits * 7 * nucleotides_in_small_otus;
                 }
             }
+
+          if (m < 64)
+            m = 64;
 
           if (memused + m/8 > memtotal)
             {
