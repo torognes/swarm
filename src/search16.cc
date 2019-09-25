@@ -82,8 +82,8 @@ typedef __m128i VECTORTYPE;
 #define v_and(a, b) _mm_and_si128((a), (b))
 #define v_xor(a, b) _mm_xor_si128((a), (b))
 #define v_shift_left(a) _mm_slli_si128((a), 2)
-#define v_mask_gt(a, b) _mm_movemask_epi8(_mm_cmpgt_epi16((a), (b)))
-#define v_mask_eq(a, b) _mm_movemask_epi8(_mm_cmpeq_epi16((a), (b)))
+#define v_mask_gt(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpgt_epi16((a), (b))))
+#define v_mask_eq(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
 
 #elif defined __PPC__
 

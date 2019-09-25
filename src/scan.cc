@@ -160,8 +160,8 @@ void search_chunk(struct search_data * sdp, int64_t bits)
   if (bits == 16)
 #endif
     search16(sdp->qtable_w,
-             penalty_gapopen,
-             penalty_gapextend,
+             static_cast<WORD>(penalty_gapopen),
+             static_cast<WORD>(penalty_gapextend),
              static_cast<WORD*>(score_matrix_16),
              sdp->dprofile_w,
              reinterpret_cast<WORD*>(sdp->hearray),
@@ -175,8 +175,8 @@ void search_chunk(struct search_data * sdp, int64_t bits)
              sdp->dir_array);
   else
     search8(sdp->qtable,
-            penalty_gapopen,
-            penalty_gapextend,
+            static_cast<BYTE>(penalty_gapopen),
+            static_cast<BYTE>(penalty_gapextend),
             static_cast<BYTE*>(score_matrix_8),
             sdp->dprofile,
             sdp->hearray,

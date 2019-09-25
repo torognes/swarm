@@ -242,7 +242,7 @@ extern uint64_t duplicates_found;
 
 /* inline functions */
 
-inline int nt_extract(char * seq, int i)
+inline unsigned char nt_extract(char * seq, int i)
 {
   // Extract compressed nucleotide in sequence seq at position i
   return (((reinterpret_cast<uint64_t*>(seq))[i >> 5]) >> ((i & 31) << 1)) & 3;

@@ -171,7 +171,7 @@ bool check_variant(char * seed_sequence,
 inline void add_variant(uint64_t hash,
                         unsigned char type,
                         unsigned int pos,
-                        unsigned int base,
+                        unsigned char base,
                         var_s * variant_list,
                         unsigned int * variant_count)
 {
@@ -201,9 +201,9 @@ void generate_variants(char * sequence,
 
   for(unsigned int i = 0; i < seqlen; i++)
     {
-      unsigned int base = nt_extract(sequence, i);
+      unsigned char base = nt_extract(sequence, i);
       uint64_t hash1 = hash ^ zobrist_value(i, base);
-      for (unsigned int v = 0; v < 4; v ++)
+      for (unsigned char v = 0; v < 4; v ++)
         if (v != base)
           {
             uint64_t hash2 = hash1 ^ zobrist_value(i, v);
@@ -216,10 +216,10 @@ void generate_variants(char * sequence,
 
   hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
   add_variant(hash, deletion, 0, 0, variant_list, variant_count);
-  unsigned int base_deleted = nt_extract(sequence, 0);
+  unsigned char base_deleted = nt_extract(sequence, 0);
   for(unsigned int i = 1; i < seqlen; i++)
     {
-      unsigned int v = nt_extract(sequence, i);
+      unsigned char v = nt_extract(sequence, i);
       if (v != base_deleted)
         {
           hash ^= zobrist_value(i - 1, base_deleted) ^ zobrist_value(i - 1, v);
@@ -231,16 +231,16 @@ void generate_variants(char * sequence,
   /* insertions */
 
   hash = zobrist_hash_insert_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
-  for (unsigned int v = 0; v < 4; v++)
+  for (unsigned char v = 0; v < 4; v++)
     {
       uint64_t hash1 = hash ^ zobrist_value(0, v);
       add_variant(hash1, insertion, 0, v, variant_list, variant_count);
     }
   for (unsigned int i = 0; i < seqlen; i++)
     {
-      unsigned int base = nt_extract(sequence, i);
+      unsigned char base = nt_extract(sequence, i);
       hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);
-      for (unsigned int v = 0; v < 4; v++)
+      for (unsigned char v = 0; v < 4; v++)
         if (v != base)
           {
             uint64_t hash1 = hash ^ zobrist_value(i + 1, v);
