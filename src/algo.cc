@@ -59,8 +59,8 @@ int compare_mass_seed(const void * a, const void * b)
   const swarminfo_t * x = static_cast<const struct swarminfo_t *>(a);
   const swarminfo_t * y = static_cast<const struct swarminfo_t *>(b);
 
-  int m = x->mass;
-  int n = y->mass;
+  int64_t m = x->mass;
+  int64_t n = y->mass;
 
   if (m > n)
     return -1;
@@ -133,12 +133,12 @@ void algo_run()
     }
 
   /* set ampliconid for all */
-  for(uint64_t i=0; i<amplicons; i++)
+  for(unsigned int i=0; i<amplicons; i++)
     amps[i].ampliconid = i;
 
   /* always search in 8 bit mode unless resolution is very high */
 
-  uint64_t bits;
+  int bits;
 
   if (static_cast<uint64_t>(opt_differences) <= diff_saturation)
     bits = 8;
@@ -148,7 +148,7 @@ void algo_run()
   seeded = 0;
   swarmed = 0;
 
-  uint64_t swarmid = 0;
+  unsigned int swarmid = 0;
 
   progress_init("Clustering:       ", amplicons);
   while (seeded < amplicons)
@@ -209,9 +209,9 @@ void algo_run()
 
       for(uint64_t i=0; i < listlen; i++)
         {
-          unsigned poolampliconid = qgramamps[i];
+          uint64_t poolampliconid = qgramamps[i];
           int64_t diff = qgramdiffs[i];
-          amps[swarmed+i].diffestimate = diff;
+          amps[swarmed+i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= opt_differences)
             {
               targetindices[targetcount] = swarmed+i;
@@ -250,11 +250,11 @@ void algo_run()
                      bits);
 #endif
 
-              unsigned diff = diffs[t];
+              uint64_t diff = diffs[t];
 
               if (diff <= static_cast<uint64_t>(opt_differences))
                 {
-                  unsigned i = targetindices[t];
+                  uint64_t i = targetindices[t];
 
                   /* move the target (i) to the position (swarmed)
                      of the first unswarmed amplicon in the pool */
@@ -262,7 +262,7 @@ void algo_run()
                   if (swarmed < i)
                     {
                       struct ampliconinfo_s temp = amps[i];
-                      for(unsigned j=i; j>swarmed; j--)
+                      for(uint64_t j=i; j>swarmed; j--)
                         {
                           amps[j] = amps[j-1];
                         }
@@ -273,7 +273,7 @@ void algo_run()
                   amps[swarmed].generation = 1;
                   if (maxgen < 1)
                     maxgen = 1;
-                  amps[swarmed].radius = diff;
+                  amps[swarmed].radius = static_cast<unsigned int>(diff);
                   if (diff > maxradius)
                     maxradius = diff;
 
@@ -287,9 +287,9 @@ void algo_run()
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file,
                                             poolampliconid);
-                      fprintf(internal_structure_file, "\t%u", diff);
+                      fprintf(internal_structure_file, "\t%" PRIu64, diff);
                       fprintf(internal_structure_file,
-                              "\t%" PRIu64 "\t1",
+                              "\t%u\t1",
                               swarmid);
                       fprintf(internal_structure_file, "\n");
                     }
@@ -374,11 +374,11 @@ void algo_run()
 
                   for(uint64_t t=0; t<targetcount; t++)
                     {
-                      unsigned diff = diffs[t];
+                      uint64_t diff = diffs[t];
 
                       if (diff <= static_cast<uint64_t>(opt_differences))
                         {
-                          unsigned i = targetindices[t];
+                          uint64_t i = targetindices[t];
 
                           /* find correct position in list */
 
@@ -389,7 +389,7 @@ void algo_run()
                              swarmed amplicons are ordered by id */
 
                           uint64_t targetampliconid = amps[i].ampliconid;
-                          unsigned pos = swarmed;
+                          uint64_t pos = swarmed;
 
                           while ((pos > seeded) &&
                                  (amps[pos-1].ampliconid > targetampliconid) &&
@@ -399,7 +399,7 @@ void algo_run()
                           if (pos < i)
                             {
                               struct ampliconinfo_s temp = amps[i];
-                              for(unsigned j=i; j>pos; j--)
+                              for(uint64_t j=i; j>pos; j--)
                                 {
                                   amps[j] = amps[j-1];
                                 }
@@ -407,10 +407,12 @@ void algo_run()
                             }
 
                           amps[pos].swarmid = swarmid;
-                          amps[pos].generation = subseedgeneration + 1;
+                          amps[pos].generation
+                            = static_cast<unsigned int>(subseedgeneration + 1);
                           if (maxgen < amps[pos].generation)
                             maxgen = amps[pos].generation;
-                          amps[pos].radius = subseedradius + diff;
+                          amps[pos].radius
+                            = static_cast<unsigned int>(subseedradius + diff);
                           if (amps[pos].radius > maxradius)
                             maxradius = amps[pos].radius;
 
@@ -424,9 +426,9 @@ void algo_run()
                               fprintf(internal_structure_file, "\t");
                               fprint_id_noabundance(internal_structure_file,
                                                     poolampliconid);
-                              fprintf(internal_structure_file, "\t%u", diff);
+                              fprintf(internal_structure_file, "\t%" PRIu64, diff);
                               fprintf(internal_structure_file,
-                                      "\t%" PRIu64 "\t%" PRIu64,
+                                      "\t%u\t%" PRIu64,
                                       swarmid, subseedgeneration + 1);
                               fprintf(internal_structure_file, "\n");
                             }
@@ -454,12 +456,12 @@ void algo_run()
 
       if (uclustfile)
         {
-          fprintf(uclustfile, "C\t%" PRIu64 "\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
+          fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid-1, swarmsize);
           fprint_id(uclustfile, seedampliconid);
           fprintf(uclustfile, "\t*\n");
 
-          fprintf(uclustfile, "S\t%" PRIu64 "\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
+          fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid-1, db_getsequencelen(seedampliconid));
           fprint_id(uclustfile, seedampliconid);
           fprintf(uclustfile, "\t*\n");
@@ -487,8 +489,7 @@ void algo_run()
               double percentid = 100.0 * (nwalignmentlength -
                                           nwdiff) / nwalignmentlength;
 
-              fprintf(uclustfile, "H\t%" PRIu64 "\t%" PRIu64
-                      "\t%.1f\t+\t0\t0\t%s\t",
+              fprintf(uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid-1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? nwalignment : "=");
 
@@ -539,7 +540,7 @@ void algo_run()
           /* mothur list file output */
           sep_amplicons = ',';
           sep_swarms = '\t';
-          fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64 "\t",
+          fprintf(outfile, "swarm_%" PRId64 "\t%u\t",
                   opt_differences, swarmid);
         }
       else
@@ -634,7 +635,7 @@ void algo_run()
 
   fprintf(logfile, "\n");
 
-  fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmid);
+  fprintf(logfile, "Number of swarms:  %u\n", swarmid);
 
   fprintf(logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
 

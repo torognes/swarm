@@ -66,7 +66,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   memset(qgramvector, 0, QGRAMVECTORBYTES);
 
   uint64_t qgram = 0;
-  uint64_t i = 0;
+  unsigned int i = 0;
 
   while((i < QGRAMLENGTH-1) && (i<seqlen))
   {

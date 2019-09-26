@@ -39,37 +39,37 @@ inline uint64_t hash_getindex(uint64_t hash)
   return hash & hash_mask;
 }
 
-inline unsigned int hash_getnextindex(unsigned int j)
+inline uint64_t hash_getnextindex(uint64_t j)
 {
   return (j+1) & hash_mask;
 }
 
-inline void hash_set_occupied(unsigned int j)
+inline void hash_set_occupied(uint64_t j)
 {
   hash_occupied[j >> 3] |= (1 << (j & 7));
 }
 
-inline int hash_is_occupied(unsigned int j)
+inline int hash_is_occupied(uint64_t j)
 {
   return hash_occupied[j >> 3] & (1 << (j & 7));
 }
 
-inline void hash_set_value(unsigned int j, uint64_t hash)
+inline void hash_set_value(uint64_t j, uint64_t hash)
 {
   hash_values[j] = hash;
 }
 
-inline int hash_compare_value(unsigned int j, uint64_t hash)
+inline int hash_compare_value(uint64_t j, uint64_t hash)
 {
   return (hash_values[j] == hash);
 }
 
-inline int hash_get_data(unsigned int j)
+inline int hash_get_data(uint64_t j)
 {
   return hash_data[j];
 }
 
-inline void hash_set_data(unsigned int j, int x)
+inline void hash_set_data(uint64_t j, int x)
 {
   hash_data[j] = x;
 }

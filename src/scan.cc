@@ -106,7 +106,7 @@ void search_free(struct search_data * sdp)
 
 void search_init(struct search_data * sdp)
 {
-  for (int64_t i = 0; i < query.len; i++ )
+  for (unsigned int i = 0; i < query.len; i++ )
   {
     sdp->qtable[i] = sdp->dprofile + 64 * (nt_extract(query.seq, i) + 1);
     sdp->qtable_w[i] = sdp->dprofile_w + 32 * (nt_extract(query.seq, i) + 1);
@@ -195,7 +195,7 @@ int search_getwork(uint64_t * countref, uint64_t * firstref)
   // * countref = how many sequences to search
   // * firstref = index into master_targets/scores/diffs where thread should start
 
-  uint64_t status = 0;
+  int status = 0;
 
   pthread_mutex_lock(&workmutex);
 
@@ -234,7 +234,7 @@ void master_dump()
 
 #endif
 
-void search_worker_core(int t)
+void search_worker_core(uint64_t t)
 {
   search_init(sd+t);
   while(search_getwork(& sd[t].target_count, & sd[t].target_index))
@@ -243,7 +243,7 @@ void search_worker_core(int t)
 
 void * search_worker(void * vp)
 {
-  int64_t t = reinterpret_cast<int64_t>(vp);
+  uint64_t t = reinterpret_cast<uint64_t>(vp);
   struct thread_info_s * tip = ti + t;
 
   pthread_mutex_lock(&tip->workmutex);
@@ -271,10 +271,12 @@ void search_do(uint64_t query_no,
                uint64_t * scores,
                uint64_t * diffs,
                uint64_t * alignlengths,
-               int64_t bits)
+               int bits)
 {
   query.qno = query_no;
-  db_getsequenceandlength(query_no, &query.seq, &query.len);
+  unsigned int query_len = 0;
+  db_getsequenceandlength(query_no, &query.seq, &query_len);
+  query.len = query_len;
 
   master_next = 0;
   master_length = listlength;

@@ -700,7 +700,7 @@ void search16(WORD * * q_start,
                       seq_id[c] = next_id;
                       int64_t seqno = seqnos[next_id];
                       char* address;
-                      int64_t length;
+                      unsigned int length;
 
                       db_getsequenceandlength(seqno, & address, & length);
 

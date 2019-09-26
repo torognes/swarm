@@ -242,7 +242,7 @@ extern uint64_t duplicates_found;
 
 /* inline functions */
 
-inline unsigned char nt_extract(char * seq, int i)
+inline unsigned char nt_extract(char * seq, uint64_t i)
 {
   // Extract compressed nucleotide in sequence seq at position i
   return (((reinterpret_cast<uint64_t*>(seq))[i >> 5]) >> ((i & 31) << 1)) & 3;
@@ -290,25 +290,25 @@ void qgram_diff_done();
 
 void db_read(const char * filename);
 
-uint64_t db_getsequencecount();
+unsigned int db_getsequencecount();
 uint64_t db_getnucleotidecount();
 
-uint64_t db_getlongestheader();
-uint64_t db_getlongestsequence();
+unsigned int db_getlongestheader();
+unsigned int db_getlongestsequence();
 
 seqinfo_t * db_getseqinfo(uint64_t seqno);
 
 char * db_getsequence(uint64_t seqno);
-uint64_t db_getsequencelen(uint64_t seqno);
+unsigned int db_getsequencelen(uint64_t seqno);
 
 uint64_t db_gethash(uint64_t seqno);
 
 void db_getsequenceandlength(uint64_t seqno,
                              char ** address,
-                             int64_t * length);
+                             unsigned int * length);
 
 char * db_getheader(uint64_t seqno);
-uint64_t db_getheaderlen(uint64_t seqno);
+unsigned int db_getheaderlen(uint64_t seqno);
 
 uint64_t db_getabundance(uint64_t seqno);
 
@@ -415,7 +415,7 @@ void search_do(uint64_t query_no,
                uint64_t * scores,
                uint64_t * diffs,
                uint64_t * alignlengths,
-               int64_t bits);
+               int bits);
 void search_begin();
 void search_end();
 

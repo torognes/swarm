@@ -686,8 +686,8 @@ int main(int argc, char** argv)
   db_read(input_filename);
 
   fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
-  fprintf(logfile, " in %" PRIu64 " sequences,", db_getsequencecount());
-  fprintf(logfile, " longest %" PRIu64 " nt\n", db_getlongestsequence());
+  fprintf(logfile, " in %u sequences,", db_getsequencecount());
+  fprintf(logfile, " longest %u nt\n", db_getlongestsequence());
 
   dbsequencecount = db_getsequencecount();
 

@@ -81,7 +81,7 @@ void dereplicate()
   int64_t hashtablesize = 1;
   while (1.0 * dbsequencecount / hashtablesize > 0.7)
     hashtablesize <<= 1;
-  int derep_hash_mask = hashtablesize - 1;
+  uint64_t derep_hash_mask = hashtablesize - 1;
 
   struct bucket * hashtable =
     static_cast<struct bucket *>(xmalloc(sizeof(bucket) * hashtablesize));
@@ -104,7 +104,7 @@ void dereplicate()
 
   progress_init("Dereplicating:    ", dbsequencecount);
 
-  for(int64_t i=0; i<dbsequencecount; i++)
+  for(unsigned int i=0; i<dbsequencecount; i++)
     {
       unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
@@ -288,7 +288,7 @@ void dereplicate()
           fprint_id(uclustfile, seed);
           fprintf(uclustfile, "\t*\n");
 
-          fprintf(uclustfile, "S\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
+          fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid,
                   db_getsequencelen(seed));
           fprint_id(uclustfile, seed);
@@ -299,7 +299,7 @@ void dereplicate()
           while (a)
             {
               fprintf(uclustfile,
-                      "H\t%u\t%" PRIu64 "\t%.1f\t+\t0\t0\t%s\t",
+                      "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid,
                       db_getsequencelen(a),
                       100.0,

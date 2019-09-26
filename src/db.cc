@@ -49,11 +49,11 @@ static signed char map_nt[256] =
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
   };
 
-static uint64_t sequences = 0;
+static unsigned int sequences = 0;
 static uint64_t nucleotides = 0;
 static uint64_t headerchars = 0;
 static unsigned int longest = 0;
-static int longestheader = 0;
+static int64_t longestheader = 0;
 static char * datap = nullptr;
 static int missingabundance = 0;
 static uint64_t missingabundance_lineno = 0;
@@ -139,8 +139,8 @@ int db_compare_abundance(const void * a, const void * b)
 }
 
 bool find_swarm_abundance(const char * header,
-                          int * start,
-                          int * end,
+                          long * start,
+                          long * end,
                           int64_t * number)
 {
   /*
@@ -177,8 +177,8 @@ bool find_swarm_abundance(const char * header,
 }
 
 bool find_usearch_abundance(const char * header,
-                            int * start,
-                            int * end,
+                            long * start,
+                            long * end,
                             int64_t * number)
 {
   /*
@@ -192,10 +192,10 @@ bool find_usearch_abundance(const char * header,
   if ((! header) || (! attribute))
     return false;
 
-  int hlen = strlen(header);
-  int alen = strlen(attribute);
+  long hlen = strlen(header);
+  long alen = strlen(attribute);
 
-  int i = 0;
+  long i = 0;
 
   while (i < hlen - alen)
     {
@@ -248,8 +248,8 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
 
   /* read size/abundance annotation */
   int64_t abundance = 0;
-  int start = 0;
-  int end = 0;
+  long start = 0;
+  long end = 0;
   int64_t number = 0;
 
   if (opt_usearch_abundance)
@@ -310,8 +310,8 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
     }
 
   sp->abundance = abundance;
-  sp->abundance_start = start;
-  sp->abundance_end = end;
+  sp->abundance_start = static_cast<int>(start);
+  sp->abundance_end = static_cast<int>(end);
 }
 
 void db_read(const char * filename)
@@ -570,7 +570,7 @@ void db_read(const char * filename)
 
       /* get header */
       seqindex_p->header = p;
-      seqindex_p->headerlen = strlen(seqindex_p->header);
+      seqindex_p->headerlen = static_cast<int>(strlen(seqindex_p->header));
       p += seqindex_p->headerlen + 1;
 
       /* and sequence */
@@ -741,7 +741,7 @@ void db_qgrams_done()
   xfree(qgrams);
 }
 
-uint64_t db_getsequencecount()
+unsigned int db_getsequencecount()
 {
   return sequences;
 }
@@ -751,7 +751,7 @@ uint64_t db_getnucleotidecount()
   return nucleotides;
 }
 
-uint64_t db_getlongestsequence()
+unsigned int db_getlongestsequence()
 {
   return longest;
 }
@@ -768,13 +768,13 @@ char * db_getsequence(uint64_t seqno)
 
 void db_getsequenceandlength(uint64_t seqno,
                              char ** address,
-                             int64_t * length)
+                             unsigned int * length)
 {
   *address = seqindex[seqno].seq;
-  *length = static_cast<int64_t>(seqindex[seqno].seqlen);
+  *length = seqindex[seqno].seqlen;
 }
 
-uint64_t db_getsequencelen(uint64_t seqno)
+unsigned int db_getsequencelen(uint64_t seqno)
 {
   return seqindex[seqno].seqlen;
 }
@@ -836,12 +836,12 @@ void db_fprintseq(FILE * fp, int a, int width)
 
 /* Unused functions */
 
-uint64_t db_getheaderlen(uint64_t seqno)
+unsigned int db_getheaderlen(uint64_t seqno)
 {
   return seqindex[seqno].headerlen;
 }
 
-uint64_t db_getlongestheader()
+unsigned int db_getlongestheader()
 {
   return longestheader;
 }
