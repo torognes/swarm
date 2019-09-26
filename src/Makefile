@@ -50,7 +50,7 @@ else
 	LINKOPT =
 endif
 
-WARNINGS = -Wall -Wsign-compare -Wextra -Wno-long-long $(WARNOPT) -Wshorten-64-to-32 -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-padded
+WARNINGS = -Wall -Wsign-compare -Wextra -Wno-long-long $(WARNOPT)
 
 COMMON=$(PROFILING) -g -flto -O3 $(ARCHOPT)
 
