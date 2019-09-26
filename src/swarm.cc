@@ -97,7 +97,7 @@ void cpuid(unsigned int f1,
 
 void cpu_features_detect();
 
-  void cpu_features_show();
+void cpu_features_show();
 
 void cpuid(unsigned int f1,
            unsigned int f2,
