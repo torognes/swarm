@@ -33,6 +33,8 @@
 
 #include "swarm.h"
 
+void bloom_patterns_generate(struct bloom_s * b);
+
 void bloom_patterns_generate(struct bloom_s * b)
 {
   const unsigned int k = 8;

@@ -54,6 +54,8 @@ struct swarminfo_t
   int seed;
 };
 
+int compare_mass_seed(const void * a, const void * b);
+
 int compare_mass_seed(const void * a, const void * b)
 {
   const swarminfo_t * x = static_cast<const struct swarminfo_t *>(a);

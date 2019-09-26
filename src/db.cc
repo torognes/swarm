@@ -62,6 +62,19 @@ static char * missingabundance_header = nullptr;
 seqinfo_t * seqindex = nullptr;
 qgramvector_t * qgrams = nullptr;
 
+int db_compare_abundance(const void * a, const void * b);
+
+bool find_swarm_abundance(const char * header,
+                          long * start,
+                          long * end,
+                          int64_t * number);
+
+bool find_usearch_abundance(const char * header,
+                            long * start,
+                            long * end,
+                            int64_t * number);
+void find_abundance(struct seqinfo_s * sp, uint64_t lineno);
+
 void fprint_id(FILE * stream, uint64_t x)
 {
   seqinfo_t * sp = seqindex + x;

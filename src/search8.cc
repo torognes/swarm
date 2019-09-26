@@ -144,6 +144,16 @@ const vector unsigned char perm_bits =
 
 #endif
 
+void align_cells_regular_8(VECTORTYPE * Sm,
+                           VECTORTYPE * hep,
+                           VECTORTYPE ** qp,
+                           VECTORTYPE * Qm,
+                           VECTORTYPE * Rm,
+                           int64_t ql,
+                           VECTORTYPE * F0,
+                           uint64_t * dir_long,
+                           VECTORTYPE * H0);
+
 #if 0
 void dprofile_dump8(BYTE * dprofile)
 {

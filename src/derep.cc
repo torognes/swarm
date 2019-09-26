@@ -37,6 +37,8 @@ struct bucket
   unsigned int singletons;
 };
 
+int derep_compare(const void * a, const void * b);
+
 int derep_compare(const void * a, const void * b)
 {
   const struct bucket * x = static_cast<const struct bucket *>(a);

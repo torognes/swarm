@@ -82,7 +82,12 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   }
 }
 
+void qgram_work_diff(thread_info_s * tip);
+void * qgram_worker(void * vp);
+
 #ifdef __aarch64__
+
+uint64_t compareqgramvectors(unsigned char * a, unsigned char * b);
 
 uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
@@ -97,6 +102,8 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 }
 
 #elif defined __PPC__
+
+uint64_t compareqgramvectors(unsigned char * a, unsigned char * b);
 
 uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
@@ -126,6 +133,11 @@ inline uint64_t popcount(uint64_t x)
   popcnt_asm(x,y);
   return y;
 }
+
+uint64_t popcount_128(__m128i x);
+uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b);
+uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b);
+uint64_t compareqgramvectors(unsigned char * a, unsigned char * b);
 
 uint64_t popcount_128(__m128i x)
 {
@@ -192,6 +204,7 @@ uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b)
   return count;
 }
 
+
 uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
 {
   /* Count number of different bits */
@@ -206,6 +219,7 @@ uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
 
   return count;
 }
+
 
 uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {

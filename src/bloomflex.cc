@@ -33,6 +33,8 @@
 
 #include "swarm.h"
 
+void bloomflex_patterns_generate(struct bloomflex_s * b);
+
 void bloomflex_patterns_generate(struct bloomflex_s * b)
 {
 #if 0

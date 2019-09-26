@@ -34,6 +34,8 @@ unsigned char * score_matrix_8 = nullptr;
 unsigned short * score_matrix_16 = nullptr;
 int64_t * score_matrix_63 = nullptr;
 
+void score_matrix_read();
+
 #if 0
 
 /* never used */

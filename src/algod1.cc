@@ -114,6 +114,35 @@ static struct bloom_s * bloom_a = nullptr; // Bloom filter for amplicons
 
 static struct bloomflex_s * bloom_f = nullptr; // Huge Bloom filter for fastidious
 
+void attach(int seed, int amp);
+void add_graft_candidate(int seed, int amp);
+int compare_grafts(const void * a, const void * b);
+int attach_candidates(int amplicon_count);
+bool hash_check_attach(char * seq,
+                       unsigned int seqlen,
+                       struct var_s * var,
+                       int seed);
+void check_heavy_var(struct bloomflex_s * bloom,
+                     char * varseq,
+                     int seed,
+                     int64_t * m,
+                     int64_t * v,
+                     struct var_s * variant_list,
+                     struct var_s * variant_list2);
+void check_heavy_thread(int64_t t);
+int64_t mark_light_var(struct bloomflex_s * bloom,
+                       int seed,
+                       struct var_s * variant_list);
+void mark_light_thread(int64_t t);
+void check_variants(int seed,
+                    var_s * variant_list,
+                    int * hits_data,
+                    int * hits_count);
+void network_thread(int64_t t);
+void process_seed(int seed);
+int compare_amp(const void * a, const void * b);
+int compare_mass(const void * a, const void * b);
+
 inline bool check_amp_identical(unsigned int amp1,
                                 unsigned int amp2)
 {

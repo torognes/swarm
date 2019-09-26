@@ -93,6 +93,17 @@ void cpuid(unsigned int f1,
            unsigned int & a,
            unsigned int & b,
            unsigned int & c,
+           unsigned int & d);
+
+void cpu_features_detect();
+
+  void cpu_features_show();
+
+void cpuid(unsigned int f1,
+           unsigned int f2,
+           unsigned int & a,
+           unsigned int & b,
+           unsigned int & c,
            unsigned int & d)
 {
   __asm__ __volatile__ ("cpuid"
@@ -155,6 +166,14 @@ void cpu_features_show()
 }
 
 #endif
+
+int64_t args_long(char * str, const char * option);
+void args_show();
+void args_usage();
+void show_header();
+void args_init(int argc, char **argv);
+void open_files();
+void close_files();
 
 int64_t args_long(char * str, const char * option)
 {
