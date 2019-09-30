@@ -53,7 +53,7 @@ static unsigned int sequences = 0;
 static uint64_t nucleotides = 0;
 static uint64_t headerchars = 0;
 static unsigned int longest = 0;
-static int64_t longestheader = 0;
+static uint64_t longestheader = 0;
 static char * datap = nullptr;
 static int missingabundance = 0;
 static uint64_t missingabundance_lineno = 0;
@@ -65,13 +65,13 @@ qgramvector_t * qgrams = nullptr;
 int db_compare_abundance(const void * a, const void * b);
 
 bool find_swarm_abundance(const char * header,
-                          long * start,
-                          long * end,
+                          int * start,
+                          int * end,
                           int64_t * number);
 
 bool find_usearch_abundance(const char * header,
-                            long * start,
-                            long * end,
+                            int * start,
+                            int * end,
                             int64_t * number);
 void find_abundance(struct seqinfo_s * sp, uint64_t lineno);
 
@@ -152,8 +152,8 @@ int db_compare_abundance(const void * a, const void * b)
 }
 
 bool find_swarm_abundance(const char * header,
-                          long * start,
-                          long * end,
+                          int * start,
+                          int * end,
                           int64_t * number)
 {
   /*
@@ -161,37 +161,43 @@ bool find_swarm_abundance(const char * header,
     in the header string.
   */
 
+  * start = 0;
+  * end = 0;
+  * number = 0;
+
   const char * digit_chars = "0123456789";
 
   if (!header)
     return false;
 
+  if (strlen(header) >= INT_MAX)
+    return false;
+
   const char * us = strrchr(header, '_');
 
-  if (!us)
+  if (! us)
     return false;
 
   size_t digits = strspn(us + 1, digit_chars);
 
-  if (us[1 + digits] == 0)
-    {
-      * start = us - header;
-      * end = *start + digits;
-      * number = atol(us + 1);
-      return true;
-    }
-  else
-    {
-      * start = 0;
-      * end = 0;
-      * number = 0;
-      return false;
-    }
+  if (digits > 20)
+    return false;
+
+  if (us[digits + 1])
+    return false;
+
+  int64_t s = us - header;
+  int64_t e = s + static_cast<int64_t>(digits);
+
+  * start = static_cast<int>(s);
+  * end = static_cast<int>(e);
+  * number = atol(us + 1);
+  return true;
 }
 
 bool find_usearch_abundance(const char * header,
-                            long * start,
-                            long * end,
+                            int * start,
+                            int * end,
                             int64_t * number)
 {
   /*
@@ -205,20 +211,20 @@ bool find_usearch_abundance(const char * header,
   if ((! header) || (! attribute))
     return false;
 
-  long hlen = strlen(header);
-  long alen = strlen(attribute);
+  uint64_t hlen = strlen(header);
+  uint64_t alen = strlen(attribute);
 
-  long i = 0;
+  uint64_t i = 0;
 
-  while (i < hlen - alen)
+  while (i + alen < hlen)
     {
-      char * r = const_cast<char *>(strstr(header + i, attribute));
+      const char * r = strstr(header + i, attribute);
 
       /* no match */
       if (r == nullptr)
         break;
 
-      i = r - header;
+      i = static_cast<uint64_t>(r - header);
 
       /* check for ';' in front */
       if ((i > 0) && (header[i-1] != ';'))
@@ -227,7 +233,7 @@ bool find_usearch_abundance(const char * header,
           continue;
         }
 
-      int digits = static_cast<int>(strspn(header + i + alen, digit_chars));
+      uint64_t digits = strspn(header + i + alen, digit_chars);
 
       /* check for at least one digit */
       if (digits == 0)
@@ -244,8 +250,11 @@ bool find_usearch_abundance(const char * header,
         }
 
       /* ok */
-      * start = MAX(0, i - 1);
-      * end   = MIN(i + alen + digits + 1, hlen);
+      if (i > 0)
+        * start = static_cast<int>(i - 1);
+      else
+        * start = 0;
+      * end   = static_cast<int>(MIN(i + alen + digits + 1, hlen));
       * number = atol(header + i + alen);
       return true;
     }
@@ -261,8 +270,8 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
 
   /* read size/abundance annotation */
   int64_t abundance = 0;
-  long start = 0;
-  long end = 0;
+  int start = 0;
+  int end = 0;
   int64_t number = 0;
 
   if (opt_usearch_abundance)
@@ -306,7 +315,7 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
 
   if (abundance == 0)
     {
-      start = strlen(header);
+      start = sp->headerlen;
       end = start;
 
       if (opt_append_abundance)
@@ -322,9 +331,9 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
         }
     }
 
-  sp->abundance = abundance;
-  sp->abundance_start = static_cast<int>(start);
-  sp->abundance_end = static_cast<int>(end);
+  sp->abundance = static_cast<uint64_t>(abundance);
+  sp->abundance_start = start;
+  sp->abundance_end = end;
 }
 
 void db_read(const char * filename)
@@ -376,7 +385,7 @@ void db_read(const char * filename)
 
   unsigned int lineno = 1;
 
-  progress_init("Reading sequences:", filesize);
+  progress_init("Reading sequences:", static_cast<uint64_t>(filesize));
 
   while(line[0])
     {
@@ -386,7 +395,7 @@ void db_read(const char * filename)
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
 
-      int64_t headerlen = strcspn(line + 1, " \r\n");
+      uint64_t headerlen = strcspn(line + 1, " \r\n");
 
       headerchars += headerlen;
 
@@ -449,7 +458,7 @@ void db_read(const char * filename)
         {
           unsigned char c;
           char * p = line;
-          while((c = *p++))
+          while((c = static_cast<unsigned char>(*p++)))
 	    {
               signed char m;
               if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
@@ -531,7 +540,7 @@ void db_read(const char * filename)
       sequences++;
 
       if (is_regular)
-        progress_update(ftell(fp));
+        progress_update(static_cast<uint64_t>(ftell(fp)));
     }
   progress_done();
 
@@ -616,9 +625,9 @@ void db_read(const char * filename)
 
       /* check for duplicated identifiers using hash table */
 
-      uint64_t hdrhash = HASH(reinterpret_cast<unsigned char*>
-                              (seqindex_p->header),
-                              seqindex_p->abundance_start);
+      uint64_t hdrhash
+        = HASH(reinterpret_cast<unsigned char*> (seqindex_p->header),
+               static_cast<uint64_t> (seqindex_p->abundance_start));
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
@@ -630,7 +639,7 @@ void db_read(const char * filename)
               (hdrfound->abundance_start == seqindex_p->abundance_start) &&
               (strncmp(hdrfound->header,
                        seqindex_p->header,
-                       hdrfound->abundance_start) == 0))
+                       static_cast<size_t>(hdrfound->abundance_start)) == 0))
             break;
           hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
         }
@@ -812,10 +821,10 @@ void db_free()
     xfree(seqindex);
 }
 
-void db_fprintseq(FILE * fp, int a, int width)
+void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
 {
   char * seq = db_getsequence(a);
-  int len = db_getsequencelen(a);
+  unsigned int len = db_getsequencelen(a);
   char buffer[1025];
   char * buf;
 
@@ -824,16 +833,16 @@ void db_fprintseq(FILE * fp, int a, int width)
   else
     buf = static_cast<char*>(xmalloc(len+1));
 
-  for(int i=0; i<len; i++)
-    buf[i] = sym_nt[1+nt_extract(seq, i)];
+  for(unsigned int i = 0; i < len; i++)
+    buf[i] = sym_nt[1 + nt_extract(seq, i)];
   buf[len] = 0;
 
   if (width < 1)
     fprintf(fp, "%.*s\n", len, buf);
   else
     {
-      int rest = len;
-      for(int i=0; i<len; i += width)
+      unsigned int rest = len;
+      for(unsigned int i = 0; i < len; i += width)
         {
           fprintf(fp, "%.*s\n", MIN(rest, width), buf+i);
           rest -= width;

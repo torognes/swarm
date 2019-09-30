@@ -34,13 +34,14 @@ struct var_s
   unsigned int pos;
   unsigned char type;
   unsigned char base;
+  unsigned short dummy; /* for alignment padding only */
 };
 
 void generate_variant_sequence(char * seed_sequence,
                                unsigned int seed_seqlen,
                                struct var_s * var,
                                char * seq,
-                               int * seqlen);
+                               unsigned int * seqlen);
 
 bool check_variant(char * seed_sequence,
                    unsigned int seed_seqlen,

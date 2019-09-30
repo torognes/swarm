@@ -31,7 +31,7 @@ static struct thread_info_s
   pthread_t pthread;
   pthread_mutex_t workmutex;
   pthread_cond_t workcond;
-  int work;
+  int64_t work;
 
   /* specialized thread info */
   uint64_t seed;
@@ -281,7 +281,8 @@ void qgram_diff_init()
 
   /* allocate memory for thread info */
   ti = static_cast<struct thread_info_s *>
-    (xmalloc(opt_threads * sizeof(struct thread_info_s)));
+    (xmalloc(static_cast<uint64_t>(opt_threads) *
+             sizeof(struct thread_info_s)));
 
   /* init and create worker threads */
   for(int64_t t=0; t<opt_threads; t++)
@@ -325,12 +326,12 @@ void qgram_diff_fast(uint64_t seed,
                      uint64_t * amplist,
                      uint64_t * difflist)
 {
-  int64_t thr = opt_threads;
+  uint64_t thr = static_cast<uint64_t>(opt_threads);
 
   const uint64_t m = 150;
 
-  if (listlen < m*thr)
-    thr = (listlen+m-1)/m;
+  if (listlen < m * thr)
+    thr = (listlen + m - 1) / m;
 
   uint64_t * next_amplist = amplist;
   uint64_t * next_difflist = difflist;
@@ -338,7 +339,7 @@ void qgram_diff_fast(uint64_t seed,
   uint64_t thrrest = thr;
 
   /* distribute work */
-  for(int64_t t=0; t<thr; t++)
+  for(uint64_t t=0; t<thr; t++)
     {
       thread_info_s * tip = ti + t;
       uint64_t chunk = (listrest + thrrest - 1) / thrrest;
@@ -361,7 +362,7 @@ void qgram_diff_fast(uint64_t seed,
   else
     {
       /* wake up threads */
-      for(int64_t t=0; t<thr; t++)
+      for(uint64_t t=0; t<thr; t++)
         {
           struct thread_info_s * tip = ti + t;
           pthread_mutex_lock(&tip->workmutex);
@@ -371,7 +372,7 @@ void qgram_diff_fast(uint64_t seed,
         }
 
       /* wait for threads to finish their work */
-      for(int t=0; t<thr; t++)
+      for(uint64_t t=0; t<thr; t++)
         {
           struct thread_info_s * tip = ti + t;
           pthread_mutex_lock(&tip->workmutex);

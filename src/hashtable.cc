@@ -28,7 +28,7 @@
 uint64_t hash_mask;
 unsigned char * hash_occupied = nullptr;
 uint64_t * hash_values = nullptr;
-int * hash_data = nullptr;
+unsigned int * hash_data = nullptr;
 uint64_t hash_tablesize = 0;
 
 void hash_zap()
@@ -50,8 +50,8 @@ void hash_alloc(uint64_t amplicons)
   hash_values =
     static_cast<uint64_t *>(xmalloc(hash_tablesize * sizeof(uint64_t)));
 
-  hash_data =
-    static_cast<int *>(xmalloc(hash_tablesize * sizeof(int)));
+  hash_data = static_cast<unsigned int *>
+    (xmalloc(hash_tablesize * sizeof(unsigned int)));
 }
 
 void hash_free()

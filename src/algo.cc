@@ -50,8 +50,9 @@ static uint64_t seeded;
 
 struct swarminfo_t
 {
-  int64_t mass;
-  int seed;
+  uint64_t mass;
+  unsigned int seed;
+  int dummy; /* alignment padding only */
 };
 
 int compare_mass_seed(const void * a, const void * b);
@@ -61,8 +62,8 @@ int compare_mass_seed(const void * a, const void * b)
   const swarminfo_t * x = static_cast<const struct swarminfo_t *>(a);
   const swarminfo_t * y = static_cast<const struct swarminfo_t *>(b);
 
-  int64_t m = x->mass;
-  int64_t n = y->mass;
+  uint64_t m = x->mass;
+  uint64_t n = y->mass;
 
   if (m > n)
     return -1;
@@ -119,9 +120,10 @@ void algo_run()
   uint64_t * hits = static_cast<uint64_t *>
     (xmalloc(amplicons * sizeof(uint64_t)));
 
-  uint64_t diff_saturation = MIN(255 / penalty_mismatch,
-                                 255 / (penalty_gapopen +
-                                        penalty_gapextend));
+  uint64_t diff_saturation
+    = static_cast<uint64_t>(MIN(255 / penalty_mismatch,
+                                255 / (penalty_gapopen +
+                                       penalty_gapextend)));
 
   unsigned char * dir = nullptr;
   uint64_t * hearray = nullptr;
@@ -212,9 +214,9 @@ void algo_run()
       for(uint64_t i=0; i < listlen; i++)
         {
           uint64_t poolampliconid = qgramamps[i];
-          int64_t diff = qgramdiffs[i];
+          uint64_t diff = qgramdiffs[i];
           amps[swarmed+i].diffestimate = static_cast<unsigned int>(diff);
-          if (diff <= opt_differences)
+          if (diff <= static_cast<uint64_t>(opt_differences))
             {
               targetindices[targetcount] = swarmed+i;
               targetampliconids[targetcount] = poolampliconid;
@@ -474,19 +476,19 @@ void algo_run()
               uint64_t hit = hits[i];
 
               char * dseq = db_getsequence(hit);
-              uint64_t dlen = db_getsequencelen(hit);
+              int64_t dlen = db_getsequencelen(hit);
               char * qseq = db_getsequence(seedampliconid);
-              uint64_t qlen = db_getsequencelen(seedampliconid);
+              int64_t qlen = db_getsequencelen(seedampliconid);
 
-              uint64_t nwscore = 0;
-              uint64_t nwdiff = 0;
+              int64_t nwscore = 0;
+              int64_t nwdiff = 0;
               char * nwalignment = nullptr;
-              uint64_t nwalignmentlength = 0;
+              int64_t nwalignmentlength = 0;
 
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
-                 dir, hearray, 0, 0);
+                 dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
               double percentid = 100.0 * (nwalignmentlength -
                                           nwdiff) / nwalignmentlength;
@@ -574,7 +576,7 @@ void algo_run()
 
   if ((opt_seeds) && (amplicons > 0))
     {
-      int swarmcount = 0;
+      uint64_t swarmcount = 0;
       progress_init("Sorting seeds:    ", amplicons);
       struct swarminfo_t * swarminfo = static_cast<struct swarminfo_t *>
         (xmalloc(swarmed * sizeof(struct swarminfo_t)));
@@ -604,10 +606,10 @@ void algo_run()
       progress_done();
 
       progress_init("Writing seeds:    ", swarmcount);
-      for (int i = 0; i < swarmcount; i++)
+      for (uint64_t i = 0; i < swarmcount; i++)
         {
           uint64_t swarm_mass = swarminfo[i].mass;
-          int swarm_seed = swarminfo[i].seed;
+          unsigned int swarm_seed = swarminfo[i].seed;
 
           fprintf(fp_seeds, ">");
           fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass);

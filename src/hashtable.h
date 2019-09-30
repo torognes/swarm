@@ -24,7 +24,7 @@
 extern uint64_t hash_mask;
 extern unsigned char * hash_occupied;
 extern uint64_t * hash_values;
-extern int * hash_data;
+extern unsigned int * hash_data;
 extern uint64_t hash_tablesize;
 
 inline uint64_t hash_get_tablesize()
@@ -49,7 +49,7 @@ inline void hash_set_occupied(uint64_t j)
   hash_occupied[j >> 3] |= (1 << (j & 7));
 }
 
-inline int hash_is_occupied(uint64_t j)
+inline bool hash_is_occupied(uint64_t j)
 {
   return hash_occupied[j >> 3] & (1 << (j & 7));
 }
@@ -59,17 +59,17 @@ inline void hash_set_value(uint64_t j, uint64_t hash)
   hash_values[j] = hash;
 }
 
-inline int hash_compare_value(uint64_t j, uint64_t hash)
+inline bool hash_compare_value(uint64_t j, uint64_t hash)
 {
   return (hash_values[j] == hash);
 }
 
-inline int hash_get_data(uint64_t j)
+inline unsigned int hash_get_data(uint64_t j)
 {
   return hash_data[j];
 }
 
-inline void hash_set_data(uint64_t j, int x)
+inline void hash_set_data(uint64_t j, unsigned int x)
 {
   hash_data[j] = x;
 }

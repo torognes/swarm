@@ -35,26 +35,26 @@ inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 }
 
 inline void seq_copy(char * a,
-                     int a_start,
+                     unsigned int a_start,
                      char * b,
-                     int b_start,
-                     int length)
+                     unsigned int b_start,
+                     unsigned int length)
 {
   /* copy part of the compressed sequence b to a */
-  for(int i = 0; i < length; i++)
+  for(unsigned int i = 0; i < length; i++)
     nt_set(a, a_start + i, nt_extract(b, b_start + i));
 }
 
 inline bool seq_identical(char * a,
-                          int a_start,
+                          unsigned int a_start,
                           char * b,
-                          int b_start,
-                          int length)
+                          unsigned int b_start,
+                          unsigned int length)
 {
   /* compare parts of two compressed sequences a and b */
   /* return false if different, true if identical */
 
-  for(int i = 0; i < length; i++)
+  for(unsigned int i = 0; i < length; i++)
     if (nt_extract(a, a_start + i) != nt_extract(b, b_start + i))
       return false;
   return true;
@@ -64,7 +64,7 @@ void generate_variant_sequence(char * seed_sequence,
                                unsigned int seed_seqlen,
                                struct var_s * var,
                                char * seq,
-                               int * seqlen)
+                               unsigned int * seqlen)
 {
   /* generate the actual sequence of a variant */
 

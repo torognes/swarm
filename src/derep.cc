@@ -79,8 +79,8 @@ void reverse_complement(char * rc, char * seq, int64_t len)
 void dereplicate()
 {
   /* adjust size of hash table for 2/3 fill rate */
-  int64_t dbsequencecount = db_getsequencecount();
-  int64_t hashtablesize = 1;
+  uint64_t dbsequencecount = db_getsequencecount();
+  uint64_t hashtablesize = 1;
   while (1.0 * dbsequencecount / hashtablesize > 0.7)
     hashtablesize <<= 1;
   uint64_t derep_hash_mask = hashtablesize - 1;
@@ -90,7 +90,7 @@ void dereplicate()
 
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
 
-  int64_t swarmcount = 0;
+  uint64_t swarmcount = 0;
   uint64_t maxmass = 0;
   unsigned int maxsize = 0;
 
@@ -175,7 +175,7 @@ void dereplicate()
         }
 #endif
 
-      int64_t ab = db_getabundance(i);
+      uint64_t ab = db_getabundance(i);
 
       if (bp->mass)
         {
@@ -225,13 +225,13 @@ void dereplicate()
   if (opt_mothur)
     fprintf(outfile, "swarm_%" PRId64 "\t%" PRId64, opt_differences, swarmcount);
 
-  for(int i = 0; i < swarmcount; i++)
+  for(unsigned int i = 0; i < swarmcount; i++)
     {
-      int seed = hashtable[i].seqno_first;
+      unsigned int seed = hashtable[i].seqno_first;
       if (opt_mothur)
         fputc('\t', outfile);
       fprint_id(outfile, seed);
-      int a = nextseqtab[seed];
+      unsigned int a = nextseqtab[seed];
 
       while (a)
         {
@@ -260,9 +260,9 @@ void dereplicate()
   if (opt_seeds)
     {
       progress_init("Writing seeds:    ", swarmcount);
-      for(int i=0; i < swarmcount; i++)
+      for(unsigned int i=0; i < swarmcount; i++)
         {
-          int seed = hashtable[i].seqno_first;
+          unsigned int seed = hashtable[i].seqno_first;
           fprintf(fp_seeds, ">");
           fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass);
           fprintf(fp_seeds, "\n");
@@ -282,7 +282,7 @@ void dereplicate()
         {
           struct bucket * bp = hashtable + swarmid;
 
-          int seed = bp->seqno_first;
+          unsigned int seed = bp->seqno_first;
 
           fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid,
@@ -296,7 +296,7 @@ void dereplicate()
           fprint_id(uclustfile, seed);
           fprintf(uclustfile, "\t*\n");
 
-          int a = nextseqtab[seed];
+          unsigned int a = nextseqtab[seed];
 
           while (a)
             {
@@ -324,11 +324,11 @@ void dereplicate()
     {
       progress_init("Writing structure:", swarmcount);
 
-      for(int64_t i = 0; i < swarmcount; i++)
+      for(uint64_t i = 0; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
-          int64_t seed = sp->seqno_first;
-          int a = nextseqtab[seed];
+          uint64_t seed = sp->seqno_first;
+          unsigned int a = nextseqtab[seed];
           while (a)
             {
               fprint_id_noabundance(internal_structure_file, seed);
@@ -347,7 +347,7 @@ void dereplicate()
   if (statsfile)
     {
       progress_init("Writing stats:    ", swarmcount);
-      for(int64_t i = 0; i < swarmcount; i++)
+      for(uint64_t i = 0; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
           fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);

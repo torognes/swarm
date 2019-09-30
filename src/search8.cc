@@ -149,10 +149,24 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE ** qp,
                            VECTORTYPE * Qm,
                            VECTORTYPE * Rm,
-                           int64_t ql,
+                           uint64_t ql,
                            VECTORTYPE * F0,
                            uint64_t * dir_long,
                            VECTORTYPE * H0);
+
+void align_cells_masked_8(VECTORTYPE * Sm,
+                          VECTORTYPE * hep,
+                          VECTORTYPE ** qp,
+                          VECTORTYPE * Qm,
+                          VECTORTYPE * Rm,
+                          uint64_t ql,
+                          VECTORTYPE * F0,
+                          uint64_t * dir_long,
+                          VECTORTYPE * H0,
+                          VECTORTYPE * Mm,
+                          VECTORTYPE * MQ,
+                          VECTORTYPE * MR,
+                          VECTORTYPE * MQ0);
 
 #if 0
 void dprofile_dump8(BYTE * dprofile)
@@ -181,11 +195,11 @@ inline void dprofile_fill8(BYTE * dprofile,
   VECTORTYPE reg0,  reg1, reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   VECTORTYPE reg8,  reg9, reg10, reg11, reg12, reg13, reg14, reg15;
 
-  for(int j=0; j<CDEPTH; j++)
+  for(unsigned int j=0; j<CDEPTH; j++)
     {
-      unsigned d[CHANNELS];
-      for(int i=0; i<CHANNELS; i++)
-        d[i] = dseq[j*CHANNELS+i] << 5;
+      unsigned int d[CHANNELS];
+      for(unsigned int i = 0; i < CHANNELS; i++)
+        d[i] = (static_cast<unsigned int>(dseq[j * CHANNELS + i])) << 5;
 
       reg0  = v_load_64(score_matrix + d[ 0]);
       reg2  = v_load_64(score_matrix + d[ 2]);
@@ -511,7 +525,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE ** qp,
                            VECTORTYPE * Qm,
                            VECTORTYPE * Rm,
-                           int64_t ql,
+                           uint64_t ql,
                            VECTORTYPE * F0,
                            uint64_t * dir_long,
                            VECTORTYPE * H0)
@@ -540,7 +554,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   h7 = v_zero;
   h8 = v_zero;
 
-  for(int64_t i = 0; i < ql; i++)
+  for(uint64_t i = 0; i < ql; i++)
     {
       VECTORTYPE * x;
 
@@ -565,19 +579,19 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   Sm[3] = h8;
 }
 
-inline void align_cells_masked_8(VECTORTYPE * Sm,
-                                 VECTORTYPE * hep,
-                                 VECTORTYPE ** qp,
-                                 VECTORTYPE * Qm,
-                                 VECTORTYPE * Rm,
-                                 int64_t ql,
-                                 VECTORTYPE * F0,
-                                 uint64_t * dir_long,
-                                 VECTORTYPE * H0,
-                                 VECTORTYPE * Mm,
-                                 VECTORTYPE * MQ,
-                                 VECTORTYPE * MR,
-                                 VECTORTYPE * MQ0)
+void align_cells_masked_8(VECTORTYPE * Sm,
+                          VECTORTYPE * hep,
+                          VECTORTYPE ** qp,
+                          VECTORTYPE * Qm,
+                          VECTORTYPE * Rm,
+                          uint64_t ql,
+                          VECTORTYPE * F0,
+                          uint64_t * dir_long,
+                          VECTORTYPE * H0,
+                          VECTORTYPE * Mm,
+                          VECTORTYPE * MQ,
+                          VECTORTYPE * MR,
+                          VECTORTYPE * MQ0)
 {
   VECTORTYPE Q, R, E;
   VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
@@ -603,7 +617,7 @@ inline void align_cells_masked_8(VECTORTYPE * Sm,
   h7 = v_zero;
   h8 = v_zero;
 
-  for(int64_t i = 0; i < ql; i++)
+  for(uint64_t i = 0; i < ql; i++)
     {
       VECTORTYPE * x;
 
@@ -665,8 +679,8 @@ inline uint64_t backtrack_8(char * qseq,
     {
       for(uint64_t j=0; j<dlen; j++)
         {
-          uint64_t d = dirbuffer[(offset + longestdbsequence*4*(j/4)
-                                  + 4*i + (j&3)) % dirbuffersize];
+          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
+                                  + 4 * i + (j & 3)) % dirbuffersize];
           if (d & maskleft)
             {
               printf("<");
@@ -689,8 +703,8 @@ inline uint64_t backtrack_8(char * qseq,
     {
       for(uint64_t j=0; j<dlen; j++)
         {
-          uint64_t d = dirbuffer[(offset + longestdbsequence*4*(j/4)
-                                  + 4*i + (j&3)) % dirbuffersize];
+          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
+                                  + 4 * i + (j & 3)) % dirbuffersize];
           if (!(d & maskextup))
             {
               if (!(d & maskextleft))
@@ -712,8 +726,8 @@ inline uint64_t backtrack_8(char * qseq,
 
 #endif
 
-  int64_t i = qlen - 1;
-  int64_t j = dlen - 1;
+  int64_t i = static_cast<int64_t>(qlen) - 1;
+  int64_t j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned = 0;
   uint64_t matches = 0;
   char op = 0;
@@ -723,12 +737,15 @@ inline uint64_t backtrack_8(char * qseq,
   printf("alignment, reversed: ");
 #endif
 
-  while ((i>=0) && (j>=0))
+  while ((i >= 0) && (j >= 0))
     {
       aligned++;
 
-      uint64_t d = dirbuffer[(offset + longestdbsequence*4*(j/4)
-                                   + 4*i + (j&3)) % dirbuffersize];
+      uint64_t d
+        = dirbuffer[(offset
+                     + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
+                     + static_cast<uint64_t>(4 * i + (j & 3)))
+                    % dirbuffersize];
 
       if ((op == 'I') && (!(d & maskextleft)))
         {
@@ -750,7 +767,8 @@ inline uint64_t backtrack_8(char * qseq,
         }
       else
         {
-          if (nt_extract(qseq, i) == nt_extract(dseq, j))
+          if (nt_extract(qseq, static_cast<uint64_t>(i)) ==
+              nt_extract(dseq, static_cast<uint64_t>(j)))
             matches++;
           i--;
           j--;
@@ -760,10 +778,9 @@ inline uint64_t backtrack_8(char * qseq,
 #ifdef SHOWALIGNMENT
       printf("%c", op);
 #endif
-
     }
 
-  while (i>=0)
+  while (i >= 0)
     {
       aligned++;
       i--;
@@ -772,7 +789,7 @@ inline uint64_t backtrack_8(char * qseq,
 #endif
     }
 
-  while (j>=0)
+  while (j >= 0)
     {
       aligned++;
       j--;
@@ -837,8 +854,8 @@ void search8(BYTE * * q_start,
 
   T0 = T0_init;
 
-  Q  = v_dup(gap_open_penalty+gap_extend_penalty);
-  R  = v_dup(gap_extend_penalty);
+  Q  = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
+  R  = v_dup(static_cast<char>(gap_extend_penalty));
 
   done = 0;
 
@@ -871,7 +888,8 @@ void search8(BYTE * * q_start,
               for(int j=0; j<CDEPTH; j++)
                 {
                   if (d_pos[c] < d_length[c])
-                    dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                    dseq[CHANNELS*j+c]
+                      = 1 + nt_extract(d_address[c], d_pos[c]++);
                   else
                     dseq[CHANNELS*j+c] = 0;
                 }
@@ -897,16 +915,17 @@ void search8(BYTE * * q_start,
 
           M = v_zero;
           T = T0;
-          for (int c=0; c<CHANNELS; c++)
+          for (unsigned int c = 0; c < CHANNELS; c++)
             {
               if (d_pos[c] < d_length[c])
                 {
                   // this channel has more sequence
 
-                  for(int j=0; j<CDEPTH; j++)
+                  for(unsigned int j = 0; j < CDEPTH; j++)
                     {
                       if (d_pos[c] < d_length[c])
-                        dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                        dseq[CHANNELS * j + c]
+                          = 1 + nt_extract(d_address[c], d_pos[c]++);
                       else
                         dseq[CHANNELS*j+c] = 0;
                     }
@@ -927,16 +946,17 @@ void search8(BYTE * * q_start,
                       // save score
 
                       char * dbseq = reinterpret_cast<char*>(d_address[c]);
-                      int64_t dbseqlen = d_length[c];
-                      int64_t z = (dbseqlen+3) % 4;
-                      int64_t score = (reinterpret_cast<BYTE*>(S))[z*CHANNELS+c];
+                      uint64_t dbseqlen = d_length[c];
+                      uint64_t z = (dbseqlen+3) % 4;
+                      uint64_t score
+                        = (reinterpret_cast<BYTE*>(S))[z * CHANNELS + c];
                       scores[cand_id] = score;
 
                       uint64_t diff;
 
                       if (score < 255)
                         {
-                          int64_t offset = d_offset[c];
+                          uint64_t offset = d_offset[c];
                           diff = backtrack_8(query.seq, dbseq, qlen, dbseqlen,
                                              dirbuffer,
                                              offset,
@@ -956,8 +976,8 @@ void search8(BYTE * * q_start,
                   if (next_id < sequences)
                     {
                       // get next sequence
-                      seq_id[c] = next_id;
-                      int64_t seqno = seqnos[next_id];
+                      seq_id[c] = static_cast<int64_t>(next_id);
+                      uint64_t seqno = seqnos[next_id];
                       char* address;
                       unsigned int length;
 
@@ -967,14 +987,14 @@ void search8(BYTE * * q_start,
                       d_length[c] = length;
 
                       d_pos[c] = 0;
-                      d_offset[c] = dir - dirbuffer;
+                      d_offset[c] = static_cast<uint64_t>(dir - dirbuffer);
                       next_id++;
 
                       (reinterpret_cast<BYTE*>(&H0))[c] = 0;
                       (reinterpret_cast<BYTE*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
 
                       // fill channel
-                      for(int j=0; j<CDEPTH; j++)
+                      for(unsigned int j = 0; j < CDEPTH; j++)
                         {
                           if (d_pos[c] < d_length[c])
                             dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
@@ -991,7 +1011,7 @@ void search8(BYTE * * q_start,
                       d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
-                      for (int j=0; j<CDEPTH; j++)
+                      for (unsigned int j=0; j<CDEPTH; j++)
                         dseq[CHANNELS*j+c] = 0;
                     }
                 }

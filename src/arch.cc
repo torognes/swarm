@@ -40,10 +40,10 @@ uint64_t arch_get_memused()
 
 # ifdef __APPLE__
   /* Mac: ru_maxrss gives the size in bytes */
-  return r_usage.ru_maxrss;
+  return static_cast<uint64_t>(r_usage.ru_maxrss);
 # else
   /* Linux: ru_maxrss gives the size in kilobytes  */
-  return r_usage.ru_maxrss * 1024;
+  return static_cast<uint64_t>(r_usage.ru_maxrss * 1024);
 # endif
 
 #endif
@@ -65,7 +65,7 @@ uint64_t arch_get_memtotal()
   size_t length = sizeof(ram);
   if(sysctl(mib, 2, &ram, &length, nullptr, 0) == -1)
     fatal("Cannot determine amount of RAM");
-  return ram;
+  return static_cast<uint64_t>(ram);
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
 
@@ -73,7 +73,7 @@ uint64_t arch_get_memtotal()
   int64_t pagesize = sysconf(_SC_PAGESIZE);
   if ((phys_pages == -1) || (pagesize == -1))
     fatal("Cannot determine amount of RAM");
-  return pagesize * phys_pages;
+  return static_cast<uint64_t>(pagesize * phys_pages);
 
 #else
 
@@ -115,8 +115,8 @@ void arch_srandom(unsigned int seed)
 uint64_t arch_random()
 {
 #ifdef _WIN32
-  return rand();
+  return static_cast<uint64_t>(rand());
 #else
-  return random();
+  return static_cast<uint64_t>(random());
 #endif
 }

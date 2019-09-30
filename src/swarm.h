@@ -39,6 +39,9 @@
 #endif
 #endif
 
+//#define NDEBUG
+
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -138,14 +141,15 @@ struct seqinfo_s
 {
   char * header;
   char * seq;
-  int headerlen;
-  unsigned int seqlen;
   uint64_t abundance;
-  unsigned int clusterid;
   uint64_t hdrhash;
   uint64_t seqhash;
+  int headerlen;
+  unsigned int seqlen;
+  unsigned int clusterid;
   int abundance_start;
   int abundance_end;
+  int dummy; /* alignment padding only */
 };
 
 typedef struct seqinfo_s seqinfo_t;
@@ -320,7 +324,7 @@ void db_putseq(int64_t seqno);
 void db_qgrams_init();
 void db_qgrams_done();
 
-void db_fprintseq(FILE * fp, int a, int width);
+void db_fprintseq(FILE * fp, unsigned int a, unsigned int width);
 
 inline unsigned char * db_getqgramvector(uint64_t seqno)
 {
@@ -384,20 +388,20 @@ void search16(WORD * * q_start,
 /* functions in nw.cc */
 
 void nw(char * dseq,
-        uint64_t dlen,
+        int64_t dlen,
         char * qseq,
-        uint64_t qlen,
+        int64_t qlen,
         int64_t * score_matrix,
-        uint64_t gapopen,
-        uint64_t gapextend,
-        uint64_t * nwscore,
-        uint64_t * nwdiff,
-        uint64_t * nwalignmentlength,
+        int64_t gapopen,
+        int64_t gapextend,
+        int64_t * nwscore,
+        int64_t * nwdiff,
+        int64_t * nwalignmentlength,
         char ** nwalignment,
         unsigned char * dir,
-        uint64_t * hearray,
-        uint64_t queryno,
-        uint64_t dbseqno);
+        int64_t * hearray,
+        int64_t queryno,
+        int64_t dbseqno);
 
 
 /* functions in matrix.cc */

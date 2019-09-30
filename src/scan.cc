@@ -31,7 +31,7 @@ static struct thread_info_s
   pthread_t pthread;
   pthread_mutex_t workmutex;
   pthread_cond_t workcond;
-  int work;
+  int64_t work;
 
   /* specialized thread info */
   uint64_t seed;
@@ -178,7 +178,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
              master_scores + sdp->target_index,
              master_diffs + sdp->target_index,
              master_alignlengths + sdp->target_index,
-             query.len,
+             static_cast<uint64_t>(query.len),
              dirbufferbytes/8,
              sdp->dir_array);
   else
@@ -193,7 +193,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
             master_scores + sdp->target_index,
             master_diffs + sdp->target_index,
             master_alignlengths + sdp->target_index,
-            query.len,
+            static_cast<uint64_t>(query.len),
             dirbufferbytes/8,
             sdp->dir_array);
 }
@@ -294,7 +294,7 @@ void search_do(uint64_t query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  uint64_t thr = opt_threads;
+  uint64_t thr = static_cast<uint64_t>(opt_threads);
 
   if (bits == 8)
     {
@@ -342,7 +342,7 @@ void search_begin()
   longestdbsequence = db_getlongestsequence();
 
   sd = static_cast<struct search_data *>
-    (xmalloc(sizeof(search_data) * opt_threads));
+    (xmalloc(sizeof(search_data) * static_cast<uint64_t>(opt_threads)));
 
   for(int64_t t=0; t<opt_threads; t++)
     search_alloc(sd+t);
@@ -354,7 +354,7 @@ void search_begin()
 
   /* allocate memory for thread info */
   ti = static_cast<struct thread_info_s *>
-    (xmalloc(opt_threads * sizeof(struct thread_info_s)));
+    (xmalloc(static_cast<uint64_t>(opt_threads)*sizeof(struct thread_info_s)));
 
   /* init and create worker threads */
   for(int64_t t=0; t<opt_threads; t++)

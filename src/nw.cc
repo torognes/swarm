@@ -37,8 +37,9 @@ void pushop(char newop, char ** cigarendp, char * op, int * count)
     {
       char buf[25];
       int len = snprintf(buf, 25, "%d", *count);
+      assert(len >= 0);
       *cigarendp -= len;
-      memcpy(*cigarendp, buf, len);
+      memcpy(*cigarendp, buf, static_cast<size_t>(len));
     }
     *op = newop;
     *count = 1;
@@ -54,8 +55,9 @@ void finishop(char ** cigarendp, char * op, int * count)
     {
       char buf[25];
       int len = snprintf(buf, 25, "%d", *count);
+      assert(len >= 0);
       *cigarendp -= len;
-      memcpy(*cigarendp, buf, len);
+      memcpy(*cigarendp, buf, static_cast<size_t>(len));
     }
     *op = 0;
     *count = 0;
@@ -109,73 +111,75 @@ const unsigned char maskextleft = 8;
 */
 
 void nw(char * dseq,
-        uint64_t dlen,
+        int64_t dlen,
         char * qseq,
-        uint64_t qlen,
+        int64_t qlen,
         int64_t * score_matrix,
-        uint64_t gapopen,
-        uint64_t gapextend,
-        uint64_t * nwscore,
-        uint64_t * nwdiff,
-        uint64_t * nwalignmentlength,
+        int64_t gapopen,
+        int64_t gapextend,
+        int64_t * nwscore,
+        int64_t * nwdiff,
+        int64_t * nwalignmentlength,
         char ** nwalignment,
         unsigned char * dir,
-        uint64_t * hearray,
-        uint64_t queryno,
-        uint64_t dbseqno)
+        int64_t * hearray,
+        int64_t queryno,
+        int64_t dbseqno)
 {
   /* dir must point to at least qlen*dlen bytes of allocated memory
-     hearray must point to at least 2*qlen longs of allocated memory (8*qlen bytes) */
+     hearray must point to at least 2*qlen longs of allocated memory
+     (8*qlen bytes) */
 
   int64_t n, e;
 
-  memset(dir, 0, qlen*dlen);
+  memset(dir, 0, static_cast<size_t>(qlen * dlen));
 
-  uint64_t i, j;
+  int64_t i, j;
 
   for(i=0; i<qlen; i++)
-  {
-    hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
-    hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
-  }
+    {
+      hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
+      hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
+    }
 
   for(j=0; j<dlen; j++)
-  {
-    uint64_t *hep;
-    hep = hearray;
-    int64_t f = 2 * gapopen + (j+2) * gapextend;
-    int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
-
-    for(i=0; i<qlen; i++)
     {
-      int64_t index = qlen*j+i;
+      int64_t *hep;
+      hep = hearray;
+      int64_t f = 2 * gapopen + (j+2) * gapextend;
+      int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
-      n = *hep;
-      e = *(hep+1);
-      h += score_matrix[((nt_extract(dseq, j) + 1) << 5) +
-                        (nt_extract(qseq, i) + 1)];
+      for(i=0; i<qlen; i++)
+        {
+          int64_t index = qlen*j+i;
 
-      dir[index] |= (f < h ? maskup : 0);
-      h = MIN(h, f);
-      h = MIN(h, e);
-      dir[index] |= (e == h ? maskleft : 0);
+          n = *hep;
+          e = *(hep+1);
+          h += score_matrix
+            [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1) << 5)
+             +(nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
 
-      *hep = h;
+          dir[index] |= (f < h ? maskup : 0);
+          h = MIN(h, f);
+          h = MIN(h, e);
+          dir[index] |= (e == h ? maskleft : 0);
 
-      h += gapopen + gapextend;
-      e += gapextend;
-      f += gapextend;
+          *hep = h;
 
-      dir[index] |= (f < h ? maskextup : 0);
-      dir[index] |= (e < h ? maskextleft : 0);
-      f = MIN(h,f);
-      e = MIN(h,e);
+          h += gapopen + gapextend;
+          e += gapextend;
+          f += gapextend;
 
-      *(hep+1) = e;
-      h = n;
-      hep += 2;
+          dir[index] |= (f < h ? maskextup : 0);
+          dir[index] |= (e < h ? maskextleft : 0);
+          f = MIN(h,f);
+          e = MIN(h,e);
+
+          *(hep+1) = e;
+          h = n;
+          hep += 2;
+        }
     }
-  }
 
   int64_t dist = hearray[2*qlen-2];
 
@@ -185,8 +189,9 @@ void nw(char * dseq,
   int64_t alength = 0;
   int64_t matches = 0;
 
-  char * cigar = static_cast<char *>(xmalloc(qlen + dlen + 1));
-  char * cigarend = cigar+qlen+dlen+1;
+  char * cigar = static_cast<char *>(xmalloc
+                                     (static_cast<size_t>(qlen + dlen + 1)));
+  char * cigarend = cigar + qlen + dlen + 1;
 
   char op = 0;
   int count = 0;
@@ -196,79 +201,81 @@ void nw(char * dseq,
   j = dlen;
 
   while ((i>0) && (j>0))
-  {
-    int d = dir[qlen*(j-1)+(i-1)];
-
-    alength++;
-
-    if ((op == 'I') && (d & maskextleft))
     {
-      score += gapextend;
-      j--;
-      pushop('I', &cigarend, &op, &count);
+      int d = dir[qlen*(j-1)+(i-1)];
+
+      alength++;
+
+      if ((op == 'I') && (d & maskextleft))
+        {
+          score += gapextend;
+          j--;
+          pushop('I', &cigarend, &op, &count);
+        }
+      else if ((op == 'D') && (d & maskextup))
+        {
+          score += gapextend;
+          i--;
+          pushop('D', &cigarend, &op, &count);
+        }
+      else if (d & maskleft)
+        {
+          score += gapextend;
+          if (op != 'I')
+            score += gapopen;
+          j--;
+          pushop('I', &cigarend, &op, &count);
+        }
+      else if (d & maskup)
+        {
+          score += gapextend;
+          if (op != 'D')
+            score +=gapopen;
+          i--;
+          pushop('D', &cigarend, &op, &count);
+        }
+      else
+        {
+          score += score_matrix
+            [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << 5)
+             +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
+
+          if (nt_extract(qseq, static_cast<uint64_t>(i - 1)) ==
+              nt_extract(dseq, static_cast<uint64_t>(j - 1)))
+            matches++;
+          i--;
+          j--;
+          pushop('M', &cigarend, &op, &count);
+        }
     }
-    else if ((op == 'D') && (d & maskextup))
+
+  while(i>0)
     {
+      alength++;
       score += gapextend;
+      if (op != 'D')
+        score += gapopen;
       i--;
       pushop('D', &cigarend, &op, &count);
     }
-    else if (d & maskleft)
+
+  while(j>0)
     {
+      alength++;
       score += gapextend;
       if (op != 'I')
         score += gapopen;
       j--;
       pushop('I', &cigarend, &op, &count);
     }
-    else if (d & maskup)
-    {
-      score += gapextend;
-      if (op != 'D')
-        score +=gapopen;
-      i--;
-      pushop('D', &cigarend, &op, &count);
-    }
-    else
-    {
-      score += score_matrix[((nt_extract(dseq, j - 1) + 1) << 5) +
-                             (nt_extract(qseq, i - 1) + 1)];
-
-      if (nt_extract(qseq, i - 1) == nt_extract(dseq, j - 1))
-        matches++;
-      i--;
-      j--;
-      pushop('M', &cigarend, &op, &count);
-    }
-  }
-
-  while(i>0)
-  {
-    alength++;
-    score += gapextend;
-    if (op != 'D')
-      score += gapopen;
-    i--;
-    pushop('D', &cigarend, &op, &count);
-  }
-
-  while(j>0)
-  {
-    alength++;
-    score += gapextend;
-    if (op != 'I')
-      score += gapopen;
-    j--;
-    pushop('I', &cigarend, &op, &count);
-  }
 
   finishop(&cigarend, &op, &count);
 
   /* move and reallocate cigar */
 
-  int64_t cigarlength = cigar+qlen+dlen-cigarend;
-  memmove(cigar, cigarend, cigarlength+1);
-  cigar = static_cast<char*>(xrealloc(cigar, cigarlength+1));
+  size_t cigaralloc = static_cast<size_t>(cigar + qlen + dlen - cigarend + 1);
+  memmove(cigar, cigarend, cigaralloc);
+  cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
 
   * nwscore = dist;
   * nwdiff = alength - matches;

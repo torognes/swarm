@@ -36,7 +36,7 @@ private:
     pthread_t pthread;
     pthread_mutex_t workmutex;
     pthread_cond_t workcond;
-    int work; /* 1: work available, 0: wait, -1: quit */
+    int64_t work; /* 1: work available, 0: wait, -1: quit */
   } * thread_array;
 
   static void * worker(void * vp)
@@ -75,7 +75,7 @@ public:
 
     /* allocate memory for thread data */
     thread_array = static_cast<struct thread_s *>
-      (xmalloc(static_cast<unsigned long long>(thread_count) * sizeof(struct thread_s)));
+      (xmalloc(static_cast<uint64_t>(thread_count) * sizeof(struct thread_s)));
 
     /* init and create worker threads */
     for(int64_t i=0; i<thread_count; i++)
