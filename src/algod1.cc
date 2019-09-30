@@ -1117,7 +1117,7 @@ void algo_d1_run()
 
       progress_init("Writing structure:", swarmcount);
 
-      for(unsigned int swarmid = 0; swarmid < swarmcount ; swarmid++)
+      for(unsigned int swarmid = 0; swarmid < swarmcount; swarmid++)
         {
           if (!swarminfo[swarmid].attached)
             {
@@ -1188,7 +1188,7 @@ void algo_d1_run()
 
       progress_init("Writing UCLUST:   ", swarmcount);
 
-      for(unsigned int swarmid = 0; swarmid < swarmcount ; swarmid++)
+      for(unsigned int swarmid = 0; swarmid < swarmcount; swarmid++)
         {
           if (!swarminfo[swarmid].attached)
             {
