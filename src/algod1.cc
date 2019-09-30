@@ -875,7 +875,7 @@ void algo_d1_run()
       fprintf(logfile, "\n");
       fprintf(logfile, "Results before fastidious processing:\n");
       fprintf(logfile, "Number of swarms:  %u\n", swarmcount);
-      fprintf(logfile, "Largest swarm:     %d\n", largest);
+      fprintf(logfile, "Largest swarm:     %u\n", largest);
       fprintf(logfile, "\n");
 
       uint64_t small_otus = 0;
@@ -901,11 +901,11 @@ void algo_d1_run()
       uint64_t amplicons_in_large_otus = amplicons - amplicons_in_small_otus;
       uint64_t large_otus = swarmcount - small_otus;
 
-      fprintf(logfile, "Heavy swarms: %" PRId64 ", with %" PRId64 " amplicons\n",
+      fprintf(logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
               large_otus, amplicons_in_large_otus);
-      fprintf(logfile, "Light swarms: %" PRId64 ", with %" PRId64 " amplicons\n",
+      fprintf(logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
               small_otus, amplicons_in_small_otus);
-      fprintf(logfile, "Total length of amplicons in light swarms: %" PRId64 "\n",
+      fprintf(logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
               nucleotides_in_small_otus);
 
       if ((small_otus == 0) || (large_otus == 0))
@@ -962,7 +962,7 @@ void algo_d1_run()
             }
 
           fprintf(logfile,
-                  "Bloom filter: bits=%" PRId64 ", m=%" PRId64 ", k=%u, size=%.1fMB\n",
+                  "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
                   bits, m, k, 1.0 * m / (8*1024*1024));
 
 
@@ -996,7 +996,7 @@ void algo_d1_run()
           progress_done();
 
           fprintf(logfile,
-                  "Generated %" PRId64 " variants from light swarms\n",
+                  "Generated %" PRIu64 " variants from light swarms\n",
                   light_variants);
 
           progress_init("Checking heavy swarm amplicons against Bloom filter",
@@ -1026,10 +1026,10 @@ void algo_d1_run()
 
           pthread_mutex_destroy(&graft_mutex);
 
-          fprintf(logfile, "Heavy variants: %" PRId64 "\n", heavy_variants);
+          fprintf(logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
           fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
           unsigned int grafts = attach_candidates(amplicons);
-          fprintf(logfile, "Made %d grafts\n", grafts);
+          fprintf(logfile, "Made %u grafts\n", grafts);
           fprintf(logfile, "\n");
         }
     }
@@ -1040,7 +1040,7 @@ void algo_d1_run()
   progress_init("Writing swarms:   ", swarmcount);
 
   if (opt_mothur)
-    fprintf(outfile, "swarm_%" PRId64 "\t%" PRId64, opt_differences, swarmcount_adjusted);
+    fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount_adjusted);
 
   for(unsigned int i = 0; i < swarmcount; i++)
     {
@@ -1137,7 +1137,7 @@ void algo_d1_run()
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
-                              "\t%d\t%u\t%d\n",
+                              "\t%d\t%u\t%u\n",
                               2,
                               cluster_no + 1,
                               ampinfo[graft_parent].generation + 1);
@@ -1165,7 +1165,7 @@ void algo_d1_run()
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
-                              "\t%d\t%u\t%d\n",
+                              "\t%u\t%u\t%u\n",
                               diff,
                               cluster_no + 1,
                               ampinfo[a].generation);
@@ -1196,7 +1196,7 @@ void algo_d1_run()
 
               struct ampinfo_s * bp = ampinfo + seed;
 
-              fprintf(uclustfile, "C\t%u\t%d\t*\t*\t*\t*\t*\t",
+              fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                       cluster_no,
                       swarminfo[swarmid].size);
               fprint_id(uclustfile, seed);
@@ -1231,7 +1231,7 @@ void algo_d1_run()
                     nwalignmentlength;
 
                   fprintf(uclustfile,
-                          "H\t%d\t%u\t%.1f\t+\t0\t0\t%s\t",
+                          "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                           cluster_no,
                           db_getsequencelen(a),
                           percentid,
@@ -1263,9 +1263,9 @@ void algo_d1_run()
           swarminfo_s * sp = swarminfo + i;
           if (!sp->attached)
             {
-              fprintf(statsfile, "%d\t%" PRId64 "\t", sp->size, sp->mass);
+              fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
               fprint_id_noabundance(statsfile, sp->seed);
-              fprintf(statsfile, "\t%" PRIu64 "\t%d\t%d\t%d\n",
+              fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                       db_getabundance(sp->seed),
                       sp->singletons, sp->maxgen, sp->maxgen);
             }
@@ -1275,9 +1275,9 @@ void algo_d1_run()
     }
 
   fprintf(logfile, "\n");
-  fprintf(logfile, "Number of swarms:  %" PRId64 "\n", swarmcount_adjusted);
-  fprintf(logfile, "Largest swarm:     %d\n", largest);
-  fprintf(logfile, "Max generations:   %d\n", maxgen);
+  fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
+  fprintf(logfile, "Largest swarm:     %u\n", largest);
+  fprintf(logfile, "Max generations:   %u\n", maxgen);
 
   bloom_exit(bloom_a);
   hash_free();

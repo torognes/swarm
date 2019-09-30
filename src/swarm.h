@@ -400,8 +400,8 @@ void nw(char * dseq,
         char ** nwalignment,
         unsigned char * dir,
         int64_t * hearray,
-        int64_t queryno,
-        int64_t dbseqno);
+        uint64_t queryno,
+        uint64_t dbseqno);
 
 
 /* functions in matrix.cc */

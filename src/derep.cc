@@ -223,7 +223,7 @@ void dereplicate()
   progress_init("Writing swarms:   ", swarmcount);
 
   if (opt_mothur)
-    fprintf(outfile, "swarm_%" PRId64 "\t%" PRId64, opt_differences, swarmcount);
+    fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount);
 
   for(unsigned int i = 0; i < swarmcount; i++)
     {
@@ -334,7 +334,7 @@ void dereplicate()
               fprint_id_noabundance(internal_structure_file, seed);
               fprintf(internal_structure_file, "\t");
               fprint_id_noabundance(internal_structure_file, a);
-              fprintf(internal_structure_file, "\t%d\t%" PRId64 "\t%d\n", 0, i+1, 0);
+              fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i+1, 0);
               a = nextseqtab[a];
             }
           progress_update(i);
@@ -362,7 +362,7 @@ void dereplicate()
 
 
   fprintf(logfile, "\n");
-  fprintf(logfile, "Number of swarms:  %" PRId64 "\n", swarmcount);
+  fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount);
   fprintf(logfile, "Largest swarm:     %u\n", maxsize);
   fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
 
