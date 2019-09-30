@@ -923,7 +923,7 @@ void algo_d1_run()
           uint64_t bits = static_cast<uint64_t>(opt_bloom_bits); /* 16 */
 
           // int64_t k = int(bits * 0.693);    /* 11 */
-          unsigned int k = static_cast<unsigned int>(int(bits * 0.4)); /* 6 */
+          unsigned int k = static_cast<unsigned int>(4 * bits / 10); /* 6 */
           if (k < 1)
             k = 1;
 
@@ -944,7 +944,7 @@ void algo_d1_run()
                   fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
                   // k = int(bits * 0.693);
-                  k = static_cast<unsigned int>(int(bits * 0.4));
+                  k = static_cast<unsigned int>(4 * bits / 10);
                   if (k < 1)
                     k = 1;
 
@@ -963,7 +963,7 @@ void algo_d1_run()
 
           fprintf(logfile,
                   "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                  bits, m, k, 1.0 * m / (8*1024*1024));
+                  bits, m, k, static_cast<double>(m) / (8*1024*1024));
 
 
           bloom_f = bloomflex_init(m/8, k);
@@ -1227,8 +1227,9 @@ void algo_d1_run()
                      & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                      dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
-                  double percentid = 100.0 * (nwalignmentlength - nwdiff) /
-                    nwalignmentlength;
+                  double percentid
+                    = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
+                    / static_cast<double>(nwalignmentlength);
 
                   fprintf(uclustfile,
                           "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",

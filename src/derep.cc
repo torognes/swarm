@@ -81,7 +81,7 @@ void dereplicate()
   /* adjust size of hash table for 2/3 fill rate */
   uint64_t dbsequencecount = db_getsequencecount();
   uint64_t hashtablesize = 1;
-  while (1.0 * dbsequencecount / hashtablesize > 0.7)
+  while (100 * dbsequencecount > 70 * hashtablesize)
     hashtablesize <<= 1;
   uint64_t derep_hash_mask = hashtablesize - 1;
 

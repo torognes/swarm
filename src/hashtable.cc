@@ -23,7 +23,7 @@
 
 #include "swarm.h"
 
-#define HASHFILLFACTOR 0.7
+#define HASHFILLPCT 70
 
 uint64_t hash_mask;
 unsigned char * hash_occupied = nullptr;
@@ -39,7 +39,7 @@ void hash_zap()
 void hash_alloc(uint64_t amplicons)
 {
   hash_tablesize = 1;
-  while (amplicons > HASHFILLFACTOR * hash_tablesize)
+  while (100 * amplicons > HASHFILLPCT * hash_tablesize)
     hash_tablesize <<= 1;
   hash_mask = hash_tablesize - 1;
 

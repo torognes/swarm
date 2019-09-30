@@ -48,7 +48,8 @@ void progress_update(uint64_t progress)
   if ((!opt_log) && (progress >= progress_next))
     {
       fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
-              100.0 * progress / progress_size);
+              100.0 * static_cast<double>(progress)
+              / static_cast<double>(progress_size));
       progress_next = progress + progress_chunk;
       fflush(logfile);
     }

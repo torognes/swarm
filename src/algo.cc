@@ -490,8 +490,9 @@ void algo_run()
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                  dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
-              double percentid = 100.0 * (nwalignmentlength -
-                                          nwdiff) / nwalignmentlength;
+              double percentid
+                = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
+                / static_cast<double>(nwalignmentlength);
 
               fprintf(uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid-1, db_getsequencelen(hit), percentid,
