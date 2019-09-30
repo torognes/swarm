@@ -230,7 +230,7 @@ void nw(char * dseq,
         {
           score += gapextend;
           if (op != 'D')
-            score +=gapopen;
+            score += gapopen;
           i--;
           pushop('D', &cigarend, &op, &count);
         }
