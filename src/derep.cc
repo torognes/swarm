@@ -278,7 +278,7 @@ void dereplicate()
     {
       progress_init("Writing UCLUST:   ", swarmcount);
 
-      for(unsigned int swarmid = 0; swarmid < swarmcount ; swarmid++)
+      for(unsigned int swarmid = 0; swarmid < swarmcount; swarmid++)
         {
           struct bucket * bp = hashtable + swarmid;
 
