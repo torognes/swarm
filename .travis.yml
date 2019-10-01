@@ -1,11 +1,12 @@
 language:
-- clang
+- c++
 
 os:
 - linux
 
 compiler:
 - g++
+- clang
 
 before_install:
 - sudo apt-get install -y valgrind
@@ -13,8 +14,6 @@ before_install:
 script:
 - make
 - export PATH=$PWD/bin:$PATH
-- echo $PATH
 - git clone https://github.com/frederic-mahe/swarm-tests.git
 - cd swarm-tests
-- valgrind --leak-check=full --show-leak-kinds=all swarm -o /dev/null <(printf ">a_1\nA\n")
 - bash ./run_all_tests.sh
