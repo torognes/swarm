@@ -8,8 +8,5 @@ os:
 compiler:
 - g++
 
-install:
-- sudo apt-get install ghostscript groff
-
 script:
 - make
