@@ -16,5 +16,5 @@ script:
 - echo $PATH
 - git clone https://github.com/frederic-mahe/swarm-tests.git
 - cd swarm-tests
-- valgrind --leak-check=full swarm -o /dev/null <(printf ">a_1\nA\n")
+- valgrind --leak-check=full --show-leak-kinds=all swarm -o /dev/null <(printf ">a_1\nA\n")
 - bash ./run_all_tests.sh
