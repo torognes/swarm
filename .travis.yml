@@ -12,7 +12,8 @@ before_install:
 
 script:
 - make
-- export PATH=$PATH:$PWD/bin
+- export PATH=$PWD/bin:$PATH
 - echo $PATH
 - git clone https://github.com/frederic-mahe/swarm-tests.git
-- source swarm-tests/run_all_tests.sh
+- cd swarm-tests
+- source run_all_tests.sh
