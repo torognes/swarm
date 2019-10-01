@@ -1,0 +1,15 @@
+language:
+- cpp
+- clang
+
+os:
+- linux
+
+compiler:
+- g++
+
+install:
+- sudo apt-get install ghostscript groff
+
+script:
+- make
