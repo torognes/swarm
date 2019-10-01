@@ -14,6 +14,7 @@ before_install:
 script:
 - make
 - export PATH=$PWD/bin:$PATH
+- valgrind --leak-check=full --show-leak-kinds=all swarm -o /dev/null <(printf ">a_1\nA\n")
 - git clone https://github.com/frederic-mahe/swarm-tests.git
 - cd swarm-tests
 - bash ./run_all_tests.sh
