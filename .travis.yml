@@ -1,12 +1,8 @@
-language:
-- c++
+dist: bionic
 
-os:
-- linux
+language: c++
 
-compiler:
-- g++
-- clang
+compiler: gcc
 
 before_install:
 - sudo apt-get install -y valgrind
