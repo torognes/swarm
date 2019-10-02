@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/torognes/swarm.svg?branch=swarm3)](https://travis-ci.org/torognes/swarm)
+
 # swarm
 
 A robust and fast clustering method for amplicon-based studies.
