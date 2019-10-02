@@ -74,11 +74,11 @@ static uint64_t dbsequencecount = 0;
 
 uint64_t duplicates_found = 0;
 
-FILE * outfile;
-FILE * statsfile;
-FILE * uclustfile;
-FILE * logfile;
-FILE * internal_structure_file;
+FILE * outfile = nullptr;
+FILE * statsfile = nullptr;
+FILE * uclustfile = nullptr;
+FILE * logfile = nullptr;
+FILE * internal_structure_file = nullptr;
 FILE * fp_seeds = nullptr;
 
 char sym_nt[] = "-ACGT                           ";
@@ -593,14 +593,9 @@ void open_files()
         fatal("Unable to open log file for writing.");
     }
 
-  if (opt_output_file)
-    {
-      outfile = fopen_output(opt_output_file);
-      if (! outfile)
-        fatal("Unable to open output file for writing.");
-    }
-  else
-    outfile = stdout;
+  outfile = fopen_output(opt_output_file);
+  if (! outfile)
+    fatal("Unable to open output file for writing.");
 
   if (opt_seeds)
     {
@@ -608,8 +603,6 @@ void open_files()
       if (! fp_seeds)
         fatal("Unable to open seeds file for writing.");
     }
-  else
-    fp_seeds = nullptr;
 
   if (opt_statistics_file)
     {
@@ -617,8 +610,6 @@ void open_files()
       if (! statsfile)
         fatal("Unable to open statistics file for writing.");
     }
-  else
-    statsfile = nullptr;
 
   if (opt_uclust_file)
     {
@@ -626,8 +617,6 @@ void open_files()
       if (! uclustfile)
         fatal("Unable to open uclust file for writing.");
     }
-  else
-    uclustfile = nullptr;
 
   if (opt_internal_structure)
     {
@@ -635,13 +624,11 @@ void open_files()
       if (! internal_structure_file)
         fatal("Unable to open internal structure file for writing.");
     }
-  else
-    internal_structure_file = nullptr;
 }
 
 void close_files()
 {
-  if (opt_internal_structure)
+  if (internal_structure_file)
     fclose(internal_structure_file);
 
   if (uclustfile)
@@ -650,13 +637,13 @@ void close_files()
   if (statsfile)
     fclose(statsfile);
 
-  if (opt_seeds)
+  if (fp_seeds)
     fclose(fp_seeds);
 
-  if (opt_output_file)
+  if (outfile)
     fclose(outfile);
 
-  if (opt_log)
+  if (logfile)
     fclose(logfile);
 }
 
