@@ -208,7 +208,7 @@ bool find_usearch_abundance(const char * header,
   const char * attribute = "size=";
   const char * digit_chars = "0123456789";
 
-  if ((! header) || (! attribute))
+  if (! header)
     return false;
 
   uint64_t hlen = strlen(header);
