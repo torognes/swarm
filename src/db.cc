@@ -205,15 +205,14 @@ bool find_usearch_abundance(const char * header,
     in the header string.
   */
 
-  const char * attribute = "size=";
-  const char * digit_chars = "0123456789";
-
   if (! header)
     return false;
 
+  const char * attribute = "size=";
+  const char * digit_chars = "0123456789";
+
   uint64_t hlen = strlen(header);
   uint64_t alen = strlen(attribute);
-
   uint64_t i = 0;
 
   while (i + alen < hlen)
@@ -258,9 +257,7 @@ bool find_usearch_abundance(const char * header,
       * number = atol(header + i + alen);
       return true;
     }
-  * start = 0;
-  * end = 0;
-  * number = 0;
+
   return false;
 }
 
@@ -605,7 +602,8 @@ void db_read(const char * filename)
       /* get amplicon abundance */
       find_abundance(seqindex_p, line_number);
 
-      if (seqindex_p->abundance_start == 0)
+      if ((seqindex_p->abundance_start == 0) &&
+          (seqindex_p->abundance_end == seqindex_p->headerlen))
         fatal("Empty sequence identifier");
 
       /* check if the sequences are presorted by abundance and header */
@@ -625,9 +623,26 @@ void db_read(const char * filename)
 
       /* check for duplicated identifiers using hash table */
 
+      /* find position and length of identifier in header */
+
+      int id_start, id_len;
+
+      if (seqindex_p->abundance_start > 0)
+        {
+          /* id first, then abundance (e.g. >name;size=1 or >name_1) */
+          id_start = 0;
+          id_len = seqindex_p->abundance_start;
+        }
+      else
+        {
+          /* abundance first then id (e.g. >size=1;name) */
+          id_start = seqindex_p->abundance_end;
+          id_len = seqindex_p->headerlen - seqindex_p->abundance_end;
+        }
+
       uint64_t hdrhash
-        = HASH(reinterpret_cast<unsigned char*> (seqindex_p->header),
-               static_cast<uint64_t> (seqindex_p->abundance_start));
+        = HASH(reinterpret_cast<unsigned char*>(seqindex_p->header + id_start),
+               static_cast<uint64_t>(id_len));
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
@@ -635,12 +650,28 @@ void db_read(const char * filename)
 
       while ((hdrfound = hdrhashtable[hdrhashindex]))
         {
-          if ((hdrfound->hdrhash == hdrhash) &&
-              (hdrfound->abundance_start == seqindex_p->abundance_start) &&
-              (strncmp(hdrfound->header,
-                       seqindex_p->header,
-                       static_cast<size_t>(hdrfound->abundance_start)) == 0))
-            break;
+          if (hdrfound->hdrhash == hdrhash)
+            {
+              int hit_id_start, hit_id_len;
+
+              if (hdrfound->abundance_start > 0)
+                {
+                  hit_id_start = 0;
+                  hit_id_len = hdrfound->abundance_start;
+                }
+              else
+                {
+                  hit_id_start = hdrfound->abundance_end;
+                  hit_id_len = hdrfound->headerlen - hdrfound->abundance_end;
+                }
+
+              if ((id_len == hit_id_len) &&
+                  (strncmp(seqindex_p->header + id_start,
+                           hdrfound->header + hit_id_start,
+                           static_cast<uint64_t>(id_len)) == 0))
+                break;
+            }
+
           hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
         }
 
@@ -648,8 +679,8 @@ void db_read(const char * filename)
         {
           duplicatedidentifiers++;
           fprintf(stderr, "\nError: Duplicated sequence identifier: %.*s\n\n",
-                  seqindex_p->abundance_start,
-                  seqindex_p->header);
+                  id_len,
+                  seqindex_p->header + id_start);
           exit(1);
         }
 
