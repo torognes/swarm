@@ -282,10 +282,14 @@ void nw(char * dseq,
   * nwalignmentlength = alength;
   * nwalignment = cigar;
 
+  assert((score == dist);
+
+#if 0
   if (score != dist)
-  {
+    {
     fprintf(stderr, "WARNING: Error with query no %" PRIu64 " and db sequence no %" PRIu64 ":\n", queryno, dbseqno);
     fprintf(stderr, "Initial and recomputed alignment score disagreement: %" PRId64 " %" PRId64 "\n", dist, score);
     fprintf(stderr, "Alignment: %s\n", cigar);
   }
+#endif
 }
