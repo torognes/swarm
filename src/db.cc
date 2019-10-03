@@ -187,11 +187,12 @@ bool find_swarm_abundance(const char * header,
     return false;
 
   int64_t s = us - header;
-  int64_t e = s + static_cast<int64_t>(digits);
+  int64_t e = s + 1 + static_cast<int64_t>(digits);
 
   * start = static_cast<int>(s);
   * end = static_cast<int>(e);
   * number = atol(us + 1);
+
   return true;
 }
 
