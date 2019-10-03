@@ -1,29 +1,24 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
     Visualize the internal structure of a swarm (color vertices by
-    abundance). Requires the module igraph and python 2.7+.
-
-    Limitations: amplicons grafted with the fastidious option will be
-    discarded and will not be visualized.
+    abundance). Requires the module igraph and python 3.
 """
 
-from __future__ import print_function
-
-__author__ = "Frédéric Mahé <mahe@rhrk.uni-kl.fr>"
-__date__ = "2016/11/09"
-__version__ = "$Revision: 3.1"
+__author__ = "Frédéric Mahé <frederic.mahe@cirad.fr>"
+__date__ = "2019/09/24"
+__version__ = "$Revision: 4.0"
 
 import sys
 import os.path
 from igraph import Graph, plot
 from optparse import OptionParser
 
-#*****************************************************************************#
+# *************************************************************************** #
 #                                                                             #
 #                                  Functions                                  #
 #                                                                             #
-#*****************************************************************************#
+# *************************************************************************** #
 
 
 def option_parse():
@@ -76,7 +71,7 @@ def parse_files(swarms, internal_structure, OTU, drop):
     """
     # List amplicon ids and abundances
     amplicons = list()
-    with open(swarms, "rU") as swarms:
+    with open(swarms, "r") as swarms:
         for i, swarm in enumerate(swarms):
             if i == OTU - 1:
                 # Deal with ";size=" in a rather clumsy way... but it works
@@ -100,7 +95,7 @@ def parse_files(swarms, internal_structure, OTU, drop):
 
     # List pairwise relations
     relations = list()
-    with open(internal_structure, "rU") as internal_structure:
+    with open(internal_structure, "r") as internal_structure:
         print("Parsing amplicon relationships", file=sys.stdout)
         for line in internal_structure:
             # Get the first four elements of the line
@@ -138,7 +133,7 @@ def build_graph(amplicons, relations):
 
     amplicon_ids = [amplicon[0] for amplicon in amplicons]
     abundances = [int(amplicon[1]) for amplicon in amplicons]
-    minimum, maximum = min(abundances), max(abundances)
+    maximum = max(abundances)
 
     # Determine canvas size
     if len(abundances) < 500:
@@ -214,11 +209,11 @@ def main():
     return
 
 
-#*****************************************************************************#
+# *************************************************************************** #
 #                                                                             #
 #                                     Body                                    #
 #                                                                             #
-#*****************************************************************************#
+# *************************************************************************** #
 
 if __name__ == '__main__':
 

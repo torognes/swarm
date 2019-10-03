@@ -1,15 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
     Read all fasta files and build a sorted amplicon contingency
-    table. Usage: python amplicon_contingency_table.py samples_*.fas
+    table. Usage: python3 amplicon_contingency_table.py samples_*.fas
 """
 
-from __future__ import print_function
-
-__author__ = "Frédéric Mahé <mahe@rhrk.uni-kl.fr>"
-__date__ = "2016/03/12"
-__version__ = "$Revision: 2.1"
+__author__ = "Frédéric Mahé <frederic.mahe@cirad.fr>"
+__date__ = "2019/09/24"
+__version__ = "$Revision: 3.0"
 
 import os
 import sys
@@ -35,7 +33,7 @@ def fasta_parse():
         sample = os.path.basename(fasta_file)
         sample = os.path.splitext(sample)[0]
         samples[sample] = samples.get(sample, 0) + 1
-        with open(fasta_file, "rU") as fasta_file:
+        with open(fasta_file, "r") as fasta_file:
             for line in fasta_file:
                 if line.startswith(">"):
                     amplicon, abundance = line.strip(">;\n").split(separator)
@@ -65,7 +63,7 @@ def main():
     all_amplicons, amplicons2samples, samples = fasta_parse()
 
     # Sort amplicons by decreasing abundance (and by amplicon name)
-    sorted_all_amplicons = sorted(all_amplicons.iteritems(),
+    sorted_all_amplicons = sorted(iter(all_amplicons.items()),
                                   key=operator.itemgetter(1, 0))
     sorted_all_amplicons.reverse()
 
