@@ -651,6 +651,12 @@ void process_seed(unsigned int seed)
 
 int compare_amp(const void * a, const void * b)
 {
+  /*
+    Swarm checks that all amplicon sequences are unique (strictly
+    dereplicated input data), so distinct amplicons with the same
+    sequence are not expected at this stage.
+  */
+
   const unsigned int * x = static_cast<const unsigned int*>(a);
   const unsigned int * y = static_cast<const unsigned int*>(b);
   if (*x < *y)
