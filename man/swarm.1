@@ -110,8 +110,9 @@ results obtained during the clustering process allows \fBswarm\fR to
 avoid most of the amplicon comparisons needed in a naïve approach. To
 speed up the remaining amplicon comparisons, \fBswarm\fR implements an
 extremely fast Needleman-Wunsch algorithm making use of the Streaming
-SIMD Extensions (SSE2) of modern x86-64 CPUs. If SSE2 instructions are
-not available, \fBswarm\fR exits with an error message.
+SIMD Extensions (SSE2) of modern x86-64 CPUs, or NEON instructions of
+ARM-64 CPUs. If SSE2 instructions are not available, \fBswarm\fR exits
+with an error message.
 .PP
 \fBswarm\fR can read nucleotide amplicons in fasta format from a
 normal file or from the standard input (using a pipe or a
@@ -138,7 +139,9 @@ defined as a string of [ACGT] or [ACGU] symbols (case insensitive, 'U'
 is replaced with 'T' internally), starting after the end of the header
 line and ending before the next header line or the file end;
 \fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
-exits with an error message if any other symbol is present.
+exits with an error message if any other symbol is present. Lastly, if
+sequences are not all unique, i.e. were not properly dereplicated,
+swarm will exit with an error message.
 .PP
 Clusters are written to output files (specified with \-i, \-o, \-s and
 \-u) by decreasing abundance of their seed sequences, and then by
@@ -296,7 +299,7 @@ in situations where writing to \fIstandard error\fR is problematic
 output clustering results to \fIfilename\fR. Results consist of a list
 of OTUs, one OTU per line. An OTU is a list of amplicon headers
 separated by spaces. That output format can be modified by the option
-\-\-mothur (\-r). Default is to write to standard output.
+\-\-mothur (\-r). Default is to write to \fIstandard output\fR.
 .TP
 .B \-r\fP,\fB\ \-\-mothur
 output clustering results in a format compatible with Mothur. That
@@ -315,7 +318,7 @@ total abundance of amplicons in the OTU,
 .IP \n+[step].
 label of the initial seed (header without abundance annotations),
 .IP \n+[step].
-initial seed abundance,
+abundance of the initial seed,
 .IP \n+[step].
 number of amplicons with an abundance of 1 in the OTU,
 .IP \n+[step].
@@ -373,13 +376,15 @@ output OTU representative sequences to \fIfilename\fR in fasta
 format. The abundance value of each OTU representative is the sum of
 the abundances of all the amplicons in the OTU. Fasta headers are
 formated as follows: '>label_\fIinteger\fR',
-or '>label;size=\fIinteger\fR;' if the \-z option is used.
+or '>label;size=\fIinteger\fR;' if the \-z option is used, and
+sequences are uppercased. Sequences are sorted by decreasing
+abundance, and then by alphabetical order of the sequence labels.
 .TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
 accept amplicon abundance values in usearch/vsearch's style
 (>label;size=\fIinteger\fR[;]). That option influences the abundance
-annotation style used in swarm's standard output (\-o), as well as the
-ouput of options \-r, \-u and \-w.
+annotation style used in swarm's \fIstandard output\fR (\-o), as well
+as the ouput of options \-r, \-u and \-w.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Pairwise alignment advanced options
@@ -420,7 +425,7 @@ zcat myfile.fasta.gz | \\
         \-t 4 \\
         \-f \\
         \-w myfile.representatives.fasta \\
-        \-o myfile.swarms
+        \-o /dev/null
 .RE
 .EE
 .\" ============================================================================
@@ -485,7 +490,7 @@ License along with this program.  If not, see
 .\" ============================================================================
 .SH SEE ALSO
 \fBswipe\fR, an extremely fast Smith-Waterman database search tool by
-Torbjørn Rognes (available from
+Torbjørn Rognes (available at
 .UR https://github.com/torognes/swipe
 .UE ).
 .PP
@@ -503,7 +508,7 @@ or minor bug releases are not mentioned):
 .RS
 .TP
 .BR v2.2.2\~ "released December 12, 2017"
-Version 2.2.2 fixes a bug that would cause Swarm to wait forever in
+Version 2.2.2 fixes a bug that would cause swarm to wait forever in
 very rare cases when multiple threads were used.
 .TP
 .BR v2.2.1\~ "released October 27, 2017"
@@ -537,7 +542,7 @@ bug only applies when \fId\fR > 1.
 .BR v2.1.10\~ "released December 22, 2016"
 Version 2.1.10 fixes two bugs related to gap penalties of alignments.
 The first bug may lead to wrong aligments and similarity percentages
-reported in UCLUST (.uc) files. The second bug makes Swarm use a
+reported in UCLUST (.uc) files. The second bug makes swarm use a
 slightly higher gap extension penalty than specified. The default gap
 extension penalty used have actually been 4.5 instead of 4.
 .TP
@@ -689,10 +694,10 @@ not. Only basic SSE2 instructions are now required to run \fBswarm\fR.
 .TP
 .BR v1.2.4\~ "released January 30, 2014"
 Version 1.2.4 introduces an option \-\-break\-swarms to output all
-pairs of amplicons with \fId\fR differences to standard error. That
-option is used by the companion script `swarm_breaker.py` to refine
-\fBswarm\fR results. The syntax of the inline assembly code is changed
-for compatibility with more compilers.
+pairs of amplicons with \fId\fR differences to \fIstandard
+error\fR. That option is used by the companion script
+`swarm_breaker.py` to refine \fBswarm\fR results. The syntax of the
+inline assembly code is changed for compatibility with more compilers.
 .TP
 .BR v1.2\~ "released May 16, 2013"
 Version 1.2 greatly improves speed by using alignment-free comparisons
