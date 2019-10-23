@@ -335,7 +335,7 @@ You are welcome to:
 
 * submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
 * send a pull request on: https://github.com/torognes/swarm/
-* compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
+* compose a friendly e-mail to: Frédéric Mahé <frederic.mahe@cirad.fr> and Torbjørn Rognes <torognes@ifi.uio.no>
 
 
 ## Third-party pipelines ##
@@ -358,7 +358,7 @@ You are welcome to:
 If you want to try alternative free and open-source clustering
 methods, here are some links:
 
-* [VSEARCH](https://github.com/torognes/vsearch)
+* [vsearch](https://github.com/torognes/vsearch)
 * [Oligotyping](http://merenlab.org/projects/oligotyping/)
 * [DNAclust](http://dnaclust.sourceforge.net/)
 * [Sumaclust](http://metabarcoding.org/sumatra)
@@ -366,6 +366,11 @@ methods, here are some links:
 
 
 ## Version history ##
+
+### version 3.0 ###
+
+**swarm** 3.0 is much faster when _d_ = 1, and consumes less memory.
+Strict dereplication is now mandatory.
 
 ### version 2.2.2 ###
 
