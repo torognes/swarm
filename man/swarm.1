@@ -378,7 +378,7 @@ the abundances of all the amplicons in the OTU. Fasta headers are
 formated as follows: '>label_\fIinteger\fR',
 or '>label;size=\fIinteger\fR;' if the \-z option is used, and
 sequences are uppercased. Sequences are sorted by decreasing
-abundance, and then by alphabetical order of the sequence labels.
+abundance, and then by alphabetical order of sequence labels.
 .TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
 accept amplicon abundance values in usearch/vsearch's style
@@ -512,7 +512,9 @@ Version 3.0.0 introduces a faster algorithm for \fId\fR = 1, and a
 reduced memory footprint. Swarm has been ported to Windows x86-64,
 GNU/Linux ARM 64, and GNU/Linux POWER8. Internal code has been
 modernized, hardened, and thoroughly tested. Strict dereplication of
-input sequences is now mandatory.
+input sequences is now mandatory. The \-\-seeds option (\-w) now
+outputs results sorted by decreasing abundance, and then by
+alphabetical order of sequence labels.
 .TP
 .BR v2.2.2\~ "released December 12, 2017"
 Version 2.2.2 fixes a bug that would cause swarm to wait forever in
