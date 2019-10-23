@@ -89,7 +89,7 @@ Use `swarm -h` to get a short help, or see the
   for a complete description of input/output formats and command line
   options.
 
-The memory footprint of **swarm** is roughly 1.6 times the size of the
+The memory footprint of **swarm** is roughly 0.6 times the size of the
 input fasta file. When using the fastidious option, memory footprint
 can increase significantly. See options `-c` and `-y` to control and
 cap swarm's memory consumption.
