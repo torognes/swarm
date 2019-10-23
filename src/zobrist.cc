@@ -38,7 +38,8 @@ void zobrist_init(unsigned int n)
     31-bit random numbers.
   */
 
-  zobrist_tab_base = static_cast<uint64_t *>(xmalloc(4 * n * sizeof(uint64_t));
+  zobrist_tab_base = static_cast<uint64_t *>
+    (xmalloc(4 * n * sizeof(uint64_t)));
 
   for (unsigned int i = 0; i < 4 * n; i++)
     {
