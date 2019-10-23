@@ -212,13 +212,7 @@ from two different sets have the same hash code, it means that the
 sequences they represent are identical.
 
 If for some reason your fasta entries don't have abundance values, and
-you still want to run swarm, you can easily add fake abundance values:
-
-```sh
-sed '/^>/ s/$/_1/' amplicons.fasta > amplicons_with_abundances.fasta
-```
-
-Alternatively, you may specify a default abundance value with
+you still want to run swarm (not recommended), you can specify a default abundance value with
 **swarm**'s `--append-abundance` (`-a`) option to be used when
 abundance information is missing from a sequence.
 
