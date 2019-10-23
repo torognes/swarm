@@ -89,7 +89,7 @@ Use `swarm -h` to get a short help, or see the
   for a complete description of input/output formats and command line
   options.
 
-The memory footprint of **swarm** is roughly 1.6 times the size of the
+The memory footprint of **swarm** is roughly 0.6 times the size of the
 input fasta file. When using the fastidious option, memory footprint
 can increase significantly. See options `-c` and `-y` to control and
 cap swarm's memory consumption.
@@ -212,13 +212,7 @@ from two different sets have the same hash code, it means that the
 sequences they represent are identical.
 
 If for some reason your fasta entries don't have abundance values, and
-you still want to run swarm, you can easily add fake abundance values:
-
-```sh
-sed '/^>/ s/$/_1/' amplicons.fasta > amplicons_with_abundances.fasta
-```
-
-Alternatively, you may specify a default abundance value with
+you still want to run swarm (not recommended), you can specify a default abundance value with
 **swarm**'s `--append-abundance` (`-a`) option to be used when
 abundance information is missing from a sequence.
 
@@ -307,15 +301,6 @@ rm "${AMPLICONS}"
 ```
 
 
-## Troubleshooting ##
-
-If **swarm** exits with an error message saying `This program
-requires a processor with SSE2`, your computer is too old to run
-**swarm** (or based on a non x86-64 architecture). **swarm** only runs
-on CPUs with the SSE2 instructions, i.e. most Intel and AMD CPUs
-released since 2004.
-
-
 ## Citation ##
 
 To cite **swarm**, please refer to:
@@ -335,7 +320,7 @@ You are welcome to:
 
 * submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
 * send a pull request on: https://github.com/torognes/swarm/
-* compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
+* compose a friendly e-mail to: Frédéric Mahé <frederic.mahe@cirad.fr> and Torbjørn Rognes <torognes@ifi.uio.no>
 
 
 ## Third-party pipelines ##
@@ -358,7 +343,7 @@ You are welcome to:
 If you want to try alternative free and open-source clustering
 methods, here are some links:
 
-* [VSEARCH](https://github.com/torognes/vsearch)
+* [vsearch](https://github.com/torognes/vsearch)
 * [Oligotyping](http://merenlab.org/projects/oligotyping/)
 * [DNAclust](http://dnaclust.sourceforge.net/)
 * [Sumaclust](http://metabarcoding.org/sumatra)
@@ -366,6 +351,11 @@ methods, here are some links:
 
 
 ## Version history ##
+
+### version 3.0 ###
+
+**swarm** 3.0 is much faster when _d_ = 1, and consumes less memory.
+Strict dereplication is now mandatory.
 
 ### version 2.2.2 ###
 
