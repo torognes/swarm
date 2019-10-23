@@ -507,6 +507,13 @@ New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
 .TP
+.BR v3.0.0\~ "released October 24, 2019"
+Version 3.0.0 introduces a faster algorithm for \fId\fR = 1, and a
+reduced memory footprint. Swarm has been ported to Windows x86-64,
+GNU/Linux ARM 64, and GNU/Linux POWER8. Internal code has been
+modernized, hardened, and thoroughly tested. Strict dereplication of
+input sequences is now mandatory.
+.TP
 .BR v2.2.2\~ "released December 12, 2017"
 Version 2.2.2 fixes a bug that would cause swarm to wait forever in
 very rare cases when multiple threads were used.
