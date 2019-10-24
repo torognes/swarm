@@ -18,6 +18,15 @@ To help users, we describe
 starting from raw fastq files, clustering with **swarm** and producing
 a filtered OTU table.
 
+swarm 3.0 introduces:
+* a much faster default algorithm,
+* a reduced memory footprint,
+* binaries for Windows x86-64, GNU/Linux ARM 64, and GNU/Linux POWER8,
+* an updated, hardened, and thoroughly tested code,
+Please note that:
+* strict dereplication of input sequences is now mandatory,
+* \-\-seeds option (\-w) now outputs results sorted by decreasing abundance, and then by alphabetical order of sequence labels.
+
 swarm 2.0 introduces several novelties and improvements over swarm
 1.0:
 * built-in breaking phase now performed automatically,
@@ -26,7 +35,7 @@ swarm 2.0 introduces several novelties and improvements over swarm
 * fast algorithm now used by default for *d* = 1 (linear time
   complexity),
 * a new option called *fastidious* that refines *d* = 1 results and
-  reduces the number of small OTUs,
+  reduces the number of small OTUs.
 
 ## Common misconceptions
 
