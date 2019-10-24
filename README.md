@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/torognes/swarm.svg?branch=swarm3)](https://travis-ci.org/torognes/swarm)
+[![Build Status](https://travis-ci.org/torognes/swarm.svg)](https://travis-ci.org/torognes/swarm)
 
 # swarm
 
@@ -108,7 +108,7 @@ cap swarm's memory consumption.
 
 ## Install ##
 
-Get the latest binaries for GNU/Linux or macOS from
+Get the latest binaries for GNU/Linux, macOS or Windows from
 [the release page](https://github.com/torognes/swarm/releases "swarm
 tagged releases"). Get the source code from
 [GitHub](https://github.com/torognes/swarm "swarm public repository")
