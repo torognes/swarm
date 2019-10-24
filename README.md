@@ -22,7 +22,8 @@ swarm 3.0 introduces:
 * a much faster default algorithm,
 * a reduced memory footprint,
 * binaries for Windows x86-64, GNU/Linux ARM 64, and GNU/Linux POWER8,
-* an updated, hardened, and thoroughly tested code,
+* an updated, hardened, and thoroughly tested code.
+
 Please note that:
 * strict dereplication of input sequences is now mandatory,
 * \-\-seeds option (\-w) now outputs results sorted by decreasing abundance, and then by alphabetical order of sequence labels.
