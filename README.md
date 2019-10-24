@@ -26,9 +26,10 @@ swarm 3.0 introduces:
 
 Please note that:
 * strict dereplication of input sequences is now mandatory,
-* \-\-seeds option (\-w) now outputs results sorted by decreasing abundance, and then by alphabetical order of sequence labels.
+* \-\-seeds option (\-w) now outputs results sorted by decreasing
+  abundance, and then by alphabetical order of sequence labels.
 
-swarm 2.0 introduces several novelties and improvements over swarm
+swarm 2.0 introduced several novelties and improvements over swarm
 1.0:
 * built-in breaking phase now performed automatically,
 * possibility to output OTU representatives in fasta format (option
@@ -41,8 +42,8 @@ swarm 2.0 introduces several novelties and improvements over swarm
 ## Common misconceptions
 
 **swarm** is a single-linkage clustering method, with some superficial
-  similarities with other clustering methods (e.g.,
-  [Huse et al, 2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/)). **swarm**'s
+  similarities with other clustering methods (e.g., [Huse et al,
+  2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/)). **swarm**'s
   novelty is its iterative growth process and the use of sequence
   abundance values to delineate OTUs. **swarm** properly delineates
   large OTUs (high recall), and can distinguish OTUs with as little as
@@ -88,8 +89,8 @@ cgtcgtcgtcgtcgt
 
 where sequence identifiers are unique and end with a value indicating
 the number of occurrences of the sequence (e.g., `_1000`). Alternative
-format is possible with the option `-z`, please see the
-[user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
+format is possible with the option `-z`, please see the [user
+manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
 **requires** each fasta entry to present a number of occurrences to
 work properly. That crucial information can be produced during the
 [dereplication](#dereplication-mandatory) step.
@@ -222,9 +223,10 @@ from two different sets have the same hash code, it means that the
 sequences they represent are identical.
 
 If for some reason your fasta entries don't have abundance values, and
-you still want to run swarm (not recommended), you can specify a default abundance value with
-**swarm**'s `--append-abundance` (`-a`) option to be used when
-abundance information is missing from a sequence.
+you still want to run swarm (not recommended), you can specify a
+default abundance value with **swarm**'s `--append-abundance` (`-a`)
+option to be used when abundance information is missing from a
+sequence.
 
 
 ### Launch swarm ###
