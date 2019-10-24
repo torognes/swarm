@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -26,446 +26,473 @@
 #define CHANNELS 8
 #define CDEPTH 4
 
-#define SHUFFLE 1
+#ifdef __aarch64__
 
-#if 0
+typedef int16x8_t VECTORTYPE;
 
-/* never used */
+#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
-void dprofile_dump16(WORD * dprofile)
-{
-  char * s = sym_nt;
-  printf("\ndprofile:\n");
-  for(int i=0; i<32; i++)
-  {
-    printf("%c: ",s[i]);
-    for(int k=0; k<CDEPTH; k++)
-    {
-      printf("[");
-      for(int j=0; j<CHANNELS; j++)
-        printf(" %3d", (short) dprofile[CHANNELS*CDEPTH*i + CHANNELS*k + j]);
-      printf("]");
-    }
-    printf("\n");
-  }
-  exit(1);
-}
+const uint16x8_t neon_mask =
+  {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
+
+#define v_load(a) vld1q_s16((const int16_t *)(a))
+#define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
+#define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
+#define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
+#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32 \
+          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32 \
+          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
+#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
+          (vget_low_s64(vreinterpretq_s64_s16(a)), \
+           vget_low_s64(vreinterpretq_s64_s16(b))))
+#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
+          (vget_high_s64(vreinterpretq_s64_s16(a)), \
+           vget_high_s64(vreinterpretq_s64_s16(b))))
+#define v_min(a, b) vminq_s16((a), (b))
+#define v_add(a, b) vqaddq_u16((a), (b))
+#define v_sub(a, b) vqsubq_u16((a), (b))
+#define v_dup(a) vdupq_n_s16(a)
+#define v_zero v_dup(0)
+#define v_and(a, b) vandq_u16((a), (b))
+#define v_xor(a, b) veorq_u16((a), (b))
+#define v_shift_left(a) vextq_u16((v_zero), (a), 7)
+#define v_mask_gt(a, b) vaddvq_u16(vandq_u16((vcgtq_s16((a), (b))), neon_mask))
+#define v_mask_eq(a, b) vaddvq_u16(vandq_u16((vceqq_s16((a), (b))), neon_mask))
+
+#elif defined __x86_64__
+
+typedef __m128i VECTORTYPE;
+
+#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
+
+#define v_load(a) _mm_load_si128(CAST_VECTOR_p(a))
+#define v_store(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
+#define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
+#define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
+#define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
+#define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
+#define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
+#define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
+#define v_min(a, b) _mm_min_epi16((a), (b))
+#define v_add(a, b) _mm_adds_epu16((a), (b))
+#define v_sub(a, b) _mm_subs_epu16((a), (b))
+#define v_dup(a) _mm_set1_epi16(a)
+#define v_zero v_dup(0)
+#define v_and(a, b) _mm_and_si128((a), (b))
+#define v_xor(a, b) _mm_xor_si128((a), (b))
+#define v_shift_left(a) _mm_slli_si128((a), 2)
+#define v_mask_gt(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpgt_epi16((a), (b))))
+#define v_mask_eq(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
+
+#elif defined __PPC__
+
+typedef vector unsigned short VECTORTYPE;
+
+#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
+
+const vector unsigned char perm_merge_long_low =
+  {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
+
+const vector unsigned char perm_merge_long_high =
+  {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+   0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
+
+const vector unsigned char perm_bits =
+  { 0x78, 0x70, 0x68, 0x60, 0x58, 0x50, 0x48, 0x40,
+    0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00 };
+
+#define v_load(a) *CAST_VECTOR_p(a)
+#define v_store(a, b) vec_st((VECTORTYPE)(b), 0, CAST_VECTOR_p(a))
+#define v_merge_lo_16(a, b) vec_mergeh((VECTORTYPE)(a), (VECTORTYPE)(b))
+#define v_merge_hi_16(a, b) vec_mergel((VECTORTYPE)(a), (VECTORTYPE)(b))
+#define v_merge_lo_32(a, b) (VECTORTYPE) vec_mergeh((vector int)(a),    \
+                                                    (vector int)(b))
+#define v_merge_hi_32(a, b) (VECTORTYPE) vec_mergel((vector int)(a),    \
+                                                    (vector int)(b))
+#define v_merge_lo_64(a, b) (VECTORTYPE) vec_perm((vector long long)(a), \
+                                                  (vector long long)(b), \
+                                                  perm_merge_long_low)
+#define v_merge_hi_64(a, b) (VECTORTYPE) vec_perm((vector long long)(a), \
+                                                  (vector long long)(b), \
+                                                  perm_merge_long_high)
+#define v_min(a, b) (VECTORTYPE) vec_min((vector signed short) (a),     \
+                                         (vector signed short) (b))
+#define v_add(a, b) vec_adds((a), (b))
+#define v_sub(a, b) vec_subs((a), (b))
+#define v_dup(a) vec_splats((unsigned short)(a));
+#define v_zero vec_splat_u16(0)
+#define v_and(a, b) vec_and((a), (b))
+#define v_xor(a, b) vec_xor((a), (b))
+#define v_shift_left(a) vec_sld((a), v_zero, 2)
+#define v_mask_gt(a, b) ((vector unsigned short) \
+  vec_vbpermq((vector unsigned char) vec_cmpgt((a), (b)), perm_bits))[4]
+#define v_mask_eq(a, b) ((vector unsigned short) \
+  vec_vbpermq((vector unsigned char) vec_cmpeq((a), (b)), perm_bits))[4]
+
+#else
+
+#error Unknown Architecture
 
 #endif
+
+#if 0
+void dprofile_dump16(WORD * dprofile)
+{
+  printf("\ndprofile:\n");
+  for(int i=0; i<32; i++)
+    {
+      printf("%c: ", sym_nt[i]);
+      for(int k=0; k<CDEPTH; k++)
+        {
+          printf("[");
+          for(int j=0; j<CHANNELS; j++)
+            printf(" %3d", (short) dprofile[CHANNELS*CDEPTH*i + CHANNELS*k + j]);
+          printf("]");
+        }
+      printf("\n");
+    }
+  exit(1);
+}
+#endif
+
+void align_cells_regular_16(VECTORTYPE * Sm,
+                            VECTORTYPE * hep,
+                            VECTORTYPE ** qp,
+                            VECTORTYPE * Qm,
+                            VECTORTYPE * Rm,
+                            uint64_t ql,
+                            VECTORTYPE * F0,
+                            uint64_t * dir_long,
+                            VECTORTYPE * H0);
+
+void align_cells_masked_16(VECTORTYPE * Sm,
+                           VECTORTYPE * hep,
+                           VECTORTYPE ** qp,
+                           VECTORTYPE * Qm,
+                           VECTORTYPE * Rm,
+                           uint64_t ql,
+                           VECTORTYPE * F0,
+                           uint64_t * dir_long,
+                           VECTORTYPE * H0,
+                           VECTORTYPE * Mm,
+                           VECTORTYPE * MQ,
+                           VECTORTYPE * MR,
+                           VECTORTYPE * MQ0);
+
+uint64_t backtrack_16(char * qseq,
+                      char * dseq,
+                      uint64_t qlen,
+                      uint64_t dlen,
+                      uint64_t * dirbuffer,
+                      uint64_t offset,
+                      uint64_t dirbuffersize,
+                      uint64_t channel,
+                      uint64_t * alignmentlengthp);
 
 inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE * dseq)
 {
-  __m128i xmm0,  xmm1,  xmm2,  xmm3,  xmm4,  xmm5,  xmm6,  xmm7;
-  __m128i xmm8,  xmm9,  xmm10, xmm11, xmm12, xmm13, xmm14, xmm15;
-  __m128i xmm16, xmm17, xmm18, xmm19, xmm20, xmm21, xmm22, xmm23;
-  __m128i xmm24, xmm25, xmm26, xmm27, xmm28, xmm29, xmm30, xmm31;
+  VECTORTYPE reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
+  VECTORTYPE reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
+  VECTORTYPE reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
+  VECTORTYPE reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
 
-  // clocks? 4*(8+3*(8+4)+8) = 52*4 = 208
-  
-  for (int j=0; j<CDEPTH; j++)
-  {
-    int d[CHANNELS];
-    for(int z=0; z<CHANNELS; z++)
-      d[z] = dseq[j*CHANNELS+z] << 5;
-      
-    // for(int i=0; i<24; i += 8)
-    // for(int i=0; i<32; i += 8)
-    for(int i=0; i<8; i += 8)
+  for (unsigned int j=0; j<CDEPTH; j++)
     {
-      xmm0  = _mm_load_si128((__m128i*)(score_matrix_word + d[0] + i));
-      xmm1  = _mm_load_si128((__m128i*)(score_matrix_word + d[1] + i));
-      xmm2  = _mm_load_si128((__m128i*)(score_matrix_word + d[2] + i));
-      xmm3  = _mm_load_si128((__m128i*)(score_matrix_word + d[3] + i));
-      xmm4  = _mm_load_si128((__m128i*)(score_matrix_word + d[4] + i));
-      xmm5  = _mm_load_si128((__m128i*)(score_matrix_word + d[5] + i));
-      xmm6  = _mm_load_si128((__m128i*)(score_matrix_word + d[6] + i));
-      xmm7  = _mm_load_si128((__m128i*)(score_matrix_word + d[7] + i));
-      
-      xmm8  = _mm_unpacklo_epi16(xmm0,  xmm1);
-      xmm9  = _mm_unpackhi_epi16(xmm0,  xmm1);
-      xmm10 = _mm_unpacklo_epi16(xmm2,  xmm3);
-      xmm11 = _mm_unpackhi_epi16(xmm2,  xmm3);
-      xmm12 = _mm_unpacklo_epi16(xmm4,  xmm5);
-      xmm13 = _mm_unpackhi_epi16(xmm4,  xmm5);
-      xmm14 = _mm_unpacklo_epi16(xmm6,  xmm7);
-      xmm15 = _mm_unpackhi_epi16(xmm6,  xmm7);
-      
-      xmm16 = _mm_unpacklo_epi32(xmm8,  xmm10);
-      xmm17 = _mm_unpackhi_epi32(xmm8,  xmm10);
-      xmm18 = _mm_unpacklo_epi32(xmm12, xmm14);
-      xmm19 = _mm_unpackhi_epi32(xmm12, xmm14);
-      xmm20 = _mm_unpacklo_epi32(xmm9,  xmm11);
-      xmm21 = _mm_unpackhi_epi32(xmm9,  xmm11);
-      xmm22 = _mm_unpacklo_epi32(xmm13, xmm15);
-      xmm23 = _mm_unpackhi_epi32(xmm13, xmm15);
-      
-      xmm24 = _mm_unpacklo_epi64(xmm16, xmm18);
-      xmm25 = _mm_unpackhi_epi64(xmm16, xmm18);
-      xmm26 = _mm_unpacklo_epi64(xmm17, xmm19);
-      xmm27 = _mm_unpackhi_epi64(xmm17, xmm19);
-      xmm28 = _mm_unpacklo_epi64(xmm20, xmm22);
-      xmm29 = _mm_unpackhi_epi64(xmm20, xmm22);
-      xmm30 = _mm_unpacklo_epi64(xmm21, xmm23);
-      xmm31 = _mm_unpackhi_epi64(xmm21, xmm23);
-      
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j), xmm24);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j), xmm25);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j), xmm26);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j), xmm27);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j), xmm28);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j), xmm29);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j), xmm30);
-      _mm_store_si128((__m128i*)(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j), xmm31);
+      unsigned int d[CHANNELS];
+      for(unsigned int z=0; z<CHANNELS; z++)
+        d[z] = (static_cast<unsigned int>(dseq[j*CHANNELS+z])) << 5;
+
+      for(int i=0; i<8; i += 8)
+        {
+          reg0  = v_load(score_matrix_word + d[0] + i);
+          reg1  = v_load(score_matrix_word + d[1] + i);
+          reg2  = v_load(score_matrix_word + d[2] + i);
+          reg3  = v_load(score_matrix_word + d[3] + i);
+          reg4  = v_load(score_matrix_word + d[4] + i);
+          reg5  = v_load(score_matrix_word + d[5] + i);
+          reg6  = v_load(score_matrix_word + d[6] + i);
+          reg7  = v_load(score_matrix_word + d[7] + i);
+
+          reg8  = v_merge_lo_16(reg0,  reg1);
+          reg9  = v_merge_hi_16(reg0,  reg1);
+          reg10 = v_merge_lo_16(reg2,  reg3);
+          reg11 = v_merge_hi_16(reg2,  reg3);
+          reg12 = v_merge_lo_16(reg4,  reg5);
+          reg13 = v_merge_hi_16(reg4,  reg5);
+          reg14 = v_merge_lo_16(reg6,  reg7);
+          reg15 = v_merge_hi_16(reg6,  reg7);
+
+          reg16 = v_merge_lo_32(reg8,  reg10);
+          reg17 = v_merge_hi_32(reg8,  reg10);
+          reg18 = v_merge_lo_32(reg12, reg14);
+          reg19 = v_merge_hi_32(reg12, reg14);
+          reg20 = v_merge_lo_32(reg9,  reg11);
+          reg21 = v_merge_hi_32(reg9,  reg11);
+          reg22 = v_merge_lo_32(reg13, reg15);
+          reg23 = v_merge_hi_32(reg13, reg15);
+
+          reg24 = v_merge_lo_64(reg16, reg18);
+          reg25 = v_merge_hi_64(reg16, reg18);
+          reg26 = v_merge_lo_64(reg17, reg19);
+          reg27 = v_merge_hi_64(reg17, reg19);
+          reg28 = v_merge_lo_64(reg20, reg22);
+          reg29 = v_merge_hi_64(reg20, reg22);
+          reg30 = v_merge_lo_64(reg21, reg23);
+          reg31 = v_merge_hi_64(reg21, reg23);
+
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+0) + CHANNELS*j, reg24);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+1) + CHANNELS*j, reg25);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+2) + CHANNELS*j, reg26);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+3) + CHANNELS*j, reg27);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+4) + CHANNELS*j, reg28);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+5) + CHANNELS*j, reg29);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+6) + CHANNELS*j, reg30);
+          v_store(dprofile_word + CDEPTH*CHANNELS*(i+7) + CHANNELS*j, reg31);
+        }
     }
-  }
 #if 0
   dprofile_dump16(dprofile_word);
 #endif
 }
 
-/* 
-   Sorry for the assembler code below. This code was originally written
-   several years ago when compilers were not that good at compiling
-   intrinsics to optimal code.
-   Similar code using intrinsics instead of assembler is available in
-   the vsearch codebase.
-*/
-
-// Due to the use of pminsw instead of pminuw (which is sse4) below,
-// the code works only with 15-bit values
-
-#define INITIALIZE                                      \
-  "        movq      %3, %%rax               \n"        \
-  "        movdqa    (%%rax), %%xmm14        \n"        \
-  "        movq      %4, %%rax               \n"        \
-  "        movdqa    (%%rax), %%xmm15        \n"        \
-  "        movq      %9, %%rax               \n"        \
-  "        movdqa    (%%rax), %%xmm0         \n"        \
-  "        movdqa    (%7), %%xmm7            \n"        \
-  "        movdqa    %%xmm7, %%xmm3          \n"        \
-  "        psubusw   %%xmm14, %%xmm3         \n"        \
-  "        movdqa    %%xmm3, %%xmm1          \n"        \
-  "        paddusw   %%xmm15, %%xmm3         \n"        \
-  "        movdqa    %%xmm3, %%xmm2          \n"        \
-  "        paddusw   %%xmm15, %%xmm3         \n"        \
-  "        movdqa    %%xmm7, %%xmm4          \n"        \
-  "        paddusw   %%xmm15, %%xmm7         \n"        \
-  "        movdqa    %%xmm7, %%xmm5          \n"        \
-  "        paddusw   %%xmm15, %%xmm7         \n"        \
-  "        movdqa    %%xmm7, %%xmm6          \n"        \
-  "        paddusw   %%xmm15, %%xmm7         \n"        \
-  "        movq      %5, %%r12               \n"        \
-  "        shlq      $3, %%r12               \n"        \
-  "        movq      %%r12, %%r10            \n"        \
-  "        andq      $-16, %%r10             \n"        \
-  "        xorq      %%r11, %%r11            \n" 
-
-#define ONESTEP(H, N, F, V, DIR)                        \
-  "        paddusw   " V ", " H "            \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpgtw   " F ", %%xmm13          \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 0+" DIR "         \n"        \
-  "        pminsw    " F ", " H "            \n"        \
-  "        pminsw    %%xmm12, " H "          \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpeqw   %%xmm12, %%xmm13        \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 2+" DIR "         \n"        \
-  "        movdqa    " H ", " N "            \n"        \
-  "        paddusw   %%xmm14, " H "          \n"        \
-  "        paddusw   %%xmm15, " F "          \n"        \
-  "        paddusw   %%xmm15, %%xmm12        \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpgtw   " F ", %%xmm13          \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 4+" DIR "         \n"        \
-  "        movdqa    " H ", %%xmm13          \n"        \
-  "        pcmpgtw   %%xmm12, %%xmm13        \n"        \
-  "        pmovmskb  %%xmm13, %%edx          \n"        \
-  "        movw      %%dx, 6+" DIR "         \n"        \
-  "        pminsw    " H ", %%xmm12          \n"        \
-  "        pminsw    " H ", " F "            \n"
-
-
-inline void donormal16(__m128i * Sm,
-                       __m128i * hep,
-                       __m128i ** qp,
-                       __m128i * Qm,
-                       __m128i * Rm,
-                       long ql,
-                       __m128i * Zm,
-                       __m128i * F0,
-                       unsigned long * dir,
-                       __m128i * H0
-                      )
+inline void onestep_16(VECTORTYPE & H,
+                       VECTORTYPE & N,
+                       VECTORTYPE & F,
+                       VECTORTYPE V,
+                       unsigned short * DIR,
+                       VECTORTYPE & E,
+                       VECTORTYPE QR,
+                       VECTORTYPE R)
 {
-  __asm__
-    __volatile__
-    ( 
-     INITIALIZE
-     
-     "        jmp       2f                  \n"
-     
-     "1:      movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
-     "        movdqa    0(%1,%%r11,4), %%xmm8   \n" // load N0
-     "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
-     
-     ONESTEP("%%xmm0", "%%xmm9",        "%%xmm4", " 0(%%rax)", " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1", "%%xmm10",       "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2", "%%xmm11",       "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3", "0(%1,%%r11,4)", "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
-     "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
-     "        movq      8(%2,%%r11,1), %%rax    \n" // load x from qp[qi+1]
-     "        movdqa    32(%1,%%r11,4), %%xmm0  \n" // load H0
-     "        movdqa    48(%1,%%r11,4), %%xmm12 \n" // load E
-     
-     ONESTEP("%%xmm8",  "%%xmm1",           "%%xmm4", "0(%%rax)" , "32(%8,%%r11,4)")
-     ONESTEP("%%xmm9",  "%%xmm2",           "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
-     ONESTEP("%%xmm10", "%%xmm3",           "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
-     ONESTEP("%%xmm11", "32(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
-     
-     "        movdqa    %%xmm12, 48(%1,%%r11,4) \n" // save E
-     "        addq      $16, %%r11              \n" // qi++
-     "2:      cmpq      %%r11, %%r10            \n" // qi = ql4 ?
-     "        jne       1b                      \n" // loop
-     
-     "4:      cmpq      %%r11, %%r12            \n" 
-     "        je        3f                      \n"
-     "        movq      0(%2,%%r11,1), %%rax    \n" // load x from qp[qi]
-     "        movdqa    16(%1,%%r11,4), %%xmm12 \n" // load E
-     
-     ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
-     "        movdqa    %%xmm12, 16(%1,%%r11,4) \n" // save E
-     
-     "        movdqa    %%xmm9, %%xmm1          \n"
-     "        movdqa    %%xmm10, %%xmm2         \n"
-     "        movdqa    %%xmm11, %%xmm3         \n"
-     "        movdqa    0(%1,%%r11,4), %%xmm4   \n"
-     "        jmp       5f                      \n"
-     
-     "3:      movdqa    -32(%1,%%r11,4), %%xmm4 \n"
-     
-     "5:      movq      %0, %%rax               \n" // save final Hs
-     "        movdqa    %%xmm1, (%%rax)         \n"
-     "        addq      $16, %%rax              \n"
-     "        movdqa    %%xmm2, (%%rax)         \n"
-     "        addq      $16, %%rax              \n"
-     "        movdqa    %%xmm3, (%%rax)         \n"
-     "        addq      $16, %%rax              \n"
-     "        movdqa    %%xmm4, (%%rax)         \n"
-     
-     : 
-     : "m"(Sm), "r"(hep),  "r"(qp), "m"(Qm), 
-       "m"(Rm), "r"(ql),   "m"(Zm), "r"(F0),
-       "r"(dir),"m"(H0)
-       
-     : "xmm0",  "xmm1",  "xmm2",  "xmm3",
-       "xmm4",  "xmm5",  "xmm6",  "xmm7",
-       "xmm8",  "xmm9",  "xmm10", "xmm11", 
-       "xmm12", "xmm13", "xmm14", "xmm15",
-       "rax",   "r10",   "r11",   "r12",
-       "rdx",   "cc"
-      );
+  H = v_add(H, V);
+  *(DIR+0) = v_mask_gt(H, F);
+  H = v_min(H, F);
+  H = v_min(H, E);
+  *(DIR+1) = v_mask_eq(H, E);
+  N = H;
+  H = v_add(H, QR);
+  F = v_add(F, R);
+  E = v_add(E, R);
+  *(DIR+2) = v_mask_gt(H, F);
+  *(DIR+3) = v_mask_gt(H, E);
+  F = v_min(H, F);
+  E = v_min(H, E);
 }
 
-inline void domasked16(__m128i * Sm,
-                       __m128i * hep,
-                       __m128i ** qp,
-                       __m128i * Qm, 
-                       __m128i * Rm, 
-                       long ql,      
-                       __m128i * Zm,
-                       __m128i * F0,
-                       unsigned long * dir,
-                       __m128i * H0,
-                       __m128i * Mm,
-                       __m128i * MQ,
-                       __m128i * MR,
-                       __m128i * MQ0)
+void align_cells_regular_16(VECTORTYPE * Sm,
+                            VECTORTYPE * hep,
+                            VECTORTYPE ** qp,
+                            VECTORTYPE * Qm,
+                            VECTORTYPE * Rm,
+                            uint64_t ql,
+                            VECTORTYPE * F0,
+                            uint64_t * dir_long,
+                            VECTORTYPE * H0)
 {
-  
-  __asm__
-    __volatile__
-    (
-     INITIALIZE
+  VECTORTYPE Q, R, E;
+  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
+  VECTORTYPE f0, f1, f2, f3;
 
-     "        jmp       2f                       \n"
-     
-     "1:      movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
-     "        movdqa    0(%1,%%r11,4), %%xmm8    \n" // load N0
-     "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
-     "        movdqa    (%11), %%xmm13           \n" 
-     "        psubusw   (%10), %%xmm8            \n" // mask N0
-     "        psubusw   (%10), %%xmm12           \n" // mask E
-     "        paddusw   %%xmm13, %%xmm8          \n" // init N0
-     "        paddusw   %%xmm13, %%xmm12         \n" // init E
-     "        paddusw   (%13), %%xmm12           \n" // fix E
-     "        paddusw   (%12), %%xmm13           \n" // update
-     "        movdqa    %%xmm13, (%11)           \n"
-     
-     ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
-     "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
+  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
-     "        movq      8(%2,%%r11,1), %%rax     \n" // load x from qp[qi+1]
-     "        movdqa    32(%1,%%r11,4), %%xmm0   \n" // load H0
-     "        movdqa    48(%1,%%r11,4), %%xmm12  \n" // load E
-     "        movdqa    (%11), %%xmm13           \n"
-     "        psubusw   (%10), %%xmm0            \n" // mask H0
-     "        psubusw   (%10), %%xmm12           \n" // mask E
-     "        paddusw   %%xmm13, %%xmm0          \n"
-     "        paddusw   %%xmm13, %%xmm12         \n"
-     "        paddusw   (%13), %%xmm12           \n" // fix E
-     "        paddusw   (%12), %%xmm13           \n"
-     "        movdqa    %%xmm13, (%11)           \n"
-     
-     ONESTEP("%%xmm8",  "%%xmm1",           "%%xmm4", "0(%%rax)" , "32(%8,%%r11,4)")
-     ONESTEP("%%xmm9",  "%%xmm2",           "%%xmm5", "16(%%rax)", "40(%8,%%r11,4)")
-     ONESTEP("%%xmm10", "%%xmm3",           "%%xmm6", "32(%%rax)", "48(%8,%%r11,4)")
-     ONESTEP("%%xmm11", "32(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "56(%8,%%r11,4)")
-     
-     "        movdqa    %%xmm12, 48(%1,%%r11,4)  \n" // save E
-     "        addq      $16, %%r11               \n" // qi++
-     "2:      cmpq      %%r11, %%r10             \n" // qi = ql4 ?
-     "        jne       1b                       \n" // loop
-     
-     "        cmpq      %%r11, %%r12             \n" 
-     "        je        3f                       \n"
-     "        movq      0(%2,%%r11,1), %%rax     \n" // load x from qp[qi]
-     "        movdqa    16(%1,%%r11,4), %%xmm12  \n" // load E
-     "        movdqa    (%11), %%xmm13           \n"
-     "        psubusw   (%10), %%xmm12           \n" // mask E
-     "        paddusw   %%xmm13, %%xmm12         \n"
-     "        paddusw   (%13), %%xmm12           \n" // fix E
-     "        paddusw   (%12), %%xmm13           \n"
-     "        movdqa    %%xmm13, (%11)           \n"
-     
-     ONESTEP("%%xmm0",  "%%xmm9",          "%%xmm4", "0(%%rax)" , " 0(%8,%%r11,4)")
-     ONESTEP("%%xmm1",  "%%xmm10",         "%%xmm5", "16(%%rax)", " 8(%8,%%r11,4)")
-     ONESTEP("%%xmm2",  "%%xmm11",         "%%xmm6", "32(%%rax)", "16(%8,%%r11,4)")
-     ONESTEP("%%xmm3",  "0(%1,%%r11,4)",   "%%xmm7", "48(%%rax)", "24(%8,%%r11,4)")
-     
-     "        movdqa    %%xmm12, 16(%1,%%r11,4)  \n" // save E
-     
-     "        movdqa    %%xmm9, %%xmm1           \n"
-     "        movdqa    %%xmm10, %%xmm2          \n"
-     "        movdqa    %%xmm11, %%xmm3          \n"
-     "        movdqa    0(%1,%%r11,4), %%xmm4    \n"
-     "        jmp       5f                       \n"
-     
-     "3:      movdqa    -32(%1,%%r11,4), %%xmm4  \n"
-     
-     "5:      movq      %0, %%rax                \n" // save final Hs
-     "        movdqa    %%xmm1, (%%rax)          \n"
-     "        addq      $16, %%rax               \n"
-     "        movdqa    %%xmm2, (%%rax)          \n"
-     "        addq      $16, %%rax               \n"
-     "        movdqa    %%xmm3, (%%rax)          \n"
-     "        addq      $16, %%rax               \n"
-     "        movdqa    %%xmm4, (%%rax)          \n"
-     
-     : 
-     
-     : "m"(Sm), "r"(hep),"r"(qp), "m"(Qm), 
-       "m"(Rm), "r"(ql), "m"(Zm), "r"(F0),
-       "r"(dir),
-       "m"(H0), "r"(Mm), "r"(MQ), "r"(MR),
-       "r"(MQ0)
-       
-     : "xmm0",  "xmm1",  "xmm2",  "xmm3",
-       "xmm4",  "xmm5",  "xmm6",  "xmm7",
-       "xmm8",  "xmm9",  "xmm10", "xmm11", 
-       "xmm12", "xmm13", "xmm14", "xmm15",
-       "rax",   "r10",   "r11",   "r12",
-       "rdx",   "cc"
-     );
+  Q = *Qm;
+  R = *Rm;
+
+  f0 = *F0;
+  f1 = v_add(f0, R);
+  f2 = v_add(f1, R);
+  f3 = v_add(f2, R);
+
+  h0 = *H0;
+  h1 = v_sub(f0, Q);
+  h2 = v_add(h1, R);
+  h3 = v_add(h2, R);
+  h4 = v_zero;
+  h5 = v_zero;
+  h6 = v_zero;
+  h7 = v_zero;
+  h8 = v_zero;
+
+  for(uint64_t i = 0; i < ql; i++)
+    {
+      VECTORTYPE * x;
+
+      x = qp[i + 0];
+      h4 = hep[2*i + 0];
+      E  = hep[2*i + 1];
+      onestep_16(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      onestep_16(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      onestep_16(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      onestep_16(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
+      hep[2*i + 0] = h8;
+      hep[2*i + 1] = E;
+      h0 = h4;
+      h1 = h5;
+      h2 = h6;
+      h3 = h7;
+    }
+
+  Sm[0] = h5;
+  Sm[1] = h6;
+  Sm[2] = h7;
+  Sm[3] = h8;
 }
 
-unsigned long backtrack16(char * qseq,
-                          char * dseq,
-                          unsigned long qlen,
-                          unsigned long dlen,
-                          unsigned long * dirbuffer,
-                          unsigned long offset,
-                          unsigned long dirbuffersize,
-                          unsigned long channel,
-                          unsigned long * alignmentlengthp)
+void align_cells_masked_16(VECTORTYPE * Sm,
+                           VECTORTYPE * hep,
+                           VECTORTYPE ** qp,
+                           VECTORTYPE * Qm,
+                           VECTORTYPE * Rm,
+                           uint64_t ql,
+                           VECTORTYPE * F0,
+                           uint64_t * dir_long,
+                           VECTORTYPE * H0,
+                           VECTORTYPE * Mm,
+                           VECTORTYPE * MQ,
+                           VECTORTYPE * MR,
+                           VECTORTYPE * MQ0)
 {
-  unsigned long maskup      = 3UL << (2*channel+ 0);
-  unsigned long maskleft    = 3UL << (2*channel+16);
-  unsigned long maskextup   = 3UL << (2*channel+32);
-  unsigned long maskextleft = 3UL << (2*channel+48);
+  VECTORTYPE Q, R, E;
+  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
+  VECTORTYPE f0, f1, f2, f3;
+
+  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
+
+  Q = *Qm;
+  R = *Rm;
+
+  f0 = *F0;
+  f1 = v_add(f0, R);
+  f2 = v_add(f1, R);
+  f3 = v_add(f2, R);
+
+  h0 = *H0;
+  h1 = v_sub(f0, Q);
+  h2 = v_add(h1, R);
+  h3 = v_add(h2, R);
+  h4 = v_zero;
+  h5 = v_zero;
+  h6 = v_zero;
+  h7 = v_zero;
+  h8 = v_zero;
+
+  for(uint64_t i = 0; i < ql; i++)
+    {
+      VECTORTYPE * x;
+
+      h4 = hep[2*i + 0];
+      E  = hep[2*i + 1];
+      x = qp[i + 0];
+
+      /* mask h4 and E */
+      h4 = v_sub(h4, *Mm);
+      E  = v_sub(E,  *Mm);
+
+      /* init h4 and E */
+      h4 = v_add(h4, *MQ);
+      E  = v_add(E,  *MQ);
+      E  = v_add(E,  *MQ0);
+
+      /* update MQ */
+      *MQ = v_add(*MQ,  *MR);
+
+      onestep_16(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
+      onestep_16(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
+      onestep_16(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
+      onestep_16(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
+      hep[2*i + 0] = h8;
+      hep[2*i + 1] = E;
+
+      h0 = h4;
+      h1 = h5;
+      h2 = h6;
+      h3 = h7;
+    }
+
+  Sm[0] = h5;
+  Sm[1] = h6;
+  Sm[2] = h7;
+  Sm[3] = h8;
+}
+
+uint64_t backtrack_16(char * qseq,
+                      char * dseq,
+                      uint64_t qlen,
+                      uint64_t dlen,
+                      uint64_t * dirbuffer,
+                      uint64_t offset,
+                      uint64_t dirbuffersize,
+                      uint64_t channel,
+                      uint64_t * alignmentlengthp)
+{
+  uint64_t maskup      = 3ULL << (2*channel+ 0);
+  uint64_t maskleft    = 3ULL << (2*channel+16);
+  uint64_t maskextup   = 3ULL << (2*channel+32);
+  uint64_t maskextleft = 3ULL << (2*channel+48);
 
 #if 0
 
   printf("Dumping backtracking array\n");
 
-  for(unsigned long i=0; i<qlen; i++)
-  {
-    for(unsigned long j=0; j<dlen; j++)
+  for(uint64_t i=0; i<qlen; i++)
     {
-      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
-                                   + 4*i + (j&3)) % dirbuffersize];
-      if (d & maskleft)
-      {
-        printf("<");
-      }
-      else if (d & maskup)
-      {
-        printf("^");
-      }
-      else
-      {
-        printf("\\");
-      }
+      for(uint64_t j=0; j<dlen; j++)
+        {
+          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
+                                  + 4 * i + (j & 3)) % dirbuffersize];
+          if (d & maskleft)
+            {
+              printf("<");
+            }
+          else if (d & maskup)
+            {
+              printf("^");
+            }
+          else
+            {
+              printf("\\");
+            }
+        }
+      printf("\n");
     }
-    printf("\n");
-  }
 
   printf("Dumping gap extension array\n");
 
-  for(unsigned long i=0; i<qlen; i++)
-  {
-    for(unsigned long j=0; j<dlen; j++)
+  for(uint64_t i=0; i<qlen; i++)
     {
-      unsigned long d = dirbuffer[(offset + longestdbsequence*4*(j/4)
-                                   + 4*i + (j&3)) % dirbuffersize];
-      if (d & maskextup)
-      {
-        if (d & maskextleft)
-          printf("+");
-        else
-          printf("^");
-      }
-      else if (d & maskextleft)
-      {
-        printf("<");
-      }
-      else
-      {
-        printf("\\");
-      }
+      for(uint64_t j=0; j<dlen; j++)
+        {
+          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 *(j / 4)
+                                  + 4 * i + (j & 3)) % dirbuffersize];
+          if (d & maskextup)
+            {
+              if (d & maskextleft)
+                printf("+");
+              else
+                printf("^");
+            }
+          else if (d & maskextleft)
+            {
+              printf("<");
+            }
+          else
+            {
+              printf("\\");
+            }
+        }
+      printf("\n");
     }
-    printf("\n");
-  }
 
 #endif
 
-  long i = qlen - 1;
-  long j = dlen - 1;
-  unsigned long aligned = 0;
-  unsigned long matches = 0;
+  int64_t i = static_cast<int64_t>(qlen) - 1;
+  int64_t j = static_cast<int64_t>(dlen) - 1;
+  uint64_t aligned = 0;
+  uint64_t matches = 0;
   char op = 0;
 
 #undef SHOWALIGNMENT
@@ -473,46 +500,50 @@ unsigned long backtrack16(char * qseq,
   printf("alignment, reversed: ");
 #endif
 
-  while ((i>=0) && (j>=0))
-  {
-    aligned++;
+  while ((i >= 0) && (j >= 0))
+    {
+      aligned++;
 
-    unsigned long d = 
-      dirbuffer[(offset + longestdbsequence*4*(j/4) + 4*i + (j&3)) % dirbuffersize];
+      uint64_t d
+        = dirbuffer[(offset
+                     + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
+                     + static_cast<uint64_t>(4 * i + (j & 3)))
+                    % dirbuffersize];
 
-    if ((op == 'I') && (d & maskextleft))
-    {
-      j--;
-    }
-    else if ((op == 'D') && (d & maskextup))
-    {
-      i--;
-    }
-    else if (d & maskleft)
-    {
-      j--;
-      op = 'I';
-    }
-    else if (d & maskup)
-    {
-      i--;
-      op = 'D';
-    }
-    else
-    {
-      if (qseq[i] == dseq[j])
-        matches++;
-      i--;
-      j--;
-      op = 'M';
-    }
+      if ((op == 'I') && (d & maskextleft))
+        {
+          j--;
+        }
+      else if ((op == 'D') && (d & maskextup))
+        {
+          i--;
+        }
+      else if (d & maskleft)
+        {
+          j--;
+          op = 'I';
+        }
+      else if (d & maskup)
+        {
+          i--;
+          op = 'D';
+        }
+      else
+        {
+          if (nt_extract(qseq, static_cast<uint64_t>(i)) ==
+              nt_extract(dseq, static_cast<uint64_t>(j)))
+            matches++;
+          i--;
+          j--;
+          op = 'M';
+        }
 
 #ifdef SHOWALIGNMENT
-    printf("%c", op);
+      printf("%c", op);
 #endif
-  }
+    }
 
-  while (i>=0)
+  while (i >= 0)
     {
       aligned++;
       i--;
@@ -521,7 +552,7 @@ unsigned long backtrack16(char * qseq,
 #endif
     }
 
-  while (j>=0)
+  while (j >= 0)
     {
       aligned++;
       j--;
@@ -544,233 +575,239 @@ void search16(WORD * * q_start,
               WORD * score_matrix,
               WORD * dprofile,
               WORD * hearray,
-              unsigned long sequences,
-              unsigned long * seqnos,
-              unsigned long * scores,
-              unsigned long * diffs,
-              unsigned long * alignmentlengths,
-              unsigned long qlen,
-              unsigned long dirbuffersize,
-              unsigned long * dirbuffer)
+              uint64_t sequences,
+              uint64_t * seqnos,
+              uint64_t * scores,
+              uint64_t * diffs,
+              uint64_t * alignmentlengths,
+              uint64_t qlen,
+              uint64_t dirbuffersize,
+              uint64_t * dirbuffer)
 {
-  __m128i Q, R, T, M, T0, MQ, MR, MQ0;
-  __m128i *hep, **qp;
+  VECTORTYPE Q, R, T, M, T0, MQ, MR, MQ0;
+  VECTORTYPE *hep, **qp;
 
-  BYTE * d_begin[CHANNELS];
-  BYTE * d_end[CHANNELS];
-  unsigned long d_offset[CHANNELS];
-  BYTE * d_address[CHANNELS];
-  unsigned long d_length[CHANNELS];
-  
-  __m128i dseqalloc[CDEPTH];
-  
-  __m128i H0;
-  __m128i F0;
-  __m128i S[4];
+  uint64_t d_pos[CHANNELS];
+  uint64_t d_offset[CHANNELS];
+  char * d_address[CHANNELS];
+  uint64_t d_length[CHANNELS];
 
-  BYTE * dseq = (BYTE*) & dseqalloc;
-  BYTE zero;
+  VECTORTYPE dseqalloc[CDEPTH];
 
-  long seq_id[CHANNELS];
-  unsigned long next_id = 0;
-  unsigned long done;
-  
-  T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
-  Q  = _mm_set1_epi16(gap_open_penalty+gap_extend_penalty);
-  R  = _mm_set1_epi16(gap_extend_penalty);
+  VECTORTYPE H0;
+  VECTORTYPE F0;
+  VECTORTYPE S[4];
 
-  zero = 0;
+  BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
+
+  int64_t seq_id[CHANNELS];
+  uint64_t next_id = 0;
+  uint64_t done;
+
+#ifdef __aarch64__
+  const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
+#elif defined __x86_64__
+  const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
+#elif defined __PPC__
+  const VECTORTYPE T0_init = { (unsigned short)(-1), 0, 0, 0, 0, 0, 0, 0 };
+#endif
+
+  T0 = T0_init;
+
+  Q  = v_dup(static_cast<short>(gap_open_penalty + gap_extend_penalty));
+  R  = v_dup(static_cast<short>(gap_extend_penalty));
+
   done = 0;
 
-  hep = (__m128i*) hearray;
-  qp = (__m128i**) q_start;
+  hep = CAST_VECTOR_p(hearray);
+  qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   for (int c=0; c<CHANNELS; c++)
-  {
-    d_begin[c] = &zero;
-    d_end[c] = d_begin[c];
-    seq_id[c] = -1;
-  }
-  
-  F0 = _mm_setzero_si128();
-  H0 = _mm_setzero_si128();
-  
+    {
+      d_address[c] = nullptr;
+      d_pos[c] = 0;
+      d_length[c] = 0;
+      seq_id[c] = -1;
+    }
+
+  F0 = v_zero;
+  H0 = v_zero;
+
   int easy = 0;
 
-  unsigned long * dir = dirbuffer;
+  uint64_t * dir = dirbuffer;
 
   while(1)
-  {
-
-    if (easy)
     {
-      // fill all channels
 
-      for(int c=0; c<CHANNELS; c++)
-      {
-        for(int j=0; j<CDEPTH; j++)
+      if (easy)
         {
-          if (d_begin[c] < d_end[c])
-            dseq[CHANNELS*j+c] = *(d_begin[c]++);
-          else
-            dseq[CHANNELS*j+c] = 0;
-        }
-        if (d_begin[c] == d_end[c])
-          easy = 0;
-      }
+          // fill all channels
 
-      if (ssse3_present)
-        dprofile_shuffle16(dprofile, score_matrix, dseq);
-      else
-        dprofile_fill16(dprofile, score_matrix, dseq);
-      
-      donormal16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0);
-    }
-    else
-    {
-      // One or more sequences ended in the previous block 
-      // We have to switch over to a new sequence
-
-      easy = 1;
-
-      M = _mm_setzero_si128();
-      T = T0;
-      for (int c=0; c<CHANNELS; c++)
-      {
-        if (d_begin[c] < d_end[c])
-        {
-          // this channel has more sequence
-
-          for(int j=0; j<CDEPTH; j++)
-          {
-            if (d_begin[c] < d_end[c])
-              dseq[CHANNELS*j+c] = *(d_begin[c]++);
-            else
-              dseq[CHANNELS*j+c] = 0;
-          }
-          if (d_begin[c] == d_end[c])
-            easy = 0;
-        }
-        else
-        {
-          // sequence in channel c ended
-          // change of sequence
-
-          M = _mm_xor_si128(M, T);
-
-          long cand_id = seq_id[c];
-          
-          if (cand_id >= 0)
-          {
-            // printf("Completed channel %d, sequence %ld\n", c, cand_id);
-            // save score
-
-            char * dbseq = (char*) d_address[c];
-            long dbseqlen = d_length[c];
-            long z = (dbseqlen+3) % 4;
-            long score = ((WORD*)S)[z*CHANNELS+c];
-            scores[cand_id] = score;
-            
-            unsigned long diff;
-
-            if (score < 65535)
-              {
-                long offset = d_offset[c];
-                diff = backtrack16(query.seq, dbseq, qlen, dbseqlen,
-                                   dirbuffer,
-                                   offset,
-                                   dirbuffersize, c,
-                                   alignmentlengths + cand_id);
-              }
-            else
-              {
-                diff = MIN((65535 / penalty_mismatch),
-                           (65535 - penalty_gapopen) / penalty_gapextend);
-              }
-            
-            diffs[cand_id] = diff;
-
-            done++;
-          }
-
-          if (next_id < sequences)
-          {
-            // get next sequence
-            seq_id[c] = next_id;
-            long seqno = seqnos[next_id];
-            char* address;
-            long length;
-
-            db_getsequenceandlength(seqno, & address, & length);
-            
-            // printf("Seqno: %ld Address: %p\n", seqno, address);
-            d_address[c] = (BYTE*) address;
-            d_length[c] = length;
-
-            d_begin[c] = (unsigned char*) address;
-            d_end[c] = (unsigned char*) address + length;
-            d_offset[c] = dir - dirbuffer;
-            next_id++;
-            
-            ((WORD*)&H0)[c] = 0;
-            ((WORD*)&F0)[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
-            
-            
-            // fill channel
-            for(int j=0; j<CDEPTH; j++)
+          for(int c=0; c<CHANNELS; c++)
             {
-              if (d_begin[c] < d_end[c])
-                dseq[CHANNELS*j+c] = *(d_begin[c]++);
-              else
-                dseq[CHANNELS*j+c] = 0;
+              for(int j=0; j<CDEPTH; j++)
+                {
+                  if (d_pos[c] < d_length[c])
+                    dseq[CHANNELS*j+c]
+                      = 1 + nt_extract(d_address[c], d_pos[c]++);
+                  else
+                    dseq[CHANNELS*j+c] = 0;
+                }
+              if (d_pos[c] == d_length[c])
+                easy = 0;
             }
-            if (d_begin[c] == d_end[c])
-              easy = 0;
-          }
+
+#ifdef __x86_64__
+          if (ssse3_present)
+            dprofile_shuffle16(dprofile, score_matrix, dseq);
           else
-          {
-            // no more sequences, empty channel
-            seq_id[c] = -1;
-            d_begin[c] = &zero;
-            d_end[c] = d_begin[c];
-            for (int j=0; j<CDEPTH; j++)
-              dseq[CHANNELS*j+c] = 0;
-          }
+#endif
+            dprofile_fill16(dprofile, score_matrix, dseq);
 
+          align_cells_regular_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
+        }
+      else
+        {
+          // One or more sequences ended in the previous block
+          // We have to switch over to a new sequence
 
+          easy = 1;
+
+          M = v_zero;
+          T = T0;
+          for (unsigned int c = 0; c < CHANNELS; c++)
+            {
+              if (d_pos[c] < d_length[c])
+                {
+                  // this channel has more sequence
+
+                  for(unsigned int j = 0; j < CDEPTH; j++)
+                    {
+                      if (d_pos[c] < d_length[c])
+                        dseq[CHANNELS * j + c]
+                          = 1 + nt_extract(d_address[c], d_pos[c]++);
+                      else
+                        dseq[CHANNELS*j+c] = 0;
+                    }
+                  if (d_pos[c] == d_length[c])
+                    easy = 0;
+                }
+              else
+                {
+                  // sequence in channel c ended
+                  // change of sequence
+
+                  M = v_xor(M, T);
+
+                  int64_t cand_id = seq_id[c];
+
+                  if (cand_id >= 0)
+                    {
+                      // save score
+
+                      char * dbseq = reinterpret_cast<char*>(d_address[c]);
+                      uint64_t dbseqlen = d_length[c];
+                      uint64_t z = (dbseqlen+3) % 4;
+                      uint64_t score
+                        = (reinterpret_cast<WORD*>(S))[z * CHANNELS + c];
+                      scores[cand_id] = score;
+
+                      uint64_t diff;
+
+                      if (score < 65535)
+                        {
+                          uint64_t offset = d_offset[c];
+                          diff = backtrack_16(query.seq, dbseq, qlen, dbseqlen,
+                                              dirbuffer,
+                                              offset,
+                                              dirbuffersize, c,
+                                              alignmentlengths + cand_id);
+                        }
+                      else
+                        {
+                          diff = static_cast<uint64_t>
+                            (MIN((65535 / penalty_mismatch),
+                                 (65535 - penalty_gapopen)
+                                 / penalty_gapextend));
+                        }
+
+                      diffs[cand_id] = diff;
+
+                      done++;
+                    }
+
+                  if (next_id < sequences)
+                    {
+                      // get next sequence
+                      seq_id[c] = static_cast<int64_t>(next_id);
+                      uint64_t seqno = seqnos[next_id];
+                      char* address;
+                      unsigned int length;
+
+                      db_getsequenceandlength(seqno, & address, & length);
+
+                      d_address[c] = address;
+                      d_length[c] = length;
+
+                      d_pos[c] = 0;
+                      d_offset[c] = static_cast<uint64_t>(dir - dirbuffer);
+                      next_id++;
+
+                      (reinterpret_cast<WORD*>(&H0))[c] = 0;
+                      (reinterpret_cast<WORD*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
+
+                      // fill channel
+                      for(unsigned int j = 0; j < CDEPTH; j++)
+                        {
+                          if (d_pos[c] < d_length[c])
+                            dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                          else
+                            dseq[CHANNELS*j+c] = 0;
+                        }
+                      if (d_pos[c] == d_length[c])
+                        easy = 0;
+                    }
+                  else
+                    {
+                      // no more sequences, empty channel
+                      seq_id[c] = -1;
+                      d_address[c] = nullptr;
+                      d_pos[c] = 0;
+                      d_length[c] = 0;
+                      for (unsigned int j=0; j<CDEPTH; j++)
+                        dseq[CHANNELS*j+c] = 0;
+                    }
+                }
+
+              T = v_shift_left(T);
+            }
+
+          if (done == sequences)
+            break;
+
+#ifdef __x86_64__
+          if (ssse3_present)
+            dprofile_shuffle16(dprofile, score_matrix, dseq);
+          else
+#endif
+            dprofile_fill16(dprofile, score_matrix, dseq);
+
+          MQ = v_and(M, Q);
+          MR = v_and(M, R);
+          MQ0 = MQ;
+
+          align_cells_masked_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
         }
 
-        T = _mm_slli_si128(T, 2);
-      }
+      F0 = v_add(F0, R);
+      F0 = v_add(F0, R);
+      F0 = v_add(F0, R);
+      H0 = v_sub(F0, Q);
+      F0 = v_add(F0, R);
 
-      if (done == sequences)
-        break;
-          
-      if (ssse3_present)
-        dprofile_shuffle16(dprofile, score_matrix, dseq);
-      else
-        dprofile_fill16(dprofile, score_matrix, dseq);
-          
-      MQ = _mm_and_si128(M, Q);
-      MR = _mm_and_si128(M, R);
-      MQ0 = MQ;
-      
-      domasked16(S, hep, qp, &Q, &R, qlen, 0, &F0, dir, &H0, &M, &MQ, &MR,
-                 &MQ0);
+      dir += 4*longestdbsequence;
+      if (dir >= dirbuffer + dirbuffersize)
+        dir -= dirbuffersize;
     }
-    
-    F0 = _mm_adds_epu16(F0, R);
-    F0 = _mm_adds_epu16(F0, R);
-    F0 = _mm_adds_epu16(F0, R);
-    H0 = _mm_subs_epu16(F0, Q);
-    F0 = _mm_adds_epu16(F0, R);
-
-
-    dir += 4*longestdbsequence;
-    
-    if (dir >= dirbuffer + dirbuffersize)
-    {
-      dir -= dirbuffersize;
-    }
-  }
 }

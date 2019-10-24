@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -29,7 +29,7 @@
 #define MEMCHUNK 1048576
 #define LINEALLOC LINE_MAX
 
-char map_nt[256] =
+static signed char map_nt[256] =
   {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -49,52 +49,33 @@ char map_nt[256] =
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
   };
 
-char map_hex[256] =
-  {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
-    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-  };
+static unsigned int sequences = 0;
+static uint64_t nucleotides = 0;
+static uint64_t headerchars = 0;
+static unsigned int longest = 0;
+static uint64_t longestheader = 0;
+static char * datap = nullptr;
+static int missingabundance = 0;
+static uint64_t missingabundance_lineno = 0;
+static char * missingabundance_header = nullptr;
 
-unsigned long sequences = 0;
-unsigned long nucleotides = 0;
-unsigned long headerchars = 0;
-int longest = 0;
-int longestheader = 0;
+seqinfo_t * seqindex = nullptr;
+qgramvector_t * qgrams = nullptr;
 
-seqinfo_t * seqindex = 0;
-char * datap = 0;
-qgramvector_t * qgrams = 0;
+int db_compare_abundance(const void * a, const void * b);
 
-#if 0
+bool find_swarm_abundance(const char * header,
+                          int * start,
+                          int * end,
+                          int64_t * number);
 
-/* never used */
+bool find_usearch_abundance(const char * header,
+                            int * start,
+                            int * end,
+                            int64_t * number);
+void find_abundance(struct seqinfo_s * sp, uint64_t lineno);
 
-void showseq(char * seq)
-{
-  char * p = seq;
-  while (char c = *p++)
-    {
-      putchar(sym_nt[(unsigned int)c]);
-    }
-}
-
-#endif
-
-void fprint_id(FILE * stream, unsigned long x)
+void fprint_id(FILE * stream, uint64_t x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -102,14 +83,14 @@ void fprint_id(FILE * stream, unsigned long x)
 
   if (opt_append_abundance && (sp->abundance_start == sp->abundance_end))
     if (opt_usearch_abundance)
-      fprintf(stream, "%.*s;size=%lu;", hdrlen, h, sp->abundance);
+      fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, h, sp->abundance);
     else
-      fprintf(stream, "%.*s_%lu", hdrlen, h, sp->abundance);
+      fprintf(stream, "%.*s_%" PRIu64, hdrlen, h, sp->abundance);
   else
     fprintf(stream, "%.*s", hdrlen, h);
 }
 
-void fprint_id_noabundance(FILE * stream, unsigned long x)
+void fprint_id_noabundance(FILE * stream, uint64_t x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -119,13 +100,13 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
     {
       /* print start of header */
       fprintf(stream, "%.*s", sp->abundance_start, h);
-      
+
       if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
           if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen))
             fprintf(stream, ";");
-          
+
           /* print remaining part */
           fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
         }
@@ -135,14 +116,14 @@ void fprint_id_noabundance(FILE * stream, unsigned long x)
 }
 
 void fprint_id_with_new_abundance(FILE * stream,
-                                  unsigned long seqno,
-                                  unsigned long abundance)
+                                  uint64_t seqno,
+                                  uint64_t abundance)
 {
   seqinfo_t * sp = seqindex + seqno;
 
   if (opt_usearch_abundance)
     fprintf(stream,
-            "%.*s%ssize=%lu;%.*s",
+            "%.*s%ssize=%" PRIu64 ";%.*s",
             sp->abundance_start,
             sp->header,
             sp->abundance_start > 0 ? ";" : "",
@@ -151,7 +132,7 @@ void fprint_id_with_new_abundance(FILE * stream,
             sp->header + sp->abundance_end);
   else
     fprintf(stream,
-            "%.*s_%lu",
+            "%.*s_%" PRIu64,
             sp->abundance_start,
             sp->header,
             abundance);
@@ -159,24 +140,207 @@ void fprint_id_with_new_abundance(FILE * stream,
 
 int db_compare_abundance(const void * a, const void * b)
 {
-  seqinfo_t * x = (seqinfo_t *) a;
-  seqinfo_t * y = (seqinfo_t *) b;
-  
+  const seqinfo_t * x = reinterpret_cast<const seqinfo_t *>(a);
+  const seqinfo_t * y = reinterpret_cast<const seqinfo_t *>(b);
+
   if (x->abundance > y->abundance)
     return -1;
   else if (x->abundance < y->abundance)
     return +1;
-  else 
+  else
     return strcmp(x->header, y->header);
+}
+
+bool find_swarm_abundance(const char * header,
+                          int * start,
+                          int * end,
+                          int64_t * number)
+{
+  /*
+    Identify the first occurence of the pattern (_)([0-9]+)$
+    in the header string.
+  */
+
+  * start = 0;
+  * end = 0;
+  * number = 0;
+
+  const char * digit_chars = "0123456789";
+
+  if (!header)
+    return false;
+
+  if (strlen(header) >= INT_MAX)
+    return false;
+
+  const char * us = strrchr(header, '_');
+
+  if (! us)
+    return false;
+
+  size_t digits = strspn(us + 1, digit_chars);
+
+  if (digits > 20)
+    return false;
+
+  if (us[digits + 1])
+    return false;
+
+  int64_t s = us - header;
+  int64_t e = s + 1 + static_cast<int64_t>(digits);
+
+  * start = static_cast<int>(s);
+  * end = static_cast<int>(e);
+  * number = atol(us + 1);
+
+  return true;
+}
+
+bool find_usearch_abundance(const char * header,
+                            int * start,
+                            int * end,
+                            int64_t * number)
+{
+  /*
+    Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
+    in the header string.
+  */
+
+  if (! header)
+    return false;
+
+  const char * attribute = "size=";
+  const char * digit_chars = "0123456789";
+
+  uint64_t hlen = strlen(header);
+  uint64_t alen = strlen(attribute);
+  uint64_t i = 0;
+
+  while (i + alen < hlen)
+    {
+      const char * r = strstr(header + i, attribute);
+
+      /* no match */
+      if (r == nullptr)
+        break;
+
+      i = static_cast<uint64_t>(r - header);
+
+      /* check for ';' in front */
+      if ((i > 0) && (header[i-1] != ';'))
+        {
+          i += alen + 1;
+          continue;
+        }
+
+      uint64_t digits = strspn(header + i + alen, digit_chars);
+
+      /* check for at least one digit */
+      if (digits == 0)
+        {
+          i += alen + 1;
+          continue;
+        }
+
+      /* check for ';' after */
+      if ((i + alen + digits < hlen) && (header[i + alen + digits] != ';'))
+        {
+          i += alen + digits + 2;
+          continue;
+        }
+
+      /* ok */
+      if (i > 0)
+        * start = static_cast<int>(i - 1);
+      else
+        * start = 0;
+      * end   = static_cast<int>(MIN(i + alen + digits + 1, hlen));
+      * number = atol(header + i + alen);
+      return true;
+    }
+
+  return false;
+}
+
+void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
+{
+  char * header = sp->header;
+
+  /* read size/abundance annotation */
+  int64_t abundance = 0;
+  int start = 0;
+  int end = 0;
+  int64_t number = 0;
+
+  if (opt_usearch_abundance)
+    {
+      /* (^|;)size=([0-9]+)(;|$) */
+
+      if (find_usearch_abundance(header, & start, & end, & number))
+        {
+          if (number > 0)
+            abundance = number;
+          else
+            {
+              fprintf(stderr,
+                      "\nError: Illegal abundance value on line %" PRIu64 ":\n%s\n"
+                      "Abundance values should be positive integers.\n\n",
+                      lineno,
+                      header);
+              exit(1);
+            }
+        }
+    }
+  else
+    {
+      /* (_)([0-9]+)$ */
+
+      if (find_swarm_abundance(header, & start, & end, & number))
+        {
+          if (number > 0)
+            abundance = number;
+          else
+            {
+              fprintf(stderr,
+                      "\nError: Illegal abundance value on line %" PRIu64 ":\n%s\n"
+                      "Abundance values should be positive integers.\n\n",
+                      lineno,
+                      header);
+              exit(1);
+            }
+        }
+    }
+
+  if (abundance == 0)
+    {
+      start = sp->headerlen;
+      end = start;
+
+      if (opt_append_abundance)
+        abundance = opt_append_abundance;
+      else
+        {
+          missingabundance++;
+          if (missingabundance == 1)
+            {
+              missingabundance_lineno = lineno;
+              missingabundance_header = header;
+            }
+        }
+    }
+
+  sp->abundance = static_cast<uint64_t>(abundance);
+  sp->abundance_start = start;
+  sp->abundance_end = end;
 }
 
 void db_read(const char * filename)
 {
   /* allocate space */
 
-  unsigned long dataalloc = MEMCHUNK;
-  datap = (char *) xmalloc(dataalloc);
-  unsigned long datalen = 0;
+  uint64_t dataalloc = MEMCHUNK;
+  datap = static_cast<char *>(xmalloc(dataalloc));
+  uint64_t datalen = 0;
 
   longest = 0;
   longestheader = 0;
@@ -184,12 +348,15 @@ void db_read(const char * filename)
   nucleotides = 0;
   headerchars = 0;
 
-  FILE * fp = NULL;
+  FILE * fp = nullptr;
   if (filename)
     {
-      fp = fopen(filename, "r");
+      fp = fopen_input(filename);
       if (!fp)
-        fatal("Error: Unable to open input data file (%s).", filename);
+        {
+          fprintf(stderr, "\nError: Unable to open input data file (%s).\n", filename);
+          exit(1);
+        }
     }
   else
     fp = stdin;
@@ -199,9 +366,12 @@ void db_read(const char * filename)
   struct stat fs;
 
   if (fstat(fileno(fp), & fs))
-    fatal("Unable to fstat on input file (%s)", filename);
+    {
+      fprintf(stderr, "\nUnable to fstat on input file (%s)\n", filename);
+      exit(1);
+    }
   bool is_regular = S_ISREG(fs.st_mode);
-  long filesize = is_regular ? fs.st_size : 0;
+  int64_t filesize = is_regular ? fs.st_size : 0;
 
   if (! is_regular)
     fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
@@ -213,33 +383,30 @@ void db_read(const char * filename)
 
   unsigned int lineno = 1;
 
-  progress_init("Reading database: ", filesize);
+  progress_init("Reading sequences:", static_cast<uint64_t>(filesize));
+
   while(line[0])
     {
       /* read header */
-      /* the header ends at a space character, a newline or a nul character */
+      /* the header ends at a space, cr, lf or null character */
 
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
-      
-      long headerlen = 0;
-      if (char * stop = strpbrk(line+1, " \r\n"))
-        headerlen = stop - (line+1);
-      else
-        headerlen = strlen(line+1);
-      
+
+      uint64_t headerlen = strcspn(line + 1, " \r\n");
+
       headerchars += headerlen;
-      
+
       if (headerlen > longestheader)
         longestheader = headerlen;
 
 
       /* store the line number */
-      
+
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
           dataalloc += MEMCHUNK;
-          datap = (char *) xrealloc(datap, dataalloc);
+          datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       memcpy(datap + datalen, & lineno, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
@@ -250,7 +417,7 @@ void db_read(const char * filename)
       while (datalen + headerlen + 1 > dataalloc)
         {
           dataalloc += MEMCHUNK;
-          datap = (char *) xrealloc(datap, dataalloc);
+          datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       memcpy(datap + datalen, line + 1, headerlen);
       *(datap + datalen + headerlen) = 0;
@@ -265,56 +432,79 @@ void db_read(const char * filename)
       lineno++;
 
 
+      /* store a dummy sequence length */
+
+      unsigned int length = 0;
+
+      while (datalen + sizeof(unsigned int) > dataalloc)
+        {
+          dataalloc += MEMCHUNK;
+          datap = static_cast<char *>(xrealloc(datap, dataalloc));
+        }
+      uint64_t datalen_seqlen = datalen;
+      memcpy(datap + datalen, & length, sizeof(unsigned int));
+      datalen += sizeof(unsigned int);
+
+
       /* read and store sequence */
 
-      unsigned long seqbegin = datalen;
+      uint64_t nt_buffer = 0;
+      unsigned int nt_bufferlen = 0;
+      const unsigned int nt_buffersize = 4 * sizeof(nt_buffer);
 
       while (line[0] && (line[0] != '>'))
         {
           unsigned char c;
           char * p = line;
-          while((c = *p++))
+          while((c = static_cast<unsigned char>(*p++)))
 	    {
-	    char m;
-            if ((m = map_nt[(unsigned int)c]) >= 0)
-              {
-                while (datalen >= dataalloc)
-                  {
-                    dataalloc += MEMCHUNK;
-                    datap = (char *) xrealloc(datap, dataalloc);
-                  }
-                
-                *(datap+datalen) = m;
-                datalen++;
-              }
-            else if ((c != 10) && (c != 13))
-              {
-                if ((c >= 32) && (c <= 126))
-                  fprintf(stderr,
-                          "\nError: Illegal character '%c' in sequence on line %u\n",
-                          c,
-                          lineno);
-                else
-                  fprintf(stderr,
-                          "\nError: Illegal character (ascii no %d) in sequence on line %u\n",
-                          c,
-                          lineno);
-                exit(1);
-              }
+              signed char m;
+              if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
+                {
+                  nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
+                  length++;
+                  nt_bufferlen++;
+
+                  if (nt_bufferlen == nt_buffersize)
+                    {
+                      while (datalen + sizeof(nt_buffer) > dataalloc)
+                        {
+                          dataalloc += MEMCHUNK;
+                          datap = static_cast<char *>(xrealloc(datap, dataalloc));
+                        }
+
+                      memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+                      datalen += sizeof(nt_buffer);
+
+                      nt_bufferlen = 0;
+                      nt_buffer = 0;
+                    }
+                }
+              else if ((c != 10) && (c != 13))
+                {
+                  if ((c >= 32) && (c <= 126))
+                    fprintf(stderr,
+                            "\nError: Illegal character '%c' in sequence on line %u\n",
+                            c,
+                            lineno);
+                  else
+                    fprintf(stderr,
+                            "\nError: Illegal character (ascii no %d) in sequence on line %u\n",
+                            c,
+                            lineno);
+                  exit(1);
+                }
 	    }
+
           line[0] = 0;
           if (!fgets(line, LINEALLOC, fp))
             line[0] = 0;
           lineno++;
         }
-      
-      while (datalen >= dataalloc)
-        {
-          dataalloc += MEMCHUNK;
-          datap = (char *) xrealloc(datap, dataalloc);
-        }
-      
-      long length = datalen - seqbegin;
+
+      /* fill in real length */
+
+      memcpy(datap + datalen_seqlen, & length, sizeof(unsigned int));
 
       if (length == 0)
         {
@@ -327,129 +517,95 @@ void db_read(const char * filename)
       if (length > longest)
         longest = length;
 
-      *(datap+datalen) = 0;
-      datalen++;
+
+      /* save remaining padded 64-bit value with nt's, if any */
+
+      if (nt_bufferlen > 0)
+        {
+          while (datalen + sizeof(nt_buffer) > dataalloc)
+            {
+              dataalloc += MEMCHUNK;
+              datap = static_cast<char *>(xrealloc(datap, dataalloc));
+            }
+
+          memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+          datalen += sizeof(nt_buffer);
+
+          nt_buffer = 0;
+          nt_bufferlen = 0;
+        }
 
       sequences++;
-      
+
       if (is_regular)
-        progress_update(ftell(fp));
+        progress_update(static_cast<uint64_t>(ftell(fp)));
     }
   progress_done();
 
   fclose(fp);
 
+  /* init zobrist hashing */
+
+  zobrist_init(longest + 2);  // add 2 for two insertions
+
   /* set up hash to check for unique headers */
 
-  unsigned long hdrhashsize = 2 * sequences;
+  uint64_t hdrhashsize = 2 * sequences;
 
   seqinfo_t * * hdrhashtable =
-    (seqinfo_t **) xmalloc(hdrhashsize * sizeof(seqinfo_t *));
+    static_cast<seqinfo_t **>(xmalloc(hdrhashsize * sizeof(seqinfo_t *)));
   memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
 
-  unsigned long duplicatedidentifiers = 0;
+  uint64_t duplicatedidentifiers = 0;
 
   /* set up hash to check for unique sequences */
 
-  unsigned long seqhashsize = 2 * sequences;
+  uint64_t seqhashsize = 2 * sequences;
 
-  seqinfo_t * * seqhashtable = 0;
+  seqinfo_t * * seqhashtable = nullptr;
 
-  if (opt_differences > 0)
+  if (opt_differences > 1)
     {
       seqhashtable =
-        (seqinfo_t **) xmalloc(seqhashsize * sizeof(seqinfo_t *));
+        static_cast<seqinfo_t **>(xmalloc(seqhashsize * sizeof(seqinfo_t *)));
       memset(seqhashtable, 0, seqhashsize * sizeof(seqinfo_t *));
     }
 
   /* create indices */
 
-  seqindex = (seqinfo_t *) xmalloc(sequences * sizeof(seqinfo_t));
+  seqindex = static_cast<seqinfo_t *>(xmalloc(sequences * sizeof(seqinfo_t)));
   seqinfo_t * seqindex_p = seqindex;
 
-  regex_t db_regexp;
-  regmatch_t pmatch[4];
-
-  if (opt_usearch_abundance)
-    {
-      if (regcomp(&db_regexp, "(^|;)size=([0-9]+)(;|$)", REG_EXTENDED))
-        fatal("Regular expression compilation failed");
-    }
-  else
-    {
-      if (regcomp(&db_regexp, "(_)([0-9]+)$", REG_EXTENDED))
-        fatal("Regular expression compilation failed");
-    }
-
-  seqinfo_t * lastseq = 0;
+  seqinfo_t * lastseq = nullptr;
 
   int presorted = 1;
-  int missingabundance = 0;
-  unsigned int missingabundance_lineno = 0;
-  char * missingabundance_header = 0;
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
-  for(unsigned long i=0; i<sequences; i++)
+  for(uint64_t i=0; i<sequences; i++)
     {
       /* get line number */
-      unsigned int line_number = *((unsigned int*)p);
+      unsigned int line_number = *(reinterpret_cast<unsigned int*>(p));
       p += sizeof(unsigned int);
 
       /* get header */
       seqindex_p->header = p;
-      seqindex_p->headerlen = strlen(seqindex_p->header);
+      seqindex_p->headerlen = static_cast<int>(strlen(seqindex_p->header));
       p += seqindex_p->headerlen + 1;
 
       /* and sequence */
+      unsigned int seqlen = *(reinterpret_cast<unsigned int*>(p));
+      seqindex_p->seqlen = seqlen;
+      p += sizeof(unsigned int);
       seqindex_p->seq = p;
-      seqindex_p->seqlen = strlen(p);
-      p += seqindex_p->seqlen + 1;
+      p += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
-      if (!regexec(&db_regexp, seqindex_p->header, 4, pmatch, 0))
-        {
-          seqindex_p->abundance = atol(seqindex_p->header + pmatch[2].rm_so);
-          seqindex_p->abundance_start = pmatch[0].rm_so;
-          seqindex_p->abundance_end = pmatch[0].rm_eo;
+      find_abundance(seqindex_p, line_number);
 
-          if (seqindex_p->abundance == 0)
-            {
-              fprintf(stderr,
-                      "\nError: Illegal abundance value on line %u:\n%s\n"
-                      "Abundance values should be positive integers.\n\n",
-                      line_number,
-                      seqindex_p->header);
-              exit(1);
-            }
-        }
-      else
-        {
-          seqindex_p->abundance_start = seqindex_p->headerlen;
-          seqindex_p->abundance_end = seqindex_p->headerlen;
-          seqindex_p->abundance = 0;
-        }
-      
-      if (seqindex_p->abundance < 1)
-        {
-          if (opt_append_abundance)
-            {
-              seqindex_p->abundance = opt_append_abundance;
-            }
-          else
-            {
-              missingabundance++;
-              if (missingabundance == 1)
-                {
-                  missingabundance_lineno = line_number;
-                  missingabundance_header = seqindex_p->header;
-                }
-            }
-        }
-
-      if (seqindex_p->abundance_start == 0)
-          fatal("Empty sequence identifier");
-
+      if ((seqindex_p->abundance_start == 0) &&
+          (seqindex_p->abundance_end == seqindex_p->headerlen))
+        fatal("Empty sequence identifier");
 
       /* check if the sequences are presorted by abundance and header */
 
@@ -466,21 +622,57 @@ void db_read(const char * filename)
 
       lastseq = seqindex_p;
 
-
       /* check for duplicated identifiers using hash table */
 
-      unsigned long hdrhash = HASH((unsigned char*)seqindex_p->header, seqindex_p->abundance_start);
-      seqindex_p->hdrhash = hdrhash;
-      unsigned long hdrhashindex = hdrhash % hdrhashsize;
+      /* find position and length of identifier in header */
 
-      seqinfo_t * hdrfound = 0;
-    
+      int id_start, id_len;
+
+      if (seqindex_p->abundance_start > 0)
+        {
+          /* id first, then abundance (e.g. >name;size=1 or >name_1) */
+          id_start = 0;
+          id_len = seqindex_p->abundance_start;
+        }
+      else
+        {
+          /* abundance first then id (e.g. >size=1;name) */
+          id_start = seqindex_p->abundance_end;
+          id_len = seqindex_p->headerlen - seqindex_p->abundance_end;
+        }
+
+      uint64_t hdrhash
+        = HASH(reinterpret_cast<unsigned char*>(seqindex_p->header + id_start),
+               static_cast<uint64_t>(id_len));
+      seqindex_p->hdrhash = hdrhash;
+      uint64_t hdrhashindex = hdrhash % hdrhashsize;
+
+      seqinfo_t * hdrfound = nullptr;
+
       while ((hdrfound = hdrhashtable[hdrhashindex]))
         {
-          if ((hdrfound->hdrhash == hdrhash) &&
-              (hdrfound->abundance_start == seqindex_p->abundance_start) &&
-              (strncmp(hdrfound->header, seqindex_p->header, hdrfound->abundance_start) == 0))
-            break;
+          if (hdrfound->hdrhash == hdrhash)
+            {
+              int hit_id_start, hit_id_len;
+
+              if (hdrfound->abundance_start > 0)
+                {
+                  hit_id_start = 0;
+                  hit_id_len = hdrfound->abundance_start;
+                }
+              else
+                {
+                  hit_id_start = hdrfound->abundance_end;
+                  hit_id_len = hdrfound->headerlen - hdrfound->abundance_end;
+                }
+
+              if ((id_len == hit_id_len) &&
+                  (strncmp(seqindex_p->header + id_start,
+                           hdrfound->header + hit_id_start,
+                           static_cast<uint64_t>(id_len)) == 0))
+                break;
+            }
+
           hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
         }
 
@@ -488,34 +680,42 @@ void db_read(const char * filename)
         {
           duplicatedidentifiers++;
           fprintf(stderr, "\nError: Duplicated sequence identifier: %.*s\n\n",
-                  seqindex_p->abundance_start,
-                  seqindex_p->header);
+                  id_len,
+                  seqindex_p->header + id_start);
           exit(1);
         }
 
       hdrhashtable[hdrhashindex] = seqindex_p;
-    
 
-      if (opt_differences > 0)
+      /* hash sequence */
+      seqindex_p->seqhash = zobrist_hash(reinterpret_cast<unsigned char*>
+                                         (seqindex_p->seq),
+                                         seqindex_p->seqlen);
+
+      if (opt_differences > 1)
         {
-          /* check for duplicated sequences using hash table */
-          unsigned long seqhash = HASH((unsigned char*)seqindex_p->seq,
-                                       seqindex_p->seqlen);
-          seqindex_p->seqhash = seqhash;
-          unsigned long seqhashindex = seqhash % seqhashsize;
-          seqinfo_t * seqfound = 0;
+          /* Check for duplicated sequences using hash table, */
+          /* but only for d>1. Handled internally for d=1.    */
+
+          uint64_t seqhashindex = seqindex_p->seqhash % seqhashsize;
+          seqinfo_t * seqfound = nullptr;
 
           while ((seqfound = seqhashtable[seqhashindex]))
             {
-              if ((seqfound->seqhash == seqhash) &&
+              if ((seqfound->seqhash == seqindex_p->seqhash) &&
                   (seqfound->seqlen == seqindex_p->seqlen) &&
-                  (memcmp(seqfound->seq, seqindex_p->seq, seqfound->seqlen) == 0))
+                  (memcmp(seqfound->seq,
+                          seqindex_p->seq,
+                          nt_bytelength(seqindex_p->seqlen)) == 0))
                 break;
               seqhashindex = (seqhashindex + 1) % seqhashsize;
             }
 
           if (seqfound)
-            duplicates_found++;
+            {
+              duplicates_found++;
+              break;
+            }
           else
             seqhashtable[seqhashindex] = seqindex_p;
         }
@@ -523,12 +723,26 @@ void db_read(const char * filename)
       seqindex_p++;
       progress_update(i);
     }
+
+  if (duplicates_found)
+    {
+      fprintf(logfile,
+              "\n\n"
+              "Error: some fasta entries have identical sequences.\n"
+              "Swarm expects dereplicated fasta files.\n"
+              "Such files can be produced with swarm or vsearch:\n"
+              " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
+              "or\n"
+              " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
+      exit(1);
+    }
+
   progress_done();
 
   if (missingabundance)
     {
       fprintf(stderr,
-              "\nError: Abundance annotations not found for %d sequences, starting on line %u.\n"
+              "\nError: Abundance annotations not found for %d sequences, starting on line %" PRIu64 ".\n"
               ">%s\n"
               "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
               "The -z option must be used if the abundance annotation is in the latter format.\n"
@@ -541,14 +755,6 @@ void db_read(const char * filename)
       exit(1);
     }
 
-  if (duplicates_found)
-    {
-      fprintf(logfile,
-              "WARNING: %lu duplicated sequences detected.\n"
-              "Please consider dereplicating your data for optimal results.\n",
-              duplicates_found);
-    }
-
   if (!presorted)
     {
       progress_init("Abundance sorting:", 1);
@@ -556,27 +762,26 @@ void db_read(const char * filename)
       progress_done();
     }
 
-  regfree(&db_regexp);
-
-  free(hdrhashtable);
+  xfree(hdrhashtable);
 
   if (seqhashtable)
     {
-      free(seqhashtable);
-      seqhashtable = 0;
+      xfree(seqhashtable);
+      seqhashtable = nullptr;
     }
 }
 
 void db_qgrams_init()
 {
-  qgrams = (qgramvector_t *) xmalloc(sequences * sizeof(qgramvector_t));
+  qgrams = static_cast<qgramvector_t *>
+    (xmalloc(sequences * sizeof(qgramvector_t)));
 
   seqinfo_t * seqindex_p = seqindex;
   progress_init("Find qgram vects: ", sequences);
   for(unsigned int i=0; i<sequences; i++)
     {
       /* find qgrams */
-      findqgrams((unsigned char*) seqindex_p->seq,
+      findqgrams(reinterpret_cast<unsigned char*>(seqindex_p->seq),
                  seqindex_p->seqlen,
                  qgrams[i]);
       seqindex_p++;
@@ -587,136 +792,126 @@ void db_qgrams_init()
 
 void db_qgrams_done()
 {
-  free(qgrams);
+  xfree(qgrams);
 }
 
-unsigned long db_getsequencecount()
+unsigned int db_getsequencecount()
 {
   return sequences;
 }
 
-unsigned long db_getnucleotidecount()
+uint64_t db_getnucleotidecount()
 {
   return nucleotides;
 }
 
-#if 0
-
-/* never used */
-
-unsigned long db_getlongestheader()
-{
-  return longestheader;
-}
-
-#endif
-
-unsigned long db_getlongestsequence()
+unsigned int db_getlongestsequence()
 {
   return longest;
 }
 
-#if 0
-
-/* never used */
-
-seqinfo_t * db_getseqinfo(unsigned long seqno)
+uint64_t db_gethash(uint64_t seqno)
 {
-  return seqindex+seqno;
+  return seqindex[seqno].seqhash;
 }
 
-#endif
-
-char * db_getsequence(unsigned long seqno)
+char * db_getsequence(uint64_t seqno)
 {
   return seqindex[seqno].seq;
 }
 
-void db_getsequenceandlength(unsigned long seqno,
+void db_getsequenceandlength(uint64_t seqno,
                              char ** address,
-                             long * length)
+                             unsigned int * length)
 {
   *address = seqindex[seqno].seq;
-  *length = (long)(seqindex[seqno].seqlen);
+  *length = seqindex[seqno].seqlen;
 }
 
-unsigned long db_getsequencelen(unsigned long seqno)
+unsigned int db_getsequencelen(uint64_t seqno)
 {
   return seqindex[seqno].seqlen;
 }
 
-#if 0
-
-/* never used */
-
-char * db_getheader(unsigned long seqno)
+char * db_getheader(uint64_t seqno)
 {
   return seqindex[seqno].header;
 }
 
-unsigned long db_getheaderlen(unsigned long seqno)
-{
-  return seqindex[seqno].headerlen;
-}
-
-#endif
-
-unsigned long db_getabundance(unsigned long seqno)
+uint64_t db_getabundance(uint64_t seqno)
 {
   return seqindex[seqno].abundance;
 }
 
-#if 0
-
-/* never used */
-
-void db_putseq(long seqno)
-{
-  char * seq;
-  long len;
-  db_getsequenceandlength(seqno, & seq, & len);
-  for(int i=0; i<len; i++)
-    putchar(sym_nt[(int)(seq[i])]);
-}
-
-#endif
-
 void db_free()
 {
+  zobrist_exit();
+
   if (datap)
-    free(datap);
+    xfree(datap);
   if (seqindex)
-    free(seqindex);
+    xfree(seqindex);
 }
 
-void db_fprintseq(FILE * fp, int a, int width)
+void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
 {
   char * seq = db_getsequence(a);
-  int len = db_getsequencelen(a);
+  unsigned int len = db_getsequencelen(a);
   char buffer[1025];
   char * buf;
 
   if (len < 1025)
     buf = buffer;
   else
-    buf = (char*) xmalloc(len+1);
+    buf = static_cast<char*>(xmalloc(len+1));
 
-  for(int i=0; i<len; i++)
-    buf[i] = sym_nt[(int)(seq[i])];
+  for(unsigned int i = 0; i < len; i++)
+    buf[i] = sym_nt[1 + nt_extract(seq, i)];
   buf[len] = 0;
 
   if (width < 1)
-    fprintf(fp, "%.*s\n", (int)(len), buf);
+    fprintf(fp, "%.*s\n", len, buf);
   else
     {
-      long rest = len;
-      for(int i=0; i<len; i += width)
+      unsigned int rest = len;
+      for(unsigned int i = 0; i < len; i += width)
         {
-          fprintf(fp, "%.*s\n", (int)(MIN(rest,width)), buf+i);
+          fprintf(fp, "%.*s\n", MIN(rest, width), buf+i);
           rest -= width;
         }
     }
 
   if (len >= 1025)
-    free(buf);
+    xfree(buf);
 }
+
+
+#if 0
+
+/* Unused functions */
+
+unsigned int db_getheaderlen(uint64_t seqno)
+{
+  return seqindex[seqno].headerlen;
+}
+
+unsigned int db_getlongestheader()
+{
+  return longestheader;
+}
+
+seqinfo_t * db_getseqinfo(uint64_t seqno)
+{
+  return seqindex+seqno;
+}
+
+void db_putseq(int64_t seqno)
+{
+  char * seq;
+  int64_t len;
+  db_getsequenceandlength(seqno, & seq, & len);
+  for(int i=0; i<len; i++)
+    putchar(sym_nt[1+nt_extract(seq, i)]);
+}
+
+#endif

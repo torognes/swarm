@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -23,20 +23,18 @@
 
 #include "swarm.h"
 
-#define BITS 8
+static uint64_t count_comparisons_8;
+static uint64_t count_comparisons_16;
 
-static unsigned long count_comparisons_8;
-static unsigned long count_comparisons_16;
-
-static unsigned long targetcount;
-static unsigned long * targetindices;
-static unsigned long * targetampliconids;
-static unsigned long * scores;
-static unsigned long * diffs;
-static unsigned long * alignlengths;
-static unsigned long * qgramamps;
-static unsigned long * qgramdiffs;
-static unsigned long * qgramindices;
+static uint64_t targetcount;
+static uint64_t * targetindices;
+static uint64_t * targetampliconids;
+static uint64_t * scores;
+static uint64_t * diffs;
+static uint64_t * alignlengths;
+static uint64_t * qgramamps;
+static uint64_t * qgramdiffs;
+static uint64_t * qgramindices;
 
 static struct ampliconinfo_s
 {
@@ -47,95 +45,130 @@ static struct ampliconinfo_s
   unsigned radius; /* actual diff from initial seed */
 } * amps;
 
-static unsigned long swarmed;
-static unsigned long seeded;
+static uint64_t swarmed;
+static uint64_t seeded;
+
+struct swarminfo_t
+{
+  uint64_t mass;
+  unsigned int seed;
+  int dummy; /* alignment padding only */
+};
+
+int compare_mass_seed(const void * a, const void * b);
+
+int compare_mass_seed(const void * a, const void * b)
+{
+  const swarminfo_t * x = static_cast<const struct swarminfo_t *>(a);
+  const swarminfo_t * y = static_cast<const struct swarminfo_t *>(b);
+
+  uint64_t m = x->mass;
+  uint64_t n = y->mass;
+
+  if (m > n)
+    return -1;
+  else if (m < n)
+    return +1;
+  else
+    return strcmp(db_getheader(x->seed), db_getheader(y->seed));
+}
 
 void algo_run()
 {
+  search_begin();
+
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
 
 #ifdef VERBOSE
-  unsigned long searches = 0;
-  unsigned long estimates = 0;
+  uint64_t searches = 0;
+  uint64_t estimates = 0;
 #endif
 
-  unsigned long largestswarm = 0;
+  uint64_t largestswarm = 0;
 
-  unsigned long maxgenerations = 0;
+  uint64_t maxgenerations = 0;
 
-  unsigned long amplicons = db_getsequencecount();
-  unsigned long longestamplicon = db_getlongestsequence();
+  uint64_t amplicons = db_getsequencecount();
+  uint64_t longestamplicon = db_getlongestsequence();
 
   db_qgrams_init();
 
   qgram_diff_init();
 
-  amps = (struct ampliconinfo_s *) xmalloc(amplicons * sizeof(struct ampliconinfo_s));
+  amps = static_cast<struct ampliconinfo_s *>
+    (xmalloc(amplicons * sizeof(struct ampliconinfo_s)));
 
-  targetampliconids = (unsigned long *) xmalloc(amplicons * 
-                                                sizeof(unsigned long));
-  targetindices = (unsigned long *) xmalloc(amplicons * sizeof(unsigned long));
-  scores = (unsigned long *) xmalloc(amplicons * sizeof(unsigned long));
-  diffs = (unsigned long *) xmalloc(amplicons * sizeof(unsigned long));
-  alignlengths = (unsigned long *) xmalloc(amplicons * sizeof(unsigned long));
+  targetampliconids = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  targetindices = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  scores = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  diffs = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  alignlengths = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
 
-  qgramamps = (unsigned long *) xmalloc(amplicons * sizeof(unsigned long));
-  qgramdiffs = (unsigned long *) xmalloc(amplicons * sizeof(unsigned long));
-  qgramindices = (unsigned long *) xmalloc(amplicons * sizeof(unsigned long));
+  qgramamps = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  qgramdiffs = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
+  qgramindices = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
 
-  unsigned long * hits = (unsigned long *) xmalloc(amplicons *
-                                                   sizeof(unsigned long));
+  uint64_t * hits = static_cast<uint64_t *>
+    (xmalloc(amplicons * sizeof(uint64_t)));
 
-  unsigned long diff_saturation = MIN(255 / penalty_mismatch,
-                                      255 / (penalty_gapopen + 
-                                             penalty_gapextend));
+  uint64_t diff_saturation
+    = static_cast<uint64_t>(MIN(255 / penalty_mismatch,
+                                255 / (penalty_gapopen +
+                                       penalty_gapextend)));
 
-  unsigned char * dir = 0;
-  unsigned long * hearray = 0;
+  unsigned char * dir = nullptr;
+  uint64_t * hearray = nullptr;
 
   if (uclustfile)
     {
-      dir = (unsigned char *) xmalloc(longestamplicon*longestamplicon);
-      hearray = (unsigned long *) xmalloc(2 * longestamplicon *
-                                          sizeof(unsigned long));
+      dir = static_cast<unsigned char *>
+        (xmalloc(longestamplicon*longestamplicon));
+      hearray = static_cast<uint64_t *>
+        (xmalloc(2 * longestamplicon * sizeof(uint64_t)));
     }
 
   /* set ampliconid for all */
-  for(unsigned long i=0; i<amplicons; i++)
-    {
-      amps[i].ampliconid = i;
-    }
+  for(unsigned int i=0; i<amplicons; i++)
+    amps[i].ampliconid = i;
 
   /* always search in 8 bit mode unless resolution is very high */
-  
-  unsigned long bits;
 
-  if ((unsigned long)opt_differences <= diff_saturation)
+  int bits;
+
+  if (static_cast<uint64_t>(opt_differences) <= diff_saturation)
     bits = 8;
   else
     bits = 16;
- 
+
   seeded = 0;
   swarmed = 0;
 
-  unsigned long swarmid = 0;
-  
+  unsigned int swarmid = 0;
+
   progress_init("Clustering:       ", amplicons);
   while (seeded < amplicons)
     {
 
       /* process each initial seed */
-      
+
       swarmid++;
 
-      unsigned long swarmsize = 0;
-      unsigned long amplicons_copies = 0;
-      unsigned long singletons = 0;
-      unsigned long hitcount = 0;
-      unsigned long maxradius = 0;
-      unsigned long maxgen = 0;
-      unsigned long seedindex;
+      uint64_t swarmsize = 0;
+      uint64_t amplicons_copies = 0;
+      uint64_t singletons = 0;
+      uint64_t hitcount = 0;
+      uint64_t maxradius = 0;
+      uint64_t maxgen = 0;
+      uint64_t seedindex;
 
       seedindex = seeded;
       seeded++;
@@ -143,11 +176,11 @@ void algo_run()
       amps[seedindex].swarmid = swarmid;
       amps[seedindex].generation = 0;
       amps[seedindex].radius = 0;
-     
-      unsigned long seedampliconid = amps[seedindex].ampliconid;
+
+      uint64_t seedampliconid = amps[seedindex].ampliconid;
       hits[hitcount++] = seedampliconid;
-      
-      unsigned long abundance = db_getabundance(seedampliconid);
+
+      uint64_t abundance = db_getabundance(seedampliconid);
       amplicons_copies += abundance;
       if (abundance == 1)
         singletons++;
@@ -160,9 +193,9 @@ void algo_run()
 
       targetcount = 0;
 
-      unsigned long listlen = 0;
+      uint64_t listlen = 0;
 
-      for(unsigned long i=0; i < amplicons-swarmed; i++)
+      for(uint64_t i=0; i < amplicons-swarmed; i++)
         {
           unsigned ampid = amps[swarmed+i].ampliconid;
           if ((opt_no_otu_breaking) || (db_getabundance(ampid) <= abundance))
@@ -177,23 +210,23 @@ void algo_run()
 #ifdef VERBOSE
       estimates += listlen;
 #endif
-      
-      for(unsigned long i=0; i < listlen; i++)
+
+      for(uint64_t i=0; i < listlen; i++)
         {
-          unsigned poolampliconid = qgramamps[i];
-          long diff = qgramdiffs[i];
-          amps[swarmed+i].diffestimate = diff;
-          if (diff <= opt_differences)
+          uint64_t poolampliconid = qgramamps[i];
+          uint64_t diff = qgramdiffs[i];
+          amps[swarmed+i].diffestimate = static_cast<unsigned int>(diff);
+          if (diff <= static_cast<uint64_t>(opt_differences))
             {
               targetindices[targetcount] = swarmed+i;
               targetampliconids[targetcount] = poolampliconid;
               targetcount++;
             }
         }
-      
+
       if (targetcount > 0)
         {
-          search_do(seedampliconid, targetcount, targetampliconids, 
+          search_do(seedampliconid, targetcount, targetampliconids,
                     scores, diffs, alignlengths, bits);
 #ifdef VERBOSE
           searches++;
@@ -204,11 +237,15 @@ void algo_run()
           else
             count_comparisons_16 += targetcount;
 
-          for(unsigned long t=0; t<targetcount; t++)
+          for(uint64_t t=0; t<targetcount; t++)
             {
 #if 0
-              printf("seed: %lu target: %lu score: %lu "
-                     "diffs: %lu alignlen: %lu bits: %lu\n",
+              printf("seed: %" PRIu64
+                     " target: %" PRIu64
+                     " score: %" PRIu64
+                     " diffs: %" PRIu64
+                     " alignlen: %" PRIu64
+                     " bits: %" PRIu64 "\n",
                      seedampliconid,
                      targetampliconids[t],
                      scores[t],
@@ -217,19 +254,19 @@ void algo_run()
                      bits);
 #endif
 
-              unsigned diff = diffs[t];
+              uint64_t diff = diffs[t];
 
-              if (diff <= (unsigned long) opt_differences)
+              if (diff <= static_cast<uint64_t>(opt_differences))
                 {
-                  unsigned i = targetindices[t];
+                  uint64_t i = targetindices[t];
 
                   /* move the target (i) to the position (swarmed)
                      of the first unswarmed amplicon in the pool */
-                  
+
                   if (swarmed < i)
                     {
                       struct ampliconinfo_s temp = amps[i];
-                      for(unsigned j=i; j>swarmed; j--)
+                      for(uint64_t j=i; j>swarmed; j--)
                         {
                           amps[j] = amps[j-1];
                         }
@@ -240,7 +277,7 @@ void algo_run()
                   amps[swarmed].generation = 1;
                   if (maxgen < 1)
                     maxgen = 1;
-                  amps[swarmed].radius = diff;
+                  amps[swarmed].radius = static_cast<unsigned int>(diff);
                   if (diff > maxradius)
                     maxradius = diff;
 
@@ -249,11 +286,15 @@ void algo_run()
 
                   if (opt_internal_structure)
                     {
-                      fprint_id_noabundance(internal_structure_file, seedampliconid);
+                      fprint_id_noabundance(internal_structure_file,
+                                            seedampliconid);
                       fprintf(internal_structure_file, "\t");
-                      fprint_id_noabundance(internal_structure_file, poolampliconid);
-                      fprintf(internal_structure_file, "\t%u", diff);
-                      fprintf(internal_structure_file, "\t%lu\t1", swarmid);
+                      fprint_id_noabundance(internal_structure_file,
+                                            poolampliconid);
+                      fprintf(internal_structure_file, "\t%" PRIu64, diff);
+                      fprintf(internal_structure_file,
+                              "\t%u\t1",
+                              swarmid);
                       fprintf(internal_structure_file, "\n");
                     }
 
@@ -266,7 +307,7 @@ void algo_run()
 
                   swarmed++;
                 }
-            }  
+            }
 
 
           while (seeded < swarmed)
@@ -276,11 +317,11 @@ void algo_run()
 
               unsigned subseedampliconid;
               unsigned subseedradius;
-          
-              unsigned long subseedindex;
-              unsigned long subseedgeneration;
-              unsigned long subseedabundance;
-          
+
+              uint64_t subseedindex;
+              uint64_t subseedgeneration;
+              uint64_t subseedabundance;
+
               subseedindex = seeded;
               subseedampliconid = amps[subseedindex].ampliconid;
               subseedradius = amps[subseedindex].radius;
@@ -288,15 +329,16 @@ void algo_run()
               subseedabundance = db_getabundance(subseedampliconid);
 
               seeded++;
-          
+
               targetcount = 0;
-          
-              unsigned long subseedlistlen=0;
-              for(unsigned long i=swarmed; i<amplicons; i++)
+
+              uint64_t subseedlistlen=0;
+              for(uint64_t i=swarmed; i<amplicons; i++)
                 {
-                  unsigned long targetampliconid = amps[i].ampliconid;
-                  if ((amps[i].diffestimate <= subseedradius + opt_differences) &&
-                      ((opt_no_otu_breaking) || 
+                  uint64_t targetampliconid = amps[i].ampliconid;
+                  if ((amps[i].diffestimate <=
+                       subseedradius + opt_differences) &&
+                      ((opt_no_otu_breaking) ||
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
                     {
@@ -306,24 +348,24 @@ void algo_run()
                     }
                 }
 
-              qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps, 
+              qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps,
                               qgramdiffs);
 
 #ifdef VERBOSE
               estimates += subseedlistlen;
 #endif
 
-              for(unsigned long i=0; i < subseedlistlen; i++)
-                if ((long)qgramdiffs[i] <= opt_differences)
+              for(uint64_t i=0; i < subseedlistlen; i++)
+                if (qgramdiffs[i] <= static_cast<uint64_t>(opt_differences))
                   {
                     targetindices[targetcount] = qgramindices[i];
                     targetampliconids[targetcount] = qgramamps[i];
                     targetcount++;
                   }
-          
+
               if (targetcount > 0)
                 {
-                  search_do(subseedampliconid, targetcount, targetampliconids, 
+                  search_do(subseedampliconid, targetcount, targetampliconids,
                             scores, diffs, alignlengths, bits);
 #ifdef VERBOSE
                   searches++;
@@ -333,15 +375,15 @@ void algo_run()
                     count_comparisons_8 += targetcount;
                   else
                     count_comparisons_16 += targetcount;
-            
-                  for(unsigned long t=0; t<targetcount; t++)
+
+                  for(uint64_t t=0; t<targetcount; t++)
                     {
-                      unsigned diff = diffs[t];
-              
-                      if (diff <= (unsigned long) opt_differences)
+                      uint64_t diff = diffs[t];
+
+                      if (diff <= static_cast<uint64_t>(opt_differences))
                         {
-                          unsigned i = targetindices[t];
-                
+                          uint64_t i = targetindices[t];
+
                           /* find correct position in list */
 
                           /* move the target (i) to the position (swarmed)
@@ -350,8 +392,8 @@ void algo_run()
                              but unseeded part of the list, so that the
                              swarmed amplicons are ordered by id */
 
-                          unsigned long targetampliconid = amps[i].ampliconid;
-                          unsigned pos = swarmed;
+                          uint64_t targetampliconid = amps[i].ampliconid;
+                          uint64_t pos = swarmed;
 
                           while ((pos > seeded) &&
                                  (amps[pos-1].ampliconid > targetampliconid) &&
@@ -361,7 +403,7 @@ void algo_run()
                           if (pos < i)
                             {
                               struct ampliconinfo_s temp = amps[i];
-                              for(unsigned j=i; j>pos; j--)
+                              for(uint64_t j=i; j>pos; j--)
                                 {
                                   amps[j] = amps[j-1];
                                 }
@@ -369,10 +411,12 @@ void algo_run()
                             }
 
                           amps[pos].swarmid = swarmid;
-                          amps[pos].generation = subseedgeneration + 1;
+                          amps[pos].generation
+                            = static_cast<unsigned int>(subseedgeneration + 1);
                           if (maxgen < amps[pos].generation)
                             maxgen = amps[pos].generation;
-                          amps[pos].radius = subseedradius + diff;
+                          amps[pos].radius
+                            = static_cast<unsigned int>(subseedradius + diff);
                           if (amps[pos].radius > maxradius)
                             maxradius = amps[pos].radius;
 
@@ -381,11 +425,15 @@ void algo_run()
 
                           if (opt_internal_structure)
                             {
-                              fprint_id_noabundance(internal_structure_file, subseedampliconid);
+                              fprint_id_noabundance(internal_structure_file,
+                                                    subseedampliconid);
                               fprintf(internal_structure_file, "\t");
-                              fprint_id_noabundance(internal_structure_file, poolampliconid);
-                              fprintf(internal_structure_file, "\t%u", diff);
-                              fprintf(internal_structure_file, "\t%lu\t%lu", swarmid, subseedgeneration + 1);
+                              fprint_id_noabundance(internal_structure_file,
+                                                    poolampliconid);
+                              fprintf(internal_structure_file, "\t%" PRIu64, diff);
+                              fprintf(internal_structure_file,
+                                      "\t%u\t%" PRIu64,
+                                      swarmid, subseedgeneration + 1);
                               fprintf(internal_structure_file, "\n");
                             }
 
@@ -398,11 +446,11 @@ void algo_run()
 
                           swarmed++;
                         }
-                    }  
+                    }
                 }
             }
         }
-      
+
       if (swarmsize > largestswarm)
         largestswarm = swarmsize;
 
@@ -412,43 +460,44 @@ void algo_run()
 
       if (uclustfile)
         {
-          fprintf(uclustfile, "C\t%lu\t%lu\t*\t*\t*\t*\t*\t",
+          fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid-1, swarmsize);
           fprint_id(uclustfile, seedampliconid);
           fprintf(uclustfile, "\t*\n");
-          
-          fprintf(uclustfile, "S\t%lu\t%lu\t*\t*\t*\t*\t*\t",
+
+          fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid-1, db_getsequencelen(seedampliconid));
           fprint_id(uclustfile, seedampliconid);
           fprintf(uclustfile, "\t*\n");
           fflush(uclustfile);
 
-          for(unsigned long i=1; i<hitcount; i++)
+          for(uint64_t i=1; i<hitcount; i++)
             {
-              unsigned long hit = hits[i];
-              
+              uint64_t hit = hits[i];
+
               char * dseq = db_getsequence(hit);
-              char * dend = dseq + db_getsequencelen(hit);
+              int64_t dlen = db_getsequencelen(hit);
               char * qseq = db_getsequence(seedampliconid);
-              char * qend = qseq + db_getsequencelen(seedampliconid);
+              int64_t qlen = db_getsequencelen(seedampliconid);
 
-              unsigned long nwscore = 0;
-              unsigned long nwdiff = 0;
-              char * nwalignment = NULL;
-              unsigned long nwalignmentlength = 0;
+              int64_t nwscore = 0;
+              int64_t nwdiff = 0;
+              char * nwalignment = nullptr;
+              int64_t nwalignmentlength = 0;
 
-              nw(dseq, dend, qseq, qend, 
+              nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
-                 dir, hearray, 0, 0);
-              
-              double percentid = 100.0 * (nwalignmentlength - 
-                                          nwdiff) / nwalignmentlength;
-              
-              fprintf(uclustfile, "H\t%lu\t%lu\t%.1f\t+\t0\t0\t%s\t",
-                      swarmid-1, db_getsequencelen(hit), percentid, 
+                 dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
+
+              double percentid
+                = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
+                / static_cast<double>(nwalignmentlength);
+
+              fprintf(uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                      swarmid-1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? nwalignment : "=");
-              
+
               fprint_id(uclustfile, hit);
               fprintf(uclustfile, "\t");
               fprint_id(uclustfile, seedampliconid);
@@ -456,34 +505,36 @@ void algo_run()
               fflush(uclustfile);
 
               if (nwalignment)
-                free(nwalignment);
+                xfree(nwalignment);
             }
 
         }
-      
+
 
       if (statsfile)
         {
           abundance = db_getabundance(seedampliconid);
 
-          fprintf(statsfile, "%lu\t%lu\t", swarmsize, amplicons_copies);
+          fprintf(statsfile, "%" PRIu64 "\t%" PRIu64 "\t",
+                  swarmsize, amplicons_copies);
           fprint_id_noabundance(statsfile, seedampliconid);
-          fprintf(statsfile, "\t%lu\t%lu\t%lu\t%lu\n", 
+          fprintf(statsfile,
+                  "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                   abundance, singletons, maxgen, maxradius);
         }
       progress_update(seeded);
     }
   progress_done();
-  
+
   if (uclustfile)
     {
-      free(dir);
-      free(hearray);
+      xfree(dir);
+      xfree(hearray);
     }
 
 
   /* output results */
-  
+
   if (amplicons > 0)
     {
       char sep_amplicons;
@@ -494,7 +545,8 @@ void algo_run()
           /* mothur list file output */
           sep_amplicons = ',';
           sep_swarms = '\t';
-          fprintf(outfile, "swarm_%ld\t%lu\t", opt_differences, swarmid);
+          fprintf(outfile, "swarm_%" PRId64 "\t%u\t",
+                  opt_differences, swarmid);
         }
       else
         {
@@ -504,11 +556,11 @@ void algo_run()
         }
 
       fprint_id(outfile, amps[0].ampliconid);
-      long previd = amps[0].swarmid;
+      int64_t previd = amps[0].swarmid;
 
-      for (unsigned long i=1; i<amplicons; i++)
+      for (uint64_t i=1; i<amplicons; i++)
         {
-          long id = amps[i].swarmid;
+          int64_t id = amps[i].swarmid;
           if (id == previd)
             fputc(sep_amplicons, outfile);
           else
@@ -525,52 +577,62 @@ void algo_run()
 
   if ((opt_seeds) && (amplicons > 0))
     {
-      progress_init("Writing seeds:    ", amplicons);
-
-      unsigned long mass = 0;
+      uint64_t swarmcount = 0;
+      progress_init("Sorting seeds:    ", amplicons);
+      struct swarminfo_t * swarminfo = static_cast<struct swarminfo_t *>
+        (xmalloc(swarmed * sizeof(struct swarminfo_t)));
+      uint64_t mass = 0;
       unsigned previd = amps[0].swarmid;
       unsigned seed = amps[0].ampliconid;
       mass += db_getabundance(seed);
-
-      for (unsigned long i=1; i<amplicons; i++)
+      for (uint64_t i=1; i<amplicons; i++)
         {
           unsigned id = amps[i].swarmid;
-
           if (id != previd)
             {
-              fprintf(fp_seeds, ">");
-              fprint_id_with_new_abundance(fp_seeds, seed, mass);
-              fprintf(fp_seeds, "\n");
-              db_fprintseq(fp_seeds, seed, 0);
-
+              swarminfo[swarmcount].seed = seed;
+              swarminfo[swarmcount].mass = mass;
+              swarmcount++;
               mass = 0;
               seed = amps[i].ampliconid;
             }
-
           mass += db_getabundance(amps[i].ampliconid);
           previd = id;
           progress_update(i);
         }
+      swarminfo[swarmcount].seed = seed;
+      swarminfo[swarmcount].mass = mass;
+      swarmcount++;
+      qsort(swarminfo, swarmcount, sizeof(swarminfo_t), compare_mass_seed);
+      progress_done();
 
-      fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, seed, mass);
-      fprintf(fp_seeds, "\n");
-      db_fprintseq(fp_seeds, seed, 0);
+      progress_init("Writing seeds:    ", swarmcount);
+      for (uint64_t i = 0; i < swarmcount; i++)
+        {
+          uint64_t swarm_mass = swarminfo[i].mass;
+          unsigned int swarm_seed = swarminfo[i].seed;
 
+          fprintf(fp_seeds, ">");
+          fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass);
+          fprintf(fp_seeds, "\n");
+          db_fprintseq(fp_seeds, swarm_seed, 0);
+          progress_update(i);
+        }
+      xfree(swarminfo);
       progress_done();
     }
 
 
-  free(qgramdiffs);
-  free(qgramamps);
-  free(qgramindices);
-  free(hits);
-  free(alignlengths);
-  free(diffs);
-  free(scores);
-  free(targetindices);
-  free(targetampliconids);
-  free(amps);
+  xfree(qgramdiffs);
+  xfree(qgramamps);
+  xfree(qgramindices);
+  xfree(hits);
+  xfree(alignlengths);
+  xfree(diffs);
+  xfree(scores);
+  xfree(targetindices);
+  xfree(targetampliconids);
+  xfree(amps);
 
   db_qgrams_done();
 
@@ -578,34 +640,35 @@ void algo_run()
 
   fprintf(logfile, "\n");
 
-  fprintf(logfile, "Number of swarms:  %lu\n", swarmid);
+  fprintf(logfile, "Number of swarms:  %u\n", swarmid);
 
-  fprintf(logfile, "Largest swarm:     %lu\n", largestswarm);
+  fprintf(logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
 
-  fprintf(logfile, "Max generations:   %lu\n", maxgenerations);
+  fprintf(logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
 
 #ifdef VERBOSE
   fprintf(logfile, "\n");
 
-  fprintf(logfile, "Estimates:         %lu\n", estimates);
+  fprintf(logfile, "Estimates:         %" PRIu64 "\n", estimates);
 
-  fprintf(logfile, "Searches:          %lu\n", searches);
+  fprintf(logfile, "Searches:          %" PRIu64 "\n", searches);
 
   fprintf(logfile, "\n");
 
-  fprintf(logfile, "Comparisons (8b):  %lu (%.2lf%%)\n",
-          count_comparisons_8, (200.0 * count_comparisons_8 / 
+  fprintf(logfile, "Comparisons (8b):  %" PRIu64 " (%.2lf%%)\n",
+          count_comparisons_8, (200.0 * count_comparisons_8 /
                                 amplicons / (amplicons+1)));
 
-  fprintf(logfile, "Comparisons (16b): %lu (%.2lf%%)\n",
+  fprintf(logfile, "Comparisons (16b): %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_16, (200.0 * count_comparisons_16 /
                                  amplicons / (amplicons+1)));
 
-  fprintf(logfile, "Comparisons (tot): %lu (%.2lf%%)\n",
+  fprintf(logfile, "Comparisons (tot): %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_8 + count_comparisons_16,
           (200.0 * (count_comparisons_8 + count_comparisons_16) /
            amplicons / (amplicons+1)));
 #endif
 
+    search_end();
 }
 

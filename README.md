@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/torognes/swarm.svg?branch=swarm3)](https://travis-ci.org/torognes/swarm)
+
 # swarm
 
 A robust and fast clustering method for amplicon-based studies.
@@ -16,7 +18,18 @@ To help users, we describe
 starting from raw fastq files, clustering with **swarm** and producing
 a filtered OTU table.
 
-swarm 2.0 introduces several novelties and improvements over swarm
+swarm 3.0 introduces:
+* a much faster default algorithm,
+* a reduced memory footprint,
+* binaries for Windows x86-64, GNU/Linux ARM 64, and GNU/Linux POWER8,
+* an updated, hardened, and thoroughly tested code.
+
+Please note that:
+* strict dereplication of input sequences is now mandatory,
+* \-\-seeds option (\-w) now outputs results sorted by decreasing
+  abundance, and then by alphabetical order of sequence labels.
+
+swarm 2.0 introduced several novelties and improvements over swarm
 1.0:
 * built-in breaking phase now performed automatically,
 * possibility to output OTU representatives in fasta format (option
@@ -24,13 +37,13 @@ swarm 2.0 introduces several novelties and improvements over swarm
 * fast algorithm now used by default for *d* = 1 (linear time
   complexity),
 * a new option called *fastidious* that refines *d* = 1 results and
-  reduces the number of small OTUs,
+  reduces the number of small OTUs.
 
 ## Common misconceptions
 
 **swarm** is a single-linkage clustering method, with some superficial
-  similarities with other clustering methods (e.g.,
-  [Huse et al, 2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/)). **swarm**'s
+  similarities with other clustering methods (e.g., [Huse et al,
+  2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/)). **swarm**'s
   novelty is its iterative growth process and the use of sequence
   abundance values to delineate OTUs. **swarm** properly delineates
   large OTUs (high recall), and can distinguish OTUs with as little as
@@ -76,8 +89,8 @@ cgtcgtcgtcgtcgt
 
 where sequence identifiers are unique and end with a value indicating
 the number of occurrences of the sequence (e.g., `_1000`). Alternative
-format is possible with the option `-z`, please see the
-[user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
+format is possible with the option `-z`, please see the [user
+manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
 **requires** each fasta entry to present a number of occurrences to
 work properly. That crucial information can be produced during the
 [dereplication](#dereplication-mandatory) step.
@@ -87,7 +100,7 @@ Use `swarm -h` to get a short help, or see the
   for a complete description of input/output formats and command line
   options.
 
-The memory footprint of **swarm** is roughly 1.6 times the size of the
+The memory footprint of **swarm** is roughly 0.6 times the size of the
 input fasta file. When using the fastidious option, memory footprint
 can increase significantly. See options `-c` and `-y` to control and
 cap swarm's memory consumption.
@@ -210,15 +223,10 @@ from two different sets have the same hash code, it means that the
 sequences they represent are identical.
 
 If for some reason your fasta entries don't have abundance values, and
-you still want to run swarm, you can easily add fake abundance values:
-
-```sh
-sed '/^>/ s/$/_1/' amplicons.fasta > amplicons_with_abundances.fasta
-```
-
-Alternatively, you may specify a default abundance value with
-**swarm**'s `--append-abundance` (`-a`) option to be used when
-abundance information is missing from a sequence.
+you still want to run swarm (not recommended), you can specify a
+default abundance value with **swarm**'s `--append-abundance` (`-a`)
+option to be used when abundance information is missing from a
+sequence.
 
 
 ### Launch swarm ###
@@ -305,15 +313,6 @@ rm "${AMPLICONS}"
 ```
 
 
-## Troubleshooting ##
-
-If **swarm** exits with an error message saying `This program
-requires a processor with SSE2`, your computer is too old to run
-**swarm** (or based on a non x86-64 architecture). **swarm** only runs
-on CPUs with the SSE2 instructions, i.e. most Intel and AMD CPUs
-released since 2004.
-
-
 ## Citation ##
 
 To cite **swarm**, please refer to:
@@ -333,7 +332,7 @@ You are welcome to:
 
 * submit suggestions and bug-reports at: https://github.com/torognes/swarm/issues
 * send a pull request on: https://github.com/torognes/swarm/
-* compose a friendly e-mail to: Frédéric Mahé <mahe@rhrk.uni-kl.de> and Torbjørn Rognes <torognes@ifi.uio.no>
+* compose a friendly e-mail to: Frédéric Mahé <frederic.mahe@cirad.fr> and Torbjørn Rognes <torognes@ifi.uio.no>
 
 
 ## Third-party pipelines ##
@@ -356,7 +355,7 @@ You are welcome to:
 If you want to try alternative free and open-source clustering
 methods, here are some links:
 
-* [VSEARCH](https://github.com/torognes/vsearch)
+* [vsearch](https://github.com/torognes/vsearch)
 * [Oligotyping](http://merenlab.org/projects/oligotyping/)
 * [DNAclust](http://dnaclust.sourceforge.net/)
 * [Sumaclust](http://metabarcoding.org/sumatra)
@@ -364,6 +363,11 @@ methods, here are some links:
 
 
 ## Version history ##
+
+### version 3.0 ###
+
+**swarm** 3.0 is much faster when _d_ = 1, and consumes less memory.
+Strict dereplication is now mandatory.
 
 ### version 2.2.2 ###
 

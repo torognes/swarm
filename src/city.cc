@@ -27,8 +27,9 @@
 // possible hash functions, by using SIMD instructions, or by
 // compromising on hash quality.
 
-#include "config.h"
-#include <city.h>
+/* Minor modifications by TR to adapt to Swarm */
+
+#include "city.h"
 
 #include <algorithm>
 #include <string.h>  // for memcpy and memset
@@ -47,7 +48,7 @@ static uint32 UNALIGNED_LOAD32(const char *p) {
   return result;
 }
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 
 #include <stdlib.h>
 #define bswap_32(x) _byteswap_ulong(x)
@@ -84,7 +85,7 @@ static uint32 UNALIGNED_LOAD32(const char *p) {
 #endif
 
 #if !defined(LIKELY)
-#if HAVE_BUILTIN_EXPECT
+#if defined(HAVE_BUILTIN_EXPECT)
 #define LIKELY(x) (__builtin_expect(!!(x), 1))
 #else
 #define LIKELY(x) (x)
@@ -144,7 +145,7 @@ static uint32 Hash32Len13to24(const char *s, size_t len) {
   uint32 d = Fetch32(s + (len >> 1));
   uint32 e = Fetch32(s);
   uint32 f = Fetch32(s + len - 4);
-  uint32 h = len;
+  uint32 h = static_cast<uint32>(len);
 
   return fmix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
 }
@@ -154,14 +155,17 @@ static uint32 Hash32Len0to4(const char *s, size_t len) {
   uint32 c = 9;
   for (uint32 i = 0; i < len; i++) {
     signed char v = s[i];
-    b = b * c1 + v;
+    b = b * c1 + static_cast<unsigned int>(v);
     c ^= b;
   }
-  return fmix(Mur(b, Mur(len, c)));
+  return fmix(Mur(b, Mur(static_cast<uint32>(len), c)));
 }
 
 static uint32 Hash32Len5to12(const char *s, size_t len) {
-  uint32 a = len, b = len * 5, c = 9, d = b;
+  uint32 a = static_cast<uint32>(len),
+    b = static_cast<uint32>(len) * 5,
+    c = 9,
+    d = b;
   a += Fetch32(s);
   b += Fetch32(s + len - 4);
   c += Fetch32(s + ((len >> 1) & 4));
@@ -176,7 +180,9 @@ uint32 CityHash32(const char *s, size_t len) {
   }
 
   // len > 24
-  uint32 h = len, g = c1 * len, f = g;
+  uint32 h = static_cast<uint32>(len),
+    g = c1 * static_cast<uint32>(len),
+    f = g;
   uint32 a0 = Rotate32(Fetch32(s + len - 4) * c1, 17) * c2;
   uint32 a1 = Rotate32(Fetch32(s + len - 8) * c1, 17) * c2;
   uint32 a2 = Rotate32(Fetch32(s + len - 16) * c1, 17) * c2;
@@ -199,28 +205,28 @@ uint32 CityHash32(const char *s, size_t len) {
   f = f * 5 + 0xe6546b64;
   size_t iters = (len - 1) / 20;
   do {
-    uint32 a0 = Rotate32(Fetch32(s) * c1, 17) * c2;
-    uint32 a1 = Fetch32(s + 4);
-    uint32 a2 = Rotate32(Fetch32(s + 8) * c1, 17) * c2;
-    uint32 a3 = Rotate32(Fetch32(s + 12) * c1, 17) * c2;
-    uint32 a4 = Fetch32(s + 16);
-    h ^= a0;
+    uint32 aa0 = Rotate32(Fetch32(s) * c1, 17) * c2;
+    uint32 aa1 = Fetch32(s + 4);
+    uint32 aa2 = Rotate32(Fetch32(s + 8) * c1, 17) * c2;
+    uint32 aa3 = Rotate32(Fetch32(s + 12) * c1, 17) * c2;
+    uint32 aa4 = Fetch32(s + 16);
+    h ^= aa0;
     h = Rotate32(h, 18);
     h = h * 5 + 0xe6546b64;
-    f += a1;
+    f += aa1;
     f = Rotate32(f, 19);
     f = f * c1;
-    g += a2;
+    g += aa2;
     g = Rotate32(g, 18);
     g = g * 5 + 0xe6546b64;
-    h ^= a3 + a1;
+    h ^= aa3 + aa1;
     h = Rotate32(h, 19);
     h = h * 5 + 0xe6546b64;
-    g ^= a4;
+    g ^= aa4;
     g = bswap_32(g) * 5;
-    h += a4 * 5;
+    h += aa4 * 5;
     h = bswap_32(h);
-    f += a0;
+    f += aa0;
     PERMUTE3(f, h, g);
     s += 20;
   } while (--iters != 0);
@@ -277,11 +283,11 @@ static uint64 HashLen0to16(const char *s, size_t len) {
     return HashLen16(len + (a << 3), Fetch32(s + len - 4), mul);
   }
   if (len > 0) {
-    uint8 a = s[0];
-    uint8 b = s[len >> 1];
-    uint8 c = s[len - 1];
+    uint8 a = static_cast<uint8>(s[0]);
+    uint8 b = static_cast<uint8>(s[len >> 1]);
+    uint8 c = static_cast<uint8>(s[len - 1]);
     uint32 y = static_cast<uint32>(a) + (static_cast<uint32>(b) << 8);
-    uint32 z = len + (static_cast<uint32>(c) << 2);
+    uint32 z = static_cast<uint32>(len) + (static_cast<uint32>(c) << 2);
     return ShiftMix(y * k2 ^ z * k0) * k2;
   }
   return k2;
@@ -399,7 +405,7 @@ static uint128 CityMurmur(const char *s, size_t len, uint128 seed) {
   uint64 b = Uint128High64(seed);
   uint64 c = 0;
   uint64 d = 0;
-  signed long l = len - 16;
+  signed long l = static_cast<signed long>(len - 16);
   if (l <= 0) {  // len <= 16
     a = ShiftMix(a * k1) * k1;
     c = b * k1 + HashLen0to16(s, len);

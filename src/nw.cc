@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2017 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -23,6 +23,9 @@
 
 #include "swarm.h"
 
+void pushop(char newop, char ** cigarendp, char * op, int * count);
+void finishop(char ** cigarendp, char * op, int * count);
+
 void pushop(char newop, char ** cigarendp, char * op, int * count)
 {
   if (newop == *op)
@@ -34,8 +37,9 @@ void pushop(char newop, char ** cigarendp, char * op, int * count)
     {
       char buf[25];
       int len = snprintf(buf, 25, "%d", *count);
+      assert(len >= 0);
       *cigarendp -= len;
-      memcpy(*cigarendp, buf, len);
+      memcpy(*cigarendp, buf, static_cast<size_t>(len));
     }
     *op = newop;
     *count = 1;
@@ -51,8 +55,9 @@ void finishop(char ** cigarendp, char * op, int * count)
     {
       char buf[25];
       int len = snprintf(buf, 25, "%d", *count);
+      assert(len >= 0);
       *cigarendp -= len;
-      memcpy(*cigarendp, buf, len);
+      memcpy(*cigarendp, buf, static_cast<size_t>(len));
     }
     *op = 0;
     *count = 0;
@@ -76,7 +81,7 @@ const unsigned char maskextleft = 8;
   1. left/insert/e (gap in query sequence (qseq))
   2. align/diag/h (match/mismatch)
   3. up/delete/f (gap in database sequence (dseq))
-  
+
   qseq: the reference/query/upper/vertical/from sequence
   dseq: the sample/database/lower/horisontal/to sequence
 
@@ -106,86 +111,87 @@ const unsigned char maskextleft = 8;
 */
 
 void nw(char * dseq,
-        char * dend,
+        int64_t dlen,
         char * qseq,
-        char * qend,
-        long * score_matrix,
-        unsigned long gapopen,
-        unsigned long gapextend,
-        unsigned long * nwscore,
-        unsigned long * nwdiff,
-        unsigned long * nwalignmentlength,
+        int64_t qlen,
+        int64_t * score_matrix,
+        int64_t gapopen,
+        int64_t gapextend,
+        int64_t * nwscore,
+        int64_t * nwdiff,
+        int64_t * nwalignmentlength,
         char ** nwalignment,
         unsigned char * dir,
-        unsigned long * hearray,
-        unsigned long queryno,
-        unsigned long dbseqno)
+        int64_t * hearray,
+        uint64_t queryno,
+        uint64_t dbseqno)
 {
   /* dir must point to at least qlen*dlen bytes of allocated memory
-     hearray must point to at least 2*qlen longs of allocated memory (8*qlen bytes) */
+     hearray must point to at least 2*qlen longs of allocated memory
+     (8*qlen bytes) */
 
-  long n, e;
+  int64_t n, e;
 
-  long qlen = qend - qseq;
-  long dlen = dend - dseq;
+  memset(dir, 0, static_cast<size_t>(qlen * dlen));
 
-  memset(dir, 0, qlen*dlen);
-
-  long i, j;
+  int64_t i, j;
 
   for(i=0; i<qlen; i++)
-  {
-    hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
-    hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
-  }
+    {
+      hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
+      hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
+    }
 
   for(j=0; j<dlen; j++)
-  {
-    long unsigned *hep;
-    hep = hearray;
-    long f = 2 * gapopen + (j+2) * gapextend;
-    long h = (j == 0) ? 0 : (gapopen + j * gapextend);
-    
-    for(i=0; i<qlen; i++)
     {
-      long index = qlen*j+i;
-      
-      n = *hep;
-      e = *(hep+1);
-      h += score_matrix[(dseq[j]<<5) + qseq[i]];
-      
-      dir[index] |= (f < h ? maskup : 0);
-      h = MIN(h, f);
-      h = MIN(h, e);
-      dir[index] |= (e == h ? maskleft : 0);
+      int64_t *hep;
+      hep = hearray;
+      int64_t f = 2 * gapopen + (j+2) * gapextend;
+      int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
-      *hep = h;
-      
-      h += gapopen + gapextend;
-      e += gapextend;
-      f += gapextend;
-      
-      dir[index] |= (f < h ? maskextup : 0);
-      dir[index] |= (e < h ? maskextleft : 0);
-      f = MIN(h,f);
-      e = MIN(h,e);
-      
-      *(hep+1) = e;
-      h = n;
-      hep += 2;
+      for(i=0; i<qlen; i++)
+        {
+          int64_t index = qlen*j+i;
+
+          n = *hep;
+          e = *(hep+1);
+          h += score_matrix
+            [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1) << 5)
+             +(nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
+
+          dir[index] |= (f < h ? maskup : 0);
+          h = MIN(h, f);
+          h = MIN(h, e);
+          dir[index] |= (e == h ? maskleft : 0);
+
+          *hep = h;
+
+          h += gapopen + gapextend;
+          e += gapextend;
+          f += gapextend;
+
+          dir[index] |= (f < h ? maskextup : 0);
+          dir[index] |= (e < h ? maskextleft : 0);
+          f = MIN(h,f);
+          e = MIN(h,e);
+
+          *(hep+1) = e;
+          h = n;
+          hep += 2;
+        }
     }
-  }
-  
-  long dist = hearray[2*qlen-2];
-  
+
+  int64_t dist = hearray[2*qlen-2];
+
   /* backtrack: count differences and save alignment in cigar string */
 
-  long score = 0;
-  long alength = 0;
-  long matches = 0;
+  int64_t score = 0;
+  int64_t alength = 0;
+  int64_t matches = 0;
 
-  char * cigar = (char *) xmalloc(qlen + dlen + 1);
-  char * cigarend = cigar+qlen+dlen+1;
+  char * cigar = static_cast<char *>(xmalloc
+                                     (static_cast<size_t>(qlen + dlen + 1)));
+  char * cigarend = cigar + qlen + dlen + 1;
 
   char op = 0;
   int count = 0;
@@ -195,87 +201,98 @@ void nw(char * dseq,
   j = dlen;
 
   while ((i>0) && (j>0))
-  {
-    int d = dir[qlen*(j-1)+(i-1)];
-
-    alength++;
-
-    if ((op == 'I') && (d & maskextleft))
     {
-      score += gapextend;
-      j--;
-      pushop('I', &cigarend, &op, &count);
+      int d = dir[qlen*(j-1)+(i-1)];
+
+      alength++;
+
+      if ((op == 'I') && (d & maskextleft))
+        {
+          score += gapextend;
+          j--;
+          pushop('I', &cigarend, &op, &count);
+        }
+      else if ((op == 'D') && (d & maskextup))
+        {
+          score += gapextend;
+          i--;
+          pushop('D', &cigarend, &op, &count);
+        }
+      else if (d & maskleft)
+        {
+          score += gapextend;
+          if (op != 'I')
+            score += gapopen;
+          j--;
+          pushop('I', &cigarend, &op, &count);
+        }
+      else if (d & maskup)
+        {
+          score += gapextend;
+          if (op != 'D')
+            score += gapopen;
+          i--;
+          pushop('D', &cigarend, &op, &count);
+        }
+      else
+        {
+          score += score_matrix
+            [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << 5)
+             +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
+
+          if (nt_extract(qseq, static_cast<uint64_t>(i - 1)) ==
+              nt_extract(dseq, static_cast<uint64_t>(j - 1)))
+            matches++;
+          i--;
+          j--;
+          pushop('M', &cigarend, &op, &count);
+        }
     }
-    else if ((op == 'D') && (d & maskextup))
+
+  while(i>0)
     {
+      alength++;
       score += gapextend;
+      if (op != 'D')
+        score += gapopen;
       i--;
       pushop('D', &cigarend, &op, &count);
     }
-    else if (d & maskleft)
+
+  while(j>0)
     {
+      alength++;
       score += gapextend;
       if (op != 'I')
         score += gapopen;
       j--;
       pushop('I', &cigarend, &op, &count);
     }
-    else if (d & maskup)
-    {
-      score += gapextend;
-      if (op != 'D')
-        score +=gapopen;
-      i--;
-      pushop('D', &cigarend, &op, &count);
-    }
-    else
-    {
-      score += score_matrix[(dseq[j-1] << 5) + qseq[i-1]];
-      if (qseq[i-1] == dseq[j-1])
-        matches++;
-      i--;
-      j--;
-      pushop('M', &cigarend, &op, &count);
-    }
-  }
-  
-  while(i>0)
-  {
-    alength++;
-    score += gapextend;
-    if (op != 'D')
-      score += gapopen;
-    i--;
-    pushop('D', &cigarend, &op, &count);
-  }
-  
-  while(j>0)
-  {
-    alength++;
-    score += gapextend;
-    if (op != 'I')
-      score += gapopen;
-    j--;
-    pushop('I', &cigarend, &op, &count);
-  }
 
   finishop(&cigarend, &op, &count);
 
   /* move and reallocate cigar */
 
-  long cigarlength = cigar+qlen+dlen-cigarend;
-  memmove(cigar, cigarend, cigarlength+1);
-  cigar = (char*) xrealloc(cigar, cigarlength+1);
+  size_t cigaralloc = static_cast<size_t>(cigar + qlen + dlen - cigarend + 1);
+  memmove(cigar, cigarend, cigaralloc);
+  cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
 
   * nwscore = dist;
   * nwdiff = alength - matches;
   * nwalignmentlength = alength;
   * nwalignment = cigar;
 
+  assert(score == dist);
+
+#if 0
   if (score != dist)
   {
-    fprintf(stderr, "WARNING: Error with query no %lu and db sequence no %lu:\n", queryno, dbseqno);
-    fprintf(stderr, "Initial and recomputed alignment score disagreement: %ld %ld\n", dist, score);
+    fprintf(stderr, "WARNING: Error with query no %" PRIu64 " and db sequence no %" PRIu64 ":\n", queryno, dbseqno);
+    fprintf(stderr, "Initial and recomputed alignment score disagreement: %" PRId64 " %" PRId64 "\n", dist, score);
     fprintf(stderr, "Alignment: %s\n", cigar);
   }
+#else
+  (void) queryno;
+  (void) dbseqno;
+#endif
 }
