@@ -25,6 +25,14 @@
 # PROFILING=-pg
 PROFILING=
 
+# Run "Make RELEASE=1" to compile for release
+# Release or debug
+ifdef RELEASE
+	RELFLAGS = -DNDEBUG
+else
+	RELFLAGS = -g
+endif
+
 # Machine specific
 MACHINE=$(shell uname -m)
 ifeq ($(MACHINE), x86_64)
@@ -53,7 +61,7 @@ endif
 WARNINGS = -Wall -Wextra $(WARNOPT) \
 #	-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic
 
-COMMON=$(PROFILING) -g -flto -O3 $(ARCHOPT)
+COMMON=$(PROFILING) $(RELFLAGS) -flto -O3 $(ARCHOPT)
 
 LINKFLAGS=$(COMMON) $(LINKOPT)
 
