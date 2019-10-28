@@ -326,6 +326,14 @@ Swarm v2: highly-scalable and high-resolution amplicon clustering.
 PeerJ 3:e1420 doi: [10.7717/peerj.1420](http://dx.doi.org/10.7717/peerj.1420)
 
 
+## Acknowledgments ##
+
+Many thanks to the following people for their valuable contributions:
+
+* Lucas Czech
+* Etienne Platini
+
+
 ## Contact ##
 
 You are welcome to:
