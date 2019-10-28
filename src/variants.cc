@@ -103,7 +103,7 @@ void generate_variant_sequence(char * seed_sequence,
       break;
 
     default:
-      fatal("Unknown variant");
+      assert(0);
     }
 }
 
@@ -164,7 +164,7 @@ bool check_variant(char * seed_sequence,
                            seed_seqlen - var->pos);
 
     default:
-      fatal("Unknown variant");
+      assert(0);
     }
 }
 
