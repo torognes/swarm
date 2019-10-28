@@ -344,8 +344,7 @@ inline uint64_t check_heavy_var_2(char * seq,
   unsigned int variant_count = 0;
 
   uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
-  generate_variants(seq, seqlen, hash,
-                    variant_list, & variant_count, false);
+  generate_variants(seq, seqlen, hash, variant_list, & variant_count);
 
   for(unsigned int i=0; i < variant_count; i++)
     if (bloom_get(bloom_a, variant_list[i].hash) &&
@@ -389,8 +388,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
   char * sequence = db_getsequence(seed);
   unsigned int seqlen = db_getsequencelen(seed);
   uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash,
-                    variant_list, & variant_count, false);
+  generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
   for(unsigned int i = 0; i < variant_count; i++)
     {
@@ -464,8 +462,7 @@ uint64_t mark_light_var(struct bloomflex_s * bloom,
   char * sequence = db_getsequence(seed);
   unsigned int seqlen = db_getsequencelen(seed);
   uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash,
-                    variant_list, & variant_count, false);
+  generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
   for(unsigned int i = 0; i < variant_count; i++)
     bloomflex_set(bloom, variant_list[i].hash);
@@ -558,8 +555,7 @@ void check_variants(unsigned int seed,
   char * sequence = db_getsequence(seed);
   unsigned int seqlen = db_getsequencelen(seed);
   uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash,
-                    variant_list, & variant_count, true);
+  generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
   for(unsigned int i = 0; i < variant_count; i++)
     find_variant_matches(seed, variant_list + i, hits_data, hits_count);

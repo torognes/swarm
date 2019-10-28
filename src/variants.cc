@@ -189,14 +189,8 @@ void generate_variants(char * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
                        var_s * variant_list,
-                       unsigned int * variant_count,
-                       bool include_identical)
+                       unsigned int * variant_count)
 {
-  /* identical non-variant */
-
-  if (include_identical)
-    add_variant(hash, identical, 0, 0, variant_list, variant_count);
-
   /* substitutions */
 
   for(unsigned int i = 0; i < seqlen; i++)

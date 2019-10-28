@@ -53,5 +53,4 @@ void generate_variants(char * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
                        struct var_s * variant_list,
-                       unsigned int * variant_count,
-                       bool include_identical);
+                       unsigned int * variant_count);
