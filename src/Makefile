@@ -28,7 +28,7 @@ PROFILING=
 # Run "Make RELEASE=1" to compile for release
 # Release or debug
 ifdef RELEASE
-	RELFLAGS = -DNDEBUG
+	RELFLAGS = -DNDEBUG -g
 else
 	RELFLAGS = -g
 endif
