@@ -165,6 +165,7 @@ bool check_variant(char * seed_sequence,
 
     default:
       assert(0);
+      return false;
     }
 }
 
