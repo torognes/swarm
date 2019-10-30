@@ -545,12 +545,18 @@ static void CityHashCrc256Long(const char *s, size_t len,
     c += e;                                     \
     s += 40
 
-    CHUNK(0); PERMUTE3(a, h, c);
-    CHUNK(33); PERMUTE3(a, h, f);
-    CHUNK(0); PERMUTE3(b, h, f);
-    CHUNK(42); PERMUTE3(b, h, d);
-    CHUNK(0); PERMUTE3(b, h, e);
-    CHUNK(33); PERMUTE3(a, h, e);
+    CHUNK(0);
+    PERMUTE3(a, h, c);
+    CHUNK(33);
+    PERMUTE3(a, h, f);
+    CHUNK(0);
+    PERMUTE3(b, h, f);
+    CHUNK(42);
+    PERMUTE3(b, h, d);
+    CHUNK(0);
+    PERMUTE3(b, h, e);
+    CHUNK(33);
+    PERMUTE3(a, h, e);
   } while (--iters > 0);
 
   while (len >= 40) {
