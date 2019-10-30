@@ -21,61 +21,66 @@
 
 # Makefile for SWARM
 
-# Profiling options
-# PROFILING=-pg
-PROFILING=
+COMMON = -g
+EXTRAOBJ =
+LINKOPT =
+LIBS = -lpthread
+WARNINGS = -Wall -Wextra \
+#-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic
 
-# Run "Make RELEASE=1" to compile for release
-# Release or debug
+# Run "make RELEASE=1" to compile for release
 ifdef RELEASE
-	RELFLAGS = -DNDEBUG -g
+	COMMON += -DNDEBUG
+endif
+
+# Run "make PROFILE=1" to compile for profiling
+ifdef PROFILE
+	COMMON += -pg
+endif
+
+# Run "make COVERAGE=1" to compile for coverage tests
+ifdef COVERAGE
+	COMMON += -fprofile-arcs -ftest-coverage -O0
+	LIBS += -lgcov
+	LINKFLAGS += --coverage
 else
-	RELFLAGS = -g
+	COMMON += -flto -O3
 endif
 
 # Machine specific
-MACHINE=$(shell uname -m)
+MACHINE = $(shell uname -m)
 ifeq ($(MACHINE), x86_64)
-	ARCHOPT = -march=x86-64 -mtune=generic -std=c++11
-	EXTRAOBJ = ssse3.o
+	COMMON += -march=x86-64 -mtune=generic -std=c++11
+	EXTRAOBJ += ssse3.o
 else ifeq ($(MACHINE), aarch64)
-	ARCHOPT = -march=armv8-a+simd -mtune=generic \
+	COMMON += -march=armv8-a+simd -mtune=generic \
 	          -flax-vector-conversions -std=c++11
-	EXTRAOBJ =
 else ifeq ($(MACHINE), ppc64le)
-	ARCHOPT = -mcpu=power8 -std=gnu++11
-	EXTRAOBJ =
+	COMMON += -mcpu=power8 -std=gnu++11
 endif
 
 # OS specific
 ifeq ($(CXX), x86_64-w64-mingw32-g++)
-	LIBS = -lpthread -lpsapi
-	WARNOPT =
-	LINKOPT = -static
+	LIBS += -lpsapi
+	LINKOPT += -static
 else
-	LIBS = -lpthread
-	WARNOPT = -pedantic
-	LINKOPT =
+	WARNINGS += -pedantic
 endif
 
-WARNINGS = -Wall -Wextra $(WARNOPT) \
-#	-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic
+LINKFLAGS = $(COMMON) $(LINKOPT)
 
-COMMON=$(PROFILING) $(RELFLAGS) -flto -O3 $(ARCHOPT)
+CXXFLAGS = $(COMMON) $(WARNINGS)
 
-LINKFLAGS=$(COMMON) $(LINKOPT)
+PROG = swarm
 
-CXXFLAGS=$(COMMON) $(WARNINGS)
-
-PROG=swarm
-
-OBJS=swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
+OBJS = swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o derep.o arch.o city.o \
 	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o \
 	$(EXTRAOBJ)
 
-DEPS=Makefile swarm.h city.h citycrc.h \
+DEPS = Makefile swarm.h city.h citycrc.h \
 	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h
+
 
 all : $(PROG)
 
@@ -85,7 +90,7 @@ swarm : $(OBJS) $(DEPS)
 	cp -a swarm ../bin
 
 clean :
-	rm -rf swarm *.o *~ gmon.out
+	rm -rf swarm *.o *~ gmon.out *.gcno
 
 .o : .cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
