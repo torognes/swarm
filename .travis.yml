@@ -10,6 +10,7 @@ before_install:
 - sudo apt-get install -y valgrind
 
 script:
-- make
+- make COVERAGE=1
 - export PATH=$PWD/bin:$PATH
 - git clone https://github.com/frederic-mahe/swarm-tests.git && cd swarm-tests && bash ./run_all_tests.sh | tee tests.log && ! grep -q FAIL tests.log
+- cd ../src ; gcov *.cc
