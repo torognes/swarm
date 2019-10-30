@@ -565,7 +565,6 @@ void network_thread(int64_t t)
 {
   (void) t;
 
-  unsigned int hits_count = 0;
   unsigned int * hits_data = static_cast<unsigned int *>
     (xmalloc((7 * longestamplicon + 5) * sizeof(unsigned int)));
 
@@ -580,7 +579,7 @@ void network_thread(int64_t t)
 
       pthread_mutex_unlock(&network_mutex);
 
-      hits_count = 0;
+      unsigned int hits_count = 0;
       check_variants(amp, variant_list, hits_data, & hits_count);
       pthread_mutex_lock(&network_mutex);
 
