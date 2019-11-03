@@ -105,7 +105,7 @@
 #define WIDTH 32
 #define WIDTH_SHIFT 5
 #define BLOCKWIDTH 32
-#define MAX_THREADS 256
+const unsigned int MAX_THREADS = 256;
 #define SEPCHAR ' '
 
 #ifdef BIASED
