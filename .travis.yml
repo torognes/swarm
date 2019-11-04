@@ -16,4 +16,4 @@ script:
 - cd ../src ; gcov *.cc
 
 after_success:
-- bash <(curl -s https://codecov.io/bash)
+- cd ~/swarm ; bash <(curl -s https://codecov.io/bash) -v
