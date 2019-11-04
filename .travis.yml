@@ -17,4 +17,4 @@ script:
 - cd ../src && gcov *.cc
 
 after_success:
-- cd .. && bash <(curl -s https://codecov.io/bash) -v
+- cd .. && bash <(curl -s https://codecov.io/bash)
