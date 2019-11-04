@@ -12,8 +12,9 @@ before_install:
 script:
 - make COVERAGE=1
 - export PATH=$PWD/bin:$PATH
-- git clone https://github.com/frederic-mahe/swarm-tests.git && cd swarm-tests && bash ./run_all_tests.sh | tee tests.log && ! grep -q FAIL tests.log
-- cd ../src ; gcov *.cc
+- git clone https://github.com/frederic-mahe/swarm-tests.git
+- cd swarm-tests && bash ./run_all_tests.sh | tee tests.log && ! grep -q FAIL tests.log
+- cd ../src && gcov *.cc
 
 after_success:
-- cd ~/swarm ; bash <(curl -s https://codecov.io/bash) -v
+- cd .. && bash <(curl -s https://codecov.io/bash) -v
