@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/torognes/swarm.svg)](https://travis-ci.org/torognes/swarm)
-
-[![codecov](https://codecov.io/gh/torognes/swarm/branch/master/graph/badge.svg)](https://codecov.io/gh/torognes/swarm)
+[![Build Status](https://travis-ci.org/torognes/swarm.svg)](https://travis-ci.org/torognes/swarm) [![codecov](https://codecov.io/gh/torognes/swarm/branch/master/graph/badge.svg)](https://codecov.io/gh/torognes/swarm)
 
 # swarm
 
