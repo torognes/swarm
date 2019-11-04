@@ -1,0 +1,3 @@
+ignore:
+- src/city.h
+- src/city.cc
