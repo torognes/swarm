@@ -54,10 +54,11 @@ inline bool seq_identical(char * a,
   /* compare parts of two compressed sequences a and b */
   /* return false if different, true if identical */
 
+  bool equal = true;
   for(unsigned int i = 0; i < length; i++)
-    if (nt_extract(a, a_start + i) != nt_extract(b, b_start + i))
-      return false;
-  return true;
+    equal = equal && (nt_extract(a, a_start + i) ==
+                      nt_extract(b, b_start + i));
+  return equal;
 }
 
 void generate_variant_sequence(char * seed_sequence,
@@ -68,13 +69,12 @@ void generate_variant_sequence(char * seed_sequence,
 {
   /* generate the actual sequence of a variant */
 
+  assert((var->type == substitution) ||
+         (var->type == deletion) ||
+         (var->type == insertion));
+
   switch (var->type)
     {
-    case identical:
-      memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
-      * seqlen = seed_seqlen;
-      break;
-
     case substitution:
       memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
       nt_set(seq, var->pos, var->base);
@@ -101,9 +101,6 @@ void generate_variant_sequence(char * seed_sequence,
                seed_seqlen - var->pos);
       * seqlen = seed_seqlen + 1;
       break;
-
-    default:
-      assert(0);
     }
 }
 
@@ -117,56 +114,48 @@ bool check_variant(char * seed_sequence,
   /* make sure seed with given variant is really identical to amp */
   /* we know the hashes are identical */
 
+  assert((var->type == substitution) ||
+         (var->type == deletion) ||
+         (var->type == insertion));
+
+  bool equal = false;
+
   switch (var->type)
     {
-    case identical:
-      if (seed_seqlen != amp_seqlen)
-        return false;
-      return seq_identical(seed_sequence, 0,
-                           amp_sequence, 0,
-                           seed_seqlen);
-
     case substitution:
-      if (seed_seqlen != amp_seqlen)
-        return false;
-      if (! seq_identical(seed_sequence, 0,
-                          amp_sequence, 0,
-                          var->pos))
-        return false;
-      if (nt_extract(amp_sequence, var->pos) != var->base)
-        return false;
-      return seq_identical(seed_sequence, var->pos + 1,
-                           amp_sequence,  var->pos + 1,
-                           seed_seqlen - var->pos - 1);
+      equal = ((seed_seqlen == amp_seqlen) &&
+               (seq_identical(seed_sequence, 0,
+                              amp_sequence, 0,
+                              var->pos)) &&
+               (nt_extract(amp_sequence, var->pos) == var->base) &&
+               (seq_identical(seed_sequence, var->pos + 1,
+                              amp_sequence,  var->pos + 1,
+                              seed_seqlen - var->pos - 1)));
+      break;
 
     case deletion:
-      if ((seed_seqlen - 1) != amp_seqlen)
-        return false;
-      if (! seq_identical(seed_sequence, 0,
-                          amp_sequence, 0,
-                          var->pos))
-        return false;
-      return seq_identical(seed_sequence, var->pos + 1,
-                           amp_sequence,  var->pos,
-                           seed_seqlen - var->pos - 1);
+      equal = (((seed_seqlen - 1) == amp_seqlen) &&
+               (seq_identical(seed_sequence, 0,
+                              amp_sequence, 0,
+                              var->pos)) &&
+               (seq_identical(seed_sequence, var->pos + 1,
+                              amp_sequence,  var->pos,
+                              seed_seqlen - var->pos - 1)));
+      break;
 
     case insertion:
-      if ((seed_seqlen + 1) != amp_seqlen)
-        return false;
-      if (! seq_identical(seed_sequence, 0,
-                          amp_sequence, 0,
-                          var->pos))
-        return false;
-      if (nt_extract(amp_sequence, var->pos) != var->base)
-        return false;
-      return seq_identical(seed_sequence, var->pos,
-                           amp_sequence,  var->pos + 1,
-                           seed_seqlen - var->pos);
-
-    default:
-      assert(0);
-      return false;
+      equal = (((seed_seqlen + 1) == amp_seqlen) &&
+               (seq_identical(seed_sequence, 0,
+                              amp_sequence, 0,
+                              var->pos)) &&
+               (nt_extract(amp_sequence, var->pos) == var->base) &&
+               (seq_identical(seed_sequence, var->pos,
+                              amp_sequence,  var->pos + 1,
+                              seed_seqlen - var->pos)));
+      break;
     }
+
+  return equal;
 }
 
 inline void add_variant(uint64_t hash,

@@ -23,10 +23,9 @@
 
 /* Variant information */
 
-#define identical 0
-#define substitution 1
-#define deletion 2
-#define insertion 3
+const int substitution = 1;
+const int deletion = 2;
+const int insertion = 3;
 
 struct var_s
 {
