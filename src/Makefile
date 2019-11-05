@@ -90,7 +90,7 @@ swarm : $(OBJS) $(DEPS)
 	cp -a swarm ../bin
 
 clean :
-	rm -rf swarm *.o *~ gmon.out *.gcno
+	rm -rf swarm *.o *~ gmon.out *.gcno *.gcda *.gcov
 
 .o : .cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

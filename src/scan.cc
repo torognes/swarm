@@ -23,26 +23,9 @@
 
 #include "swarm.h"
 
-static pthread_attr_t attr;
+static pthread_mutex_t scan_mutex;
 
-static struct thread_info_s
-{
-  /* generic thread info */
-  pthread_t pthread;
-  pthread_mutex_t workmutex;
-  pthread_cond_t workcond;
-  int64_t work;
-
-  /* specialized thread info */
-  uint64_t seed;
-  uint64_t listlen;
-  uint64_t * amplist;
-  uint64_t * difflist;
-} * ti;
-
-
-static pthread_mutex_t workmutex = PTHREAD_MUTEX_INITIALIZER;
-
+static ThreadRunner * search_threads = nullptr;
 
 struct search_data
 {
@@ -79,7 +62,7 @@ void search_free(struct search_data * sdp);
 void search_init(struct search_data * sdp);
 void search_chunk(struct search_data * sdp, int64_t bits);
 int search_getwork(uint64_t * countref, uint64_t * firstref);
-void search_worker_core(uint64_t t);
+void search_worker_core(int64_t t);
 void * search_worker(void * vp);
 
 void search_alloc(struct search_data * sdp)
@@ -205,7 +188,7 @@ int search_getwork(uint64_t * countref, uint64_t * firstref)
 
   int status = 0;
 
-  pthread_mutex_lock(&workmutex);
+  pthread_mutex_lock(&scan_mutex);
 
   if (master_next < master_length)
     {
@@ -220,7 +203,7 @@ int search_getwork(uint64_t * countref, uint64_t * firstref)
       status = 1;
     }
 
-  pthread_mutex_unlock(&workmutex);
+  pthread_mutex_unlock(&scan_mutex);
 
   return status;
 }
@@ -242,35 +225,11 @@ void master_dump()
 
 #endif
 
-void search_worker_core(uint64_t t)
+void search_worker_core(int64_t t)
 {
   search_init(sd+t);
   while(search_getwork(& sd[t].target_count, & sd[t].target_index))
     search_chunk(sd+t, master_bits);
-}
-
-void * search_worker(void * vp)
-{
-  uint64_t t = reinterpret_cast<uint64_t>(vp);
-  struct thread_info_s * tip = ti + t;
-
-  pthread_mutex_lock(&tip->workmutex);
-
-  /* loop until signalled to quit */
-  while (tip->work >= 0)
-    {
-      /* wait for work available */
-      while (tip->work == 0)
-        pthread_cond_wait(&tip->workcond, &tip->workmutex);
-      if (tip->work > 0)
-        {
-          search_worker_core(t);
-          tip->work = 0;
-          pthread_cond_signal(&tip->workcond);
-        }
-    }
-  pthread_mutex_unlock(&tip->workmutex);
-  return nullptr;
 }
 
 void search_do(uint64_t query_no,
@@ -310,31 +269,9 @@ void search_do(uint64_t query_no,
   remainingchunks = thr;
 
   if (thr == 1)
-    {
-      search_worker_core(0);
-    }
+    search_worker_core(0);
   else
-    {
-      /* wake up threads */
-      for(uint64_t t=0; t<thr; t++)
-        {
-          struct thread_info_s * tip = ti + t;
-          pthread_mutex_lock(&tip->workmutex);
-          tip->work = 1;
-          pthread_cond_signal(&tip->workcond);
-          pthread_mutex_unlock(&tip->workmutex);
-        }
-
-      /* wait for threads to finish their work */
-      for(uint64_t t=0; t<thr; t++)
-        {
-          struct thread_info_s * tip = ti + t;
-          pthread_mutex_lock(&tip->workmutex);
-          while (tip->work > 0)
-            pthread_cond_wait(&tip->workcond, &tip->workmutex);
-          pthread_mutex_unlock(&tip->workmutex);
-        }
-    }
+    search_threads->run();
 }
 
 void search_begin()
@@ -347,54 +284,21 @@ void search_begin()
   for(int64_t t=0; t<opt_threads; t++)
     search_alloc(sd+t);
 
+  pthread_mutex_init(& scan_mutex, nullptr);
+
   /* start threads */
 
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  /* allocate memory for thread info */
-  ti = static_cast<struct thread_info_s *>
-    (xmalloc(static_cast<uint64_t>(opt_threads)*sizeof(struct thread_info_s)));
-
-  /* init and create worker threads */
-  for(int64_t t=0; t<opt_threads; t++)
-    {
-      struct thread_info_s * tip = ti + t;
-      tip->work = 0;
-      pthread_mutex_init(&tip->workmutex, nullptr);
-      pthread_cond_init(&tip->workcond, nullptr);
-      if (pthread_create(&tip->pthread,
-                         &attr,
-                         search_worker,
-                         reinterpret_cast<void*>(t)))
-        fatal("Cannot create thread");
-    }
+  search_threads
+    = new ThreadRunner(static_cast<int> (opt_threads), search_worker_core);
 }
 
 void search_end()
 {
   /* finish and clean up worker threads */
 
-  for(int64_t t=0; t<opt_threads; t++)
-    {
-      struct thread_info_s * tip = ti + t;
+  delete search_threads;
 
-      /* tell worker to quit */
-      pthread_mutex_lock(&tip->workmutex);
-      tip->work = -1;
-      pthread_cond_signal(&tip->workcond);
-      pthread_mutex_unlock(&tip->workmutex);
-
-      /* wait for worker to quit */
-      if (pthread_join(tip->pthread, nullptr))
-        fatal("Cannot join thread");
-
-      pthread_cond_destroy(&tip->workcond);
-      pthread_mutex_destroy(&tip->workmutex);
-    }
-
-  xfree(ti);
-  pthread_attr_destroy(&attr);
+  pthread_mutex_destroy(& scan_mutex);
 
   for(int64_t t=0; t<opt_threads; t++)
     search_free(sd+t);
