@@ -170,9 +170,6 @@ bool find_swarm_abundance(const char * header,
   if (!header)
     return false;
 
-  if (strlen(header) >= INT_MAX)
-    return false;
-
   const char * us = strrchr(header, '_');
 
   if (! us)
@@ -394,6 +391,9 @@ void db_read(const char * filename)
         fatal("Illegal header line in fasta file.");
 
       uint64_t headerlen = strcspn(line + 1, " \r\n");
+
+      if (headerlen >= LINEALLOC - 2)
+        fatal("The FASTA header line is too long.");
 
       headerchars += headerlen;
 
