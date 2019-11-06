@@ -119,7 +119,8 @@ normal file or from the standard input (using a pipe or a
 redirection). The amplicon \fIheader\fR is defined as the string
 comprised between the '>' symbol and the first space or the end of the
 line, whichever comes first. Header length is curently limited to 2048
-characters. Each header must end with an \fIabundance annotation\fR
+characters (including '>', a linefeed and a final null
+character). Each header must end with an \fIabundance annotation\fR
 representing the amplicon copy number and defined as '_' followed by a
 positive integer. See option \-z for input data using
 usearch/vsearch's abundance annotation format
