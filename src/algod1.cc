@@ -761,6 +761,41 @@ void algo_d1_run()
 
   progress_done();
 
+
+  /* dump network to file */
+
+  if (opt_network_file)
+    {
+      progress_init("Dumping network:  ", network_count);
+
+      uint64_t n = 0;
+      for(unsigned int seed = 0; seed < amplicons; seed++)
+        {
+          struct ampinfo_s * ap = ampinfo + seed;
+
+          unsigned int link_start = ap->link_start;
+          unsigned int link_count = ap->link_count;
+
+          qsort(network + link_start,
+                link_count,
+                sizeof(unsigned int),
+                compare_amp);
+
+          for(unsigned int i = 0; i < link_count; i++)
+            {
+              unsigned int neighbour = network[link_start + i];
+              fprint_id(network_file, seed);
+              fprintf(network_file, "\t");
+              fprint_id(network_file, neighbour);
+              fprintf(network_file, "\n");
+              n++;
+            }
+          progress_update(n);
+        }
+      progress_done();
+    }
+
+
   /* for each non-swarmed amplicon look for subseeds ... */
 
   unsigned int swarmcount = 0;

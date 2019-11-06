@@ -166,6 +166,7 @@ typedef struct queryinfo queryinfo_t;
 
 extern char * opt_internal_structure;
 extern char * opt_log;
+extern char * opt_network_file;
 extern char * opt_output_file;
 extern char * opt_seeds;
 extern char * opt_statistics_file;
@@ -175,6 +176,7 @@ extern int64_t opt_bloom_bits;
 extern int64_t opt_boundary;
 extern int64_t opt_ceiling;
 extern int64_t opt_differences;
+extern int64_t opt_disable_sse3;
 extern int64_t opt_fastidious;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
@@ -208,7 +210,7 @@ extern FILE * uclustfile;
 extern FILE * internal_structure_file;
 extern FILE * logfile;
 extern FILE * fp_seeds;
-
+extern FILE * network_file;
 
 extern int64_t SCORELIMIT_7;
 extern int64_t SCORELIMIT_8;

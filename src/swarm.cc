@@ -30,6 +30,7 @@ char * input_filename;
 
 char * opt_internal_structure;
 char * opt_log;
+char * opt_network_file;
 char * opt_output_file;
 char * opt_seeds;
 char * opt_statistics_file;
@@ -39,6 +40,7 @@ int64_t opt_append_abundance;
 int64_t opt_bloom_bits;
 int64_t opt_boundary;
 int64_t opt_ceiling;
+int64_t opt_disable_sse3;
 int64_t opt_differences;
 int64_t opt_fastidious;
 int64_t opt_gap_extension_penalty;
@@ -80,6 +82,7 @@ FILE * uclustfile = nullptr;
 FILE * logfile = nullptr;
 FILE * internal_structure_file = nullptr;
 FILE * fp_seeds = nullptr;
+FILE * network_file = nullptr;
 
 char sym_nt[] = "-ACGT                           ";
 
@@ -199,6 +202,10 @@ void args_show()
     fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file);
   if (opt_uclust_file)
     fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file);
+  if (opt_internal_structure)
+    fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure);
+  if (opt_network_file)
+    fprintf(logfile, "Network file       %s\n", opt_network_file);
   fprintf(logfile, "Resolution (d):    %" PRId64 "\n", opt_differences);
   fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
 
@@ -235,6 +242,7 @@ void args_usage()
   fprintf(stderr, " -h, --help                          display this help and exit\n");
   fprintf(stderr, " -t, --threads INTEGER               number of threads to use (1)\n");
   fprintf(stderr, " -v, --version                       display version information and exit\n");
+  fprintf(stderr, " -x, --disable-sse3                  disable SSE3 and later x86 instructions\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "Clustering options:\n");
   fprintf(stderr, " -d, --differences INTEGER           resolution (1)\n");
@@ -249,6 +257,7 @@ void args_usage()
   fprintf(stderr, "Input/output options:\n");
   fprintf(stderr, " -a, --append-abundance INTEGER      value to use when abundance is missing\n");
   fprintf(stderr, " -i, --internal-structure FILENAME   write internal OTU structure to file\n");
+  fprintf(stderr, " -j, --network_file FILENAME         dump sequence network to file\n");
   fprintf(stderr, " -l, --log FILENAME                  log to file, not to stderr\n");
   fprintf(stderr, " -o, --output-file FILENAME          output result to file (stdout)\n");
   fprintf(stderr, " -r, --mothur                        output using mothur-like format\n");
@@ -298,6 +307,7 @@ void args_init(int argc, char **argv)
   opt_boundary = 3;
   opt_ceiling = 0;
   opt_differences = 1;
+  opt_disable_sse3 = 0;
   opt_fastidious = 0;
   opt_gap_extension_penalty = 4;
   opt_gap_opening_penalty = 12;
@@ -307,6 +317,7 @@ void args_init(int argc, char **argv)
   opt_match_reward = 5;
   opt_mismatch_penalty = 4;
   opt_mothur = 0;
+  opt_network_file = nullptr;
   opt_no_otu_breaking = 0;
   opt_output_file = DASH_FILENAME;
   opt_seeds = nullptr;
@@ -318,9 +329,9 @@ void args_init(int argc, char **argv)
 
   opterr = 1;
 
-  char short_options[] = "a:b:c:d:e:fg:hi:l:m:no:p:rs:t:u:vw:y:z";
+  char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z";
 
-  /* unused short option letters: jkqx */
+  /* unused short option letters: kq */
 
   static struct option long_options[] =
   {
@@ -334,6 +345,7 @@ void args_init(int argc, char **argv)
     {"help",                  no_argument,       nullptr, 'h' },
     {"internal-structure",    required_argument, nullptr, 'i' },
     {"log",                   required_argument, nullptr, 'l' },
+    {"network-file",          required_argument, nullptr, 'j' },
     {"match-reward",          required_argument, nullptr, 'm' },
     {"no-otu-breaking",       no_argument,       nullptr, 'n' },
     {"output-file",           required_argument, nullptr, 'o' },
@@ -344,6 +356,7 @@ void args_init(int argc, char **argv)
     {"uclust-file",           required_argument, nullptr, 'u' },
     {"version",               no_argument,       nullptr, 'v' },
     {"seeds",                 required_argument, nullptr, 'w' },
+    {"disable-sse3",          no_argument,       nullptr, 'x' },
     {"bloom-bits",            required_argument, nullptr, 'y' },
     {"usearch-abundance",     no_argument,       nullptr, 'z' },
     {nullptr,                 0,                 nullptr, 0 }
@@ -433,6 +446,11 @@ void args_init(int argc, char **argv)
         opt_internal_structure = optarg;
         break;
 
+      case 'j':
+        /* network-file */
+        opt_network_file = optarg;
+        break;
+
       case 'l':
         /* log */
         opt_log = optarg;
@@ -486,6 +504,11 @@ void args_init(int argc, char **argv)
       case 'w':
         /* seeds */
         opt_seeds = optarg;
+        break;
+
+      case 'x':
+        /* disable-sse3 */
+        opt_disable_sse3 = 1;
         break;
 
       case 'y':
@@ -580,6 +603,9 @@ void args_init(int argc, char **argv)
   if (used_options[0] && (opt_append_abundance < 1))
     fatal("Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
+
+  if (opt_network_file && (opt_differences != 1))
+    fatal("A network file can only written when d=1.");
 }
 
 void open_files()
@@ -624,10 +650,20 @@ void open_files()
       if (! internal_structure_file)
         fatal("Unable to open internal structure file for writing.");
     }
+
+  if (opt_network_file)
+    {
+      network_file = fopen_output(opt_network_file);
+      if (! network_file)
+        fatal("Unable to open network file for writing.");
+    }
 }
 
 void close_files()
 {
+  if (network_file)
+    fclose(network_file);
+
   if (internal_structure_file)
     fclose(internal_structure_file);
 
@@ -651,16 +687,27 @@ int main(int argc, char** argv)
 {
   logfile = stderr;
 
+  arch_srandom(1);
+
+  args_init(argc, argv);
+
 #ifdef __x86_64__
   cpu_features_detect();
 
   if (!sse2_present)
     fatal("This program requires a processor with SSE2 instructions.\n");
+
+  if (opt_disable_sse3)
+    {
+      sse3_present = 0;
+      ssse3_present = 0;
+      sse41_present = 0;
+      sse42_present = 0;
+      popcnt_present = 0;
+      avx_present = 0;
+      avx2_present = 0;
+    }
 #endif
-
-  arch_srandom(1);
-
-  args_init(argc, argv);
 
   open_files();
 
