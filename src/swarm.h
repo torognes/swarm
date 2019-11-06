@@ -99,10 +99,6 @@ static_assert(INT_MAX > 32767, "Your compiler uses very short integers.");
 
 /* constants */
 
-#ifndef LINE_MAX
-#define LINE_MAX 2048
-#endif
-
 #define SWARM_VERSION "3.0.0"
 #define WIDTH 32
 #define WIDTH_SHIFT 5

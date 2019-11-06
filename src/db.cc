@@ -27,7 +27,8 @@
 #define HASH hash_cityhash64
 
 #define MEMCHUNK 1048576
-#define LINEALLOC LINE_MAX
+
+constexpr int LINEALLOC = 2048;
 
 static signed char map_nt[256] =
   {
