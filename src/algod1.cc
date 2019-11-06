@@ -1182,27 +1182,12 @@ void algo_d1_run()
                   uint64_t parent = ampinfo[a].parent;
                   if (parent != NO_SWARM)
                     {
-                      unsigned int diff = 1;
-                      if (duplicates_found)
-                        {
-                          uint64_t parentseqlen = db_getsequencelen(parent);
-                          uint64_t ampseqlen = db_getsequencelen(a);
-                          if (parentseqlen == ampseqlen)
-                            {
-                              unsigned char * parentseq = reinterpret_cast
-                                <unsigned char *>(db_getsequence(parent));
-                              unsigned char * ampseq = reinterpret_cast
-                                <unsigned char *>(db_getsequence(a));
-                              if (memcmp(parentseq, ampseq, parentseqlen) == 0)
-                                diff = 0;
-                            }
-                        }
                       fprint_id_noabundance(internal_structure_file, parent);
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
                               "\t%u\t%u\t%u\n",
-                              diff,
+                              1,
                               cluster_no + 1,
                               ampinfo[a].generation);
                     }
