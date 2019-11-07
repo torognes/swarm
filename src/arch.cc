@@ -88,28 +88,12 @@ uint64_t arch_get_memtotal()
 void arch_srandom(unsigned int seed)
 {
   /* initialize pseudo-random number generator */
-  if (seed == 0)
-    {
+
 #ifdef _WIN32
-      srand(GetTickCount());
+  srand(seed);
 #else
-      int fd = open("/dev/urandom", O_RDONLY);
-      if (fd < 0)
-        fatal("Unable to open /dev/urandom");
-      if (read(fd, & seed, sizeof(seed)) < 0)
-        fatal("Unable to read from /dev/urandom");
-      close(fd);
-      srandom(seed);
+  srandom(seed);
 #endif
-    }
-  else
-    {
-#ifdef _WIN32
-      srand(seed);
-#else
-      srandom(seed);
-#endif
-    }
 }
 
 uint64_t arch_random()
