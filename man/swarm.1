@@ -211,9 +211,10 @@ a \fIlarge\fR OTU. By default, an OTU with a mass of 3 or more is
 considered large. Conversely, an OTU is small if it has a mass of less
 than 3, meaning that it is composed of either one amplicon of
 abundance 2, or two amplicons of abundance 1. Any positive value
-greater than 1 can be specified. Using higher boundary values will
-speed up the second pass, but also reduce the taxonomical resolution
-of \fBswarm\fR results. Default mass of a large OTU is 3.
+greater than 1 can be specified. Using higher boundary values can
+reduce the number of OTUs (up to a point), and will reduce the
+taxonomical resolution of \fBswarm\fR results. It will also slightly
+increase computation time.
 .TP
 .BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
 when using the option \-\-fastidious (\-f), define \fBswarm\fR's
