@@ -24,6 +24,7 @@
 #include "swarm.h"
 
 uint64_t * zobrist_tab_base = nullptr;
+uint64_t * zobrist_tab_byte_base = nullptr;
 
 void zobrist_init(unsigned int n)
 {
@@ -38,8 +39,15 @@ void zobrist_init(unsigned int n)
     31-bit random numbers.
   */
 
+  /* allocate memory for tables */
+
   zobrist_tab_base = static_cast<uint64_t *>
     (xmalloc(4 * n * sizeof(uint64_t)));
+
+  zobrist_tab_byte_base = static_cast<uint64_t *>
+    (xmalloc(256 * (n/4) * sizeof(uint64_t)));
+
+  /* fill table with random 64 bit numbers */
 
   for (unsigned int i = 0; i < 4 * n; i++)
     {
@@ -53,10 +61,28 @@ void zobrist_init(unsigned int n)
       z ^= arch_random();
       zobrist_tab_base[i] = z;
     }
+
+  /* combine into bytes for faster computations */
+
+  for (unsigned int i = 0; i < n/4; i++)
+    for (unsigned int j = 0; j < 256; j++)
+      {
+        uint64_t z = 0;
+        unsigned int x = j;
+        z ^= zobrist_value(4 * i + 0, x & 3);
+        x >>= 2;
+        z ^= zobrist_value(4 * i + 1, x & 3);
+        x >>= 2;
+        z ^= zobrist_value(4 * i + 2, x & 3);
+        x >>= 2;
+        z ^= zobrist_value(4 * i + 3, x & 3);
+        zobrist_tab_byte_base[256 * i + j] = z;
+      }
 }
 
 void zobrist_exit()
 {
+  xfree(zobrist_tab_byte_base);
   xfree(zobrist_tab_base);
 }
 
@@ -69,14 +95,39 @@ uint64_t zobrist_hash(unsigned char * s, unsigned int len)
   uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = 0;
   uint64_t z = 0;
-  for(unsigned int p = 0; p < len; p++)
+  unsigned int p = 0;
+  unsigned char * qb = reinterpret_cast<unsigned char *>(q);
+
+  while (p + 32 < len)
     {
-      if ((p & 31) == 0)
-        x = q[p / 32];
-      else
-        x >>= 2;
-      z ^= zobrist_value(p, x & 3);
+      z ^= zobrist_tab_byte_base[64 * (p +  0) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p +  4) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p +  8) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 12) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 16) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 20) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 24) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 28) + *qb++];
+      p += 32;
     }
+
+  while (p + 4 < len)
+    {
+      z ^= zobrist_tab_byte_base[64 * p + *qb++];
+      p += 4;
+    }
+
+  if (p < len)
+    {
+      x = *qb++;
+      while (p < len)
+        {
+          z ^= zobrist_value(p, x & 3);
+          x >>= 2;
+          p++;
+        }
+    }
+
   return z;
 }
 

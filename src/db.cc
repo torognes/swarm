@@ -23,9 +23,6 @@
 
 #include "swarm.h"
 
-//#define HASH hash_fnv_1a_64
-#define HASH hash_cityhash64
-
 #define MEMCHUNK 1048576
 
 constexpr int LINEALLOC = 2048;
@@ -54,7 +51,7 @@ static unsigned int sequences = 0;
 static uint64_t nucleotides = 0;
 static uint64_t headerchars = 0;
 static unsigned int longest = 0;
-static uint64_t longestheader = 0;
+static unsigned int longestheader = 0;
 static char * datap = nullptr;
 static int missingabundance = 0;
 static uint64_t missingabundance_lineno = 0;
@@ -391,7 +388,8 @@ void db_read(const char * filename)
       if (line[0] != '>')
         fatal("Illegal header line in fasta file.");
 
-      uint64_t headerlen = strcspn(line + 1, " \r\n");
+      unsigned int headerlen = static_cast<unsigned int>
+        (strcspn(line + 1, " \r\n"));
 
       if (headerlen >= LINEALLOC - 2)
         fatal("The FASTA header line is too long.");
@@ -547,7 +545,9 @@ void db_read(const char * filename)
 
   /* init zobrist hashing */
 
-  zobrist_init(longest + 2);  // add 2 for two insertions
+  // add 2 for two insertions
+  unsigned int zobrist_len = MAX(4 * longestheader, longest + 2);
+  zobrist_init(zobrist_len);
 
   /* set up hash to check for unique headers */
 
@@ -642,9 +642,10 @@ void db_read(const char * filename)
           id_len = seqindex_p->headerlen - seqindex_p->abundance_end;
         }
 
-      uint64_t hdrhash
-        = HASH(reinterpret_cast<unsigned char*>(seqindex_p->header + id_start),
-               static_cast<uint64_t>(id_len));
+      uint64_t hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
+                                      (seqindex_p->header + id_start),
+                                      4 * static_cast<unsigned int>(id_len));
+
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 

@@ -22,6 +22,7 @@
 */
 
 extern uint64_t * zobrist_tab_base;
+extern uint64_t * zobrist_tab_byte_base;
 
 void zobrist_init(unsigned int longest);
 

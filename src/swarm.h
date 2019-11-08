@@ -53,8 +53,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "city.h"
-
 #ifdef __APPLE__
 #include <sys/resource.h>
 #include <sys/sysctl.h>
@@ -262,13 +260,6 @@ int64_t gcd(int64_t a, int64_t b);
 void * xmalloc(size_t size);
 void * xrealloc(void * ptr, size_t size);
 void xfree(void * ptr);
-uint64_t hash_fnv_1a_64(unsigned char * s, uint64_t n);
-unsigned int hash_fnv_1a_32(unsigned char * s, uint64_t n);
-uint64_t hash_djb2(unsigned char * s, uint64_t n);
-uint64_t hash_djb2a(unsigned char * s, uint64_t n);
-uint64_t hash_cityhash64(unsigned char * s, uint64_t n);
-uint64_t hash_xor64len(unsigned char * s, uint64_t n);
-uint64_t hash64shift(uint64_t key);
 void progress_init(const char * prompt, uint64_t size);
 void progress_update(uint64_t progress);
 void progress_done();

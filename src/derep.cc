@@ -23,10 +23,6 @@
 
 #include "swarm.h"
 
-#define HASH hash_cityhash64
-
-//#define REVCOMP
-
 struct bucket
 {
   uint64_t hash;
@@ -61,21 +57,6 @@ int derep_compare(const void * a, const void * b)
     }
 }
 
-#ifdef REVCOMP
-char map_complement[5] = { 0, 4, 3, 2, 1 };
-
-void reverse_complement(char * rc, char * seq, int64_t len)
-{
-  /* Write the reverse complementary sequence to rc.
-     The memory for rc must be long enough for the rc of the sequence
-     (identical to the length of seq + 1). */
-
-  for(int64_t i=0; i<len; i++)
-    rc[i] = map_complement[(int)(1 + nt_extract(seq, len-1-i))];
-  rc[len] = 0;
-}
-#endif
-
 void dereplicate()
 {
   /* adjust size of hash table for 2/3 fill rate */
@@ -99,11 +80,6 @@ void dereplicate()
     (xmalloc(sizeof(unsigned int) * dbsequencecount));
   memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
 
-#ifdef REVCOMP
-  /* allocate memory for reverse complementary sequence */
-  char * rc_seq = (char*) xmalloc(db_getlongestsequence() + 1);
-#endif
-
   progress_init("Dereplicating:    ", dbsequencecount);
 
   for(unsigned int i=0; i<dbsequencecount; i++)
@@ -119,8 +95,9 @@ void dereplicate()
         collision when the number of sequences is about 5e9.
       */
 
-      uint64_t hash = HASH(reinterpret_cast<unsigned char *>(seq),
-                           nt_bytelength(seqlen));
+      uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq),
+                                   seqlen);
+
       uint64_t j = hash & derep_hash_mask;
       struct bucket * bp = hashtable + j;
 
@@ -139,41 +116,6 @@ void dereplicate()
               j = 0;
             }
         }
-
-#ifdef REVCOMP
-      if (! bp->mass)
-        {
-          /* no match on plus strand */
-          /* check minus strand as well */
-
-          reverse_complement(rc_seq, seq, seqlen);
-          uint64_t rc_hash = HASH((unsigned char*)rc_seq, nt_bytelength(seqlen));
-          struct bucket * rc_bp = hashtable + rc_hash % hashtablesize;
-          uint64_t k = rc_hash & derep_hash_mask;
-
-          while ((rc_bp->mass) &&
-                 ((rc_bp->hash != rc_hash) ||
-                  (seqlen != db_getsequencelen(rc_bp->seqno_first)) ||
-                  (memcmp(rc_seq,
-                          db_getsequence(rc_bp->seqno_first),
-                          nt_bytelength(seqlen)))))
-            {
-              rc_bp++;
-              k++;
-              if (rc_bp >= hashtable + hashtablesize)
-                {
-                  rc_bp = hashtable;
-                  k++;
-                }
-            }
-
-          if (rc_bp->mass)
-            {
-              bp = rc_bp;
-              j = k;
-            }
-        }
-#endif
 
       uint64_t ab = db_getabundance(i);
 
@@ -208,10 +150,6 @@ void dereplicate()
       progress_update(i);
     }
   progress_done();
-
-#ifdef REVCOMP
-  xfree(rc_seq);
-#endif
 
   progress_init("Sorting:          ", 1);
   qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare);
