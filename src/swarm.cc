@@ -534,7 +534,7 @@ void args_init(int argc, char **argv)
   if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
     {
       fprintf(stderr, "\nError: Illegal number of threads specified with "
-              "-t or --threads, must be in the range 1 to %d.\n", MAX_THREADS);
+              "-t or --threads, must be in the range 1 to %u.\n", MAX_THREADS);
       exit(1);
     }
 

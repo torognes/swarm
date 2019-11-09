@@ -1187,7 +1187,7 @@ void algo_d1_run()
                       fprint_id_noabundance(internal_structure_file, a);
                       fprintf(internal_structure_file,
                               "\t%u\t%u\t%u\n",
-                              1,
+                              1U,
                               cluster_no + 1,
                               ampinfo[a].generation);
                     }
