@@ -93,7 +93,6 @@ uint64_t zobrist_hash(unsigned char * s, unsigned int len)
   /* it is encoded in (len+3)/4 bytes */
 
   uint64_t * q = reinterpret_cast<uint64_t *>(s);
-  uint64_t x = 0;
   uint64_t z = 0;
   unsigned int p = 0;
   unsigned char * qb = reinterpret_cast<unsigned char *>(q);
@@ -119,7 +118,7 @@ uint64_t zobrist_hash(unsigned char * s, unsigned int len)
 
   if (p < len)
     {
-      x = *qb++;
+      uint64_t x = *qb++;
       while (p < len)
         {
           z ^= zobrist_value(p, x & 3);
