@@ -117,9 +117,9 @@ const unsigned int MAX_THREADS = 256;
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #endif
 
-#define QGRAMLENGTH 5
-#define QGRAMVECTORBITS (1<<(2*QGRAMLENGTH))
-#define QGRAMVECTORBYTES (QGRAMVECTORBITS/8)
+constexpr unsigned int QGRAMLENGTH = 5;
+constexpr unsigned int QGRAMVECTORBITS = 1 << (2 * QGRAMLENGTH);
+constexpr unsigned int QGRAMVECTORBYTES = QGRAMVECTORBITS / 8;
 
 /* structures and data types */
 
