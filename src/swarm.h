@@ -97,10 +97,10 @@ static_assert(INT_MAX > 32767, "Your compiler uses very short integers.");
 
 /* constants */
 
-#define SWARM_VERSION "3.0.0"
-#define WIDTH 32
-#define WIDTH_SHIFT 5
-const unsigned int MAX_THREADS = 256;
+#define SWARM_VERSION "3.0.0"  // const std::string SWARM_VERSION {"3.0.0"};?
+constexpr unsigned int WIDTH {32};
+constexpr unsigned int WIDTH_SHIFT {5};
+constexpr unsigned int MAX_THREADS {256};
 #define SEPCHAR ' '
 
 #ifdef BIASED
@@ -117,9 +117,9 @@ const unsigned int MAX_THREADS = 256;
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #endif
 
-constexpr unsigned int QGRAMLENGTH = 5;
-constexpr unsigned int QGRAMVECTORBITS = 1 << (2 * QGRAMLENGTH);
-constexpr unsigned int QGRAMVECTORBYTES = QGRAMVECTORBITS / 8;
+constexpr unsigned int QGRAMLENGTH {5};
+constexpr unsigned int QGRAMVECTORBITS {1 << (2 * QGRAMLENGTH)};
+constexpr unsigned int QGRAMVECTORBYTES {QGRAMVECTORBITS / 8};
 
 /* structures and data types */
 
