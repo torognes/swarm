@@ -546,6 +546,10 @@ void args_init(int argc, char **argv)
     fatal("Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
 
+  if (opt_disable_sse3 && (opt_differences < 2))
+    fatal("Option --disable-sse3 or -x has no effect when d < 2. " 
+          "(SSE3 instructions are only used when d > 1).");
+
   if (!opt_fastidious)
     {
       if (used_options[1])
