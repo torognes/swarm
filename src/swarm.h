@@ -117,9 +117,9 @@ constexpr unsigned int MAX_THREADS {256};
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #endif
 
-constexpr unsigned int QGRAMLENGTH {5};
-constexpr unsigned int QGRAMVECTORBITS {1 << (2 * QGRAMLENGTH)};
-constexpr unsigned int QGRAMVECTORBYTES {QGRAMVECTORBITS / 8};
+constexpr auto QGRAMLENGTH {5u};
+constexpr auto QGRAMVECTORBITS {1 << (2 * QGRAMLENGTH)};
+constexpr auto QGRAMVECTORBYTES {QGRAMVECTORBITS / 8};
 
 /* structures and data types */
 
