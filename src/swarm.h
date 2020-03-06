@@ -123,8 +123,8 @@ constexpr auto QGRAMVECTORBYTES {QGRAMVECTORBITS / 8};
 
 /* structures and data types */
 
-typedef unsigned short WORD;
-typedef unsigned char BYTE;
+using WORD = unsigned short;
+using BYTE = unsigned char;
 typedef BYTE VECTOR[16];
 
 typedef unsigned char qgramvector_t[QGRAMVECTORBYTES];
