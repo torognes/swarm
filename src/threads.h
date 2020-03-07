@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2019 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2020 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
