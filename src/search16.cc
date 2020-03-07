@@ -24,7 +24,7 @@
 #include "swarm.h"
 
 #define CHANNELS 8
-#define CDEPTH 4
+constexpr unsigned int CDEPTH {4};
 
 #ifdef __aarch64__
 
@@ -144,7 +144,7 @@ void dprofile_dump16(WORD * dprofile)
   for(int i=0; i<32; i++)
     {
       printf("%c: ", sym_nt[i]);
-      for(int k=0; k<CDEPTH; k++)
+      for(auto k=0u; k<CDEPTH; k++)
         {
           printf("[");
           for(int j=0; j<CHANNELS; j++)
@@ -200,7 +200,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
   VECTORTYPE reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
   VECTORTYPE reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
 
-  for (unsigned int j=0; j<CDEPTH; j++)
+  for (auto j=0u; j<CDEPTH; j++)
     {
       unsigned int d[CHANNELS];
       for(unsigned int z=0; z<CHANNELS; z++)
@@ -646,7 +646,7 @@ void search16(WORD * * q_start,
 
           for(int c=0; c<CHANNELS; c++)
             {
-              for(int j=0; j<CDEPTH; j++)
+              for(auto j=0u; j<CDEPTH; j++)
                 {
                   if (d_pos[c] < d_length[c])
                     dseq[CHANNELS*j+c]
@@ -682,7 +682,7 @@ void search16(WORD * * q_start,
                 {
                   // this channel has more sequence
 
-                  for(unsigned int j = 0; j < CDEPTH; j++)
+                  for(auto j = 0u; j < CDEPTH; j++)
                     {
                       if (d_pos[c] < d_length[c])
                         dseq[CHANNELS * j + c]
@@ -758,7 +758,7 @@ void search16(WORD * * q_start,
                       (reinterpret_cast<WORD*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
 
                       // fill channel
-                      for(unsigned int j = 0; j < CDEPTH; j++)
+                      for(auto j = 0u; j < CDEPTH; j++)
                         {
                           if (d_pos[c] < d_length[c])
                             dseq[CHANNELS*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
@@ -775,7 +775,7 @@ void search16(WORD * * q_start,
                       d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
-                      for (unsigned int j=0; j<CDEPTH; j++)
+                      for (auto j=0u; j<CDEPTH; j++)
                         dseq[CHANNELS*j+c] = 0;
                     }
                 }
