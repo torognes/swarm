@@ -143,7 +143,7 @@ struct seqinfo_s
   int dummy; /* alignment padding only */
 };
 
-typedef struct seqinfo_s seqinfo_t;
+using seqinfo_t = struct seqinfo_s;
 
 extern seqinfo_t * seqindex;
 extern qgramvector_t * qgrams;
@@ -155,7 +155,7 @@ struct queryinfo
   char * seq;
 };
 
-typedef struct queryinfo queryinfo_t;
+using queryinfo_t = struct queryinfo;
 
 /* common data */
 
