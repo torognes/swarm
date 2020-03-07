@@ -28,7 +28,7 @@
 
 #ifdef __aarch64__
 
-typedef int16x8_t VECTORTYPE;
+using VECTORTYPE = int16x8_t;
 
 #define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
@@ -62,7 +62,7 @@ const uint16x8_t neon_mask =
 
 #elif defined __x86_64__
 
-typedef __m128i VECTORTYPE;
+using VECTORTYPE = __m128i;
 
 #define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
@@ -87,7 +87,7 @@ typedef __m128i VECTORTYPE;
 
 #elif defined __PPC__
 
-typedef vector unsigned short VECTORTYPE;
+using VECTORTYPE = vector unsigned short;
 
 #define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
