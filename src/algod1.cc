@@ -67,7 +67,7 @@ static struct graft_cand
 static int64_t graft_candidates = 0;
 static pthread_mutex_t graft_mutex;
 
-#define NO_SWARM (UINT_MAX)
+constexpr unsigned int NO_SWARM {UINT_MAX};
 
 static unsigned int current_swarm_tail = 0;
 
