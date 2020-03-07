@@ -103,12 +103,6 @@ constexpr unsigned int WIDTH_SHIFT {5};
 constexpr unsigned int MAX_THREADS {256};
 #define SEPCHAR ' '
 
-#ifdef BIASED
-#define ZERO 0x00
-#else
-#define ZERO 0x80
-#endif
-
 #ifndef MIN
 #define MIN(x,y) ((x)<(y)?(x):(y))
 #endif
