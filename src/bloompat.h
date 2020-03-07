@@ -21,9 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#define BLOOM_PATTERN_SHIFT 10
-#define BLOOM_PATTERN_COUNT (1 << BLOOM_PATTERN_SHIFT)
-#define BLOOM_PATTERN_MASK (BLOOM_PATTERN_COUNT - 1)
+constexpr unsigned int BLOOM_PATTERN_SHIFT {10};
+constexpr unsigned int BLOOM_PATTERN_COUNT {1 << BLOOM_PATTERN_SHIFT};
+constexpr unsigned int BLOOM_PATTERN_MASK {BLOOM_PATTERN_COUNT - 1};
 
 struct bloom_s
 {
