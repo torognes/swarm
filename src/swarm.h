@@ -126,7 +126,7 @@ constexpr auto QGRAMVECTORBYTES {QGRAMVECTORBITS / 8};
 using WORD = unsigned short;
 using BYTE = unsigned char;
 
-typedef unsigned char qgramvector_t[QGRAMVECTORBYTES];
+using qgramvector_t = unsigned char[QGRAMVECTORBYTES];
 
 struct seqinfo_s
 {
