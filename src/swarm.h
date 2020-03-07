@@ -25,17 +25,17 @@
 
 #ifndef PRIu64
 #ifdef _WIN32
-#define PRIu64 "I64u"
+constexpr char PRIu64[] = "I64u";
 #else
-#define PRIu64 "lu"
+constexpr char PRIu64[] = "lu";
 #endif
 #endif
 
 #ifndef PRId64
 #ifdef _WIN32
-#define PRId64 "I64d"
+constexpr char PRId64[] = "I64d";
 #else
-#define PRId64 "ld"
+constexpr char PRId64[] = "ld";
 #endif
 #endif
 
