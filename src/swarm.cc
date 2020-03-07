@@ -280,11 +280,10 @@ void args_usage()
 
 void show_header()
 {
-  char title[] = SWARM_VERSION;
   char ref[] = "Copyright (C) 2012-2020 Torbjorn Rognes and Frederic Mahe";
   char url[] = "https://github.com/torognes/swarm";
   fprintf(logfile, "%s\n%s\n%s\n\n",
-          title, ref, url);
+          SWARM_VERSION, ref, url);
   fprintf(logfile, "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
   fprintf(logfile, "Swarm: robust and fast clustering method for amplicon-based studies\n");
   fprintf(logfile, "PeerJ 2:e593 https://doi.org/10.7717/peerj.593\n");
