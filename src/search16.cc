@@ -23,7 +23,7 @@
 
 #include "swarm.h"
 
-#define CHANNELS 8
+constexpr unsigned int CHANNELS {8};
 constexpr unsigned int CDEPTH {4};
 
 #ifdef __aarch64__
@@ -147,7 +147,7 @@ void dprofile_dump16(WORD * dprofile)
       for(auto k=0u; k<CDEPTH; k++)
         {
           printf("[");
-          for(int j=0; j<CHANNELS; j++)
+          for(auto j=0u; j<CHANNELS; j++)
             printf(" %3d", (short) dprofile[CHANNELS*CDEPTH*i + CHANNELS*k + j]);
           printf("]");
         }
@@ -203,7 +203,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
   for (auto j=0u; j<CDEPTH; j++)
     {
       unsigned int d[CHANNELS];
-      for(unsigned int z=0; z<CHANNELS; z++)
+      for(auto z=0u; z<CHANNELS; z++)
         d[z] = (static_cast<unsigned int>(dseq[j*CHANNELS+z])) << 5;
 
       for(int i=0; i<8; i += 8)
@@ -622,7 +622,7 @@ void search16(WORD * * q_start,
   hep = CAST_VECTOR_p(hearray);
   qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
-  for (int c=0; c<CHANNELS; c++)
+  for (auto c=0u; c<CHANNELS; c++)
     {
       d_address[c] = nullptr;
       d_pos[c] = 0;
@@ -644,7 +644,7 @@ void search16(WORD * * q_start,
         {
           // fill all channels
 
-          for(int c=0; c<CHANNELS; c++)
+          for(auto c=0u; c<CHANNELS; c++)
             {
               for(auto j=0u; j<CDEPTH; j++)
                 {
@@ -676,7 +676,7 @@ void search16(WORD * * q_start,
 
           M = v_zero;
           T = T0;
-          for (unsigned int c = 0; c < CHANNELS; c++)
+          for (auto c = 0u; c < CHANNELS; c++)
             {
               if (d_pos[c] < d_length[c])
                 {
