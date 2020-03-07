@@ -25,7 +25,7 @@
 
 #define MEMCHUNK 1048576
 
-constexpr int LINEALLOC = 2048;
+constexpr unsigned int LINEALLOC {2048};
 
 static signed char map_nt[256] =
   {
