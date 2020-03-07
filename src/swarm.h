@@ -101,7 +101,7 @@ static_assert(INT_MAX > 32767, "Your compiler uses very short integers.");
 constexpr unsigned int WIDTH {32};
 constexpr unsigned int WIDTH_SHIFT {5};
 constexpr unsigned int MAX_THREADS {256};
-#define SEPCHAR ' '
+constexpr char SEPCHAR {' '};
 
 #ifndef MIN
 #define MIN(x,y) ((x)<(y)?(x):(y))
