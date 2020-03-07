@@ -40,6 +40,7 @@
 #endif
 
 #include <assert.h>
+#include <string>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -97,7 +98,7 @@ static_assert(INT_MAX > 32767, "Your compiler uses very short integers.");
 
 /* constants */
 
-#define SWARM_VERSION "3.0.0"  // const std::string SWARM_VERSION {"3.0.0"};?
+const std::string SWARM_VERSION {"Swarm 3.0.0"};
 constexpr unsigned int WIDTH {32};
 constexpr unsigned int WIDTH_SHIFT {5};
 constexpr unsigned int MAX_THREADS {256};
