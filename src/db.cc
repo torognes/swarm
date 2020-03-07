@@ -23,8 +23,7 @@
 
 #include "swarm.h"
 
-#define MEMCHUNK 1048576
-
+constexpr unsigned int MEMCHUNK {1 << 20};  // 1 megabyte
 constexpr unsigned int LINEALLOC {2048};
 
 static signed char map_nt[256] =
