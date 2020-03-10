@@ -325,6 +325,8 @@ void args_init(int argc, char **argv)
   opt_uclust_file = nullptr;
   opt_usearch_abundance = 0;
   opt_version = 0;
+  constexpr unsigned int min_ceiling {8};
+  constexpr unsigned int max_ceiling {1 << 30};
 
   opterr = 1;
 
@@ -595,9 +597,9 @@ void args_init(int argc, char **argv)
     fatal("Illegal boundary specified with -b or --boundary, "
           "must be at least 2.");
 
-  if (used_options[2] && ((opt_ceiling < 8) || (opt_ceiling > 1073741824)))
+  if (used_options[2] && ((opt_ceiling < min_ceiling) || (opt_ceiling > max_ceiling)))
     fatal("Illegal memory ceiling specified with -c or --ceiling, "
-          "must be in the range 8 to 1073741824 MB.");
+          "must be in the range 8 to 1,073,741,824 MB.");
 
   if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64))
     fatal("Illegal number of Bloom filter bits specified with -y or "
