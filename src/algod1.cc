@@ -29,7 +29,7 @@
 
 #include "swarm.h"
 
-constexpr unsigned int one_kilobyte {1024};
+constexpr unsigned int one_kilobyte {1 << 10};
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
 
 /* Information about each amplicon */
