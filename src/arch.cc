@@ -43,7 +43,8 @@ uint64_t arch_get_memused()
   return static_cast<uint64_t>(r_usage.ru_maxrss);
 # else
   /* Linux: ru_maxrss gives the size in kilobytes  */
-  return static_cast<uint64_t>(r_usage.ru_maxrss * 1024);
+  constexpr unsigned int one_kilobyte {1 << 10};
+  return static_cast<uint64_t>(r_usage.ru_maxrss * one_kilobyte);
 # endif
 
 #endif
