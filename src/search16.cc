@@ -715,7 +715,7 @@ void search16(WORD * * q_start,
 
                       uint64_t diff;
 
-                      if (score < 65535)
+                      if (score < UINT16_MAX)
                         {
                           uint64_t offset = d_offset[c];
                           diff = backtrack_16(query.seq, dbseq, qlen, dbseqlen,
@@ -727,8 +727,8 @@ void search16(WORD * * q_start,
                       else
                         {
                           diff = static_cast<uint64_t>
-                            (MIN((65535 / penalty_mismatch),
-                                 (65535 - penalty_gapopen)
+                            (MIN((UINT16_MAX / penalty_mismatch),
+                                 (UINT16_MAX - penalty_gapopen)
                                  / penalty_gapextend));
                         }
 
