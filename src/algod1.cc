@@ -29,6 +29,9 @@
 
 #include "swarm.h"
 
+constexpr unsigned int one_kilobyte {1 << 10};
+constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
+
 /* Information about each amplicon */
 
 static struct ampinfo_s
@@ -105,7 +108,7 @@ static uint64_t light_progress = 0;
 static uint64_t light_amplicon_count = 0;
 static unsigned int light_amplicon = 0;
 
-static uint64_t network_alloc = 1024 * 1024;
+static uint64_t network_alloc = one_megabyte;
 static unsigned int * network = nullptr;
 static unsigned int network_count = 0;
 static pthread_mutex_t network_mutex;
@@ -589,7 +592,7 @@ void network_thread(int64_t t)
       if (network_count + hits_count > network_alloc)
         {
           while (network_count + hits_count > network_alloc)
-            network_alloc += 1024 * 1024;
+            network_alloc += one_megabyte;
           network = static_cast<unsigned int*>
             (xrealloc(network, network_alloc * sizeof(unsigned int)));
         }
@@ -869,7 +872,7 @@ void algo_d1_run()
           if (swarmcount >= swarminfo_alloc)
             {
               /* allocate memory for more swarms... */
-              swarminfo_alloc += 1024;
+              swarminfo_alloc += one_kilobyte;
               swarminfo = static_cast<struct swarminfo_s *>
                 (xrealloc(swarminfo, swarminfo_alloc * sizeof(swarminfo_s)));
             }
@@ -971,7 +974,7 @@ void algo_d1_run()
           if (opt_ceiling)
             {
               uint64_t memrest
-                = 1024 * 1024 * static_cast<uint64_t>(opt_ceiling) - memused;
+                = one_megabyte * static_cast<uint64_t>(opt_ceiling) - memused;
               uint64_t new_bits = 8 * memrest / (7 * nucleotides_in_small_otus);
               if (new_bits < bits)
                 {
@@ -999,7 +1002,7 @@ void algo_d1_run()
 
           fprintf(logfile,
                   "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                  bits, m, k, static_cast<double>(m) / (8*1024*1024));
+                  bits, m, k, static_cast<double>(m) / (8 * one_megabyte));
 
 
           bloom_f = bloomflex_init(m/8, k);

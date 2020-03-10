@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <inttypes.h>
+#include <cinttypes>
 
 #ifndef PRIu64
 #ifdef _WIN32
@@ -39,20 +39,20 @@ constexpr char PRId64[] = "ld";
 #endif
 #endif
 
-#include <assert.h>
-#include <string>
-#include <stdio.h>
-#include <string.h>
-#include <pthread.h>
-#include <getopt.h>
-#include <stdlib.h>
-#include <regex.h>
-#include <limits.h>
-#include <stdarg.h>
+#include <cassert>
+#include <climits>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
+#include <getopt.h>
+#include <pthread.h>
+#include <regex.h>
+#include <string>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #ifdef __APPLE__
 #include <sys/resource.h>
