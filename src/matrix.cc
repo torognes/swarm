@@ -43,17 +43,17 @@ void score_matrix_read();
 void score_matrix_dump()
 {
   fprintf(logfile, "     ");
-  for(int i=0; i<16; i++)
+  for(auto i = 0; i < 16; i++)
     fprintf(logfile, "%2d", i);
   fprintf(logfile, "\n");
   fprintf(logfile, "     ");
-  for(int i=0; i<16; i++)
+  for(auto i = 0; i < 16; i++)
     fprintf(logfile, " %c", sym_nt[i]);
   fprintf(logfile, "\n");
-  for(int i=0; i<16; i++)
+  for(auto i = 0; i < 16; i++)
   {
     fprintf(logfile, "%2d %c ", i, sym_nt[i]);
-    for(int j=0; j<16; j++)
+    for(auto j = 0; j < 16; j++)
       {
         fprintf(logfile, "%2" PRId64, score_matrix_63[(i<<5) + j]);
       }

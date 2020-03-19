@@ -41,7 +41,7 @@ void printqgrams(unsigned char * qgramvector)
 {
   /* print qgramvector */
   fprintf(logfile, "qgram vector:\n");
-  for(int i = 0; i < qgramvectorbytes; i++)
+  for(auto i = 0; i < qgramvectorbytes; i++)
   {
     fprintf(logfile, "%02x", qgramvector[i]);
     if ((i % 32) == 31)

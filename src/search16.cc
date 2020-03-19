@@ -141,7 +141,7 @@ const vector unsigned char perm_bits =
 void dprofile_dump16(WORD * dprofile)
 {
   printf("\ndprofile:\n");
-  for(int i=0; i<32; i++)
+  for(auto i = 0; i < 32; i++)
     {
       printf("%c: ", sym_nt[i]);
       for(auto k=0u; k<cdepth; k++)
@@ -206,7 +206,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
       for(auto z=0u; z<channels; z++)
         d[z] = (static_cast<unsigned int>(dseq[j*channels+z])) << 5;
 
-      for(int i=0; i<8; i += 8)
+      for(auto i = 0; i < 8; i += 8)
         {
           reg0  = v_load(score_matrix_word + d[0] + i);
           reg1  = v_load(score_matrix_word + d[1] + i);

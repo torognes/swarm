@@ -172,13 +172,13 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 void dprofile_dump8(BYTE * dprofile)
 {
   printf("\ndprofile:\n");
-  for(int k=0; k<4; k++)
+  for(auto k = 0; k < 4; k++)
     {
       printf("k=%d 0 1 2 3 4 5 6 7 8 9 a b c d e f\n", k);
-      for(int i=0; i<16; i++)
+      for(auto i = 0; i < 16; i++)
         {
           printf("%c: ", sym_nt[i]);
-          for(int j = 0; j < 16; j++)
+          for(auto j = 0; j < 16; j++)
             printf("%2d", (char) dprofile[i*64+16*k + j]);
           printf("\n");
         }
