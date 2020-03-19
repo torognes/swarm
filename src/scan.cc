@@ -111,7 +111,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
 
 #if 0
 
-  for(uint64_t i=0; i<sdp->target_count; i++)
+  for(auto i = 0ULL; i < sdp->target_count; i++)
     {
     char * dseq;
     int64_t dlen;
@@ -216,7 +216,7 @@ void master_dump()
 {
   printf("master_dump\n");
   printf("   i    t    s    d\n");
-  for(uint64_t i=0; i< 1403; i++)
+  for(auto i = 0ULL; i < 1403; i++)
     {
       printf("%4" PRIu64 " %4" PRIu64 " %4" PRIu64 " %4" PRIu64 "\n",
              i, master_targets[i], master_scores[i], master_diffs[i]);
@@ -281,7 +281,7 @@ void search_begin()
   sd = static_cast<struct search_data *>
     (xmalloc(sizeof(search_data) * static_cast<uint64_t>(opt_threads)));
 
-  for(int64_t t=0; t<opt_threads; t++)
+  for(auto t = 0LL; t < opt_threads; t++)
     search_alloc(sd+t);
 
   pthread_mutex_init(& scan_mutex, nullptr);
@@ -300,7 +300,7 @@ void search_end()
 
   pthread_mutex_destroy(& scan_mutex);
 
-  for(int64_t t=0; t<opt_threads; t++)
+  for(auto t = 0LL; t < opt_threads; t++)
     search_free(sd+t);
   xfree(sd);
 }

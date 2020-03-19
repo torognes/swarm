@@ -262,7 +262,7 @@ void dereplicate()
     {
       progress_init("Writing structure:", swarmcount);
 
-      for(uint64_t i = 0; i < swarmcount; i++)
+      for(auto i = 0UL; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
           uint64_t seed = sp->seqno_first;
@@ -285,7 +285,7 @@ void dereplicate()
   if (statsfile)
     {
       progress_init("Writing stats:    ", swarmcount);
-      for(uint64_t i = 0; i < swarmcount; i++)
+      for(auto i = 0ULL; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
           fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);

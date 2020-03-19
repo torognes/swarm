@@ -78,7 +78,7 @@ public:
       (xmalloc(static_cast<uint64_t>(thread_count) * sizeof(struct thread_s)));
 
     /* init and create worker threads */
-    for(int64_t i=0; i<thread_count; i++)
+    for(auto i = 0LL; i < thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
         tip->t = i;
@@ -101,7 +101,7 @@ public:
     /* destroy threads */
     /* finish and clean up worker threads */
 
-    for(int64_t i=0; i<thread_count; i++)
+    for(auto i = 0LL; i < thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
 
@@ -126,7 +126,7 @@ public:
   void run()
   {
     /* wake up threads */
-    for(int64_t i=0; i<thread_count; i++)
+    for(auto i = 0LL; i < thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
         pthread_mutex_lock(&tip->workmutex);
@@ -136,7 +136,7 @@ public:
       }
 
     /* wait for threads to finish their work */
-    for(int64_t i=0; i<thread_count; i++)
+    for(auto i = 0LL; i < thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
         pthread_mutex_lock(&tip->workmutex);

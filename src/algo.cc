@@ -195,7 +195,7 @@ void algo_run()
 
       uint64_t listlen = 0;
 
-      for(uint64_t i=0; i < amplicons-swarmed; i++)
+      for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
           unsigned ampid = amps[swarmed+i].ampliconid;
           if ((opt_no_otu_breaking) || (db_getabundance(ampid) <= abundance))
@@ -211,7 +211,7 @@ void algo_run()
       estimates += listlen;
 #endif
 
-      for(uint64_t i=0; i < listlen; i++)
+      for(auto i = 0ULL; i < listlen; i++)
         {
           uint64_t poolampliconid = qgramamps[i];
           uint64_t diff = qgramdiffs[i];
@@ -237,7 +237,7 @@ void algo_run()
           else
             count_comparisons_16 += targetcount;
 
-          for(uint64_t t=0; t<targetcount; t++)
+          for(auto t = 0ULL; t < targetcount; t++)
             {
 #if 0
               printf("seed: %" PRIu64
@@ -266,7 +266,7 @@ void algo_run()
                   if (swarmed < i)
                     {
                       struct ampliconinfo_s temp = amps[i];
-                      for(uint64_t j=i; j>swarmed; j--)
+                      for(auto j = i; j > swarmed; j--)
                         {
                           amps[j] = amps[j-1];
                         }
@@ -333,7 +333,7 @@ void algo_run()
               targetcount = 0;
 
               uint64_t subseedlistlen=0;
-              for(uint64_t i=swarmed; i<amplicons; i++)
+              for(auto i = swarmed; i < amplicons; i++)
                 {
                   uint64_t targetampliconid = amps[i].ampliconid;
                   if ((amps[i].diffestimate <=
@@ -355,7 +355,7 @@ void algo_run()
               estimates += subseedlistlen;
 #endif
 
-              for(uint64_t i=0; i < subseedlistlen; i++)
+              for(auto i = 0ULL; i < subseedlistlen; i++)
                 if (qgramdiffs[i] <= static_cast<uint64_t>(opt_differences))
                   {
                     targetindices[targetcount] = qgramindices[i];
@@ -376,7 +376,7 @@ void algo_run()
                   else
                     count_comparisons_16 += targetcount;
 
-                  for(uint64_t t=0; t<targetcount; t++)
+                  for(auto t = 0ULL; t < targetcount; t++)
                     {
                       uint64_t diff = diffs[t];
 
@@ -403,7 +403,7 @@ void algo_run()
                           if (pos < i)
                             {
                               struct ampliconinfo_s temp = amps[i];
-                              for(uint64_t j=i; j>pos; j--)
+                              for(auto j = i; j > pos; j--)
                                 {
                                   amps[j] = amps[j-1];
                                 }
@@ -471,7 +471,7 @@ void algo_run()
           fprintf(uclustfile, "\t*\n");
           fflush(uclustfile);
 
-          for(uint64_t i=1; i<hitcount; i++)
+          for(auto i = 1ULL; i < hitcount; i++)
             {
               uint64_t hit = hits[i];
 
@@ -558,7 +558,7 @@ void algo_run()
       fprint_id(outfile, amps[0].ampliconid);
       int64_t previd = amps[0].swarmid;
 
-      for (uint64_t i=1; i<amplicons; i++)
+      for(auto i = 1ull; i < amplicons; i++)
         {
           int64_t id = amps[i].swarmid;
           if (id == previd)
@@ -585,7 +585,7 @@ void algo_run()
       unsigned previd = amps[0].swarmid;
       unsigned seed = amps[0].ampliconid;
       mass += db_getabundance(seed);
-      for (uint64_t i=1; i<amplicons; i++)
+      for(auto i = 1ULL; i < amplicons; i++)
         {
           unsigned id = amps[i].swarmid;
           if (id != previd)
@@ -607,7 +607,7 @@ void algo_run()
       progress_done();
 
       progress_init("Writing seeds:    ", swarmcount);
-      for (uint64_t i = 0; i < swarmcount; i++)
+      for(auto i = 0ULL; i < swarmcount; i++)
         {
           uint64_t swarm_mass = swarminfo[i].mass;
           unsigned int swarm_seed = swarminfo[i].seed;

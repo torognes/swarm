@@ -554,7 +554,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   h7 = v_zero;
   h8 = v_zero;
 
-  for(uint64_t i = 0; i < ql; i++)
+  for(auto i = 0ULL; i < ql; i++)
     {
       VECTORTYPE * x;
 
@@ -617,7 +617,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
   h7 = v_zero;
   h8 = v_zero;
 
-  for(uint64_t i = 0; i < ql; i++)
+  for(auto i = 0ULL; i < ql; i++)
     {
       VECTORTYPE * x;
 
@@ -675,9 +675,9 @@ inline uint64_t backtrack_8(char * qseq,
 
   printf("Dumping backtracking array\n");
 
-  for(uint64_t i=0; i<qlen; i++)
+  for(auto i = 0ULL; i < qlen; i++)
     {
-      for(uint64_t j=0; j<dlen; j++)
+      for(auto j = 0ULL; j < dlen; j++)
         {
           uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
                                   + 4 * i + (j & 3)) % dirbuffersize];
@@ -699,9 +699,9 @@ inline uint64_t backtrack_8(char * qseq,
 
   printf("Dumping gap extension array\n");
 
-  for(uint64_t i=0; i<qlen; i++)
+  for(auto i = 0ULL; i < qlen; i++)
     {
-      for(uint64_t j=0; j<dlen; j++)
+      for(auto j = 0ULL; j < dlen; j++)
         {
           uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
                                   + 4 * i + (j & 3)) % dirbuffersize];

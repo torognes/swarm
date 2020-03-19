@@ -582,7 +582,7 @@ void db_read(const char * filename)
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
-  for(uint64_t i=0; i<sequences; i++)
+  for(auto i = 0ULL; i < sequences; i++)
     {
       /* get line number */
       unsigned int line_number = *(reinterpret_cast<unsigned int*>(p));

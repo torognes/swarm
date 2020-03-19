@@ -241,7 +241,7 @@ void qgram_worker(int64_t t)
   uint64_t * amplist = tip->amplist;
   uint64_t * difflist = tip->difflist;
 
-  for(uint64_t i=0; i<listlen; i++)
+  for(auto i = 0ULL; i < listlen; i++)
     difflist[i] = qgram_diff(seed, amplist[i]);
 }
 
@@ -286,7 +286,7 @@ void qgram_diff_fast(uint64_t seed,
       uint64_t thrrest = thr;
 
       /* distribute work */
-      for(uint64_t t = 0; t < thr; t++)
+      for(auto t = 0ULL; t < thr; t++)
         {
           thread_info_s * tip = ti + t;
           uint64_t chunk = (listrest + thrrest - 1) / thrrest;

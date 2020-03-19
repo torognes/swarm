@@ -924,7 +924,7 @@ void algo_d1_run()
       progress_init("Counting amplicons in heavy and light swarms",
                     swarmcount);
 
-      for(uint64_t i = 0; i < swarmcount; i++)
+      for(auto i = 0ULL; i < swarmcount; i++)
         {
           struct swarminfo_s * sp = swarminfo + i;
           if (sp->mass < static_cast<uint64_t>(opt_boundary))
@@ -1277,7 +1277,7 @@ void algo_d1_run()
   if (statsfile)
     {
       progress_init("Writing stats:    ", swarmcount);
-      for(uint64_t i = 0; i < swarmcount; i++)
+      for(auto i = 0ULL; i < swarmcount; i++)
         {
           swarminfo_s * sp = swarminfo + i;
           if (!sp->attached)
