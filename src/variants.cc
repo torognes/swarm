@@ -220,7 +220,7 @@ void generate_variants(char * sequence,
       uint64_t hash1 = hash ^ zobrist_value(0, v);
       add_variant(hash1, insertion, 0, v, variant_list, variant_count);
     }
-  for (unsigned int i = 0; i < seqlen; i++)
+  for(auto i = 0u; i < seqlen; i++)
     {
       unsigned char base = nt_extract(sequence, i);
       hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);

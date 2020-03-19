@@ -38,10 +38,10 @@ void bloom_patterns_generate(struct bloom_s * b);
 void bloom_patterns_generate(struct bloom_s * b)
 {
   const unsigned int k = 8;
-  for (unsigned int i = 0; i < bloom_pattern_count; i++)
+  for(auto i = 0u; i < bloom_pattern_count; i++)
     {
       uint64_t pattern = 0;
-      for (unsigned int j = 0; j < k; j++)
+      for(auto j = 0u; j < k; j++)
         {
           uint64_t onebit;
           onebit = 1ULL << (arch_random() & 63);

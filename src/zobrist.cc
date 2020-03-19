@@ -49,7 +49,7 @@ void zobrist_init(unsigned int n)
 
   /* fill table with random 64 bit numbers */
 
-  for (unsigned int i = 0; i < 4 * n; i++)
+  for(auto i = 0u; i < 4 * n; i++)
     {
       uint64_t z;
       z = arch_random();
@@ -64,8 +64,8 @@ void zobrist_init(unsigned int n)
 
   /* combine into bytes for faster computations */
 
-  for (unsigned int i = 0; i < n/4; i++)
-    for (unsigned int j = 0; j < 256; j++)
+  for(auto i = 0u; i < n / 4; i++)
+    for(auto j = 0u; j < 256; j++)
       {
         uint64_t z = 0;
         unsigned int x = j;
