@@ -637,7 +637,7 @@ void search16(WORD * * q_start,
 
   uint64_t * dir = dirbuffer;
 
-  while(1)
+  while(true)
     {
 
       if (easy)
