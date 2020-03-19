@@ -64,13 +64,18 @@ int compare_mass_seed(const void * a, const void * b)
 
   uint64_t m = x->mass;
   uint64_t n = y->mass;
+  int status {0};
 
-  if (m > n)
-    return -1;
-  else if (m < n)
-    return +1;
-  else
-    return strcmp(db_getheader(x->seed), db_getheader(y->seed));
+  if (m > n) {
+    status = -1;
+  }
+  else if (m < n) {
+    status = +1;
+  }
+  else {
+    status = strcmp(db_getheader(x->seed), db_getheader(y->seed));
+  }
+  return status;
 }
 
 void algo_run()
