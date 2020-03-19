@@ -138,7 +138,7 @@ uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len)
   uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = q[0];
   uint64_t z = 0;
-  for(unsigned int p = 1; p < len; p++)
+  for(auto p = 1u; p < len; p++)
     {
       if ((p & 31) == 0)
         x = q[p / 32];
@@ -157,7 +157,7 @@ uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len)
   uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = 0;
   uint64_t z = 0;
-  for(unsigned int p = 0; p < len; p++)
+  for(auto p = 0u; p < len; p++)
     {
       if ((p & 31) == 0)
         x = q[p / 32];

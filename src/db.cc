@@ -779,7 +779,7 @@ void db_qgrams_init()
 
   seqinfo_t * seqindex_p = seqindex;
   progress_init("Find qgram vects: ", sequences);
-  for(unsigned int i=0; i<sequences; i++)
+  for(auto i = 0u; i < sequences; i++)
     {
       /* find qgrams */
       findqgrams(reinterpret_cast<unsigned char*>(seqindex_p->seq),
@@ -866,7 +866,7 @@ void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
   else
     buf = static_cast<char*>(xmalloc(len+1));
 
-  for(unsigned int i = 0; i < len; i++)
+  for(auto i = 0u; i < len; i++)
     buf[i] = sym_nt[1 + nt_extract(seq, i)];
   buf[len] = 0;
 
@@ -875,7 +875,7 @@ void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
   else
     {
       unsigned int rest = len;
-      for(unsigned int i = 0; i < len; i += width)
+      for(auto i = 0u; i < len; i += width)
         {
           fprintf(fp, "%.*s\n", MIN(rest, width), buf+i);
           rest -= width;

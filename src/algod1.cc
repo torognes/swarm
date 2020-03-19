@@ -253,7 +253,7 @@ unsigned int attach_candidates(unsigned int amplicon_count)
 {
   /* count pairs */
   unsigned int pair_count = 0;
-  for(unsigned int i=0; i < amplicon_count; i++)
+  for(auto i = 0u; i < amplicon_count; i++)
     if (ampinfo[i].graft_cand != no_swarm)
       pair_count++;
 
@@ -266,7 +266,7 @@ unsigned int attach_candidates(unsigned int amplicon_count)
 
   /* fill in */
   unsigned int j = 0;
-  for(unsigned int i=0; i < amplicon_count; i++)
+  for(auto i = 0u; i < amplicon_count; i++)
     if (ampinfo[i].graft_cand != no_swarm)
       {
         graft_array[j].parent = ampinfo[i].graft_cand;
@@ -278,7 +278,7 @@ unsigned int attach_candidates(unsigned int amplicon_count)
   qsort(graft_array, pair_count, sizeof(struct graft_cand), compare_grafts);
 
   /* attach in order */
-  for(unsigned int i=0; i < pair_count; i++)
+  for(auto i = 0u; i < pair_count; i++)
     {
       unsigned int parent = graft_array[i].parent;
       unsigned int child  = graft_array[i].child;
@@ -349,7 +349,7 @@ inline uint64_t check_heavy_var_2(char * seq,
   uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
   generate_variants(seq, seqlen, hash, variant_list, & variant_count);
 
-  for(unsigned int i=0; i < variant_count; i++)
+  for(auto i = 0u; i < variant_count; i++)
     if (bloom_get(bloom_a, variant_list[i].hash) &&
         hash_check_attach(seq, seqlen, variant_list + i, seed))
       matches++;
@@ -393,7 +393,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
   uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
-  for(unsigned int i = 0; i < variant_count; i++)
+  for(auto i = 0u; i < variant_count; i++)
     {
       struct var_s * var = variant_list + i;
       if (bloomflex_get(bloom, var->hash))
@@ -467,7 +467,7 @@ uint64_t mark_light_var(struct bloomflex_s * bloom,
   uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
-  for(unsigned int i = 0; i < variant_count; i++)
+  for(auto i = 0u; i < variant_count; i++)
     bloomflex_set(bloom, variant_list[i].hash);
 
   return variant_count;
@@ -560,7 +560,7 @@ void check_variants(unsigned int seed,
   uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
-  for(unsigned int i = 0; i < variant_count; i++)
+  for(auto i = 0u; i < variant_count; i++)
     find_variant_matches(seed, variant_list + i, hits_data, hits_count);
 }
 
@@ -597,7 +597,7 @@ void network_thread(int64_t t)
             (xrealloc(network, network_alloc * sizeof(unsigned int)));
         }
 
-      for(unsigned int i=0; i < hits_count; i++)
+      for(auto i = 0u; i < hits_count; i++)
         network[network_count++] = hits_data[i];
     }
   pthread_mutex_unlock(&network_mutex);
@@ -631,7 +631,7 @@ void process_seed(unsigned int seed)
         (xrealloc(global_hits_data, global_hits_alloc * sizeof(unsigned int)));
     }
 
-  for(unsigned int i = 0; i < c; i++)
+  for(auto i = 0u; i < c; i++)
     {
       unsigned int amp = network[s + i];
 
@@ -708,7 +708,7 @@ void algo_d1_run()
   duplicates_found = 0;
 
   progress_init("Hashing sequences:", amplicons);
-  for(unsigned int i=0; i<amplicons; i++)
+  for(auto i = 0u; i < amplicons; i++)
     {
       struct ampinfo_s * bp = ampinfo + i;
       bp->generation = 0;
@@ -772,7 +772,7 @@ void algo_d1_run()
       progress_init("Dumping network:  ", network_count);
 
       uint64_t n = 0;
-      for(unsigned int seed = 0; seed < amplicons; seed++)
+      for(auto seed = 0u; seed < amplicons; seed++)
         {
           struct ampinfo_s * ap = ampinfo + seed;
 
@@ -784,7 +784,7 @@ void algo_d1_run()
                 sizeof(unsigned int),
                 compare_amp);
 
-          for(unsigned int i = 0; i < link_count; i++)
+          for(auto i = 0u; i < link_count; i++)
             {
               unsigned int neighbour = network[link_start + i];
               fprint_id(network_file, seed);
@@ -804,7 +804,7 @@ void algo_d1_run()
   unsigned int swarmcount = 0;
   progress_init("Clustering:       ", amplicons);
 
-  for(unsigned int seed = 0; seed < amplicons; seed++)
+  for(auto seed = 0u; seed < amplicons; seed++)
     {
       struct ampinfo_s * ap = ampinfo + seed;
 
@@ -838,7 +838,7 @@ void algo_d1_run()
                 sizeof(unsigned int), compare_amp);
 
           /* add subseeds on list to current swarm */
-          for(unsigned int i = 0; i < global_hits_count; i++)
+          for(auto i = 0u; i < global_hits_count; i++)
             add_amp_to_swarm(global_hits_data[i]);
 
           /* find later generation matches */
@@ -859,7 +859,7 @@ void algo_d1_run()
                     sizeof(unsigned int), compare_amp);
 
               /* add them to the swarm */
-              for(unsigned int i = 0; i < global_hits_count; i++)
+              for(auto i = 0u; i < global_hits_count; i++)
                 add_amp_to_swarm(global_hits_data[i]);
 
               /* start with most abundant amplicon of next generation */
@@ -1081,7 +1081,7 @@ void algo_d1_run()
   if (opt_mothur)
     fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount_adjusted);
 
-  for(unsigned int i = 0; i < swarmcount; i++)
+  for(auto i = 0u; i < swarmcount; i++)
     {
       if (!swarminfo[i].attached)
         {
@@ -1124,11 +1124,11 @@ void algo_d1_run()
 
       unsigned int * sorter = static_cast<unsigned int *>
         (xmalloc(swarmcount * sizeof(unsigned int)));
-      for(unsigned int i = 0; i < swarmcount; i++)
+      for(auto i = 0u; i < swarmcount; i++)
         sorter[i] = i;
       qsort(sorter, swarmcount, sizeof(unsigned int), compare_mass);
 
-      for(unsigned int j=0; j < swarmcount; j++)
+      for(auto j = 0u; j < swarmcount; j++)
         {
           unsigned int i = sorter[j];
           if (!swarminfo[i].attached)
@@ -1156,7 +1156,7 @@ void algo_d1_run()
 
       progress_init("Writing structure:", swarmcount);
 
-      for(unsigned int swarmid = 0; swarmid < swarmcount; swarmid++)
+      for(auto swarmid = 0u; swarmid < swarmcount; swarmid++)
         {
           if (!swarminfo[swarmid].attached)
             {
@@ -1212,7 +1212,7 @@ void algo_d1_run()
 
       progress_init("Writing UCLUST:   ", swarmcount);
 
-      for(unsigned int swarmid = 0; swarmid < swarmcount; swarmid++)
+      for(auto swarmid = 0u; swarmid < swarmcount; swarmid++)
         {
           if (!swarminfo[swarmid].attached)
             {

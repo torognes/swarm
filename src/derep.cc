@@ -82,7 +82,7 @@ void dereplicate()
 
   progress_init("Dereplicating:    ", dbsequencecount);
 
-  for(unsigned int i=0; i<dbsequencecount; i++)
+  for(auto i = 0u; i < dbsequencecount; i++)
     {
       unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
@@ -163,7 +163,7 @@ void dereplicate()
   if (opt_mothur)
     fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount);
 
-  for(unsigned int i = 0; i < swarmcount; i++)
+  for(auto i = 0u; i < swarmcount; i++)
     {
       unsigned int seed = hashtable[i].seqno_first;
       if (opt_mothur)
@@ -198,7 +198,7 @@ void dereplicate()
   if (opt_seeds)
     {
       progress_init("Writing seeds:    ", swarmcount);
-      for(unsigned int i=0; i < swarmcount; i++)
+      for(auto i = 0u; i < swarmcount; i++)
         {
           unsigned int seed = hashtable[i].seqno_first;
           fprintf(fp_seeds, ">");
@@ -216,7 +216,7 @@ void dereplicate()
     {
       progress_init("Writing UCLUST:   ", swarmcount);
 
-      for(unsigned int swarmid = 0; swarmid < swarmcount; swarmid++)
+      for(auto swarmid = 0u; swarmid < swarmcount; swarmid++)
         {
           struct bucket * bp = hashtable + swarmid;
 

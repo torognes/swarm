@@ -137,7 +137,7 @@ void algo_run()
     }
 
   /* set ampliconid for all */
-  for(unsigned int i=0; i<amplicons; i++)
+  for(auto i = 0u; i < amplicons; i++)
     amps[i].ampliconid = i;
 
   /* always search in 8 bit mode unless resolution is very high */
