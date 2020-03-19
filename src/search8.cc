@@ -195,7 +195,7 @@ inline void dprofile_fill8(BYTE * dprofile,
   VECTORTYPE reg0,  reg1, reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   VECTORTYPE reg8,  reg9, reg10, reg11, reg12, reg13, reg14, reg15;
 
-  for(auto j=0u; j<cdepth; j++)
+  for(auto j = 0u; j < cdepth; j++)
     {
       unsigned int d[channels];
       for(auto i = 0u; i < channels; i++)
@@ -883,9 +883,9 @@ void search8(BYTE * * q_start,
         {
           // fill all channels
 
-          for(auto c=0u; c<channels; c++)
+          for(auto c = 0u; c < channels; c++)
             {
-              for(auto j=0u; j<cdepth; j++)
+              for(auto j = 0u; j < cdepth; j++)
                 {
                   if (d_pos[c] < d_length[c])
                     dseq[channels*j+c]
