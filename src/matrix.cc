@@ -65,7 +65,6 @@ void score_matrix_dump()
 
 void score_matrix_read()
 {
-  int a, b;
   int64_t sc, lo, hi;
 
   score_matrix_8 = static_cast<unsigned char*>(xmalloc(32*32*sizeof(char)));
