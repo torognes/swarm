@@ -655,14 +655,20 @@ int compare_amp(const void * a, const void * b)
     sequence are not expected at this stage.
   */
 
-  const unsigned int * x = static_cast<const unsigned int*>(a);
-  const unsigned int * y = static_cast<const unsigned int*>(b);
-  if (*x < *y)
-    return -1;
-  else if (*x > *y)
-    return +1;
-  else
-    return 0;
+  const auto * x = static_cast<const unsigned int*>(a);
+  const auto * y = static_cast<const unsigned int*>(b);
+  int status {0};
+
+  if (*x < *y) {
+    status = -1;
+  }
+  else if (*x > *y) {
+    status = +1;
+  }
+  else {
+    status = 0;
+  }
+  return status;
 }
 
 int compare_mass(const void * a, const void * b)
