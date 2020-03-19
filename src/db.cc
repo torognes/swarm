@@ -722,8 +722,7 @@ void db_read(const char * filename)
               duplicates_found++;
               break;
             }
-          else
-            seqhashtable[seqhashindex] = seqindex_p;
+          seqhashtable[seqhashindex] = seqindex_p;
         }
 
       seqindex_p++;
