@@ -187,7 +187,7 @@ void generate_variants(char * sequence,
     {
       unsigned char base = nt_extract(sequence, i);
       uint64_t hash1 = hash ^ zobrist_value(i, base);
-      for (unsigned char v = 0; v < 4; v ++)
+      for(unsigned char v = 0; v < 4; v ++)
         if (v != base)
           {
             uint64_t hash2 = hash1 ^ zobrist_value(i, v);
@@ -215,7 +215,7 @@ void generate_variants(char * sequence,
   /* insertions */
 
   hash = zobrist_hash_insert_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
-  for (unsigned char v = 0; v < 4; v++)
+  for(unsigned char v = 0; v < 4; v++)
     {
       uint64_t hash1 = hash ^ zobrist_value(0, v);
       add_variant(hash1, insertion, 0, v, variant_list, variant_count);
@@ -224,7 +224,7 @@ void generate_variants(char * sequence,
     {
       unsigned char base = nt_extract(sequence, i);
       hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);
-      for (unsigned char v = 0; v < 4; v++)
+      for(unsigned char v = 0; v < 4; v++)
         if (v != base)
           {
             uint64_t hash1 = hash ^ zobrist_value(i + 1, v);

@@ -862,7 +862,7 @@ void search8(BYTE * * q_start,
   hep = CAST_VECTOR_p(hearray);
   qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
-  for (auto c=0u; c<channels; c++)
+  for(auto c = 0u; c < channels; c++)
     {
       d_address[c] = nullptr;
       d_pos[c] = 0;
@@ -915,7 +915,7 @@ void search8(BYTE * * q_start,
 
           M = v_zero;
           T = T0;
-          for (auto c = 0u; c < channels; c++)
+          for(auto c = 0u; c < channels; c++)
             {
               if (d_pos[c] < d_length[c])
                 {
@@ -1011,7 +1011,7 @@ void search8(BYTE * * q_start,
                       d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
-                      for (auto j=0u; j<cdepth; j++)
+                      for(auto j = 0u; j < cdepth; j++)
                         dseq[channels*j+c] = 0;
                     }
                 }
