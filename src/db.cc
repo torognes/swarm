@@ -911,7 +911,7 @@ void db_putseq(int64_t seqno)
   char * seq;
   int64_t len;
   db_getsequenceandlength(seqno, & seq, & len);
-  for(int i=0; i<len; i++)
+  for(auto i = 0LL; i < len; i++)
     putchar(sym_nt[1+nt_extract(seq, i)]);
 }
 
