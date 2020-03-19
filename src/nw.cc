@@ -136,20 +136,20 @@ void nw(char * dseq,
 
   int64_t i, j;
 
-  for(i=0; i<qlen; i++)
+  for(auto i = 0L; i < qlen; i++)
     {
       hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
       hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
     }
 
-  for(j=0; j<dlen; j++)
+  for(auto j = 0L; j < dlen; j++)
     {
       int64_t *hep;
       hep = hearray;
       int64_t f = 2 * gapopen + (j+2) * gapextend;
       int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
-      for(i=0; i<qlen; i++)
+      for(auto i = 0L; i < qlen; i++)
         {
           int64_t index = qlen*j+i;
 

@@ -75,8 +75,8 @@ void score_matrix_read()
   hi = -1000;
   lo = 1000;
 
-  for(a=0;a<16;a++)
-    for(b=0;b<16;b++)
+  for(auto a = 0; a < 16; a++)
+    for(auto b = 0; b < 16; b++)
     {
       sc = ((a==b)&&(a>0)&&(b>0)) ? 0 : penalty_mismatch;
       // sc = (a==b) ? matchscore : mismatchscore;
@@ -91,8 +91,8 @@ void score_matrix_read()
   SCORELIMIT_8  = 256 - hi;
   SCORELIMIT_16 = 65536 - hi;
 
-  for(a=0;a<32;a++)
-    for(b=0;b<32;b++)
+  for(auto a = 0; a < 32; a++)
+    for(auto b = 0; b < 32; b++)
     {
       sc = score_matrix_63[(a<<5) + b];
       score_matrix_8[(a<<5) + b] = static_cast<unsigned char>(sc);
