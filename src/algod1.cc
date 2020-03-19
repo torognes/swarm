@@ -70,7 +70,7 @@ static struct graft_cand
 static int64_t graft_candidates = 0;
 static pthread_mutex_t graft_mutex;
 
-constexpr unsigned int NO_SWARM {UINT_MAX};
+constexpr unsigned int no_swarm {UINT_MAX};
 
 static unsigned int current_swarm_tail = 0;
 
@@ -227,7 +227,7 @@ void add_graft_candidate(unsigned int seed, unsigned int amp)
 {
   pthread_mutex_lock(&graft_mutex);
   graft_candidates++;
-  if ((ampinfo[amp].graft_cand == NO_SWARM)||(ampinfo[amp].graft_cand > seed))
+  if ((ampinfo[amp].graft_cand == no_swarm)||(ampinfo[amp].graft_cand > seed))
     ampinfo[amp].graft_cand = seed;
   pthread_mutex_unlock(&graft_mutex);
 }
@@ -254,7 +254,7 @@ unsigned int attach_candidates(unsigned int amplicon_count)
   /* count pairs */
   unsigned int pair_count = 0;
   for(unsigned int i=0; i < amplicon_count; i++)
-    if (ampinfo[i].graft_cand != NO_SWARM)
+    if (ampinfo[i].graft_cand != no_swarm)
       pair_count++;
 
   unsigned int grafts = 0;
@@ -267,7 +267,7 @@ unsigned int attach_candidates(unsigned int amplicon_count)
   /* fill in */
   unsigned int j = 0;
   for(unsigned int i=0; i < amplicon_count; i++)
-    if (ampinfo[i].graft_cand != NO_SWARM)
+    if (ampinfo[i].graft_cand != no_swarm)
       {
         graft_array[j].parent = ampinfo[i].graft_cand;
         graft_array[j].child = i;
@@ -286,7 +286,7 @@ unsigned int attach_candidates(unsigned int amplicon_count)
       if (swarminfo[ampinfo[child].swarmid].attached)
         {
           /* this light swarm is already attached */
-          ampinfo[child].graft_cand = NO_SWARM;
+          ampinfo[child].graft_cand = no_swarm;
         }
       else
         {
@@ -635,7 +635,7 @@ void process_seed(unsigned int seed)
     {
       unsigned int amp = network[s + i];
 
-      if (ampinfo[amp].swarmid == NO_SWARM)
+      if (ampinfo[amp].swarmid == no_swarm)
         {
           global_hits_data[global_hits_count++] = amp;
 
@@ -712,9 +712,9 @@ void algo_d1_run()
     {
       struct ampinfo_s * bp = ampinfo + i;
       bp->generation = 0;
-      bp->swarmid = NO_SWARM;
-      bp->next = NO_SWARM;
-      bp->graft_cand = NO_SWARM;
+      bp->swarmid = no_swarm;
+      bp->next = no_swarm;
+      bp->graft_cand = no_swarm;
       hash_insert(i);
       progress_update(i);
       if (duplicates_found)
@@ -808,14 +808,14 @@ void algo_d1_run()
     {
       struct ampinfo_s * ap = ampinfo + seed;
 
-      if (ap->swarmid == NO_SWARM)
+      if (ap->swarmid == no_swarm)
         {
           /* start a new swarm with a new initial seed */
 
           ap->swarmid = swarmcount;
           ap->generation = 0;
-          ap->parent = NO_SWARM;
-          ap->next = NO_SWARM;
+          ap->parent = no_swarm;
+          ap->next = no_swarm;
 
           /* link up this initial seed in the list of swarms */
           current_swarm_tail = seed;
@@ -843,12 +843,12 @@ void algo_d1_run()
 
           /* find later generation matches */
           unsigned int subseed = ap->next;
-          while(subseed != NO_SWARM)
+          while(subseed != no_swarm)
             {
               /* process all subseeds of this generation */
               global_hits_count = 0;
 
-              while(subseed != NO_SWARM)
+              while(subseed != no_swarm)
                 {
                   process_seed(subseed);
                   subseed = ampinfo[subseed].next;
@@ -866,7 +866,7 @@ void algo_d1_run()
               if (global_hits_count)
                 subseed = global_hits_data[0];
               else
-                subseed = NO_SWARM;
+                subseed = no_swarm;
             }
 
           if (swarmcount >= swarminfo_alloc)
@@ -1087,7 +1087,7 @@ void algo_d1_run()
         {
           unsigned int seed = swarminfo[i].seed;
           for (unsigned int a = seed;
-               a != NO_SWARM;
+               a != no_swarm;
                a = ampinfo[a].next)
             {
               if (opt_mothur)
@@ -1165,11 +1165,11 @@ void algo_d1_run()
               struct ampinfo_s * bp = ampinfo + seed;
 
               for (unsigned int a = bp->next;
-                   a != NO_SWARM;
+                   a != no_swarm;
                    a = ampinfo[a].next)
                 {
                   uint64_t graft_parent = ampinfo[a].graft_cand;
-                  if (graft_parent != NO_SWARM)
+                  if (graft_parent != no_swarm)
                     {
                       fprint_id_noabundance(internal_structure_file,
                                             graft_parent);
@@ -1183,7 +1183,7 @@ void algo_d1_run()
                     }
 
                   uint64_t parent = ampinfo[a].parent;
-                  if (parent != NO_SWARM)
+                  if (parent != no_swarm)
                     {
                       fprint_id_noabundance(internal_structure_file, parent);
                       fprintf(internal_structure_file, "\t");
@@ -1233,7 +1233,7 @@ void algo_d1_run()
               fprintf(uclustfile, "\t*\n");
 
               for (unsigned int a = bp->next;
-                   a != NO_SWARM;
+                   a != no_swarm;
                    a = ampinfo[a].next)
                 {
                   char * dseq = db_getsequence(a);
