@@ -234,8 +234,8 @@ void add_graft_candidate(unsigned int seed, unsigned int amp)
 
 int compare_grafts(const void * a, const void * b)
 {
-  const struct graft_cand * x = static_cast<const struct graft_cand *>(a);
-  const struct graft_cand * y = static_cast<const struct graft_cand *>(b);
+  const auto * x = static_cast<const struct graft_cand *>(a);
+  const auto * y = static_cast<const struct graft_cand *>(b);
   if (x->parent < y->parent)
     return -1;
   else if (x->parent > y->parent)
