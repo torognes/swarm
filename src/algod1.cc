@@ -1162,9 +1162,7 @@ void algo_d1_run()
 
               struct ampinfo_s * bp = ampinfo + seed;
 
-              for (unsigned int a = bp->next;
-                   a != no_swarm;
-                   a = ampinfo[a].next)
+              for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
                 {
                   uint64_t graft_parent = ampinfo[a].graft_cand;
                   if (graft_parent != no_swarm)
@@ -1230,9 +1228,7 @@ void algo_d1_run()
               fprint_id(uclustfile, seed);
               fprintf(uclustfile, "\t*\n");
 
-              for (unsigned int a = bp->next;
-                   a != no_swarm;
-                   a = ampinfo[a].next)
+              for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
                 {
                   char * dseq = db_getsequence(a);
                   int64_t dlen = db_getsequencelen(a);
