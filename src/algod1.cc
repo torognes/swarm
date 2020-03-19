@@ -1086,9 +1086,7 @@ void algo_d1_run()
       if (!swarminfo[i].attached)
         {
           unsigned int seed = swarminfo[i].seed;
-          for(auto a = seed;
-              a != no_swarm;
-              a = ampinfo[a].next)
+          for(auto a = seed; a != no_swarm; a = ampinfo[a].next)
             {
               if (opt_mothur)
                 {
