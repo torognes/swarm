@@ -99,8 +99,8 @@ static_assert(INT_MAX > 32767, "Your compiler uses very short integers.");
 /* constants */
 
 constexpr char swarm_version[] = "Swarm 3.0.0";
-constexpr unsigned int width {32};
-constexpr unsigned int width_shift {5};
+// constexpr unsigned int width {32};  // unused?
+// constexpr unsigned int width_shift {5};  // unused?
 constexpr unsigned int max_threads {256};
 constexpr char sepchar {' '};
 
