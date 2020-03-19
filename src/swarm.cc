@@ -326,7 +326,7 @@ void args_init(int argc, char **argv)
   opt_usearch_abundance = 0;
   opt_version = 0;
   constexpr unsigned int min_ceiling {8};
-  constexpr unsigned int max_ceiling {1 << 30};
+  constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
 
   opterr = 1;
 
