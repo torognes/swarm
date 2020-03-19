@@ -49,7 +49,7 @@ void zobrist_init(unsigned int n)
 
   /* fill table with random 64 bit numbers */
 
-  for(auto i = 0u; i < 4 * n; i++)
+  for(auto i = 0U; i < 4 * n; i++)
     {
       uint64_t z;
       z = arch_random();
@@ -64,8 +64,8 @@ void zobrist_init(unsigned int n)
 
   /* combine into bytes for faster computations */
 
-  for(auto i = 0u; i < n / 4; i++)
-    for(auto j = 0u; j < 256; j++)
+  for(auto i = 0U; i < n / 4; i++)
+    for(auto j = 0U; j < 256; j++)
       {
         uint64_t z = 0;
         unsigned int x = j;
@@ -138,7 +138,7 @@ uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len)
   uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = q[0];
   uint64_t z = 0;
-  for(auto p = 1u; p < len; p++)
+  for(auto p = 1U; p < len; p++)
     {
       if ((p & 31) == 0)
         x = q[p / 32];
@@ -157,7 +157,7 @@ uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len)
   uint64_t * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = 0;
   uint64_t z = 0;
-  for(auto p = 0u; p < len; p++)
+  for(auto p = 0U; p < len; p++)
     {
       if ((p & 31) == 0)
         x = q[p / 32];

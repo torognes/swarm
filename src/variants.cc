@@ -41,7 +41,7 @@ inline void seq_copy(char * a,
                      unsigned int length)
 {
   /* copy part of the compressed sequence b to a */
-  for(auto i = 0u; i < length; i++)
+  for(auto i = 0U; i < length; i++)
     nt_set(a, a_start + i, nt_extract(b, b_start + i));
 }
 
@@ -55,7 +55,7 @@ inline bool seq_identical(char * a,
   /* return false if different, true if identical */
 
   bool equal = true;
-  for(auto i = 0u; i < length; i++)
+  for(auto i = 0U; i < length; i++)
     equal = equal && (nt_extract(a, a_start + i) ==
                       nt_extract(b, b_start + i));
   return equal;
@@ -183,7 +183,7 @@ void generate_variants(char * sequence,
 {
   /* substitutions */
 
-  for(auto i = 0u; i < seqlen; i++)
+  for(auto i = 0U; i < seqlen; i++)
     {
       unsigned char base = nt_extract(sequence, i);
       uint64_t hash1 = hash ^ zobrist_value(i, base);
@@ -201,7 +201,7 @@ void generate_variants(char * sequence,
   hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
   add_variant(hash, deletion, 0, 0, variant_list, variant_count);
   unsigned char base_deleted = nt_extract(sequence, 0);
-  for(auto i = 1u; i < seqlen; i++)
+  for(auto i = 1U; i < seqlen; i++)
     {
       unsigned char v = nt_extract(sequence, i);
       if (v != base_deleted)
@@ -220,7 +220,7 @@ void generate_variants(char * sequence,
       uint64_t hash1 = hash ^ zobrist_value(0, v);
       add_variant(hash1, insertion, 0, v, variant_list, variant_count);
     }
-  for(auto i = 0u; i < seqlen; i++)
+  for(auto i = 0U; i < seqlen; i++)
     {
       unsigned char base = nt_extract(sequence, i);
       hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);

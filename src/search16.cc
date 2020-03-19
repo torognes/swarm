@@ -144,10 +144,10 @@ void dprofile_dump16(WORD * dprofile)
   for(auto i = 0; i < 32; i++)
     {
       printf("%c: ", sym_nt[i]);
-      for(auto k = 0u; k < cdepth; k++)
+      for(auto k = 0U; k < cdepth; k++)
         {
           printf("[");
-          for(auto j = 0u; j < channels; j++)
+          for(auto j = 0U; j < channels; j++)
             printf(" %3d", (short) dprofile[channels*cdepth*i + channels*k + j]);
           printf("]");
         }
@@ -200,10 +200,10 @@ inline void dprofile_fill16(WORD * dprofile_word,
   VECTORTYPE reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
   VECTORTYPE reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
 
-  for(auto j = 0u; j < cdepth; j++)
+  for(auto j = 0U; j < cdepth; j++)
     {
       unsigned int d[channels];
-      for(auto z = 0u; z < channels; z++)
+      for(auto z = 0U; z < channels; z++)
         d[z] = (static_cast<unsigned int>(dseq[j*channels+z])) << 5;
 
       for(auto i = 0; i < 8; i += 8)
@@ -622,7 +622,7 @@ void search16(WORD * * q_start,
   hep = CAST_VECTOR_p(hearray);
   qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
-  for(auto c = 0u; c < channels; c++)
+  for(auto c = 0U; c < channels; c++)
     {
       d_address[c] = nullptr;
       d_pos[c] = 0;
@@ -644,9 +644,9 @@ void search16(WORD * * q_start,
         {
           // fill all channels
 
-          for(auto c = 0u; c < channels; c++)
+          for(auto c = 0U; c < channels; c++)
             {
-              for(auto j = 0u; j < cdepth; j++)
+              for(auto j = 0U; j < cdepth; j++)
                 {
                   if (d_pos[c] < d_length[c])
                     dseq[channels*j+c]
@@ -676,13 +676,13 @@ void search16(WORD * * q_start,
 
           M = v_zero;
           T = T0;
-          for(auto c = 0u; c < channels; c++)
+          for(auto c = 0U; c < channels; c++)
             {
               if (d_pos[c] < d_length[c])
                 {
                   // this channel has more sequence
 
-                  for(auto j = 0u; j < cdepth; j++)
+                  for(auto j = 0U; j < cdepth; j++)
                     {
                       if (d_pos[c] < d_length[c])
                         dseq[channels * j + c]
@@ -758,7 +758,7 @@ void search16(WORD * * q_start,
                       (reinterpret_cast<WORD*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
 
                       // fill channel
-                      for(auto j = 0u; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; j++)
                         {
                           if (d_pos[c] < d_length[c])
                             dseq[channels*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
@@ -775,7 +775,7 @@ void search16(WORD * * q_start,
                       d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
-                      for(auto j = 0u; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; j++)
                         dseq[channels*j+c] = 0;
                     }
                 }

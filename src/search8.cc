@@ -195,10 +195,10 @@ inline void dprofile_fill8(BYTE * dprofile,
   VECTORTYPE reg0,  reg1, reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
   VECTORTYPE reg8,  reg9, reg10, reg11, reg12, reg13, reg14, reg15;
 
-  for(auto j = 0u; j < cdepth; j++)
+  for(auto j = 0U; j < cdepth; j++)
     {
       unsigned int d[channels];
-      for(auto i = 0u; i < channels; i++)
+      for(auto i = 0U; i < channels; i++)
         d[i] = (static_cast<unsigned int>(dseq[j * channels + i])) << 5;
 
       reg0  = v_load_64(score_matrix + d[ 0]);
@@ -862,7 +862,7 @@ void search8(BYTE * * q_start,
   hep = CAST_VECTOR_p(hearray);
   qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
-  for(auto c = 0u; c < channels; c++)
+  for(auto c = 0U; c < channels; c++)
     {
       d_address[c] = nullptr;
       d_pos[c] = 0;
@@ -883,9 +883,9 @@ void search8(BYTE * * q_start,
         {
           // fill all channels
 
-          for(auto c = 0u; c < channels; c++)
+          for(auto c = 0U; c < channels; c++)
             {
-              for(auto j = 0u; j < cdepth; j++)
+              for(auto j = 0U; j < cdepth; j++)
                 {
                   if (d_pos[c] < d_length[c])
                     dseq[channels*j+c]
@@ -915,13 +915,13 @@ void search8(BYTE * * q_start,
 
           M = v_zero;
           T = T0;
-          for(auto c = 0u; c < channels; c++)
+          for(auto c = 0U; c < channels; c++)
             {
               if (d_pos[c] < d_length[c])
                 {
                   // this channel has more sequence
 
-                  for(auto j = 0u; j < cdepth; j++)
+                  for(auto j = 0U; j < cdepth; j++)
                     {
                       if (d_pos[c] < d_length[c])
                         dseq[channels * j + c]
@@ -994,7 +994,7 @@ void search8(BYTE * * q_start,
                       (reinterpret_cast<BYTE*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;
 
                       // fill channel
-                      for(auto j = 0u; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; j++)
                         {
                           if (d_pos[c] < d_length[c])
                             dseq[channels*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
@@ -1011,7 +1011,7 @@ void search8(BYTE * * q_start,
                       d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
-                      for(auto j = 0u; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; j++)
                         dseq[channels*j+c] = 0;
                     }
                 }

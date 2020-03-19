@@ -137,7 +137,7 @@ void algo_run()
     }
 
   /* set ampliconid for all */
-  for(auto i = 0u; i < amplicons; i++)
+  for(auto i = 0U; i < amplicons; i++)
     amps[i].ampliconid = i;
 
   /* always search in 8 bit mode unless resolution is very high */
@@ -558,7 +558,7 @@ void algo_run()
       fprint_id(outfile, amps[0].ampliconid);
       int64_t previd = amps[0].swarmid;
 
-      for(auto i = 1ull; i < amplicons; i++)
+      for(auto i = 1ULL; i < amplicons; i++)
         {
           int64_t id = amps[i].swarmid;
           if (id == previd)
