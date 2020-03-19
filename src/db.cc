@@ -137,15 +137,20 @@ void fprint_id_with_new_abundance(FILE * stream,
 
 int db_compare_abundance(const void * a, const void * b)
 {
-  const seqinfo_t * x = reinterpret_cast<const seqinfo_t *>(a);
-  const seqinfo_t * y = reinterpret_cast<const seqinfo_t *>(b);
+  const auto * x = reinterpret_cast<const seqinfo_t *>(a);
+  const auto * y = reinterpret_cast<const seqinfo_t *>(b);
+  int status {0};
 
-  if (x->abundance > y->abundance)
-    return -1;
-  else if (x->abundance < y->abundance)
-    return +1;
-  else
-    return strcmp(x->header, y->header);
+  if (x->abundance > y->abundance) {
+    status = -1;
+  }
+  else if (x->abundance < y->abundance) {
+    status = +1;
+  }
+  else {
+    status = strcmp(x->header, y->header);
+  }
+  return status;
 }
 
 bool find_swarm_abundance(const char * header,
