@@ -30,7 +30,7 @@ constexpr unsigned int cdepth {4};
 
 using VECTORTYPE = int16x8_t;
 
-#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
+#define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
 const uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
@@ -64,7 +64,7 @@ const uint16x8_t neon_mask =
 
 using VECTORTYPE = __m128i;
 
-#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
+#define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
 #define v_load(a) _mm_load_si128(CAST_VECTOR_p(a))
 #define v_store(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
