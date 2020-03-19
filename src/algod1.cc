@@ -1100,7 +1100,7 @@ void algo_d1_run()
               else
                 {
                   if (a != seed)
-                    fputc(SEPCHAR, outfile);
+                    fputc(sepchar, outfile);
                 }
               fprint_id(outfile, a);
             }

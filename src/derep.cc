@@ -176,7 +176,7 @@ void dereplicate()
           if (opt_mothur)
             fputc(',', outfile);
           else
-            fputc(SEPCHAR, outfile);
+            fputc(sepchar, outfile);
           fprint_id(outfile, a);
           a = nextseqtab[a];
         }

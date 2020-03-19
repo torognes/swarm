@@ -21,16 +21,16 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-constexpr unsigned int BLOOM_PATTERN_SHIFT {10};
-constexpr unsigned int BLOOM_PATTERN_COUNT {1 << BLOOM_PATTERN_SHIFT};
-constexpr unsigned int BLOOM_PATTERN_MASK {BLOOM_PATTERN_COUNT - 1};
+constexpr unsigned int bloom_pattern_shift {10};
+constexpr unsigned int bloom_pattern_count {1 << bloom_pattern_shift};
+constexpr unsigned int bloom_pattern_mask {bloom_pattern_count - 1};
 
 struct bloom_s
 {
   uint64_t size;
   uint64_t mask;
   uint64_t * bitmap;
-  uint64_t patterns[BLOOM_PATTERN_COUNT];
+  uint64_t patterns[bloom_pattern_count];
 };
 
 void bloom_zap(struct bloom_s * b);
@@ -41,12 +41,12 @@ void bloom_exit(struct bloom_s * b);
 
 inline uint64_t * bloom_adr(struct bloom_s * b, uint64_t h)
 {
-  return b->bitmap + ((h >> BLOOM_PATTERN_SHIFT) & b->mask);
+  return b->bitmap + ((h >> bloom_pattern_shift) & b->mask);
 }
 
 inline uint64_t bloom_pat(struct bloom_s * b, uint64_t h)
 {
-  return b->patterns[h & BLOOM_PATTERN_MASK];
+  return b->patterns[h & bloom_pattern_mask];
 }
 
 inline void bloom_set(struct bloom_s * b, uint64_t h)

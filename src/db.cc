@@ -23,8 +23,8 @@
 
 #include "swarm.h"
 
-constexpr unsigned int MEMCHUNK {1 << 20};  // 1 megabyte
-constexpr unsigned int LINEALLOC {2048};
+constexpr unsigned int memchunk {1 << 20};  // 1 megabyte
+constexpr unsigned int linealloc {2048};
 
 static signed char map_nt[256] =
   {
@@ -332,7 +332,7 @@ void db_read(const char * filename)
 {
   /* allocate space */
 
-  uint64_t dataalloc = MEMCHUNK;
+  uint64_t dataalloc = memchunk;
   datap = static_cast<char *>(xmalloc(dataalloc));
   uint64_t datalen = 0;
 
@@ -370,9 +370,9 @@ void db_read(const char * filename)
   if (! is_regular)
     fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
 
-  char line[LINEALLOC];
+  char line[linealloc];
   line[0] = 0;
-  if (!fgets(line, LINEALLOC, fp))
+  if (!fgets(line, linealloc, fp))
     line[0] = 0;
 
   unsigned int lineno = 1;
@@ -390,7 +390,7 @@ void db_read(const char * filename)
       unsigned int headerlen = static_cast<unsigned int>
         (strcspn(line + 1, " \r\n"));
 
-      if (headerlen >= LINEALLOC - 2)
+      if (headerlen >= linealloc - 2)
         fatal("The FASTA header line is too long.");
 
       headerchars += headerlen;
@@ -403,7 +403,7 @@ void db_read(const char * filename)
 
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
-          dataalloc += MEMCHUNK;
+          dataalloc += memchunk;
           datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       memcpy(datap + datalen, & lineno, sizeof(unsigned int));
@@ -414,7 +414,7 @@ void db_read(const char * filename)
 
       while (datalen + headerlen + 1 > dataalloc)
         {
-          dataalloc += MEMCHUNK;
+          dataalloc += memchunk;
           datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       memcpy(datap + datalen, line + 1, headerlen);
@@ -425,7 +425,7 @@ void db_read(const char * filename)
       /* get next line */
 
       line[0] = 0;
-      if (!fgets(line, LINEALLOC, fp))
+      if (!fgets(line, linealloc, fp))
         line[0] = 0;
       lineno++;
 
@@ -436,7 +436,7 @@ void db_read(const char * filename)
 
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
-          dataalloc += MEMCHUNK;
+          dataalloc += memchunk;
           datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       uint64_t datalen_seqlen = datalen;
@@ -467,7 +467,7 @@ void db_read(const char * filename)
                     {
                       while (datalen + sizeof(nt_buffer) > dataalloc)
                         {
-                          dataalloc += MEMCHUNK;
+                          dataalloc += memchunk;
                           datap = static_cast<char *>(xrealloc(datap, dataalloc));
                         }
 
@@ -495,7 +495,7 @@ void db_read(const char * filename)
 	    }
 
           line[0] = 0;
-          if (!fgets(line, LINEALLOC, fp))
+          if (!fgets(line, linealloc, fp))
             line[0] = 0;
           lineno++;
         }
@@ -522,7 +522,7 @@ void db_read(const char * filename)
         {
           while (datalen + sizeof(nt_buffer) > dataalloc)
             {
-              dataalloc += MEMCHUNK;
+              dataalloc += memchunk;
               datap = static_cast<char *>(xrealloc(datap, dataalloc));
             }
 

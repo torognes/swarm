@@ -98,11 +98,11 @@ static_assert(INT_MAX > 32767, "Your compiler uses very short integers.");
 
 /* constants */
 
-constexpr char SWARM_VERSION[] = "Swarm 3.0.0";
-constexpr unsigned int WIDTH {32};
-constexpr unsigned int WIDTH_SHIFT {5};
-constexpr unsigned int MAX_THREADS {256};
-constexpr char SEPCHAR {' '};
+constexpr char swarm_version[] = "Swarm 3.0.0";
+constexpr unsigned int width {32};
+constexpr unsigned int width_shift {5};
+constexpr unsigned int max_threads {256};
+constexpr char sepchar {' '};
 
 #ifndef MIN
 #define MIN(x,y) ((x)<(y)?(x):(y))
@@ -112,16 +112,16 @@ constexpr char SEPCHAR {' '};
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #endif
 
-constexpr unsigned int QGRAMLENGTH {5};
-constexpr unsigned int QGRAMVECTORBITS {1 << (2 * QGRAMLENGTH)};
-constexpr unsigned int QGRAMVECTORBYTES {QGRAMVECTORBITS / 8};
+constexpr unsigned int qgramlength {5};
+constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
+constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
 
 /* structures and data types */
 
 using WORD = unsigned short;
 using BYTE = unsigned char;
 
-using qgramvector_t = unsigned char[QGRAMVECTORBYTES];
+using qgramvector_t = unsigned char[qgramvectorbytes];
 
 struct seqinfo_s
 {

@@ -280,7 +280,7 @@ void args_usage()
 
 void show_header()
 {
-  fprintf(logfile, "%s\n", SWARM_VERSION);
+  fprintf(logfile, "%s\n", swarm_version);
   fprintf(logfile, "Copyright (C) 2012-2020 Torbjorn Rognes and Frederic Mahe\n");
   fprintf(logfile, "https://github.com/torognes/swarm\n");
   fprintf(logfile, "\n");
@@ -532,10 +532,10 @@ void args_init(int argc, char **argv)
   if (optind < argc)
     input_filename = argv[optind];
 
-  if ((opt_threads < 1) || (opt_threads > MAX_THREADS))
+  if ((opt_threads < 1) || (opt_threads > max_threads))
     {
       fprintf(stderr, "\nError: Illegal number of threads specified with "
-              "-t or --threads, must be in the range 1 to %u.\n", MAX_THREADS);
+              "-t or --threads, must be in the range 1 to %u.\n", max_threads);
       exit(1);
     }
 

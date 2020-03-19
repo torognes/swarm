@@ -38,7 +38,7 @@ void bloom_patterns_generate(struct bloom_s * b);
 void bloom_patterns_generate(struct bloom_s * b)
 {
   const unsigned int k = 8;
-  for (unsigned int i = 0; i < BLOOM_PATTERN_COUNT; i++)
+  for (unsigned int i = 0; i < bloom_pattern_count; i++)
     {
       uint64_t pattern = 0;
       for (unsigned int j = 0; j < k; j++)

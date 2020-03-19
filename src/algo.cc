@@ -551,7 +551,7 @@ void algo_run()
       else
         {
           /* native swarm output */
-          sep_amplicons = SEPCHAR;  /* usually a space */
+          sep_amplicons = sepchar;  /* usually a space */
           sep_swarms = '\n';
         }
 

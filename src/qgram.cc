@@ -41,7 +41,7 @@ void printqgrams(unsigned char * qgramvector)
 {
   /* print qgramvector */
   fprintf(logfile, "qgram vector:\n");
-  for(int i = 0; i < QGRAMVECTORBYTES; i++)
+  for(int i = 0; i < qgramvectorbytes; i++)
   {
     fprintf(logfile, "%02x", qgramvector[i]);
     if ((i % 32) == 31)
@@ -56,12 +56,12 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
-  memset(qgramvector, 0, QGRAMVECTORBYTES);
+  memset(qgramvector, 0, qgramvectorbytes);
 
   uint64_t qgram = 0;
   unsigned int i = 0;
 
-  while((i < QGRAMLENGTH-1) && (i<seqlen))
+  while((i < qgramlength-1) && (i<seqlen))
   {
     qgram = (qgram << 2) | nt_extract(reinterpret_cast<char *>(seq), i);
     i++;
@@ -70,7 +70,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   while(i < seqlen)
   {
     qgram = (qgram << 2) | nt_extract(reinterpret_cast<char *>(seq), i);
-    qgramvector[(qgram >> 3) & (QGRAMVECTORBYTES-1)] ^= (1 << (qgram & 7));
+    qgramvector[(qgram >> 3) & (qgramvectorbytes-1)] ^= (1 << (qgram & 7));
     i++;
   }
 }
@@ -87,7 +87,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
   uint8x16_t * bp = (uint8x16_t *) b;
   uint64_t count = 0;
 
-  while ((unsigned char*)ap < a + QGRAMVECTORBYTES)
+  while ((unsigned char*)ap < a + qgramvectorbytes)
     count += vaddvq_u8(vcntq_u8(veorq_u8(*ap++, *bp++)));
 
   return count;
@@ -101,7 +101,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
   vector unsigned char * bp = (vector unsigned char *) b;
   vector unsigned long long count_vector = { 0, 0 };
 
-  while ((unsigned char *)ap < a + QGRAMVECTORBYTES)
+  while ((unsigned char *)ap < a + qgramvectorbytes)
     count_vector += vec_vpopcnt((vector unsigned long long)(vec_xor(*ap++, *bp++)));
 
   return count_vector[0] + count_vector[1];
@@ -187,7 +187,7 @@ uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b)
   __m128i * bp = reinterpret_cast<__m128i *>(b);
   uint64_t count = 0;
 
-  while (reinterpret_cast<unsigned char*>(ap) < a + QGRAMVECTORBYTES)
+  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes)
     count += popcount_128(_mm_xor_si128(*ap++, *bp++));
 
   return count;
@@ -203,7 +203,7 @@ uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
   uint64_t *bp = reinterpret_cast<uint64_t*>(b);
   uint64_t count = 0;
 
-  while (reinterpret_cast<unsigned char*>(ap) < a + QGRAMVECTORBYTES)
+  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes)
     count += popcount(*ap++ ^ *bp++);
 
   return count;
@@ -228,7 +228,7 @@ inline uint64_t qgram_diff(uint64_t a, uint64_t b)
 {
   uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
                                             db_getqgramvector(b));
-  uint64_t mindiff = (diffqgrams + 2*QGRAMLENGTH - 1)/(2*QGRAMLENGTH);
+  uint64_t mindiff = (diffqgrams + 2*qgramlength - 1)/(2*qgramlength);
   return mindiff;
 }
 
