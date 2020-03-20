@@ -122,29 +122,31 @@ void xfree(void * ptr)
 FILE * fopen_input(const char * filename)
 {
   /* open the input stream given by filename, but use stdin if name is - */
-  if (strcmp(filename, "-") == 0)
-    {
-      int fd = dup(STDIN_FILENO);
-      if (fd < 0)
-        return nullptr;
-      else
-        return fdopen(fd, "rb");
-    }
-  else
-    return fopen(filename, "rb");
+  FILE * input_stream = nullptr;
+
+  if (strcmp(filename, "-") == 0) {
+    int fd = dup(STDIN_FILENO);
+    input_stream = fd > 0 ? fdopen(fd, "rb") : nullptr;
+  }
+  else {
+    input_stream = fopen(filename, "rb");
+  }
+
+  return input_stream;
 }
 
 FILE * fopen_output(const char * filename)
 {
   /* open the output stream given by filename, but use stdout if name is - */
-  if (strcmp(filename, "-") == 0)
-    {
-      int fd = dup(STDOUT_FILENO);
-      if (fd < 0)
-        return nullptr;
-      else
-        return fdopen(fd, "w");
-    }
-  else
-    return fopen(filename, "w");
+  FILE * output_stream = nullptr;
+
+  if (strcmp(filename, "-") == 0) {
+    int fd = dup(STDOUT_FILENO);
+    output_stream = fd > 0 ? fdopen(fd, "w") : nullptr;
+  }
+  else {
+    output_stream = fopen(filename, "w");
+  }
+
+  return output_stream;
 }
