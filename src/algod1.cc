@@ -646,7 +646,7 @@ void process_seed(unsigned int seed)
   if (global_hits_count + c > global_hits_alloc)
     {
       while (global_hits_count + c > global_hits_alloc)
-        global_hits_alloc += 4096;
+        global_hits_alloc += 4 * one_kilobyte;
       global_hits_data = static_cast<unsigned int *>
         (xrealloc(global_hits_data, global_hits_alloc * sizeof(unsigned int)));
     }
