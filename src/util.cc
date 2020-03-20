@@ -66,14 +66,7 @@ void progress_done()
 
 int64_t gcd(int64_t a, int64_t b)
 {
-  if (b == 0)
-  {
-    return a;
-  }
-  else
-  {
-    return gcd(b, a % b);
-  }
+  return b == 0 ? a : gcd(b, a % b);
 }
 
 [[ noreturn ]] void fatal(const char * msg)
