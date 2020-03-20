@@ -860,34 +860,39 @@ void db_free()
 
 void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
 {
+  constexpr auto default_length {1025};
   char * seq = db_getsequence(a);
   unsigned int len = db_getsequencelen(a);
-  char buffer[1025];
+  char buffer[default_length];
   char * buf;
 
-  if (len < 1025)
+  // buf = len < default_length ? buffer : static_cast<char*>(xmalloc(len+1));
+  if (len < default_length) {
     buf = buffer;
-  else
+  }
+  else {
     buf = static_cast<char*>(xmalloc(len+1));
+  }
 
-  for(auto i = 0U; i < len; i++)
+  for(auto i = 0U; i < len; i++) {
     buf[i] = sym_nt[1 + nt_extract(seq, i)];
+  }
   buf[len] = 0;
 
-  if (width < 1)
+  if (width < 1) {
     fprintf(fp, "%.*s\n", len, buf);
-  else
-    {
-      unsigned int rest = len;
-      for(auto i = 0U; i < len; i += width)
-        {
-          fprintf(fp, "%.*s\n", MIN(rest, width), buf+i);
-          rest -= width;
-        }
+  }
+  else {
+    auto rest = len;
+    for(auto i = 0U; i < len; i += width) {
+      fprintf(fp, "%.*s\n", MIN(rest, width), buf+i);
+      rest -= width;
     }
+  }
 
-  if (len >= 1025)
+  if (len >= default_length) {
     xfree(buf);
+  }
 }
 
 
