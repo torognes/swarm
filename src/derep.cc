@@ -37,24 +37,31 @@ int derep_compare(const void * a, const void * b);
 
 int derep_compare(const void * a, const void * b)
 {
-  const struct bucket * x = static_cast<const struct bucket *>(a);
-  const struct bucket * y = static_cast<const struct bucket *>(b);
+  const auto * x = static_cast<const struct bucket *>(a);
+  const auto * y = static_cast<const struct bucket *>(b);
+  auto status {0};
 
   /* highest abundance first, otherwise keep order */
 
-  if (x->mass < y->mass)
-    return +1;
-  else if (x->mass > y->mass)
-    return -1;
-  else
-    {
-      if (x->seqno_first < y->seqno_first)
-        return -1;
-      else if (x->seqno_first > y->seqno_first)
-        return +1;
-      else
-        return 0;
+  if (x->mass < y->mass) {
+    status = +1;
+  }
+  else if (x->mass > y->mass) {
+    status = -1;
+  }
+  else {
+    if (x->seqno_first < y->seqno_first) {
+      status = -1;
     }
+    else if (x->seqno_first > y->seqno_first) {
+      status = +1;
+    }
+    else {
+      status = 0;
+    }
+  }
+
+  return status;
 }
 
 void dereplicate()
