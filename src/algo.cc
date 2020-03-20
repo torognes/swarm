@@ -126,8 +126,8 @@ void algo_run()
     (xmalloc(amplicons * sizeof(uint64_t)));
 
   uint64_t diff_saturation
-    = static_cast<uint64_t>(MIN(255 / penalty_mismatch,
-                                255 / (penalty_gapopen +
+    = static_cast<uint64_t>(MIN(UINT8_MAX / penalty_mismatch,
+                                UINT8_MAX / (penalty_gapopen +
                                        penalty_gapextend)));
 
   unsigned char * dir = nullptr;

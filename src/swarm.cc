@@ -539,7 +539,7 @@ void args_init(int argc, char **argv)
       exit(1);
     }
 
-  if ((opt_differences < 0) || (opt_differences > 255))
+  if ((opt_differences < 0) || (opt_differences > UINT8_MAX))
     fatal("Illegal number of differences specified with -d or --differences, "
           "must be in the range 0 to 255.");
 

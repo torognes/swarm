@@ -954,7 +954,7 @@ void search8(BYTE * * q_start,
 
                       uint64_t diff;
 
-                      if (score < 255)
+                      if (score < UINT8_MAX)
                         {
                           uint64_t offset = d_offset[c];
                           diff = backtrack_8(query.seq, dbseq, qlen, dbseqlen,
@@ -965,7 +965,7 @@ void search8(BYTE * * q_start,
                         }
                       else
                         {
-                          diff = 255;
+                          diff = UINT8_MAX;
                         }
 
                       diffs[cand_id] = diff;
