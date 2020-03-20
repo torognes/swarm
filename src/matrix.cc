@@ -90,8 +90,8 @@ void score_matrix_read()
   }
 
 
-  SCORELIMIT_8  = 256 - hi;
-  SCORELIMIT_16 = 65536 - hi;
+  SCORELIMIT_8  = UINT8_MAX  + 1 - hi;
+  SCORELIMIT_16 = UINT16_MAX + 1 - hi;
 
   for(auto a = 0; a < cells; a++) {
     for(auto b = 0; b < cells; b++) {
