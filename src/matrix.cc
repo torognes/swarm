@@ -65,38 +65,41 @@ void score_matrix_dump()
 
 void score_matrix_read()
 {
-  int64_t sc, lo, hi;
+  auto sc {0LL};
+  auto cells {32};
+  auto one_thousand {1000LL};
+  auto hi {-one_thousand};
+  auto lo {one_thousand};
 
-  score_matrix_8 = static_cast<unsigned char*>(xmalloc(32*32*sizeof(char)));
-  score_matrix_16 = static_cast<unsigned short*>(xmalloc(32*32*sizeof(short)));
-  score_matrix_63 = static_cast<int64_t *>(xmalloc(32*32*sizeof(int64_t)));
+  score_matrix_8 = static_cast<unsigned char *>(xmalloc(cells * cells * sizeof(char)));
+  score_matrix_16 = static_cast<unsigned short *>(xmalloc(cells * cells * sizeof(short)));
+  score_matrix_63 = static_cast<int64_t *>(xmalloc(cells * cells * sizeof(int64_t)));
 
-  hi = -1000;
-  lo = 1000;
-
-  for(auto a = 0; a < 16; a++)
-    for(auto b = 0; b < 16; b++)
-    {
-      sc = ((a==b)&&(a>0)&&(b>0)) ? 0 : penalty_mismatch;
+  for(auto a = 0; a < 16; a++) {
+    for(auto b = 0; b < 16; b++) {
+      sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : penalty_mismatch;
       // sc = (a==b) ? matchscore : mismatchscore;
-      if (sc < lo)
+      if (sc < lo) {
         lo = sc;
-      if (sc > hi)
+      }
+      if (sc > hi) {
         hi = sc;
-      score_matrix_63[(a<<5) + b] = sc;
+      }
+      score_matrix_63[(a << 5) + b] = sc;
     }
+  }
 
 
   SCORELIMIT_8  = 256 - hi;
   SCORELIMIT_16 = 65536 - hi;
 
-  for(auto a = 0; a < 32; a++)
-    for(auto b = 0; b < 32; b++)
-    {
-      sc = score_matrix_63[(a<<5) + b];
-      score_matrix_8[(a<<5) + b] = static_cast<unsigned char>(sc);
-      score_matrix_16[(a<<5) + b] = static_cast<unsigned short>(sc);
+  for(auto a = 0; a < cells; a++) {
+    for(auto b = 0; b < cells; b++) {
+      sc = score_matrix_63[(a << 5) + b];
+      score_matrix_8[(a << 5) + b] = static_cast<unsigned char>(sc);
+      score_matrix_16[(a << 5) + b] = static_cast<unsigned short>(sc);
     }
+  }
 }
 
 void score_matrix_init()
