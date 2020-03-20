@@ -94,7 +94,7 @@ constexpr char PRId64[] = "ld";
 #error Unknown architecture
 #endif
 
-static_assert(INT_MAX > 32767, "Your compiler uses very short integers.");
+static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* constants */
 
