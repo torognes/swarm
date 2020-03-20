@@ -151,20 +151,24 @@ int compare_mass(const void * a, const void * b);
 inline bool check_amp_identical(unsigned int amp1,
                                 unsigned int amp2)
 {
+  /* amplicon are identical if they have the same length, and the
+     exact same sequence */
   unsigned int amp1_seqlen = db_getsequencelen(amp1);
   unsigned int amp2_seqlen = db_getsequencelen(amp2);
+  auto status {false};
 
-  if (amp1_seqlen == amp2_seqlen)
-    {
-      char * amp1_sequence = db_getsequence(amp1);
-      char * amp2_sequence = db_getsequence(amp2);
+  if (amp1_seqlen == amp2_seqlen) {
+    char * amp1_sequence = db_getsequence(amp1);
+    char * amp2_sequence = db_getsequence(amp2);
 
-      return memcmp(amp1_sequence,
-                    amp2_sequence,
-                    nt_bytelength(amp1_seqlen)) == 0;
+    if (memcmp(amp1_sequence,
+               amp2_sequence,
+               nt_bytelength(amp1_seqlen)) == 0) {
+      status = true;
     }
-  else
-    return false;
+  }
+
+  return status;
 }
 
 inline void hash_insert(unsigned int amp)
@@ -236,17 +240,33 @@ int compare_grafts(const void * a, const void * b)
 {
   const auto * x = static_cast<const struct graft_cand *>(a);
   const auto * y = static_cast<const struct graft_cand *>(b);
-  if (x->parent < y->parent)
-    return -1;
-  else if (x->parent > y->parent)
-    return +1;
-  else
-    if (x->child < y->child)
-      return -1;
-    else if (x->child > y->child)
-      return +1;
-    else
-      return 0;
+  auto status {0};
+
+  /* replace with a three-way comparison '<=>' in a few years */
+  // status = x->parent <=> y->parent : -1 : 0 : +1;
+  // if (status == 0) {
+  //   status = x->child <=> y->child : -1 : 0 : +1;
+  // }
+
+  if (x->parent < y->parent) {
+    status = -1;
+  }
+  else if (x->parent > y->parent) {
+    status = +1;
+  }
+  else {
+    if (x->child < y->child) {
+      status = -1;
+    }
+    else if (x->child > y->child) {
+      status = +1;
+    }
+    else {
+      status = 0;
+    }
+  }
+
+  return status;
 }
 
 unsigned int attach_candidates(unsigned int amplicon_count)
