@@ -65,9 +65,9 @@ void score_matrix_dump()
 
 void score_matrix_read()
 {
+  const auto cells {32};
+  const auto one_thousand {1000LL};
   auto sc {0LL};
-  auto cells {32};
-  auto one_thousand {1000LL};
   auto hi {-one_thousand};
   auto lo {one_thousand};
 
