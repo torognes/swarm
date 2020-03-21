@@ -267,7 +267,7 @@ void qgram_diff_fast(uint64_t seed,
                      uint64_t * amplist,
                      uint64_t * difflist)
 {
-  if (listlen < 256)
+  if (listlen <= UINT8_MAX)
     {
       ti->seed = seed;
       ti->amplist = amplist;
