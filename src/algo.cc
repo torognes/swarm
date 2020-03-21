@@ -59,8 +59,8 @@ int compare_mass_seed(const void * a, const void * b);
 
 int compare_mass_seed(const void * a, const void * b)
 {
-  const swarminfo_t * x = static_cast<const struct swarminfo_t *>(a);
-  const swarminfo_t * y = static_cast<const struct swarminfo_t *>(b);
+  const auto * x = static_cast<const struct swarminfo_t *>(a);
+  const auto * y = static_cast<const struct swarminfo_t *>(b);
 
   uint64_t m = x->mass;
   uint64_t n = y->mass;
@@ -122,10 +122,10 @@ void algo_run()
   qgramindices = static_cast<uint64_t *>
     (xmalloc(amplicons * sizeof(uint64_t)));
 
-  uint64_t * hits = static_cast<uint64_t *>
+  auto * hits = static_cast<uint64_t *>
     (xmalloc(amplicons * sizeof(uint64_t)));
 
-  uint64_t diff_saturation
+  auto diff_saturation
     = static_cast<uint64_t>(MIN(UINT8_MAX / penalty_mismatch,
                                 UINT8_MAX / (penalty_gapopen +
                                        penalty_gapextend)));
@@ -142,17 +142,20 @@ void algo_run()
     }
 
   /* set ampliconid for all */
-  for(auto i = 0U; i < amplicons; i++)
+  for(auto i = 0U; i < amplicons; i++) {
     amps[i].ampliconid = i;
+  }
 
   /* always search in 8 bit mode unless resolution is very high */
 
   int bits;
 
-  if (static_cast<uint64_t>(opt_differences) <= diff_saturation)
+  if (static_cast<uint64_t>(opt_differences) <= diff_saturation) {
     bits = 8;
-  else
+  }
+  else {
     bits = 16;
+  }
 
   seeded = 0;
   swarmed = 0;
@@ -237,10 +240,12 @@ void algo_run()
           searches++;
 #endif
 
-          if (bits == 8)
+          if (bits == 8) {
             count_comparisons_8 += targetcount;
-          else
+          }
+          else {
             count_comparisons_16 += targetcount;
+          }
 
           for(auto t = 0ULL; t < targetcount; t++)
             {
@@ -280,11 +285,13 @@ void algo_run()
 
                   amps[swarmed].swarmid = swarmid;
                   amps[swarmed].generation = 1;
-                  if (maxgen < 1)
+                  if (maxgen < 1) {
                     maxgen = 1;
+                  }
                   amps[swarmed].radius = static_cast<unsigned int>(diff);
-                  if (diff > maxradius)
+                  if (diff > maxradius) {
                     maxradius = diff;
+                  }
 
                   unsigned poolampliconid = amps[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
@@ -305,8 +312,9 @@ void algo_run()
 
                   abundance = db_getabundance(poolampliconid);
                   amplicons_copies += abundance;
-                  if (abundance == 1)
+                  if (abundance == 1) {
                     singletons++;
+                  }
 
                   swarmsize++;
 
@@ -376,10 +384,12 @@ void algo_run()
                   searches++;
 #endif
 
-                  if (bits == 8)
+                  if (bits == 8) {
                     count_comparisons_8 += targetcount;
-                  else
+                  }
+                  else {
                     count_comparisons_16 += targetcount;
+                  }
 
                   for(auto t = 0ULL; t < targetcount; t++)
                     {
@@ -402,8 +412,9 @@ void algo_run()
 
                           while ((pos > seeded) &&
                                  (amps[pos-1].ampliconid > targetampliconid) &&
-                                 (amps[pos-1].generation > subseedgeneration))
+                                 (amps[pos-1].generation > subseedgeneration)) {
                             pos--;
+                          }
 
                           if (pos < i)
                             {
@@ -418,12 +429,14 @@ void algo_run()
                           amps[pos].swarmid = swarmid;
                           amps[pos].generation
                             = static_cast<unsigned int>(subseedgeneration + 1);
-                          if (maxgen < amps[pos].generation)
+                          if (maxgen < amps[pos].generation) {
                             maxgen = amps[pos].generation;
+                          }
                           amps[pos].radius
                             = static_cast<unsigned int>(subseedradius + diff);
-                          if (amps[pos].radius > maxradius)
+                          if (amps[pos].radius > maxradius) {
                             maxradius = amps[pos].radius;
+                          }
 
                           unsigned poolampliconid = amps[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
@@ -444,8 +457,9 @@ void algo_run()
 
                           abundance = db_getabundance(poolampliconid);
                           amplicons_copies += abundance;
-                          if (abundance == 1)
+                          if (abundance == 1) {
                             singletons++;
+                          }
 
                           swarmsize++;
 
@@ -456,11 +470,13 @@ void algo_run()
             }
         }
 
-      if (swarmsize > largestswarm)
+      if (swarmsize > largestswarm) {
         largestswarm = swarmsize;
+      }
 
-      if (maxgen > maxgenerations)
+      if (maxgen > maxgenerations) {
         maxgenerations = maxgen;
+      }
 
 
       if (uclustfile)
@@ -509,8 +525,9 @@ void algo_run()
               fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
-              if (nwalignment)
+              if (nwalignment) {
                 xfree(nwalignment);
+              }
             }
 
         }
@@ -584,7 +601,7 @@ void algo_run()
     {
       uint64_t swarmcount = 0;
       progress_init("Sorting seeds:    ", amplicons);
-      struct swarminfo_t * swarminfo = static_cast<struct swarminfo_t *>
+      auto * swarminfo = static_cast<struct swarminfo_t *>
         (xmalloc(swarmed * sizeof(struct swarminfo_t)));
       uint64_t mass = 0;
       unsigned previd = amps[0].swarmid;

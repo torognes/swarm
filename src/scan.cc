@@ -228,8 +228,9 @@ void master_dump()
 void search_worker_core(int64_t t)
 {
   search_init(sd+t);
-  while(search_getwork(& sd[t].target_count, & sd[t].target_index))
+  while(search_getwork(& sd[t].target_count, & sd[t].target_index)) {
     search_chunk(sd+t, master_bits);
+  }
 }
 
 void search_do(uint64_t query_no,
@@ -253,7 +254,7 @@ void search_do(uint64_t query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  uint64_t thr = static_cast<uint64_t>(opt_threads);
+  auto thr = static_cast<uint64_t>(opt_threads);
 
   if (bits == 8)
     {

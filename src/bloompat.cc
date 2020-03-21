@@ -64,7 +64,7 @@ struct bloom_s * bloom_init(uint64_t size)
   // at least 8
   size = MAX(size, 8);
 
-  struct bloom_s * b = static_cast<struct bloom_s *>(xmalloc(sizeof(struct bloom_s)));
+  auto * b = static_cast<struct bloom_s *>(xmalloc(sizeof(struct bloom_s)));
 
   b->size = size;
 

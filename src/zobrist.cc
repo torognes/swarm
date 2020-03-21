@@ -93,10 +93,10 @@ uint64_t zobrist_hash(unsigned char * s, unsigned int len)
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len+3)/4 bytes */
 
-  uint64_t * q = reinterpret_cast<uint64_t *>(s);
+  auto * q = reinterpret_cast<uint64_t *>(s);
   uint64_t z = 0;
   unsigned int p = 0;
-  unsigned char * qb = reinterpret_cast<unsigned char *>(q);
+  auto * qb = reinterpret_cast<unsigned char *>(q);
 
   while (p + 32 < len)
     {
@@ -136,15 +136,17 @@ uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len)
   /* compute the Zobrist hash function of sequence s,
      but delete the first base */
 
-  uint64_t * q = reinterpret_cast<uint64_t *>(s);
+  auto * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = q[0];
   uint64_t z = 0;
   for(auto p = 1U; p < len; p++)
     {
-      if ((p & 31) == 0)
+      if ((p & 31) == 0) {
         x = q[p / 32];
-      else
+      }
+      else {
         x >>= 2;
+      }
       z ^= zobrist_value(p - 1, x & 3);
     }
   return z;
@@ -155,15 +157,17 @@ uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len)
   /* compute the Zobrist hash function of sequence s,
      but insert a gap (no value) before the first base */
 
-  uint64_t * q = reinterpret_cast<uint64_t *>(s);
+  auto * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = 0;
   uint64_t z = 0;
   for(auto p = 0U; p < len; p++)
     {
-      if ((p & 31) == 0)
+      if ((p & 31) == 0) {
         x = q[p / 32];
-      else
+      }
+      else {
         x >>= 2;
+      }
       z ^= zobrist_value(p + 1, x & 3);
     }
   return z;

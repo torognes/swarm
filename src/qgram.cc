@@ -44,8 +44,9 @@ void printqgrams(unsigned char * qgramvector)
   for(auto i = 0; i < qgramvectorbytes; i++)
   {
     fprintf(logfile, "%02x", qgramvector[i]);
-    if ((i % 32) == 31)
+    if ((i % 32) == 31) {
       fprintf(logfile, "\n");
+    }
   }
 }
 
@@ -87,8 +88,9 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
   uint8x16_t * bp = (uint8x16_t *) b;
   uint64_t count = 0;
 
-  while ((unsigned char*)ap < a + qgramvectorbytes)
+  while ((unsigned char*)ap < a + qgramvectorbytes) {
     count += vaddvq_u8(vcntq_u8(veorq_u8(*ap++, *bp++)));
+  }
 
   return count;
 }
@@ -101,8 +103,9 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
   vector unsigned char * bp = (vector unsigned char *) b;
   vector unsigned long long count_vector = { 0, 0 };
 
-  while ((unsigned char *)ap < a + qgramvectorbytes)
+  while ((unsigned char *)ap < a + qgramvectorbytes) {
     count_vector += vec_vpopcnt((vector unsigned long long)(vec_xor(*ap++, *bp++)));
+  }
 
   return count_vector[0] + count_vector[1];
 }
@@ -172,7 +175,7 @@ uint64_t popcount_128(__m128i x)
 
   /* return low 64 bits: return value is always in range 0 to 128 */
 
-  uint64_t o = reinterpret_cast<uint64_t>(_mm_movepi64_pi64(n));
+  auto o = reinterpret_cast<uint64_t>(_mm_movepi64_pi64(n));
 
   return o;
 }
@@ -183,12 +186,13 @@ uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b)
   /* Uses SSE2 but not POPCNT instruction */
   /* input MUST be 16-byte aligned */
 
-  __m128i * ap = reinterpret_cast<__m128i *>(a);
-  __m128i * bp = reinterpret_cast<__m128i *>(b);
+  auto * ap = reinterpret_cast<__m128i *>(a);
+  auto * bp = reinterpret_cast<__m128i *>(b);
   uint64_t count = 0;
 
-  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes)
+  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes) {
     count += popcount_128(_mm_xor_si128(*ap++, *bp++));
+  }
 
   return count;
 }
@@ -199,12 +203,13 @@ uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
   /* Count number of different bits */
   /* Uses the POPCNT instruction, requires CPU with this feature */
 
-  uint64_t *ap = reinterpret_cast<uint64_t*>(a);
-  uint64_t *bp = reinterpret_cast<uint64_t*>(b);
+  auto *ap = reinterpret_cast<uint64_t*>(a);
+  auto *bp = reinterpret_cast<uint64_t*>(b);
   uint64_t count = 0;
 
-  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes)
+  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes) {
     count += popcount(*ap++ ^ *bp++);
+  }
 
   return count;
 }
@@ -240,8 +245,9 @@ void qgram_worker(int64_t t)
   uint64_t * amplist = tip->amplist;
   uint64_t * difflist = tip->difflist;
 
-  for(auto i = 0ULL; i < listlen; i++)
+  for(auto i = 0ULL; i < listlen; i++) {
     difflist[i] = qgram_diff(seed, amplist[i]);
+  }
 }
 
 void qgram_diff_init()
@@ -277,7 +283,7 @@ void qgram_diff_fast(uint64_t seed,
     }
   else
     {
-      uint64_t thr = static_cast<uint64_t>(opt_threads);
+      auto thr = static_cast<uint64_t>(opt_threads);
 
       uint64_t * next_amplist = amplist;
       uint64_t * next_difflist = difflist;
