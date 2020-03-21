@@ -33,7 +33,15 @@ void dprofile_shuffle8(BYTE * dprofile,
                        BYTE * score_matrix,
                        BYTE * dseq_byte)
 {
-  __m128i m0, m1, m2, m3, t0, t1, t2, t3, t4;
+  __m128i m0;
+  __m128i m1;
+  __m128i m2;
+  __m128i m3;
+  __m128i t0;
+  __m128i t1;
+  __m128i t2;
+  __m128i t3;
+  __m128i t4;
   __m128i * dseq = CAST_m128i_ptr(dseq_byte);
 
   m0 = _mm_load_si128(dseq);
