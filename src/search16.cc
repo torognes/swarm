@@ -339,7 +339,7 @@ void align_cells_regular_16(VECTORTYPE * Sm,
   VECTORTYPE f2;
   VECTORTYPE f3;
 
-  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
+  auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
   Q = *Qm;
   R = *Rm;
@@ -415,7 +415,7 @@ void align_cells_masked_16(VECTORTYPE * Sm,
   VECTORTYPE f2;
   VECTORTYPE f3;
 
-  unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
+  auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
   Q = *Qm;
   R = *Rm;
