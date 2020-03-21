@@ -195,16 +195,45 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE * dseq)
 {
-  VECTORTYPE reg0,  reg1,  reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
-  VECTORTYPE reg8,  reg9,  reg10, reg11, reg12, reg13, reg14, reg15;
-  VECTORTYPE reg16, reg17, reg18, reg19, reg20, reg21, reg22, reg23;
-  VECTORTYPE reg24, reg25, reg26, reg27, reg28, reg29, reg30, reg31;
+  VECTORTYPE reg0;
+  VECTORTYPE reg1;
+  VECTORTYPE reg2;
+  VECTORTYPE reg3;
+  VECTORTYPE reg4;
+  VECTORTYPE reg5;
+  VECTORTYPE reg6;
+  VECTORTYPE reg7;
+  VECTORTYPE reg8;
+  VECTORTYPE reg9;
+  VECTORTYPE reg10;
+  VECTORTYPE reg11;
+  VECTORTYPE reg12;
+  VECTORTYPE reg13;
+  VECTORTYPE reg14;
+  VECTORTYPE reg15;
+  VECTORTYPE reg16;
+  VECTORTYPE reg17;
+  VECTORTYPE reg18;
+  VECTORTYPE reg19;
+  VECTORTYPE reg20;
+  VECTORTYPE reg21;
+  VECTORTYPE reg22;
+  VECTORTYPE reg23;
+  VECTORTYPE reg24;
+  VECTORTYPE reg25;
+  VECTORTYPE reg26;
+  VECTORTYPE reg27;
+  VECTORTYPE reg28;
+  VECTORTYPE reg29;
+  VECTORTYPE reg30;
+  VECTORTYPE reg31;
 
   for(auto j = 0U; j < cdepth; j++)
     {
       unsigned int d[channels];
-      for(auto z = 0U; z < channels; z++)
+      for(auto z = 0U; z < channels; z++) {
         d[z] = (static_cast<unsigned int>(dseq[j*channels+z])) << 5;
+      }
 
       for(auto i = 0; i < 8; i += 8)
         {
@@ -293,9 +322,22 @@ void align_cells_regular_16(VECTORTYPE * Sm,
                             uint64_t * dir_long,
                             VECTORTYPE * H0)
 {
-  VECTORTYPE Q, R, E;
-  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
-  VECTORTYPE f0, f1, f2, f3;
+  VECTORTYPE Q;
+  VECTORTYPE R;
+  VECTORTYPE E;
+  VECTORTYPE h0;
+  VECTORTYPE h1;
+  VECTORTYPE h2;
+  VECTORTYPE h3;
+  VECTORTYPE h4;
+  VECTORTYPE h5;
+  VECTORTYPE h6;
+  VECTORTYPE h7;
+  VECTORTYPE h8;
+  VECTORTYPE f0;
+  VECTORTYPE f1;
+  VECTORTYPE f2;
+  VECTORTYPE f3;
 
   unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
@@ -356,9 +398,22 @@ void align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * MR,
                            VECTORTYPE * MQ0)
 {
-  VECTORTYPE Q, R, E;
-  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
-  VECTORTYPE f0, f1, f2, f3;
+  VECTORTYPE Q;
+  VECTORTYPE R;
+  VECTORTYPE E;
+  VECTORTYPE h0;
+  VECTORTYPE h1;
+  VECTORTYPE h2;
+  VECTORTYPE h3;
+  VECTORTYPE h4;
+  VECTORTYPE h5;
+  VECTORTYPE h6;
+  VECTORTYPE h7;
+  VECTORTYPE h8;
+  VECTORTYPE f0;
+  VECTORTYPE f1;
+  VECTORTYPE f2;
+  VECTORTYPE f3;
 
   unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
@@ -584,8 +639,16 @@ void search16(WORD * * q_start,
               uint64_t dirbuffersize,
               uint64_t * dirbuffer)
 {
-  VECTORTYPE Q, R, T, M, T0, MQ, MR, MQ0;
-  VECTORTYPE *hep, **qp;
+  VECTORTYPE Q;
+  VECTORTYPE R;
+  VECTORTYPE T;
+  VECTORTYPE M;
+  VECTORTYPE T0;
+  VECTORTYPE MQ;
+  VECTORTYPE MR;
+  VECTORTYPE MQ0;
+  VECTORTYPE *hep;
+  VECTORTYPE **qp;
 
   uint64_t d_pos[channels];
   uint64_t d_offset[channels];
