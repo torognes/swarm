@@ -153,7 +153,7 @@ void nw(char * dseq,
 
       for(auto i = 0L; i < qlen; i++)
         {
-          int64_t index = qlen*j+i;
+          int64_t index = qlen * j + i;
 
           n = *hep;
           e = *(hep+1);
@@ -183,7 +183,7 @@ void nw(char * dseq,
         }
     }
 
-  int64_t dist = hearray[2*qlen-2];
+  int64_t dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -223,16 +223,18 @@ void nw(char * dseq,
       else if (d & maskleft)
         {
           score += gapextend;
-          if (op != 'I')
+          if (op != 'I') {
             score += gapopen;
+          }
           j--;
           pushop('I', &cigarend, &op, &count);
         }
       else if (d & maskup)
         {
           score += gapextend;
-          if (op != 'D')
+          if (op != 'D') {
             score += gapopen;
+          }
           i--;
           pushop('D', &cigarend, &op, &count);
         }
@@ -243,8 +245,9 @@ void nw(char * dseq,
              +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
 
           if (nt_extract(qseq, static_cast<uint64_t>(i - 1)) ==
-              nt_extract(dseq, static_cast<uint64_t>(j - 1)))
+              nt_extract(dseq, static_cast<uint64_t>(j - 1))) {
             matches++;
+          }
           i--;
           j--;
           pushop('M', &cigarend, &op, &count);
@@ -255,8 +258,9 @@ void nw(char * dseq,
     {
       alength++;
       score += gapextend;
-      if (op != 'D')
+      if (op != 'D') {
         score += gapopen;
+      }
       i--;
       pushop('D', &cigarend, &op, &count);
     }
@@ -265,8 +269,9 @@ void nw(char * dseq,
     {
       alength++;
       score += gapextend;
-      if (op != 'I')
+      if (op != 'I') {
         score += gapopen;
+      }
       j--;
       pushop('I', &cigarend, &op, &count);
     }
@@ -275,7 +280,7 @@ void nw(char * dseq,
 
   /* move and reallocate cigar */
 
-  size_t cigaralloc = static_cast<size_t>(cigar + qlen + dlen - cigarend + 1);
+  auto cigaralloc = static_cast<size_t>(cigar + qlen + dlen - cigarend + 1);
   memmove(cigar, cigarend, cigaralloc);
   cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
 
@@ -289,8 +294,12 @@ void nw(char * dseq,
 #if 0
   if (score != dist)
   {
-    fprintf(stderr, "WARNING: Error with query no %" PRIu64 " and db sequence no %" PRIu64 ":\n", queryno, dbseqno);
-    fprintf(stderr, "Initial and recomputed alignment score disagreement: %" PRId64 " %" PRId64 "\n", dist, score);
+    fprintf(stderr,
+            "WARNING: Error with query no %" PRIu64 " and db sequence no %" PRIu64 ":\n",
+            queryno, dbseqno);
+    fprintf(stderr,
+            "Initial and recomputed alignment score disagreement: %" PRId64 " %" PRId64 "\n",
+            dist, score);
     fprintf(stderr, "Alignment: %s\n", cigar);
   }
 #else
