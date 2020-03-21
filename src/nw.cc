@@ -130,11 +130,13 @@ void nw(char * dseq,
      hearray must point to at least 2*qlen longs of allocated memory
      (8*qlen bytes) */
 
-  int64_t n, e;
+  int64_t n {0};
+  int64_t e {0};
 
   memset(dir, 0, static_cast<size_t>(qlen * dlen));
 
-  int64_t i, j;
+  int64_t i {0};
+  int64_t j {0};
 
   for(auto i = 0L; i < qlen; i++)
     {
