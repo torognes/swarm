@@ -114,7 +114,7 @@ void dereplicate()
               (seqlen != db_getsequencelen(bp->seqno_first)) ||
               (memcmp(seq,
                       db_getsequence(bp->seqno_first),
-                      nt_bytelength(seqlen)))))
+                      nt_bytelength(seqlen)) != 0)))
         {
           bp++;
           j++;
