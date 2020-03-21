@@ -69,11 +69,12 @@ void dereplicate()
   /* adjust size of hash table for 2/3 fill rate */
   uint64_t dbsequencecount = db_getsequencecount();
   uint64_t hashtablesize = 1;
-  while (100 * dbsequencecount > 70 * hashtablesize)
+  while (100 * dbsequencecount > 70 * hashtablesize) {
     hashtablesize <<= 1;
+  }
   uint64_t derep_hash_mask = hashtablesize - 1;
 
-  struct bucket * hashtable =
+  auto * hashtable =
     static_cast<struct bucket *>(xmalloc(sizeof(bucket) * hashtablesize));
 
   memset(hashtable, 0, sizeof(bucket) * hashtablesize);
@@ -83,7 +84,7 @@ void dereplicate()
   unsigned int maxsize = 0;
 
   /* alloc and init table of links to other sequences in cluster */
-  unsigned int * nextseqtab = static_cast<unsigned int *>
+  auto * nextseqtab = static_cast<unsigned int *>
     (xmalloc(sizeof(unsigned int) * dbsequencecount));
   memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
 
@@ -145,14 +146,17 @@ void dereplicate()
       bp->seqno_last = i;
       bp->mass += ab;
 
-      if (ab == 1)
+      if (ab == 1) {
         bp->singletons++;
+      }
 
-      if (bp->mass > maxmass)
+      if (bp->mass > maxmass) {
         maxmass = bp->mass;
+      }
 
-      if (bp->size > maxsize)
+      if (bp->size > maxsize) {
         maxsize = bp->size;
+      }
 
       progress_update(i);
     }
@@ -167,35 +171,41 @@ void dereplicate()
 
   progress_init("Writing swarms:   ", swarmcount);
 
-  if (opt_mothur)
+  if (opt_mothur) {
     fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount);
+  }
 
   for(auto i = 0U; i < swarmcount; i++)
     {
       unsigned int seed = hashtable[i].seqno_first;
-      if (opt_mothur)
+      if (opt_mothur) {
         fputc('\t', outfile);
+      }
       fprint_id(outfile, seed);
       unsigned int a = nextseqtab[seed];
 
       while (a)
         {
-          if (opt_mothur)
+          if (opt_mothur) {
             fputc(',', outfile);
-          else
+          }
+          else {
             fputc(sepchar, outfile);
+          }
           fprint_id(outfile, a);
           a = nextseqtab[a];
         }
 
-      if (!opt_mothur)
+      if (!opt_mothur) {
         fputc('\n', outfile);
+      }
 
       progress_update(i+1);
     }
 
-  if (opt_mothur)
+  if (opt_mothur) {
     fputc('\n', outfile);
+  }
 
   progress_done();
 
