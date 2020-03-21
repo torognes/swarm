@@ -79,12 +79,15 @@ void fprint_id(FILE * stream, uint64_t x)
   int hdrlen = sp->headerlen;
 
   if (opt_append_abundance && (sp->abundance_start == sp->abundance_end))
-    if (opt_usearch_abundance)
+    if (opt_usearch_abundance) {
       fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, h, sp->abundance);
-    else
+    }
+    else {
       fprintf(stream, "%.*s_%" PRIu64, hdrlen, h, sp->abundance);
-  else
+    }
+  else {
     fprintf(stream, "%.*s", hdrlen, h);
+  }
 }
 
 void fprint_id_noabundance(FILE * stream, uint64_t x)
@@ -108,8 +111,9 @@ void fprint_id_noabundance(FILE * stream, uint64_t x)
           fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
         }
     }
-  else
+  else {
     fprintf(stream, "%.*s", hdrlen, h);
+  }
 }
 
 void fprint_id_with_new_abundance(FILE * stream,
@@ -118,7 +122,7 @@ void fprint_id_with_new_abundance(FILE * stream,
 {
   seqinfo_t * sp = seqindex + seqno;
 
-  if (opt_usearch_abundance)
+  if (opt_usearch_abundance) {
     fprintf(stream,
             "%.*s%ssize=%" PRIu64 ";%.*s",
             sp->abundance_start,
@@ -127,12 +131,14 @@ void fprint_id_with_new_abundance(FILE * stream,
             abundance,
             sp->headerlen - sp->abundance_end,
             sp->header + sp->abundance_end);
-  else
+  }
+  else {
     fprintf(stream,
             "%.*s_%" PRIu64,
             sp->abundance_start,
             sp->header,
             abundance);
+  }
 }
 
 int db_compare_abundance(const void * a, const void * b)
@@ -169,21 +175,25 @@ bool find_swarm_abundance(const char * header,
 
   const char * digit_chars = "0123456789";
 
-  if (!header)
+  if (!header) {
     return false;
+  }
 
   const char * us = strrchr(header, '_');
 
-  if (! us)
+  if (! us) {
     return false;
+  }
 
   size_t digits = strspn(us + 1, digit_chars);
 
-  if (digits > 20)
+  if (digits > 20) {
     return false;
+  }
 
-  if (us[digits + 1])
+  if (us[digits + 1]) {
     return false;
+  }
 
   int64_t s = us - header;
   int64_t e = s + 1 + static_cast<int64_t>(digits);
@@ -205,8 +215,9 @@ bool find_usearch_abundance(const char * header,
     in the header string.
   */
 
-  if (! header)
+  if (! header) {
     return false;
+  }
 
   const char * attribute = "size=";
   const char * digit_chars = "0123456789";
@@ -220,8 +231,9 @@ bool find_usearch_abundance(const char * header,
       const char * r = strstr(header + i, attribute);
 
       /* no match */
-      if (r == nullptr)
+      if (r == nullptr) {
         break;
+      }
 
       i = static_cast<uint64_t>(r - header);
 
@@ -249,10 +261,12 @@ bool find_usearch_abundance(const char * header,
         }
 
       /* ok */
-      if (i > 0)
+      if (i > 0) {
         * start = static_cast<int>(i - 1);
-      else
+      }
+      else {
         * start = 0;
+      }
       * end   = static_cast<int>(MIN(i + alen + digits + 1, hlen));
       * number = atol(header + i + alen);
       return true;
@@ -357,8 +371,9 @@ void db_read(const char * filename)
           exit(1);
         }
     }
-  else
+  else {
     fp = stdin;
+  }
 
   /* get file size */
 
@@ -372,13 +387,15 @@ void db_read(const char * filename)
   bool is_regular = S_ISREG(fs.st_mode);
   int64_t filesize = is_regular ? fs.st_size : 0;
 
-  if (! is_regular)
+  if (! is_regular) {
     fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
+  }
 
   char line[linealloc];
   line[0] = 0;
-  if (!fgets(line, linealloc, fp))
+  if (!fgets(line, linealloc, fp)) {
     line[0] = 0;
+  }
 
   unsigned int lineno = 1;
 
@@ -389,19 +406,22 @@ void db_read(const char * filename)
       /* read header */
       /* the header ends at a space, cr, lf or null character */
 
-      if (line[0] != '>')
+      if (line[0] != '>') {
         fatal("Illegal header line in fasta file.");
+      }
 
-      unsigned int headerlen = static_cast<unsigned int>
+      auto headerlen = static_cast<unsigned int>
         (strcspn(line + 1, " \r\n"));
 
-      if (headerlen >= linealloc - 2)
+      if (headerlen >= linealloc - 2) {
         fatal("The FASTA header line is too long.");
+      }
 
       headerchars += headerlen;
 
-      if (headerlen > longestheader)
+      if (headerlen > longestheader) {
         longestheader = headerlen;
+      }
 
 
       /* store the line number */
@@ -430,8 +450,9 @@ void db_read(const char * filename)
       /* get next line */
 
       line[0] = 0;
-      if (!fgets(line, linealloc, fp))
+      if (!fgets(line, linealloc, fp)) {
         line[0] = 0;
+      }
       lineno++;
 
 
@@ -485,23 +506,26 @@ void db_read(const char * filename)
                 }
               else if ((c != 10) && (c != 13))
                 {
-                  if ((c >= 32) && (c <= 126))
+                  if ((c >= 32) && (c <= 126)) {
                     fprintf(stderr,
                             "\nError: Illegal character '%c' in sequence on line %u\n",
                             c,
                             lineno);
-                  else
+                  }
+                  else {
                     fprintf(stderr,
                             "\nError: Illegal character (ascii no %d) in sequence on line %u\n",
                             c,
                             lineno);
+                  }
                   exit(1);
                 }
 	    }
 
           line[0] = 0;
-          if (!fgets(line, linealloc, fp))
+          if (!fgets(line, linealloc, fp)) {
             line[0] = 0;
+          }
           lineno++;
         }
 
@@ -517,8 +541,9 @@ void db_read(const char * filename)
 
       nucleotides += length;
 
-      if (length > longest)
+      if (length > longest) {
         longest = length;
+      }
 
 
       /* save remaining padded 64-bit value with nt's, if any */
@@ -540,8 +565,9 @@ void db_read(const char * filename)
 
       sequences++;
 
-      if (is_regular)
+      if (is_regular) {
         progress_update(static_cast<uint64_t>(ftell(fp)));
+      }
     }
   progress_done();
 
@@ -557,7 +583,7 @@ void db_read(const char * filename)
 
   uint64_t hdrhashsize = 2 * sequences;
 
-  seqinfo_t * * hdrhashtable =
+  auto * * hdrhashtable =
     static_cast<seqinfo_t **>(xmalloc(hdrhashsize * sizeof(seqinfo_t *)));
   memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
 
@@ -609,8 +635,9 @@ void db_read(const char * filename)
       find_abundance(seqindex_p, line_number);
 
       if ((seqindex_p->abundance_start == 0) &&
-          (seqindex_p->abundance_end == seqindex_p->headerlen))
+          (seqindex_p->abundance_end == seqindex_p->headerlen)) {
         fatal("Empty sequence identifier");
+      }
 
       /* check if the sequences are presorted by abundance and header */
 
