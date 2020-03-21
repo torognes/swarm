@@ -179,7 +179,7 @@ void dprofile_dump8(BYTE * dprofile)
         {
           printf("%c: ", sym_nt[i]);
           for(auto j = 0; j < 16; j++)
-            printf("%2d", (char) dprofile[i*64+16*k + j]);
+            printf("%2d", (char) dprofile[i * 64 + 16 * k + j]);
           printf("\n");
         }
     }
@@ -335,14 +335,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile+16*j+512+  0, reg0);
-      v_store(dprofile+16*j+512+ 64, reg3);
-      v_store(dprofile+16*j+512+128, reg2);
-      v_store(dprofile+16*j+512+192, reg7);
-      v_store(dprofile+16*j+512+256, reg1);
-      v_store(dprofile+16*j+512+320, reg11);
-      v_store(dprofile+16*j+512+384, reg6);
-      v_store(dprofile+16*j+512+448, reg15);
+      v_store(dprofile + 16 * j + 512 +   0, reg0);
+      v_store(dprofile + 16 * j + 512 +  64, reg3);
+      v_store(dprofile + 16 * j + 512 + 128, reg2);
+      v_store(dprofile + 16 * j + 512 + 192, reg7);
+      v_store(dprofile + 16 * j + 512 + 256, reg1);
+      v_store(dprofile + 16 * j + 512 + 320, reg11);
+      v_store(dprofile + 16 * j + 512 + 384, reg6);
+      v_store(dprofile + 16 * j + 512 + 448, reg15);
 
 
       reg0  = v_load_64(score_matrix + 16 + d[0 ]);
@@ -402,14 +402,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile+16*j+1024+  0, reg0);
-      v_store(dprofile+16*j+1024+ 64, reg3);
-      v_store(dprofile+16*j+1024+128, reg2);
-      v_store(dprofile+16*j+1024+192, reg7);
-      v_store(dprofile+16*j+1024+256, reg1);
-      v_store(dprofile+16*j+1024+320, reg11);
-      v_store(dprofile+16*j+1024+384, reg6);
-      v_store(dprofile+16*j+1024+448, reg15);
+      v_store(dprofile + 16 * j + 1024 +   0, reg0);
+      v_store(dprofile + 16 * j + 1024 +  64, reg3);
+      v_store(dprofile + 16 * j + 1024 + 128, reg2);
+      v_store(dprofile + 16 * j + 1024 + 192, reg7);
+      v_store(dprofile + 16 * j + 1024 + 256, reg1);
+      v_store(dprofile + 16 * j + 1024 + 320, reg11);
+      v_store(dprofile + 16 * j + 1024 + 384, reg6);
+      v_store(dprofile + 16 * j + 1024 + 448, reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -479,14 +479,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile+16*j+1536+  0, reg0);
-      v_store(dprofile+16*j+1536+ 64, reg3);
-      v_store(dprofile+16*j+1536+128, reg2);
-      v_store(dprofile+16*j+1536+192, reg7);
-      v_store(dprofile+16*j+1536+256, reg1);
-      v_store(dprofile+16*j+1536+320, reg11);
-      v_store(dprofile+16*j+1536+384, reg6);
-      v_store(dprofile+16*j+1536+448, reg15);
+      v_store(dprofile + 16 * j + 1536 +   0, reg0);
+      v_store(dprofile + 16 * j + 1536 +  64, reg3);
+      v_store(dprofile + 16 * j + 1536 + 128, reg2);
+      v_store(dprofile + 16 * j + 1536 + 192, reg7);
+      v_store(dprofile + 16 * j + 1536 + 256, reg1);
+      v_store(dprofile + 16 * j + 1536 + 320, reg11);
+      v_store(dprofile + 16 * j + 1536 + 384, reg6);
+      v_store(dprofile + 16 * j + 1536 + 448, reg15);
     }
 #if 0
   dprofile_dump8(dprofile);
@@ -637,10 +637,10 @@ void align_cells_masked_8(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add(*MQ,  *MR);
 
-      onestep_8(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
-      onestep_8(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
-      onestep_8(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
-      onestep_8(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
+      onestep_8(h0, h5, f0, x[0], dir + 16 * i +  0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + 16 * i +  4, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + 16 * i +  8, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + 16 * i + 12, E, Q, R);
       hep[2*i + 0] = h8;
       hep[2*i + 1] = E;
 
@@ -666,10 +666,10 @@ inline uint64_t backtrack_8(char * qseq,
                             uint64_t channel,
                             uint64_t * alignmentlengthp)
 {
-  uint64_t maskup      = 1ULL << (channel+ 0);
-  uint64_t maskleft    = 1ULL << (channel+16);
-  uint64_t maskextup   = 1ULL << (channel+32);
-  uint64_t maskextleft = 1ULL << (channel+48);
+  uint64_t maskup      = 1ULL << (channel +  0);
+  uint64_t maskleft    = 1ULL << (channel + 16);
+  uint64_t maskextup   = 1ULL << (channel + 32);
+  uint64_t maskextleft = 1ULL << (channel + 48);
 
 #if 0
 
@@ -888,10 +888,10 @@ void search8(BYTE * * q_start,
               for(auto j = 0U; j < cdepth; j++)
                 {
                   if (d_pos[c] < d_length[c])
-                    dseq[channels*j+c]
+                    dseq[channels * j + c]
                       = 1 + nt_extract(d_address[c], d_pos[c]++);
                   else
-                    dseq[channels*j+c] = 0;
+                    dseq[channels * j + c] = 0;
                 }
               if (d_pos[c] == d_length[c])
                 easy = 0;
@@ -927,7 +927,7 @@ void search8(BYTE * * q_start,
                         dseq[channels * j + c]
                           = 1 + nt_extract(d_address[c], d_pos[c]++);
                       else
-                        dseq[channels*j+c] = 0;
+                        dseq[channels * j + c] = 0;
                     }
                   if (d_pos[c] == d_length[c])
                     easy = 0;
@@ -947,7 +947,7 @@ void search8(BYTE * * q_start,
 
                       char * dbseq = reinterpret_cast<char*>(d_address[c]);
                       uint64_t dbseqlen = d_length[c];
-                      uint64_t z = (dbseqlen+3) % 4;
+                      uint64_t z = (dbseqlen + 3) % 4;
                       uint64_t score
                         = (reinterpret_cast<BYTE*>(S))[z * channels + c];
                       scores[cand_id] = score;
@@ -997,9 +997,9 @@ void search8(BYTE * * q_start,
                       for(auto j = 0U; j < cdepth; j++)
                         {
                           if (d_pos[c] < d_length[c])
-                            dseq[channels*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                            dseq[channels * j + c] = 1 + nt_extract(d_address[c], d_pos[c]++);
                           else
-                            dseq[channels*j+c] = 0;
+                            dseq[channels * j + c] = 0;
                         }
                       if (d_pos[c] == d_length[c])
                         easy = 0;
@@ -1012,7 +1012,7 @@ void search8(BYTE * * q_start,
                       d_pos[c] = 0;
                       d_length[c] = 0;
                       for(auto j = 0U; j < cdepth; j++)
-                        dseq[channels*j+c] = 0;
+                        dseq[channels * j + c] = 0;
                     }
                 }
 
@@ -1042,7 +1042,7 @@ void search8(BYTE * * q_start,
       H0 = v_sub(F0, Q);
       F0 = v_add(F0, R);
 
-      dir += 4*longestdbsequence;
+      dir += 4 * longestdbsequence;
       if (dir >= dirbuffer + dirbuffersize)
         dir -= dirbuffersize;
     }
