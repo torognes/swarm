@@ -192,8 +192,22 @@ inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
 {
-  VECTORTYPE reg0,  reg1, reg2,  reg3,  reg4,  reg5,  reg6,  reg7;
-  VECTORTYPE reg8,  reg9, reg10, reg11, reg12, reg13, reg14, reg15;
+  VECTORTYPE reg0;
+  VECTORTYPE reg1;
+  VECTORTYPE reg2;
+  VECTORTYPE reg3;
+  VECTORTYPE reg4;
+  VECTORTYPE reg5;
+  VECTORTYPE reg6;
+  VECTORTYPE reg7;
+  VECTORTYPE reg8;
+  VECTORTYPE reg9;
+  VECTORTYPE reg10;
+  VECTORTYPE reg11;
+  VECTORTYPE reg12;
+  VECTORTYPE reg13;
+  VECTORTYPE reg14;
+  VECTORTYPE reg15;
 
   for(auto j = 0U; j < cdepth; j++)
     {
@@ -530,9 +544,22 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            uint64_t * dir_long,
                            VECTORTYPE * H0)
 {
-  VECTORTYPE Q, R, E;
-  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
-  VECTORTYPE f0, f1, f2, f3;
+  VECTORTYPE Q;
+  VECTORTYPE R;
+  VECTORTYPE E;
+  VECTORTYPE h0;
+  VECTORTYPE h1;
+  VECTORTYPE h2;
+  VECTORTYPE h3;
+  VECTORTYPE h4;
+  VECTORTYPE h5;
+  VECTORTYPE h6;
+  VECTORTYPE h7;
+  VECTORTYPE h8;
+  VECTORTYPE f0;
+  VECTORTYPE f1;
+  VECTORTYPE f2;
+  VECTORTYPE f3;
 
   unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
@@ -593,9 +620,22 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0)
 {
-  VECTORTYPE Q, R, E;
-  VECTORTYPE h0, h1, h2, h3, h4, h5, h6, h7, h8;
-  VECTORTYPE f0, f1, f2, f3;
+  VECTORTYPE Q;
+  VECTORTYPE R;
+  VECTORTYPE E;
+  VECTORTYPE h0;
+  VECTORTYPE h1;
+  VECTORTYPE h2;
+  VECTORTYPE h3;
+  VECTORTYPE h4;
+  VECTORTYPE h5;
+  VECTORTYPE h6;
+  VECTORTYPE h7;
+  VECTORTYPE h8;
+  VECTORTYPE f0;
+  VECTORTYPE f1;
+  VECTORTYPE f2;
+  VECTORTYPE f3;
 
   unsigned short * dir = reinterpret_cast<unsigned short *>(dir_long);
 
@@ -821,8 +861,16 @@ void search8(BYTE * * q_start,
              uint64_t dirbuffersize,
              uint64_t * dirbuffer)
 {
-  VECTORTYPE Q, R, T, M, T0, MQ, MR, MQ0;
-  VECTORTYPE *hep, **qp;
+  VECTORTYPE Q;
+  VECTORTYPE R;
+  VECTORTYPE T;
+  VECTORTYPE M;
+  VECTORTYPE T0;
+  VECTORTYPE MQ;
+  VECTORTYPE MR;
+  VECTORTYPE MQ0;
+  VECTORTYPE *hep;
+  VECTORTYPE **qp;
 
   uint64_t d_pos[channels];
   uint64_t d_offset[channels];
