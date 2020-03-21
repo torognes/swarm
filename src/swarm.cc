@@ -116,7 +116,10 @@ void cpuid(unsigned int f1,
 
 void cpu_features_detect()
 {
-  unsigned int a, b, c, d;
+  unsigned int a = 0;
+  unsigned int b = 0;
+  unsigned int c = 0;
+  unsigned int d = 0;
 
   cpuid(0, 0, a, b, c, d);
   unsigned int maxlevel = a & 0xff;
