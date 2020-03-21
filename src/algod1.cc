@@ -453,8 +453,8 @@ void check_heavy_thread(int64_t t)
         {
           progress_update(++heavy_progress);
           pthread_mutex_unlock(&heavy_mutex);
-          uint64_t m = 0;
-          uint64_t v = 0;
+          uint64_t m {0};
+          uint64_t v {0};
           check_heavy_var(bloom_f, buffer1, a, &m, &v,
                           variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
