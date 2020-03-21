@@ -66,10 +66,23 @@ void dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
                         BYTE * dseq_byte)
 {
-  __m128i m0, m1, m2, m3;
-  __m128i t0, t1, t2, t3, t4, t5;
-  __m128i u0, u1, u2, u3, u4;
-  __m128i zero, one;
+  __m128i m0;
+  __m128i m1;
+  __m128i m2;
+  __m128i m3;
+  __m128i t0;
+  __m128i t1;
+  __m128i t2;
+  __m128i t3;
+  __m128i t4;
+  __m128i t5;
+  __m128i u0;
+  __m128i u1;
+  __m128i u2;
+  __m128i u3;
+  __m128i u4;
+  __m128i one;
+  __m128i zero;
   __m128i * dseq = CAST_m128i_ptr(dseq_byte);
 
   zero = _mm_setzero_si128();
