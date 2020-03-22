@@ -49,8 +49,9 @@ private:
     while (tip->work >= 0)
       {
         /* wait for work available */
-        if (tip->work == 0)
+        if (tip->work == 0) {
           pthread_cond_wait(&tip->workcond, &tip->workmutex);
+        }
 
         if (tip->work > 0)
           {
@@ -89,8 +90,9 @@ public:
         if (pthread_create(&tip->pthread,
                            &attr,
                            worker,
-                           static_cast<void*>(thread_array + i)))
+                           static_cast<void*>(thread_array + i))) {
           fatal("Cannot create thread");
+        }
       }
   }
 
@@ -112,8 +114,9 @@ public:
         pthread_mutex_unlock(&tip->workmutex);
 
         /* wait for worker to quit */
-        if (pthread_join(tip->pthread, nullptr))
+        if (pthread_join(tip->pthread, nullptr)) {
           fatal("Cannot join thread");
+        }
 
         pthread_cond_destroy(&tip->workcond);
         pthread_mutex_destroy(&tip->workmutex);
@@ -140,8 +143,9 @@ public:
       {
         struct thread_s * tip = thread_array + i;
         pthread_mutex_lock(&tip->workmutex);
-        while (tip->work > 0)
+        while (tip->work > 0) {
           pthread_cond_wait(&tip->workcond, &tip->workmutex);
+        }
         pthread_mutex_unlock(&tip->workmutex);
       }
   }
