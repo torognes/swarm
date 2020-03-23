@@ -212,8 +212,9 @@ inline void dprofile_fill8(BYTE * dprofile,
   for(auto j = 0U; j < cdepth; j++)
     {
       unsigned int d[channels];
-      for(auto i = 0U; i < channels; i++)
+      for(auto i = 0U; i < channels; i++) {
         d[i] = (static_cast<unsigned int>(dseq[j * channels + i])) << 5;
+      }
 
       reg0  = v_load_64(score_matrix + d[ 0]);
       reg2  = v_load_64(score_matrix + d[ 2]);
@@ -808,8 +809,9 @@ inline uint64_t backtrack_8(char * qseq,
       else
         {
           if (nt_extract(qseq, static_cast<uint64_t>(i)) ==
-              nt_extract(dseq, static_cast<uint64_t>(j)))
+              nt_extract(dseq, static_cast<uint64_t>(j))) {
             matches++;
+          }
           i--;
           j--;
           op = 'M';
@@ -935,22 +937,28 @@ void search8(BYTE * * q_start,
             {
               for(auto j = 0U; j < cdepth; j++)
                 {
-                  if (d_pos[c] < d_length[c])
+                  if (d_pos[c] < d_length[c]) {
                     dseq[channels * j + c]
                       = 1 + nt_extract(d_address[c], d_pos[c]++);
-                  else
+                  }
+                  else {
                     dseq[channels * j + c] = 0;
+                  }
                 }
-              if (d_pos[c] == d_length[c])
+              if (d_pos[c] == d_length[c]) {
                 easy = 0;
+              }
             }
 
 #ifdef __x86_64__
-          if (ssse3_present)
+          if (ssse3_present) {
             dprofile_shuffle8(dprofile, score_matrix, dseq);
+          }
           else
 #endif
+            {
             dprofile_fill8(dprofile, score_matrix, dseq);
+            }
 
           align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
         }
@@ -971,14 +979,17 @@ void search8(BYTE * * q_start,
 
                   for(auto j = 0U; j < cdepth; j++)
                     {
-                      if (d_pos[c] < d_length[c])
+                      if (d_pos[c] < d_length[c]) {
                         dseq[channels * j + c]
                           = 1 + nt_extract(d_address[c], d_pos[c]++);
-                      else
+                      }
+                      else {
                         dseq[channels * j + c] = 0;
+                      }
                     }
-                  if (d_pos[c] == d_length[c])
+                  if (d_pos[c] == d_length[c]) {
                     easy = 0;
+                  }
                 }
               else
                 {
@@ -1044,13 +1055,16 @@ void search8(BYTE * * q_start,
                       // fill channel
                       for(auto j = 0U; j < cdepth; j++)
                         {
-                          if (d_pos[c] < d_length[c])
+                          if (d_pos[c] < d_length[c]) {
                             dseq[channels * j + c] = 1 + nt_extract(d_address[c], d_pos[c]++);
-                          else
+                          }
+                          else {
                             dseq[channels * j + c] = 0;
+                          }
                         }
-                      if (d_pos[c] == d_length[c])
+                      if (d_pos[c] == d_length[c]) {
                         easy = 0;
+                      }
                     }
                   else
                     {
@@ -1059,23 +1073,28 @@ void search8(BYTE * * q_start,
                       d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
-                      for(auto j = 0U; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; j++) {
                         dseq[channels * j + c] = 0;
+                      }
                     }
                 }
 
               T = v_shift_left(T);
             }
 
-          if (done == sequences)
+          if (done == sequences) {
             break;
+          }
 
 #ifdef __x86_64__
-          if (ssse3_present)
+          if (ssse3_present) {
             dprofile_shuffle8(dprofile, score_matrix, dseq);
+          }
           else
 #endif
+            {
             dprofile_fill8(dprofile, score_matrix, dseq);
+            }
 
           MQ = v_and(M, Q);
           MR = v_and(M, R);
@@ -1091,7 +1110,8 @@ void search8(BYTE * * q_start,
       F0 = v_add(F0, R);
 
       dir += 4 * longestdbsequence;
-      if (dir >= dirbuffer + dirbuffersize)
+      if (dir >= dirbuffer + dirbuffersize) {
         dir -= dirbuffersize;
+      }
     }
 }
