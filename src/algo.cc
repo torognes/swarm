@@ -86,13 +86,13 @@ void algo_run()
   count_comparisons_16 = 0;
 
 #ifdef VERBOSE
-  uint64_t searches = 0;
-  uint64_t estimates = 0;
+  uint64_t searches {0};
+  uint64_t estimates {0};
 #endif
 
-  uint64_t largestswarm = 0;
+  uint64_t largestswarm {0};
 
-  uint64_t maxgenerations = 0;
+  uint64_t maxgenerations {0};
 
   uint64_t amplicons = db_getsequencecount();
   uint64_t longestamplicon = db_getlongestsequence();
@@ -130,8 +130,8 @@ void algo_run()
                                 UINT8_MAX / (penalty_gapopen +
                                        penalty_gapextend)));
 
-  unsigned char * dir = nullptr;
-  uint64_t * hearray = nullptr;
+  unsigned char * dir {nullptr};
+  uint64_t * hearray {nullptr};
 
   if (uclustfile)
     {
@@ -148,7 +148,7 @@ void algo_run()
 
   /* always search in 8 bit mode unless resolution is very high */
 
-  int bits;
+  int bits {0};
 
   if (static_cast<uint64_t>(opt_differences) <= diff_saturation) {
     bits = 8;
@@ -160,7 +160,7 @@ void algo_run()
   seeded = 0;
   swarmed = 0;
 
-  unsigned int swarmid = 0;
+  unsigned int swarmid {0};
 
   progress_init("Clustering:       ", amplicons);
   while (seeded < amplicons)
@@ -170,13 +170,13 @@ void algo_run()
 
       swarmid++;
 
-      uint64_t swarmsize = 0;
-      uint64_t amplicons_copies = 0;
-      uint64_t singletons = 0;
-      uint64_t hitcount = 0;
-      uint64_t maxradius = 0;
-      uint64_t maxgen = 0;
-      uint64_t seedindex;
+      uint64_t swarmsize {0};
+      uint64_t amplicons_copies {0};
+      uint64_t singletons {0};
+      uint64_t hitcount {0};
+      uint64_t maxradius {0};
+      uint64_t maxgen {0};
+      uint64_t seedindex {0};
 
       seedindex = seeded;
       seeded++;
@@ -202,7 +202,7 @@ void algo_run()
 
       targetcount = 0;
 
-      uint64_t listlen = 0;
+      uint64_t listlen {0};
 
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
@@ -329,12 +329,12 @@ void algo_run()
 
               /* process each subseed */
 
-              unsigned subseedampliconid;
-              unsigned subseedradius;
+              unsigned int subseedampliconid {0};
+              unsigned int subseedradius {0};
 
-              uint64_t subseedindex;
-              uint64_t subseedgeneration;
-              uint64_t subseedabundance;
+              uint64_t subseedindex {0};
+              uint64_t subseedgeneration {0};
+              uint64_t subseedabundance {0};
 
               subseedindex = seeded;
               subseedampliconid = amps[subseedindex].ampliconid;
@@ -346,7 +346,7 @@ void algo_run()
 
               targetcount = 0;
 
-              uint64_t subseedlistlen=0;
+              uint64_t subseedlistlen {0};
               for(auto i = swarmed; i < amplicons; i++)
                 {
                   uint64_t targetampliconid = amps[i].ampliconid;
@@ -503,10 +503,10 @@ void algo_run()
               char * qseq = db_getsequence(seedampliconid);
               int64_t qlen = db_getsequencelen(seedampliconid);
 
-              int64_t nwscore = 0;
-              int64_t nwdiff = 0;
-              char * nwalignment = nullptr;
-              int64_t nwalignmentlength = 0;
+              int64_t nwscore {0};
+              int64_t nwdiff {0};
+              char * nwalignment {nullptr};
+              int64_t nwalignmentlength {0};
 
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
@@ -561,8 +561,8 @@ void algo_run()
 
   if (amplicons > 0)
     {
-      char sep_amplicons;
-      char sep_swarms;
+      char sep_amplicons {0};
+      char sep_swarms {0};
 
       if (opt_mothur)
         {
@@ -603,11 +603,11 @@ void algo_run()
 
   if ((opt_seeds) && (amplicons > 0))
     {
-      uint64_t swarmcount = 0;
+      uint64_t swarmcount {0};
       progress_init("Sorting seeds:    ", amplicons);
       auto * swarminfo = static_cast<struct swarminfo_t *>
         (xmalloc(swarmed * sizeof(struct swarminfo_t)));
-      uint64_t mass = 0;
+      uint64_t mass {0};
       unsigned previd = amps[0].swarmid;
       unsigned seed = amps[0].ampliconid;
       mass += db_getabundance(seed);

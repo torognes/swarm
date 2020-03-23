@@ -361,7 +361,7 @@ void align_cells_regular_16(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE * x;
+      VECTORTYPE *x {nullptr};
 
       x = qp[i + 0];
       h4 = hep[2*i + 0];
@@ -437,7 +437,7 @@ void align_cells_masked_16(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE * x;
+      VECTORTYPE *x {nullptr};
 
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
@@ -484,10 +484,10 @@ uint64_t backtrack_16(char * qseq,
                       uint64_t channel,
                       uint64_t * alignmentlengthp)
 {
-  uint64_t maskup      = 3ULL << (2*channel+ 0);
-  uint64_t maskleft    = 3ULL << (2*channel+16);
-  uint64_t maskextup   = 3ULL << (2*channel+32);
-  uint64_t maskextleft = 3ULL << (2*channel+48);
+  uint64_t maskup      = 3ULL << (2 * channel +  0);
+  uint64_t maskleft    = 3ULL << (2 * channel + 16);
+  uint64_t maskextup   = 3ULL << (2 * channel + 32);
+  uint64_t maskextleft = 3ULL << (2 * channel + 48);
 
 #if 0
 
@@ -546,9 +546,9 @@ uint64_t backtrack_16(char * qseq,
 
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
-  uint64_t aligned = 0;
-  uint64_t matches = 0;
-  char op = 0;
+  uint64_t aligned {0};
+  uint64_t matches {0};
+  char op {0};
 
 #undef SHOWALIGNMENT
 #ifdef SHOWALIGNMENT
@@ -648,8 +648,8 @@ void search16(WORD * * q_start,
   VECTORTYPE MQ;
   VECTORTYPE MR;
   VECTORTYPE MQ0;
-  VECTORTYPE *hep;
-  VECTORTYPE **qp;
+  VECTORTYPE *hep {nullptr};
+  VECTORTYPE **qp {nullptr};
 
   uint64_t d_pos[channels];
   uint64_t d_offset[channels];
@@ -665,8 +665,8 @@ void search16(WORD * * q_start,
   BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
 
   int64_t seq_id[channels];
-  uint64_t next_id = 0;
-  uint64_t done;
+  uint64_t next_id {0};
+  uint64_t done {0};
 
 #ifdef __aarch64__
   const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
@@ -697,7 +697,7 @@ void search16(WORD * * q_start,
   F0 = v_zero;
   H0 = v_zero;
 
-  int easy = 0;
+  int easy {0};
 
   uint64_t * dir = dirbuffer;
 
@@ -786,7 +786,7 @@ void search16(WORD * * q_start,
                         = (reinterpret_cast<WORD*>(S))[z * channels + c];
                       scores[cand_id] = score;
 
-                      uint64_t diff;
+                      uint64_t diff {0};
 
                       if (score < UINT16_MAX)
                         {
@@ -815,8 +815,8 @@ void search16(WORD * * q_start,
                       // get next sequence
                       seq_id[c] = static_cast<int64_t>(next_id);
                       uint64_t seqno = seqnos[next_id];
-                      char* address;
-                      unsigned int length;
+                      char * address {nullptr};
+                      unsigned int length {0};
 
                       db_getsequenceandlength(seqno, & address, & length);
 

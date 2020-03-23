@@ -44,10 +44,10 @@ void bloomflex_patterns_generate(struct bloomflex_s * b)
 #endif
   for(auto i = 0U; i < b->pattern_count; i++)
     {
-      uint64_t pattern = 0;
+      uint64_t pattern {0};
       for(auto j = 0U; j < b->pattern_k; j++)
         {
-          uint64_t onebit;
+          uint64_t onebit {0};
           onebit = 1ULL << (arch_random() & 63);
           while (pattern & onebit) {
             onebit = 1ULL << (arch_random() & 63);

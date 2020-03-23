@@ -59,8 +59,8 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 
   memset(qgramvector, 0, qgramvectorbytes);
 
-  uint64_t qgram = 0;
-  unsigned int i = 0;
+  uint64_t qgram {0};
+  unsigned int i {0};
 
   while((i < qgramlength-1) && (i<seqlen))
   {
@@ -86,7 +86,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
   uint8x16_t * ap = (uint8x16_t *) a;
   uint8x16_t * bp = (uint8x16_t *) b;
-  uint64_t count = 0;
+  uint64_t count {0};
 
   while ((unsigned char*)ap < a + qgramvectorbytes) {
     count += vaddvq_u8(vcntq_u8(veorq_u8(*ap++, *bp++)));
@@ -122,7 +122,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 
 inline uint64_t popcount(uint64_t x)
 {
-  uint64_t y;
+  uint64_t y {0};
   popcnt_asm(x,y);
   return y;
 }
@@ -188,7 +188,7 @@ uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b)
 
   auto * ap = reinterpret_cast<__m128i *>(a);
   auto * bp = reinterpret_cast<__m128i *>(b);
-  uint64_t count = 0;
+  uint64_t count {0};
 
   while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes) {
     count += popcount_128(_mm_xor_si128(*ap++, *bp++));
@@ -205,7 +205,7 @@ uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
 
   auto *ap = reinterpret_cast<uint64_t*>(a);
   auto *bp = reinterpret_cast<uint64_t*>(b);
-  uint64_t count = 0;
+  uint64_t count {0};
 
   while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes) {
     count += popcount(*ap++ ^ *bp++);

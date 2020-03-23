@@ -61,28 +61,28 @@ int64_t penalty_mismatch;
 
 /* Other variables */
 
-int64_t mmx_present = 0;
-int64_t sse_present = 0;
-int64_t sse2_present = 0;
-int64_t sse3_present = 0;
-int64_t ssse3_present = 0;
-int64_t sse41_present = 0;
-int64_t sse42_present = 0;
-int64_t popcnt_present = 0;
-int64_t avx_present = 0;
-int64_t avx2_present = 0;
+int64_t mmx_present {0};
+int64_t sse_present {0};
+int64_t sse2_present {0};
+int64_t sse3_present {0};
+int64_t ssse3_present {0};
+int64_t sse41_present {0};
+int64_t sse42_present {0};
+int64_t popcnt_present {0};
+int64_t avx_present {0};
+int64_t avx2_present {0};
 
-static uint64_t dbsequencecount = 0;
+static uint64_t dbsequencecount {0};
 
-uint64_t duplicates_found = 0;
+uint64_t duplicates_found {0};
 
-FILE * outfile = nullptr;
-FILE * statsfile = nullptr;
-FILE * uclustfile = nullptr;
-FILE * logfile = nullptr;
-FILE * internal_structure_file = nullptr;
-FILE * fp_seeds = nullptr;
-FILE * network_file = nullptr;
+FILE * outfile {nullptr};
+FILE * statsfile {nullptr};
+FILE * uclustfile {nullptr};
+FILE * logfile {nullptr};
+FILE * internal_structure_file {nullptr};
+FILE * fp_seeds {nullptr};
+FILE * network_file {nullptr};
 
 char sym_nt[] = "-ACGT                           ";
 
@@ -193,7 +193,7 @@ void close_files();
 
 int64_t args_long(char * str, const char * option)
 {
-  char * endptr;
+  char * endptr {nullptr};
   int64_t temp = strtol(str, & endptr, 10);
   if (*endptr)
     {
@@ -389,8 +389,8 @@ void args_init(int argc, char **argv)
                            0, 0, 0, 0, 0,
                            0 };
 
-  int option_index = 0;
-  int c;
+  int option_index {0};
+  int c {0};
 
   while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
   {
@@ -402,7 +402,7 @@ void args_init(int argc, char **argv)
         int optindex = c - 'a';
         if (used_options[optindex] == 1)
           {
-            int longoptindex = 0;
+            int longoptindex {0};
             while (long_options[longoptindex].name)
               {
                 if (long_options[longoptindex].val == c) {

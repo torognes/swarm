@@ -147,7 +147,7 @@ void nw(char * dseq,
 
   for(auto j = 0L; j < dlen; j++)
     {
-      int64_t *hep;
+      int64_t * hep {nullptr};
       hep = hearray;
       int64_t f = 2 * gapopen + (j+2) * gapextend;
       int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
@@ -188,16 +188,16 @@ void nw(char * dseq,
 
   /* backtrack: count differences and save alignment in cigar string */
 
-  int64_t score = 0;
-  int64_t alength = 0;
-  int64_t matches = 0;
+  int64_t score {0};
+  int64_t alength {0};
+  int64_t matches {0};
 
   char * cigar = static_cast<char *>(xmalloc
                                      (static_cast<size_t>(qlen + dlen + 1)));
-  char * cigarend = cigar + qlen + dlen + 1;
+  char * cigarend {cigar + qlen + dlen + 1};
 
-  char op = 0;
-  int count = 0;
+  char op {0};
+  int count {0};
   *(--cigarend) = 0;
 
   i = qlen;

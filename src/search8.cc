@@ -584,7 +584,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE * x;
+      VECTORTYPE *x {nullptr};
 
       x = qp[i + 0];
       h4 = hep[2*i + 0];
@@ -660,7 +660,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE * x;
+      VECTORTYPE * x {nullptr};
 
       h4 = hep[2*i + 0];
       E  = hep[2*i + 1];
@@ -769,9 +769,9 @@ inline uint64_t backtrack_8(char * qseq,
 
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
-  uint64_t aligned = 0;
-  uint64_t matches = 0;
-  char op = 0;
+  uint64_t aligned {0};
+  uint64_t matches {0};
+  char op {0};
 
 #undef SHOWALIGNMENT
 #ifdef SHOWALIGNMENT
@@ -871,8 +871,8 @@ void search8(BYTE * * q_start,
   VECTORTYPE MQ;
   VECTORTYPE MR;
   VECTORTYPE MQ0;
-  VECTORTYPE *hep;
-  VECTORTYPE **qp;
+  VECTORTYPE *hep {nullptr};
+  VECTORTYPE **qp {nullptr};
 
   uint64_t d_pos[channels];
   uint64_t d_offset[channels];
@@ -888,8 +888,8 @@ void search8(BYTE * * q_start,
   BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
 
   int64_t seq_id[channels];
-  uint64_t next_id = 0;
-  uint64_t done;
+  uint64_t next_id {0};
+  uint64_t done {0};
 
 #ifdef __aarch64__
   const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0,
@@ -923,7 +923,7 @@ void search8(BYTE * * q_start,
   F0 = v_zero;
   H0 = v_zero;
 
-  int easy = 0;
+  int easy {0};
 
   uint64_t * dir = dirbuffer;
 
@@ -1011,7 +1011,7 @@ void search8(BYTE * * q_start,
                         = (reinterpret_cast<BYTE*>(S))[z * channels + c];
                       scores[cand_id] = score;
 
-                      uint64_t diff;
+                      uint64_t diff {0};
 
                       if (score < UINT8_MAX)
                         {
@@ -1037,8 +1037,8 @@ void search8(BYTE * * q_start,
                       // get next sequence
                       seq_id[c] = static_cast<int64_t>(next_id);
                       uint64_t seqno = seqnos[next_id];
-                      char* address;
-                      unsigned int length;
+                      char * address {nullptr};
+                      unsigned int length {0};
 
                       db_getsequenceandlength(seqno, & address, & length);
 

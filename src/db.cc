@@ -477,17 +477,17 @@ void db_read(const char * filename)
 
       /* read and store sequence */
 
-      uint64_t nt_buffer = 0;
-      unsigned int nt_bufferlen = 0;
-      const unsigned int nt_buffersize = 4 * sizeof(nt_buffer);
+      uint64_t nt_buffer {0};
+      unsigned int nt_bufferlen {0};
+      const unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
 
       while (line[0] && (line[0] != '>'))
         {
-          unsigned char c;
+          unsigned char c {0};
           char * p = line;
           while((c = static_cast<unsigned char>(*p++)))
 	    {
-              signed char m;
+              signed char m {0};
               if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
                 {
                   nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
@@ -904,7 +904,7 @@ void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
   char * seq = db_getsequence(a);
   unsigned int len = db_getsequencelen(a);
   char buffer[default_length];
-  char * buf;
+  char * buf {nullptr};
 
   // buf = len < default_length ? buffer : static_cast<char*>(xmalloc(len+1));
   if (len < default_length) {
@@ -957,8 +957,8 @@ seqinfo_t * db_getseqinfo(uint64_t seqno)
 
 void db_putseq(int64_t seqno)
 {
-  char * seq;
-  int64_t len;
+  char * seq {nullptr};
+  int64_t len {0};
   db_getsequenceandlength(seqno, & seq, & len);
   for(auto i = 0LL; i < len; i++) {
     putchar(sym_nt[1+nt_extract(seq, i)]);
