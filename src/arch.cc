@@ -64,23 +64,26 @@ uint64_t arch_get_memtotal()
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
   size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, nullptr, 0) == -1)
+  if(sysctl(mib, 2, &ram, &length, nullptr, 0) == -1) {
     fatal("Cannot determine amount of RAM");
+  }
   return static_cast<uint64_t>(ram);
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
 
   int64_t phys_pages = sysconf(_SC_PHYS_PAGES);
   int64_t pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) || (pagesize == -1))
+  if ((phys_pages == -1) || (pagesize == -1)) {
     fatal("Cannot determine amount of RAM");
+  }
   return static_cast<uint64_t>(pagesize * phys_pages);
 
 #else
 
   struct sysinfo si;
-  if (sysinfo(&si))
+  if (sysinfo(&si)) {
     fatal("Cannot determine amount of RAM");
+  }
   return si.totalram * si.mem_unit;
 
 #endif

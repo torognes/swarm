@@ -586,8 +586,9 @@ uint64_t backtrack_16(char * qseq,
       else
         {
           if (nt_extract(qseq, static_cast<uint64_t>(i)) ==
-              nt_extract(dseq, static_cast<uint64_t>(j)))
+              nt_extract(dseq, static_cast<uint64_t>(j))) {
             matches++;
+          }
           i--;
           j--;
           op = 'M';
@@ -711,19 +712,23 @@ void search16(WORD * * q_start,
             {
               for(auto j = 0U; j < cdepth; j++)
                 {
-                  if (d_pos[c] < d_length[c])
+                  if (d_pos[c] < d_length[c]) {
                     dseq[channels*j+c]
                       = 1 + nt_extract(d_address[c], d_pos[c]++);
-                  else
+                  }
+                  else {
                     dseq[channels*j+c] = 0;
+                  }
                 }
-              if (d_pos[c] == d_length[c])
+              if (d_pos[c] == d_length[c]) {
                 easy = 0;
+              }
             }
 
 #ifdef __x86_64__
-          if (ssse3_present)
+          if (ssse3_present) {
             dprofile_shuffle16(dprofile, score_matrix, dseq);
+          }
           else
 #endif
             dprofile_fill16(dprofile, score_matrix, dseq);
@@ -747,14 +752,17 @@ void search16(WORD * * q_start,
 
                   for(auto j = 0U; j < cdepth; j++)
                     {
-                      if (d_pos[c] < d_length[c])
+                      if (d_pos[c] < d_length[c]) {
                         dseq[channels * j + c]
                           = 1 + nt_extract(d_address[c], d_pos[c]++);
-                      else
+                      }
+                      else {
                         dseq[channels*j+c] = 0;
+                      }
                     }
-                  if (d_pos[c] == d_length[c])
+                  if (d_pos[c] == d_length[c]) {
                     easy = 0;
+                  }
                 }
               else
                 {
@@ -823,13 +831,16 @@ void search16(WORD * * q_start,
                       // fill channel
                       for(auto j = 0U; j < cdepth; j++)
                         {
-                          if (d_pos[c] < d_length[c])
+                          if (d_pos[c] < d_length[c]) {
                             dseq[channels*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
-                          else
+                          }
+                          else {
                             dseq[channels*j+c] = 0;
+                          }
                         }
-                      if (d_pos[c] == d_length[c])
+                      if (d_pos[c] == d_length[c]) {
                         easy = 0;
+                      }
                     }
                   else
                     {
@@ -838,20 +849,23 @@ void search16(WORD * * q_start,
                       d_address[c] = nullptr;
                       d_pos[c] = 0;
                       d_length[c] = 0;
-                      for(auto j = 0U; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; j++) {
                         dseq[channels*j+c] = 0;
+                      }
                     }
                 }
 
               T = v_shift_left(T);
             }
 
-          if (done == sequences)
+          if (done == sequences) {
             break;
+          }
 
 #ifdef __x86_64__
-          if (ssse3_present)
+          if (ssse3_present) {
             dprofile_shuffle16(dprofile, score_matrix, dseq);
+          }
           else
 #endif
             dprofile_fill16(dprofile, score_matrix, dseq);
@@ -870,7 +884,8 @@ void search16(WORD * * q_start,
       F0 = v_add(F0, R);
 
       dir += 4*longestdbsequence;
-      if (dir >= dirbuffer + dirbuffersize)
+      if (dir >= dirbuffer + dirbuffersize) {
         dir -= dirbuffersize;
+      }
     }
 }

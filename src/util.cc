@@ -37,10 +37,12 @@ void progress_init(const char * prompt, uint64_t size)
   progress_chunk = size < progress_granularity ?
     1 : size / progress_granularity;
   progress_next = 1;
-  if (opt_log)
+  if (opt_log) {
     fprintf(logfile, "%s", prompt);
-  else
+  }
+  else {
     fprintf(logfile, "%s %.0f%%", prompt, 0.0);
+  }
 }
 
 void progress_update(uint64_t progress)
@@ -57,10 +59,12 @@ void progress_update(uint64_t progress)
 
 void progress_done()
 {
-  if (opt_log)
+  if (opt_log) {
     fprintf(logfile, " %.0f%%\n", 100.0);
-  else
+  }
+  else {
     fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+  }
   fflush(logfile);
 }
 
@@ -77,31 +81,36 @@ int64_t gcd(int64_t a, int64_t b)
 
 void * xmalloc(size_t size)
 {
-  if (size == 0)
+  if (size == 0) {
     size = 1;
+  }
   void * t = nullptr;
 #ifdef _WIN32
   t = _aligned_malloc(size, memalignment);
 #else
-  if (posix_memalign(& t, memalignment, size))
+  if (posix_memalign(& t, memalignment, size)) {
     t = nullptr;
+  }
 #endif
-  if (!t)
+  if (!t) {
     fatal("Unable to allocate enough memory.");
+  }
   return t;
 }
 
 void * xrealloc(void *ptr, size_t size)
 {
-  if (size == 0)
+  if (size == 0) {
     size = 1;
+  }
 #ifdef _WIN32
   void * t = _aligned_realloc(ptr, size, memalignment);
 #else
   void * t = realloc(ptr, size);
 #endif
-  if (!t)
+  if (!t) {
     fatal("Unable to reallocate enough memory.");
+  }
   return t;
 }
 
@@ -115,8 +124,9 @@ void xfree(void * ptr)
       free(ptr);
 #endif
     }
-  else
+  else {
     fatal("Trying to free a null pointer");
+  }
 }
 
 FILE * fopen_input(const char * filename)

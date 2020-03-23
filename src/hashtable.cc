@@ -38,8 +38,9 @@ void hash_alloc(uint64_t amplicons)
 {
   constexpr unsigned int hashfillpct {70};
   hash_tablesize = 1;
-  while (100 * amplicons > hashfillpct * hash_tablesize)
+  while (100 * amplicons > hashfillpct * hash_tablesize) {
     hash_tablesize <<= 1;
+  }
   hash_mask = hash_tablesize - 1;
 
   hash_occupied =

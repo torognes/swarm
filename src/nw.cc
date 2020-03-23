@@ -28,8 +28,9 @@ void finishop(char ** cigarendp, char * op, int * count);
 
 void pushop(char newop, char ** cigarendp, char * op, int * count)
 {
-  if (newop == *op)
+  if (newop == *op) {
     (*count)++;
+  }
   else
   {
     *--*cigarendp = *op;

@@ -78,13 +78,14 @@ void fprint_id(FILE * stream, uint64_t x)
   char * h = sp->header;
   int hdrlen = sp->headerlen;
 
-  if (opt_append_abundance && (sp->abundance_start == sp->abundance_end))
+  if (opt_append_abundance && (sp->abundance_start == sp->abundance_end)) {
     if (opt_usearch_abundance) {
       fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, h, sp->abundance);
     }
     else {
       fprintf(stream, "%.*s_%" PRIu64, hdrlen, h, sp->abundance);
     }
+  }
   else {
     fprintf(stream, "%.*s", hdrlen, h);
   }
@@ -104,8 +105,9 @@ void fprint_id_noabundance(FILE * stream, uint64_t x)
       if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
-          if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen))
+          if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen)) {
             fprintf(stream, ";");
+          }
 
           /* print remaining part */
           fprintf(stream, "%.*s", hdrlen - sp->abundance_end, h + sp->abundance_end);
@@ -291,8 +293,9 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
 
       if (find_usearch_abundance(header, & start, & end, & number))
         {
-          if (number > 0)
+          if (number > 0) {
             abundance = number;
+          }
           else
             {
               fprintf(stderr,
@@ -310,8 +313,9 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
 
       if (find_swarm_abundance(header, & start, & end, & number))
         {
-          if (number > 0)
+          if (number > 0) {
             abundance = number;
+          }
           else
             {
               fprintf(stderr,
@@ -329,8 +333,9 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
       start = sp->headerlen;
       end = start;
 
-      if (opt_append_abundance)
+      if (opt_append_abundance) {
         abundance = opt_append_abundance;
+      }
       else
         {
           missingabundance++;
@@ -643,12 +648,14 @@ void db_read(const char * filename)
 
       if (presorted && lastseq)
         {
-          if (lastseq->abundance < seqindex_p->abundance)
+          if (lastseq->abundance < seqindex_p->abundance) {
             presorted = 0;
+          }
           else if (lastseq->abundance == seqindex_p->abundance)
             {
-              if (strcmp(lastseq->header, seqindex_p->header) > 0)
+              if (strcmp(lastseq->header, seqindex_p->header) > 0) {
                 presorted = 0;
+              }
             }
         }
 
@@ -704,8 +711,9 @@ void db_read(const char * filename)
               if ((id_len == hit_id_len) &&
                   (strncmp(seqindex_p->header + id_start,
                            hdrfound->header + hit_id_start,
-                           static_cast<uint64_t>(id_len)) == 0))
+                           static_cast<uint64_t>(id_len)) == 0)) {
                 break;
+              }
             }
 
           hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
@@ -741,8 +749,9 @@ void db_read(const char * filename)
                   (seqfound->seqlen == seqindex_p->seqlen) &&
                   (memcmp(seqfound->seq,
                           seqindex_p->seq,
-                          nt_bytelength(seqindex_p->seqlen)) == 0))
+                          nt_bytelength(seqindex_p->seqlen)) == 0)) {
                 break;
+              }
               seqhashindex = (seqhashindex + 1) % seqhashsize;
             }
 
@@ -881,10 +890,12 @@ void db_free()
 {
   zobrist_exit();
 
-  if (datap)
+  if (datap) {
     xfree(datap);
-  if (seqindex)
+  }
+  if (seqindex) {
     xfree(seqindex);
+  }
 }
 
 void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
@@ -949,8 +960,9 @@ void db_putseq(int64_t seqno)
   char * seq;
   int64_t len;
   db_getsequenceandlength(seqno, & seq, & len);
-  for(auto i = 0LL; i < len; i++)
+  for(auto i = 0LL; i < len; i++) {
     putchar(sym_nt[1+nt_extract(seq, i)]);
+  }
 }
 
 #endif

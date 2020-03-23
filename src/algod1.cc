@@ -180,8 +180,9 @@ inline void hash_insert(unsigned int amp)
   while (hash_is_occupied(j))
     {
       if (hash_compare_value(j, hash) &&
-          check_amp_identical(amp, hash_get_data(j)))
+          check_amp_identical(amp, hash_get_data(j))) {
         duplicate = true;
+      }
       j = hash_getnextindex(j);
     }
 
@@ -538,8 +539,9 @@ inline void find_variant_matches(unsigned int seed,
                                  unsigned int * hits_data,
                                  unsigned int * hits_count)
 {
-  if (! bloom_get(bloom_a, var->hash))
+  if (! bloom_get(bloom_a, var->hash)) {
     return;
+  }
 
   /* compute hash and corresponding hash table index */
 
@@ -554,7 +556,7 @@ inline void find_variant_matches(unsigned int seed,
           unsigned int amp = hash_get_data(j);
 
           /* avoid self */
-          if (seed != amp)
+          if (seed != amp) {
             if (opt_no_otu_breaking ||
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
@@ -572,6 +574,7 @@ inline void find_variant_matches(unsigned int seed,
                     break;
                   }
               }
+          }
         }
       j = hash_getnextindex(j);
     }
@@ -622,8 +625,9 @@ void network_thread(int64_t t)
 
       if (network_count + hits_count > network_alloc)
         {
-          while (network_count + hits_count > network_alloc)
+          while (network_count + hits_count > network_alloc) {
             network_alloc += one_megabyte;
+          }
           network = static_cast<unsigned int*>
             (xrealloc(network, network_alloc * sizeof(unsigned int)));
         }
@@ -763,8 +767,9 @@ void algo_d1_run()
       bp->graft_cand = no_swarm;
       hash_insert(i);
       progress_update(i);
-      if (duplicates_found)
+      if (duplicates_found) {
         break;
+      }
     }
 
   if (duplicates_found)
@@ -1324,8 +1329,9 @@ void algo_d1_run()
                   fprint_id(uclustfile, seed);
                   fprintf(uclustfile, "\n");
 
-                  if (nwalignment)
+                  if (nwalignment) {
                     xfree(nwalignment);
+                  }
                 }
 
               cluster_no++;
@@ -1364,8 +1370,9 @@ void algo_d1_run()
   bloom_exit(bloom_a);
   hash_free();
 
-  if (swarminfo)
+  if (swarminfo) {
     xfree(swarminfo);
+  }
 
   xfree(ampinfo);
 

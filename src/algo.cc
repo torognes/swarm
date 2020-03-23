@@ -190,8 +190,9 @@ void algo_run()
 
       uint64_t abundance = db_getabundance(seedampliconid);
       amplicons_copies += abundance;
-      if (abundance == 1)
+      if (abundance == 1) {
         singletons++;
+      }
 
       swarmsize = 1;
       swarmed++;
@@ -368,13 +369,14 @@ void algo_run()
               estimates += subseedlistlen;
 #endif
 
-              for(auto i = 0ULL; i < subseedlistlen; i++)
+              for(auto i = 0ULL; i < subseedlistlen; i++) {
                 if (qgramdiffs[i] <= static_cast<uint64_t>(opt_differences))
                   {
                     targetindices[targetcount] = qgramindices[i];
                     targetampliconids[targetcount] = qgramamps[i];
                     targetcount++;
                   }
+              }
 
               if (targetcount > 0)
                 {
@@ -583,10 +585,12 @@ void algo_run()
       for(auto i = 1ULL; i < amplicons; i++)
         {
           int64_t id = amps[i].swarmid;
-          if (id == previd)
+          if (id == previd) {
             fputc(sep_amplicons, outfile);
-          else
+          }
+          else {
             fputc(sep_swarms, outfile);
+          }
           fprint_id(outfile, amps[i].ampliconid);
           previd = id;
         }

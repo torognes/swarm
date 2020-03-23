@@ -41,8 +41,9 @@ inline void seq_copy(char * a,
                      unsigned int length)
 {
   /* copy part of the compressed sequence b to a */
-  for(auto i = 0U; i < length; i++)
+  for(auto i = 0U; i < length; i++) {
     nt_set(a, a_start + i, nt_extract(b, b_start + i));
+  }
 }
 
 inline bool seq_identical(char * a,
@@ -55,9 +56,10 @@ inline bool seq_identical(char * a,
   /* return false if different, true if identical */
 
   bool equal = true;
-  for(auto i = 0U; i < length; i++)
+  for(auto i = 0U; i < length; i++) {
     equal = equal && (nt_extract(a, a_start + i) ==
                       nt_extract(b, b_start + i));
+  }
   return equal;
 }
 
@@ -187,13 +189,14 @@ void generate_variants(char * sequence,
     {
       unsigned char base = nt_extract(sequence, i);
       uint64_t hash1 = hash ^ zobrist_value(i, base);
-      for(unsigned char v = 0; v < 4; v ++)
+      for(unsigned char v = 0; v < 4; v ++) {
         if (v != base)
           {
             uint64_t hash2 = hash1 ^ zobrist_value(i, v);
             add_variant(hash2, substitution, i, v,
                         variant_list, variant_count);
           }
+      }
     }
 
   /* deletions */
@@ -224,12 +227,13 @@ void generate_variants(char * sequence,
     {
       unsigned char base = nt_extract(sequence, i);
       hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);
-      for(unsigned char v = 0; v < 4; v++)
+      for(unsigned char v = 0; v < 4; v++) {
         if (v != base)
           {
             uint64_t hash1 = hash ^ zobrist_value(i + 1, v);
             add_variant(hash1, insertion, i + 1, v,
                         variant_list, variant_count);
           }
+      }
     }
 }

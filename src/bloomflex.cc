@@ -49,8 +49,9 @@ void bloomflex_patterns_generate(struct bloomflex_s * b)
         {
           uint64_t onebit;
           onebit = 1ULL << (arch_random() & 63);
-          while (pattern & onebit)
+          while (pattern & onebit) {
             onebit = 1ULL << (arch_random() & 63);
+          }
           pattern |= onebit;
         }
       b->patterns[i] = pattern;

@@ -106,8 +106,9 @@ void search_init(struct search_data * sdp)
 
 void search_chunk(struct search_data * sdp, int64_t bits)
 {
-  if (sdp->target_count == 0)
+  if (sdp->target_count == 0) {
     return;
+  }
 
 #if 0
 
@@ -146,10 +147,11 @@ void search_chunk(struct search_data * sdp, int64_t bits)
 #ifdef __aarch64__
   /* always use 16-bit version on aarch64 because it is faster */
  (void) bits;
-  if (1)
+ if (1)
 #else
-  if (bits == 16)
+ if (bits == 16)
 #endif
+   {
     search16(sdp->qtable_w,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
@@ -164,7 +166,8 @@ void search_chunk(struct search_data * sdp, int64_t bits)
              static_cast<uint64_t>(query.len),
              dirbufferbytes/8,
              sdp->dir_array);
-  else
+   }
+ else {
     search8(sdp->qtable,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
@@ -179,6 +182,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
             static_cast<uint64_t>(query.len),
             dirbufferbytes/8,
             sdp->dir_array);
+ }
 }
 
 int search_getwork(uint64_t * countref, uint64_t * firstref)
@@ -258,21 +262,25 @@ void search_do(uint64_t query_no,
 
   if (bits == 8)
     {
-      if (master_length <= 15 * thr)
+      if (master_length <= 15 * thr) {
         thr = (master_length + 15) / 16;
+      }
     }
   else
     {
-      if (master_length <= 7 * thr)
+      if (master_length <= 7 * thr) {
         thr = (master_length + 7) / 8;
+      }
     }
 
   remainingchunks = thr;
 
-  if (thr == 1)
+  if (thr == 1) {
     search_worker_core(0);
-  else
+  }
+  else {
     search_threads->run();
+  }
 }
 
 void search_begin()
@@ -282,8 +290,9 @@ void search_begin()
   sd = static_cast<struct search_data *>
     (xmalloc(sizeof(search_data) * static_cast<uint64_t>(opt_threads)));
 
-  for(auto t = 0LL; t < opt_threads; t++)
+  for(auto t = 0LL; t < opt_threads; t++) {
     search_alloc(sd+t);
+  }
 
   pthread_mutex_init(& scan_mutex, nullptr);
 
@@ -301,7 +310,8 @@ void search_end()
 
   pthread_mutex_destroy(& scan_mutex);
 
-  for(auto t = 0LL; t < opt_threads; t++)
+  for(auto t = 0LL; t < opt_threads; t++) {
     search_free(sd+t);
+  }
   xfree(sd);
 }
