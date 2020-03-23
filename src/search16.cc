@@ -713,11 +713,11 @@ void search16(WORD * * q_start,
               for(auto j = 0U; j < cdepth; j++)
                 {
                   if (d_pos[c] < d_length[c]) {
-                    dseq[channels*j+c]
+                    dseq[channels * j + c]
                       = 1 + nt_extract(d_address[c], d_pos[c]++);
                   }
                   else {
-                    dseq[channels*j+c] = 0;
+                    dseq[channels * j + c] = 0;
                   }
                 }
               if (d_pos[c] == d_length[c]) {
@@ -731,7 +731,9 @@ void search16(WORD * * q_start,
           }
           else
 #endif
+            {
             dprofile_fill16(dprofile, score_matrix, dseq);
+            }
 
           align_cells_regular_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
         }
@@ -832,10 +834,10 @@ void search16(WORD * * q_start,
                       for(auto j = 0U; j < cdepth; j++)
                         {
                           if (d_pos[c] < d_length[c]) {
-                            dseq[channels*j+c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                            dseq[channels * j + c] = 1 + nt_extract(d_address[c], d_pos[c]++);
                           }
                           else {
-                            dseq[channels*j+c] = 0;
+                            dseq[channels * j + c] = 0;
                           }
                         }
                       if (d_pos[c] == d_length[c]) {
@@ -850,7 +852,7 @@ void search16(WORD * * q_start,
                       d_pos[c] = 0;
                       d_length[c] = 0;
                       for(auto j = 0U; j < cdepth; j++) {
-                        dseq[channels*j+c] = 0;
+                        dseq[channels * j + c] = 0;
                       }
                     }
                 }
@@ -868,7 +870,9 @@ void search16(WORD * * q_start,
           }
           else
 #endif
+            {
             dprofile_fill16(dprofile, score_matrix, dseq);
+            }
 
           MQ = v_and(M, Q);
           MR = v_and(M, R);
@@ -883,7 +887,7 @@ void search16(WORD * * q_start,
       H0 = v_sub(F0, Q);
       F0 = v_add(F0, R);
 
-      dir += 4*longestdbsequence;
+      dir += 4 * longestdbsequence;
       if (dir >= dirbuffer + dirbuffersize) {
         dir -= dirbuffersize;
       }
