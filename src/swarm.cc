@@ -382,12 +382,7 @@ void args_init(int argc, char **argv)
     {nullptr,                 0,                 nullptr, 0 }
   };
 
-  int used_options[26] = { 0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0,
-                           0, 0, 0, 0, 0,
-                           0 };
+  std::array<int, 26> used_options {0};  // set int values to zero by default
 
   int option_index {0};
   int c {0};
