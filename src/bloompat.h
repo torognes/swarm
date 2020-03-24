@@ -31,6 +31,7 @@ struct bloom_s
   uint64_t mask;
   uint64_t * bitmap;
   uint64_t patterns[bloom_pattern_count];
+  // std::array<uint64_t, bloom_pattern_count> patterns;
 };
 
 void bloom_zap(struct bloom_s * b);

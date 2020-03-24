@@ -39,6 +39,7 @@ constexpr char PRId64[] = "ld";
 #endif
 #endif
 
+#include <array>
 #include <cassert>
 #include <climits>
 #include <cstdarg>
