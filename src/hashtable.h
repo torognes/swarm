@@ -51,7 +51,7 @@ inline void hash_set_occupied(uint64_t j)
 
 inline bool hash_is_occupied(uint64_t j)
 {
-  return hash_occupied[j >> 3] & (1 << (j & 7));
+  return (hash_occupied[j >> 3] & (1 << (j & 7))) != 0;
 }
 
 inline void hash_set_value(uint64_t j, uint64_t hash)

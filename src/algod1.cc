@@ -557,7 +557,7 @@ inline void find_variant_matches(unsigned int seed,
 
           /* avoid self */
           if (seed != amp) {
-            if (opt_no_otu_breaking ||
+            if ((opt_no_otu_breaking != 0) ||
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
                 char * seed_sequence = db_getsequence(seed);
@@ -767,12 +767,12 @@ void algo_d1_run()
       bp->graft_cand = no_swarm;
       hash_insert(i);
       progress_update(i);
-      if (duplicates_found) {
+      if (duplicates_found != 0U) {
         break;
       }
     }
 
-  if (duplicates_found)
+  if (duplicates_found != 0U)
     {
       fprintf(logfile,
               "\n\n"
@@ -790,7 +790,7 @@ void algo_d1_run()
   unsigned char * dir = nullptr;
   uint64_t * hearray = nullptr;
 
-  if (uclustfile)
+  if (uclustfile != nullptr)
     {
       dir = static_cast<unsigned char *>
         (xmalloc(longestamplicon*longestamplicon));
@@ -818,7 +818,7 @@ void algo_d1_run()
 
   /* dump network to file */
 
-  if (opt_network_file)
+  if (opt_network_file != nullptr)
     {
       progress_init("Dumping network:  ", network_count);
 
@@ -916,7 +916,7 @@ void algo_d1_run()
               }
 
               /* start with most abundant amplicon of next generation */
-              if (global_hits_count) {
+              if (global_hits_count != 0U) {
                 subseed = global_hits_data[0];
               }
               else {
@@ -966,7 +966,7 @@ void algo_d1_run()
 
   /* fastidious */
 
-  if (opt_fastidious)
+  if (opt_fastidious != 0)
     {
       fprintf(logfile, "\n");
       fprintf(logfile, "Results before fastidious processing:\n");
@@ -1029,7 +1029,7 @@ void algo_d1_run()
           uint64_t memtotal = arch_get_memtotal();
           uint64_t memused = arch_get_memused();
 
-          if (opt_ceiling)
+          if (opt_ceiling !=0)
             {
               uint64_t memrest
                 = one_megabyte * static_cast<uint64_t>(opt_ceiling) - memused;
@@ -1139,7 +1139,7 @@ void algo_d1_run()
 
   progress_init("Writing swarms:   ", swarmcount);
 
-  if (opt_mothur) {
+  if (opt_mothur != 0) {
     fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount_adjusted);
   }
 
@@ -1150,7 +1150,7 @@ void algo_d1_run()
           unsigned int seed = swarminfo[i].seed;
           for(auto a = seed; a != no_swarm; a = ampinfo[a].next)
             {
-              if (opt_mothur)
+              if (opt_mothur != 0)
                 {
                   if (a == seed) {
                     fputc('\t', outfile);
@@ -1167,14 +1167,14 @@ void algo_d1_run()
                 }
               fprint_id(outfile, a);
             }
-          if (!opt_mothur) {
+          if (opt_mothur == 0) {
             fputc('\n', outfile);
           }
         }
       progress_update(i+1);
     }
 
-  if (opt_mothur) {
+  if (opt_mothur != 0) {
     fputc('\n', outfile);
   }
 
@@ -1183,7 +1183,7 @@ void algo_d1_run()
 
   /* dump seeds in fasta format with sum of abundances */
 
-  if (opt_seeds)
+  if (opt_seeds != nullptr)
     {
       progress_init("Writing seeds:    ", swarmcount);
 
@@ -1216,7 +1216,7 @@ void algo_d1_run()
 
   /* output internal structure */
 
-  if (opt_internal_structure)
+  if (opt_internal_structure != nullptr)
     {
       unsigned int cluster_no = 0;
 
@@ -1270,7 +1270,7 @@ void algo_d1_run()
 
   /* output swarm in uclust format */
 
-  if (uclustfile)
+  if (uclustfile != nullptr)
     {
       unsigned int cluster_no = 0;
 
@@ -1329,7 +1329,7 @@ void algo_d1_run()
                   fprint_id(uclustfile, seed);
                   fprintf(uclustfile, "\n");
 
-                  if (nwalignment) {
+                  if (nwalignment != nullptr) {
                     xfree(nwalignment);
                   }
                 }
@@ -1343,7 +1343,7 @@ void algo_d1_run()
 
   /* output statistics to file */
 
-  if (statsfile)
+  if (statsfile != nullptr)
     {
       progress_init("Writing stats:    ", swarmcount);
       for(auto i = 0ULL; i < swarmcount; i++)
@@ -1370,13 +1370,13 @@ void algo_d1_run()
   bloom_exit(bloom_a);
   hash_free();
 
-  if (swarminfo) {
+  if (swarminfo != nullptr) {
     xfree(swarminfo);
   }
 
   xfree(ampinfo);
 
-  if (uclustfile)
+  if (uclustfile != nullptr)
     {
       xfree(dir);
       xfree(hearray);

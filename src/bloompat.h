@@ -57,5 +57,5 @@ inline void bloom_set(struct bloom_s * b, uint64_t h)
 
 inline bool bloom_get(struct bloom_s * b, uint64_t h)
 {
-  return ! (* bloom_adr(b, h) & bloom_pat(b, h));
+  return (* bloom_adr(b, h) & bloom_pat(b, h)) == 0U;
 }

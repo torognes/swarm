@@ -54,5 +54,5 @@ inline void bloomflex_set(struct bloomflex_s * b, uint64_t h)
 
 inline bool bloomflex_get(struct bloomflex_s * b, uint64_t h)
 {
-  return ! (* bloomflex_adr(b, h) & bloomflex_pat(b, h));
+  return (* bloomflex_adr(b, h) & bloomflex_pat(b, h)) == 0U;
 }

@@ -90,7 +90,7 @@ public:
         if (pthread_create(&tip->pthread,
                            &attr,
                            worker,
-                           static_cast<void*>(thread_array + i))) {
+                           static_cast<void*>(thread_array + i)) != 0) {
           fatal("Cannot create thread");
         }
       }
@@ -114,7 +114,7 @@ public:
         pthread_mutex_unlock(&tip->workmutex);
 
         /* wait for worker to quit */
-        if (pthread_join(tip->pthread, nullptr)) {
+        if (pthread_join(tip->pthread, nullptr) != 0) {
           fatal("Cannot join thread");
         }
 

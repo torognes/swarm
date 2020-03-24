@@ -133,7 +133,7 @@ void algo_run()
   unsigned char * dir {nullptr};
   uint64_t * hearray {nullptr};
 
-  if (uclustfile)
+  if (uclustfile != nullptr)
     {
       dir = static_cast<unsigned char *>
         (xmalloc(longestamplicon*longestamplicon));
@@ -207,7 +207,7 @@ void algo_run()
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
           unsigned ampid = amps[swarmed+i].ampliconid;
-          if ((opt_no_otu_breaking) || (db_getabundance(ampid) <= abundance))
+          if ((opt_no_otu_breaking != 0) || (db_getabundance(ampid) <= abundance))
             {
               qgramamps[i] = ampid;
               listlen++;
@@ -297,7 +297,7 @@ void algo_run()
                   unsigned poolampliconid = amps[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
-                  if (opt_internal_structure)
+                  if (opt_internal_structure != nullptr)
                     {
                       fprint_id_noabundance(internal_structure_file,
                                             seedampliconid);
@@ -352,7 +352,7 @@ void algo_run()
                   uint64_t targetampliconid = amps[i].ampliconid;
                   if ((amps[i].diffestimate <=
                        subseedradius + opt_differences) &&
-                      ((opt_no_otu_breaking) ||
+                      ((opt_no_otu_breaking != 0) ||
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
                     {
@@ -443,7 +443,7 @@ void algo_run()
                           unsigned poolampliconid = amps[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
 
-                          if (opt_internal_structure)
+                          if (opt_internal_structure != nullptr)
                             {
                               fprint_id_noabundance(internal_structure_file,
                                                     subseedampliconid);
@@ -481,7 +481,7 @@ void algo_run()
       }
 
 
-      if (uclustfile)
+      if (uclustfile != nullptr)
         {
           fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid-1, swarmsize);
@@ -527,7 +527,7 @@ void algo_run()
               fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
-              if (nwalignment) {
+              if (nwalignment != nullptr) {
                 xfree(nwalignment);
               }
             }
@@ -535,7 +535,7 @@ void algo_run()
         }
 
 
-      if (statsfile)
+      if (statsfile != nullptr)
         {
           abundance = db_getabundance(seedampliconid);
 
@@ -550,7 +550,7 @@ void algo_run()
     }
   progress_done();
 
-  if (uclustfile)
+  if (uclustfile != nullptr)
     {
       xfree(dir);
       xfree(hearray);
@@ -564,7 +564,7 @@ void algo_run()
       char sep_amplicons {0};
       char sep_swarms {0};
 
-      if (opt_mothur)
+      if (opt_mothur != 0)
         {
           /* mothur list file output */
           sep_amplicons = ',';
@@ -601,7 +601,7 @@ void algo_run()
 
   /* dump seeds in fasta format with sum of abundances */
 
-  if ((opt_seeds) && (amplicons > 0))
+  if ((opt_seeds != nullptr) && (amplicons > 0))
     {
       uint64_t swarmcount {0};
       progress_init("Sorting seeds:    ", amplicons);
