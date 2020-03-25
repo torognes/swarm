@@ -347,7 +347,7 @@ void args_init(int argc, char **argv)
   constexpr unsigned int min_ceiling {8};
   constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
 
-  opterr = 1;
+  opterr = 1;  // unused variable?
 
   char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z";
 
