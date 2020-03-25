@@ -120,7 +120,7 @@ bool check_variant(char * seed_sequence,
          (var->type == deletion) ||
          (var->type == insertion));
 
-  bool equal = false;
+  bool equal {false};
 
   switch (var->type)
     {

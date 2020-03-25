@@ -23,9 +23,9 @@
 
 /* Variant information */
 
-const int substitution = 1;
-const int deletion = 2;
-const int insertion = 3;
+constexpr int substitution {1};
+constexpr int deletion {2};
+constexpr int insertion {3};
 
 struct var_s
 {
