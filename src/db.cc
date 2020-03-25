@@ -614,7 +614,7 @@ void db_read(const char * filename)
 
   seqinfo_t * lastseq = nullptr;
 
-  int presorted = 1;
+  bool presorted {true};
 
   char * p = datap;
   progress_init("Indexing database:", sequences);
@@ -649,12 +649,12 @@ void db_read(const char * filename)
       if (presorted && lastseq)
         {
           if (lastseq->abundance < seqindex_p->abundance) {
-            presorted = 0;
+            presorted = false;
           }
           else if (lastseq->abundance == seqindex_p->abundance)
             {
               if (strcmp(lastseq->header, seqindex_p->header) > 0) {
-                presorted = 0;
+                presorted = false;
               }
             }
         }
