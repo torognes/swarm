@@ -356,9 +356,9 @@ void db_read(const char * filename)
 {
   /* allocate space */
 
-  uint64_t dataalloc = memchunk;
+  uint64_t dataalloc {memchunk};
   datap = static_cast<char *>(xmalloc(dataalloc));
-  uint64_t datalen = 0;
+  uint64_t datalen {0};
 
   longest = 0;
   longestheader = 0;
@@ -366,7 +366,7 @@ void db_read(const char * filename)
   nucleotides = 0;
   headerchars = 0;
 
-  FILE * fp = nullptr;
+  FILE * fp {nullptr};
   if (filename)
     {
       fp = fopen_input(filename);
@@ -463,7 +463,7 @@ void db_read(const char * filename)
 
       /* store a dummy sequence length */
 
-      unsigned int length = 0;
+      unsigned int length {0};
 
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
@@ -586,19 +586,19 @@ void db_read(const char * filename)
 
   /* set up hash to check for unique headers */
 
-  uint64_t hdrhashsize = 2 * sequences;
+  uint64_t hdrhashsize {2 * sequences};
 
   auto * * hdrhashtable =
     static_cast<seqinfo_t **>(xmalloc(hdrhashsize * sizeof(seqinfo_t *)));
   memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
 
-  uint64_t duplicatedidentifiers = 0;
+  uint64_t duplicatedidentifiers {0};
 
   /* set up hash to check for unique sequences */
 
-  uint64_t seqhashsize = 2 * sequences;
+  uint64_t seqhashsize {2 * sequences};
 
-  seqinfo_t * * seqhashtable = nullptr;
+  seqinfo_t * * seqhashtable {nullptr};
 
   if (opt_differences > 1)
     {
@@ -610,13 +610,13 @@ void db_read(const char * filename)
   /* create indices */
 
   seqindex = static_cast<seqinfo_t *>(xmalloc(sequences * sizeof(seqinfo_t)));
-  seqinfo_t * seqindex_p = seqindex;
+  seqinfo_t * seqindex_p {seqindex};
 
-  seqinfo_t * lastseq = nullptr;
+  seqinfo_t * lastseq {nullptr};
 
   bool presorted {true};
 
-  char * p = datap;
+  char * p {datap};
   progress_init("Indexing database:", sequences);
   for(auto i = 0ULL; i < sequences; i++)
     {
@@ -688,7 +688,7 @@ void db_read(const char * filename)
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
-      seqinfo_t * hdrfound = nullptr;
+      seqinfo_t * hdrfound {nullptr};
 
       while ((hdrfound = hdrhashtable[hdrhashindex]))
         {
@@ -741,7 +741,7 @@ void db_read(const char * filename)
           /* but only for d>1. Handled internally for d=1.    */
 
           uint64_t seqhashindex = seqindex_p->seqhash % seqhashsize;
-          seqinfo_t * seqfound = nullptr;
+          seqinfo_t * seqfound {nullptr};
 
           while ((seqfound = seqhashtable[seqhashindex]))
             {
@@ -819,7 +819,7 @@ void db_qgrams_init()
   qgrams = static_cast<qgramvector_t *>
     (xmalloc(sequences * sizeof(qgramvector_t)));
 
-  seqinfo_t * seqindex_p = seqindex;
+  seqinfo_t * seqindex_p {seqindex};
   progress_init("Find qgram vects: ", sequences);
   for(auto i = 0U; i < sequences; i++)
     {
