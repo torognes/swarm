@@ -27,7 +27,7 @@ static const char * progress_prompt;
 static uint64_t progress_next;
 static uint64_t progress_size;
 static uint64_t progress_chunk;
-static const uint64_t progress_granularity = 200;
+static const uint64_t progress_granularity {200};
 const size_t memalignment = 16;
 
 void progress_init(const char * prompt, uint64_t size)
@@ -84,7 +84,7 @@ void * xmalloc(size_t size)
   if (size == 0) {
     size = 1;
   }
-  void * t = nullptr;
+  void * t {nullptr};
 #ifdef _WIN32
   t = _aligned_malloc(size, memalignment);
 #else
@@ -148,7 +148,7 @@ FILE * fopen_input(const char * filename)
 FILE * fopen_output(const char * filename)
 {
   /* open the output stream given by filename, but use stdout if name is - */
-  FILE * output_stream = nullptr;
+  FILE * output_stream {nullptr};
 
   if (strcmp(filename, "-") == 0) {
     int fd = dup(STDOUT_FILENO);
