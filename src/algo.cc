@@ -207,7 +207,7 @@ void algo_run()
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
           unsigned ampid = amps[swarmed+i].ampliconid;
-          if ((opt_no_otu_breaking != 0) || (db_getabundance(ampid) <= abundance))
+          if ((opt_no_otu_breaking) || (db_getabundance(ampid) <= abundance))
             {
               qgramamps[i] = ampid;
               listlen++;
@@ -352,7 +352,7 @@ void algo_run()
                   uint64_t targetampliconid = amps[i].ampliconid;
                   if ((amps[i].diffestimate <=
                        subseedradius + opt_differences) &&
-                      ((opt_no_otu_breaking != 0) ||
+                      ((opt_no_otu_breaking) ||
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
                     {

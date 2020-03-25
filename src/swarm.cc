@@ -49,10 +49,10 @@ bool opt_help {false};
 int64_t opt_match_reward;
 int64_t opt_mismatch_penalty;
 bool opt_mothur {false};
-int64_t opt_no_otu_breaking;
+bool opt_no_otu_breaking {false};
 int64_t opt_threads;
-int64_t opt_usearch_abundance;
-int64_t opt_version;
+bool opt_usearch_abundance {false};
+bool opt_version {false};
 
 int64_t penalty_factor;
 int64_t penalty_gapextend;
@@ -336,14 +336,14 @@ void args_init(int argc, char **argv)
   opt_mismatch_penalty = 4;
   opt_mothur = false;
   opt_network_file = nullptr;
-  opt_no_otu_breaking = 0;
+  opt_no_otu_breaking = false;
   opt_output_file = DASH_FILENAME;
   opt_seeds = nullptr;
   opt_statistics_file = nullptr;
   opt_threads = 1;
   opt_uclust_file = nullptr;
-  opt_usearch_abundance = 0;
-  opt_version = 0;
+  opt_usearch_abundance = false;
+  opt_version = false;
   constexpr unsigned int min_ceiling {8};
   constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
 
@@ -479,7 +479,7 @@ void args_init(int argc, char **argv)
 
       case 'n':
         /* no-otu-breaking */
-        opt_no_otu_breaking = 1;
+        opt_no_otu_breaking = true;
         break;
 
       case 'o':
@@ -514,7 +514,7 @@ void args_init(int argc, char **argv)
 
       case 'v':
         /* version */
-        opt_version = 1;
+        opt_version = true;
         break;
 
       case 'w':
@@ -534,7 +534,7 @@ void args_init(int argc, char **argv)
 
       case 'z':
         /* usearch-abundance */
-        opt_usearch_abundance = 1;
+        opt_usearch_abundance = true;
         break;
 
       default:

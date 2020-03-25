@@ -557,7 +557,7 @@ inline void find_variant_matches(unsigned int seed,
 
           /* avoid self */
           if (seed != amp) {
-            if ((opt_no_otu_breaking != 0) ||
+            if ((opt_no_otu_breaking) ||
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
                 char * seed_sequence = db_getsequence(seed);
