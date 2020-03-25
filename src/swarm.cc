@@ -42,7 +42,7 @@ int64_t opt_boundary;
 int64_t opt_ceiling;
 bool opt_disable_sse3 {false};
 int64_t opt_differences;
-int64_t opt_fastidious;
+bool opt_fastidious {false};
 int64_t opt_gap_extension_penalty;
 int64_t opt_gap_opening_penalty;
 int64_t opt_help;
@@ -326,7 +326,7 @@ void args_init(int argc, char **argv)
   opt_ceiling = 0;
   opt_differences = 1;
   opt_disable_sse3 = false;
-  opt_fastidious = 0;
+  opt_fastidious = false;
   opt_gap_extension_penalty = 4;
   opt_gap_opening_penalty = 12;
   opt_help = 0;
@@ -444,7 +444,7 @@ void args_init(int argc, char **argv)
 
       case 'f':
         /* fastidious */
-        opt_fastidious = 1;
+        opt_fastidious = true;
         break;
 
       case 'g':

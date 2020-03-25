@@ -168,7 +168,7 @@ extern int64_t opt_boundary;
 extern int64_t opt_ceiling;
 extern int64_t opt_differences;
 extern bool opt_disable_sse3;
-extern int64_t opt_fastidious;
+extern bool opt_fastidious;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
 extern int64_t opt_help;
