@@ -67,56 +67,56 @@ static struct graft_cand
 } * graft_array = nullptr;
 
 /* Information about potential grafts */
-static int64_t graft_candidates = 0;
+static int64_t graft_candidates {0};
 static pthread_mutex_t graft_mutex;
 
 constexpr unsigned int no_swarm {UINT_MAX};
 
-static unsigned int current_swarm_tail = 0;
+static unsigned int current_swarm_tail {0};
 
-static uint64_t swarminfo_alloc = 0;
+static uint64_t swarminfo_alloc {0};
 
 /* overall statistics */
-static unsigned int maxgen = 0;
-static unsigned int largest = 0;
-static uint64_t swarmcount_adjusted = 0;
+static unsigned int maxgen {0};
+static unsigned int largest {0};
+static uint64_t swarmcount_adjusted {0};
 
 /* per swarm statistics */
-static unsigned int singletons = 0;
-static uint64_t abundance_sum = 0; /* = mass */
-static unsigned int swarmsize = 0;
-static unsigned int swarm_maxgen = 0;
-static uint64_t swarm_sumlen = 0;
+static unsigned int singletons {0};
+static uint64_t abundance_sum {0}; /* = mass */
+static unsigned int swarmsize {0};
+static unsigned int swarm_maxgen {0};
+static uint64_t swarm_sumlen {0};
 
-static unsigned int * global_hits_data = nullptr;
-static unsigned int global_hits_alloc = 0;
-static unsigned int global_hits_count = 0;
+static unsigned int * global_hits_data {nullptr};
+static unsigned int global_hits_alloc {0};
+static unsigned int global_hits_count {0};
 
-static unsigned int longestamplicon = 0;
+static unsigned int longestamplicon {0};
 
-static unsigned int amplicons = 0;
+static unsigned int amplicons {0};
 
 static pthread_mutex_t heavy_mutex;
-static uint64_t heavy_variants = 0;
-static uint64_t heavy_progress = 0;
-static uint64_t heavy_amplicon_count = 0;
-static unsigned int heavy_amplicon = 0;
+static uint64_t heavy_variants {0};
+static uint64_t heavy_progress {0};
+static uint64_t heavy_amplicon_count {0};
+static unsigned int heavy_amplicon {0};
 
 static pthread_mutex_t light_mutex;
-static uint64_t light_variants = 0;
-static uint64_t light_progress = 0;
-static uint64_t light_amplicon_count = 0;
-static unsigned int light_amplicon = 0;
+static uint64_t light_variants {0};
+static uint64_t light_progress {0};
+static uint64_t light_amplicon_count {0};
+static unsigned int light_amplicon {0};
 
-static uint64_t network_alloc = one_megabyte;
-static unsigned int * network = nullptr;
-static unsigned int network_count = 0;
+static uint64_t network_alloc {one_megabyte};
+static unsigned int * network {nullptr};
+static unsigned int network_count {0};
 static pthread_mutex_t network_mutex;
-static unsigned int network_amp = 0;
+static unsigned int network_amp {0};
 
-static struct bloom_s * bloom_a = nullptr; // Bloom filter for amplicons
+static struct bloom_s * bloom_a {nullptr}; // Bloom filter for amplicons
 
-static struct bloomflex_s * bloom_f = nullptr; // Huge Bloom filter for fastidious
+static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidious
 
 void attach(unsigned int seed, unsigned int amp);
 void add_graft_candidate(unsigned int seed, unsigned int amp);
@@ -176,7 +176,7 @@ inline void hash_insert(unsigned int amp)
   /* find the first empty bucket */
   uint64_t hash = db_gethash(amp);
   uint64_t j = hash_getindex(hash);
-  bool duplicate = false;
+  bool duplicate {false};
   while (hash_is_occupied(j))
     {
       if (hash_compare_value(j, hash) &&

@@ -55,7 +55,7 @@ inline bool seq_identical(char * a,
   /* compare parts of two compressed sequences a and b */
   /* return false if different, true if identical */
 
-  bool equal = true;
+  bool equal {true};
   for(auto i = 0U; i < length; i++) {
     equal = equal && (nt_extract(a, a_start + i) ==
                       nt_extract(b, b_start + i));
