@@ -46,18 +46,18 @@ static signed char map_nt[UINT8_MAX + 1] =
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
   };
 
-static unsigned int sequences = 0;
-static uint64_t nucleotides = 0;
-static uint64_t headerchars = 0;
-static unsigned int longest = 0;
-static unsigned int longestheader = 0;
-static char * datap = nullptr;
-static int missingabundance = 0;
-static uint64_t missingabundance_lineno = 0;
-static char * missingabundance_header = nullptr;
+static unsigned int sequences {0};
+static uint64_t nucleotides {0};
+static uint64_t headerchars {0};
+static unsigned int longest {0};
+static unsigned int longestheader {0};
+static char * datap {nullptr};
+static int missingabundance {0};
+static uint64_t missingabundance_lineno {0};
+static char * missingabundance_header {nullptr};
 
-seqinfo_t * seqindex = nullptr;
-qgramvector_t * qgrams = nullptr;
+seqinfo_t * seqindex {nullptr};
+qgramvector_t * qgrams {nullptr};
 
 int db_compare_abundance(const void * a, const void * b);
 
@@ -402,7 +402,7 @@ void db_read(const char * filename)
     line[0] = 0;
   }
 
-  unsigned int lineno = 1;
+  unsigned int lineno {1};
 
   progress_init("Reading sequences:", static_cast<uint64_t>(filesize));
 
