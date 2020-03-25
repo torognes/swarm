@@ -109,7 +109,7 @@ void dereplicate()
       uint64_t j = hash & derep_hash_mask;
       struct bucket * bp = hashtable + j;
 
-      while ((bp->mass) &&
+      while (((bp->mass) != 0U) &&
              ((bp->hash != hash) ||
               (seqlen != db_getsequencelen(bp->seqno_first)) ||
               (memcmp(seq,
@@ -127,7 +127,7 @@ void dereplicate()
 
       uint64_t ab = db_getabundance(i);
 
-      if (bp->mass)
+      if ((bp->mass) != 0U)
         {
           /* at least one identical sequence already */
           nextseqtab[bp->seqno_last] = i;
@@ -184,7 +184,7 @@ void dereplicate()
       fprint_id(outfile, seed);
       unsigned int a = nextseqtab[seed];
 
-      while (a)
+      while (a != 0U)
         {
           if (opt_mothur) {
             fputc(',', outfile);
@@ -212,7 +212,7 @@ void dereplicate()
 
   /* dump seeds in fasta format with sum of abundances */
 
-  if (opt_seeds)
+  if (opt_seeds != nullptr)
     {
       progress_init("Writing seeds:    ", swarmcount);
       for(auto i = 0U; i < swarmcount; i++)
@@ -229,7 +229,7 @@ void dereplicate()
 
   /* output swarm in uclust format */
 
-  if (uclustfile)
+  if (uclustfile != nullptr)
     {
       progress_init("Writing UCLUST:   ", swarmcount);
 
@@ -253,7 +253,7 @@ void dereplicate()
 
           unsigned int a = nextseqtab[seed];
 
-          while (a)
+          while (a != 0U)
             {
               fprintf(uclustfile,
                       "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
@@ -275,7 +275,7 @@ void dereplicate()
 
   /* output internal structure to file */
 
-  if (opt_internal_structure)
+  if (opt_internal_structure != nullptr)
     {
       progress_init("Writing structure:", swarmcount);
 
@@ -284,7 +284,7 @@ void dereplicate()
           struct bucket * sp = hashtable + i;
           uint64_t seed = sp->seqno_first;
           unsigned int a = nextseqtab[seed];
-          while (a)
+          while (a != 0U)
             {
               fprint_id_noabundance(internal_structure_file, seed);
               fprintf(internal_structure_file, "\t");
@@ -299,7 +299,7 @@ void dereplicate()
 
   /* output statistics to file */
 
-  if (statsfile)
+  if (statsfile != nullptr)
     {
       progress_init("Writing stats:    ", swarmcount);
       for(auto i = 0ULL; i < swarmcount; i++)

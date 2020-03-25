@@ -690,7 +690,7 @@ void db_read(const char * filename)
 
       seqinfo_t * hdrfound {nullptr};
 
-      while ((hdrfound = hdrhashtable[hdrhashindex]))
+      while ((hdrfound = hdrhashtable[hdrhashindex]) != nullptr)
         {
           if (hdrfound->hdrhash == hdrhash)
             {
@@ -719,7 +719,7 @@ void db_read(const char * filename)
           hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
         }
 
-      if (hdrfound)
+      if (hdrfound != nullptr)
         {
           duplicatedidentifiers++;
           fprintf(stderr, "\nError: Duplicated sequence identifier: %.*s\n\n",
@@ -743,7 +743,7 @@ void db_read(const char * filename)
           uint64_t seqhashindex = seqindex_p->seqhash % seqhashsize;
           seqinfo_t * seqfound {nullptr};
 
-          while ((seqfound = seqhashtable[seqhashindex]))
+          while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
             {
               if ((seqfound->seqhash == seqindex_p->seqhash) &&
                   (seqfound->seqlen == seqindex_p->seqlen) &&
@@ -755,7 +755,7 @@ void db_read(const char * filename)
               seqhashindex = (seqhashindex + 1) % seqhashsize;
             }
 
-          if (seqfound)
+          if (seqfound != nullptr)
             {
               duplicates_found++;
               break;
@@ -767,7 +767,7 @@ void db_read(const char * filename)
       progress_update(i);
     }
 
-  if (duplicates_found)
+  if (duplicates_found != 0U)
     {
       fprintf(logfile,
               "\n\n"
@@ -782,7 +782,7 @@ void db_read(const char * filename)
 
   progress_done();
 
-  if (missingabundance)
+  if (missingabundance != 0)
     {
       fprintf(stderr,
               "\nError: Abundance annotations not found for %d sequences, starting on line %" PRIu64 ".\n"
@@ -807,7 +807,7 @@ void db_read(const char * filename)
 
   xfree(hdrhashtable);
 
-  if (seqhashtable)
+  if (seqhashtable != nullptr)
     {
       xfree(seqhashtable);
       seqhashtable = nullptr;
@@ -890,10 +890,10 @@ void db_free()
 {
   zobrist_exit();
 
-  if (datap) {
+  if (datap != nullptr) {
     xfree(datap);
   }
-  if (seqindex) {
+  if (seqindex != nullptr) {
     xfree(seqindex);
   }
 }
