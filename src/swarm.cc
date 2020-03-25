@@ -48,7 +48,7 @@ int64_t opt_gap_opening_penalty;
 bool opt_help {false};
 int64_t opt_match_reward;
 int64_t opt_mismatch_penalty;
-int64_t opt_mothur;
+bool opt_mothur {false};
 int64_t opt_no_otu_breaking;
 int64_t opt_threads;
 int64_t opt_usearch_abundance;
@@ -334,7 +334,7 @@ void args_init(int argc, char **argv)
   opt_log = nullptr;
   opt_match_reward = 5;
   opt_mismatch_penalty = 4;
-  opt_mothur = 0;
+  opt_mothur = false;
   opt_network_file = nullptr;
   opt_no_otu_breaking = 0;
   opt_output_file = DASH_FILENAME;
@@ -494,7 +494,7 @@ void args_init(int argc, char **argv)
 
       case 'r':
         /* mothur */
-        opt_mothur = 1;
+        opt_mothur = true;
         break;
 
       case 's':

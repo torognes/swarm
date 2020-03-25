@@ -564,7 +564,7 @@ void algo_run()
       char sep_amplicons {0};
       char sep_swarms {0};
 
-      if (opt_mothur != 0)
+      if (opt_mothur)
         {
           /* mothur list file output */
           sep_amplicons = ',';

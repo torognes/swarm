@@ -1139,7 +1139,7 @@ void algo_d1_run()
 
   progress_init("Writing swarms:   ", swarmcount);
 
-  if (opt_mothur != 0) {
+  if (opt_mothur) {
     fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount_adjusted);
   }
 
@@ -1150,7 +1150,7 @@ void algo_d1_run()
           unsigned int seed = swarminfo[i].seed;
           for(auto a = seed; a != no_swarm; a = ampinfo[a].next)
             {
-              if (opt_mothur != 0)
+              if (opt_mothur)
                 {
                   if (a == seed) {
                     fputc('\t', outfile);
@@ -1167,14 +1167,14 @@ void algo_d1_run()
                 }
               fprint_id(outfile, a);
             }
-          if (opt_mothur == 0) {
+          if (!opt_mothur) {
             fputc('\n', outfile);
           }
         }
       progress_update(i+1);
     }
 
-  if (opt_mothur != 0) {
+  if (opt_mothur) {
     fputc('\n', outfile);
   }
 

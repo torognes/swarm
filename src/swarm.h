@@ -174,7 +174,7 @@ extern int64_t opt_gap_opening_penalty;
 extern bool opt_help;
 extern int64_t opt_match_reward;
 extern int64_t opt_mismatch_penalty;
-extern int64_t opt_mothur;
+extern bool opt_mothur;
 extern int64_t opt_no_otu_breaking;
 extern int64_t opt_threads;
 extern int64_t opt_usearch_abundance;
