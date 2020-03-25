@@ -697,14 +697,14 @@ void search16(WORD * * q_start,
   F0 = v_zero;
   H0 = v_zero;
 
-  int easy {0};
+  auto easy {false};
 
   uint64_t * dir = dirbuffer;
 
   while(true)
     {
 
-      if (easy != 0)
+      if (easy)
         {
           // fill all channels
 
@@ -721,7 +721,7 @@ void search16(WORD * * q_start,
                   }
                 }
               if (d_pos[c] == d_length[c]) {
-                easy = 0;
+                easy = false;
               }
             }
 
@@ -742,7 +742,7 @@ void search16(WORD * * q_start,
           // One or more sequences ended in the previous block
           // We have to switch over to a new sequence
 
-          easy = 1;
+          easy = true;
 
           M = v_zero;
           T = T0;
@@ -763,7 +763,7 @@ void search16(WORD * * q_start,
                       }
                     }
                   if (d_pos[c] == d_length[c]) {
-                    easy = 0;
+                    easy = false;
                   }
                 }
               else
@@ -841,7 +841,7 @@ void search16(WORD * * q_start,
                           }
                         }
                       if (d_pos[c] == d_length[c]) {
-                        easy = 0;
+                        easy = false;
                       }
                     }
                   else

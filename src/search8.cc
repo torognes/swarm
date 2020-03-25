@@ -923,13 +923,13 @@ void search8(BYTE * * q_start,
   F0 = v_zero;
   H0 = v_zero;
 
-  int easy {0};
+  auto easy {false};
 
   uint64_t * dir = dirbuffer;
 
   while(true)
     {
-      if (easy != 0)
+      if (easy)
         {
           // fill all channels
 
@@ -946,7 +946,7 @@ void search8(BYTE * * q_start,
                   }
                 }
               if (d_pos[c] == d_length[c]) {
-                easy = 0;
+                easy = false;
               }
             }
 
@@ -967,7 +967,7 @@ void search8(BYTE * * q_start,
           // One or more sequences ended in the previous block
           // We have to switch over to a new sequence
 
-          easy = 1;
+          easy = true;
 
           M = v_zero;
           T = T0;
@@ -988,7 +988,7 @@ void search8(BYTE * * q_start,
                       }
                     }
                   if (d_pos[c] == d_length[c]) {
-                    easy = 0;
+                    easy = false;
                   }
                 }
               else
@@ -1063,7 +1063,7 @@ void search8(BYTE * * q_start,
                           }
                         }
                       if (d_pos[c] == d_length[c]) {
-                        easy = 0;
+                        easy = false;
                       }
                     }
                   else
