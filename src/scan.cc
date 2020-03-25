@@ -61,7 +61,7 @@ void search_alloc(struct search_data * sdp);
 void search_free(struct search_data * sdp);
 void search_init(struct search_data * sdp);
 void search_chunk(struct search_data * sdp, int64_t bits);
-int search_getwork(uint64_t * countref, uint64_t * firstref);
+bool search_getwork(uint64_t * countref, uint64_t * firstref);
 void search_worker_core(int64_t t);
 void * search_worker(void * vp);
 
@@ -185,12 +185,12 @@ void search_chunk(struct search_data * sdp, int64_t bits)
  }
 }
 
-int search_getwork(uint64_t * countref, uint64_t * firstref)
+bool search_getwork(uint64_t * countref, uint64_t * firstref)
 {
   // * countref = how many sequences to search
   // * firstref = index into master_targets/scores/diffs where thread should start
 
-  int status = 0;
+  auto status {false};
 
   pthread_mutex_lock(&scan_mutex);
 
@@ -204,7 +204,7 @@ int search_getwork(uint64_t * countref, uint64_t * firstref)
 
       master_next += chunksize;
       remainingchunks--;
-      status = 1;
+      status = true;
     }
 
   pthread_mutex_unlock(&scan_mutex);
@@ -232,7 +232,7 @@ void master_dump()
 void search_worker_core(int64_t t)
 {
   search_init(sd+t);
-  while(search_getwork(& sd[t].target_count, & sd[t].target_index) != 0) {
+  while(search_getwork(& sd[t].target_count, & sd[t].target_index)) {
     search_chunk(sd+t, master_bits);
   }
 }
