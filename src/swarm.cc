@@ -161,7 +161,7 @@ void cpu_features_show()
     fprintf(logfile, " sse3");
   }
   if (ssse3_present != 0) {
-    fprintf(logfile, " ssse3");
+    fprintf(logfile, " ssse3"); // Supplemental SSSE3, introduced in 2006
   }
   if (sse41_present != 0) {
     fprintf(logfile, " sse4.1");
