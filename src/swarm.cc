@@ -148,34 +148,34 @@ void cpu_features_detect()
 void cpu_features_show()
 {
   fprintf(logfile, "CPU features:     ");
-  if (mmx_present){
+  if (mmx_present != 0){
     fprintf(logfile, " mmx");
   }
-  if (sse_present) {
+  if (sse_present != 0) {
     fprintf(logfile, " sse");
   }
-  if (sse2_present) {
+  if (sse2_present != 0) {
     fprintf(logfile, " sse2");
   }
-  if (sse3_present) {
+  if (sse3_present != 0) {
     fprintf(logfile, " sse3");
   }
-  if (ssse3_present) {
+  if (ssse3_present != 0) {
     fprintf(logfile, " ssse3");
   }
-  if (sse41_present) {
+  if (sse41_present != 0) {
     fprintf(logfile, " sse4.1");
   }
-  if (sse42_present) {
+  if (sse42_present != 0) {
     fprintf(logfile, " sse4.2");
   }
-  if (popcnt_present) {
+  if (popcnt_present != 0) {
     fprintf(logfile, " popcnt");
   }
-  if (avx_present) {
+  if (avx_present != 0) {
     fprintf(logfile, " avx");
   }
-  if (avx2_present) {
+  if (avx2_present != 0) {
     fprintf(logfile, " avx2");
   }
   fprintf(logfile, "\n");
