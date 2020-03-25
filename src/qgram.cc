@@ -217,9 +217,9 @@ uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
 
 uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 {
-  return popcnt_present ? \
-    compareqgramvectors_64(a,b) : \
-    compareqgramvectors_128(a,b);
+  return (popcnt_present != 0) ?  \
+    compareqgramvectors_64(a, b) : \
+    compareqgramvectors_128(a, b);
 }
 
 #else

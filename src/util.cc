@@ -37,7 +37,7 @@ void progress_init(const char * prompt, uint64_t size)
   progress_chunk = size < progress_granularity ?
     1 : size / progress_granularity;
   progress_next = 1;
-  if (opt_log) {
+  if (opt_log != nullptr) {
     fprintf(logfile, "%s", prompt);
   }
   else {
@@ -47,7 +47,7 @@ void progress_init(const char * prompt, uint64_t size)
 
 void progress_update(uint64_t progress)
 {
-  if ((!opt_log) && (progress >= progress_next))
+  if ((opt_log == nullptr) && (progress >= progress_next))
     {
       fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
               100.0 * static_cast<double>(progress)
@@ -59,7 +59,7 @@ void progress_update(uint64_t progress)
 
 void progress_done()
 {
-  if (opt_log) {
+  if (opt_log != nullptr) {
     fprintf(logfile, " %.0f%%\n", 100.0);
   }
   else {
@@ -88,11 +88,11 @@ void * xmalloc(size_t size)
 #ifdef _WIN32
   t = _aligned_malloc(size, memalignment);
 #else
-  if (posix_memalign(& t, memalignment, size)) {
+  if (posix_memalign(& t, memalignment, size) != 0) {
     t = nullptr;
   }
 #endif
-  if (!t) {
+  if (t == nullptr) {
     fatal("Unable to allocate enough memory.");
   }
   return t;
@@ -108,7 +108,7 @@ void * xrealloc(void *ptr, size_t size)
 #else
   void * t = realloc(ptr, size);
 #endif
-  if (!t) {
+  if (t == nullptr) {
     fatal("Unable to reallocate enough memory.");
   }
   return t;
@@ -116,7 +116,7 @@ void * xrealloc(void *ptr, size_t size)
 
 void xfree(void * ptr)
 {
-  if (ptr)
+  if (ptr != nullptr)
     {
 #ifdef _WIN32
       _aligned_free(ptr);

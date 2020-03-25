@@ -232,7 +232,7 @@ void master_dump()
 void search_worker_core(int64_t t)
 {
   search_init(sd+t);
-  while(search_getwork(& sd[t].target_count, & sd[t].target_index)) {
+  while(search_getwork(& sd[t].target_count, & sd[t].target_index) != 0) {
     search_chunk(sd+t, master_bits);
   }
 }

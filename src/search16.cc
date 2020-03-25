@@ -565,20 +565,20 @@ uint64_t backtrack_16(char * qseq,
                      + static_cast<uint64_t>(4 * i + (j & 3)))
                     % dirbuffersize];
 
-      if ((op == 'I') && (d & maskextleft))
+      if ((op == 'I') && ((d & maskextleft) != 0U))
         {
           j--;
         }
-      else if ((op == 'D') && (d & maskextup))
+      else if ((op == 'D') && ((d & maskextup) != 0U))
         {
           i--;
         }
-      else if (d & maskleft)
+      else if ((d & maskleft) != 0U)
         {
           j--;
           op = 'I';
         }
-      else if (d & maskup)
+      else if ((d & maskup) != 0U)
         {
           i--;
           op = 'D';
@@ -704,7 +704,7 @@ void search16(WORD * * q_start,
   while(true)
     {
 
-      if (easy)
+      if (easy != 0)
         {
           // fill all channels
 
@@ -726,7 +726,7 @@ void search16(WORD * * q_start,
             }
 
 #ifdef __x86_64__
-          if (ssse3_present) {
+          if (ssse3_present != 0) {
             dprofile_shuffle16(dprofile, score_matrix, dseq);
           }
           else
@@ -865,7 +865,7 @@ void search16(WORD * * q_start,
           }
 
 #ifdef __x86_64__
-          if (ssse3_present) {
+          if (ssse3_present != 0) {
             dprofile_shuffle16(dprofile, score_matrix, dseq);
           }
           else

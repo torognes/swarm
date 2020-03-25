@@ -49,7 +49,7 @@ void pushop(char newop, char ** cigarendp, char * op, int * count)
 
 void finishop(char ** cigarendp, char * op, int * count)
 {
-  if ((op) && (count))
+  if ((op != nullptr) && (count != nullptr))
   {
     *--*cigarendp = *op;
     if (*count > 1)
@@ -209,19 +209,19 @@ void nw(char * dseq,
 
       alength++;
 
-      if ((op == 'I') && (d & maskextleft))
+      if ((op == 'I') && ((d & maskextleft) != 0))
         {
           score += gapextend;
           j--;
           pushop('I', &cigarend, &op, &count);
         }
-      else if ((op == 'D') && (d & maskextup))
+      else if ((op == 'D') && ((d & maskextup) != 0))
         {
           score += gapextend;
           i--;
           pushop('D', &cigarend, &op, &count);
         }
-      else if (d & maskleft)
+      else if ((d & maskleft) != 0)
         {
           score += gapextend;
           if (op != 'I') {
@@ -230,7 +230,7 @@ void nw(char * dseq,
           j--;
           pushop('I', &cigarend, &op, &count);
         }
-      else if (d & maskup)
+      else if ((d & maskup) != 0)
         {
           score += gapextend;
           if (op != 'D') {
