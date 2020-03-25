@@ -40,7 +40,7 @@ int64_t opt_append_abundance;
 int64_t opt_bloom_bits;
 int64_t opt_boundary;
 int64_t opt_ceiling;
-int64_t opt_disable_sse3;
+bool opt_disable_sse3 {false};
 int64_t opt_differences;
 int64_t opt_fastidious;
 int64_t opt_gap_extension_penalty;
@@ -325,7 +325,7 @@ void args_init(int argc, char **argv)
   opt_boundary = 3;
   opt_ceiling = 0;
   opt_differences = 1;
-  opt_disable_sse3 = 0;
+  opt_disable_sse3 = false;
   opt_fastidious = 0;
   opt_gap_extension_penalty = 4;
   opt_gap_opening_penalty = 12;
@@ -524,7 +524,7 @@ void args_init(int argc, char **argv)
 
       case 'x':
         /* disable-sse3 */
-        opt_disable_sse3 = 1;
+        opt_disable_sse3 = true;
         break;
 
       case 'y':
