@@ -78,7 +78,7 @@ void fprint_id(FILE * stream, uint64_t x)
   char * h = sp->header;
   int hdrlen = sp->headerlen;
 
-  if (opt_append_abundance && (sp->abundance_start == sp->abundance_end)) {
+  if (opt_append_abundance != 0 && (sp->abundance_start == sp->abundance_end)) {
     if (opt_usearch_abundance) {
       fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, h, sp->abundance);
     }
@@ -177,13 +177,13 @@ bool find_swarm_abundance(const char * header,
 
   const char * digit_chars = "0123456789";
 
-  if (!header) {
+  if (header == nullptr) {
     return false;
   }
 
   const char * us = strrchr(header, '_');
 
-  if (! us) {
+  if (us == nullptr) {
     return false;
   }
 
@@ -193,7 +193,7 @@ bool find_swarm_abundance(const char * header,
     return false;
   }
 
-  if (us[digits + 1]) {
+  if (us[digits + 1] != 0) {
     return false;
   }
 
@@ -217,7 +217,7 @@ bool find_usearch_abundance(const char * header,
     in the header string.
   */
 
-  if (! header) {
+  if (header == nullptr) {
     return false;
   }
 
@@ -333,7 +333,7 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
       start = sp->headerlen;
       end = start;
 
-      if (opt_append_abundance) {
+      if (opt_append_abundance != 0) {
         abundance = opt_append_abundance;
       }
       else
@@ -367,10 +367,10 @@ void db_read(const char * filename)
   headerchars = 0;
 
   FILE * fp {nullptr};
-  if (filename)
+  if (filename != nullptr)
     {
       fp = fopen_input(filename);
-      if (!fp)
+      if (fp == nullptr)
         {
           fprintf(stderr, "\nError: Unable to open input data file (%s).\n", filename);
           exit(1);
@@ -384,7 +384,7 @@ void db_read(const char * filename)
 
   struct stat fs;
 
-  if (fstat(fileno(fp), & fs))
+  if (fstat(fileno(fp), & fs) != 0)
     {
       fprintf(stderr, "\nUnable to fstat on input file (%s)\n", filename);
       exit(1);
@@ -398,7 +398,7 @@ void db_read(const char * filename)
 
   char line[linealloc];
   line[0] = 0;
-  if (!fgets(line, linealloc, fp)) {
+  if (fgets(line, linealloc, fp) == nullptr) {
     line[0] = 0;
   }
 
@@ -406,7 +406,7 @@ void db_read(const char * filename)
 
   progress_init("Reading sequences:", static_cast<uint64_t>(filesize));
 
-  while(line[0])
+  while(line[0] != 0)
     {
       /* read header */
       /* the header ends at a space, cr, lf or null character */
@@ -455,7 +455,7 @@ void db_read(const char * filename)
       /* get next line */
 
       line[0] = 0;
-      if (!fgets(line, linealloc, fp)) {
+      if (fgets(line, linealloc, fp) == nullptr) {
         line[0] = 0;
       }
       lineno++;
@@ -481,11 +481,11 @@ void db_read(const char * filename)
       unsigned int nt_bufferlen {0};
       const unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
 
-      while (line[0] && (line[0] != '>'))
+      while ((line[0] != 0) && (line[0] != '>'))
         {
           unsigned char c {0};
           char * p = line;
-          while((c = static_cast<unsigned char>(*p++)))
+          while((c = static_cast<unsigned char>(*p++)) != 0U)
 	    {
               signed char m {0};
               if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
@@ -528,7 +528,7 @@ void db_read(const char * filename)
 	    }
 
           line[0] = 0;
-          if (!fgets(line, linealloc, fp)) {
+          if (fgets(line, linealloc, fp) == nullptr) {
             line[0] = 0;
           }
           lineno++;
@@ -646,7 +646,7 @@ void db_read(const char * filename)
 
       /* check if the sequences are presorted by abundance and header */
 
-      if (presorted && lastseq)
+      if (presorted && (lastseq != nullptr))
         {
           if (lastseq->abundance < seqindex_p->abundance) {
             presorted = false;
