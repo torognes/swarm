@@ -45,7 +45,7 @@ int64_t opt_differences;
 bool opt_fastidious {false};
 int64_t opt_gap_extension_penalty;
 int64_t opt_gap_opening_penalty;
-int64_t opt_help;
+bool opt_help {false};
 int64_t opt_match_reward;
 int64_t opt_mismatch_penalty;
 int64_t opt_mothur;
@@ -329,7 +329,7 @@ void args_init(int argc, char **argv)
   opt_fastidious = false;
   opt_gap_extension_penalty = 4;
   opt_gap_opening_penalty = 12;
-  opt_help = 0;
+  opt_help = false;
   opt_internal_structure = nullptr;
   opt_log = nullptr;
   opt_match_reward = 5;
@@ -454,7 +454,7 @@ void args_init(int argc, char **argv)
 
       case 'h':
         /* help */
-        opt_help = 1;
+        opt_help = true;
         break;
 
       case 'i':

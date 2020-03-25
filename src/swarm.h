@@ -171,7 +171,7 @@ extern bool opt_disable_sse3;
 extern bool opt_fastidious;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
-extern int64_t opt_help;
+extern bool opt_help;
 extern int64_t opt_match_reward;
 extern int64_t opt_mismatch_penalty;
 extern int64_t opt_mothur;
