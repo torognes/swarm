@@ -966,7 +966,7 @@ void algo_d1_run()
 
   /* fastidious */
 
-  if (opt_fastidious != 0)
+  if (opt_fastidious)
     {
       fprintf(logfile, "\n");
       fprintf(logfile, "Results before fastidious processing:\n");
