@@ -39,10 +39,12 @@ void hash_zap()
 void hash_alloc(uint64_t amplicons)
 {
   constexpr unsigned int hashfillpct {70};
+  constexpr unsigned int one_hundred_pct {100};
   constexpr auto padding {63};  // make sure our final value is >= 64 / 8
   constexpr auto convert_to_bytes {8};
   hash_tablesize = 1;
-  while (100 * amplicons > hashfillpct * hash_tablesize) {
+  // amplicons > 70% hash table size (avoid division to keep working with ints)
+  while (one_hundred_pct * amplicons > hashfillpct * hash_tablesize) {
     hash_tablesize <<= 1;
   }
   hash_mask = hash_tablesize - 1;
