@@ -238,7 +238,12 @@ extern uint64_t duplicates_found;
 inline unsigned char nt_extract(char * seq, uint64_t i)
 {
   // Extract compressed nucleotide in sequence seq at position i
-  return (((reinterpret_cast<uint64_t*>(seq))[i >> 5]) >> ((i & 31) << 1)) & 3;
+  constexpr auto max_nt_per_uint64 {1U << 5};  // 32 nt fit in 64 bits
+  constexpr auto drop_remainder {5U};  // (len+31) % 32 = remainder (drop it)
+  constexpr auto max_range {3U};
+  // outputs four possible values: 0, 1, 2 or 3
+  return (((reinterpret_cast<uint64_t*>(seq))[i >> drop_remainder]) >> \
+          ((i & (max_nt_per_uint64 - 1)) << 1)) & max_range;
 }
 
 inline unsigned int nt_bytelength(unsigned int len)
