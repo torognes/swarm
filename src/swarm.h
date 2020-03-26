@@ -235,7 +235,7 @@ extern uint64_t duplicates_found;
 
 /* inline functions */
 
-inline unsigned char nt_extract(char * seq, uint64_t i)
+inline auto nt_extract(char * seq, uint64_t i) -> unsigned char
 {
   // Extract compressed nucleotide in sequence seq at position i
   constexpr auto max_nt_per_uint64 {1U << 5};  // 32 nt fit in 64 bits
@@ -246,7 +246,7 @@ inline unsigned char nt_extract(char * seq, uint64_t i)
           ((i & (max_nt_per_uint64 - 1)) << 1)) & max_range;
 }
 
-inline unsigned int nt_bytelength(unsigned int len)
+inline auto nt_bytelength(unsigned int len) -> unsigned int
 {
   // Compute number of bytes used for compressed sequence of length len
   // (minimum result is 8 bytes)
@@ -258,22 +258,22 @@ inline unsigned int nt_bytelength(unsigned int len)
 
 /* functions in util.cc */
 
-int64_t gcd(int64_t a, int64_t b);
+auto gcd(int64_t a, int64_t b) -> int64_t;
 [[ noreturn ]] void fatal(const char * msg);
-void * xmalloc(size_t size);
-void * xrealloc(void * ptr, size_t size);
+auto xmalloc(size_t size) -> void *;
+auto xrealloc(void * ptr, size_t size) -> void *;
 void xfree(void * ptr);
 void progress_init(const char * prompt, uint64_t size);
 void progress_update(uint64_t progress);
 void progress_done();
-FILE * fopen_input(const char * filename);
-FILE * fopen_output(const char * filename);
+auto fopen_input(const char * filename) -> FILE *;
+auto fopen_output(const char * filename) -> FILE *;
 
 /* functions in qgram.cc */
 
 void findqgrams(unsigned char * seq, uint64_t seqlen,
                 unsigned char * qgramvector);
-uint64_t qgram_diff(uint64_t a, uint64_t b);
+auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t;
 void qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
@@ -285,27 +285,27 @@ void qgram_diff_done();
 
 void db_read(const char * filename);
 
-unsigned int db_getsequencecount();
-uint64_t db_getnucleotidecount();
+auto db_getsequencecount() -> unsigned int;
+auto db_getnucleotidecount() -> uint64_t;
 
-unsigned int db_getlongestheader();
-unsigned int db_getlongestsequence();
+auto db_getlongestheader() -> unsigned int;
+auto db_getlongestsequence() -> unsigned int;
 
-seqinfo_t * db_getseqinfo(uint64_t seqno);
+auto db_getseqinfo(uint64_t seqno) -> seqinfo_t *;
 
-char * db_getsequence(uint64_t seqno);
-unsigned int db_getsequencelen(uint64_t seqno);
+auto db_getsequence(uint64_t seqno) -> char *;
+auto db_getsequencelen(uint64_t seqno) -> unsigned int;
 
-uint64_t db_gethash(uint64_t seqno);
+auto db_gethash(uint64_t seqno) -> uint64_t;
 
 void db_getsequenceandlength(uint64_t seqno,
                              char ** address,
                              unsigned int * length);
 
-char * db_getheader(uint64_t seqno);
-unsigned int db_getheaderlen(uint64_t seqno);
+auto db_getheader(uint64_t seqno) -> char *;
+auto db_getheaderlen(uint64_t seqno) -> unsigned int;
 
-uint64_t db_getabundance(uint64_t seqno);
+auto db_getabundance(uint64_t seqno) -> uint64_t;
 
 void db_showall();
 void db_free();
@@ -317,7 +317,7 @@ void db_qgrams_done();
 
 void db_fprintseq(FILE * fp, unsigned int a, unsigned int width);
 
-inline unsigned char * db_getqgramvector(uint64_t seqno)
+inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
 {
   return reinterpret_cast<unsigned char*>(qgrams + seqno);
 }
@@ -428,10 +428,10 @@ void dereplicate();
 
 /* functions in arch.cc */
 
-uint64_t arch_get_memused();
-uint64_t arch_get_memtotal();
+auto arch_get_memused() -> uint64_t;
+auto arch_get_memtotal() -> uint64_t;
 void arch_srandom(unsigned int seed);
-uint64_t arch_random();
+auto arch_random() -> uint64_t;
 
 
 /* new header files */

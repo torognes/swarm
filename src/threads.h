@@ -39,7 +39,7 @@ private:
     int64_t work; /* 1: work available, 0: wait, -1: quit */
   } * thread_array;
 
-  static void * worker(void * vp)
+  static auto worker(void * vp) -> void *
   {
     auto * tip = static_cast<struct thread_s *>(vp);
 

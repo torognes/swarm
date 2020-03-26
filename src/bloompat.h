@@ -36,16 +36,16 @@ struct bloom_s
 
 void bloom_zap(struct bloom_s * b);
 
-struct bloom_s * bloom_init(uint64_t size);
+auto bloom_init(uint64_t size) -> struct bloom_s *;
 
 void bloom_exit(struct bloom_s * b);
 
-inline uint64_t * bloom_adr(struct bloom_s * b, uint64_t h)
+inline auto bloom_adr(struct bloom_s * b, uint64_t h) -> uint64_t *
 {
   return b->bitmap + ((h >> bloom_pattern_shift) & b->mask);
 }
 
-inline uint64_t bloom_pat(struct bloom_s * b, uint64_t h)
+inline auto bloom_pat(struct bloom_s * b, uint64_t h) -> uint64_t
 {
   return b->patterns[h & bloom_pattern_mask];
 }
@@ -55,7 +55,7 @@ inline void bloom_set(struct bloom_s * b, uint64_t h)
   * bloom_adr(b, h) &= ~ bloom_pat(b, h);
 }
 
-inline bool bloom_get(struct bloom_s * b, uint64_t h)
+inline auto bloom_get(struct bloom_s * b, uint64_t h) -> bool
 {
   return (* bloom_adr(b, h) & bloom_pat(b, h)) == 0U;
 }

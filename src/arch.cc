@@ -23,7 +23,7 @@
 
 #include "swarm.h"
 
-uint64_t arch_get_memused()
+auto arch_get_memused() -> uint64_t
 {
 #ifdef _WIN32
 
@@ -50,7 +50,7 @@ uint64_t arch_get_memused()
 #endif
 }
 
-uint64_t arch_get_memtotal()
+auto arch_get_memtotal() -> uint64_t
 {
 #ifdef _WIN32
 
@@ -100,7 +100,7 @@ void arch_srandom(unsigned int seed)
 #endif
 }
 
-uint64_t arch_random()
+auto arch_random() -> uint64_t
 {
 #ifdef _WIN32
   return static_cast<uint64_t>(rand());

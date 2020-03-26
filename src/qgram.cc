@@ -78,7 +78,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 
 void qgram_work_diff(thread_info_s * tip);
 void qgram_worker(int64_t t);
-uint64_t compareqgramvectors(unsigned char * a, unsigned char * b);
+auto compareqgramvectors(unsigned char * a, unsigned char * b) -> uint64_t;
 
 #ifdef __aarch64__
 
@@ -120,18 +120,18 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 #define popcnt_asm(x,y)                                         \
   __asm__ __volatile__ ("popcnt %1,%0" : "=r"(y) : "r"(x))
 
-inline uint64_t popcount(uint64_t x)
+inline auto popcount(uint64_t x) -> uint64_t
 {
   uint64_t y {0};
   popcnt_asm(x,y);
   return y;
 }
 
-uint64_t popcount_128(__m128i x);
-uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b);
-uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b);
+auto popcount_128(__m128i x) -> uint64_t;
+auto compareqgramvectors_128(unsigned char * a, unsigned char * b) -> uint64_t;
+auto compareqgramvectors_64(unsigned char * a, unsigned char * b) -> uint64_t;
 
-uint64_t popcount_128(__m128i x)
+auto popcount_128(__m128i x) -> uint64_t
 {
   __m128i mask1 = _mm_set_epi8(0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
                                0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55);
@@ -180,7 +180,7 @@ uint64_t popcount_128(__m128i x)
   return o;
 }
 
-uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b)
+auto compareqgramvectors_128(unsigned char * a, unsigned char * b) -> uint64_t
 {
   /* Count number of different bits */
   /* Uses SSE2 but not POPCNT instruction */
@@ -198,7 +198,7 @@ uint64_t compareqgramvectors_128(unsigned char * a, unsigned char * b)
 }
 
 
-uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
+auto compareqgramvectors_64(unsigned char * a, unsigned char * b) -> uint64_t
 {
   /* Count number of different bits */
   /* Uses the POPCNT instruction, requires CPU with this feature */
@@ -215,7 +215,7 @@ uint64_t compareqgramvectors_64(unsigned char * a, unsigned char * b)
 }
 
 
-uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
+auto compareqgramvectors(unsigned char * a, unsigned char * b) -> uint64_t
 {
   return (popcnt_present != 0) ?  \
     compareqgramvectors_64(a, b) : \
@@ -228,7 +228,7 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 
 #endif
 
-inline uint64_t qgram_diff(uint64_t a, uint64_t b)
+inline auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t
 {
   uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
                                             db_getqgramvector(b));

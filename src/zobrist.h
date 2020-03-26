@@ -28,11 +28,11 @@ void zobrist_init(unsigned int n);
 
 void zobrist_exit();
 
-uint64_t zobrist_hash(unsigned char * s, unsigned int len);
-uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len);
-uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len);
+auto zobrist_hash(unsigned char * s, unsigned int len) -> uint64_t;
+auto zobrist_hash_delete_first(unsigned char * s, unsigned int len) -> uint64_t;
+auto zobrist_hash_insert_first(unsigned char * s, unsigned int len) -> uint64_t;
 
-inline uint64_t zobrist_value(unsigned int pos, unsigned char x)
+inline auto zobrist_value(unsigned int pos, unsigned char x) -> uint64_t
 {
   return zobrist_tab_base[4 * pos + x];
 }

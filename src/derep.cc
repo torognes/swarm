@@ -33,9 +33,9 @@ struct bucket
   unsigned int singletons;
 };
 
-int derep_compare(const void * a, const void * b);
+auto derep_compare(const void * a, const void * b) -> int;
 
-int derep_compare(const void * a, const void * b)
+auto derep_compare(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct bucket *>(a);
   const auto * y = static_cast<const struct bucket *>(b);

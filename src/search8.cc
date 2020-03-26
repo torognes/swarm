@@ -697,7 +697,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
   Sm[3] = h8;
 }
 
-inline uint64_t backtrack_8(char * qseq,
+inline auto backtrack_8(char * qseq,
                             char * dseq,
                             uint64_t qlen,
                             uint64_t dlen,
@@ -705,7 +705,7 @@ inline uint64_t backtrack_8(char * qseq,
                             uint64_t offset,
                             uint64_t dirbuffersize,
                             uint64_t channel,
-                            uint64_t * alignmentlengthp)
+                            uint64_t * alignmentlengthp) -> uint64_t
 {
   uint64_t maskup      = 1ULL << (channel +  0);
   uint64_t maskleft    = 1ULL << (channel + 16);

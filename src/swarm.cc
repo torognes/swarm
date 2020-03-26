@@ -193,7 +193,7 @@ void cpu_features_show()
 
 #endif
 
-int64_t args_long(char * str, const char * option);
+auto args_long(char * str, const char * option) -> int64_t;
 void args_show();
 void args_usage();
 void show_header();
@@ -201,7 +201,7 @@ void args_init(int argc, char **argv);
 void open_files();
 void close_files();
 
-int64_t args_long(char * str, const char * option)
+auto args_long(char * str, const char * option) -> int64_t
 {
   char * endptr {nullptr};
   int64_t temp = strtol(str, & endptr, 10);
@@ -748,7 +748,7 @@ void close_files()
   }
 }
 
-int main(int argc, char** argv)
+auto main(int argc, char** argv) -> int
 {
   logfile = stderr;
 

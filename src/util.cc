@@ -68,7 +68,7 @@ void progress_done()
   fflush(logfile);
 }
 
-int64_t gcd(int64_t a, int64_t b)
+auto gcd(int64_t a, int64_t b) -> int64_t
 {
   return b == 0 ? a : gcd(b, a % b);
 }
@@ -79,7 +79,7 @@ int64_t gcd(int64_t a, int64_t b)
   exit(1);
 }
 
-void * xmalloc(size_t size)
+auto xmalloc(size_t size) -> void *
 {
   if (size == 0) {
     size = 1;
@@ -98,7 +98,7 @@ void * xmalloc(size_t size)
   return t;
 }
 
-void * xrealloc(void *ptr, size_t size)
+auto xrealloc(void *ptr, size_t size) -> void *
 {
   if (size == 0) {
     size = 1;
@@ -129,7 +129,7 @@ void xfree(void * ptr)
   }
 }
 
-FILE * fopen_input(const char * filename)
+auto fopen_input(const char * filename) -> FILE *
 {
   /* open the input stream given by filename, but use stdin if name is - */
   FILE * input_stream = nullptr;
@@ -145,7 +145,7 @@ FILE * fopen_input(const char * filename)
   return input_stream;
 }
 
-FILE * fopen_output(const char * filename)
+auto fopen_output(const char * filename) -> FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */
   FILE * output_stream {nullptr};

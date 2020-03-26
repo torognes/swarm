@@ -42,11 +42,11 @@ void generate_variant_sequence(char * seed_sequence,
                                char * seq,
                                unsigned int * seqlen);
 
-bool check_variant(char * seed_sequence,
+auto check_variant(char * seed_sequence,
                    unsigned int seed_seqlen,
                    struct var_s * var,
                    char * amp_sequence,
-                   unsigned int amp_seqlen);
+                   unsigned int amp_seqlen) -> bool;
 
 void generate_variants(char * sequence,
                        unsigned int seqlen,

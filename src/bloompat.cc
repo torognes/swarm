@@ -59,7 +59,7 @@ void bloom_zap(struct bloom_s * b)
   memset(b->bitmap, UINT8_MAX, b->size);
 }
 
-struct bloom_s * bloom_init(uint64_t size)
+auto bloom_init(uint64_t size) -> struct bloom_s *
 {
   // Size is in bytes for full bitmap, must be power of 2
   // at least 8

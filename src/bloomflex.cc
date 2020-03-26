@@ -58,7 +58,7 @@ void bloomflex_patterns_generate(struct bloomflex_s * b)
     }
 }
 
-struct bloomflex_s * bloomflex_init(uint64_t size, unsigned int k)
+auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
 {
   /* Input size is in bytes for full bitmap */
 

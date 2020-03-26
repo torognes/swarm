@@ -27,12 +27,12 @@ extern uint64_t * hash_values;
 extern unsigned int * hash_data;
 extern uint64_t hash_tablesize;
 
-inline uint64_t hash_get_tablesize()
+inline auto hash_get_tablesize() -> uint64_t
 {
   return hash_tablesize;
 }
 
-inline uint64_t hash_getindex(uint64_t hash)
+inline auto hash_getindex(uint64_t hash) -> uint64_t
 {
   // Shift bits right to get independence from the simple Bloom filter hash
   constexpr auto divider {32U};  // drop the first 32 bits
@@ -40,7 +40,7 @@ inline uint64_t hash_getindex(uint64_t hash)
   return hash & hash_mask;
 }
 
-inline uint64_t hash_getnextindex(uint64_t j)
+inline auto hash_getnextindex(uint64_t j) -> uint64_t
 {
   return (j+1) & hash_mask;
 }
@@ -52,7 +52,7 @@ inline void hash_set_occupied(uint64_t j)
   hash_occupied[j >> divider] |= (1 << (j & max_range));
 }
 
-inline bool hash_is_occupied(uint64_t j)
+inline auto hash_is_occupied(uint64_t j) -> bool
 {
   constexpr auto divider {3U};  // drop the first 3 bits
   constexpr auto max_range {7U};  // j & max_range = values ranging from 0 to 7
@@ -64,12 +64,12 @@ inline void hash_set_value(uint64_t j, uint64_t hash)
   hash_values[j] = hash;
 }
 
-inline bool hash_compare_value(uint64_t j, uint64_t hash)
+inline auto hash_compare_value(uint64_t j, uint64_t hash) -> bool
 {
   return (hash_values[j] == hash);
 }
 
-inline unsigned int hash_get_data(uint64_t j)
+inline auto hash_get_data(uint64_t j) -> unsigned int
 {
   return hash_data[j];
 }

@@ -32,17 +32,16 @@ struct bloomflex_s
   uint64_t * patterns;
 };
 
-struct bloomflex_s * bloomflex_init(uint64_t size, unsigned int k);
+auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *;
 
 void bloomflex_exit(struct bloomflex_s * b);
 
-inline uint64_t * bloomflex_adr(struct bloomflex_s * b, uint64_t h)
+inline auto bloomflex_adr(struct bloomflex_s * b, uint64_t h) -> uint64_t *
 {
   return b->bitmap + ((h >> b->pattern_shift) % b->size);
 }
 
-inline uint64_t bloomflex_pat(struct bloomflex_s * b,
-                                     uint64_t h)
+inline auto bloomflex_pat(struct bloomflex_s * b, uint64_t h) -> uint64_t
 {
   return b->patterns[h & b->pattern_mask];
 }
@@ -52,7 +51,7 @@ inline void bloomflex_set(struct bloomflex_s * b, uint64_t h)
   * bloomflex_adr(b, h) &= ~ bloomflex_pat(b, h);
 }
 
-inline bool bloomflex_get(struct bloomflex_s * b, uint64_t h)
+inline auto bloomflex_get(struct bloomflex_s * b, uint64_t h) -> bool
 {
   return (* bloomflex_adr(b, h) & bloomflex_pat(b, h)) == 0U;
 }

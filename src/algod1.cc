@@ -120,12 +120,12 @@ static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidio
 
 void attach(unsigned int seed, unsigned int amp);
 void add_graft_candidate(unsigned int seed, unsigned int amp);
-int compare_grafts(const void * a, const void * b);
-unsigned int attach_candidates(unsigned int amplicon_count);
-bool hash_check_attach(char * seq,
+auto compare_grafts(const void * a, const void * b) -> int;
+auto attach_candidates(unsigned int amplicon_count) -> unsigned int;
+auto hash_check_attach(char * seq,
                        unsigned int seqlen,
                        struct var_s * var,
-                       unsigned int seed);
+                       unsigned int seed) -> bool;
 void check_heavy_var(struct bloomflex_s * bloom,
                      char * varseq,
                      unsigned int seed,
@@ -134,9 +134,9 @@ void check_heavy_var(struct bloomflex_s * bloom,
                      struct var_s * variant_list,
                      struct var_s * variant_list2);
 void check_heavy_thread(int64_t t);
-uint64_t mark_light_var(struct bloomflex_s * bloom,
+auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
-                        struct var_s * variant_list);
+                        struct var_s * variant_list) -> uint64_t;
 void mark_light_thread(int64_t t);
 void check_variants(unsigned int seed,
                     var_s * variant_list,
@@ -144,12 +144,12 @@ void check_variants(unsigned int seed,
                     unsigned int * hits_count);
 void network_thread(int64_t t);
 void process_seed(unsigned int seed);
-int compare_amp(const void * a, const void * b);
-int compare_mass(const void * a, const void * b);
+auto compare_amp(const void * a, const void * b) -> int;
+auto compare_mass(const void * a, const void * b) -> int;
 
 
-inline bool check_amp_identical(unsigned int amp1,
-                                unsigned int amp2)
+inline auto check_amp_identical(unsigned int amp1,
+                                unsigned int amp2) -> bool
 {
   /* amplicon are identical if they have the same length, and the
      exact same sequence */
@@ -240,7 +240,7 @@ void add_graft_candidate(unsigned int seed, unsigned int amp)
   pthread_mutex_unlock(&graft_mutex);
 }
 
-int compare_grafts(const void * a, const void * b)
+auto compare_grafts(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct graft_cand *>(a);
   const auto * y = static_cast<const struct graft_cand *>(b);
@@ -273,7 +273,7 @@ int compare_grafts(const void * a, const void * b)
   return status;
 }
 
-unsigned int attach_candidates(unsigned int amplicon_count)
+auto attach_candidates(unsigned int amplicon_count) -> unsigned int
 {
   /* count pairs */
   unsigned int pair_count = 0;
@@ -328,10 +328,10 @@ unsigned int attach_candidates(unsigned int amplicon_count)
   return grafts;
 }
 
-bool hash_check_attach(char * seq,
+auto hash_check_attach(char * seq,
                        unsigned int seqlen,
                        struct var_s * var,
-                       unsigned int seed)
+                       unsigned int seed) -> bool
 {
   /* seed is the original large swarm seed */
 
@@ -362,10 +362,10 @@ bool hash_check_attach(char * seq,
   return false;
 }
 
-inline uint64_t check_heavy_var_2(char * seq,
+inline auto check_heavy_var_2(char * seq,
                                   unsigned int seqlen,
                                   unsigned int seed,
-                                  struct var_s * variant_list)
+                                  struct var_s * variant_list) -> uint64_t
 {
   /* Check second generation microvariants of the heavy swarm amplicons
      and see if any of them are identical to a light swarm amplicon. */
@@ -477,9 +477,9 @@ void check_heavy_thread(int64_t t)
   xfree(variant_list);
 }
 
-uint64_t mark_light_var(struct bloomflex_s * bloom,
+auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
-                        struct var_s * variant_list)
+                        struct var_s * variant_list) -> uint64_t
 {
   /*
     add all microvariants of seed to Bloom filter
@@ -686,7 +686,7 @@ void process_seed(unsigned int seed)
     }
 }
 
-int compare_amp(const void * a, const void * b)
+auto compare_amp(const void * a, const void * b) -> int
 {
   /*
     Swarm checks that all amplicon sequences are unique (strictly
@@ -710,7 +710,7 @@ int compare_amp(const void * a, const void * b)
   return status;
 }
 
-int compare_mass(const void * a, const void * b)
+auto compare_mass(const void * a, const void * b) -> int
 {
   const swarminfo_s * x = swarminfo + *(static_cast<const unsigned int *>(a));
   const swarminfo_s * y = swarminfo + *(static_cast<const unsigned int *>(b));

@@ -55,9 +55,9 @@ struct swarminfo_t
   int dummy; /* alignment padding only */
 };
 
-int compare_mass_seed(const void * a, const void * b);
+auto compare_mass_seed(const void * a, const void * b) -> int;
 
-int compare_mass_seed(const void * a, const void * b)
+auto compare_mass_seed(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct swarminfo_t *>(a);
   const auto * y = static_cast<const struct swarminfo_t *>(b);

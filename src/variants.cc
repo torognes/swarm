@@ -49,11 +49,11 @@ inline void seq_copy(char * a,
   }
 }
 
-inline bool seq_identical(char * a,
+inline auto seq_identical(char * a,
                           unsigned int a_start,
                           char * b,
                           unsigned int b_start,
-                          unsigned int length)
+                          unsigned int length) -> bool
 {
   /* compare parts of two compressed sequences a and b */
   /* return false if different, true if identical */
@@ -110,11 +110,11 @@ void generate_variant_sequence(char * seed_sequence,
 }
 
 
-bool check_variant(char * seed_sequence,
+auto check_variant(char * seed_sequence,
                    unsigned int seed_seqlen,
                    var_s * var,
                    char * amp_sequence,
-                   unsigned int amp_seqlen)
+                   unsigned int amp_seqlen) -> bool
 {
   /* make sure seed with given variant is really identical to amp */
   /* we know the hashes are identical */

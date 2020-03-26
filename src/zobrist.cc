@@ -87,7 +87,7 @@ void zobrist_exit()
   xfree(zobrist_tab_base);
 }
 
-uint64_t zobrist_hash(unsigned char * s, unsigned int len)
+auto zobrist_hash(unsigned char * s, unsigned int len) -> uint64_t
 {
   /* compute the Zobrist hash function of sequence s of length len. */
   /* len is the actual number of bases in the sequence */
@@ -131,7 +131,7 @@ uint64_t zobrist_hash(unsigned char * s, unsigned int len)
   return z;
 }
 
-uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len)
+auto zobrist_hash_delete_first(unsigned char * s, unsigned int len) -> uint64_t
 {
   /* compute the Zobrist hash function of sequence s,
      but delete the first base */
@@ -152,7 +152,7 @@ uint64_t zobrist_hash_delete_first(unsigned char * s, unsigned int len)
   return z;
 }
 
-uint64_t zobrist_hash_insert_first(unsigned char * s, unsigned int len)
+auto zobrist_hash_insert_first(unsigned char * s, unsigned int len) -> uint64_t
 {
   /* compute the Zobrist hash function of sequence s,
      but insert a gap (no value) before the first base */

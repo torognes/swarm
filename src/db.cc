@@ -59,17 +59,17 @@ static char * missingabundance_header {nullptr};
 seqinfo_t * seqindex {nullptr};
 qgramvector_t * qgrams {nullptr};
 
-int db_compare_abundance(const void * a, const void * b);
+auto db_compare_abundance(const void * a, const void * b) -> int;
 
-bool find_swarm_abundance(const char * header,
+auto find_swarm_abundance(const char * header,
                           int * start,
                           int * end,
-                          int64_t * number);
+                          int64_t * number) -> bool;
 
-bool find_usearch_abundance(const char * header,
+auto find_usearch_abundance(const char * header,
                             int * start,
                             int * end,
-                            int64_t * number);
+                            int64_t * number) -> bool;
 void find_abundance(struct seqinfo_s * sp, uint64_t lineno);
 
 void fprint_id(FILE * stream, uint64_t x)
@@ -143,7 +143,7 @@ void fprint_id_with_new_abundance(FILE * stream,
   }
 }
 
-int db_compare_abundance(const void * a, const void * b)
+auto db_compare_abundance(const void * a, const void * b) -> int
 {
   const auto * x = reinterpret_cast<const seqinfo_t *>(a);
   const auto * y = reinterpret_cast<const seqinfo_t *>(b);
@@ -161,10 +161,10 @@ int db_compare_abundance(const void * a, const void * b)
   return status;
 }
 
-bool find_swarm_abundance(const char * header,
+auto find_swarm_abundance(const char * header,
                           int * start,
                           int * end,
-                          int64_t * number)
+                          int64_t * number) -> bool
 {
   /*
     Identify the first occurence of the pattern (_)([0-9]+)$
@@ -207,10 +207,10 @@ bool find_swarm_abundance(const char * header,
   return true;
 }
 
-bool find_usearch_abundance(const char * header,
+auto find_usearch_abundance(const char * header,
                             int * start,
                             int * end,
-                            int64_t * number)
+                            int64_t * number) -> bool
 {
   /*
     Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -838,27 +838,27 @@ void db_qgrams_done()
   xfree(qgrams);
 }
 
-unsigned int db_getsequencecount()
+auto db_getsequencecount() -> unsigned int
 {
   return sequences;
 }
 
-uint64_t db_getnucleotidecount()
+auto db_getnucleotidecount() -> uint64_t
 {
   return nucleotides;
 }
 
-unsigned int db_getlongestsequence()
+auto db_getlongestsequence() -> unsigned int
 {
   return longest;
 }
 
-uint64_t db_gethash(uint64_t seqno)
+auto db_gethash(uint64_t seqno) -> uint64_t
 {
   return seqindex[seqno].seqhash;
 }
 
-char * db_getsequence(uint64_t seqno)
+auto db_getsequence(uint64_t seqno) -> char *
 {
   return seqindex[seqno].seq;
 }
@@ -871,17 +871,17 @@ void db_getsequenceandlength(uint64_t seqno,
   *length = seqindex[seqno].seqlen;
 }
 
-unsigned int db_getsequencelen(uint64_t seqno)
+auto db_getsequencelen(uint64_t seqno) -> unsigned int
 {
   return seqindex[seqno].seqlen;
 }
 
-char * db_getheader(uint64_t seqno)
+auto db_getheader(uint64_t seqno) -> char *
 {
   return seqindex[seqno].header;
 }
 
-uint64_t db_getabundance(uint64_t seqno)
+auto db_getabundance(uint64_t seqno) -> uint64_t
 {
   return seqindex[seqno].abundance;
 }
