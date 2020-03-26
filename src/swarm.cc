@@ -127,20 +127,30 @@ void cpu_features_detect()
   if (maxlevel >= 1)
   {
     cpuid(1, 0, a, b, c, d);
-    mmx_present    = (d >> 23) & 1;
-    sse_present    = (d >> 25) & 1;
-    sse2_present   = (d >> 26) & 1;
-    sse3_present   = (c >>  0) & 1;
-    ssse3_present  = (c >>  9) & 1;
-    sse41_present  = (c >> 19) & 1;
-    sse42_present  = (c >> 20) & 1;
-    popcnt_present = (c >> 23) & 1;
-    avx_present    = (c >> 28) & 1;
+    constexpr auto bit_mmx {23U};
+    constexpr auto bit_sse {25U};
+    constexpr auto bit_sse2 {26U};
+    constexpr auto bit_sse3 {0U};
+    constexpr auto bit_ssse3 {9U};
+    constexpr auto bit_sse41 {19U};
+    constexpr auto bit_sse42 {20U};
+    constexpr auto bit_popcnt {23U};
+    constexpr auto bit_avx {28U};
+    mmx_present    = (d >> bit_mmx) & 1;
+    sse_present    = (d >> bit_sse) & 1;
+    sse2_present   = (d >> bit_sse2) & 1;
+    sse3_present   = (c >> bit_sse3) & 1;
+    ssse3_present  = (c >> bit_ssse3) & 1;
+    sse41_present  = (c >> bit_sse41) & 1;
+    sse42_present  = (c >> bit_sse42) & 1;
+    popcnt_present = (c >> bit_popcnt) & 1;
+    avx_present    = (c >> bit_avx) & 1;
 
     if (maxlevel >= 7)
     {
       cpuid(7, 0, a, b, c, d);
-      avx2_present   = (b >>  5) & 1;
+      constexpr auto bit_avx2 {5U};
+      avx2_present   = (b >> bit_avx2) & 1;
     }
   }
 }
