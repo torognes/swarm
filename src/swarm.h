@@ -244,7 +244,11 @@ inline unsigned char nt_extract(char * seq, uint64_t i)
 inline unsigned int nt_bytelength(unsigned int len)
 {
   // Compute number of bytes used for compressed sequence of length len
-  return ((len+31) >> 5) << 3;
+  // (minimum result is 8 bytes)
+  constexpr auto max_nt_per_uint64 {1U << 5};  // 32 nt fit in 64 bits
+  constexpr auto drop_remainder {5U};  // (len+31) % 32 = remainder (drop it)
+  constexpr auto convert_to_bytes {3U};  // times 8 to get the number of bytes
+  return ((len + max_nt_per_uint64 - 1) >> drop_remainder) << convert_to_bytes;
 }
 
 /* functions in util.cc */
