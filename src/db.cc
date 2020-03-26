@@ -175,6 +175,7 @@ auto find_swarm_abundance(const char * header,
   * end = 0;
   * number = 0;
 
+  constexpr auto max_digits {20U};  // 20 digits at most (abundance > 10^20)
   const char * digit_chars = "0123456789";
 
   if (header == nullptr) {
@@ -189,7 +190,7 @@ auto find_swarm_abundance(const char * header,
 
   size_t digits = strspn(us + 1, digit_chars);
 
-  if (digits > 20) {
+  if (digits > max_digits) {
     return false;
   }
 
@@ -480,6 +481,10 @@ void db_read(const char * filename)
       uint64_t nt_buffer {0};
       unsigned int nt_bufferlen {0};
       const unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
+      constexpr auto new_line {10};
+      constexpr auto carriage_return {13};
+      constexpr auto start_chars_range {32};  // visible ascii chars: 32-126
+      constexpr auto end_chars_range {126};
 
       while ((line[0] != 0) && (line[0] != '>'))
         {
@@ -509,9 +514,9 @@ void db_read(const char * filename)
                       nt_buffer = 0;
                     }
                 }
-              else if ((c != 10) && (c != 13))
+              else if ((c != new_line) && (c != carriage_return))
                 {
-                  if ((c >= 32) && (c <= 126)) {
+                  if ((c >= start_chars_range) && (c <= end_chars_range)) {
                     fprintf(stderr,
                             "\nError: Illegal character '%c' in sequence on line %u\n",
                             c,
