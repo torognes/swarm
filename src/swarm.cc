@@ -195,7 +195,7 @@ int64_t args_long(char * str, const char * option)
 {
   char * endptr {nullptr};
   int64_t temp = strtol(str, & endptr, 10);
-  if (*endptr)
+  if (*endptr != 0)
     {
       fprintf(stderr, "\nInvalid numeric argument for option %s\n", option);
       exit(1);
@@ -211,16 +211,16 @@ void args_show()
 
   fprintf(logfile, "Database file:     %s\n", input_filename);
   fprintf(logfile, "Output file:       %s\n", opt_output_file);
-  if (opt_statistics_file) {
+  if (opt_statistics_file != nullptr) {
     fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file);
   }
-  if (opt_uclust_file) {
+  if (opt_uclust_file != nullptr) {
     fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file);
   }
-  if (opt_internal_structure) {
+  if (opt_internal_structure != nullptr) {
     fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure);
   }
-  if (opt_network_file) {
+  if (opt_network_file != nullptr) {
     fprintf(logfile, "Network file       %s\n", opt_network_file);
   }
   fprintf(logfile, "Resolution (d):    %" PRId64 "\n", opt_differences);
@@ -398,7 +398,7 @@ void args_init(int argc, char **argv)
         if (used_options[optindex] == 1)
           {
             int longoptindex {0};
-            while (long_options[longoptindex].name)
+            while (long_options[longoptindex].name != nullptr)
               {
                 if (long_options[longoptindex].val == c) {
                   break;
@@ -572,29 +572,29 @@ void args_init(int argc, char **argv)
 
   if (!opt_fastidious)
     {
-      if (used_options[1]) {
+      if (used_options[1] != 0) {
         fatal("Option -b or --boundary specified without -f or --fastidious.\n");
       }
-      if (used_options[2]) {
+      if (used_options[2] != 0) {
         fatal("Option -c or --ceiling specified without -f or --fastidious.\n");
       }
-      if (used_options[24]) {
+      if (used_options[24] != 0) {
         fatal("Option -y or --bloom-bits specified without -f or --fastidious.\n");
       }
     }
 
   if (opt_differences < 2)
     {
-      if (used_options[12]) {
+      if (used_options[12] != 0) {
         fatal("Option -m or --match-reward specified when d < 2.");
       }
-      if (used_options[15]) {
+      if (used_options[15] != 0) {
         fatal("Option -p or --mismatch-penalty specified when d < 2.");
       }
-      if (used_options[6]) {
+      if (used_options[6] != 0) {
         fatal("Option -g or --gap-opening-penalty specified when d < 2.");
       }
-      if (used_options[4]) {
+      if (used_options[4] != 0) {
         fatal("Option -e or --gap-extension-penalty specified when d < 2.");
       }
     }
@@ -629,7 +629,7 @@ void args_init(int argc, char **argv)
           "must be at least 2.");
   }
 
-  if (used_options[2] && ((opt_ceiling < min_ceiling) || (opt_ceiling > max_ceiling))) {
+  if ((used_options[2] != 0) && ((opt_ceiling < min_ceiling) || (opt_ceiling > max_ceiling))) {
     fatal("Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
@@ -639,12 +639,12 @@ void args_init(int argc, char **argv)
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
-  if (used_options[0] && (opt_append_abundance < 1)) {
+  if ((used_options[0] != 0) && (opt_append_abundance < 1)) {
     fatal("Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
 
-  if (opt_network_file && (opt_differences != 1)) {
+  if ((opt_network_file != nullptr) && (opt_differences != 1)) {
     fatal("A network file can only written when d=1.");
   }
 }
@@ -653,55 +653,55 @@ void open_files()
 {
   /* open files */
 
-  if (opt_log)
+  if (opt_log != nullptr)
     {
       logfile = fopen_output(opt_log);
-      if (! logfile) {
+      if (logfile == nullptr) {
         fatal("Unable to open log file for writing.");
       }
     }
 
   outfile = fopen_output(opt_output_file);
-  if (! outfile) {
+  if (outfile == nullptr) {
     fatal("Unable to open output file for writing.");
   }
 
-  if (opt_seeds)
+  if (opt_seeds != nullptr)
     {
       fp_seeds = fopen_output(opt_seeds);
-      if (! fp_seeds) {
+      if (fp_seeds == nullptr) {
         fatal("Unable to open seeds file for writing.");
       }
     }
 
-  if (opt_statistics_file)
+  if (opt_statistics_file != nullptr)
     {
       statsfile = fopen_output(opt_statistics_file);
-      if (! statsfile) {
+      if (statsfile == nullptr) {
         fatal("Unable to open statistics file for writing.");
       }
     }
 
-  if (opt_uclust_file)
+  if (opt_uclust_file != nullptr)
     {
       uclustfile = fopen_output(opt_uclust_file);
-      if (! uclustfile) {
+      if (uclustfile == nullptr) {
         fatal("Unable to open uclust file for writing.");
       }
     }
 
-  if (opt_internal_structure)
+  if (opt_internal_structure != nullptr)
     {
       internal_structure_file = fopen_output(opt_internal_structure);
-      if (! internal_structure_file) {
+      if (internal_structure_file == nullptr) {
         fatal("Unable to open internal structure file for writing.");
       }
     }
 
-  if (opt_network_file)
+  if (opt_network_file != nullptr)
     {
       network_file = fopen_output(opt_network_file);
-      if (! network_file) {
+      if (network_file == nullptr) {
         fatal("Unable to open network file for writing.");
       }
     }
@@ -709,31 +709,31 @@ void open_files()
 
 void close_files()
 {
-  if (network_file) {
+  if (network_file != nullptr) {
     fclose(network_file);
   }
 
-  if (internal_structure_file) {
+  if (internal_structure_file != nullptr) {
     fclose(internal_structure_file);
   }
 
-  if (uclustfile) {
+  if (uclustfile != nullptr) {
     fclose(uclustfile);
   }
 
-  if (statsfile) {
+  if (statsfile != nullptr) {
     fclose(statsfile);
   }
 
-  if (fp_seeds) {
+  if (fp_seeds != nullptr) {
     fclose(fp_seeds);
   }
 
-  if (outfile) {
+  if (outfile != nullptr) {
     fclose(outfile);
   }
 
-  if (logfile) {
+  if (logfile != nullptr) {
     fclose(logfile);
   }
 }
@@ -749,7 +749,7 @@ int main(int argc, char** argv)
 #ifdef __x86_64__
   cpu_features_detect();
 
-  if (!sse2_present) {
+  if (sse2_present == 0) {
     fatal("This program requires a processor with SSE2 instructions.\n");
   }
 
