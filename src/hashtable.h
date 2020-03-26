@@ -35,7 +35,8 @@ inline uint64_t hash_get_tablesize()
 inline uint64_t hash_getindex(uint64_t hash)
 {
   // Shift bits right to get independence from the simple Bloom filter hash
-  hash = hash >> 32;
+  constexpr auto divider {32U};  // drop the first 32 bits
+  hash = hash >> divider;
   return hash & hash_mask;
 }
 
@@ -46,12 +47,16 @@ inline uint64_t hash_getnextindex(uint64_t j)
 
 inline void hash_set_occupied(uint64_t j)
 {
-  hash_occupied[j >> 3] |= (1 << (j & 7));
+  constexpr auto divider {3U};  // drop the first 3 bits
+  constexpr auto max_range {7U};  // j & max_range = values ranging from 0 to 7
+  hash_occupied[j >> divider] |= (1 << (j & max_range));
 }
 
 inline bool hash_is_occupied(uint64_t j)
 {
-  return (hash_occupied[j >> 3] & (1 << (j & 7))) != 0;
+  constexpr auto divider {3U};  // drop the first 3 bits
+  constexpr auto max_range {7U};  // j & max_range = values ranging from 0 to 7
+  return (hash_occupied[j >> divider] & (1 << (j & max_range))) != 0;
 }
 
 inline void hash_set_value(uint64_t j, uint64_t hash)
