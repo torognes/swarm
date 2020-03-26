@@ -25,9 +25,12 @@
 
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 {
-  unsigned int whichlong = pos >> 5;
-  uint64_t shift = (pos & 31) << 1;
-  uint64_t mask = 3ULL << shift;
+  constexpr auto divider {5U};
+  constexpr auto max_range {31U};
+  constexpr auto two_bits {3ULL};  // '... 0011' in binary
+  unsigned int whichlong = pos >> divider;
+  uint64_t shift = (pos & max_range) << 1;  // 0, 2, 4, 6, ..., 60, 62
+  uint64_t mask = two_bits << shift;
   uint64_t x = (reinterpret_cast<uint64_t *>(seq))[whichlong];
   x &= ~ mask;
   x |= (static_cast<uint64_t>(base)) << shift;
