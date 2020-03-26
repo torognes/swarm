@@ -122,7 +122,7 @@ void cpu_features_detect()
   unsigned int d {0};
 
   cpuid(0, 0, a, b, c, d);
-  unsigned int maxlevel = a & 0xff;
+  unsigned int maxlevel = a & UINT8_MAX;
 
   if (maxlevel >= 1)
   {

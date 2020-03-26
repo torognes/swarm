@@ -74,7 +74,7 @@ struct bloomflex_s * bloomflex_init(uint64_t size, unsigned int k)
   bloomflex_patterns_generate(b);
 
   b->bitmap = static_cast<uint64_t *>(xmalloc(size));
-  memset(b->bitmap, 0xff, size);
+  memset(b->bitmap, UINT8_MAX, size);
 
   return b;
 }
