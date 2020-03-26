@@ -23,11 +23,11 @@
 
 #include "swarm.h"
 
-uint64_t hash_mask;
-unsigned char * hash_occupied = nullptr;
-uint64_t * hash_values = nullptr;
-unsigned int * hash_data = nullptr;
-uint64_t hash_tablesize = 0;
+uint64_t hash_mask {0};
+unsigned char * hash_occupied {nullptr};
+uint64_t * hash_values {nullptr};
+unsigned int * hash_data {nullptr};
+uint64_t hash_tablesize {0};
 
 void hash_zap()
 {
