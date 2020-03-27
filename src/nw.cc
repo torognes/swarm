@@ -28,6 +28,8 @@ void finishop(char ** cigarendp, char * op, int * count);
 
 void pushop(char newop, char ** cigarendp, char * op, int * count)
 {
+  constexpr auto buffer_length {25U};
+
   if (newop == *op) {
     (*count)++;
   }
@@ -36,8 +38,8 @@ void pushop(char newop, char ** cigarendp, char * op, int * count)
     *--*cigarendp = *op;
     if (*count > 1)
     {
-      char buf[25];
-      int len = snprintf(buf, 25, "%d", *count);
+      char buf[buffer_length];
+      int len = snprintf(buf, buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
       memcpy(*cigarendp, buf, static_cast<size_t>(len));
@@ -49,13 +51,15 @@ void pushop(char newop, char ** cigarendp, char * op, int * count)
 
 void finishop(char ** cigarendp, char * op, int * count)
 {
+  constexpr auto buffer_length {25U};
+
   if ((op != nullptr) && (count != nullptr))
   {
     *--*cigarendp = *op;
     if (*count > 1)
     {
-      char buf[25];
-      int len = snprintf(buf, 25, "%d", *count);
+      char buf[buffer_length];
+      int len = snprintf(buf, buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
       memcpy(*cigarendp, buf, static_cast<size_t>(len));
@@ -130,6 +134,7 @@ void nw(char * dseq,
   /* dir must point to at least qlen*dlen bytes of allocated memory
      hearray must point to at least 2*qlen longs of allocated memory
      (8*qlen bytes) */
+  constexpr auto multiplier {5U};
 
   int64_t n {0};
   int64_t e {0};
@@ -159,7 +164,7 @@ void nw(char * dseq,
           n = *hep;
           e = *(hep+1);
           h += score_matrix
-            [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1) << 5)
+            [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1) << multiplier)
              +(nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
 
           dir[index] |= (f < h ? maskup : 0);
@@ -242,7 +247,7 @@ void nw(char * dseq,
       else
         {
           score += score_matrix
-            [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << 5)
+            [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << multiplier)
              +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
 
           if (nt_extract(qseq, static_cast<uint64_t>(i - 1)) ==
