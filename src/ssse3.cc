@@ -74,6 +74,7 @@ void dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
                         BYTE * dseq_byte)
 {
+  constexpr auto channels {8U};  // does 8 represent the number of channels?
   __m128i m0;
   __m128i m1;
   __m128i m2;
@@ -101,13 +102,13 @@ void dprofile_shuffle16(WORD * dprofile,
   m0 = _mm_unpacklo_epi8(t0, zero);
   m0 = _mm_slli_epi16(m0, 1);
   t1 = _mm_adds_epu16(m0, one);
-  t1 = _mm_slli_epi16(t1, 8);
+  t1 = _mm_slli_epi16(t1, channels);
   m0 = _mm_or_si128(m0, t1);
 
   m1 = _mm_unpackhi_epi8(t0, zero);
   m1 = _mm_slli_epi16(m1, 1);
   t2 = _mm_adds_epu16(m1, one);
-  t2 = _mm_slli_epi16(t2, 8);
+  t2 = _mm_slli_epi16(t2, channels);
   m1 = _mm_or_si128(m1, t2);
 
   t3 = _mm_load_si128(dseq+1);
@@ -115,13 +116,13 @@ void dprofile_shuffle16(WORD * dprofile,
   m2 = _mm_unpacklo_epi8(t3, zero);
   m2 = _mm_slli_epi16(m2, 1);
   t4 = _mm_adds_epu16(m2, one);
-  t4 = _mm_slli_epi16(t4, 8);
+  t4 = _mm_slli_epi16(t4, channels);
   m2 = _mm_or_si128(m2, t4);
 
   m3 = _mm_unpackhi_epi8(t3, zero);
   m3 = _mm_slli_epi16(m3, 1);
   t5 = _mm_adds_epu16(m3, one);
-  t5 = _mm_slli_epi16(t5, 8);
+  t5 = _mm_slli_epi16(t5, channels);
   m3 = _mm_or_si128(m3, t5);
 
 #define profline16(j)                                   \
