@@ -65,8 +65,9 @@ void score_matrix_dump()
 
 void score_matrix_read()
 {
-  const auto cells {32};
-  const auto one_thousand {1000LL};
+  constexpr auto cells {32};
+  constexpr auto one_thousand {1000LL};
+  constexpr auto multiplier {5U};
   auto sc {0LL};
   auto hi {-one_thousand};
   auto lo {one_thousand};
@@ -75,8 +76,8 @@ void score_matrix_read()
   score_matrix_16 = static_cast<unsigned short *>(xmalloc(cells * cells * sizeof(short)));
   score_matrix_63 = static_cast<int64_t *>(xmalloc(cells * cells * sizeof(int64_t)));
 
-  for(auto a = 0; a < 16; a++) {
-    for(auto b = 0; b < 16; b++) {
+  for(auto a = 0; a < cells / 2; a++) {
+    for(auto b = 0; b < cells / 2; b++) {
       sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : penalty_mismatch;
       // sc = (a==b) ? matchscore : mismatchscore;
       if (sc < lo) {
@@ -85,7 +86,7 @@ void score_matrix_read()
       if (sc > hi) {
         hi = sc;
       }
-      score_matrix_63[(a << 5) + b] = sc;
+      score_matrix_63[(a << multiplier) + b] = sc;
     }
   }
 
@@ -95,9 +96,9 @@ void score_matrix_read()
 
   for(auto a = 0; a < cells; a++) {
     for(auto b = 0; b < cells; b++) {
-      sc = score_matrix_63[(a << 5) + b];
-      score_matrix_8[(a << 5) + b] = static_cast<unsigned char>(sc);
-      score_matrix_16[(a << 5) + b] = static_cast<unsigned short>(sc);
+      sc = score_matrix_63[(a << multiplier) + b];
+      score_matrix_8[(a << multiplier) + b] = static_cast<unsigned char>(sc);
+      score_matrix_16[(a << multiplier) + b] = static_cast<unsigned short>(sc);
     }
   }
 }
