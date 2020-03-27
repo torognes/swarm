@@ -147,11 +147,12 @@ void algo_run()
   }
 
   /* always search in 8 bit mode unless resolution is very high */
-
-  int bits {8};
+  constexpr auto bit_mode_8 {8};
+  constexpr auto bit_mode_16 {16};
+  int bits {bit_mode_8};
 
   if (static_cast<uint64_t>(opt_differences) > diff_saturation) {
-    bits = 16;
+    bits = bit_mode_16;
   }
 
   seeded = 0;
@@ -238,7 +239,7 @@ void algo_run()
           searches++;
 #endif
 
-          if (bits == 8) {
+          if (bits == bit_mode_8) {
             count_comparisons_8 += targetcount;
           }
           else {
@@ -383,7 +384,7 @@ void algo_run()
                   searches++;
 #endif
 
-                  if (bits == 8) {
+                  if (bits == bit_mode_8) {
                     count_comparisons_8 += targetcount;
                   }
                   else {
