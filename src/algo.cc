@@ -148,12 +148,9 @@ void algo_run()
 
   /* always search in 8 bit mode unless resolution is very high */
 
-  int bits {0};
+  int bits {8};
 
-  if (static_cast<uint64_t>(opt_differences) <= diff_saturation) {
-    bits = 8;
-  }
-  else {
+  if (static_cast<uint64_t>(opt_differences) > diff_saturation) {
     bits = 16;
   }
 
