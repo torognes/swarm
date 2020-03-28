@@ -1036,7 +1036,7 @@ void algo_d1_run()
           }
 
           uint64_t m = bits * 7 * nucleotides_in_small_otus;
-          constexpr auto min_bloom_filter_length_in_bits {64U};
+          constexpr auto min_total_bloom_filter_length_in_bits {64U};
 
           uint64_t memtotal = arch_get_memtotal();
           uint64_t memused = arch_get_memused();
@@ -1063,8 +1063,8 @@ void algo_d1_run()
                 }
             }
 
-          if (m < min_bloom_filter_length_in_bits) {
-            m = min_bloom_filter_length_in_bits;  // Bloom filter >= 64 bits
+          if (m < min_total_bloom_filter_length_in_bits) {
+            m = min_total_bloom_filter_length_in_bits;  // at least 64 bits
           }
 
           if (memused + m / 8 > memtotal)
