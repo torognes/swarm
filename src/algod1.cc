@@ -443,12 +443,14 @@ void check_heavy_var(struct bloomflex_s * bloom,
 
 void check_heavy_thread(int64_t t)
 {
+  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
+  constexpr auto j {4U};  //                               i * len + j
   (void) t;
 
   auto * variant_list = static_cast<struct var_s *>
-    (xmalloc(sizeof(struct var_s) * (7 * longestamplicon + 4)));
+    (xmalloc(sizeof(struct var_s) * (i * longestamplicon + j)));
   auto * variant_list2 = static_cast<struct var_s *>
-    (xmalloc(sizeof(struct var_s) * (7 * (longestamplicon+1) + 4)));
+    (xmalloc(sizeof(struct var_s) * (i * (longestamplicon + 1) + j)));
 
   size_t size = 8 * ((db_getlongestsequence() + 2 + 31) / 32);
   char * buffer1 = static_cast<char *>(xmalloc(size));
@@ -506,10 +508,13 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
 void mark_light_thread(int64_t t)
 {
+  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
+  constexpr auto j {4U};  //                               i * len + j
+
   (void) t;
 
   auto * variant_list = static_cast<struct var_s *>
-    (xmalloc(sizeof(struct var_s) * (7 * longestamplicon + 4)));
+    (xmalloc(sizeof(struct var_s) * (i * longestamplicon + j)));
 
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
@@ -600,13 +605,16 @@ void check_variants(unsigned int seed,
 
 void network_thread(int64_t t)
 {
+  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
+  constexpr auto j {4U};  //                               i * len + j
+
   (void) t;
 
   auto * hits_data = static_cast<unsigned int *>
-    (xmalloc((7 * longestamplicon + 5) * sizeof(unsigned int)));
+    (xmalloc((i * longestamplicon + j + 1) * sizeof(unsigned int)));
 
   auto * variant_list = static_cast<struct var_s *>
-    (xmalloc((7 * longestamplicon + 5) * sizeof(struct var_s)));
+    (xmalloc((i * longestamplicon + j + 1) * sizeof(struct var_s)));
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
@@ -632,8 +640,8 @@ void network_thread(int64_t t)
             (xrealloc(network, network_alloc * sizeof(unsigned int)));
         }
 
-      for(auto i = 0U; i < hits_count; i++) {
-        network[network_count++] = hits_data[i];
+      for(auto k = 0U; k < hits_count; k++) {
+        network[network_count++] = hits_data[k];
       }
     }
   pthread_mutex_unlock(&network_mutex);
@@ -740,13 +748,16 @@ inline void add_amp_to_swarm(unsigned int amp)
 
 void algo_d1_run()
 {
+  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
+  constexpr auto j {4U};  //                               i * len + j
+
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
   ampinfo = static_cast<struct ampinfo_s *>
     (xmalloc(amplicons * sizeof(struct ampinfo_s)));
 
-  global_hits_alloc = longestamplicon * 7 + 4 + 1;
+  global_hits_alloc = i * longestamplicon + j + 1;
   global_hits_data = static_cast<unsigned int *>
     (xmalloc(global_hits_alloc * sizeof(unsigned int)));
 
@@ -758,15 +769,15 @@ void algo_d1_run()
   duplicates_found = 0;
 
   progress_init("Hashing sequences:", amplicons);
-  for(auto i = 0U; i < amplicons; i++)
+  for(auto k = 0U; k < amplicons; k++)
     {
-      struct ampinfo_s * bp = ampinfo + i;
+      struct ampinfo_s * bp = ampinfo + k;
       bp->generation = 0;
       bp->swarmid = no_swarm;
       bp->next = no_swarm;
       bp->graft_cand = no_swarm;
-      hash_insert(i);
-      progress_update(i);
+      hash_insert(k);
+      progress_update(k);
       if (duplicates_found != 0U) {
         break;
       }
@@ -1025,6 +1036,7 @@ void algo_d1_run()
           }
 
           uint64_t m = bits * 7 * nucleotides_in_small_otus;
+          constexpr auto min_bloom_filter_length_in_bits {64U};
 
           uint64_t memtotal = arch_get_memtotal();
           uint64_t memused = arch_get_memused();
@@ -1051,11 +1063,11 @@ void algo_d1_run()
                 }
             }
 
-          if (m < 64) {
-            m = 64;
+          if (m < min_bloom_filter_length_in_bits) {
+            m = min_bloom_filter_length_in_bits;  // Bloom filter >= 64 bits
           }
 
-          if (memused + m/8 > memtotal)
+          if (memused + m / 8 > memtotal)
             {
               fprintf(logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
               fprintf(logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
@@ -1066,7 +1078,7 @@ void algo_d1_run()
                   bits, m, k, static_cast<double>(m) / (8 * one_megabyte));
 
 
-          bloom_f = bloomflex_init(m/8, k);
+          bloom_f = bloomflex_init(m / 8, k);
 
 
           /* Empty the old hash and bloom filter
@@ -1307,6 +1319,7 @@ void algo_d1_run()
                   int64_t nwdiff = 0;
                   char * nwalignment = nullptr;
                   int64_t nwalignmentlength = 0;
+                  constexpr auto one_hundred {100U};
 
                   nw(dseq, dlen, qseq, qlen,
                      score_matrix_63, penalty_gapopen, penalty_gapextend,
@@ -1314,7 +1327,7 @@ void algo_d1_run()
                      dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
                   double percentid
-                    = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
+                    = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
                     / static_cast<double>(nwalignmentlength);
 
                   fprintf(uclustfile,
