@@ -639,12 +639,16 @@ void args_init(int argc, char **argv)
           "must be at least 2.");
   }
 
-  if ((used_options[2] != 0) && ((opt_ceiling < min_ceiling) || (opt_ceiling > max_ceiling))) {
+  if ((used_options[2] != 0) && ((opt_ceiling < min_ceiling) ||
+                                 (opt_ceiling > max_ceiling))) {
     fatal("Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
 
-  if ((opt_bloom_bits < 2) || (opt_bloom_bits > 64)) {
+  constexpr auto min_bits_per_entry {2U};
+  constexpr auto max_bits_per_entry {64U};
+  if ((opt_bloom_bits < min_bits_per_entry) ||
+      (opt_bloom_bits > max_bits_per_entry)) {
     fatal("Illegal number of Bloom filter bits specified with -y or "
           "--bloom-bits, must be in the range 2 to 64.");
   }
