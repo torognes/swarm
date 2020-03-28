@@ -57,6 +57,8 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
+  constexpr auto max_range {7U};
+
   memset(qgramvector, 0, qgramvectorbytes);
 
   uint64_t qgram {0};
@@ -71,7 +73,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   while(i < seqlen)
   {
     qgram = (qgram << 2) | nt_extract(reinterpret_cast<char *>(seq), i);
-    qgramvector[(qgram >> 3) & (qgramvectorbytes-1)] ^= (1 << (qgram & 7));
+    qgramvector[(qgram >> 3) & (qgramvectorbytes - 1)] ^= (1 << (qgram & max_range));
     i++;
   }
 }
@@ -133,14 +135,18 @@ auto compareqgramvectors_64(unsigned char * a, unsigned char * b) -> uint64_t;
 
 auto popcount_128(__m128i x) -> uint64_t
 {
-  __m128i mask1 = _mm_set_epi8(0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55,
-                               0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55);
+  constexpr unsigned char m1 {0x55};  // '0101 0101'
+  constexpr unsigned char m2 {0x33};  // '0011 0011'
+  constexpr unsigned char m4 {0x0f};  // '0000 1111'
 
-  __m128i mask2 = _mm_set_epi8(0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33,
-                               0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33);
+  __m128i mask1 = _mm_set_epi8(m1, m1, m1, m1, m1, m1, m1, m1,
+                               m1, m1, m1, m1, m1, m1, m1, m1);
 
-  __m128i mask4 = _mm_set_epi8(0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
-                               0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f);
+  __m128i mask2 = _mm_set_epi8(m2, m2, m2, m2, m2, m2, m2, m2,
+                               m2, m2, m2, m2, m2, m2, m2, m2);
+
+  __m128i mask4 = _mm_set_epi8(m4, m4, m4, m4, m4, m4, m4, m4,
+                               m4, m4, m4, m4, m4, m4, m4, m4);
 
   __m128i zero = _mm_setzero_si128();
 
