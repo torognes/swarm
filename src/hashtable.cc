@@ -42,7 +42,7 @@ void hash_alloc(uint64_t amplicons)
   constexpr unsigned int one_hundred_pct {100};
   constexpr auto padding {63};  // make sure our final value is >= 64 / 8
   constexpr auto convert_to_bytes {8};
-  uint64_t hash_tablesize {1};
+  hash_tablesize = 1;
   // amplicons > 70% hash table size (avoid division to keep working with ints)
   while (one_hundred_pct * amplicons > hashfillpct * hash_tablesize) {
     hash_tablesize <<= 1;
