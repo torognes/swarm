@@ -103,10 +103,18 @@ auto zobrist_hash(unsigned char * s, unsigned int len) -> uint64_t
 
   while (p + nt_per_uint64 < len)
     {
-      for(auto i = 0U; i < nt_per_uint64; i += 4) {
-        // i = {0, 4, 8, 12, 16, 20, 24, 28}
-        z ^= zobrist_tab_byte_base[offset * (p + i) + *qb++];
-      }
+      // for(auto i = 0U; i < nt_per_uint64; i += 4) {
+      //   // i = {0, 4, 8, 12, 16, 20, 24, 28}
+      //   z ^= zobrist_tab_byte_base[offset * (p + i) + *qb++];
+      // }
+      z ^= zobrist_tab_byte_base[64 * (p +  0) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p +  4) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p +  8) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 12) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 16) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 20) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 24) + *qb++];
+      z ^= zobrist_tab_byte_base[64 * (p + 28) + *qb++];
       p += nt_per_uint64;
     }
 
