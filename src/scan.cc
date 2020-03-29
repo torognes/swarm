@@ -117,6 +117,7 @@ void search_init(struct search_data * sdp)
 
 void search_chunk(struct search_data * sdp, int64_t bits)
 {
+  constexpr auto bit_mode_16 {16U};
   if (sdp->target_count == 0) {
     return;
   }
@@ -160,7 +161,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
  (void) bits;
  if (1)
 #else
- if (bits == 16)
+ if (bits == bit_mode_16)
 #endif
    {
     search16(sdp->qtable_w,
@@ -175,7 +176,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
              master_diffs + sdp->target_index,
              master_alignlengths + sdp->target_index,
              static_cast<uint64_t>(query.len),
-             dirbufferbytes/8,
+             dirbufferbytes / sizeof(uint64_t),
              sdp->dir_array);
    }
  else {
@@ -191,7 +192,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
             master_diffs + sdp->target_index,
             master_alignlengths + sdp->target_index,
             static_cast<uint64_t>(query.len),
-            dirbufferbytes/8,
+            dirbufferbytes / sizeof(uint64_t),
             sdp->dir_array);
  }
 }
@@ -256,6 +257,10 @@ void search_do(uint64_t query_no,
                uint64_t * alignlengths,
                int bits)
 {
+  // constexpr auto bit_mode_16 {16U};
+  constexpr auto channels_8 {8U};
+  constexpr auto bit_mode_8 {8U};
+  constexpr auto channels_16 {16U};
   query.qno = query_no;
   unsigned int query_len = 0;
   db_getsequenceandlength(query_no, &query.seq, &query_len);
@@ -271,16 +276,16 @@ void search_do(uint64_t query_no,
 
   auto thr = static_cast<uint64_t>(opt_threads);
 
-  if (bits == 8)
+  if (bits == bit_mode_8)
     {
-      if (master_length <= 15 * thr) {
-        thr = (master_length + 15) / 16;
+      if (master_length <= (channels_16 - 1) * thr) {
+        thr = (master_length + channels_16 - 1) / channels_16;
       }
     }
   else
     {
-      if (master_length <= 7 * thr) {
-        thr = (master_length + 7) / 8;
+      if (master_length <= (channels_8 - 1) * thr) {
+        thr = (master_length + channels_8 - 1) / channels_8;
       }
     }
 
