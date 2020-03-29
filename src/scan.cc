@@ -67,21 +67,26 @@ auto search_worker(void * vp) -> void *;
 
 void search_alloc(struct search_data * sdp)
 {
-  dirbufferbytes = 8 * longestdbsequence * ((longestdbsequence+3)/4) * 4;
+  constexpr auto one_kilobyte {1024U};
+  constexpr auto nt_per_uint64 {32U};
+  constexpr auto bytes_per_uint64 {8U};
+
+  dirbufferbytes =
+    bytes_per_uint64 * longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
   sdp->qtable = static_cast<BYTE**>
     (xmalloc(longestdbsequence * sizeof(BYTE*)));
   sdp->qtable_w = static_cast<WORD**>
     (xmalloc(longestdbsequence * sizeof(WORD*)));
   sdp->dprofile = static_cast<BYTE*>
-    (xmalloc(4*16*32));
+    (xmalloc(2 * one_kilobyte));  // 4 * 16 * 32
   sdp->dprofile_w = static_cast<WORD*>
-    (xmalloc(4*2*8*32));
+    (xmalloc(2 * one_kilobyte));  // 4 * 2 * 8 * 32
   sdp->hearray = static_cast<BYTE*>
-    (xmalloc(longestdbsequence * 32));
+    (xmalloc(longestdbsequence * nt_per_uint64));
   sdp->dir_array = static_cast<uint64_t *>
     (xmalloc(dirbufferbytes));
 
-  memset(sdp->hearray, 0, longestdbsequence*32);
+  memset(sdp->hearray, 0, longestdbsequence * nt_per_uint64);
   memset(sdp->dir_array, 0, dirbufferbytes);
 }
 
@@ -102,9 +107,9 @@ void search_init(struct search_data * sdp)
 
   for(auto i = 0U; i < query.len; i++)
   {
-    auto nt_value {nt_extract(query.seq, i) + 1};   // 1,  2,   3,   4
-    auto byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, 192
-    auto word_offset {word_multiplier * nt_value};  // 1, 32,  64, 128
+    auto nt_value {nt_extract(query.seq, i) + 1};   // 1,  2,   3, or   4
+    auto byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
+    auto word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
     sdp->qtable[i]   = sdp->dprofile   + byte_offset;
     sdp->qtable_w[i] = sdp->dprofile_w + word_offset;
   }
