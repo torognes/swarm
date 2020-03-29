@@ -192,6 +192,7 @@ inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
 {
+  constexpr auto multiplier {5U};
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
@@ -213,7 +214,7 @@ inline void dprofile_fill8(BYTE * dprofile,
     {
       unsigned int d[channels];
       for(auto i = 0U; i < channels; i++) {
-        d[i] = (static_cast<unsigned int>(dseq[j * channels + i])) << 5;
+        d[i] = (static_cast<unsigned int>(dseq[j * channels + i])) << multiplier;
       }
 
       reg0  = v_load_64(score_matrix + d[ 0]);
@@ -273,14 +274,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile+16*j+  0, reg0);
-      v_store(dprofile+16*j+ 64, reg3);
-      v_store(dprofile+16*j+128, reg2);
-      v_store(dprofile+16*j+192, reg7);
-      v_store(dprofile+16*j+256, reg1);
-      v_store(dprofile+16*j+320, reg11);
-      v_store(dprofile+16*j+384, reg6);
-      v_store(dprofile+16*j+448, reg15);
+      v_store(dprofile + 16 * j +   0, reg0);
+      v_store(dprofile + 16 * j +  64, reg3);
+      v_store(dprofile + 16 * j + 128, reg2);
+      v_store(dprofile + 16 * j + 192, reg7);
+      v_store(dprofile + 16 * j + 256, reg1);
+      v_store(dprofile + 16 * j + 320, reg11);
+      v_store(dprofile + 16 * j + 384, reg6);
+      v_store(dprofile + 16 * j + 448, reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -545,6 +546,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            uint64_t * dir_long,
                            VECTORTYPE * H0)
 {
+  constexpr auto channels {16U};
   VECTORTYPE Q;
   VECTORTYPE R;
   VECTORTYPE E;
@@ -585,16 +587,20 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   for(auto i = 0ULL; i < ql; i++)
     {
       VECTORTYPE *x {nullptr};
+      constexpr auto j0 {0U};
+      constexpr auto j1 {j0 + 4};
+      constexpr auto j2 {j1 + 4};
+      constexpr auto j3 {j2 + 4};
 
       x = qp[i + 0];
-      h4 = hep[2*i + 0];
-      E  = hep[2*i + 1];
-      onestep_8(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
-      onestep_8(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
-      onestep_8(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
-      onestep_8(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
-      hep[2*i + 0] = h8;
-      hep[2*i + 1] = E;
+      h4 = hep[2 * i + 0];
+      E  = hep[2 * i + 1];
+      onestep_8(h0, h5, f0, x[0], dir + channels * i + j0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + channels * i + j1, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + channels * i + j2, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + channels * i + j3, E, Q, R);
+      hep[2 * i + 0] = h8;
+      hep[2 * i + 1] = E;
       h0 = h4;
       h1 = h5;
       h2 = h6;
@@ -621,6 +627,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0)
 {
+  constexpr auto channels {16U};
   VECTORTYPE Q;
   VECTORTYPE R;
   VECTORTYPE E;
@@ -660,10 +667,15 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
+      constexpr auto j0 {0U};
+      constexpr auto j1 {j0 + 4};
+      constexpr auto j2 {j1 + 4};
+      constexpr auto j3 {j2 + 4};
+
       VECTORTYPE * x {nullptr};
 
-      h4 = hep[2*i + 0];
-      E  = hep[2*i + 1];
+      h4 = hep[2 * i + 0];
+      E  = hep[2 * i + 1];
       x = qp[i + 0];
 
       /* mask h4 and E */
@@ -678,12 +690,12 @@ void align_cells_masked_8(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add(*MQ,  *MR);
 
-      onestep_8(h0, h5, f0, x[0], dir + 16 * i +  0, E, Q, R);
-      onestep_8(h1, h6, f1, x[1], dir + 16 * i +  4, E, Q, R);
-      onestep_8(h2, h7, f2, x[2], dir + 16 * i +  8, E, Q, R);
-      onestep_8(h3, h8, f3, x[3], dir + 16 * i + 12, E, Q, R);
-      hep[2*i + 0] = h8;
-      hep[2*i + 1] = E;
+      onestep_8(h0, h5, f0, x[0], dir + channels * i + j0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + channels * i + j1, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + channels * i + j2, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + channels * i + j3, E, Q, R);
+      hep[2 * i + 0] = h8;
+      hep[2 * i + 1] = E;
 
       h0 = h4;
       h1 = h5;
@@ -707,10 +719,15 @@ inline auto backtrack_8(char * qseq,
                             uint64_t channel,
                             uint64_t * alignmentlengthp) -> uint64_t
 {
-  uint64_t maskup      = 1ULL << (channel +  0);
-  uint64_t maskleft    = 1ULL << (channel + 16);
-  uint64_t maskextup   = 1ULL << (channel + 32);
-  uint64_t maskextleft = 1ULL << (channel + 48);
+  constexpr auto offset0 {0U};
+  constexpr auto offset1 {offset0 + 16};
+  constexpr auto offset2 {offset1 + 16};
+  constexpr auto offset3 {offset2 + 16};
+
+  uint64_t maskup      = 1ULL << (channel + offset0);
+  uint64_t maskleft    = 1ULL << (channel + offset1);
+  uint64_t maskextup   = 1ULL << (channel + offset2);
+  uint64_t maskextleft = 1ULL << (channel + offset3);
 
 #if 0
 
