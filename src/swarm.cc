@@ -116,6 +116,17 @@ void cpuid(unsigned int f1,
 
 void cpu_features_detect()
 {
+  constexpr auto post_pentium {7U};  // new cpus: a & 0xff > 6
+  constexpr auto bit_mmx {23U};
+  constexpr auto bit_sse {25U};
+  constexpr auto bit_sse2 {26U};
+  constexpr auto bit_sse3 {0U};
+  constexpr auto bit_ssse3 {9U};
+  constexpr auto bit_sse41 {19U};
+  constexpr auto bit_sse42 {20U};
+  constexpr auto bit_popcnt {23U};
+  constexpr auto bit_avx {28U};
+
   unsigned int a {0};
   unsigned int b {0};
   unsigned int c {0};
@@ -127,15 +138,6 @@ void cpu_features_detect()
   if (maxlevel >= 1)
   {
     cpuid(1, 0, a, b, c, d);
-    constexpr auto bit_mmx {23U};
-    constexpr auto bit_sse {25U};
-    constexpr auto bit_sse2 {26U};
-    constexpr auto bit_sse3 {0U};
-    constexpr auto bit_ssse3 {9U};
-    constexpr auto bit_sse41 {19U};
-    constexpr auto bit_sse42 {20U};
-    constexpr auto bit_popcnt {23U};
-    constexpr auto bit_avx {28U};
     mmx_present    = (d >> bit_mmx) & 1;
     sse_present    = (d >> bit_sse) & 1;
     sse2_present   = (d >> bit_sse2) & 1;
@@ -146,9 +148,9 @@ void cpu_features_detect()
     popcnt_present = (c >> bit_popcnt) & 1;
     avx_present    = (c >> bit_avx) & 1;
 
-    if (maxlevel >= 7)
+    if (maxlevel >= post_pentium)
     {
-      cpuid(7, 0, a, b, c, d);
+      cpuid(post_pentium, 0, a, b, c, d);
       constexpr auto bit_avx2 {5U};
       avx2_present   = (b >> bit_avx2) & 1;
     }
@@ -203,8 +205,9 @@ void close_files();
 
 auto args_long(char * str, const char * option) -> int64_t
 {
+  constexpr auto base_value {10};
   char * endptr {nullptr};
-  int64_t temp = strtol(str, & endptr, 10);
+  int64_t temp = strtol(str, & endptr, base_value);
   if (*endptr != 0)
     {
       fprintf(stderr, "\nInvalid numeric argument for option %s\n", option);
@@ -326,37 +329,46 @@ void show_header()
 void args_init(int argc, char **argv)
 {
   /* Set defaults */
+  constexpr unsigned int min_ceiling {8};
+  constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
+  constexpr auto append_abundance_default {0U};
+  constexpr auto bloom_bits_default {16U};
+  constexpr auto boundary_default {3U};
+  constexpr auto ceiling_default {0U};
+  constexpr auto differences_default {1U};
+  constexpr auto gap_extension_penalty_default {4U};
+  constexpr auto gap_opening_penalty_default {12U};
+  constexpr auto match_reward_default {5U};
+  constexpr auto mismatch_penalty_default {4U};
+  constexpr auto threads_default {1U};
 
   progname = argv[0];
   input_filename = DASH_FILENAME;
 
-  opt_append_abundance = 0;
-  opt_bloom_bits = 16;
-  opt_boundary = 3;
-  opt_ceiling = 0;
-  opt_differences = 1;
+  opt_append_abundance = append_abundance_default;
+  opt_bloom_bits = bloom_bits_default;
+  opt_boundary = boundary_default;
+  opt_ceiling = ceiling_default;
+  opt_differences = differences_default;
   opt_disable_sse3 = false;
   opt_fastidious = false;
-  opt_gap_extension_penalty = 4;
-  opt_gap_opening_penalty = 12;
+  opt_gap_extension_penalty = gap_extension_penalty_default;
+  opt_gap_opening_penalty = gap_opening_penalty_default;
   opt_help = false;
   opt_internal_structure = nullptr;
   opt_log = nullptr;
-  opt_match_reward = 5;
-  opt_mismatch_penalty = 4;
+  opt_match_reward = match_reward_default;
+  opt_mismatch_penalty = mismatch_penalty_default;
   opt_mothur = false;
   opt_network_file = nullptr;
   opt_no_otu_breaking = false;
   opt_output_file = DASH_FILENAME;
   opt_seeds = nullptr;
   opt_statistics_file = nullptr;
-  opt_threads = 1;
+  opt_threads = threads_default;
   opt_uclust_file = nullptr;
   opt_usearch_abundance = false;
   opt_version = false;
-  constexpr unsigned int min_ceiling {8};
-  constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
-
   opterr = 1;  // unused variable?
 
   char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z";
@@ -583,29 +595,38 @@ void args_init(int argc, char **argv)
 
   if (!opt_fastidious)
     {
-      if (used_options[1] != 0) {
+      constexpr auto boundary_index {1U};
+      constexpr auto ceiling_index {2U};
+      constexpr auto bloom_bits_index {24U};
+
+      if (used_options[boundary_index] != 0) {
         fatal("Option -b or --boundary specified without -f or --fastidious.\n");
       }
-      if (used_options[2] != 0) {
+      if (used_options[ceiling_index] != 0) {
         fatal("Option -c or --ceiling specified without -f or --fastidious.\n");
       }
-      if (used_options[24] != 0) {
+      if (used_options[bloom_bits_index] != 0) {
         fatal("Option -y or --bloom-bits specified without -f or --fastidious.\n");
       }
     }
 
   if (opt_differences < 2)
     {
-      if (used_options[12] != 0) {
+      constexpr auto match_reward_index {12U};
+      constexpr auto mismatch_penalty_index {15U};
+      constexpr auto gap_opening_penalty_index {6U};
+      constexpr auto gap_extension_penalty_index {4U};
+
+      if (used_options[match_reward_index] != 0) {
         fatal("Option -m or --match-reward specified when d < 2.");
       }
-      if (used_options[15] != 0) {
+      if (used_options[mismatch_penalty_index] != 0) {
         fatal("Option -p or --mismatch-penalty specified when d < 2.");
       }
-      if (used_options[6] != 0) {
+      if (used_options[gap_opening_penalty_index] != 0) {
         fatal("Option -g or --gap-opening-penalty specified when d < 2.");
       }
-      if (used_options[4] != 0) {
+      if (used_options[gap_extension_penalty_index] != 0) {
         fatal("Option -e or --gap-extension-penalty specified when d < 2.");
       }
     }
