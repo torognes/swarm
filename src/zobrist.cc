@@ -39,6 +39,7 @@ void zobrist_init(unsigned int n)
     31-bit random numbers.
   */
   constexpr unsigned int byte_range {256};
+  constexpr unsigned int multiplier {16U};
 
   /* allocate memory for tables */
 
@@ -54,11 +55,11 @@ void zobrist_init(unsigned int n)
     {
       auto z = 0ULL;
       z = arch_random();
-      z <<= 16;
+      z <<= multiplier;
       z ^= arch_random();
-      z <<= 16;
+      z <<= multiplier;
       z ^= arch_random();
-      z <<= 16;
+      z <<= multiplier;
       z ^= arch_random();
       zobrist_tab_base[i] = z;
     }
@@ -93,27 +94,25 @@ auto zobrist_hash(unsigned char * s, unsigned int len) -> uint64_t
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len+3)/4 bytes */
 
+  constexpr auto offset {64U};
+  constexpr auto nt_per_uint64 {32U};  // 32 nucleotides can fit in a uint64
   auto * q = reinterpret_cast<uint64_t *>(s);
   uint64_t z = 0;
   unsigned int p = 0;
   auto * qb = reinterpret_cast<unsigned char *>(q);
 
-  while (p + 32 < len)
+  while (p + nt_per_uint64 < len)
     {
-      z ^= zobrist_tab_byte_base[64 * (p +  0) + *qb++];
-      z ^= zobrist_tab_byte_base[64 * (p +  4) + *qb++];
-      z ^= zobrist_tab_byte_base[64 * (p +  8) + *qb++];
-      z ^= zobrist_tab_byte_base[64 * (p + 12) + *qb++];
-      z ^= zobrist_tab_byte_base[64 * (p + 16) + *qb++];
-      z ^= zobrist_tab_byte_base[64 * (p + 20) + *qb++];
-      z ^= zobrist_tab_byte_base[64 * (p + 24) + *qb++];
-      z ^= zobrist_tab_byte_base[64 * (p + 28) + *qb++];
-      p += 32;
+      for(auto i = 0U; i < nt_per_uint64; i += 4) {
+        // i = {0, 4, 8, 12, 16, 20, 24, 28}
+        z ^= zobrist_tab_byte_base[offset * (p + i) + *qb++];
+      }
+      p += nt_per_uint64;
     }
 
   while (p + 4 < len)
     {
-      z ^= zobrist_tab_byte_base[64 * p + *qb++];
+      z ^= zobrist_tab_byte_base[offset * p + *qb++];
       p += 4;
     }
 
@@ -136,13 +135,14 @@ auto zobrist_hash_delete_first(unsigned char * s, unsigned int len) -> uint64_t
   /* compute the Zobrist hash function of sequence s,
      but delete the first base */
 
+  constexpr auto nt_per_uint64 {32U};  // 32 nucleotides can fit in a uint64
   auto * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = q[0];
   uint64_t z = 0;
   for(auto p = 1U; p < len; p++)
     {
-      if ((p & 31) == 0) {
-        x = q[p / 32];
+      if ((p & (nt_per_uint64 - 1)) == 0) {
+        x = q[p / nt_per_uint64];
       }
       else {
         x >>= 2;
@@ -157,13 +157,14 @@ auto zobrist_hash_insert_first(unsigned char * s, unsigned int len) -> uint64_t
   /* compute the Zobrist hash function of sequence s,
      but insert a gap (no value) before the first base */
 
+  constexpr auto nt_per_uint64 {32U};  // 32 nucleotides can fit in a uint64
   auto * q = reinterpret_cast<uint64_t *>(s);
   uint64_t x = 0;
   uint64_t z = 0;
   for(auto p = 0U; p < len; p++)
     {
-      if ((p & 31) == 0) {
-        x = q[p / 32];
+      if ((p & (nt_per_uint64 - 1)) == 0) {
+        x = q[p / nt_per_uint64];
       }
       else {
         x >>= 2;
