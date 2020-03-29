@@ -445,6 +445,7 @@ void check_heavy_thread(int64_t t)
 {
   constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
   constexpr auto j {4U};  //                               i * len + j
+  constexpr auto nt_per_uint64 {32U};  // 32 nucleotides can fit in a uint64
   (void) t;
 
   auto * variant_list = static_cast<struct var_s *>
@@ -452,7 +453,8 @@ void check_heavy_thread(int64_t t)
   auto * variant_list2 = static_cast<struct var_s *>
     (xmalloc(sizeof(struct var_s) * (i * (longestamplicon + 1) + j)));
 
-  size_t size = 8 * ((db_getlongestsequence() + 2 + 31) / 32);
+  size_t size =
+    sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
   char * buffer1 = static_cast<char *>(xmalloc(size));
   pthread_mutex_lock(&heavy_mutex);
   while ((heavy_amplicon < amplicons) &&
