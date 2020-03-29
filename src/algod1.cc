@@ -1029,25 +1029,29 @@ void algo_d1_run()
           /* n: number of entries in the bloom filter */
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
+          constexpr auto microvariants {7U};
+          constexpr auto hash_functions_per_bit {4.0 / 10};
           auto bits = static_cast<uint64_t>(opt_bloom_bits); /* 16 */
 
           // int64_t k = int(bits * 0.693);    /* 11 */
-          auto k = static_cast<unsigned int>(4 * bits / 10); /* 6 */
+          auto k =
+            static_cast<unsigned int>(hash_functions_per_bit * bits); /* 6 */
           if (k < 1) {
             k = 1;
           }
 
-          uint64_t m = bits * 7 * nucleotides_in_small_otus;
+          uint64_t m = bits * microvariants * nucleotides_in_small_otus;
           constexpr auto min_total_bloom_filter_length_in_bits {64U};
 
           uint64_t memtotal = arch_get_memtotal();
           uint64_t memused = arch_get_memused();
 
-          if (opt_ceiling !=0)
+          if (opt_ceiling != 0)
             {
               uint64_t memrest
                 = one_megabyte * static_cast<uint64_t>(opt_ceiling) - memused;
-              uint64_t new_bits = 8 * memrest / (7 * nucleotides_in_small_otus);
+              uint64_t new_bits =
+                sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_otus);
               if (new_bits < bits)
                 {
                   if (new_bits < 2) {
@@ -1056,12 +1060,12 @@ void algo_d1_run()
                   fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
                   // k = int(bits * 0.693);
-                  k = static_cast<unsigned int>(4 * bits / 10);
+                  k = static_cast<unsigned int>(hash_functions_per_bit * bits);
                   if (k < 1) {
                     k = 1;
                   }
 
-                  m = bits * 7 * nucleotides_in_small_otus;
+                  m = bits * microvariants * nucleotides_in_small_otus;
                 }
             }
 
@@ -1069,7 +1073,7 @@ void algo_d1_run()
             m = min_total_bloom_filter_length_in_bits;  // at least 64 bits
           }
 
-          if (memused + m / 8 > memtotal)
+          if (memused + m / sizeof(uint64_t) > memtotal)
             {
               fprintf(logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
               fprintf(logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
@@ -1077,10 +1081,10 @@ void algo_d1_run()
 
           fprintf(logfile,
                   "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                  bits, m, k, static_cast<double>(m) / (8 * one_megabyte));
+                  bits, m, k, static_cast<double>(m) / (sizeof(uint64_t) * one_megabyte));
 
 
-          bloom_f = bloomflex_init(m / 8, k);
+          bloom_f = bloomflex_init(m / sizeof(uint64_t), k);
 
 
           /* Empty the old hash and bloom filter
