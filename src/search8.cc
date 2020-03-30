@@ -546,7 +546,6 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            uint64_t * dir_long,
                            VECTORTYPE * H0)
 {
-  constexpr auto channels {16U};
   VECTORTYPE Q;
   VECTORTYPE R;
   VECTORTYPE E;
