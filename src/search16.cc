@@ -195,6 +195,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE * dseq)
 {
+  constexpr auto multiplier {5U};
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
@@ -232,10 +233,10 @@ inline void dprofile_fill16(WORD * dprofile_word,
     {
       unsigned int d[channels];
       for(auto z = 0U; z < channels; z++) {
-        d[z] = (static_cast<unsigned int>(dseq[j*channels+z])) << 5;
+        d[z] = (static_cast<unsigned int>(dseq[j * channels + z])) << multiplier;
       }
 
-      for(auto i = 0; i < 8; i += 8)
+      for(auto i = 0U; i < channels; i += channels)
         {
           reg0  = v_load(score_matrix_word + d[0] + i);
           reg1  = v_load(score_matrix_word + d[1] + i);
@@ -273,14 +274,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
           reg30 = v_merge_lo_64(reg21, reg23);
           reg31 = v_merge_hi_64(reg21, reg23);
 
-          v_store(dprofile_word + cdepth*channels*(i+0) + channels*j, reg24);
-          v_store(dprofile_word + cdepth*channels*(i+1) + channels*j, reg25);
-          v_store(dprofile_word + cdepth*channels*(i+2) + channels*j, reg26);
-          v_store(dprofile_word + cdepth*channels*(i+3) + channels*j, reg27);
-          v_store(dprofile_word + cdepth*channels*(i+4) + channels*j, reg28);
-          v_store(dprofile_word + cdepth*channels*(i+5) + channels*j, reg29);
-          v_store(dprofile_word + cdepth*channels*(i+6) + channels*j, reg30);
-          v_store(dprofile_word + cdepth*channels*(i+7) + channels*j, reg31);
+          v_store(dprofile_word + cdepth * channels * (i + 0) + channels * j, reg24);
+          v_store(dprofile_word + cdepth * channels * (i + 1) + channels * j, reg25);
+          v_store(dprofile_word + cdepth * channels * (i + 2) + channels * j, reg26);
+          v_store(dprofile_word + cdepth * channels * (i + 3) + channels * j, reg27);
+          v_store(dprofile_word + cdepth * channels * (i + 4) + channels * j, reg28);
+          v_store(dprofile_word + cdepth * channels * (i + 5) + channels * j, reg29);
+          v_store(dprofile_word + cdepth * channels * (i + 6) + channels * j, reg30);
+          v_store(dprofile_word + cdepth * channels * (i + 7) + channels * j, reg31);
         }
     }
 #if 0
@@ -322,6 +323,12 @@ void align_cells_regular_16(VECTORTYPE * Sm,
                             uint64_t * dir_long,
                             VECTORTYPE * H0)
 {
+  constexpr auto step {16U};
+  constexpr auto offset0 {0U};
+  constexpr auto offset1 {offset0 + 4};
+  constexpr auto offset2 {offset1 + 4};
+  constexpr auto offset3 {offset2 + 4};
+
   VECTORTYPE Q;
   VECTORTYPE R;
   VECTORTYPE E;
@@ -364,14 +371,14 @@ void align_cells_regular_16(VECTORTYPE * Sm,
       VECTORTYPE *x {nullptr};
 
       x = qp[i + 0];
-      h4 = hep[2*i + 0];
-      E  = hep[2*i + 1];
-      onestep_16(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
-      onestep_16(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
-      onestep_16(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
-      onestep_16(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
-      hep[2*i + 0] = h8;
-      hep[2*i + 1] = E;
+      h4 = hep[2 * i + 0];
+      E  = hep[2 * i + 1];
+      onestep_16(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
+      onestep_16(h1, h6, f1, x[1], dir + step * i + offset1, E, Q, R);
+      onestep_16(h2, h7, f2, x[2], dir + step * i + offset2, E, Q, R);
+      onestep_16(h3, h8, f3, x[3], dir + step * i + offset3, E, Q, R);
+      hep[2 * i + 0] = h8;
+      hep[2 * i + 1] = E;
       h0 = h4;
       h1 = h5;
       h2 = h6;
@@ -398,6 +405,12 @@ void align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * MR,
                            VECTORTYPE * MQ0)
 {
+  constexpr auto step {16U};
+  constexpr auto offset0 {0U};
+  constexpr auto offset1 {offset0 + 4};
+  constexpr auto offset2 {offset1 + 4};
+  constexpr auto offset3 {offset2 + 4};
+
   VECTORTYPE Q;
   VECTORTYPE R;
   VECTORTYPE E;
@@ -439,8 +452,8 @@ void align_cells_masked_16(VECTORTYPE * Sm,
     {
       VECTORTYPE *x {nullptr};
 
-      h4 = hep[2*i + 0];
-      E  = hep[2*i + 1];
+      h4 = hep[2 * i + 0];
+      E  = hep[2 * i + 1];
       x = qp[i + 0];
 
       /* mask h4 and E */
@@ -455,12 +468,12 @@ void align_cells_masked_16(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add(*MQ,  *MR);
 
-      onestep_16(h0, h5, f0, x[0], dir + 16*i +  0, E, Q, R);
-      onestep_16(h1, h6, f1, x[1], dir + 16*i +  4, E, Q, R);
-      onestep_16(h2, h7, f2, x[2], dir + 16*i +  8, E, Q, R);
-      onestep_16(h3, h8, f3, x[3], dir + 16*i + 12, E, Q, R);
-      hep[2*i + 0] = h8;
-      hep[2*i + 1] = E;
+      onestep_16(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
+      onestep_16(h1, h6, f1, x[1], dir + step * i + offset1, E, Q, R);
+      onestep_16(h2, h7, f2, x[2], dir + step * i + offset2, E, Q, R);
+      onestep_16(h3, h8, f3, x[3], dir + step * i + offset3, E, Q, R);
+      hep[2 * i + 0] = h8;
+      hep[2 * i + 1] = E;
 
       h0 = h4;
       h1 = h5;
@@ -484,10 +497,14 @@ auto backtrack_16(char * qseq,
                       uint64_t channel,
                       uint64_t * alignmentlengthp) -> uint64_t
 {
-  uint64_t maskup      = 3ULL << (2 * channel +  0);
-  uint64_t maskleft    = 3ULL << (2 * channel + 16);
-  uint64_t maskextup   = 3ULL << (2 * channel + 32);
-  uint64_t maskextleft = 3ULL << (2 * channel + 48);
+  constexpr auto offset0 {0U};
+  constexpr auto offset1 {offset0 + 16};
+  constexpr auto offset2 {offset1 + 16};
+  constexpr auto offset3 {offset2 + 16};
+  uint64_t maskup      = 3ULL << (2 * channel + offset0);
+  uint64_t maskleft    = 3ULL << (2 * channel + offset1);
+  uint64_t maskextup   = 3ULL << (2 * channel + offset2);
+  uint64_t maskextleft = 3ULL << (2 * channel + offset3);
 
 #if 0
 
