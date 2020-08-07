@@ -26,6 +26,7 @@
 constexpr unsigned int memchunk {1 << 20};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
 
+// map the 128 ascii chars to '-1' except Aa, Cc, Gg and Tt
 static signed char map_nt[UINT8_MAX + 1] =
   {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
