@@ -405,7 +405,8 @@ void args_init(int argc, char **argv)
   };
 
   constexpr int n_options {26};
-  std::array<int, n_options> used_options {0};  // set int values to zero by default
+  std::array<int, n_options> used_options;
+  used_options.fill(0);  // set int values to zero by default
 
   int option_index {0};
   int c {0};
