@@ -238,9 +238,9 @@ extern uint64_t duplicates_found;
 inline auto nt_extract(char * seq, uint64_t i) -> unsigned char
 {
   // Extract compressed nucleotide in sequence seq at position i
-  constexpr auto max_nt_per_uint64 {1U << 5};  // 32 nt fit in 64 bits
-  constexpr auto drop_remainder {5U};  // (len+31) % 32 = remainder (drop it)
-  constexpr auto max_range {3U};
+  constexpr unsigned int max_nt_per_uint64 {1 << 5};  // 32 nt fit in 64 bits
+  constexpr unsigned int drop_remainder {5};  // (len+31) % 32 = remainder (drop it)
+  constexpr unsigned int max_range {3};
   // outputs four possible values: 0, 1, 2 or 3
   return (((reinterpret_cast<uint64_t*>(seq))[i >> drop_remainder]) >> \
           ((i & (max_nt_per_uint64 - 1)) << 1)) & max_range;
@@ -250,9 +250,9 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
 {
   // Compute number of bytes used for compressed sequence of length len
   // (minimum result is 8 bytes)
-  constexpr auto max_nt_per_uint64 {1U << 5};  // 32 nt fit in 64 bits
-  constexpr auto drop_remainder {5U};  // (len+31) % 32 = remainder (drop it)
-  constexpr auto convert_to_bytes {3U};  // times 8 to get the number of bytes
+  constexpr unsigned int max_nt_per_uint64 {1 << 5};  // 32 nt fit in 64 bits
+  constexpr unsigned int drop_remainder {5};  // (len+31) % 32 = remainder (drop it)
+  constexpr unsigned int convert_to_bytes {3};  // times 8 to get the number of bytes
   return ((len + max_nt_per_uint64 - 1) >> drop_remainder) << convert_to_bytes;
 }
 

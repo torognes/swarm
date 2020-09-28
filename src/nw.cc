@@ -28,7 +28,7 @@ void finishop(char ** cigarendp, char * op, int * count);
 
 void pushop(char newop, char ** cigarendp, char * op, int * count)
 {
-  constexpr auto buffer_length {25U};
+  constexpr unsigned int buffer_length {25};
 
   if (newop == *op) {
     (*count)++;
@@ -51,7 +51,7 @@ void pushop(char newop, char ** cigarendp, char * op, int * count)
 
 void finishop(char ** cigarendp, char * op, int * count)
 {
-  constexpr auto buffer_length {25U};
+  constexpr unsigned int buffer_length {25};
 
   if ((op != nullptr) && (count != nullptr))
   {
@@ -134,7 +134,7 @@ void nw(char * dseq,
   /* dir must point to at least qlen*dlen bytes of allocated memory
      hearray must point to at least 2*qlen longs of allocated memory
      (8*qlen bytes) */
-  constexpr auto multiplier {5U};
+  constexpr unsigned int multiplier {5};
 
   int64_t n {0};
   int64_t e {0};

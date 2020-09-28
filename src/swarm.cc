@@ -116,16 +116,16 @@ void cpuid(unsigned int f1,
 
 void cpu_features_detect()
 {
-  constexpr auto post_pentium {7U};  // new cpus: a & 0xff > 6
-  constexpr auto bit_mmx {23U};
-  constexpr auto bit_sse {25U};
-  constexpr auto bit_sse2 {26U};
-  constexpr auto bit_sse3 {0U};
-  constexpr auto bit_ssse3 {9U};
-  constexpr auto bit_sse41 {19U};
-  constexpr auto bit_sse42 {20U};
-  constexpr auto bit_popcnt {23U};
-  constexpr auto bit_avx {28U};
+  constexpr unsigned int post_pentium {7};  // new cpus: a & 0xff > 6
+  constexpr unsigned int bit_mmx {23};
+  constexpr unsigned int bit_sse {25};
+  constexpr unsigned int bit_sse2 {26};
+  constexpr unsigned int bit_sse3 {0};
+  constexpr unsigned int bit_ssse3 {9};
+  constexpr unsigned int bit_sse41 {19};
+  constexpr unsigned int bit_sse42 {20};
+  constexpr unsigned int bit_popcnt {23};
+  constexpr unsigned int bit_avx {28};
 
   unsigned int a {0};
   unsigned int b {0};
@@ -151,7 +151,7 @@ void cpu_features_detect()
     if (maxlevel >= post_pentium)
     {
       cpuid(post_pentium, 0, a, b, c, d);
-      constexpr auto bit_avx2 {5U};
+      constexpr unsigned int bit_avx2 {5};
       avx2_present   = (b >> bit_avx2) & 1;
     }
   }
@@ -205,7 +205,7 @@ void close_files();
 
 auto args_long(char * str, const char * option) -> int64_t
 {
-  constexpr auto base_value {10};
+  constexpr int base_value {10};
   char * endptr {nullptr};
   int64_t temp = strtol(str, & endptr, base_value);
   if (*endptr != 0)
@@ -331,16 +331,16 @@ void args_init(int argc, char **argv)
   /* Set defaults */
   constexpr unsigned int min_ceiling {8};
   constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
-  constexpr auto append_abundance_default {0U};
-  constexpr auto bloom_bits_default {16U};
-  constexpr auto boundary_default {3U};
-  constexpr auto ceiling_default {0U};
-  constexpr auto differences_default {1U};
-  constexpr auto gap_extension_penalty_default {4U};
-  constexpr auto gap_opening_penalty_default {12U};
-  constexpr auto match_reward_default {5U};
-  constexpr auto mismatch_penalty_default {4U};
-  constexpr auto threads_default {1U};
+  constexpr unsigned int append_abundance_default {0};
+  constexpr unsigned int bloom_bits_default {16};
+  constexpr unsigned int boundary_default {3};
+  constexpr unsigned int ceiling_default {0};
+  constexpr unsigned int differences_default {1};
+  constexpr unsigned int gap_extension_penalty_default {4};
+  constexpr unsigned int gap_opening_penalty_default {12};
+  constexpr unsigned int match_reward_default {5};
+  constexpr unsigned int mismatch_penalty_default {4};
+  constexpr unsigned int threads_default {1};
 
   progname = argv[0];
   input_filename = DASH_FILENAME;
@@ -404,7 +404,7 @@ void args_init(int argc, char **argv)
     {nullptr,                 0,                 nullptr, 0 }
   };
 
-  constexpr auto n_options {26};
+  constexpr int n_options {26};
   std::array<int, n_options> used_options {0};  // set int values to zero by default
 
   int option_index {0};
@@ -595,9 +595,9 @@ void args_init(int argc, char **argv)
 
   if (!opt_fastidious)
     {
-      constexpr auto boundary_index {1U};
-      constexpr auto ceiling_index {2U};
-      constexpr auto bloom_bits_index {24U};
+      constexpr unsigned int boundary_index {1};
+      constexpr unsigned int ceiling_index {2};
+      constexpr unsigned int bloom_bits_index {24};
 
       if (used_options[boundary_index] != 0) {
         fatal("Option -b or --boundary specified without -f or --fastidious.\n");
@@ -612,10 +612,10 @@ void args_init(int argc, char **argv)
 
   if (opt_differences < 2)
     {
-      constexpr auto match_reward_index {12U};
-      constexpr auto mismatch_penalty_index {15U};
-      constexpr auto gap_opening_penalty_index {6U};
-      constexpr auto gap_extension_penalty_index {4U};
+      constexpr unsigned int match_reward_index {12};
+      constexpr unsigned int mismatch_penalty_index {15};
+      constexpr unsigned int gap_opening_penalty_index {6};
+      constexpr unsigned int gap_extension_penalty_index {4};
 
       if (used_options[match_reward_index] != 0) {
         fatal("Option -m or --match-reward specified when d < 2.");
@@ -667,8 +667,8 @@ void args_init(int argc, char **argv)
           "must be in the range 8 to 1,073,741,824 MB.");
   }
 
-  constexpr auto min_bits_per_entry {2U};
-  constexpr auto max_bits_per_entry {64U};
+  constexpr unsigned int min_bits_per_entry {2};
+  constexpr unsigned int max_bits_per_entry {64};
   if ((opt_bloom_bits < min_bits_per_entry) ||
       (opt_bloom_bits > max_bits_per_entry)) {
     fatal("Illegal number of Bloom filter bits specified with -y or "

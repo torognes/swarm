@@ -192,7 +192,7 @@ inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
 {
-  constexpr auto multiplier {5U};
+  constexpr unsigned int multiplier {5};
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
@@ -586,10 +586,10 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   for(auto i = 0ULL; i < ql; i++)
     {
       VECTORTYPE *x {nullptr};
-      constexpr auto j0 {0U};
-      constexpr auto j1 {j0 + 4};
-      constexpr auto j2 {j1 + 4};
-      constexpr auto j3 {j2 + 4};
+      constexpr unsigned int j0 {0};
+      constexpr unsigned int j1 {j0 + 4};
+      constexpr unsigned int j2 {j1 + 4};
+      constexpr unsigned int j3 {j2 + 4};
 
       x = qp[i + 0];
       h4 = hep[2 * i + 0];
@@ -626,7 +626,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0)
 {
-  constexpr auto channels {16U};
+  constexpr unsigned int channels {16};
   VECTORTYPE Q;
   VECTORTYPE R;
   VECTORTYPE E;
@@ -666,10 +666,10 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      constexpr auto j0 {0U};
-      constexpr auto j1 {j0 + 4};
-      constexpr auto j2 {j1 + 4};
-      constexpr auto j3 {j2 + 4};
+      constexpr unsigned int j0 {0};
+      constexpr unsigned int j1 {j0 + 4};
+      constexpr unsigned int j2 {j1 + 4};
+      constexpr unsigned int j3 {j2 + 4};
 
       VECTORTYPE * x {nullptr};
 
@@ -718,10 +718,10 @@ inline auto backtrack_8(char * qseq,
                             uint64_t channel,
                             uint64_t * alignmentlengthp) -> uint64_t
 {
-  constexpr auto offset0 {0U};
-  constexpr auto offset1 {offset0 + 16};
-  constexpr auto offset2 {offset1 + 16};
-  constexpr auto offset3 {offset2 + 16};
+  constexpr unsigned int offset0 {0};
+  constexpr unsigned int offset1 {offset0 + 16};
+  constexpr unsigned int offset2 {offset1 + 16};
+  constexpr unsigned int offset3 {offset2 + 16};
 
   uint64_t maskup      = 1ULL << (channel + offset0);
   uint64_t maskleft    = 1ULL << (channel + offset1);

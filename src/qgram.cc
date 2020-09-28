@@ -57,7 +57,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
-  constexpr auto max_range {7U};
+  constexpr unsigned int max_range {7};
 
   memset(qgramvector, 0, qgramvectorbytes);
 

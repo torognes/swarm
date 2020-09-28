@@ -65,12 +65,12 @@ void score_matrix_dump()
 
 void score_matrix_read()
 {
-  constexpr auto cells {32};
-  constexpr auto one_thousand {1000LL};
-  constexpr auto multiplier {5U};
-  auto sc {0LL};
-  auto hi {-one_thousand};
-  auto lo {one_thousand};
+  constexpr int cells {32};
+  constexpr long long int one_thousand {1000};
+  constexpr unsigned int multiplier {5};
+  long long int sc {0};
+  long long int hi {-one_thousand};
+  long long int lo {one_thousand};
 
   score_matrix_8 = static_cast<unsigned char *>(xmalloc(cells * cells * sizeof(char)));
   score_matrix_16 = static_cast<unsigned short *>(xmalloc(cells * cells * sizeof(short)));

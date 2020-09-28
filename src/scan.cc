@@ -67,9 +67,9 @@ auto search_worker(void * vp) -> void *;
 
 void search_alloc(struct search_data * sdp)
 {
-  constexpr auto one_kilobyte {1024U};
-  constexpr auto nt_per_uint64 {32U};
-  constexpr auto bytes_per_uint64 {8U};
+  constexpr unsigned int one_kilobyte {1024};
+  constexpr unsigned int nt_per_uint64 {32};
+  constexpr unsigned int bytes_per_uint64 {8};
 
   dirbufferbytes =
     bytes_per_uint64 * longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
@@ -102,8 +102,8 @@ void search_free(struct search_data * sdp)
 
 void search_init(struct search_data * sdp)
 {
-  constexpr auto byte_multiplier {64U};
-  constexpr auto word_multiplier {32U};
+  constexpr unsigned int byte_multiplier {64};
+  constexpr unsigned int word_multiplier {32};
 
   for(auto i = 0U; i < query.len; i++)
   {
@@ -117,7 +117,7 @@ void search_init(struct search_data * sdp)
 
 void search_chunk(struct search_data * sdp, int64_t bits)
 {
-  constexpr auto bit_mode_16 {16U};
+  constexpr unsigned int bit_mode_16 {16};
   if (sdp->target_count == 0) {
     return;
   }
@@ -257,10 +257,10 @@ void search_do(uint64_t query_no,
                uint64_t * alignlengths,
                int bits)
 {
-  // constexpr auto bit_mode_16 {16U};
-  constexpr auto channels_8 {8U};
-  constexpr auto bit_mode_8 {8U};
-  constexpr auto channels_16 {16U};
+  // constexpr unsigned int bit_mode_16 {16};
+  constexpr unsigned int channels_8 {8};
+  constexpr unsigned int bit_mode_8 {8};
+  constexpr unsigned int channels_16 {16};
   query.qno = query_no;
   unsigned int query_len = 0;
   db_getsequenceandlength(query_no, &query.seq, &query_len);

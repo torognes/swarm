@@ -443,9 +443,9 @@ void check_heavy_var(struct bloomflex_s * bloom,
 
 void check_heavy_thread(int64_t t)
 {
-  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
-  constexpr auto j {4U};  //                               i * len + j
-  constexpr auto nt_per_uint64 {32U};  // 32 nucleotides can fit in a uint64
+  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
+  constexpr unsigned int j {4};  //                               i * len + j
+  constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
   (void) t;
 
   auto * variant_list = static_cast<struct var_s *>
@@ -510,8 +510,8 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
 void mark_light_thread(int64_t t)
 {
-  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
-  constexpr auto j {4U};  //                               i * len + j
+  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
+  constexpr unsigned int j {4};  //                               i * len + j
 
   (void) t;
 
@@ -607,8 +607,8 @@ void check_variants(unsigned int seed,
 
 void network_thread(int64_t t)
 {
-  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
-  constexpr auto j {4U};  //                               i * len + j
+  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
+  constexpr unsigned int j {4};  //                               i * len + j
 
   (void) t;
 
@@ -750,8 +750,8 @@ inline void add_amp_to_swarm(unsigned int amp)
 
 void algo_d1_run()
 {
-  constexpr auto i {7U};  // max number of microvariants = 7 * len + 4
-  constexpr auto j {4U};  //                               i * len + j
+  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
+  constexpr unsigned int j {4};  //                               i * len + j
 
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
@@ -1029,8 +1029,8 @@ void algo_d1_run()
           /* n: number of entries in the bloom filter */
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
-          constexpr auto microvariants {7U};
-          constexpr auto hash_functions_per_bit {4.0 / 10};
+          constexpr unsigned int microvariants {7};
+          constexpr float hash_functions_per_bit {4.0 / 10};
           auto bits = static_cast<uint64_t>(opt_bloom_bits); /* 16 */
 
           // int64_t k = int(bits * 0.693);    /* 11 */
@@ -1041,7 +1041,7 @@ void algo_d1_run()
           }
 
           uint64_t m = bits * microvariants * nucleotides_in_small_otus;
-          constexpr auto min_total_bloom_filter_length_in_bits {64U};
+          constexpr unsigned int min_total_bloom_filter_length_in_bits {64};
 
           uint64_t memtotal = arch_get_memtotal();
           uint64_t memused = arch_get_memused();
@@ -1325,7 +1325,7 @@ void algo_d1_run()
                   int64_t nwdiff = 0;
                   char * nwalignment = nullptr;
                   int64_t nwalignmentlength = 0;
-                  constexpr auto one_hundred {100U};
+                  constexpr unsigned int one_hundred {100};
 
                   nw(dseq, dlen, qseq, qlen,
                      score_matrix_63, penalty_gapopen, penalty_gapextend,

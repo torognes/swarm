@@ -31,8 +31,8 @@ uint64_t hash_tablesize {0};
 
 void hash_zap()
 {
-  constexpr auto padding {63};  // make sure our final value is >= 64 / 8
-  constexpr auto convert_to_bytes {8};
+  constexpr int padding {63};  // make sure our final value is >= 64 / 8
+  constexpr int convert_to_bytes {8};
   memset(hash_occupied, 0, (hash_tablesize + padding) / convert_to_bytes);
 }
 
@@ -40,8 +40,8 @@ void hash_alloc(uint64_t amplicons)
 {
   constexpr unsigned int hashfillpct {70};
   constexpr unsigned int one_hundred_pct {100};
-  constexpr auto padding {63};  // make sure our final value is >= 64 / 8
-  constexpr auto convert_to_bytes {8};
+  constexpr int padding {63};  // make sure our final value is >= 64 / 8
+  constexpr int convert_to_bytes {8};
   hash_tablesize = 1;
   // amplicons > 70% hash table size (avoid division to keep working with ints)
   while (one_hundred_pct * amplicons > hashfillpct * hash_tablesize) {

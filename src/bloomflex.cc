@@ -37,7 +37,7 @@ void bloomflex_patterns_generate(struct bloomflex_s * b);
 
 void bloomflex_patterns_generate(struct bloomflex_s * b)
 {
-  constexpr auto max_range {63U};  // i & max_range = cap values to 63 max
+  constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
 #if 0
   printf("Generating %" PRIu64 " patterns with %" PRIu64 " bits set.\n",
          b->pattern_count,
@@ -63,8 +63,8 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
 {
   /* Input size is in bytes for full bitmap */
 
-  constexpr auto multiplier {16U};  // multiply by 65,536
-  constexpr auto divider {3U};  // divide by 8
+  constexpr unsigned int multiplier {16};  // multiply by 65,536
+  constexpr unsigned int divider {3};  // divide by 8
   auto * b = static_cast<struct bloomflex_s *>(xmalloc(sizeof(struct bloomflex_s)));
   b->size = size >> divider;
 

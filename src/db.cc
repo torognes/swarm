@@ -176,7 +176,7 @@ auto find_swarm_abundance(const char * header,
   * end = 0;
   * number = 0;
 
-  constexpr auto max_digits {20U};  // 20 digits at most (abundance > 10^20)
+  constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
   const char * digit_chars = "0123456789";
 
   if (header == nullptr) {
@@ -482,10 +482,10 @@ void db_read(const char * filename)
       uint64_t nt_buffer {0};
       unsigned int nt_bufferlen {0};
       const unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
-      constexpr auto new_line {10};
-      constexpr auto carriage_return {13};
-      constexpr auto start_chars_range {32};  // visible ascii chars: 32-126
-      constexpr auto end_chars_range {126};
+      constexpr int new_line {10};
+      constexpr int carriage_return {13};
+      constexpr int start_chars_range {32};  // visible ascii chars: 32-126
+      constexpr int end_chars_range {126};
 
       while ((line[0] != 0) && (line[0] != '>'))
         {
@@ -906,7 +906,7 @@ void db_free()
 
 void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
 {
-  constexpr auto default_length {1025};
+  constexpr int default_length {1025};
   char * seq = db_getsequence(a);
   unsigned int len = db_getsequencelen(a);
   char buffer[default_length];

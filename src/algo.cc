@@ -147,8 +147,8 @@ void algo_run()
   }
 
   /* always search in 8 bit mode unless resolution is very high */
-  constexpr auto bit_mode_8 {8};
-  constexpr auto bit_mode_16 {16};
+  constexpr int bit_mode_8 {8};
+  constexpr int bit_mode_16 {16};
   int bits {bit_mode_8};
 
   if (static_cast<uint64_t>(opt_differences) > diff_saturation) {
