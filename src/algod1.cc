@@ -155,7 +155,7 @@ inline auto check_amp_identical(unsigned int amp1,
      exact same sequence */
   unsigned int amp1_seqlen = db_getsequencelen(amp1);
   unsigned int amp2_seqlen = db_getsequencelen(amp2);
-  auto status {false};
+  bool status {false};
 
   if (amp1_seqlen == amp2_seqlen) {
     char * amp1_sequence = db_getsequence(amp1);
@@ -244,7 +244,7 @@ auto compare_grafts(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct graft_cand *>(a);
   const auto * y = static_cast<const struct graft_cand *>(b);
-  auto status {0};
+  int status {0};
 
   /* replace with a three-way comparison '<=>' in a few years */
   // status = x->parent <=> y->parent : -1 : 0 : +1;

@@ -939,7 +939,7 @@ void search8(BYTE * * q_start,
   F0 = v_zero;
   H0 = v_zero;
 
-  auto easy {false};
+  bool easy {false};
 
   uint64_t * dir = dirbuffer;
 

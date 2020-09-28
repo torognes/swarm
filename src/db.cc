@@ -671,8 +671,8 @@ void db_read(const char * filename)
 
       /* find position and length of identifier in header */
 
-      auto id_start {0};
-      auto id_len {0};
+      int id_start {0};
+      int id_len {0};
 
       if (seqindex_p->abundance_start > 0)
         {
@@ -700,8 +700,8 @@ void db_read(const char * filename)
         {
           if (hdrfound->hdrhash == hdrhash)
             {
-              auto hit_id_start {0};
-              auto hit_id_len {0};
+              int hit_id_start {0};
+              int hit_id_len {0};
 
               if (hdrfound->abundance_start > 0)
                 {

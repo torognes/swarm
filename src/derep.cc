@@ -39,7 +39,7 @@ auto derep_compare(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct bucket *>(a);
   const auto * y = static_cast<const struct bucket *>(b);
-  auto status {0};
+  int status {0};
 
   /* highest abundance first, otherwise keep order */
 
