@@ -1030,7 +1030,7 @@ void algo_d1_run()
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
           constexpr unsigned int microvariants {7};
-          constexpr float hash_functions_per_bit {4.0 / 10};
+          constexpr double hash_functions_per_bit {4.0 / 10};
           auto bits = static_cast<uint64_t>(opt_bloom_bits); /* 16 */
 
           // int64_t k = int(bits * 0.693);    /* 11 */
