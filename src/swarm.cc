@@ -418,7 +418,7 @@ void args_init(int argc, char **argv)
 
     if ((c >= 'a') && (c <= 'z'))
       {
-        unsigned int optindex = c - 'a';  // c - 'a' cannot be negative
+        auto optindex = static_cast<unsigned int>(c - 'a');  // c - 'a' cannot be negative
         if (used_options[optindex] == 1)
           {
             int longoptindex {0};
