@@ -141,13 +141,10 @@ void nw(char * dseq,
 
   memset(dir, 0, static_cast<size_t>(qlen * dlen));
 
-  int64_t i {0};
-  int64_t j {0};
-
   for(auto i = 0L; i < qlen; i++)
     {
-      hearray[2*i]   = 1 * gapopen + (i+1) * gapextend; // H (N)
-      hearray[2*i+1] = 2 * gapopen + (i+2) * gapextend; // E
+      hearray[2 * i]     = 1 * gapopen + (i + 1) * gapextend; // H (N)
+      hearray[2 * i + 1] = 2 * gapopen + (i + 2) * gapextend; // E
     }
 
   for(auto j = 0L; j < dlen; j++)
@@ -192,7 +189,6 @@ void nw(char * dseq,
   int64_t dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
-
   int64_t score {0};
   int64_t alength {0};
   int64_t matches {0};
@@ -205,8 +201,8 @@ void nw(char * dseq,
   int count {0};
   *(--cigarend) = 0;
 
-  i = qlen;
-  j = dlen;
+  int64_t i = qlen;
+  int64_t j = dlen;
 
   while ((i>0) && (j>0))
     {
