@@ -626,7 +626,6 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0)
 {
-  constexpr unsigned int channels {16};
   VECTORTYPE Q;
   VECTORTYPE R;
   VECTORTYPE E;
