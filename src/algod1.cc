@@ -750,16 +750,16 @@ inline void add_amp_to_swarm(unsigned int amp)
 
 void algo_d1_run()
 {
-  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
-  constexpr unsigned int j {4};  //                               i * len + j
-
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
   ampinfo = static_cast<struct ampinfo_s *>
     (xmalloc(amplicons * sizeof(struct ampinfo_s)));
 
-  global_hits_alloc = i * longestamplicon + j + 1;
+  // max number of microvariants = 7 * len + 4
+  constexpr unsigned int m_i {7};
+  constexpr unsigned int m_j {4};
+  global_hits_alloc = m_i * longestamplicon + m_j + 1;
   global_hits_data = static_cast<unsigned int *>
     (xmalloc(global_hits_alloc * sizeof(unsigned int)));
 
