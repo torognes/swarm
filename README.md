@@ -137,6 +137,37 @@ Once installed, the man page can be accessed with the command `man
 swarm`.
 
 
+## Install with conda ##
+
+(thanks to GitHub user [Gian77](https://github.com/Gian77) for
+reporting this procedure)
+
+Assuming you already have a conda set-up ([anaconda or
+miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html#regular-installation)),
+start by activate an environment with python 3:
+
+```sh
+conda activate py3
+```
+
+Make sure you have all the necessary channels for the bioconda
+packages:
+
+```sh
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+```
+
+List the different versions of swarm available and install one:
+
+```sh
+conda search -c bioconda swarm
+conda install -c bioconda swarm=3.0.0=hc9558a2_0
+swarm --version  # check
+```
+
+
 ## Prepare amplicon fasta files ##
 
 To facilitate the use of **swarm**, we provide examples of shell
