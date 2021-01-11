@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2020 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2021 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -313,7 +313,7 @@ void args_usage()
 void show_header()
 {
   fprintf(logfile, "%s\n", swarm_version);
-  fprintf(logfile, "Copyright (C) 2012-2020 Torbjorn Rognes and Frederic Mahe\n");
+  fprintf(logfile, "Copyright (C) 2012-2021 Torbjorn Rognes and Frederic Mahe\n");
   fprintf(logfile, "https://github.com/torognes/swarm\n");
   fprintf(logfile, "\n");
   fprintf(logfile, "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
