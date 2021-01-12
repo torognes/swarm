@@ -85,15 +85,15 @@ Dereplication (merge strictly identical sequences):
 .SH DESCRIPTION
 Environmental or clinical molecular studies generate large volumes of
 amplicons (e.g., 16S or 18S SSU-rRNA sequences) that need to be
-clustered into molecular operational taxonomic units (OTUs). Common
-clustering methods are based on greedy, input-order dependent
-algorithms, with arbitrary selection of global cluster size and
-cluster centroids. To address that problem, we developed \fBswarm\fR,
-a fast and robust method that recursively groups amplicons with
-\fId\fR or less differences (i.e. substitutions, insertions or
-deletions). \fBswarm\fR produces natural and stable clusters centered
-on local peaks of abundance, mostly free from input-order dependency
-induced by centroid selection.
+grouped into clusters. Traditional clustering methods are based on
+greedy, input-order dependent algorithms, with arbitrary selection of
+cluster centroids and cluster limits (often 97%-similarity). To
+address that problem, we developed \fBswarm\fR, a fast and robust
+method that recursively groups amplicons with \fId\fR or less
+differences (i.e. substitutions, insertions or deletions). \fBswarm\fR
+produces natural and stable clusters centered on local peaks of
+abundance, mostly free from input-order dependency induced by centroid
+selection.
 .PP
 Exact clustering is impractical on large data sets when using a naïve
 all-vs-all approach (more precisely a 2-combination without
@@ -196,27 +196,28 @@ requires fasta entries to present abundance values. Default number of
 differences \fId\fR is 1.
 .TP
 .B \-n\fP,\fB\ \-\-no\-otu\-breaking
-when working with \fId\fR = 1, deactivate the built-in OTU refinement
-(not recommended). Amplicon abundance values are used to identify
-transitions among in-contact OTUs and to separate them, yielding
-higher-resolution clustering results. That option prevents that
-separation, and in practice, allows the creation of a link between
-amplicons A and B, even if the abundance of B is higher than the
-abundance of A.
+when working with \fId\fR = 1, deactivate the built-in cluster
+refinement (not recommended). Amplicon abundance values are used to
+identify transitions among in-contact clusters and to separate them,
+yielding higher-resolution clustering results. That option prevents
+that separation, and in practice, allows the creation of a link
+between amplicons A and B, even if the abundance of B is higher than
+the abundance of A.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Fastidious options
 .TP 9
 .BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
 when using the option \-\-fastidious (\-f), define the minimum
-abundance of what should be considered a \fIlarge\fR OTU. By default,
-an OTU with an abundance of 3 or more is considered large. Conversely,
-an OTU is small if it has an abundance of 2 or less, meaning that it
-is composed of either one amplicon of abundance 2, or two amplicons of
-abundance 1. Any positive value greater than 1 can be specified. Using
-higher boundary values can reduce the number of OTUs (up to a point),
-and will reduce the taxonomical resolution of \fBswarm\fR results. It
-will also slightly increase computation time.
+abundance of what should be considered a \fIlarge\fR cluster. By
+default, a cluster with an abundance of 3 or more is considered
+large. Conversely, a cluster is small if it has an abundance of 2 or
+less, meaning that it is composed of either one amplicon of abundance
+2, or two amplicons of abundance 1. Any positive value greater than 1
+can be specified. Using higher boundary values can reduce the number
+of clusters (up to a point), and will reduce the taxonomical
+resolution of \fBswarm\fR results. It will also slightly increase
+computation time.
 .TP
 .BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
 when using the option \-\-fastidious (\-f), define \fBswarm\fR's
@@ -228,25 +229,25 @@ memory footprint.
 .TP
 .B \-f\fP,\fB\ \-\-fastidious
 when working with \fId\fR = 1, perform a second clustering pass to
-reduce the number of small OTUs (recommended option). During the first
-clustering pass, an intermediate amplicon can be missing for purely
-stochastic reasons, interrupting the aggregation process. The
+reduce the number of small clusters (recommended option). During the
+first clustering pass, an intermediate amplicon can be missing for
+purely stochastic reasons, interrupting the aggregation process. The
 fastidious option will create virtual amplicons, allowing to graft
-small OTUs upon larger ones. By default, an OTU is considered large if
-it has a total abundance of 3 or more (see the \-\-boundary option to
-modify that value). To speed things up, \fBswarm\fR uses a Bloom
-filter to store intermediate results. Warning, the second clustering
-pass can be 2 to 3 times slower than the first pass and requires much
-more memory to store the virtual amplicons in Bloom filters. See the
-options \-\-bloom\-bits (\-y) or \-\-ceiling (\-c) to control the
-memory footprint of the Bloom filter. The fastidious option modifies
-clustering results: the output files produced by the options \-\-log
-(\-l), \-\-output\-file (\-o), \-\-mothur (\-r), \-\-uclust\-file, and
-\-\-seeds (\-w) are updated to reflect these modifications; the file
-\-\-statistics\-file (\-s) is partially updated (columns 6 and 7 are
-not updated); the output file \-\-internal\-structure (\-i) is
-partially updated (column 5 is not updated for amplicons that belonged
-to the small OTU).
+small clusters upon larger ones. By default, a cluster is considered
+large if it has a total abundance of 3 or more (see the \-\-boundary
+option to modify that value). To speed things up, \fBswarm\fR uses a
+Bloom filter to store intermediate results. Warning, the second
+clustering pass can be 2 to 3 times slower than the first pass and
+requires much more memory to store the virtual amplicons in Bloom
+filters. See the options \-\-bloom\-bits (\-y) or \-\-ceiling (\-c) to
+control the memory footprint of the Bloom filter. The fastidious
+option modifies clustering results: the output files produced by the
+options \-\-log (\-l), \-\-output\-file (\-o), \-\-mothur (\-r),
+\-\-uclust\-file, and \-\-seeds (\-w) are updated to reflect these
+modifications; the file \-\-statistics\-file (\-s) is partially
+updated (columns 6 and 7 are not updated); the output file
+\-\-internal\-structure (\-i) is partially updated (column 5 is not
+updated for amplicons that belonged to the small cluster).
 .TP
 .BI \-y\fP,\fB\ \-\-bloom\-bits\~ "positive integer"
 when using the option \-\-fastidious (\-f), define the size (in bits)
@@ -283,16 +284,17 @@ amplicon B label (header without abundance annotations).
 number of differences between amplicons A and B (\fIpositive
 integer\fR).
 .IP \n+[step].
-OTU number (\fIpositive integer\fR). OTUs are numbered in their order
-of delineation, starting from 1. All pairs of amplicons belonging to
-the same OTU will receive the same number.
+cluster number (\fIpositive integer\fR). Clusters are numbered in
+their order of delineation, starting from 1. All pairs of amplicons
+belonging to the same cluster will receive the same number.
 .IP \n+[step].
-cummulated number of steps from the OTU seed to amplicon B
+cummulated number of steps from the cluster seed to amplicon B
 (\fIpositive integer\fR). When using the option \-\-fastidious (\-f),
-the actual number of steps between grafted amplicons and the OTU seed
-cannot be re-computed efficiently and is always set to 2 for the
-amplicon pair linking the small OTU to the large OTU. Cummulated number
-of steps in the small OTU (if any) are left unchanged.
+the actual number of steps between grafted amplicons and the cluster
+seed cannot be re-computed efficiently and is always set to 2 for the
+amplicon pair linking the small cluster to the large
+cluster. Cummulated number of steps in the small cluster (if any) are
+left unchanged.
 .RE
 .RE
 .TP
@@ -304,9 +306,9 @@ in situations where writing to \fIstandard error\fR is problematic
 .TP
 .BI \-o\fP,\fB\ \-\-output\-file \0filename
 output clustering results to \fIfilename\fR. Results consist of a list
-of OTUs, one OTU per line. An OTU is a list of amplicon headers
-separated by spaces. That output format can be modified by the option
-\-\-mothur (\-r). Default is to write to \fIstandard output\fR.
+of clusters, one cluster per line. A cluster is a list of amplicon
+headers separated by spaces. That output format can be modified by the
+option \-\-mothur (\-r). Default is to write to \fIstandard output\fR.
 .TP
 .B \-r\fP,\fB\ \-\-mothur
 output clustering results in a format compatible with Mothur. That
@@ -314,28 +316,28 @@ option modifies \fBswarm\fR's default output format.
 .TP
 .BI \-s\fP,\fB\ \-\-statistics\-file \0filename
 output statistics to \fIfilename\fR. The file is a tab-separated table
-with one OTU per row and seven columns of information:
+with one cluster per row and seven columns of information:
 .RS
 .RS
 .nr step 1 1
 .IP \n[step]. 4
-number of unique amplicons in the OTU,
+number of unique amplicons in the cluster,
 .IP \n+[step].
-total abundance of amplicons in the OTU,
+total abundance of amplicons in the cluster,
 .IP \n+[step].
 label of the initial seed (header without abundance annotations),
 .IP \n+[step].
 abundance of the initial seed,
 .IP \n+[step].
-number of amplicons with an abundance of 1 in the OTU,
+number of amplicons with an abundance of 1 in the cluster,
 .IP \n+[step].
-maximum number of iterations before the OTU reached its natural limit,
+maximum number of iterations before the cluster reached its natural limit,
 .IP \n+[step].
 cummulated number of steps along the path joining the seed and the
-furthermost amplicon in the OTU. Please note that the actual number of
-differences between the seed and the furthermost amplicon is usually
-much smaller. When using the option \-\-fastidious (\-f), grafted
-amplicons are not taken into account.
+furthermost amplicon in the cluster. Please note that the actual
+number of differences between the seed and the furthermost amplicon is
+usually much smaller. When using the option \-\-fastidious (\-f),
+grafted amplicons are not taken into account.
 .RE
 .RE
 .TP
@@ -379,10 +381,10 @@ Header of the centroid sequence (H), or set to '*' (S, C).
 .RE
 .TP
 .BI \-w\fP,\fB\ \-\-seeds \0filename
-output OTU representative sequences to \fIfilename\fR in fasta
-format. The abundance value of each OTU representative is the sum of
-the abundances of all the amplicons in the OTU. Fasta headers are
-formated as follows: '>label_\fIinteger\fR',
+output cluster representative sequences to \fIfilename\fR in fasta
+format. The abundance value of each cluster representative is the sum
+of the abundances of all the amplicons in the cluster. Fasta headers
+are formated as follows: '>label_\fIinteger\fR',
 or '>label;size=\fIinteger\fR;' if the \-z option is used, and
 sequences are uppercased. Sequences are sorted by decreasing
 abundance, and then by alphabetical order of sequence labels.
@@ -420,10 +422,10 @@ value, modifying model parameters has a stronger impact.
 .\" ============================================================================
 .SH EXAMPLES
 .PP
-Clusterize the compressed data set \fImyfile.fasta\fR into OTUs using
-the finest resolution possible (1 difference by default, built-in
-breaking, fastidious option) using 4 computation threads. OTUs are
-written to the file \fImyfile.swarms\fR, and OTU representatives are
+Clusterize the compressed data set \fImyfile.fasta\fR using the finest
+resolution possible (1 difference by default, built-in breaking,
+fastidious option) using 4 computation threads. Clusters are written
+to the file \fImyfile.swarms\fR, and cluster representatives are
 written to \fImyfile.representatives.fasta\fR:
 .EX
 .RS
@@ -594,7 +596,7 @@ Version 2.1.3 adds checks of numeric option arguments.
 .TP
 .BR v2.1.1\~ "released March 31, 2015"
 Version 2.1.1 fixes a bug with the fastidious option that caused it to
-ignore some connections between large and small OTUs.
+ignore some connections between large and small clusters.
 .TP
 .BR v2.1.0\~ "released March 24, 2015"
 Version 2.1.0 marks the first official release of swarm v2.
@@ -610,10 +612,10 @@ Version 2.0.6 fixes a minor bug.
 .BR v2.0.5\~ "released March 13, 2015"
 Version 2.0.5 improves the implementation of the fastidious option and
 adds options to control memory usage of the Bloom filter (\-y and
-\-c).  In addition, an option (\-w) allows to output OTU
+\-c).  In addition, an option (\-w) allows to output cluster
 representatives sequences with updated abundances (sum of all
-abundances inside each OTU). This version also enables \fBswarm\fR to
-run with \fId\fR = 0.
+abundances inside each cluster). This version also enables \fBswarm\fR
+to run with \fId\fR = 0.
 .TP
 .BR v2.0.4\~ "released March 6, 2015"
 Version 2.0.4 includes a fully parallelised implementation of the
@@ -634,8 +636,8 @@ implementation of the fastidious option, but it is not usable yet.
 Version 2.0.0 is faster and easier to use, providing new output
 options (\-\-internal\-structure and \-\-log), new control options
 (\-\-boundary, \-\-fastidious, \-\-no\-otu\-breaking), and built-in
-OTU refinement (no need to use the python script anymore). When using
-default parameters, a novel and considerably faster algorithmic
+cluster refinement (no need to use the python script anymore). When
+using default parameters, a novel and considerably faster algorithmic
 approach is used, guaranteeing \fBswarm\fR's scalability.
 .TP
 .BR v1.2.21\~ "released February 26, 2015"
@@ -644,13 +646,13 @@ the SSSE3 CPU instructions which are not always available.
 .TP
 .BR v1.2.20\~ "released November 6, 2014"
 Version 1.2.20 presents a production-ready version of the alternative
-algorithm (option \-a), with optional built-in OTU breaking (option
-\-n). That alternative algorithmic approach (usable only with \fId\fR
-= 1) is considerably faster than currently used clustering algorithms,
-and can deal with datasets of 100 million unique amplicons or more in
-a few hours. Of course, results are rigourously identical to the
-results previously produced with swarm. That release also introduces
-new options to control swarm output (options \-i and \-l).
+algorithm (option \-a), with optional built-in cluster breaking
+(option \-n). That alternative algorithmic approach (usable only with
+\fId\fR = 1) is considerably faster than currently used clustering
+algorithms, and can deal with datasets of 100 million unique amplicons
+or more in a few hours. Of course, results are rigourously identical
+to the results previously produced with swarm. That release also
+introduces new options to control swarm output (options \-i and \-l).
 .TP
 .BR v1.2.19\~ "released October 3, 2014"
 Version 1.2.19 fixes a problem related to abundance information when
@@ -731,8 +733,8 @@ alignments.
 .BR v1.1\~ "released February 26, 2013"
 Version 1.1 introduces two new important options: the possibility to
 output clustering results using the uclust output format, and the
-possibility to output detailed statistics on each OTU. \fBswarm\fR 1.1
-is also faster: new filterings based on pairwise amplicon sequence
+possibility to output detailed statistics on each cluster. \fBswarm\fR
+1.1 is also faster: new filterings based on pairwise amplicon sequence
 lengths and composition comparisons reduce the number of pairwise
 alignments needed and speed up the clustering.
 .TP
