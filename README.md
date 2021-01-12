@@ -16,7 +16,7 @@ a high yield of biological information.
 To help users, we describe
 [a complete pipeline](https://github.com/frederic-mahe/swarm/wiki/Fred's-metabarcoding-pipeline)
 starting from raw fastq files, clustering with **swarm** and producing
-a filtered OTU table.
+a filtered occurrence table.
 
 swarm 3.0 introduces:
 * a much faster default algorithm,
@@ -32,12 +32,12 @@ Please note that:
 swarm 2.0 introduced several novelties and improvements over swarm
 1.0:
 * built-in breaking phase now performed automatically,
-* possibility to output OTU representatives in fasta format (option
+* possibility to output cluster representatives in fasta format (option
   `-w`),
 * fast algorithm now used by default for *d* = 1 (linear time
   complexity),
 * a new option called *fastidious* that refines *d* = 1 results and
-  reduces the number of small OTUs.
+  reduces the number of small clusters.
 
 ## Common misconceptions
 
@@ -45,15 +45,15 @@ swarm 2.0 introduced several novelties and improvements over swarm
   similarities with other clustering methods (e.g., [Huse et al,
   2010](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2909393/)). **swarm**'s
   novelty is its iterative growth process and the use of sequence
-  abundance values to delineate OTUs. **swarm** properly delineates
-  large OTUs (high recall), and can distinguish OTUs with as little as
+  abundance values to delineate clusters. **swarm** properly delineates
+  large clusters (high recall), and can distinguish clusters with as little as
   two differences between their centers (high precision).
 
 **swarm** uses a local clustering threshold (*d*), not a global
   clustering threshold like other algorithms do. Users may be tempted
   to convert a 97%-global similarity threshold into a number of
   differences, and to use large *d* values. This is not a correct use
-  of swarm. OTUs produced by swarm are naturally larger than *d*, and
+  of swarm. Clusters produced by swarm are naturally larger than *d*, and
   tests have shown that using the default *d* value (*d* = 1) gives
   good results on most datasets. Using the new fastidious option
   further improves the quality of results. For long amplicons or
@@ -63,7 +63,7 @@ swarm 2.0 introduced several novelties and improvements over swarm
 **swarm** produces high-resolution results, especially when using *d*
   = 1. Under certain rare conditions though, a given marker may not
   evolve fast enough to distinguish molecular taxa. If it concerns
-  abundant sequences, swarm may form an OTU with a large radius,
+  abundant sequences, swarm may form a cluster with a large radius,
   whereas classic clustering methods will cut through randomly,
   forcing delineation where the 97%-threshold falls. So, keep in mind
   that molecular markers have limitations too.
@@ -265,13 +265,13 @@ sequence.
 Here is a typical way to use **swarm**:
 
 ```sh
-./swarm -f -t 4 -w OTU_representatives.fasta amplicons.fasta > /dev/null
+./swarm -f -t 4 -w cluster_representatives.fasta amplicons.fasta > /dev/null
 ```
 
 **swarm** will partition your dataset with the finest resolution
 (local number of differences *d* = 1 by default, built-in elimination
-of potential chained OTUs, fastidious processing) using 4
-CPU-cores. OTU representatives will be written to a new fasta file,
+of potential chained clusters, fastidious processing) using 4
+CPU-cores. cluster representatives will be written to a new fasta file,
 other results will be discarded (`/dev/null`).
 
 See the
@@ -287,13 +287,13 @@ that the amplicon fasta file was prepared as describe above
 (linearization and dereplication).
 
 
-### Refine swarm OTUs ###
+### Refine swarm clusters ###
 
 The chain-breaking, which used to be performed in a second step in
 **swarm** 1.0, is now built-in and performed by default. It is
 possible to deactivate it with the `--no-otu-breaking` option, but it
 is not recommended. The fastidious option is recommended when using
-*d* = 1, as it will reduce the number of small OTUs while maintaining
+*d* = 1, as it will reduce the number of small clusters while maintaining
 a high clustering resolution. The principle of the fastidious option
 is described in the figure below:
 
@@ -301,27 +301,27 @@ is described in the figure below:
 ![](https://github.com/frederic-mahe/swarm/blob/master/figures/swarm_2.0_fastidious_reduced.png)
 
 
-### Count the number of amplicons per OTU ###
+### Count the number of amplicons per cluster ###
 
-You might want to check the size distribution of OTUs (number of
-amplicons in each OTU), and count the number of singletons (OTUs
+You might want to check the size distribution of clusters (number of
+amplicons in each cluster), and count the number of singletons (clusters
 containing only one amplicon). It can be easily done with the
 `--statistics-file filename` option. Each line in the output file
-represents an OTU and provides different metrics. See the manual for a
+represents a cluster and provides different metrics. See the manual for a
 complete description.
 
 
-### Get the seed sequence for each OTU ###
+### Get the seed sequence for each cluster ###
 
 It is frequent for subsequent analyses to keep only one representative
-amplicon per OTU (usually the seed) to reduce the computational
+amplicon per cluster (usually the seed) to reduce the computational
 burden. That operation is easily done with **swarm** by using the `-w
 filename` option.
 
 
-### Get fasta sequences for all amplicons in a OTU ###
+### Get fasta sequences for all amplicons in a cluster ###
 
-For each OTU, get the fasta sequences for all amplicons. Warning, this
+For each cluster, get the fasta sequences for all amplicons. Warning, this
 loop can generate a very large number of files. To limit the number of
 files, a test can be added to exclude swarms with less than *n*
 elements. See
@@ -334,8 +334,8 @@ INPUT_FASTA="amplicons.fasta"
 OUTPUT_FOLDER="swarms_fasta"
 AMPLICONS=$(mktemp)
 mkdir "${OUTPUT_FOLDER}"
-while read OTU ; do
-    tr " " "\n" <<< "${OTU}" | sed -e 's/^/>/' > "${AMPLICONS}"
+while read CLUSTER ; do
+    tr " " "\n" <<< "${CLUSTER}" | sed -e 's/^/>/' > "${AMPLICONS}"
     seed=$(head -n 1 "${AMPLICONS}")
     grep -A 1 -F -f "${AMPLICONS}" "${INPUT_FASTA}" | \
         sed -e '/^--$/d' > "./${OUTPUT_FOLDER}/${seed/>/}.fasta"
@@ -380,10 +380,10 @@ You are welcome to:
 
 * [FROGS](https://github.com/geraldinepascal/FROGS): a
   [Galaxy](https://galaxyproject.org/)/CLI workflow designed to
-  produce an OTU count matrix from high depth sequencing amplicon
+  produce a cluster count matrix from high depth sequencing amplicon
   data.
 * [LotuS (v1.30)](http://psbweb05.psb.ugent.be/lotus/): extremely fast
-  OTU building, annotation, phylogeny and abundance matrix pipeline,
+  cluster building, annotation, phylogeny and abundance matrix pipeline,
   based on raw sequencer output.
 * [QIIME (v1.9)](http://qiime.org/): a multi-purpose pipeline for
   performing microbiome analysis from raw DNA sequencing data.
@@ -517,9 +517,9 @@ options `-w` (`--seeds`) in combination with `-z` (`--usearch-abundance`).
 
 **swarm** 2.0.5 improves the implementation of the fastidious option
 and adds options to control memory usage of the Bloom filter (`-y` and
-`-c`). In addition, an option (`-w`) allows to output OTU
+`-c`). In addition, an option (`-w`) allows to output cluster
 representatives sequences with updated abundances (sum of all
-abundances inside each OTU). This version also enables dereplication
+abundances inside each cluster). This version also enables dereplication
 when `d = 0`.
 
 ### version 2.0.4 ###
@@ -542,7 +542,7 @@ fastidious option.
 ### version 2.0.0 ###
 
 **swarm** 2.0.0 simplifies the usage of swarm by using the fast
-algorithm and the built-in OTU breaking by default. Some options are
+algorithm and the built-in cluster breaking by default. Some options are
 changed and some new output options are introduced.
 
 ### version 1.2.21 ###
@@ -553,7 +553,7 @@ SSSE3 CPU instructions which are not always available.
 ### version 1.2.20 ###
 
 **swarm** 1.2.20 presents a production-ready version of the
-alternative algorithm (option `-a`), with optional built-in OTU
+alternative algorithm (option `-a`), with optional built-in cluster
 breaking (option `-n`). That alternative algorithmic approach (usable
 only with *d* = 1) is considerably faster than currently used
 clustering algorithms, and can deal with datasets of 100 million
