@@ -27,11 +27,11 @@ static const char * progress_prompt;
 static uint64_t progress_next;
 static uint64_t progress_size;
 static uint64_t progress_chunk;
-static const uint64_t progress_granularity {200};
 const size_t memalignment = 16;
 
 void progress_init(const char * prompt, uint64_t size)
 {
+  constexpr uint64_t progress_granularity {200};
   progress_prompt = prompt;
   progress_size = size;
   progress_chunk = size < progress_granularity ?
