@@ -1031,7 +1031,9 @@ void algo_d1_run()
 
           constexpr unsigned int microvariants {7};
           constexpr double hash_functions_per_bit {4.0 / 10};
-          auto bits = static_cast<uint64_t>(opt_bloom_bits); /* 16 */
+          assert(opt_bloom_bits <= 64);  // larger than expected"
+          assert(opt_bloom_bits >= 2);  // smaller than expected"
+          auto bits = static_cast<unsigned int>(opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
 
           // int64_t k = int(bits * 0.693);    /* 11 */
           auto k =
@@ -1050,8 +1052,8 @@ void algo_d1_run()
             {
               uint64_t memrest
                 = one_megabyte * static_cast<uint64_t>(opt_ceiling) - memused;
-              uint64_t new_bits =
-                sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_otus);
+              auto new_bits =
+                static_cast<unsigned int>(sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_otus));
               if (new_bits < bits)
                 {
                   if (new_bits < 2) {
@@ -1080,7 +1082,7 @@ void algo_d1_run()
             }
 
           fprintf(logfile,
-                  "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
+                  "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
                   bits, m, k, static_cast<double>(m) / (sizeof(uint64_t) * one_megabyte));
 
 
