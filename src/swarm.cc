@@ -28,8 +28,8 @@
 std::string progname;
 std::string input_filename;
 
-char * opt_internal_structure;
-char * opt_log;
+std::string opt_internal_structure;
+std::string opt_log;
 char * opt_network_file;
 std::string opt_output_file;
 char * opt_seeds;
@@ -233,8 +233,8 @@ void args_show()
   if (opt_uclust_file != nullptr) {
     fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file);
   }
-  if (opt_internal_structure != nullptr) {
-    fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure);
+  if (! opt_internal_structure.empty()) {
+    fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure.c_str());
   }
   if (opt_network_file != nullptr) {
     fprintf(logfile, "Network file       %s\n", opt_network_file);
@@ -358,8 +358,8 @@ void args_init(int argc, char **argv)
   opt_gap_extension_penalty = gap_extension_penalty_default;
   opt_gap_opening_penalty = gap_opening_penalty_default;
   opt_help = false;
-  opt_internal_structure = nullptr;
-  opt_log = nullptr;
+  opt_internal_structure = "";
+  opt_log = "";
   opt_match_reward = match_reward_default;
   opt_mismatch_penalty = mismatch_penalty_default;
   opt_mothur = false;
@@ -693,9 +693,9 @@ void open_files()
 {
   /* open files */
 
-  if (opt_log != nullptr)
+  if (! opt_log.empty())
     {
-      logfile = fopen_output(opt_log);
+      logfile = fopen_output(opt_log.c_str());
       if (logfile == nullptr) {
         fatal("Unable to open log file for writing.");
       }
@@ -730,9 +730,9 @@ void open_files()
       }
     }
 
-  if (opt_internal_structure != nullptr)
+  if (! opt_internal_structure.empty())
     {
-      internal_structure_file = fopen_output(opt_internal_structure);
+      internal_structure_file = fopen_output(opt_internal_structure.c_str());
       if (internal_structure_file == nullptr) {
         fatal("Unable to open internal structure file for writing.");
       }

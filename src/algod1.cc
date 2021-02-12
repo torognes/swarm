@@ -1236,7 +1236,7 @@ void algo_d1_run()
 
   /* output internal structure */
 
-  if (opt_internal_structure != nullptr)
+  if (! opt_internal_structure.empty())
     {
       unsigned int cluster_no = 0;
 

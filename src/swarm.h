@@ -155,8 +155,8 @@ using queryinfo_t = struct queryinfo;
 
 /* common data */
 
-extern char * opt_internal_structure;
-extern char * opt_log;
+extern std::string opt_internal_structure;
+extern std::string opt_log;
 extern char * opt_network_file;
 extern std::string opt_output_file;
 extern char * opt_seeds;

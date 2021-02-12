@@ -278,7 +278,7 @@ void dereplicate()
 
   /* output internal structure to file */
 
-  if (opt_internal_structure != nullptr)
+  if (! opt_internal_structure.empty())
     {
       progress_init("Writing structure:", swarmcount);
 

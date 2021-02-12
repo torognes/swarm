@@ -295,7 +295,7 @@ void algo_run()
                   unsigned poolampliconid = amps[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
-                  if (opt_internal_structure != nullptr)
+                  if (! opt_internal_structure.empty())
                     {
                       fprint_id_noabundance(internal_structure_file,
                                             seedampliconid);
@@ -441,7 +441,7 @@ void algo_run()
                           unsigned poolampliconid = amps[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
 
-                          if (opt_internal_structure != nullptr)
+                          if (! opt_internal_structure.empty())
                             {
                               fprint_id_noabundance(internal_structure_file,
                                                     subseedampliconid);

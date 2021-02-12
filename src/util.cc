@@ -37,7 +37,7 @@ void progress_init(const char * prompt, uint64_t size)
   progress_chunk = size < progress_granularity ?
     1 : size / progress_granularity;
   progress_next = 1;
-  if (opt_log != nullptr) {
+  if (! opt_log.empty()) {
     fprintf(logfile, "%s", prompt);
   }
   else {
@@ -47,7 +47,7 @@ void progress_init(const char * prompt, uint64_t size)
 
 void progress_update(uint64_t progress)
 {
-  if ((opt_log == nullptr) && (progress >= progress_next))
+  if (opt_log.empty() && (progress >= progress_next))
     {
       fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
               100.0 * static_cast<double>(progress)
@@ -59,7 +59,7 @@ void progress_update(uint64_t progress)
 
 void progress_done()
 {
-  if (opt_log != nullptr) {
+  if (! opt_log.empty()) {
     fprintf(logfile, " %.0f%%\n", 100.0);
   }
   else {
