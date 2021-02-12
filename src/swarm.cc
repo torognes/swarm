@@ -26,12 +26,12 @@
 /* OPTIONS */
 
 static char * progname;
-char * input_filename;
+std::string input_filename;
 
 char * opt_internal_structure;
 char * opt_log;
 char * opt_network_file;
-char * opt_output_file;
+std::string opt_output_file;
 char * opt_seeds;
 char * opt_statistics_file;
 char * opt_uclust_file;
@@ -86,8 +86,7 @@ FILE * network_file {nullptr};
 
 char sym_nt[] = "-ACGT                           ";
 
-static char dash[] = "-";
-static char * DASH_FILENAME = dash;
+static std::string DASH_FILENAME {"-"};
 
 #ifdef __x86_64__
 
@@ -222,8 +221,8 @@ void args_show()
   cpu_features_show();
 #endif
 
-  fprintf(logfile, "Database file:     %s\n", input_filename);
-  fprintf(logfile, "Output file:       %s\n", opt_output_file);
+  fprintf(logfile, "Database file:     %s\n", input_filename.c_str());
+  fprintf(logfile, "Output file:       %s\n", opt_output_file.c_str());
   if (opt_statistics_file != nullptr) {
     fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file);
   }
@@ -698,7 +697,7 @@ void open_files()
       }
     }
 
-  outfile = fopen_output(opt_output_file);
+  outfile = fopen_output(opt_output_file.c_str());
   if (outfile == nullptr) {
     fatal("Unable to open output file for writing.");
   }
@@ -830,7 +829,7 @@ auto main(int argc, char** argv) -> int
 
   fprintf(logfile, "\n");
 
-  db_read(input_filename);
+  db_read(input_filename.c_str());
 
   fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
   fprintf(logfile, " in %u sequences,", db_getsequencecount());

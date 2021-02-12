@@ -158,7 +158,7 @@ using queryinfo_t = struct queryinfo;
 extern char * opt_internal_structure;
 extern char * opt_log;
 extern char * opt_network_file;
-extern char * opt_output_file;
+extern std::string opt_output_file;
 extern char * opt_seeds;
 extern char * opt_statistics_file;
 extern char * opt_uclust_file;
@@ -183,7 +183,7 @@ extern bool opt_version;
 extern char * queryname;
 extern char * matrixname;
 
-extern char * input_filename;
+extern std::string input_filename;
 
 extern char map_ncbi_nt4[];
 extern char map_ncbi_nt16[];
