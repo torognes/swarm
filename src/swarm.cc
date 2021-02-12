@@ -86,7 +86,7 @@ FILE * network_file {nullptr};
 
 char sym_nt[] = "-ACGT                           ";
 
-static std::string DASH_FILENAME {"-"};
+const std::string DASH_FILENAME {"-"};
 
 #ifdef __x86_64__
 
