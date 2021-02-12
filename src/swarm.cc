@@ -312,7 +312,7 @@ void args_usage()
 
 void show_header()
 {
-  fprintf(logfile, "%s\n", swarm_version);
+  fprintf(logfile, "%s\n", swarm_version.c_str());
   fprintf(logfile, "Copyright (C) 2012-2021 Torbjorn Rognes and Frederic Mahe\n");
   fprintf(logfile, "https://github.com/torognes/swarm\n");
   fprintf(logfile, "\n");
