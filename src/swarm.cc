@@ -25,7 +25,7 @@
 
 /* OPTIONS */
 
-static char * progname;
+std::string progname;
 std::string input_filename;
 
 char * opt_internal_structure;
