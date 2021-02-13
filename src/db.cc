@@ -177,7 +177,7 @@ auto find_swarm_abundance(const char * header,
   * number = 0;
 
   constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
-  const char * digit_chars = "0123456789";
+  const std::string digit_chars = "0123456789";
 
   if (header == nullptr) {
     return false;
@@ -189,7 +189,7 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  size_t digits = strspn(us + 1, digit_chars);
+  size_t digits = strspn(us + 1, digit_chars.c_str());
 
   if (digits > max_digits) {
     return false;
