@@ -84,7 +84,7 @@ FILE * internal_structure_file {nullptr};
 FILE * fp_seeds {nullptr};
 FILE * network_file {nullptr};
 
-constexpr std::array<char, 32> sym_nt =
+const std::array<char, 32> sym_nt =
   {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
