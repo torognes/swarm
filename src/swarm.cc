@@ -739,7 +739,7 @@ void close_files() {
     {network_file, internal_structure_file,
      uclustfile, statsfile, fp_seeds, outfile,
      logfile};
-  for (const auto file_handle : file_handles) {
+  for (auto * const file_handle : file_handles) {
     if (file_handle != nullptr) {
       fclose(file_handle);
     }
