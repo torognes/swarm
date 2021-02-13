@@ -262,6 +262,7 @@ auto args_long(char * str, const char * option) -> int64_t;
 void args_show();
 void args_usage(const std::vector<std::string> & message);
 void show_header(const std::vector<std::string> & message);
+void show(const std::vector<std::string> & message);
 void args_init(int argc, char **argv);
 void open_files();
 void close_files();
@@ -334,6 +335,13 @@ void args_usage(const std::vector<std::string> & message)
 }
 
 void show_header(const std::vector<std::string> & message)
+{
+  for (const auto & m : message) {
+    fprintf(logfile, "%s", m.c_str());
+  }
+}
+
+void show(const std::vector<std::string> & message)
 {
   for (const auto & m : message) {
     fprintf(logfile, "%s", m.c_str());
@@ -563,8 +571,8 @@ void args_init(int argc, char **argv)
         break;
 
       default:
-        show_header(header_message);
-        args_usage(args_usage_message);
+        show(header_message);
+        show(args_usage_message);
         exit(1);
     }
   }
@@ -788,9 +796,9 @@ auto main(int argc, char** argv) -> int
 
   if (opt_version || opt_help)
     {
-      show_header(header_message);
+      show(header_message);
       if (opt_help) {
-        args_usage(args_usage_message);
+        show(args_usage_message);
       }
       close_files();
       exit(0);
@@ -806,7 +814,7 @@ auto main(int argc, char** argv) -> int
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
 
-  show_header(header_message);
+  show(header_message);
 
   args_show();
 
