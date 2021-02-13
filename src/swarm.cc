@@ -331,7 +331,7 @@ void args_usage()
 
 void show_header(const std::vector<std::string> & message)
 {
-  for (auto & m : message) {
+  for (const auto & m : message) {
     fprintf(logfile, "%s", m.c_str());
   }
 }
