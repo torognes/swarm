@@ -355,16 +355,10 @@ void args_init(int argc, char **argv)
   opt_differences = differences_default;
   opt_gap_extension_penalty = gap_extension_penalty_default;
   opt_gap_opening_penalty = gap_opening_penalty_default;
-  opt_internal_structure = "";
-  opt_log = "";
   opt_match_reward = match_reward_default;
   opt_mismatch_penalty = mismatch_penalty_default;
-  opt_network_file = "";
   opt_output_file = DASH_FILENAME;
-  opt_seeds = "";
-  opt_statistics_file = "";
   opt_threads = threads_default;
-  opt_uclust_file = "";
   opterr = 1;  // unused variable?
 
   char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z";
