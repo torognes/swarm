@@ -25,7 +25,7 @@
 
 /* OPTIONS */
 
-std::string progname;
+std::string progname;  // unused variable?
 std::string input_filename;
 
 std::string opt_internal_structure;
