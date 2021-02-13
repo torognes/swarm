@@ -92,6 +92,22 @@ const std::array<char, 32> sym_nt =
 
 const std::string DASH_FILENAME {"-"};
 
+const std::vector<std::string> header_message
+  {swarm_version,
+   "\n",
+   "Copyright (C) 2012-2021 Torbjorn Rognes and Frederic Mahe\n",
+   "https://github.com/torognes/swarm\n",
+   "\n",
+   "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n",
+   "Swarm: robust and fast clustering method for amplicon-based studies\n",
+   "PeerJ 2:e593 https://doi.org/10.7717/peerj.593\n",
+   "\n",
+   "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2015)\n",
+   "Swarm v2: highly-scalable and high-resolution amplicon clustering\n",
+   "PeerJ 3:e1420 https://doi.org/10.7717/peerj.1420\n",
+   "\n"};
+
+
 #ifdef __x86_64__
 
 void cpuid(unsigned int f1,
@@ -201,7 +217,7 @@ void cpu_features_show()
 auto args_long(char * str, const char * option) -> int64_t;
 void args_show();
 void args_usage();
-void show_header();
+void show_header(const std::vector<std::string> & message);
 void args_init(int argc, char **argv);
 void open_files();
 void close_files();
@@ -313,20 +329,11 @@ void args_usage()
 #endif
 }
 
-void show_header()
+void show_header(const std::vector<std::string> & message)
 {
-  fprintf(logfile, "%s\n", swarm_version.c_str());
-  fprintf(logfile, "Copyright (C) 2012-2021 Torbjorn Rognes and Frederic Mahe\n");
-  fprintf(logfile, "https://github.com/torognes/swarm\n");
-  fprintf(logfile, "\n");
-  fprintf(logfile, "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n");
-  fprintf(logfile, "Swarm: robust and fast clustering method for amplicon-based studies\n");
-  fprintf(logfile, "PeerJ 2:e593 https://doi.org/10.7717/peerj.593\n");
-  fprintf(logfile, "\n");
-  fprintf(logfile, "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2015)\n");
-  fprintf(logfile, "Swarm v2: highly-scalable and high-resolution amplicon clustering\n");
-  fprintf(logfile, "PeerJ 3:e1420 https://doi.org/10.7717/peerj.1420\n");
-  fprintf(logfile, "\n");
+  for (auto & m : message) {
+    fprintf(logfile, "%s", m.c_str());
+  }
 }
 
 void args_init(int argc, char **argv)
@@ -552,7 +559,7 @@ void args_init(int argc, char **argv)
         break;
 
       default:
-        show_header();
+        show_header(header_message);
         args_usage();
         exit(1);
     }
@@ -777,7 +784,7 @@ auto main(int argc, char** argv) -> int
 
   if (opt_version || opt_help)
     {
-      show_header();
+      show_header(header_message);
       if (opt_help) {
         args_usage();
       }
@@ -795,7 +802,7 @@ auto main(int argc, char** argv) -> int
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
 
-  show_header();
+  show_header(header_message);
 
   args_show();
 
