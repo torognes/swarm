@@ -734,34 +734,15 @@ void open_files()
     }
 }
 
-void close_files()
-{
-  if (network_file != nullptr) {
-    fclose(network_file);
-  }
-
-  if (internal_structure_file != nullptr) {
-    fclose(internal_structure_file);
-  }
-
-  if (uclustfile != nullptr) {
-    fclose(uclustfile);
-  }
-
-  if (statsfile != nullptr) {
-    fclose(statsfile);
-  }
-
-  if (fp_seeds != nullptr) {
-    fclose(fp_seeds);
-  }
-
-  if (outfile != nullptr) {
-    fclose(outfile);
-  }
-
-  if (logfile != nullptr) {
-    fclose(logfile);
+void close_files() {
+  const std::vector<FILE *> file_handles
+    {network_file, internal_structure_file,
+     uclustfile, statsfile, fp_seeds, outfile,
+     logfile};
+  for (const auto file_handle : file_handles) {
+    if (file_handle != nullptr) {
+      fclose(file_handle);
+    }
   }
 }
 
