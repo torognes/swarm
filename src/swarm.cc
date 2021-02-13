@@ -260,8 +260,6 @@ void cpu_features_show()
 
 auto args_long(char * str, const char * option) -> int64_t;
 void args_show();
-void args_usage(const std::vector<std::string> & message);
-void show_header(const std::vector<std::string> & message);
 void show(const std::vector<std::string> & message);
 void args_init(int argc, char **argv);
 void open_files();
@@ -324,20 +322,6 @@ void args_show()
   }
   else {
     fprintf(logfile, "Fastidious:        No\n");
-  }
-}
-
-void args_usage(const std::vector<std::string> & message)
-{
-  for (const auto & m : message) {
-    fprintf(logfile, "%s", m.c_str());
-  }
-}
-
-void show_header(const std::vector<std::string> & message)
-{
-  for (const auto & m : message) {
-    fprintf(logfile, "%s", m.c_str());
   }
 }
 
