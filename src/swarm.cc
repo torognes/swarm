@@ -32,9 +32,9 @@ std::string opt_internal_structure;
 std::string opt_log;
 std::string opt_network_file;
 std::string opt_output_file;
-char * opt_seeds;
-char * opt_statistics_file;
-char * opt_uclust_file;
+std::string opt_seeds;
+std::string opt_statistics_file;
+std::string opt_uclust_file;
 
 int64_t opt_append_abundance;
 int64_t opt_bloom_bits;
@@ -227,11 +227,11 @@ void args_show()
 
   fprintf(logfile, "Database file:     %s\n", input_filename.c_str());
   fprintf(logfile, "Output file:       %s\n", opt_output_file.c_str());
-  if (opt_statistics_file != nullptr) {
-    fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file);
+  if (! opt_statistics_file.empty()) {
+    fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file.c_str());
   }
-  if (opt_uclust_file != nullptr) {
-    fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file);
+  if (! opt_uclust_file.empty()) {
+    fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file.c_str());
   }
   if (! opt_internal_structure.empty()) {
     fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure.c_str());
@@ -366,10 +366,10 @@ void args_init(int argc, char **argv)
   opt_network_file = "";
   opt_no_otu_breaking = false;
   opt_output_file = DASH_FILENAME;
-  opt_seeds = nullptr;
-  opt_statistics_file = nullptr;
+  opt_seeds = "";
+  opt_statistics_file = "";
   opt_threads = threads_default;
-  opt_uclust_file = nullptr;
+  opt_uclust_file = "";
   opt_usearch_abundance = false;
   opt_version = false;
   opterr = 1;  // unused variable?
@@ -706,25 +706,25 @@ void open_files()
     fatal("Unable to open output file for writing.");
   }
 
-  if (opt_seeds != nullptr)
+  if (! opt_seeds.empty())
     {
-      fp_seeds = fopen_output(opt_seeds);
+      fp_seeds = fopen_output(opt_seeds.c_str());
       if (fp_seeds == nullptr) {
         fatal("Unable to open seeds file for writing.");
       }
     }
 
-  if (opt_statistics_file != nullptr)
+  if (! opt_statistics_file.empty())
     {
-      statsfile = fopen_output(opt_statistics_file);
+      statsfile = fopen_output(opt_statistics_file.c_str());
       if (statsfile == nullptr) {
         fatal("Unable to open statistics file for writing.");
       }
     }
 
-  if (opt_uclust_file != nullptr)
+  if (! opt_uclust_file.empty())
     {
-      uclustfile = fopen_output(opt_uclust_file);
+      uclustfile = fopen_output(opt_uclust_file.c_str());
       if (uclustfile == nullptr) {
         fatal("Unable to open uclust file for writing.");
       }

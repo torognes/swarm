@@ -215,7 +215,7 @@ void dereplicate()
 
   /* dump seeds in fasta format with sum of abundances */
 
-  if (opt_seeds != nullptr)
+  if (! opt_seeds.empty())
     {
       progress_init("Writing seeds:    ", swarmcount);
       for(auto i = 0U; i < swarmcount; i++)

@@ -599,7 +599,7 @@ void algo_run()
 
   /* dump seeds in fasta format with sum of abundances */
 
-  if ((opt_seeds != nullptr) && (amplicons > 0))
+  if ((! opt_seeds.empty()) && (amplicons > 0))
     {
       uint64_t swarmcount {0};
       progress_init("Sorting seeds:    ", amplicons);

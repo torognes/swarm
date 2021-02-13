@@ -1203,7 +1203,7 @@ void algo_d1_run()
 
   /* dump seeds in fasta format with sum of abundances */
 
-  if (opt_seeds != nullptr)
+  if (! opt_seeds.empty())
     {
       progress_init("Writing seeds:    ", swarmcount);
 
