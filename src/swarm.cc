@@ -30,7 +30,7 @@ std::string input_filename;
 
 std::string opt_internal_structure;
 std::string opt_log;
-char * opt_network_file;
+std::string opt_network_file;
 std::string opt_output_file;
 char * opt_seeds;
 char * opt_statistics_file;
@@ -236,8 +236,8 @@ void args_show()
   if (! opt_internal_structure.empty()) {
     fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure.c_str());
   }
-  if (opt_network_file != nullptr) {
-    fprintf(logfile, "Network file       %s\n", opt_network_file);
+  if (! opt_network_file.empty()) {
+    fprintf(logfile, "Network file       %s\n", opt_network_file.c_str());
   }
   fprintf(logfile, "Resolution (d):    %" PRId64 "\n", opt_differences);
   fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
@@ -363,7 +363,7 @@ void args_init(int argc, char **argv)
   opt_match_reward = match_reward_default;
   opt_mismatch_penalty = mismatch_penalty_default;
   opt_mothur = false;
-  opt_network_file = nullptr;
+  opt_network_file = "";
   opt_no_otu_breaking = false;
   opt_output_file = DASH_FILENAME;
   opt_seeds = nullptr;
@@ -684,7 +684,7 @@ void args_init(int argc, char **argv)
           "must be at least 1.");
   }
 
-  if ((opt_network_file != nullptr) && (opt_differences != 1)) {
+  if ((! opt_network_file.empty()) && (opt_differences != 1)) {
     fatal("A network file can only written when d=1.");
   }
 }
@@ -738,9 +738,9 @@ void open_files()
       }
     }
 
-  if (opt_network_file != nullptr)
+  if (! opt_network_file.empty())
     {
-      network_file = fopen_output(opt_network_file);
+      network_file = fopen_output(opt_network_file.c_str());
       if (network_file == nullptr) {
         fatal("Unable to open network file for writing.");
       }

@@ -831,7 +831,7 @@ void algo_d1_run()
 
   /* dump network to file */
 
-  if (opt_network_file != nullptr)
+  if (! opt_network_file.empty())
     {
       progress_init("Dumping network:  ", network_count);
 

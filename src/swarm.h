@@ -157,7 +157,7 @@ using queryinfo_t = struct queryinfo;
 
 extern std::string opt_internal_structure;
 extern std::string opt_log;
-extern char * opt_network_file;
+extern std::string opt_network_file;
 extern std::string opt_output_file;
 extern char * opt_seeds;
 extern char * opt_statistics_file;
