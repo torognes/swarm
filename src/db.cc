@@ -25,27 +25,28 @@
 
 constexpr unsigned int memchunk {1 << 20};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
+constexpr long unsigned int n_chars {INT8_MAX + 1};  // 128 ascii chars
 
-// map the 128 ascii chars to '-1' except Aa, Cc, Gg and Tt
-static signed char map_nt[UINT8_MAX + 1] =
-  {
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1,  1, -1,  2, -1, -1, -1,  3, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1,  4,  4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1,  1, -1,  2, -1, -1, -1,  3, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1,  4,  4, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-  };
+auto make_nt_map () -> std::array<signed char, n_chars> {
+    // set the 128 ascii chars to '-1' except Aa, Cc, Gg, Tt and Uu
+    std::array<signed char, n_chars> map_nt = {-1};
+    for (auto & v : map_nt) {
+      v = -1;
+    }
+    map_nt['A'] = 1;
+    map_nt['a'] = 1;
+    map_nt['C'] = 2;
+    map_nt['c'] = 2;
+    map_nt['G'] = 3;
+    map_nt['g'] = 3;
+    map_nt['T'] = 4;
+    map_nt['t'] = 4;
+    map_nt['U'] = 4;
+    map_nt['u'] = 4;
+    return map_nt;
+    }
+
+const std::array<signed char, n_chars> map_nt = make_nt_map();
 
 static unsigned int sequences {0};
 static uint64_t nucleotides {0};
