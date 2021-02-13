@@ -107,6 +107,50 @@ const std::vector<std::string> header_message
    "PeerJ 3:e1420 https://doi.org/10.7717/peerj.1420\n",
    "\n"};
 
+const std::vector<std::string> args_usage_message
+  /*0         1         2         3         4         5         6         7          */
+  /*01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
+  {"Usage: swarm [OPTIONS] [FASTAFILE]\n",
+   "\n",
+   "General options:\n",
+   " -h, --help                          display this help and exit\n",
+   " -t, --threads INTEGER               number of threads to use (1)\n",
+   " -v, --version                       display version information and exit\n",
+   " -x, --disable-sse3                  disable SSE3 and later x86 instructions\n",
+   "\n",
+   "Clustering options:\n",
+   " -d, --differences INTEGER           resolution (1)\n",
+   " -n, --no-otu-breaking               never break OTUs (not recommended!)\n",
+   "\n",
+   "Fastidious options (only when d = 1):\n",
+   " -b, --boundary INTEGER              min mass of large OTUs (3)\n",
+   " -c, --ceiling INTEGER               max memory in MB for Bloom filter (unlim.)\n",
+   " -f, --fastidious                    link nearby low-abundance swarms\n",
+   " -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n",
+   "\n",
+   "Input/output options:\n",
+   " -a, --append-abundance INTEGER      value to use when abundance is missing\n",
+   " -i, --internal-structure FILENAME   write internal OTU structure to file\n",
+   " -j, --network_file FILENAME         dump sequence network to file\n",
+   " -l, --log FILENAME                  log to file, not to stderr\n",
+   " -o, --output-file FILENAME          output result to file (stdout)\n",
+   " -r, --mothur                        output using mothur-like format\n",
+   " -s, --statistics-file FILENAME      dump OTU statistics to file\n",
+   " -u, --uclust-file FILENAME          output using UCLUST-like format to file\n",
+   " -w, --seeds FILENAME                write OTU representatives to FASTA file\n",
+   " -z, --usearch-abundance             abundance annotation in usearch style\n",
+   "\n",
+   "Pairwise alignment advanced options (only when d > 1):\n",
+   " -m, --match-reward INTEGER          reward for nucleotide match (5)\n",
+   " -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n",
+   " -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n",
+   " -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n"
+#ifndef __WIN32
+   , "\n",
+   "See 'man swarm' for more details.\n"
+#endif
+  };
+
 
 #ifdef __x86_64__
 
@@ -216,7 +260,7 @@ void cpu_features_show()
 
 auto args_long(char * str, const char * option) -> int64_t;
 void args_show();
-void args_usage();
+void args_usage(const std::vector<std::string> & message);
 void show_header(const std::vector<std::string> & message);
 void args_init(int argc, char **argv);
 void open_files();
@@ -282,51 +326,11 @@ void args_show()
   }
 }
 
-void args_usage()
+void args_usage(const std::vector<std::string> & message)
 {
-  /*               0         1         2         3         4         5         6         7          */
-  /*               01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
-
-  fprintf(stderr, "Usage: swarm [OPTIONS] [FASTAFILE]\n");
-  fprintf(stderr, "\n");
-  fprintf(stderr, "General options:\n");
-  fprintf(stderr, " -h, --help                          display this help and exit\n");
-  fprintf(stderr, " -t, --threads INTEGER               number of threads to use (1)\n");
-  fprintf(stderr, " -v, --version                       display version information and exit\n");
-  fprintf(stderr, " -x, --disable-sse3                  disable SSE3 and later x86 instructions\n");
-  fprintf(stderr, "\n");
-  fprintf(stderr, "Clustering options:\n");
-  fprintf(stderr, " -d, --differences INTEGER           resolution (1)\n");
-  fprintf(stderr, " -n, --no-otu-breaking               never break OTUs (not recommended!)\n");
-  fprintf(stderr, "\n");
-  fprintf(stderr, "Fastidious options (only when d = 1):\n");
-  fprintf(stderr, " -b, --boundary INTEGER              min mass of large OTUs (3)\n");
-  fprintf(stderr, " -c, --ceiling INTEGER               max memory in MB for Bloom filter (unlim.)\n");
-  fprintf(stderr, " -f, --fastidious                    link nearby low-abundance swarms\n");
-  fprintf(stderr, " -y, --bloom-bits INTEGER            bits used per Bloom filter entry (16)\n");
-  fprintf(stderr, "\n");
-  fprintf(stderr, "Input/output options:\n");
-  fprintf(stderr, " -a, --append-abundance INTEGER      value to use when abundance is missing\n");
-  fprintf(stderr, " -i, --internal-structure FILENAME   write internal OTU structure to file\n");
-  fprintf(stderr, " -j, --network_file FILENAME         dump sequence network to file\n");
-  fprintf(stderr, " -l, --log FILENAME                  log to file, not to stderr\n");
-  fprintf(stderr, " -o, --output-file FILENAME          output result to file (stdout)\n");
-  fprintf(stderr, " -r, --mothur                        output using mothur-like format\n");
-  fprintf(stderr, " -s, --statistics-file FILENAME      dump OTU statistics to file\n");
-  fprintf(stderr, " -u, --uclust-file FILENAME          output using UCLUST-like format to file\n");
-  fprintf(stderr, " -w, --seeds FILENAME                write OTU representatives to FASTA file\n");
-  fprintf(stderr, " -z, --usearch-abundance             abundance annotation in usearch style\n");
-  fprintf(stderr, "\n");
-  fprintf(stderr, "Pairwise alignment advanced options (only when d > 1):\n");
-  fprintf(stderr, " -m, --match-reward INTEGER          reward for nucleotide match (5)\n");
-  fprintf(stderr, " -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n");
-  fprintf(stderr, " -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n");
-  fprintf(stderr, " -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n");
-
-#ifndef __WIN32
-  fprintf(stderr, "\n");
-  fprintf(stderr, "See 'man swarm' for more details.\n");
-#endif
+  for (const auto & m : message) {
+    fprintf(logfile, "%s", m.c_str());
+  }
 }
 
 void show_header(const std::vector<std::string> & message)
@@ -560,7 +564,7 @@ void args_init(int argc, char **argv)
 
       default:
         show_header(header_message);
-        args_usage();
+        args_usage(args_usage_message);
         exit(1);
     }
   }
@@ -786,7 +790,7 @@ auto main(int argc, char** argv) -> int
     {
       show_header(header_message);
       if (opt_help) {
-        args_usage();
+        args_usage(args_usage_message);
       }
       close_files();
       exit(0);
