@@ -748,7 +748,7 @@ inline void add_amp_to_swarm(unsigned int amp)
   current_swarm_tail = amp;
 }
 
-void algo_d1_run()
+void algo_d1_run(struct Parameters const & p)
 {
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
@@ -831,7 +831,7 @@ void algo_d1_run()
 
   /* dump network to file */
 
-  if (! opt_network_file.empty())
+  if (! p.opt_network_file.empty())
     {
       progress_init("Dumping network:  ", network_count);
 

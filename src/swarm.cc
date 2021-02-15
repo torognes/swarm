@@ -31,7 +31,6 @@ std::string input_filename;
 struct Parameters p;
 std::string opt_internal_structure;
 std::string opt_log;
-std::string opt_network_file;
 std::string opt_output_file;
 std::string opt_seeds;
 std::string opt_statistics_file;
@@ -293,8 +292,8 @@ void args_show()
   if (! opt_internal_structure.empty()) {
     fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure.c_str());
   }
-  if (! opt_network_file.empty()) {
-    fprintf(logfile, "Network file       %s\n", opt_network_file.c_str());
+  if (! p.opt_network_file.empty()) {
+    fprintf(logfile, "Network file       %s\n", p.opt_network_file.c_str());
   }
   fprintf(logfile, "Resolution (d):    %" PRId64 "\n", opt_differences);
   fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
@@ -480,7 +479,7 @@ void args_init(int argc, char **argv)
 
       case 'j':
         /* network-file */
-        opt_network_file = optarg;
+        p.opt_network_file = optarg;
         break;
 
       case 'l':
@@ -673,7 +672,7 @@ void args_init(int argc, char **argv)
           "must be at least 1.");
   }
 
-  if ((! opt_network_file.empty()) && (opt_differences != 1)) {
+  if ((! p.opt_network_file.empty()) && (opt_differences != 1)) {
     fatal("A network file can only written when d=1.");
   }
 }
@@ -727,9 +726,9 @@ void open_files()
       }
     }
 
-  if (! opt_network_file.empty())
+  if (! p.opt_network_file.empty())
     {
-      network_file = fopen_output(opt_network_file.c_str());
+      network_file = fopen_output(p.opt_network_file.c_str());
       if (network_file == nullptr) {
         fatal("Unable to open network file for writing.");
       }
@@ -820,7 +819,7 @@ auto main(int argc, char** argv) -> int
       break;
 
     case 1:
-      algo_d1_run();
+      algo_d1_run(p);
       break;
 
     default:

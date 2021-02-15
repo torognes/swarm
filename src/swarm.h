@@ -159,11 +159,11 @@ struct Parameters {
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
+  std::string opt_network_file;
 };
 
 extern std::string opt_internal_structure;
 extern std::string opt_log;
-extern std::string opt_network_file;
 extern std::string opt_output_file;
 extern std::string opt_seeds;
 extern std::string opt_statistics_file;
@@ -421,7 +421,7 @@ void search_end();
 /* functions in algo.cc */
 
 void algo_run();
-void algo_d1_run();
+void algo_d1_run(struct Parameters const & p);
 
 
 /* functions in derep.cc */
