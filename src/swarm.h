@@ -158,6 +158,7 @@ using queryinfo_t = struct queryinfo;
 struct Parameters {
   bool opt_help {false};
   bool opt_disable_sse3 {false};
+  bool opt_version {false};
 };
 
 extern std::string opt_internal_structure;
@@ -172,7 +173,6 @@ extern int64_t opt_bloom_bits;
 extern int64_t opt_boundary;
 extern int64_t opt_ceiling;
 extern int64_t opt_differences;
-// extern bool opt_disable_sse3;
 extern bool opt_fastidious;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
@@ -182,7 +182,6 @@ extern bool opt_mothur;
 extern bool opt_no_otu_breaking;
 extern int64_t opt_threads;
 extern bool opt_usearch_abundance;
-extern bool opt_version;
 
 extern char * queryname;
 extern char * matrixname;

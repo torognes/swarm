@@ -51,7 +51,6 @@ bool opt_mothur {false};
 bool opt_no_otu_breaking {false};
 int64_t opt_threads;
 bool opt_usearch_abundance {false};
-bool opt_version {false};
 
 int64_t penalty_factor;
 int64_t penalty_gapextend;
@@ -531,7 +530,7 @@ void args_init(int argc, char **argv)
 
       case 'v':
         /* version */
-        opt_version = true;
+        p.opt_version = true;
         break;
 
       case 'w':
@@ -778,7 +777,7 @@ auto main(int argc, char** argv) -> int
 
   open_files();
 
-  if (opt_version || p.opt_help)
+  if (p.opt_version || p.opt_help)
     {
       show(header_message);
       if (p.opt_help) {
