@@ -28,6 +28,7 @@
 std::string progname;  // unused variable?
 std::string input_filename;
 
+struct Parameters p;
 std::string opt_internal_structure;
 std::string opt_log;
 std::string opt_network_file;
@@ -45,7 +46,6 @@ int64_t opt_differences;
 bool opt_fastidious {false};
 int64_t opt_gap_extension_penalty;
 int64_t opt_gap_opening_penalty;
-bool opt_help {false};
 int64_t opt_match_reward;
 int64_t opt_mismatch_penalty;
 bool opt_mothur {false};
@@ -471,7 +471,7 @@ void args_init(int argc, char **argv)
 
       case 'h':
         /* help */
-        opt_help = true;
+        p.opt_help = true;
         break;
 
       case 'i':
@@ -778,10 +778,10 @@ auto main(int argc, char** argv) -> int
 
   open_files();
 
-  if (opt_version || opt_help)
+  if (opt_version || p.opt_help)
     {
       show(header_message);
-      if (opt_help) {
+      if (p.opt_help) {
         show(args_usage_message);
       }
       close_files();

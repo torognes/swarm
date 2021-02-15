@@ -156,6 +156,10 @@ using queryinfo_t = struct queryinfo;
 
 /* common data */
 
+struct Parameters {
+  bool opt_help {false};
+};
+
 extern std::string opt_internal_structure;
 extern std::string opt_log;
 extern std::string opt_network_file;
@@ -172,7 +176,6 @@ extern bool opt_disable_sse3;
 extern bool opt_fastidious;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
-extern bool opt_help;
 extern int64_t opt_match_reward;
 extern int64_t opt_mismatch_penalty;
 extern bool opt_mothur;
