@@ -347,6 +347,7 @@ void args_init(int argc, char **argv)
   constexpr unsigned int match_reward_default {5};
   constexpr unsigned int mismatch_penalty_default {4};
   constexpr unsigned int threads_default {1};
+  constexpr unsigned int max_threads {256};
 
   progname = argv[0];
   input_filename = DASH_FILENAME;
