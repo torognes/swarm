@@ -41,7 +41,6 @@ int64_t opt_append_abundance;
 int64_t opt_bloom_bits;
 int64_t opt_boundary;
 int64_t opt_ceiling;
-bool opt_disable_sse3 {false};
 int64_t opt_differences;
 bool opt_fastidious {false};
 int64_t opt_gap_extension_penalty;
@@ -542,7 +541,7 @@ void args_init(int argc, char **argv)
 
       case 'x':
         /* disable-sse3 */
-        opt_disable_sse3 = true;
+        p.opt_disable_sse3 = true;
         break;
 
       case 'y':
@@ -583,7 +582,7 @@ void args_init(int argc, char **argv)
           "when the resolution (specified with -d or --differences) is 1.");
   }
 
-  if (opt_disable_sse3 && (opt_differences < 2)) {
+  if (p.opt_disable_sse3 && (opt_differences < 2)) {
     fatal("Option --disable-sse3 or -x has no effect when d < 2. " 
           "(SSE3 instructions are only used when d > 1).");
   }
@@ -765,7 +764,7 @@ auto main(int argc, char** argv) -> int
     fatal("This program requires a processor with SSE2 instructions.\n");
   }
 
-  if (opt_disable_sse3)
+  if (p.opt_disable_sse3)
     {
       sse3_present = 0;
       ssse3_present = 0;

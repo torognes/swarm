@@ -157,6 +157,7 @@ using queryinfo_t = struct queryinfo;
 
 struct Parameters {
   bool opt_help {false};
+  bool opt_disable_sse3 {false};
 };
 
 extern std::string opt_internal_structure;
@@ -171,7 +172,7 @@ extern int64_t opt_bloom_bits;
 extern int64_t opt_boundary;
 extern int64_t opt_ceiling;
 extern int64_t opt_differences;
-extern bool opt_disable_sse3;
+// extern bool opt_disable_sse3;
 extern bool opt_fastidious;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
