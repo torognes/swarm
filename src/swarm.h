@@ -166,7 +166,7 @@ struct Parameters {
   int64_t opt_differences {1};
 };
 
-extern std::string opt_log;
+extern std::string opt_log;  // used by multithreaded functions
 extern std::string opt_output_file;
 extern std::string opt_seeds;
 extern std::string opt_statistics_file;
@@ -182,9 +182,6 @@ extern bool opt_mothur;
 extern bool opt_no_otu_breaking;
 extern int64_t opt_threads;
 extern bool opt_usearch_abundance;
-
-extern char * queryname;
-extern char * matrixname;
 
 extern std::string input_filename;
 
