@@ -184,11 +184,6 @@ extern bool opt_no_otu_breaking;
 extern int64_t opt_threads;
 extern bool opt_usearch_abundance;
 
-extern char map_ncbi_nt4[];
-extern char map_ncbi_nt16[];
-extern char map_ncbi_aa[];
-extern char map_sound[];
-
 extern int64_t penalty_factor;
 extern int64_t penalty_gapextend;
 extern int64_t penalty_gapopen;
