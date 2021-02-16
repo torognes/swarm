@@ -78,7 +78,7 @@ auto compare_mass_seed(const void * a, const void * b) -> int
   return status;
 }
 
-void algo_run()
+void algo_run(struct Parameters const & p)
 {
   search_begin();
 
@@ -295,7 +295,7 @@ void algo_run()
                   unsigned poolampliconid = amps[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
-                  if (! opt_internal_structure.empty())
+                  if (! p.opt_internal_structure.empty())
                     {
                       fprint_id_noabundance(internal_structure_file,
                                             seedampliconid);
@@ -441,7 +441,7 @@ void algo_run()
                           unsigned poolampliconid = amps[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
 
-                          if (! opt_internal_structure.empty())
+                          if (! p.opt_internal_structure.empty())
                             {
                               fprint_id_noabundance(internal_structure_file,
                                                     subseedampliconid);

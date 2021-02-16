@@ -64,7 +64,7 @@ auto derep_compare(const void * a, const void * b) -> int
   return status;
 }
 
-void dereplicate()
+void dereplicate(struct Parameters const & p)
 {
   /* adjust size of hash table for 2/3 fill rate */
   constexpr unsigned int hashfillpct {70};
@@ -278,7 +278,7 @@ void dereplicate()
 
   /* output internal structure to file */
 
-  if (! opt_internal_structure.empty())
+  if (! p.opt_internal_structure.empty())
     {
       progress_init("Writing structure:", swarmcount);
 

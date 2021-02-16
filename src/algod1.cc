@@ -979,7 +979,7 @@ void algo_d1_run(struct Parameters const & p)
 
   /* fastidious */
 
-  if (opt_fastidious)
+  if (p.opt_fastidious)
     {
       fprintf(logfile, "\n");
       fprintf(logfile, "Results before fastidious processing:\n");
@@ -1236,7 +1236,7 @@ void algo_d1_run(struct Parameters const & p)
 
   /* output internal structure */
 
-  if (! opt_internal_structure.empty())
+  if (! p.opt_internal_structure.empty())
     {
       unsigned int cluster_no = 0;
 

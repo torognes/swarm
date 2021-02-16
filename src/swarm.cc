@@ -29,7 +29,6 @@ std::string progname;  // unused variable?
 std::string input_filename;
 
 struct Parameters p;
-std::string opt_internal_structure;
 std::string opt_log;
 std::string opt_output_file;
 std::string opt_seeds;
@@ -41,7 +40,6 @@ int64_t opt_bloom_bits;
 int64_t opt_boundary;
 int64_t opt_ceiling;
 int64_t opt_differences;
-bool opt_fastidious {false};
 int64_t opt_gap_extension_penalty;
 int64_t opt_gap_opening_penalty;
 int64_t opt_match_reward;
@@ -289,8 +287,8 @@ void args_show()
   if (! opt_uclust_file.empty()) {
     fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file.c_str());
   }
-  if (! opt_internal_structure.empty()) {
-    fprintf(logfile, "Int. struct. file  %s\n", opt_internal_structure.c_str());
+  if (! p.opt_internal_structure.empty()) {
+    fprintf(logfile, "Int. struct. file  %s\n", p.opt_internal_structure.c_str());
   }
   if (! p.opt_network_file.empty()) {
     fprintf(logfile, "Network file       %s\n", p.opt_network_file.c_str());
@@ -313,7 +311,7 @@ void args_show()
     }
   fprintf(logfile, "Break OTUs:        %s\n",
           opt_no_otu_breaking ? "No" : "Yes");
-  if (opt_fastidious) {
+  if (p.opt_fastidious) {
     fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
             opt_boundary);
   }
@@ -459,7 +457,7 @@ void args_init(int argc, char **argv)
 
       case 'f':
         /* fastidious */
-        opt_fastidious = true;
+        p.opt_fastidious = true;
         break;
 
       case 'g':
@@ -474,7 +472,7 @@ void args_init(int argc, char **argv)
 
       case 'i':
         /* internal-structure */
-        opt_internal_structure = optarg;
+        p.opt_internal_structure = optarg;
         break;
 
       case 'j':
@@ -575,7 +573,7 @@ void args_init(int argc, char **argv)
           "must be in the range 0 to 255.");
   }
 
-  if (opt_fastidious && (opt_differences != 1)) {
+  if (p.opt_fastidious && (opt_differences != 1)) {
     fatal("Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
   }
@@ -585,7 +583,7 @@ void args_init(int argc, char **argv)
           "(SSE3 instructions are only used when d > 1).");
   }
 
-  if (!opt_fastidious)
+  if (! p.opt_fastidious)
     {
       constexpr unsigned int boundary_index {1};
       constexpr unsigned int ceiling_index {2};
@@ -718,9 +716,9 @@ void open_files()
       }
     }
 
-  if (! opt_internal_structure.empty())
+  if (! p.opt_internal_structure.empty())
     {
-      internal_structure_file = fopen_output(opt_internal_structure.c_str());
+      internal_structure_file = fopen_output(p.opt_internal_structure.c_str());
       if (internal_structure_file == nullptr) {
         fatal("Unable to open internal structure file for writing.");
       }
@@ -815,7 +813,7 @@ auto main(int argc, char** argv) -> int
   switch (opt_differences)
     {
     case 0:
-      dereplicate();
+      dereplicate(p);
       break;
 
     case 1:
@@ -823,7 +821,7 @@ auto main(int argc, char** argv) -> int
       break;
 
     default:
-      algo_run();
+      algo_run(p);
       break;
     }
 
