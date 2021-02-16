@@ -26,7 +26,6 @@
 /* OPTIONS */
 
 std::string progname;  // unused variable?
-std::string input_filename;
 
 struct Parameters p;
 std::string opt_log;
@@ -277,7 +276,7 @@ void args_show()
   cpu_features_show();
 #endif
 
-  fprintf(logfile, "Database file:     %s\n", input_filename.c_str());
+  fprintf(logfile, "Database file:     %s\n", p.input_filename.c_str());
   fprintf(logfile, "Output file:       %s\n", opt_output_file.c_str());
   if (! opt_statistics_file.empty()) {
     fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file.c_str());
@@ -341,7 +340,6 @@ void args_init(int argc, char **argv)
   constexpr unsigned int max_threads {256};
 
   progname = argv[0];
-  input_filename = DASH_FILENAME;
 
   opt_append_abundance = append_abundance_default;
   opt_boundary = boundary_default;
@@ -552,7 +550,7 @@ void args_init(int argc, char **argv)
   }
 
   if (optind < argc) {
-    input_filename = argv[optind];
+    p.input_filename = argv[optind];
   }
 
   if ((opt_threads < 1) || (opt_threads > max_threads))
@@ -794,7 +792,7 @@ auto main(int argc, char** argv) -> int
 
   fprintf(logfile, "\n");
 
-  db_read(input_filename.c_str(), p);
+  db_read(p.input_filename.c_str(), p);
 
   fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
   fprintf(logfile, " in %u sequences,", db_getsequencecount());

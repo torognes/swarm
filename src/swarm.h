@@ -159,6 +159,7 @@ struct Parameters {
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
+  std::string input_filename {"-"};
   std::string opt_network_file;
   std::string opt_internal_structure;
   bool opt_fastidious {false};
@@ -182,8 +183,6 @@ extern bool opt_mothur;
 extern bool opt_no_otu_breaking;
 extern int64_t opt_threads;
 extern bool opt_usearch_abundance;
-
-extern std::string input_filename;
 
 extern char map_ncbi_nt4[];
 extern char map_ncbi_nt16[];
