@@ -104,6 +104,7 @@ const std::string swarm_version = {"Swarm 3.0.0"};
 // constexpr unsigned int width {32};  // unused?
 // constexpr unsigned int width_shift {5};  // unused?
 constexpr char sepchar {' '};
+constexpr unsigned int bloom_bits_default {16};
 
 #ifndef MIN
 #define MIN(x,y) ((x)<(y)?(x):(y))
@@ -163,7 +164,7 @@ struct Parameters {
   std::string opt_network_file;
   std::string opt_internal_structure;
   bool opt_fastidious {false};
-  int64_t opt_bloom_bits {16};
+  int64_t opt_bloom_bits {bloom_bits_default};
   int64_t opt_differences {1};
 };
 
@@ -202,7 +203,6 @@ extern int64_t SCORELIMIT_8;
 extern int64_t SCORELIMIT_16;
 extern int64_t SCORELIMIT_32;
 extern int64_t SCORELIMIT_63;
-extern char BIAS;
 
 extern int64_t mmx_present;
 extern int64_t sse_present;

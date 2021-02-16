@@ -28,7 +28,6 @@ int64_t SCORELIMIT_8;
 int64_t SCORELIMIT_16;
 int64_t SCORELIMIT_32;
 int64_t SCORELIMIT_63;
-char BIAS;
 
 unsigned char * score_matrix_8 = nullptr;
 unsigned short * score_matrix_16 = nullptr;
