@@ -36,7 +36,6 @@ std::string opt_statistics_file;
 std::string opt_uclust_file;
 
 int64_t opt_append_abundance;
-int64_t opt_bloom_bits;
 int64_t opt_boundary;
 int64_t opt_ceiling;
 int64_t opt_differences;
@@ -333,7 +332,6 @@ void args_init(int argc, char **argv)
   constexpr unsigned int min_ceiling {8};
   constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
   constexpr unsigned int append_abundance_default {0};
-  constexpr unsigned int bloom_bits_default {16};
   constexpr unsigned int boundary_default {3};
   constexpr unsigned int ceiling_default {0};
   constexpr unsigned int differences_default {1};
@@ -348,7 +346,6 @@ void args_init(int argc, char **argv)
   input_filename = DASH_FILENAME;
 
   opt_append_abundance = append_abundance_default;
-  opt_bloom_bits = bloom_bits_default;
   opt_boundary = boundary_default;
   opt_ceiling = ceiling_default;
   opt_differences = differences_default;
@@ -542,7 +539,7 @@ void args_init(int argc, char **argv)
 
       case 'y':
         /* bloom-bits */
-        opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
+        p.opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
         break;
 
       case 'z':
@@ -659,8 +656,8 @@ void args_init(int argc, char **argv)
 
   constexpr unsigned int min_bits_per_entry {2};
   constexpr unsigned int max_bits_per_entry {64};
-  if ((opt_bloom_bits < min_bits_per_entry) ||
-      (opt_bloom_bits > max_bits_per_entry)) {
+  if ((p.opt_bloom_bits < min_bits_per_entry) ||
+      (p.opt_bloom_bits > max_bits_per_entry)) {
     fatal("Illegal number of Bloom filter bits specified with -y or "
           "--bloom-bits, must be in the range 2 to 64.");
   }

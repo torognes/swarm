@@ -1031,9 +1031,9 @@ void algo_d1_run(struct Parameters const & p)
 
           constexpr unsigned int microvariants {7};
           constexpr double hash_functions_per_bit {4.0 / 10};
-          assert(opt_bloom_bits <= 64);  // larger than expected"
-          assert(opt_bloom_bits >= 2);  // smaller than expected"
-          auto bits = static_cast<unsigned int>(opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
+          assert(p.opt_bloom_bits <= 64);  // larger than expected"
+          assert(p.opt_bloom_bits >= 2);  // smaller than expected"
+          auto bits = static_cast<unsigned int>(p.opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
 
           // int64_t k = int(bits * 0.693);    /* 11 */
           auto k =

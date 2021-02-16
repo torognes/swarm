@@ -162,6 +162,7 @@ struct Parameters {
   std::string opt_network_file;
   std::string opt_internal_structure;
   bool opt_fastidious {false};
+  int64_t opt_bloom_bits {16};
 };
 
 extern std::string opt_log;
@@ -170,7 +171,6 @@ extern std::string opt_seeds;
 extern std::string opt_statistics_file;
 extern std::string opt_uclust_file;
 extern int64_t opt_append_abundance;
-extern int64_t opt_bloom_bits;
 extern int64_t opt_boundary;
 extern int64_t opt_ceiling;
 extern int64_t opt_differences;
