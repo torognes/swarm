@@ -1160,7 +1160,7 @@ void algo_d1_run(struct Parameters const & p)
   progress_init("Writing swarms:   ", swarmcount);
 
   if (opt_mothur) {
-    fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, opt_differences, swarmcount_adjusted);
+    fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, p.opt_differences, swarmcount_adjusted);
   }
 
   for(auto i = 0U; i < swarmcount; i++)

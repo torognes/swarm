@@ -38,7 +38,6 @@ std::string opt_uclust_file;
 int64_t opt_append_abundance;
 int64_t opt_boundary;
 int64_t opt_ceiling;
-int64_t opt_differences;
 int64_t opt_gap_extension_penalty;
 int64_t opt_gap_opening_penalty;
 int64_t opt_match_reward;
@@ -292,10 +291,10 @@ void args_show()
   if (! p.opt_network_file.empty()) {
     fprintf(logfile, "Network file       %s\n", p.opt_network_file.c_str());
   }
-  fprintf(logfile, "Resolution (d):    %" PRId64 "\n", opt_differences);
+  fprintf(logfile, "Resolution (d):    %" PRId64 "\n", p.opt_differences);
   fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
 
-  if (opt_differences > 1)
+  if (p.opt_differences > 1)
     {
       fprintf(logfile,
               "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
@@ -334,7 +333,6 @@ void args_init(int argc, char **argv)
   constexpr unsigned int append_abundance_default {0};
   constexpr unsigned int boundary_default {3};
   constexpr unsigned int ceiling_default {0};
-  constexpr unsigned int differences_default {1};
   constexpr unsigned int gap_extension_penalty_default {4};
   constexpr unsigned int gap_opening_penalty_default {12};
   constexpr unsigned int match_reward_default {5};
@@ -348,7 +346,6 @@ void args_init(int argc, char **argv)
   opt_append_abundance = append_abundance_default;
   opt_boundary = boundary_default;
   opt_ceiling = ceiling_default;
-  opt_differences = differences_default;
   opt_gap_extension_penalty = gap_extension_penalty_default;
   opt_gap_opening_penalty = gap_opening_penalty_default;
   opt_match_reward = match_reward_default;
@@ -444,7 +441,7 @@ void args_init(int argc, char **argv)
 
       case 'd':
         /* differences (resolution) */
-        opt_differences = args_long(optarg, "-d or --differences");
+        p.opt_differences = args_long(optarg, "-d or --differences");
         break;
 
       case 'e':
@@ -565,17 +562,17 @@ void args_init(int argc, char **argv)
       exit(1);
     }
 
-  if ((opt_differences < 0) || (opt_differences > UINT8_MAX)) {
+  if ((p.opt_differences < 0) || (p.opt_differences > UINT8_MAX)) {
     fatal("Illegal number of differences specified with -d or --differences, "
           "must be in the range 0 to 255.");
   }
 
-  if (p.opt_fastidious && (opt_differences != 1)) {
+  if (p.opt_fastidious && (p.opt_differences != 1)) {
     fatal("Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
   }
 
-  if (p.opt_disable_sse3 && (opt_differences < 2)) {
+  if (p.opt_disable_sse3 && (p.opt_differences < 2)) {
     fatal("Option --disable-sse3 or -x has no effect when d < 2. " 
           "(SSE3 instructions are only used when d > 1).");
   }
@@ -597,7 +594,7 @@ void args_init(int argc, char **argv)
       }
     }
 
-  if (opt_differences < 2)
+  if (p.opt_differences < 2)
     {
       constexpr unsigned int match_reward_index {12};
       constexpr unsigned int mismatch_penalty_index {15};
@@ -667,7 +664,7 @@ void args_init(int argc, char **argv)
           "must be at least 1.");
   }
 
-  if ((! p.opt_network_file.empty()) && (opt_differences != 1)) {
+  if ((! p.opt_network_file.empty()) && (p.opt_differences != 1)) {
     fatal("A network file can only written when d=1.");
   }
 }
@@ -797,7 +794,7 @@ auto main(int argc, char** argv) -> int
 
   fprintf(logfile, "\n");
 
-  db_read(input_filename.c_str());
+  db_read(input_filename.c_str(), p);
 
   fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
   fprintf(logfile, " in %u sequences,", db_getsequencecount());
@@ -807,7 +804,7 @@ auto main(int argc, char** argv) -> int
 
   score_matrix_init();
 
-  switch (opt_differences)
+  switch (p.opt_differences)
     {
     case 0:
       dereplicate(p);

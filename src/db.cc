@@ -355,7 +355,7 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
   sp->abundance_end = end;
 }
 
-void db_read(const char * filename)
+void db_read(const char * filename, struct Parameters const & p)
 {
   /* allocate space */
 
@@ -491,8 +491,8 @@ void db_read(const char * filename)
       while ((line[0] != 0) && (line[0] != '>'))
         {
           unsigned char c {0};
-          char * p = line;
-          while((c = static_cast<unsigned char>(*p++)) != 0U)
+          char * pl = line;
+          while((c = static_cast<unsigned char>(*pl++)) != 0U)
 	    {
               signed char m {0};
               if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
@@ -607,7 +607,7 @@ void db_read(const char * filename)
 
   seqinfo_t * * seqhashtable {nullptr};
 
-  if (opt_differences > 1)
+  if (p.opt_differences > 1)
     {
       seqhashtable =
         static_cast<seqinfo_t **>(xmalloc(seqhashsize * sizeof(seqinfo_t *)));
@@ -623,25 +623,25 @@ void db_read(const char * filename)
 
   bool presorted {true};
 
-  char * p {datap};
+  char * pl {datap};
   progress_init("Indexing database:", sequences);
   for(auto i = 0ULL; i < sequences; i++)
     {
       /* get line number */
-      unsigned int line_number = *(reinterpret_cast<unsigned int*>(p));
-      p += sizeof(unsigned int);
+      unsigned int line_number = *(reinterpret_cast<unsigned int*>(pl));
+      pl += sizeof(unsigned int);
 
       /* get header */
-      seqindex_p->header = p;
+      seqindex_p->header = pl;
       seqindex_p->headerlen = static_cast<int>(strlen(seqindex_p->header));
-      p += seqindex_p->headerlen + 1;
+      pl += seqindex_p->headerlen + 1;
 
       /* and sequence */
-      unsigned int seqlen = *(reinterpret_cast<unsigned int*>(p));
+      unsigned int seqlen = *(reinterpret_cast<unsigned int*>(pl));
       seqindex_p->seqlen = seqlen;
-      p += sizeof(unsigned int);
-      seqindex_p->seq = p;
-      p += nt_bytelength(seqlen);
+      pl += sizeof(unsigned int);
+      seqindex_p->seq = pl;
+      pl += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
       find_abundance(seqindex_p, line_number);
@@ -742,7 +742,7 @@ void db_read(const char * filename)
                                          (seqindex_p->seq),
                                          seqindex_p->seqlen);
 
-      if (opt_differences > 1)
+      if (p.opt_differences > 1)
         {
           /* Check for duplicated sequences using hash table, */
           /* but only for d>1. Handled internally for d=1.    */

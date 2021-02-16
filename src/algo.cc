@@ -151,7 +151,7 @@ void algo_run(struct Parameters const & p)
   constexpr int bit_mode_16 {16};
   int bits {bit_mode_8};
 
-  if (static_cast<uint64_t>(opt_differences) > diff_saturation) {
+  if (static_cast<uint64_t>(p.opt_differences) > diff_saturation) {
     bits = bit_mode_16;
   }
 
@@ -223,7 +223,7 @@ void algo_run(struct Parameters const & p)
           uint64_t poolampliconid = qgramamps[i];
           uint64_t diff = qgramdiffs[i];
           amps[swarmed+i].diffestimate = static_cast<unsigned int>(diff);
-          if (diff <= static_cast<uint64_t>(opt_differences))
+          if (diff <= static_cast<uint64_t>(p.opt_differences))
             {
               targetindices[targetcount] = swarmed+i;
               targetampliconids[targetcount] = poolampliconid;
@@ -265,7 +265,7 @@ void algo_run(struct Parameters const & p)
 
               uint64_t diff = diffs[t];
 
-              if (diff <= static_cast<uint64_t>(opt_differences))
+              if (diff <= static_cast<uint64_t>(p.opt_differences))
                 {
                   uint64_t i = targetindices[t];
 
@@ -349,7 +349,7 @@ void algo_run(struct Parameters const & p)
                 {
                   uint64_t targetampliconid = amps[i].ampliconid;
                   if ((amps[i].diffestimate <=
-                       subseedradius + opt_differences) &&
+                       subseedradius + p.opt_differences) &&
                       ((opt_no_otu_breaking) ||
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
@@ -368,7 +368,7 @@ void algo_run(struct Parameters const & p)
 #endif
 
               for(auto i = 0ULL; i < subseedlistlen; i++) {
-                if (qgramdiffs[i] <= static_cast<uint64_t>(opt_differences))
+                if (qgramdiffs[i] <= static_cast<uint64_t>(p.opt_differences))
                   {
                     targetindices[targetcount] = qgramindices[i];
                     targetampliconids[targetcount] = qgramamps[i];
@@ -395,7 +395,7 @@ void algo_run(struct Parameters const & p)
                     {
                       uint64_t diff = diffs[t];
 
-                      if (diff <= static_cast<uint64_t>(opt_differences))
+                      if (diff <= static_cast<uint64_t>(p.opt_differences))
                         {
                           uint64_t i = targetindices[t];
 
@@ -568,7 +568,7 @@ void algo_run(struct Parameters const & p)
           sep_amplicons = ',';
           sep_swarms = '\t';
           fprintf(outfile, "swarm_%" PRId64 "\t%u\t",
-                  opt_differences, swarmid);
+                  p.opt_differences, swarmid);
         }
       else
         {

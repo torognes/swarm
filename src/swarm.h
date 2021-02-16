@@ -163,6 +163,7 @@ struct Parameters {
   std::string opt_internal_structure;
   bool opt_fastidious {false};
   int64_t opt_bloom_bits {16};
+  int64_t opt_differences {1};
 };
 
 extern std::string opt_log;
@@ -171,9 +172,8 @@ extern std::string opt_seeds;
 extern std::string opt_statistics_file;
 extern std::string opt_uclust_file;
 extern int64_t opt_append_abundance;
-extern int64_t opt_boundary;
+extern int64_t opt_boundary;  // used by multithreaded functions
 extern int64_t opt_ceiling;
-extern int64_t opt_differences;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
 extern int64_t opt_match_reward;
@@ -286,7 +286,7 @@ void qgram_diff_done();
 
 /* functions in db.cc */
 
-void db_read(const char * filename);
+void db_read(const char * filename, struct Parameters const & p);
 
 auto db_getsequencecount() -> unsigned int;
 auto db_getnucleotidecount() -> uint64_t;
