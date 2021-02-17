@@ -55,6 +55,8 @@ ifeq ($(MACHINE), x86_64)
 else ifeq ($(MACHINE), aarch64)
 	COMMON += -march=armv8-a+simd -mtune=generic \
 	          -flax-vector-conversions -std=c++11
+else ifeq ($(MACHINE), arm64)
+	COMMON += -std=c++11
 else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -std=gnu++11
 endif
@@ -90,7 +92,7 @@ swarm : $(OBJS) $(DEPS)
 	cp -a swarm ../bin
 
 clean :
-	rm -rf swarm *.o *~ gmon.out *.gcno *.gcda *.gcov
+	rm -f swarm *.o *~ gmon.out *.gcno *.gcda *.gcov ../bin/swarm
 
 .o : .cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
