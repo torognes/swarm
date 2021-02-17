@@ -136,11 +136,12 @@ const std::vector<std::string> args_usage_message
    " -m, --match-reward INTEGER          reward for nucleotide match (5)\n",
    " -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n",
    " -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n",
-   " -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n"
+   " -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n",
 #ifndef __WIN32
-   , "\n",
-   "See 'man swarm' for more details.\n"
+   "\n",
+   "See 'man swarm' for more details.\n",
 #endif
+   "\n"
   };
 
 
