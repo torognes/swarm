@@ -282,7 +282,7 @@ void dereplicate(struct Parameters const & p)
     {
       progress_init("Writing structure:", swarmcount);
 
-      for(auto i = 0UL; i < swarmcount; i++)
+      for(uint64_t i = 0; i < swarmcount; i++)
         {
           struct bucket * sp = hashtable + i;
           uint64_t seed = sp->seqno_first;

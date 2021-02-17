@@ -2,3 +2,4 @@
 *.o
 compile_commands.json
 swarm
+.DS_Store
