@@ -198,9 +198,6 @@ extern FILE * logfile;
 extern FILE * fp_seeds;
 extern FILE * network_file;
 
-extern int64_t SCORELIMIT_8;
-extern int64_t SCORELIMIT_16;
-
 extern int64_t mmx_present;
 extern int64_t sse_present;
 extern int64_t sse2_present;
