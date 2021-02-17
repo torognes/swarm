@@ -64,8 +64,6 @@ void score_matrix_read()
   long long int sc {0};
   long long int hi {-one_thousand};
   long long int lo {one_thousand};
-  int64_t SCORELIMIT_8;
-  int64_t SCORELIMIT_16;
 
   score_matrix_8 = static_cast<unsigned char *>(xmalloc(cells * cells * sizeof(char)));
   score_matrix_16 = static_cast<unsigned short *>(xmalloc(cells * cells * sizeof(short)));
@@ -84,10 +82,6 @@ void score_matrix_read()
       score_matrix_63[(a << multiplier) + b] = sc;
     }
   }
-
-
-  SCORELIMIT_8  = UINT8_MAX  + 1 - hi;
-  SCORELIMIT_16 = UINT16_MAX + 1 - hi;
 
   for(auto a = 0; a < cells; a++) {
     for(auto b = 0; b < cells; b++) {
