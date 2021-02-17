@@ -23,9 +23,6 @@
 
 #include "swarm.h"
 
-int64_t SCORELIMIT_8;
-int64_t SCORELIMIT_16;
-
 unsigned char * score_matrix_8 = nullptr;
 unsigned short * score_matrix_16 = nullptr;
 int64_t * score_matrix_63 = nullptr;
@@ -67,6 +64,8 @@ void score_matrix_read()
   long long int sc {0};
   long long int hi {-one_thousand};
   long long int lo {one_thousand};
+  int64_t SCORELIMIT_8;
+  int64_t SCORELIMIT_16;
 
   score_matrix_8 = static_cast<unsigned char *>(xmalloc(cells * cells * sizeof(char)));
   score_matrix_16 = static_cast<unsigned short *>(xmalloc(cells * cells * sizeof(short)));
