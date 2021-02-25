@@ -571,7 +571,7 @@ void args_init(int argc, char **argv)
   }
 
   if (p.opt_disable_sse3 && (p.opt_differences < 2)) {
-    fatal("Option --disable-sse3 or -x has no effect when d < 2. " 
+    fatal("Option --disable-sse3 or -x has no effect when d < 2. "
           "(SSE3 instructions are only used when d > 1).");
   }
 
@@ -785,6 +785,13 @@ auto main(int argc, char** argv) -> int
   penalty_mismatch /= penalty_factor;
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
+
+  int64_t diff_saturation_16 = (MIN((UINT16_MAX / penalty_mismatch),
+                                    (UINT16_MAX - penalty_gapopen)
+                                    / penalty_gapextend));
+
+  if (p.opt_differences > diff_saturation_16)
+    fatal("Resolution (d) too high for the given scoring system");
 
   show(header_message);
 

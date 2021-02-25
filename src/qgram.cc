@@ -114,24 +114,8 @@ uint64_t compareqgramvectors(unsigned char * a, unsigned char * b)
 
 #elif defined __x86_64__
 
-/*
-   Unable to get the Mac gcc compiler v 4.2.1 produce the real
-   popcnt instruction. Therefore resorting to assembly code.
-*/
-
-#define popcnt_asm(x,y)                                         \
-  __asm__ __volatile__ ("popcnt %1,%0" : "=r"(y) : "r"(x))
-
-inline auto popcount(uint64_t x) -> uint64_t
-{
-  uint64_t y {0};
-  popcnt_asm(x,y);
-  return y;
-}
-
 auto popcount_128(__m128i x) -> uint64_t;
 auto compareqgramvectors_128(unsigned char * a, unsigned char * b) -> uint64_t;
-auto compareqgramvectors_64(unsigned char * a, unsigned char * b) -> uint64_t;
 
 auto popcount_128(__m128i x) -> uint64_t
 {
@@ -203,29 +187,12 @@ auto compareqgramvectors_128(unsigned char * a, unsigned char * b) -> uint64_t
   return count;
 }
 
-
-auto compareqgramvectors_64(unsigned char * a, unsigned char * b) -> uint64_t
-{
-  /* Count number of different bits */
-  /* Uses the POPCNT instruction, requires CPU with this feature */
-
-  auto *ap = reinterpret_cast<uint64_t*>(a);
-  auto *bp = reinterpret_cast<uint64_t*>(b);
-  uint64_t count {0};
-
-  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes) {
-    count += popcount(*ap++ ^ *bp++);
-  }
-
-  return count;
-}
-
-
 auto compareqgramvectors(unsigned char * a, unsigned char * b) -> uint64_t
 {
-  return (popcnt_present != 0) ?  \
-    compareqgramvectors_64(a, b) : \
-    compareqgramvectors_128(a, b);
+  if (popcnt_present)
+    return compareqgramvectors_popcnt(a, b);
+  else                                             \
+    return compareqgramvectors_128(a, b);
 }
 
 #else

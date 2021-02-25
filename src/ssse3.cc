@@ -23,9 +23,19 @@
 
 #include "swarm.h"
 
-/* Please note: This code requires the pshufb instruction, which is
-   part of the SSSE3 instruction set for x86_64 cpus. It seems not to be
-   present on AMD cpus and not on the first generation Intel x86_64 cpus. */
+#ifdef __x86_64__
+#ifdef __SSSE3__
+
+/*
+  SSSE3 specific code for x86-64
+
+  Only include if __SSSE3__ is defined, which is done by the
+  gcc compiler when the -mssse3 option or similar is given.
+
+  This code requires the _mm_shuffle_epi8 intrinsic implemented
+  with the PSHUFB instruction on the CPU. That instruction was
+  available starting with the Intel Core archtecture in 2006.
+*/
 
 /* 8-bit version with 16 channels */
 
@@ -143,3 +153,7 @@ void dprofile_shuffle16(WORD * dprofile,
   profline16(4);
 }
 
+#else
+#error __SSSE3__ not defined
+#endif
+#endif

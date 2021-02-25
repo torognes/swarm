@@ -49,7 +49,7 @@ const uint16x8_t neon_mask =
 #define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
           (vget_high_s64(vreinterpretq_s64_s16(a)), \
            vget_high_s64(vreinterpretq_s64_s16(b))))
-#define v_min(a, b) vminq_s16((a), (b))
+#define v_min(a, b) vminq_u16((a), (b))
 #define v_add(a, b) vqaddq_u16((a), (b))
 #define v_sub(a, b) vqsubq_u16((a), (b))
 #define v_dup(a) vdupq_n_s16(a)
@@ -57,7 +57,6 @@ const uint16x8_t neon_mask =
 #define v_and(a, b) vandq_u16((a), (b))
 #define v_xor(a, b) veorq_u16((a), (b))
 #define v_shift_left(a) vextq_u16((v_zero), (a), 7)
-#define v_mask_gt(a, b) vaddvq_u16(vandq_u16((vcgtq_s16((a), (b))), neon_mask))
 #define v_mask_eq(a, b) vaddvq_u16(vandq_u16((vceqq_s16((a), (b))), neon_mask))
 
 #elif defined __x86_64__
@@ -74,7 +73,7 @@ using VECTORTYPE = __m128i;
 #define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
 #define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
 #define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
-#define v_min(a, b) _mm_min_epi16((a), (b))
+#define v_min(a, b) _mm_subs_epu16((a), _mm_subs_epu16((a), (b)))
 #define v_add(a, b) _mm_adds_epu16((a), (b))
 #define v_sub(a, b) _mm_subs_epu16((a), (b))
 #define v_dup(a) _mm_set1_epi16(a)
@@ -82,8 +81,8 @@ using VECTORTYPE = __m128i;
 #define v_and(a, b) _mm_and_si128((a), (b))
 #define v_xor(a, b) _mm_xor_si128((a), (b))
 #define v_shift_left(a) _mm_slli_si128((a), 2)
-#define v_mask_gt(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpgt_epi16((a), (b))))
-#define v_mask_eq(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
+#define v_mask_eq(a, b) static_cast<unsigned short> \
+  (_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
 
 #elif defined __PPC__
 
@@ -117,8 +116,7 @@ const vector unsigned char perm_bits =
 #define v_merge_hi_64(a, b) (VECTORTYPE) vec_perm((vector long long)(a), \
                                                   (vector long long)(b), \
                                                   perm_merge_long_high)
-#define v_min(a, b) (VECTORTYPE) vec_min((vector signed short) (a),     \
-                                         (vector signed short) (b))
+#define v_min(a, b) vec_min((a), (b))
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
 #define v_dup(a) vec_splats((unsigned short)(a));
@@ -126,8 +124,6 @@ const vector unsigned char perm_bits =
 #define v_and(a, b) vec_and((a), (b))
 #define v_xor(a, b) vec_xor((a), (b))
 #define v_shift_left(a) vec_sld((a), v_zero, 2)
-#define v_mask_gt(a, b) ((vector unsigned short) \
-  vec_vbpermq((vector unsigned char) vec_cmpgt((a), (b)), perm_bits))[4]
 #define v_mask_eq(a, b) ((vector unsigned short) \
   vec_vbpermq((vector unsigned char) vec_cmpeq((a), (b)), perm_bits))[4]
 
@@ -181,15 +177,45 @@ void align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * MR,
                            VECTORTYPE * MQ0);
 
+#ifdef __x86_64__
+
+/* functions defined in sse41.cc */
+
+void align_cells_regular_16_sse41(VECTORTYPE * Sm,
+                                  VECTORTYPE * hep,
+                                  VECTORTYPE ** qp,
+                                  VECTORTYPE * Qm,
+                                  VECTORTYPE * Rm,
+                                  uint64_t ql,
+                                  VECTORTYPE * F0,
+                                  uint64_t * dir_long,
+                                  VECTORTYPE * H0);
+
+void align_cells_masked_16_sse41(VECTORTYPE * Sm,
+                                 VECTORTYPE * hep,
+                                 VECTORTYPE ** qp,
+                                 VECTORTYPE * Qm,
+                                 VECTORTYPE * Rm,
+                                 uint64_t ql,
+                                 VECTORTYPE * F0,
+                                 uint64_t * dir_long,
+                                 VECTORTYPE * H0,
+                                 VECTORTYPE * Mm,
+                                 VECTORTYPE * MQ,
+                                 VECTORTYPE * MR,
+                                 VECTORTYPE * MQ0);
+
+#endif
+
 auto backtrack_16(char * qseq,
-                      char * dseq,
-                      uint64_t qlen,
-                      uint64_t dlen,
-                      uint64_t * dirbuffer,
-                      uint64_t offset,
-                      uint64_t dirbuffersize,
-                      uint64_t channel,
-                      uint64_t * alignmentlengthp) -> uint64_t;
+                  char * dseq,
+                  uint64_t qlen,
+                  uint64_t dlen,
+                  uint64_t * dirbuffer,
+                  uint64_t offset,
+                  uint64_t dirbuffersize,
+                  uint64_t channel,
+                  uint64_t * alignmentlengthp) -> uint64_t;
 
 inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
@@ -298,19 +324,22 @@ inline void onestep_16(VECTORTYPE & H,
                        VECTORTYPE QR,
                        VECTORTYPE R)
 {
+  VECTORTYPE W;
+
   H = v_add(H, V);
-  *(DIR+0) = v_mask_gt(H, F);
+  W = H;
   H = v_min(H, F);
+  *(DIR+0) = v_mask_eq(W, H);
   H = v_min(H, E);
   *(DIR+1) = v_mask_eq(H, E);
   N = H;
   H = v_add(H, QR);
   F = v_add(F, R);
   E = v_add(E, R);
-  *(DIR+2) = v_mask_gt(H, F);
-  *(DIR+3) = v_mask_gt(H, E);
   F = v_min(H, F);
+  *(DIR+2) = v_mask_eq(H, F);
   E = v_min(H, E);
+  *(DIR+3) = v_mask_eq(H, E);
 }
 
 void align_cells_regular_16(VECTORTYPE * Sm,
@@ -520,7 +549,7 @@ auto backtrack_16(char * qseq,
             {
               printf("<");
             }
-          else if (d & maskup)
+          else if (!(d & maskup))
             {
               printf("^");
             }
@@ -540,14 +569,14 @@ auto backtrack_16(char * qseq,
         {
           uint64_t d = dirbuffer[(offset + longestdbsequence * 4 *(j / 4)
                                   + 4 * i + (j & 3)) % dirbuffersize];
-          if (d & maskextup)
+          if (!(d & maskextup))
             {
-              if (d & maskextleft)
+              if (!(d & maskextleft))
                 printf("+");
               else
                 printf("^");
             }
-          else if (d & maskextleft)
+          else if (!(d & maskextleft))
             {
               printf("<");
             }
@@ -582,11 +611,11 @@ auto backtrack_16(char * qseq,
                      + static_cast<uint64_t>(4 * i + (j & 3)))
                     % dirbuffersize];
 
-      if ((op == 'I') && ((d & maskextleft) != 0U))
+      if ((op == 'I') && ((d & maskextleft) == 0U))
         {
           j--;
         }
-      else if ((op == 'D') && ((d & maskextup) != 0U))
+      else if ((op == 'D') && ((d & maskextup) == 0U))
         {
           i--;
         }
@@ -595,7 +624,7 @@ auto backtrack_16(char * qseq,
           j--;
           op = 'I';
         }
-      else if ((d & maskup) != 0U)
+      else if ((d & maskup) == 0U)
         {
           i--;
           op = 'D';
@@ -743,16 +772,26 @@ void search16(WORD * * q_start,
             }
 
 #ifdef __x86_64__
-          if (ssse3_present != 0) {
-            dprofile_shuffle16(dprofile, score_matrix, dseq);
-          }
+          if (ssse3_present != 0)
+            {
+              dprofile_shuffle16(dprofile, score_matrix, dseq);
+            }
           else
 #endif
             {
-            dprofile_fill16(dprofile, score_matrix, dseq);
+              dprofile_fill16(dprofile, score_matrix, dseq);
             }
 
-          align_cells_regular_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
+#ifdef __x86_64__
+          if (sse41_present)
+            {
+              align_cells_regular_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
+            }
+          else
+#endif
+            {
+              align_cells_regular_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
+            }
         }
       else
         {
@@ -816,10 +855,7 @@ void search16(WORD * * q_start,
                         }
                       else
                         {
-                          diff = static_cast<uint64_t>
-                            (MIN((UINT16_MAX / penalty_mismatch),
-                                 (UINT16_MAX - penalty_gapopen)
-                                 / penalty_gapextend));
+                          diff = UINT16_MAX;
                         }
 
                       diffs[cand_id] = diff;
@@ -882,20 +918,30 @@ void search16(WORD * * q_start,
           }
 
 #ifdef __x86_64__
-          if (ssse3_present != 0) {
-            dprofile_shuffle16(dprofile, score_matrix, dseq);
-          }
+          if (ssse3_present != 0)
+            {
+              dprofile_shuffle16(dprofile, score_matrix, dseq);
+            }
           else
 #endif
             {
-            dprofile_fill16(dprofile, score_matrix, dseq);
+              dprofile_fill16(dprofile, score_matrix, dseq);
             }
 
           MQ = v_and(M, Q);
           MR = v_and(M, R);
           MQ0 = MQ;
 
-          align_cells_masked_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
+#ifdef __x86_64__
+          if (sse41_present)
+            {
+              align_cells_masked_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
+            }
+          else
+#endif
+            {
+              align_cells_masked_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
+            }
         }
 
       F0 = v_add(F0, R);

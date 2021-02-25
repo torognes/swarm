@@ -25,8 +25,7 @@ COMMON = -g
 EXTRAOBJ =
 LINKOPT =
 LIBS = -lpthread
-WARNINGS = -Wall -Wextra \
-#-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic
+WARNINGS = -Wall -Wextra
 
 # Run "make RELEASE=1" to compile for release
 ifdef RELEASE
@@ -51,7 +50,7 @@ endif
 MACHINE = $(shell uname -m)
 ifeq ($(MACHINE), x86_64)
 	COMMON += -march=x86-64 -mtune=generic -std=c++11
-	EXTRAOBJ += ssse3.o
+	EXTRAOBJ += ssse3.o sse41.o popcnt.o
 else ifeq ($(MACHINE), aarch64)
 	COMMON += -march=armv8-a+simd -mtune=generic \
 	          -flax-vector-conversions -std=c++11
@@ -99,3 +98,9 @@ clean :
 
 ssse3.o : ssse3.cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<
+
+sse41.o : sse41.cc $(DEPS)
+	$(CXX) $(CXXFLAGS) -msse4.1 -c -o $@ $<
+
+popcnt.o : popcnt.cc $(DEPS)
+	$(CXX) $(CXXFLAGS) -mpopcnt -c -o $@ $<

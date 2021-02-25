@@ -49,7 +49,6 @@ constexpr char PRId64[] = "ld";
 #include <fcntl.h>
 #include <getopt.h>
 #include <pthread.h>
-#include <regex.h>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -79,6 +78,14 @@ constexpr char PRId64[] = "ld";
 
 #ifdef __SSSE3__
 #include <tmmintrin.h>
+#endif
+
+#ifdef __SSE4_1__
+#include <smmintrin.h>
+#endif
+
+#ifdef __POPCNT__
+#include <popcntintrin.h>
 #endif
 
 #define CAST_m128i_ptr(x) (reinterpret_cast<__m128i*>(x))
@@ -316,6 +323,7 @@ void fprint_id_with_new_abundance(FILE * stream,
                                   uint64_t seqno,
                                   uint64_t abundance);
 
+#ifdef __x86_64__
 
 /* functions in ssse3.cc */
 
@@ -327,6 +335,12 @@ void dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
                         BYTE * dseq_byte);
 
+/* function in popcnt.cc */
+
+auto compareqgramvectors_popcnt(unsigned char * a, unsigned char * b)
+  -> uint64_t;
+
+#endif
 
 /* functions in search8.cc */
 

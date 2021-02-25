@@ -155,6 +155,11 @@ void algo_run(struct Parameters const & p)
     bits = bit_mode_16;
   }
 
+#ifdef __aarch64__
+  /* always use 16-bit version on aarch64 because it is faster */
+  bits = bit_mode_16;
+#endif
+
   seeded = 0;
   swarmed = 0;
 

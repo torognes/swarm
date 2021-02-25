@@ -127,7 +127,7 @@ void search_chunk(struct search_data * sdp, int64_t bits)
   for(auto i = 0ULL; i < sdp->target_count; i++)
     {
     char * dseq;
-    int64_t dlen;
+    unsigned int dlen;
     char * nwalignment;
 
     uint64_t seqno = master_targets[sdp->target_index + i];
@@ -137,12 +137,12 @@ void search_chunk(struct search_data * sdp, int64_t bits)
        query.seq, query.len,
        score_matrix_63,
        penalty_gapopen, penalty_gapextend,
-       master_scores + sdp->target_index + i,
-       master_diffs + sdp->target_index + i,
-       master_alignlengths + sdp->target_index + i,
+       (int64_t *)(master_scores) + sdp->target_index + i,
+       (int64_t *)(master_diffs) + sdp->target_index + i,
+       (int64_t *)(master_alignlengths) + sdp->target_index + i,
        & nwalignment,
        (unsigned char *) sdp->dir_array,
-       (uint64_t int *) sdp->hearray,
+       (int64_t *) sdp->hearray,
        query.qno, seqno);
 
 #if 0
@@ -154,11 +154,6 @@ void search_chunk(struct search_data * sdp, int64_t bits)
 
   return;
 
-#endif
-
-#ifdef __aarch64__
-  /* always use 16-bit version on aarch64 because it is faster */
-  bits = bit_mode_16;
 #endif
 
  if (bits == bit_mode_16)
