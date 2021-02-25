@@ -29,24 +29,22 @@ constexpr long unsigned int n_chars {INT8_MAX + 1};  // 128 ascii chars
 
 auto make_nt_map () -> std::array<signed char, n_chars> {
     // set the 128 ascii chars to '-1' except Aa, Cc, Gg, Tt and Uu
-    std::array<signed char, n_chars> map_nt = {-1};
-    for (auto & v : map_nt) {
-      v = -1;
-    }
-    map_nt['A'] = 1;
-    map_nt['a'] = 1;
-    map_nt['C'] = 2;
-    map_nt['c'] = 2;
-    map_nt['G'] = 3;
-    map_nt['g'] = 3;
-    map_nt['T'] = 4;
-    map_nt['t'] = 4;
-    map_nt['U'] = 4;
-    map_nt['u'] = 4;
-    return map_nt;
+    std::array<signed char, n_chars> ascii_map = {};
+    ascii_map.fill(-1);
+    ascii_map['A'] = 1;
+    ascii_map['a'] = 1;
+    ascii_map['C'] = 2;
+    ascii_map['c'] = 2;
+    ascii_map['G'] = 3;
+    ascii_map['g'] = 3;
+    ascii_map['T'] = 4;
+    ascii_map['t'] = 4;
+    ascii_map['U'] = 4;
+    ascii_map['u'] = 4;
+    return ascii_map;
     }
 
-const std::array<signed char, n_chars> map_nt = make_nt_map();
+const auto map_nt = make_nt_map();
 
 static unsigned int sequences {0};
 static uint64_t nucleotides {0};
