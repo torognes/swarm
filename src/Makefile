@@ -64,8 +64,10 @@ endif
 ifeq ($(CXX), x86_64-w64-mingw32-g++)
 	LIBS += -lpsapi
 	LINKOPT += -static
+	BIN = swarm.exe
 else
 	WARNINGS += -pedantic
+	BIN = swarm
 endif
 
 LINKFLAGS = $(COMMON) $(LINKOPT)
@@ -88,7 +90,7 @@ all : $(PROG)
 swarm : $(OBJS) $(DEPS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 	mkdir -p ../bin
-	cp -a swarm ../bin
+	cp -a $(BIN) ../bin
 
 clean :
 	rm -f swarm *.o *~ gmon.out *.gcno *.gcda *.gcov ../bin/swarm
