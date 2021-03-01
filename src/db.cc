@@ -29,7 +29,7 @@ constexpr long unsigned int n_chars {INT8_MAX + 1};  // 128 ascii chars
 
 auto make_nt_map () -> std::array<signed char, n_chars> {
     // set the 128 ascii chars to '-1' except Aa, Cc, Gg, Tt and Uu
-    std::array<signed char, n_chars> ascii_map = {};
+    std::array<signed char, n_chars> ascii_map;
     ascii_map.fill(-1);
     ascii_map['A'] = 1;
     ascii_map['a'] = 1;
