@@ -168,26 +168,6 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0);
 
-#if 0
-void dprofile_dump8(BYTE * dprofile)
-{
-  printf("\ndprofile:\n");
-  for(auto k = 0; k < 4; k++)
-    {
-      printf("k=%d 0 1 2 3 4 5 6 7 8 9 a b c d e f\n", k);
-      for(auto i = 0; i < 16; i++)
-        {
-          printf("%c: ", sym_nt[i]);
-          for(auto j = 0; j < 16; j++)
-            printf("%2d", (char) dprofile[i * 64 + 16 * k + j]);
-          printf("\n");
-        }
-    }
-  printf("\n");
-  exit(1);
-}
-#endif
-
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
@@ -966,13 +946,14 @@ void search8(BYTE * * q_start,
             }
 
 #ifdef __x86_64__
-          if (ssse3_present != 0) {
-            dprofile_shuffle8(dprofile, score_matrix, dseq);
-          }
+          if (ssse3_present != 0)
+            {
+              dprofile_shuffle8(dprofile, score_matrix, dseq);
+            }
           else
 #endif
             {
-            dprofile_fill8(dprofile, score_matrix, dseq);
+              dprofile_fill8(dprofile, score_matrix, dseq);
             }
 
           align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
@@ -1102,13 +1083,14 @@ void search8(BYTE * * q_start,
           }
 
 #ifdef __x86_64__
-          if (ssse3_present != 0) {
-            dprofile_shuffle8(dprofile, score_matrix, dseq);
-          }
+          if (ssse3_present != 0)
+            {
+              dprofile_shuffle8(dprofile, score_matrix, dseq);
+            }
           else
 #endif
             {
-            dprofile_fill8(dprofile, score_matrix, dseq);
+              dprofile_fill8(dprofile, score_matrix, dseq);
             }
 
           MQ = v_and(M, Q);

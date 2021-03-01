@@ -26,6 +26,8 @@
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
 
+/* uses 8 unsigned 16-bit values */
+
 #ifdef __aarch64__
 
 using VECTORTYPE = int16x8_t;
@@ -131,26 +133,6 @@ const vector unsigned char perm_bits =
 
 #error Unknown Architecture
 
-#endif
-
-#if 0
-void dprofile_dump16(WORD * dprofile)
-{
-  printf("\ndprofile:\n");
-  for(auto i = 0; i < 32; i++)
-    {
-      printf("%c: ", sym_nt[i]);
-      for(auto k = 0U; k < cdepth; k++)
-        {
-          printf("[");
-          for(auto j = 0U; j < channels; j++)
-            printf(" %3d", (short) dprofile[channels*cdepth*i + channels*k + j]);
-          printf("]");
-        }
-      printf("\n");
-    }
-  exit(1);
-}
 #endif
 
 void align_cells_regular_16(VECTORTYPE * Sm,
