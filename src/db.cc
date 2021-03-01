@@ -270,7 +270,7 @@ auto find_usearch_abundance(const char * header,
       else {
         * start = 0;
       }
-      * end   = static_cast<int>(MIN(i + alen + digits + 1, hlen));
+      * end   = static_cast<int>(std::min(i + alen + digits + 1, hlen));
       * number = atol(header + i + alen);
       return true;
     }
@@ -491,7 +491,7 @@ void db_read(const char * filename, struct Parameters const & p)
           unsigned char c {0};
           char * pl = line;
           while((c = static_cast<unsigned char>(*pl++)) != 0U)
-	    {
+            {
               signed char m {0};
               if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
                 {
@@ -530,7 +530,7 @@ void db_read(const char * filename, struct Parameters const & p)
                   }
                   exit(1);
                 }
-	    }
+            }
 
           line[0] = 0;
           if (fgets(line, linealloc, fp) == nullptr) {
@@ -586,7 +586,7 @@ void db_read(const char * filename, struct Parameters const & p)
   /* init zobrist hashing */
 
   // add 2 for two insertions
-  unsigned int zobrist_len = MAX(4 * longestheader, longest + 2);
+  unsigned int zobrist_len = std::max(4 * longestheader, longest + 2);
   zobrist_init(zobrist_len);
 
   /* set up hash to check for unique headers */
@@ -930,7 +930,7 @@ void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
   else {
     auto rest = len;
     for(auto i = 0U; i < len; i += width) {
-      fprintf(fp, "%.*s\n", MIN(rest, width), buf+i);
+      fprintf(fp, "%.*s\n", std::min(rest, width), buf+i);
       rest -= width;
     }
   }
