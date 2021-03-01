@@ -108,7 +108,7 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* constants */
 
-const std::string swarm_version = {"Swarm 3.0.0"};
+const std::string swarm_version = {"Swarm 3.1.0"};
 constexpr char sepchar {' '};
 constexpr unsigned int bloom_bits_default {16};
 constexpr unsigned int qgramlength {5};

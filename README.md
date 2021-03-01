@@ -403,6 +403,15 @@ methods, here are some links:
 
 ## Version history ##
 
+
+### version 3.1 ###
+
+**swarm** 3.1 includes a fix for a bug in the 16-bit SIMD alignment
+code that was exposed with a combination of d>1, long sequences, and
+very high gap penalties. The code has also been been cleaned up,
+tested and improved substantially, and it is now fully C++11
+compliant. Support for macOS on Apple Silicon (ARM64) has been added.
+
 ### version 3.0 ###
 
 **swarm** 3.0 is much faster when _d_ = 1, and consumes less memory.

@@ -25,11 +25,7 @@ all : swarm_manual.pdf
 
 swarm_manual.pdf : swarm.1
 	sed -e 's/\\-/-/g' $< | \
-        if [ $$(uname) == "Darwin" ] ; then \
-		iconv -f UTF-8 -t ISO-8859-1 ; \
-	else \
-		cat ; \
-	fi | \
+	iconv -f UTF-8 -t ISO-8859-1 | \
 	groff -t -m mandoc -T ps -P -pa4 | ps2pdf - $@
 
 clean : swarm_manual.pdf
