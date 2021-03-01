@@ -165,8 +165,8 @@ void nw(char * dseq,
              +(nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
 
           dir[index] |= (f < h ? maskup : 0);
-          h = MIN(h, f);
-          h = MIN(h, e);
+          h = std::min(h, f);
+          h = std::min(h, e);
           dir[index] |= (e == h ? maskleft : 0);
 
           *hep = h;
@@ -177,8 +177,8 @@ void nw(char * dseq,
 
           dir[index] |= (f < h ? maskextup : 0);
           dir[index] |= (e < h ? maskextleft : 0);
-          f = MIN(h,f);
-          e = MIN(h,e);
+          f = std::min(h,f);
+          e = std::min(h,e);
 
           *(hep+1) = e;
           h = n;

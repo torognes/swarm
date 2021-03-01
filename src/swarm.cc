@@ -787,9 +787,9 @@ auto main(int argc, char** argv) -> int
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
 
-  int64_t diff_saturation_16 = (MIN((UINT16_MAX / penalty_mismatch),
-                                    (UINT16_MAX - penalty_gapopen)
-                                    / penalty_gapextend));
+  int64_t diff_saturation_16 = (std::min((UINT16_MAX / penalty_mismatch),
+                                         (UINT16_MAX - penalty_gapopen)
+                                         / penalty_gapextend));
 
   if (p.opt_differences > diff_saturation_16)
     fatal("Resolution (d) too high for the given scoring system");

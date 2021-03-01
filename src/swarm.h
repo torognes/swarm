@@ -39,6 +39,7 @@ constexpr char PRId64[] = "ld";
 #endif
 #endif
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <climits>
@@ -108,19 +109,8 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 /* constants */
 
 const std::string swarm_version = {"Swarm 3.0.0"};
-// constexpr unsigned int width {32};  // unused?
-// constexpr unsigned int width_shift {5};  // unused?
 constexpr char sepchar {' '};
 constexpr unsigned int bloom_bits_default {16};
-
-#ifndef MIN
-#define MIN(x,y) ((x)<(y)?(x):(y))
-#endif
-
-#ifndef MAX
-#define MAX(x,y) ((x)>(y)?(x):(y))
-#endif
-
 constexpr unsigned int qgramlength {5};
 constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
 constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};

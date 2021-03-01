@@ -64,7 +64,7 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 {
   // Size is in bytes for full bitmap, must be power of 2
   // at least 8
-  size = MAX(size, 8);
+  size = std::max(size, static_cast<uint64_t>(8));
 
   auto * b = static_cast<struct bloom_s *>(xmalloc(sizeof(struct bloom_s)));
 
