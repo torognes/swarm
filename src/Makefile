@@ -86,10 +86,12 @@ PROG = swarm
 OBJS = swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 	algo.o algod1.o qgram.o derep.o arch.o \
 	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o \
+	x86_cpu_features.o \
 	$(EXTRAOBJ)
 
 DEPS = Makefile swarm.h \
-	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h
+	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h \
+	x86_cpu_features.h
 
 
 all : $(PROG)
