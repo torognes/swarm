@@ -439,7 +439,8 @@ void args_init(int argc, char **argv)
     }
   }
 
-  if (optind < argc) {
+  if (optind < argc) {  // external variable defined in unistd.h for
+                        // use with the getopt function
     p.input_filename = argv[optind];
   }
 
