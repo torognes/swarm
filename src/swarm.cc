@@ -200,6 +200,7 @@ void args_show()
   else {
     fprintf(logfile, "Fastidious:        No\n");
   }
+  fprintf(logfile, "\n");
 }
 
 void show(const std::vector<std::string> & message)
@@ -688,8 +689,6 @@ auto main(int argc, char** argv) -> int
   show(header_message);
 
   args_show();
-
-  fprintf(logfile, "\n");
 
   db_read(p.input_filename.c_str(), p);
 
