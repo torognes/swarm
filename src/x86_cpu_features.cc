@@ -99,6 +99,23 @@ void cpu_features_detect()
   }
 }
 
+void cpu_features_test(bool opt_disable_sse3) {
+  if (sse2_present == 0) {
+    fatal("This program requires a processor with SSE2 instructions.\n");
+  }
+
+  if (opt_disable_sse3)
+    {
+      sse3_present = 0;
+      ssse3_present = 0;
+      sse41_present = 0;
+      sse42_present = 0;
+      popcnt_present = 0;
+      avx_present = 0;
+      avx2_present = 0;
+    }
+}
+
 void cpu_features_show()
 {
   fprintf(logfile, "CPU features:     ");

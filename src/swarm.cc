@@ -158,6 +158,8 @@ auto args_long(char * str, const char * option) -> int64_t
 void args_show()
 {
 #ifdef __x86_64__
+  cpu_features_detect();
+  cpu_features_test(p.opt_disable_sse3);
   cpu_features_show();
 #endif
 
@@ -636,25 +638,6 @@ auto main(int argc, char** argv) -> int
   arch_srandom(1);
 
   args_init(argc, argv);
-
-#ifdef __x86_64__
-  cpu_features_detect();
-
-  if (sse2_present == 0) {
-    fatal("This program requires a processor with SSE2 instructions.\n");
-  }
-
-  if (p.opt_disable_sse3)
-    {
-      sse3_present = 0;
-      ssse3_present = 0;
-      sse41_present = 0;
-      sse42_present = 0;
-      popcnt_present = 0;
-      avx_present = 0;
-      avx2_present = 0;
-    }
-#endif
 
   if (p.opt_version || p.opt_help)
     {

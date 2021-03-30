@@ -22,4 +22,5 @@
 */
 
 void cpu_features_detect();
+void cpu_features_test(bool opt_disable_sse3);
 void cpu_features_show();
