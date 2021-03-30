@@ -114,6 +114,12 @@ constexpr unsigned int bloom_bits_default {16};
 constexpr unsigned int qgramlength {5};
 constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
 constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
+const std::array<char, 32> sym_nt =
+  {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
+   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
+
 
 /* structures and data types */
 
@@ -209,8 +215,6 @@ extern int64_t avx2_present;
 extern unsigned char * score_matrix_8;
 extern unsigned short * score_matrix_16;
 extern int64_t * score_matrix_63;
-
-extern const std::array<char, 32> sym_nt;
 
 extern uint64_t longestdbsequence;
 

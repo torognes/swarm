@@ -66,12 +66,6 @@ FILE * internal_structure_file {nullptr};
 FILE * fp_seeds {nullptr};
 FILE * network_file {nullptr};
 
-const std::array<char, 32> sym_nt =
-  {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
-
 const std::string DASH_FILENAME {"-"};
 
 const std::vector<std::string> header_message
