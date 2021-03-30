@@ -570,7 +570,7 @@ void db_read(const char * filename, struct Parameters const & p)
           datalen += sizeof(nt_buffer);
 
           nt_buffer = 0;
-          nt_bufferlen = 0;
+          nt_bufferlen = 0;  // that value is never read again, all tests pass without it
         }
 
       sequences++;
