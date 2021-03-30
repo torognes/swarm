@@ -656,17 +656,16 @@ auto main(int argc, char** argv) -> int
     }
 #endif
 
-  open_files();
-
   if (p.opt_version || p.opt_help)
     {
       show(header_message);
       if (p.opt_help) {
         show(args_usage_message);
       }
-      close_files();
       exit(0);
     }
+
+  open_files();
 
   penalty_mismatch = 2 * opt_match_reward + 2 * opt_mismatch_penalty;
   penalty_gapopen = 2 * opt_gap_opening_penalty;
