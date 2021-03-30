@@ -765,7 +765,7 @@ void search16(WORD * * q_start,
             }
 
 #ifdef __x86_64__
-          if (sse41_present)
+          if (sse41_present != 0)
             {
               align_cells_regular_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
             }
@@ -915,7 +915,7 @@ void search16(WORD * * q_start,
           MQ0 = MQ;
 
 #ifdef __x86_64__
-          if (sse41_present)
+          if (sse41_present != 0)
             {
               align_cells_masked_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
             }
