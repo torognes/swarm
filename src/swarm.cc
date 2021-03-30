@@ -274,11 +274,16 @@ void args_init(int argc, char **argv)
   std::array<int, n_options> used_options {{}};
   used_options.fill(0);  // set int values to zero by default
 
-  int option_index {0};
   int c {0};
 
-  while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
+  while (true)
   {
+    int option_index {0};
+    c = getopt_long(argc, argv, short_options, long_options, &option_index);
+
+    if (c == -1) {
+      break;
+    }
 
     /* check if any option is specified more than once */
 
