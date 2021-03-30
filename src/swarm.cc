@@ -66,7 +66,6 @@ FILE * internal_structure_file {nullptr};
 FILE * fp_seeds {nullptr};
 FILE * network_file {nullptr};
 
-const std::string DASH_FILENAME {"-"};
 
 const std::vector<std::string> header_message
   {swarm_version,
@@ -220,6 +219,7 @@ void args_init(int argc, char **argv)
   constexpr unsigned int mismatch_penalty_default {4};
   constexpr unsigned int threads_default {1};
   constexpr unsigned int max_threads {256};
+  const std::string DASH_FILENAME {"-"};
 
   progname = argv[0];
 
