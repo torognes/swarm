@@ -58,13 +58,13 @@ static uint64_t dbsequencecount {0};
 
 uint64_t duplicates_found {0};
 
-FILE * outfile {nullptr};
-FILE * statsfile {nullptr};
-FILE * uclustfile {nullptr};
-FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
-FILE * internal_structure_file {nullptr};
-FILE * fp_seeds {nullptr};
-FILE * network_file {nullptr};
+std::FILE * outfile {nullptr};
+std::FILE * statsfile {nullptr};
+std::FILE * uclustfile {nullptr};
+std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
+std::FILE * internal_structure_file {nullptr};
+std::FILE * fp_seeds {nullptr};
+std::FILE * network_file {nullptr};
 
 
 const std::vector<std::string> header_message
@@ -614,7 +614,7 @@ void open_files()
 }
 
 void close_files() {
-  const std::vector<FILE *> file_handles
+  const std::vector<std::FILE *> file_handles
     {network_file, internal_structure_file,
      uclustfile, statsfile, fp_seeds, outfile,
      logfile};

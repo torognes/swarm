@@ -193,13 +193,13 @@ extern int64_t penalty_gapextend;
 extern int64_t penalty_gapopen;
 extern int64_t penalty_mismatch;
 
-extern FILE * outfile;
-extern FILE * statsfile;
-extern FILE * uclustfile;
-extern FILE * internal_structure_file;
-extern FILE * logfile;
-extern FILE * fp_seeds;
-extern FILE * network_file;
+extern std::FILE * outfile;
+extern std::FILE * statsfile;
+extern std::FILE * uclustfile;
+extern std::FILE * internal_structure_file;
+extern std::FILE * logfile;
+extern std::FILE * fp_seeds;
+extern std::FILE * network_file;
 
 extern int64_t mmx_present;
 extern int64_t sse_present;
@@ -255,8 +255,8 @@ void xfree(void * ptr);
 void progress_init(const char * prompt, uint64_t size);
 void progress_update(uint64_t progress);
 void progress_done();
-auto fopen_input(const char * filename) -> FILE *;
-auto fopen_output(const char * filename) -> FILE *;
+auto fopen_input(const char * filename) -> std::FILE *;
+auto fopen_output(const char * filename) -> std::FILE *;
 
 /* functions in qgram.cc */
 
@@ -304,16 +304,16 @@ void db_putseq(int64_t seqno);
 void db_qgrams_init();
 void db_qgrams_done();
 
-void db_fprintseq(FILE * fp, unsigned int a, unsigned int width);
+void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width);
 
 inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
 {
   return reinterpret_cast<unsigned char*>(qgrams + seqno);
 }
 
-void fprint_id(FILE * stream, uint64_t x);
-void fprint_id_noabundance(FILE * stream, uint64_t x);
-void fprint_id_with_new_abundance(FILE * stream,
+void fprint_id(std::FILE * stream, uint64_t x);
+void fprint_id_noabundance(std::FILE * stream, uint64_t x);
+void fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t seqno,
                                   uint64_t abundance);
 

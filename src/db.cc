@@ -72,7 +72,7 @@ auto find_usearch_abundance(const char * header,
                             int64_t * number) -> bool;
 void find_abundance(struct seqinfo_s * sp, uint64_t lineno);
 
-void fprint_id(FILE * stream, uint64_t x)
+void fprint_id(std::FILE * stream, uint64_t x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -91,7 +91,7 @@ void fprint_id(FILE * stream, uint64_t x)
   }
 }
 
-void fprint_id_noabundance(FILE * stream, uint64_t x)
+void fprint_id_noabundance(std::FILE * stream, uint64_t x)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -118,7 +118,7 @@ void fprint_id_noabundance(FILE * stream, uint64_t x)
   }
 }
 
-void fprint_id_with_new_abundance(FILE * stream,
+void fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t seqno,
                                   uint64_t abundance)
 {
@@ -367,7 +367,7 @@ void db_read(const char * filename, struct Parameters const & p)
   nucleotides = 0;
   headerchars = 0;
 
-  FILE * fp {nullptr};
+  std::FILE * fp {nullptr};
   if (filename != nullptr)
     {
       fp = fopen_input(filename);
@@ -903,7 +903,7 @@ void db_free()
   }
 }
 
-void db_fprintseq(FILE * fp, unsigned int a, unsigned int width)
+void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
 {
   constexpr int default_length {1025};
   char * seq = db_getsequence(a);

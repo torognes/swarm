@@ -130,10 +130,10 @@ void xfree(void * ptr)
   }
 }
 
-auto fopen_input(const char * filename) -> FILE *
+auto fopen_input(const char * filename) -> std::FILE *
 {
   /* open the input stream given by filename, but use stdin if name is - */
-  FILE * input_stream = nullptr;
+  std::FILE * input_stream = nullptr;
 
   if (strcmp(filename, "-") == 0) {
     int fd = dup(STDIN_FILENO);
@@ -146,10 +146,10 @@ auto fopen_input(const char * filename) -> FILE *
   return input_stream;
 }
 
-auto fopen_output(const char * filename) -> FILE *
+auto fopen_output(const char * filename) -> std::FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */
-  FILE * output_stream {nullptr};
+  std::FILE * output_stream {nullptr};
 
   if (strcmp(filename, "-") == 0) {
     int fd = dup(STDOUT_FILENO);
