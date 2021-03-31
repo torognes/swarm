@@ -26,6 +26,7 @@
 
 /* OPTIONS */
 
+constexpr int seed {1};
 std::string progname;  // unused variable?
 
 struct Parameters p;
@@ -651,7 +652,7 @@ void close_files() {
 
 auto main(int argc, char** argv) -> int
 {
-  arch_srandom(1);
+  arch_srandom(seed);
 
   args_init(argc, argv, used_options);
   args_check(used_options);
