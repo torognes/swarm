@@ -42,7 +42,6 @@ int64_t opt_ceiling;
 int64_t opt_gap_extension_penalty;
 int64_t opt_gap_opening_penalty;
 int64_t opt_match_reward;
-int64_t opt_mismatch_penalty;
 bool opt_mothur {false};
 bool opt_no_otu_breaking {false};
 int64_t opt_threads;
@@ -185,7 +184,7 @@ void args_show()
     {
       fprintf(logfile,
               "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
-              opt_match_reward, opt_mismatch_penalty);
+              opt_match_reward, p.opt_mismatch_penalty);
       fprintf(logfile,
               "Gap penalties:     opening: %" PRId64 ", extension: %" PRId64 "\n",
               opt_gap_opening_penalty, opt_gap_extension_penalty);
@@ -224,7 +223,6 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   constexpr unsigned int gap_extension_penalty_default {4};
   constexpr unsigned int gap_opening_penalty_default {12};
   constexpr unsigned int match_reward_default {5};
-  constexpr unsigned int mismatch_penalty_default {4};
   constexpr unsigned int threads_default {1};
   const std::string DASH_FILENAME {"-"};
 
@@ -236,7 +234,6 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   opt_gap_extension_penalty = gap_extension_penalty_default;
   opt_gap_opening_penalty = gap_opening_penalty_default;
   opt_match_reward = match_reward_default;
-  opt_mismatch_penalty = mismatch_penalty_default;
   opt_output_file = DASH_FILENAME;
   opt_threads = threads_default;
   opterr = 1;  // unused variable?
@@ -384,7 +381,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'p':
         /* mismatch-penalty */
-        opt_mismatch_penalty = args_long(optarg, "-p or --mismatch-penalty");
+        p.opt_mismatch_penalty = args_long(optarg, "-p or --mismatch-penalty");
         break;
 
       case 'r':
@@ -534,7 +531,7 @@ void args_check(std::array<int, n_options> & used_options) {
           "must be at least 1.");
   }
 
-  if (opt_mismatch_penalty < 1) {
+  if (p.opt_mismatch_penalty < 1) {
     fatal("Illegal mismatch penalty specified with -p or --mismatch-penalty, "
           "must be at least 1.");
   }
@@ -659,7 +656,7 @@ auto main(int argc, char** argv) -> int
 
   open_files();
 
-  penalty_mismatch = 2 * opt_match_reward + 2 * opt_mismatch_penalty;
+  penalty_mismatch = 2 * opt_match_reward + 2 * p.opt_mismatch_penalty;
   penalty_gapopen = 2 * opt_gap_opening_penalty;
   penalty_gapextend = opt_match_reward + 2 * opt_gap_extension_penalty;
 

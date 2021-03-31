@@ -110,6 +110,7 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 const std::string swarm_version = {"Swarm 3.1.0"};
 constexpr char sepchar {' '};
+constexpr unsigned int mismatch_penalty_default {4};
 constexpr unsigned int bloom_bits_default {16};
 constexpr unsigned int qgramlength {5};
 constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
@@ -169,6 +170,7 @@ struct Parameters {
   bool opt_fastidious {false};
   int64_t opt_bloom_bits {bloom_bits_default};
   int64_t opt_differences {1};
+  int64_t opt_mismatch_penalty {mismatch_penalty_default};
 };
 
 extern std::string opt_log;  // used by multithreaded functions
@@ -182,7 +184,6 @@ extern int64_t opt_ceiling;
 extern int64_t opt_gap_extension_penalty;
 extern int64_t opt_gap_opening_penalty;
 extern int64_t opt_match_reward;
-extern int64_t opt_mismatch_penalty;
 extern bool opt_mothur;
 extern bool opt_no_otu_breaking;
 extern int64_t opt_threads;
