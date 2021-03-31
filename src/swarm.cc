@@ -446,9 +446,21 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
 
 void args_check(std::array<int, n_options> & used_options) {
+  constexpr unsigned int min_bits_per_entry {2};
+  constexpr unsigned int max_bits_per_entry {64};
   constexpr unsigned int min_ceiling {8};
   constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
   constexpr unsigned int max_threads {256};
+  // meaning of the used_options values
+  constexpr unsigned int append_abundance_index {0};
+  constexpr unsigned int boundary_index {1};
+  constexpr unsigned int ceiling_index {2};
+  constexpr unsigned int gap_extension_penalty_index {4};
+  constexpr unsigned int gap_opening_penalty_index {6};
+  constexpr unsigned int match_reward_index {12};
+  constexpr unsigned int mismatch_penalty_index {15};
+  constexpr unsigned int bloom_bits_index {24};
+
 
   if ((opt_threads < 1) || (opt_threads > max_threads))
     {
@@ -474,10 +486,6 @@ void args_check(std::array<int, n_options> & used_options) {
 
   if (! p.opt_fastidious)
     {
-      constexpr unsigned int boundary_index {1};
-      constexpr unsigned int ceiling_index {2};
-      constexpr unsigned int bloom_bits_index {24};
-
       if (used_options[boundary_index] != 0) {
         fatal("Option -b or --boundary specified without -f or --fastidious.\n");
       }
@@ -491,11 +499,6 @@ void args_check(std::array<int, n_options> & used_options) {
 
   if (p.opt_differences < 2)
     {
-      constexpr unsigned int match_reward_index {12};
-      constexpr unsigned int mismatch_penalty_index {15};
-      constexpr unsigned int gap_opening_penalty_index {6};
-      constexpr unsigned int gap_extension_penalty_index {4};
-
       if (used_options[match_reward_index] != 0) {
         fatal("Option -m or --match-reward specified when d < 2.");
       }
@@ -540,27 +543,36 @@ void args_check(std::array<int, n_options> & used_options) {
           "must be at least 2.");
   }
 
-  if ((used_options[2] != 0) && ((opt_ceiling < min_ceiling) ||
-                                 (opt_ceiling > max_ceiling))) {
+  if ((used_options[ceiling_index] != 0) && ((opt_ceiling < min_ceiling) ||
+                                             (opt_ceiling > max_ceiling))) {
     fatal("Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
 
-  constexpr unsigned int min_bits_per_entry {2};
-  constexpr unsigned int max_bits_per_entry {64};
   if ((p.opt_bloom_bits < min_bits_per_entry) ||
       (p.opt_bloom_bits > max_bits_per_entry)) {
     fatal("Illegal number of Bloom filter bits specified with -y or "
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
-  if ((used_options[0] != 0) && (opt_append_abundance < 1)) {
+  if ((used_options[append_abundance_index] != 0) && (opt_append_abundance < 1)) {
     fatal("Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
 
   if ((! p.opt_network_file.empty()) && (p.opt_differences != 1)) {
     fatal("A network file can only written when d=1.");
+  }
+
+  if (p.opt_version) {
+    show(header_message);
+    exit(0);
+  }
+
+  if (p.opt_help) {
+    show(header_message);
+    show(args_usage_message);
+    exit(0);
   }
 }
 
@@ -643,15 +655,6 @@ auto main(int argc, char** argv) -> int
 
   args_init(argc, argv, used_options);
   args_check(used_options);
-
-  if (p.opt_version || p.opt_help)
-    {
-      show(header_message);
-      if (p.opt_help) {
-        show(args_usage_message);
-      }
-      exit(0);
-    }
 
   open_files();
 
