@@ -66,6 +66,9 @@ std::FILE * internal_structure_file {nullptr};
 std::FILE * fp_seeds {nullptr};
 std::FILE * network_file {nullptr};
 
+constexpr int n_options {26};
+std::array<int, n_options> used_options {{0}};  // set int values to zero by default
+
 
 const std::vector<std::string> header_message
   {swarm_version,
@@ -131,7 +134,8 @@ const std::vector<std::string> args_usage_message
 auto args_long(char * str, const char * option) -> int64_t;
 void args_show();
 void show(const std::vector<std::string> & message);
-void args_init(int argc, char **argv);
+void args_init(int argc, char **argv, std::array<int, n_options> & used_options);
+void args_check(std::array<int, n_options> & used_options);
 void open_files();
 void close_files();
 
@@ -205,11 +209,9 @@ void show(const std::vector<std::string> & message)
   }
 }
 
-void args_init(int argc, char **argv)
+void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 {
   /* Set defaults */
-  constexpr unsigned int min_ceiling {8};
-  constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
   constexpr unsigned int append_abundance_default {0};
   constexpr unsigned int boundary_default {3};
   constexpr unsigned int ceiling_default {0};
@@ -218,7 +220,6 @@ void args_init(int argc, char **argv)
   constexpr unsigned int match_reward_default {5};
   constexpr unsigned int mismatch_penalty_default {4};
   constexpr unsigned int threads_default {1};
-  constexpr unsigned int max_threads {256};
   const std::string DASH_FILENAME {"-"};
 
   progname = argv[0];
@@ -266,10 +267,6 @@ void args_init(int argc, char **argv)
     {"usearch-abundance",     no_argument,       nullptr, 'z' },
     {nullptr,                 0,                 nullptr, 0 }
   };
-
-  constexpr int n_options {26};
-  std::array<int, n_options> used_options {{}};
-  used_options.fill(0);  // set int values to zero by default
 
   int c {0};
 
@@ -440,6 +437,12 @@ void args_init(int argc, char **argv)
                         // use with the getopt function
     p.input_filename = argv[optind];
   }
+}
+
+void args_check(std::array<int, n_options> & used_options) {
+  constexpr unsigned int min_ceiling {8};
+  constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
+  constexpr unsigned int max_threads {256};
 
   if ((opt_threads < 1) || (opt_threads > max_threads))
     {
@@ -629,7 +632,8 @@ auto main(int argc, char** argv) -> int
 {
   arch_srandom(1);
 
-  args_init(argc, argv);
+  args_init(argc, argv, used_options);
+  args_check(used_options);
 
   if (p.opt_version || p.opt_help)
     {
