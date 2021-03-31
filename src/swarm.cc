@@ -61,7 +61,7 @@ uint64_t duplicates_found {0};
 FILE * outfile {nullptr};
 FILE * statsfile {nullptr};
 FILE * uclustfile {nullptr};
-FILE * logfile {nullptr};
+FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
 FILE * internal_structure_file {nullptr};
 FILE * fp_seeds {nullptr};
 FILE * network_file {nullptr};
@@ -627,8 +627,6 @@ void close_files() {
 
 auto main(int argc, char** argv) -> int
 {
-  logfile = stderr;
-
   arch_srandom(1);
 
   args_init(argc, argv);
