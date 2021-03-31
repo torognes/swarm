@@ -431,6 +431,17 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
                         // use with the getopt function
     p.input_filename = argv[optind];
   }
+
+  // scoring system
+  penalty_mismatch = 2 * p.opt_match_reward + 2 * p.opt_mismatch_penalty;
+  penalty_gapopen = 2 * p.opt_gap_opening_penalty;
+  penalty_gapextend = p.opt_match_reward + 2 * p.opt_gap_extension_penalty;
+
+  penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
+
+  penalty_mismatch /= penalty_factor;
+  penalty_gapopen /= penalty_factor;
+  penalty_gapextend /= penalty_factor;
 }
 
 
@@ -563,6 +574,15 @@ void args_check(std::array<int, n_options> & used_options) {
     show(args_usage_message);
     exit(0);
   }
+
+  // scoring system check
+  const int64_t diff_saturation_16 = (std::min((UINT16_MAX / penalty_mismatch),
+                                               (UINT16_MAX - penalty_gapopen)
+                                               / penalty_gapextend));
+
+  if (p.opt_differences > diff_saturation_16) {
+    fatal("Resolution (d) too high for the given scoring system");
+  }
 }
 
 
@@ -646,24 +666,6 @@ auto main(int argc, char** argv) -> int
   args_check(used_options);
 
   open_files();
-
-  penalty_mismatch = 2 * p.opt_match_reward + 2 * p.opt_mismatch_penalty;
-  penalty_gapopen = 2 * p.opt_gap_opening_penalty;
-  penalty_gapextend = p.opt_match_reward + 2 * p.opt_gap_extension_penalty;
-
-  penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
-
-  penalty_mismatch /= penalty_factor;
-  penalty_gapopen /= penalty_factor;
-  penalty_gapextend /= penalty_factor;
-
-  int64_t diff_saturation_16 = (std::min((UINT16_MAX / penalty_mismatch),
-                                         (UINT16_MAX - penalty_gapopen)
-                                         / penalty_gapextend));
-
-  if (p.opt_differences > diff_saturation_16) {
-    fatal("Resolution (d) too high for the given scoring system");
-  }
 
   show(header_message);
 
