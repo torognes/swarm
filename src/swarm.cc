@@ -85,6 +85,7 @@ const std::vector<std::string> header_message
    "PeerJ 3:e1420 https://doi.org/10.7717/peerj.1420\n",
    "\n"};
 
+
 const std::vector<std::string> args_usage_message
   /*0         1         2         3         4         5         6         7          */
   /*01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
@@ -139,6 +140,7 @@ void args_check(std::array<int, n_options> & used_options);
 void open_files();
 void close_files();
 
+
 auto args_long(char * str, const char * option) -> int64_t
 {
   constexpr int base_value {10};
@@ -151,6 +153,7 @@ auto args_long(char * str, const char * option) -> int64_t
     }
   return temp;
 }
+
 
 void args_show()
 {
@@ -202,12 +205,14 @@ void args_show()
   fprintf(logfile, "\n");
 }
 
+
 void show(const std::vector<std::string> & message)
 {
   for (const auto & m : message) {
     fprintf(logfile, "%s", m.c_str());
   }
 }
+
 
 void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 {
@@ -439,6 +444,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   }
 }
 
+
 void args_check(std::array<int, n_options> & used_options) {
   constexpr unsigned int min_ceiling {8};
   constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
@@ -558,6 +564,7 @@ void args_check(std::array<int, n_options> & used_options) {
   }
 }
 
+
 void open_files()
 {
   /* open files */
@@ -616,6 +623,7 @@ void open_files()
     }
 }
 
+
 void close_files() {
   const std::vector<std::FILE *> file_handles
     {network_file, internal_structure_file,
@@ -627,6 +635,7 @@ void close_files() {
     }
   }
 }
+
 
 auto main(int argc, char** argv) -> int
 {
