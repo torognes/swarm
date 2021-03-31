@@ -39,9 +39,6 @@ std::string opt_uclust_file;
 int64_t opt_append_abundance;
 int64_t opt_boundary;
 int64_t opt_ceiling;
-int64_t opt_gap_extension_penalty;
-int64_t opt_gap_opening_penalty;
-int64_t opt_match_reward;
 bool opt_mothur {false};
 bool opt_no_otu_breaking {false};
 int64_t opt_threads;
@@ -184,10 +181,10 @@ void args_show()
     {
       fprintf(logfile,
               "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
-              opt_match_reward, p.opt_mismatch_penalty);
+              p.opt_match_reward, p.opt_mismatch_penalty);
       fprintf(logfile,
               "Gap penalties:     opening: %" PRId64 ", extension: %" PRId64 "\n",
-              opt_gap_opening_penalty, opt_gap_extension_penalty);
+              p.opt_gap_opening_penalty, p.opt_gap_extension_penalty);
       fprintf(logfile,
               "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
               "gap extension: %" PRId64 "\n",
@@ -220,9 +217,6 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   constexpr unsigned int append_abundance_default {0};
   constexpr unsigned int boundary_default {3};
   constexpr unsigned int ceiling_default {0};
-  constexpr unsigned int gap_extension_penalty_default {4};
-  constexpr unsigned int gap_opening_penalty_default {12};
-  constexpr unsigned int match_reward_default {5};
   constexpr unsigned int threads_default {1};
   const std::string DASH_FILENAME {"-"};
 
@@ -231,9 +225,6 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   opt_append_abundance = append_abundance_default;
   opt_boundary = boundary_default;
   opt_ceiling = ceiling_default;
-  opt_gap_extension_penalty = gap_extension_penalty_default;
-  opt_gap_opening_penalty = gap_opening_penalty_default;
-  opt_match_reward = match_reward_default;
   opt_output_file = DASH_FILENAME;
   opt_threads = threads_default;
   opterr = 1;  // unused variable?
@@ -331,7 +322,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'e':
         /* gap extension penalty */
-        opt_gap_extension_penalty = args_long(optarg, "-e or --gap-extension-penalty");
+        p.opt_gap_extension_penalty = args_long(optarg, "-e or --gap-extension-penalty");
         break;
 
       case 'f':
@@ -341,7 +332,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'g':
         /* gap-opening-penalty */
-        opt_gap_opening_penalty = args_long(optarg, "-g or --gap-opening-penalty");
+        p.opt_gap_opening_penalty = args_long(optarg, "-g or --gap-opening-penalty");
         break;
 
       case 'h':
@@ -366,7 +357,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'm':
         /* match-reward */
-        opt_match_reward = args_long(optarg, "-m or --match-reward");
+        p.opt_match_reward = args_long(optarg, "-m or --match-reward");
         break;
 
       case 'n':
@@ -511,22 +502,22 @@ void args_check(std::array<int, n_options> & used_options) {
       }
     }
 
-  if (opt_gap_opening_penalty < 0) {
+  if (p.opt_gap_opening_penalty < 0) {
     fatal("Illegal gap opening penalty specified with -g or "
           "--gap-opening-penalty, must not be negative.");
   }
 
-  if (opt_gap_extension_penalty < 0) {
+  if (p.opt_gap_extension_penalty < 0) {
     fatal("Illegal gap extension penalty specified with -e or "
           "--gap-extension-penalty, must not be negative.");
   }
 
-  if ((opt_gap_opening_penalty + opt_gap_extension_penalty) < 1) {
+  if ((p.opt_gap_opening_penalty + p.opt_gap_extension_penalty) < 1) {
     fatal("Illegal gap penalties specified, the sum of the gap open and "
           "the gap extension penalty must be at least 1.");
   }
 
-  if (opt_match_reward < 1) {
+  if (p.opt_match_reward < 1) {
     fatal("Illegal match reward specified with -m or --match-reward, "
           "must be at least 1.");
   }
@@ -656,9 +647,9 @@ auto main(int argc, char** argv) -> int
 
   open_files();
 
-  penalty_mismatch = 2 * opt_match_reward + 2 * p.opt_mismatch_penalty;
-  penalty_gapopen = 2 * opt_gap_opening_penalty;
-  penalty_gapextend = opt_match_reward + 2 * opt_gap_extension_penalty;
+  penalty_mismatch = 2 * p.opt_match_reward + 2 * p.opt_mismatch_penalty;
+  penalty_gapopen = 2 * p.opt_gap_opening_penalty;
+  penalty_gapextend = p.opt_match_reward + 2 * p.opt_gap_extension_penalty;
 
   penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
 
