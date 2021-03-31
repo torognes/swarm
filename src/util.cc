@@ -68,6 +68,7 @@ void progress_done()
   fflush(logfile);
 }
 
+// std::gcd() in C++17
 auto gcd(int64_t a, int64_t b) -> int64_t
 {
   return b == 0 ? a : gcd(b, a % b);
