@@ -588,6 +588,12 @@ void args_check(std::array<int, n_options> & used_options) {
 
 void open_files()
 {
+  // special case (always '-')??
+  outfile = fopen_output(opt_output_file.c_str());
+  if (outfile == nullptr) {
+    fatal("Unable to open output file for writing.");
+  }
+
   /* open files */
 
   if (! opt_log.empty())
@@ -597,11 +603,6 @@ void open_files()
         fatal("Unable to open log file for writing.");
       }
     }
-
-  outfile = fopen_output(opt_output_file.c_str());
-  if (outfile == nullptr) {
-    fatal("Unable to open output file for writing.");
-  }
 
   if (! opt_seeds.empty())
     {
