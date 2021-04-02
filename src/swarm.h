@@ -179,11 +179,11 @@ struct Parameters {
   std::string input_filename {"-"};
   std::string opt_network_file;
   std::string opt_internal_structure;
+  std::string opt_seeds;
 };
 
 extern std::string opt_log;  // used by multithreaded functions
 extern std::string opt_output_file;
-extern std::string opt_seeds;
 extern std::string opt_statistics_file;
 extern std::string opt_uclust_file;
 extern int64_t opt_append_abundance;

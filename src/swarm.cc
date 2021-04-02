@@ -32,7 +32,6 @@ std::string progname;  // unused variable?
 struct Parameters p;
 std::string opt_log;
 std::string opt_output_file;
-std::string opt_seeds;
 std::string opt_statistics_file;
 std::string opt_uclust_file;
 
@@ -397,7 +396,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'w':
         /* seeds */
-        opt_seeds = optarg;
+        p.opt_seeds = optarg;
         break;
 
       case 'x':
@@ -598,9 +597,9 @@ void open_files()
       }
     }
 
-  if (! opt_seeds.empty())
+  if (! p.opt_seeds.empty())
     {
-      fp_seeds = fopen_output(opt_seeds.c_str());
+      fp_seeds = fopen_output(p.opt_seeds.c_str());
       if (fp_seeds == nullptr) {
         fatal("Unable to open seeds file for writing.");
       }
