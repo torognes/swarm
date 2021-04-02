@@ -38,7 +38,6 @@ std::string opt_uclust_file;
 
 int64_t opt_append_abundance;
 int64_t opt_boundary;
-int64_t opt_ceiling;
 bool opt_mothur {false};
 bool opt_no_otu_breaking {false};
 int64_t opt_threads;
@@ -214,7 +213,6 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   /* Set defaults */
   constexpr unsigned int append_abundance_default {0};
   constexpr unsigned int boundary_default {3};
-  constexpr unsigned int ceiling_default {0};
   constexpr unsigned int threads_default {1};
   const std::string DASH_FILENAME {"-"};
 
@@ -222,10 +220,9 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
   opt_append_abundance = append_abundance_default;
   opt_boundary = boundary_default;
-  opt_ceiling = ceiling_default;
   opt_output_file = DASH_FILENAME;
   opt_threads = threads_default;
-  opterr = 1;  // unused variable?
+  opterr = 1;  // unused variable? get_opt option?
 
   char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z";
 
@@ -310,7 +307,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'c':
         /* ceiling */
-        opt_ceiling = args_long(optarg, "-c or --ceiling");
+        p.opt_ceiling = args_long(optarg, "-c or --ceiling");
         break;
 
       case 'd':
@@ -459,7 +456,6 @@ void args_check(std::array<int, n_options> & used_options) {
   constexpr unsigned int mismatch_penalty_index {15};
   constexpr unsigned int bloom_bits_index {24};
 
-
   if ((opt_threads < 1) || (opt_threads > max_threads))
     {
       fprintf(stderr, "\nError: Illegal number of threads specified with "
@@ -541,8 +537,8 @@ void args_check(std::array<int, n_options> & used_options) {
           "must be at least 2.");
   }
 
-  if ((used_options[ceiling_index] != 0) && ((opt_ceiling < min_ceiling) ||
-                                             (opt_ceiling > max_ceiling))) {
+  if ((used_options[ceiling_index] != 0) && ((p.opt_ceiling < min_ceiling) ||
+                                             (p.opt_ceiling > max_ceiling))) {
     fatal("Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }

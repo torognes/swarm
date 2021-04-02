@@ -1048,10 +1048,10 @@ void algo_d1_run(struct Parameters const & p)
           uint64_t memtotal = arch_get_memtotal();
           uint64_t memused = arch_get_memused();
 
-          if (opt_ceiling != 0)
+          if (p.opt_ceiling != 0)
             {
               uint64_t memrest
-                = one_megabyte * static_cast<uint64_t>(opt_ceiling) - memused;
+                = one_megabyte * static_cast<uint64_t>(p.opt_ceiling) - memused;
               auto new_bits =
                 static_cast<unsigned int>(sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_otus));
               if (new_bits < bits)
