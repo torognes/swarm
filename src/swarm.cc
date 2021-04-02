@@ -674,10 +674,6 @@ auto main(int argc, char** argv) -> int
 
   db_read(p.input_filename.c_str(), p);
 
-  fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
-  fprintf(logfile, " in %u sequences,", db_getsequencecount());
-  fprintf(logfile, " longest %u nt\n", db_getlongestsequence());
-
   dbsequencecount = db_getsequencecount();
 
   score_matrix_init();

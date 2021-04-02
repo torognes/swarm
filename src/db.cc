@@ -817,6 +817,11 @@ void db_read(const char * filename, struct Parameters const & p)
       xfree(seqhashtable);
       seqhashtable = nullptr;
     }
+
+  // user report
+  fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
+  fprintf(logfile, " in %u sequences,", db_getsequencecount());
+  fprintf(logfile, " longest %u nt\n", db_getlongestsequence());
 }
 
 void db_qgrams_init()
