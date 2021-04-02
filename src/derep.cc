@@ -64,18 +64,25 @@ auto derep_compare(const void * a, const void * b) -> int
   return status;
 }
 
-void dereplicate(struct Parameters const & p)
-{
+
+auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
   /* adjust size of hash table for 2/3 fill rate */
   constexpr unsigned int hashfillpct {70};
   constexpr unsigned int one_hundred_pct {100};
-  uint64_t dbsequencecount = db_getsequencecount();
   uint64_t hashtablesize {1};
   // db seqs > 70% hash table size (avoid division to keep working with ints)
-  while (one_hundred_pct * dbsequencecount > hashfillpct * hashtablesize) {
+  while (one_hundred_pct * sequence_count > hashfillpct * hashtablesize) {
     hashtablesize <<= 1;
   }
-  uint64_t derep_hash_mask = hashtablesize - 1;
+  return hashtablesize;
+}
+
+
+void dereplicate(struct Parameters const & p)
+{
+  const uint64_t dbsequencecount = db_getsequencecount();
+  const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
+  const uint64_t derep_hash_mask = hashtablesize - 1;
 
   auto * hashtable =
     static_cast<struct bucket *>(xmalloc(sizeof(bucket) * hashtablesize));
