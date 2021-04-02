@@ -51,8 +51,6 @@ int64_t penalty_mismatch;
 
 /* Other variables */
 
-static uint64_t dbsequencecount {0};
-
 uint64_t duplicates_found {0};
 
 std::FILE * outfile {nullptr};
@@ -673,8 +671,6 @@ auto main(int argc, char** argv) -> int
   args_show();
 
   db_read(p.input_filename.c_str(), p);
-
-  dbsequencecount = db_getsequencecount();
 
   score_matrix_init();
 
