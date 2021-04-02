@@ -191,7 +191,7 @@ void dereplicate(struct Parameters const & p)
       if (opt_mothur) {
         fputc('\t', outfile);
       }
-      fprint_id(outfile, seed);
+      fprint_id(outfile, seed, p.opt_usearch_abundance);
       unsigned int a = nextseqtab[seed];
 
       while (a != 0U)
@@ -202,7 +202,7 @@ void dereplicate(struct Parameters const & p)
           else {
             fputc(sepchar, outfile);
           }
-          fprint_id(outfile, a);
+          fprint_id(outfile, a, p.opt_usearch_abundance);
           a = nextseqtab[a];
         }
 
@@ -229,7 +229,7 @@ void dereplicate(struct Parameters const & p)
         {
           unsigned int seed = hashtable[i].seqno_first;
           fprintf(fp_seeds, ">");
-          fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass);
+          fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, p.opt_usearch_abundance);
           fprintf(fp_seeds, "\n");
           db_fprintseq(fp_seeds, seed, 0);
           progress_update(i+1);
@@ -252,13 +252,13 @@ void dereplicate(struct Parameters const & p)
           fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid,
                   bp->size);
-          fprint_id(uclustfile, seed);
+          fprint_id(uclustfile, seed, p.opt_usearch_abundance);
           fprintf(uclustfile, "\t*\n");
 
           fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid,
                   db_getsequencelen(seed));
-          fprint_id(uclustfile, seed);
+          fprint_id(uclustfile, seed, p.opt_usearch_abundance);
           fprintf(uclustfile, "\t*\n");
 
           unsigned int a = nextseqtab[seed];
@@ -271,9 +271,9 @@ void dereplicate(struct Parameters const & p)
                       db_getsequencelen(a),
                       100.0,
                       "=");
-              fprint_id(uclustfile, a);
+              fprint_id(uclustfile, a, p.opt_usearch_abundance);
               fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seed);
+              fprint_id(uclustfile, seed, p.opt_usearch_abundance);
               fprintf(uclustfile, "\n");
               a = nextseqtab[a];
             }
@@ -296,9 +296,9 @@ void dereplicate(struct Parameters const & p)
           unsigned int a = nextseqtab[seed];
           while (a != 0U)
             {
-              fprint_id_noabundance(internal_structure_file, seed);
+              fprint_id_noabundance(internal_structure_file, seed, p.opt_usearch_abundance);
               fprintf(internal_structure_file, "\t");
-              fprint_id_noabundance(internal_structure_file, a);
+              fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
               fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i+1, 0);
               a = nextseqtab[a];
             }
@@ -316,7 +316,7 @@ void dereplicate(struct Parameters const & p)
         {
           struct bucket * sp = hashtable + i;
           fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
-          fprint_id_noabundance(statsfile, sp->seqno_first);
+          fprint_id_noabundance(statsfile, sp->seqno_first, p.opt_usearch_abundance);
           fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                   db_getabundance(sp->seqno_first),
                   sp->singletons, 0U, 0U);

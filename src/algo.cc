@@ -303,10 +303,10 @@ void algo_run(struct Parameters const & p)
                   if (! p.opt_internal_structure.empty())
                     {
                       fprint_id_noabundance(internal_structure_file,
-                                            seedampliconid);
+                                            seedampliconid, p.opt_usearch_abundance);
                       fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file,
-                                            poolampliconid);
+                                            poolampliconid, p.opt_usearch_abundance);
                       fprintf(internal_structure_file, "\t%" PRIu64, diff);
                       fprintf(internal_structure_file,
                               "\t%u\t1",
@@ -449,10 +449,12 @@ void algo_run(struct Parameters const & p)
                           if (! p.opt_internal_structure.empty())
                             {
                               fprint_id_noabundance(internal_structure_file,
-                                                    subseedampliconid);
+                                                    subseedampliconid,
+                                                    p.opt_usearch_abundance);
                               fprintf(internal_structure_file, "\t");
                               fprint_id_noabundance(internal_structure_file,
-                                                    poolampliconid);
+                                                    poolampliconid,
+                                                    p.opt_usearch_abundance);
                               fprintf(internal_structure_file, "\t%" PRIu64, diff);
                               fprintf(internal_structure_file,
                                       "\t%u\t%" PRIu64,
@@ -488,12 +490,12 @@ void algo_run(struct Parameters const & p)
         {
           fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid-1, swarmsize);
-          fprint_id(uclustfile, seedampliconid);
+          fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance);
           fprintf(uclustfile, "\t*\n");
 
           fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid-1, db_getsequencelen(seedampliconid));
-          fprint_id(uclustfile, seedampliconid);
+          fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance);
           fprintf(uclustfile, "\t*\n");
           fflush(uclustfile);
 
@@ -524,9 +526,9 @@ void algo_run(struct Parameters const & p)
                       swarmid-1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? nwalignment : "=");
 
-              fprint_id(uclustfile, hit);
+              fprint_id(uclustfile, hit, p.opt_usearch_abundance);
               fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seedampliconid);
+              fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance);
               fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
@@ -544,7 +546,7 @@ void algo_run(struct Parameters const & p)
 
           fprintf(statsfile, "%" PRIu64 "\t%" PRIu64 "\t",
                   swarmsize, amplicons_copies);
-          fprint_id_noabundance(statsfile, seedampliconid);
+          fprint_id_noabundance(statsfile, seedampliconid, p.opt_usearch_abundance);
           fprintf(statsfile,
                   "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                   abundance, singletons, maxgen, maxradius);
@@ -582,7 +584,7 @@ void algo_run(struct Parameters const & p)
           sep_swarms = '\n';
         }
 
-      fprint_id(outfile, amps[0].ampliconid);
+      fprint_id(outfile, amps[0].ampliconid, p.opt_usearch_abundance);
       int64_t previd = amps[0].swarmid;
 
       for(auto i = 1ULL; i < amplicons; i++)
@@ -594,7 +596,7 @@ void algo_run(struct Parameters const & p)
           else {
             fputc(sep_swarms, outfile);
           }
-          fprint_id(outfile, amps[i].ampliconid);
+          fprint_id(outfile, amps[i].ampliconid, p.opt_usearch_abundance);
           previd = id;
         }
 
@@ -642,7 +644,7 @@ void algo_run(struct Parameters const & p)
           unsigned int swarm_seed = swarminfo[i].seed;
 
           fprintf(fp_seeds, ">");
-          fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass);
+          fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, p.opt_usearch_abundance);
           fprintf(fp_seeds, "\n");
           db_fprintseq(fp_seeds, swarm_seed, 0);
           progress_update(i);

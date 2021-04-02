@@ -40,7 +40,6 @@ int64_t opt_boundary;
 bool opt_mothur {false};
 bool opt_no_otu_breaking {false};
 int64_t opt_threads;
-bool opt_usearch_abundance {false};
 
 int64_t penalty_factor;
 int64_t penalty_gapextend;
@@ -411,7 +410,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'z':
         /* usearch-abundance */
-        opt_usearch_abundance = true;
+        p.opt_usearch_abundance = true;
         break;
 
       default:

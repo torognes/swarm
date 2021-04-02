@@ -176,6 +176,7 @@ struct Parameters {
   bool opt_disable_sse3 {false};
   bool opt_version {false};
   bool opt_fastidious {false};
+  bool opt_usearch_abundance {false};
   std::string input_filename {"-"};
   std::string opt_network_file;
   std::string opt_internal_structure;
@@ -191,7 +192,6 @@ extern int64_t opt_boundary;  // used by multithreaded functions
 extern bool opt_mothur;
 extern bool opt_no_otu_breaking;
 extern int64_t opt_threads;
-extern bool opt_usearch_abundance;
 
 extern int64_t penalty_factor;
 extern int64_t penalty_gapextend;
@@ -316,11 +316,12 @@ inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
   return reinterpret_cast<unsigned char*>(qgrams + seqno);
 }
 
-void fprint_id(std::FILE * stream, uint64_t x);
-void fprint_id_noabundance(std::FILE * stream, uint64_t x);
+void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance);
+void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abundance);
 void fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t seqno,
-                                  uint64_t abundance);
+                                  uint64_t abundance,
+                                  bool opt_usearch_abundance);
 
 #ifdef __x86_64__
 

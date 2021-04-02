@@ -70,9 +70,9 @@ auto find_usearch_abundance(const char * header,
                             int * start,
                             int * end,
                             int64_t * number) -> bool;
-void find_abundance(struct seqinfo_s * sp, uint64_t lineno);
+void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abundance);
 
-void fprint_id(std::FILE * stream, uint64_t x)
+void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -91,7 +91,7 @@ void fprint_id(std::FILE * stream, uint64_t x)
   }
 }
 
-void fprint_id_noabundance(std::FILE * stream, uint64_t x)
+void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abundance)
 {
   seqinfo_t * sp = seqindex + x;
   char * h = sp->header;
@@ -120,7 +120,8 @@ void fprint_id_noabundance(std::FILE * stream, uint64_t x)
 
 void fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t seqno,
-                                  uint64_t abundance)
+                                  uint64_t abundance,
+                                  bool opt_usearch_abundance)
 {
   seqinfo_t * sp = seqindex + seqno;
 
@@ -278,7 +279,7 @@ auto find_usearch_abundance(const char * header,
   return false;
 }
 
-void find_abundance(struct seqinfo_s * sp, uint64_t lineno)
+void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abundance)
 {
   char * header = sp->header;
 
@@ -642,7 +643,7 @@ void db_read(const char * filename, struct Parameters const & p)
       pl += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
-      find_abundance(seqindex_p, line_number);
+      find_abundance(seqindex_p, line_number, p.opt_usearch_abundance);
 
       if ((seqindex_p->abundance_start == 0) &&
           (seqindex_p->abundance_end == seqindex_p->headerlen)) {
