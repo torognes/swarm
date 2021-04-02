@@ -490,12 +490,12 @@ void algo_run(struct Parameters const & p)
         {
           fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid-1, swarmsize);
-          fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance);
+          fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(uclustfile, "\t*\n");
 
           fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid-1, db_getsequencelen(seedampliconid));
-          fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance);
+          fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(uclustfile, "\t*\n");
           fflush(uclustfile);
 
@@ -526,9 +526,9 @@ void algo_run(struct Parameters const & p)
                       swarmid-1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? nwalignment : "=");
 
-              fprint_id(uclustfile, hit, p.opt_usearch_abundance);
+              fprint_id(uclustfile, hit, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance);
+              fprint_id(uclustfile, seedampliconid, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
@@ -584,7 +584,7 @@ void algo_run(struct Parameters const & p)
           sep_swarms = '\n';
         }
 
-      fprint_id(outfile, amps[0].ampliconid, p.opt_usearch_abundance);
+      fprint_id(outfile, amps[0].ampliconid, p.opt_usearch_abundance, p.opt_append_abundance);
       int64_t previd = amps[0].swarmid;
 
       for(auto i = 1ULL; i < amplicons; i++)
@@ -596,7 +596,7 @@ void algo_run(struct Parameters const & p)
           else {
             fputc(sep_swarms, outfile);
           }
-          fprint_id(outfile, amps[i].ampliconid, p.opt_usearch_abundance);
+          fprint_id(outfile, amps[i].ampliconid, p.opt_usearch_abundance, p.opt_append_abundance);
           previd = id;
         }
 

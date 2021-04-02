@@ -851,9 +851,9 @@ void algo_d1_run(struct Parameters const & p)
           for(auto i = 0U; i < link_count; i++)
             {
               unsigned int neighbour = network[link_start + i];
-              fprint_id(network_file, seed, p.opt_usearch_abundance);
+              fprint_id(network_file, seed, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(network_file, "\t");
-              fprint_id(network_file, neighbour, p.opt_usearch_abundance);
+              fprint_id(network_file, neighbour, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(network_file, "\n");
               n++;
             }
@@ -1185,7 +1185,7 @@ void algo_d1_run(struct Parameters const & p)
                     fputc(sepchar, outfile);
                   }
                 }
-              fprint_id(outfile, a, p.opt_usearch_abundance);
+              fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
             }
           if (!opt_mothur) {
             fputc('\n', outfile);
@@ -1307,13 +1307,13 @@ void algo_d1_run(struct Parameters const & p)
               fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                       cluster_no,
                       swarminfo[swarmid].size);
-              fprint_id(uclustfile, seed, p.opt_usearch_abundance);
+              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\t*\n");
 
               fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                       cluster_no,
                       db_getsequencelen(seed));
-              fprint_id(uclustfile, seed, p.opt_usearch_abundance);
+              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\t*\n");
 
               for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
@@ -1345,9 +1345,9 @@ void algo_d1_run(struct Parameters const & p)
                           percentid,
                           nwdiff > 0 ? nwalignment : "=");
 
-                  fprint_id(uclustfile, a, p.opt_usearch_abundance);
+                  fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
                   fprintf(uclustfile, "\t");
-                  fprint_id(uclustfile, seed, p.opt_usearch_abundance);
+                  fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
                   fprintf(uclustfile, "\n");
 
                   if (nwalignment != nullptr) {

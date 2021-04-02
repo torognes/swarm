@@ -191,7 +191,7 @@ void dereplicate(struct Parameters const & p)
       if (opt_mothur) {
         fputc('\t', outfile);
       }
-      fprint_id(outfile, seed, p.opt_usearch_abundance);
+      fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
       unsigned int a = nextseqtab[seed];
 
       while (a != 0U)
@@ -202,7 +202,7 @@ void dereplicate(struct Parameters const & p)
           else {
             fputc(sepchar, outfile);
           }
-          fprint_id(outfile, a, p.opt_usearch_abundance);
+          fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
           a = nextseqtab[a];
         }
 
@@ -252,13 +252,13 @@ void dereplicate(struct Parameters const & p)
           fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid,
                   bp->size);
-          fprint_id(uclustfile, seed, p.opt_usearch_abundance);
+          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(uclustfile, "\t*\n");
 
           fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid,
                   db_getsequencelen(seed));
-          fprint_id(uclustfile, seed, p.opt_usearch_abundance);
+          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(uclustfile, "\t*\n");
 
           unsigned int a = nextseqtab[seed];
@@ -271,9 +271,9 @@ void dereplicate(struct Parameters const & p)
                       db_getsequencelen(a),
                       100.0,
                       "=");
-              fprint_id(uclustfile, a, p.opt_usearch_abundance);
+              fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seed, p.opt_usearch_abundance);
+              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\n");
               a = nextseqtab[a];
             }

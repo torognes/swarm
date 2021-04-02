@@ -35,7 +35,6 @@ std::string opt_output_file;
 std::string opt_statistics_file;
 std::string opt_uclust_file;
 
-int64_t opt_append_abundance;
 int64_t opt_boundary;
 bool opt_mothur {false};
 bool opt_no_otu_breaking {false};
@@ -209,14 +208,12 @@ void show(const std::vector<std::string> & message)
 void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 {
   /* Set defaults */
-  constexpr unsigned int append_abundance_default {0};
   constexpr unsigned int boundary_default {3};
   constexpr unsigned int threads_default {1};
   const std::string DASH_FILENAME {"-"};
 
   progname = argv[0];
 
-  opt_append_abundance = append_abundance_default;
   opt_boundary = boundary_default;
   opt_output_file = DASH_FILENAME;
   opt_threads = threads_default;
@@ -295,7 +292,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
       {
       case 'a':
         /* append-abundance */
-        opt_append_abundance = args_long(optarg, "-a or --append-abundance");
+        p.opt_append_abundance = args_long(optarg, "-a or --append-abundance");
         break;
 
       case 'b':
@@ -547,7 +544,7 @@ void args_check(std::array<int, n_options> & used_options) {
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
-  if ((used_options[append_abundance_index] != 0) && (opt_append_abundance < 1)) {
+  if ((used_options[append_abundance_index] != 0) && (p.opt_append_abundance < 1)) {
     fatal("Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }

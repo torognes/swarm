@@ -110,7 +110,9 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 const std::string swarm_version = {"Swarm 3.1.0"};
 constexpr char sepchar {' '};
+constexpr unsigned int opt_differences_default {1};
 constexpr unsigned int ceiling_default {0};
+constexpr unsigned int append_abundance_default {0};
 constexpr unsigned int mismatch_penalty_default {4};
 constexpr unsigned int match_reward_default {5};
 constexpr unsigned int gap_opening_penalty_default {12};
@@ -166,12 +168,13 @@ using queryinfo_t = struct queryinfo;
 
 struct Parameters {
   int64_t opt_bloom_bits {bloom_bits_default};
-  int64_t opt_differences {1};
+  int64_t opt_differences {opt_differences_default};
   int64_t opt_mismatch_penalty {mismatch_penalty_default};
   int64_t opt_match_reward {match_reward_default};
   int64_t opt_gap_opening_penalty {gap_opening_penalty_default};
   int64_t opt_gap_extension_penalty {gap_extension_penalty_default};
   int64_t opt_ceiling {ceiling_default};
+  int64_t opt_append_abundance {append_abundance_default};
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
@@ -187,7 +190,6 @@ extern std::string opt_log;  // used by multithreaded functions
 extern std::string opt_output_file;
 extern std::string opt_statistics_file;
 extern std::string opt_uclust_file;
-extern int64_t opt_append_abundance;
 extern int64_t opt_boundary;  // used by multithreaded functions
 extern bool opt_mothur;
 extern bool opt_no_otu_breaking;
@@ -316,7 +318,7 @@ inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
   return reinterpret_cast<unsigned char*>(qgrams + seqno);
 }
 
-void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance);
+void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance, int64_t opt_append_abundance);
 void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abundance);
 void fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t seqno,
