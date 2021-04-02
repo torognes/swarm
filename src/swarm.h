@@ -165,13 +165,6 @@ using queryinfo_t = struct queryinfo;
 /* common data */
 
 struct Parameters {
-  bool opt_help {false};
-  bool opt_disable_sse3 {false};
-  bool opt_version {false};
-  std::string input_filename {"-"};
-  std::string opt_network_file;
-  std::string opt_internal_structure;
-  bool opt_fastidious {false};
   int64_t opt_bloom_bits {bloom_bits_default};
   int64_t opt_differences {1};
   int64_t opt_mismatch_penalty {mismatch_penalty_default};
@@ -179,6 +172,13 @@ struct Parameters {
   int64_t opt_gap_opening_penalty {gap_opening_penalty_default};
   int64_t opt_gap_extension_penalty {gap_extension_penalty_default};
   int64_t opt_ceiling {ceiling_default};
+  bool opt_help {false};
+  bool opt_disable_sse3 {false};
+  bool opt_version {false};
+  bool opt_fastidious {false};
+  std::string input_filename {"-"};
+  std::string opt_network_file;
+  std::string opt_internal_structure;
 };
 
 extern std::string opt_log;  // used by multithreaded functions
