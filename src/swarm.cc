@@ -659,21 +659,20 @@ void close_files() {
 
 auto main(int argc, char** argv) -> int
 {
+  // initialization and checks
   arch_srandom(seed);
-
   args_init(argc, argv, used_options);
   args_check(used_options);
-
   open_files();
-
   show(header_message);
-
   args_show();
 
+  // parse fasta input
   db_read(p.input_filename.c_str(), p);
 
-  score_matrix_init();
+  score_matrix_init();  // move to algo.cc?
 
+  // clustering
   switch (p.opt_differences)
     {
     case 0:
@@ -689,9 +688,8 @@ auto main(int argc, char** argv) -> int
       break;
     }
 
-  score_matrix_free();
-
+  // clean up
+  score_matrix_free();  // move to algo.cc?
   db_free();
-
   close_files();
 }
