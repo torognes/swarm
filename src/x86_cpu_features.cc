@@ -24,7 +24,6 @@
 #include "swarm.h"
 
 // set to null if not x86-64
-int64_t sse2_present {0};
 int64_t sse3_present {0};
 int64_t ssse3_present {0};
 int64_t sse41_present {0};
@@ -80,7 +79,7 @@ void cpu_features_detect(struct Parameters & p)
     cpuid(1, 0, a, b, c, d);
     p.mmx_present    = (d >> bit_mmx) & 1;
     p.sse_present    = (d >> bit_sse) & 1;
-    sse2_present   = (d >> bit_sse2) & 1;
+    p.sse2_present   = (d >> bit_sse2) & 1;
     sse3_present   = (c >> bit_sse3) & 1;
     ssse3_present  = (c >> bit_ssse3) & 1;
     sse41_present  = (c >> bit_sse41) & 1;
@@ -97,7 +96,7 @@ void cpu_features_detect(struct Parameters & p)
 }
 
 void cpu_features_test(struct Parameters & p) {
-  if (sse2_present == 0) {
+  if (p.sse2_present == 0) {
     fatal("This program requires a processor with SSE2 instructions.\n");
   }
 
@@ -122,7 +121,7 @@ void cpu_features_show(struct Parameters const & p)
   if (p.sse_present != 0) {
     fprintf(logfile, " sse");
   }
-  if (sse2_present != 0) {
+  if (p.sse2_present != 0) {
     fprintf(logfile, " sse2");
   }
   if (sse3_present != 0) {
