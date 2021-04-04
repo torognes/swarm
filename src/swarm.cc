@@ -148,9 +148,9 @@ auto args_long(char * str, const char * option) -> int64_t
 void args_show()
 {
 #ifdef __x86_64__
-  cpu_features_detect();
-  cpu_features_test(p.opt_disable_sse3);
-  cpu_features_show();
+  cpu_features_detect(p);
+  cpu_features_test(p);
+  cpu_features_show(p);
 #endif
 
   fprintf(logfile, "Database file:     %s\n", p.input_filename.c_str());

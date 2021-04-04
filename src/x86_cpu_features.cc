@@ -24,13 +24,11 @@
 #include "swarm.h"
 
 // set to null if not x86-64
-int64_t mmx_present {0};
 int64_t sse_present {0};
 int64_t sse2_present {0};
 int64_t sse3_present {0};
 int64_t ssse3_present {0};
 int64_t sse41_present {0};
-int64_t sse42_present {0};
 int64_t popcnt_present {0};
 int64_t avx_present {0};
 int64_t avx2_present {0};
@@ -56,7 +54,7 @@ void cpuid(unsigned int f1,
                         : "a" (f1), "c" (f2));
 }
 
-void cpu_features_detect()
+void cpu_features_detect(struct Parameters & p)
 {
   constexpr unsigned int post_pentium {7};  // new cpus: a & 0xff > 6
   constexpr unsigned int bit_mmx {23};
@@ -81,13 +79,13 @@ void cpu_features_detect()
   if (maxlevel >= 1)
   {
     cpuid(1, 0, a, b, c, d);
-    mmx_present    = (d >> bit_mmx) & 1;
+    p.mmx_present    = (d >> bit_mmx) & 1;
     sse_present    = (d >> bit_sse) & 1;
     sse2_present   = (d >> bit_sse2) & 1;
     sse3_present   = (c >> bit_sse3) & 1;
     ssse3_present  = (c >> bit_ssse3) & 1;
     sse41_present  = (c >> bit_sse41) & 1;
-    sse42_present  = (c >> bit_sse42) & 1;
+    p.sse42_present  = (c >> bit_sse42) & 1;
     popcnt_present = (c >> bit_popcnt) & 1;
     avx_present    = (c >> bit_avx) & 1;
 
@@ -99,27 +97,27 @@ void cpu_features_detect()
   }
 }
 
-void cpu_features_test(bool opt_disable_sse3) {
+void cpu_features_test(struct Parameters & p) {
   if (sse2_present == 0) {
     fatal("This program requires a processor with SSE2 instructions.\n");
   }
 
-  if (opt_disable_sse3)
+  if (p.opt_disable_sse3)
     {
       sse3_present = 0;
       ssse3_present = 0;
       sse41_present = 0;
-      sse42_present = 0;
+      p.sse42_present = 0;
       popcnt_present = 0;
       avx_present = 0;
       avx2_present = 0;
     }
 }
 
-void cpu_features_show()
+void cpu_features_show(struct Parameters const & p)
 {
   fprintf(logfile, "CPU features:     ");
-  if (mmx_present != 0){
+  if (p.mmx_present != 0){
     fprintf(logfile, " mmx");
   }
   if (sse_present != 0) {
@@ -137,7 +135,7 @@ void cpu_features_show()
   if (sse41_present != 0) {
     fprintf(logfile, " sse4.1");
   }
-  if (sse42_present != 0) {
+  if (p.sse42_present != 0) {
     fprintf(logfile, " sse4.2");
   }
   if (popcnt_present != 0) {

@@ -21,6 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-void cpu_features_detect();
-void cpu_features_test(bool opt_disable_sse3);
-void cpu_features_show();
+void cpu_features_detect(struct Parameters & p);
+void cpu_features_test(struct Parameters & p);
+void cpu_features_show(struct Parameters const & p);
