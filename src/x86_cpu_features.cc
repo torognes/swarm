@@ -29,7 +29,6 @@ int64_t ssse3_present {0};
 int64_t sse41_present {0};
 int64_t popcnt_present {0};
 int64_t avx_present {0};
-int64_t avx2_present {0};
 
 #ifdef __x86_64__
 
@@ -90,7 +89,7 @@ void cpu_features_detect(struct Parameters & p)
     if (maxlevel >= post_pentium)
     {
       cpuid(post_pentium, 0, a, b, c, d);
-      avx2_present   = (b >> bit_avx2) & 1;
+      p.avx2_present   = (b >> bit_avx2) & 1;
     }
   }
 }
@@ -108,7 +107,7 @@ void cpu_features_test(struct Parameters & p) {
       p.sse42_present = 0;
       popcnt_present = 0;
       avx_present = 0;
-      avx2_present = 0;
+      p.avx2_present = 0;
     }
 }
 
@@ -142,7 +141,7 @@ void cpu_features_show(struct Parameters const & p)
   if (avx_present != 0) {
     fprintf(logfile, " avx");
   }
-  if (avx2_present != 0) {
+  if (p.avx2_present != 0) {
     fprintf(logfile, " avx2");
   }
   fprintf(logfile, "\n");

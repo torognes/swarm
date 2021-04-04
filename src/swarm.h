@@ -179,6 +179,7 @@ struct Parameters {
   int64_t sse42_present {0};
   int64_t sse_present {0};
   int64_t sse2_present {0};
+  int64_t avx2_present {0};
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
@@ -221,7 +222,7 @@ extern int64_t sse41_present;
 // extern int64_t sse42_present;
 extern int64_t popcnt_present;
 extern int64_t avx_present;
-extern int64_t avx2_present;
+// extern int64_t avx2_present;
 
 extern unsigned char * score_matrix_8;
 extern unsigned short * score_matrix_16;
