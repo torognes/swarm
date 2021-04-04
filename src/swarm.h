@@ -181,6 +181,7 @@ struct Parameters {
   int64_t sse2_present {0};
   int64_t avx2_present {0};
   int64_t avx_present {0};
+  int64_t sse3_present {0};
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
@@ -217,7 +218,7 @@ extern std::FILE * network_file;
 // extern int64_t mmx_present;
 // extern int64_t sse_present;
 // extern int64_t sse2_present;
-extern int64_t sse3_present;
+// extern int64_t sse3_present;
 extern int64_t ssse3_present;
 extern int64_t sse41_present;
 // extern int64_t sse42_present;

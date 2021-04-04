@@ -24,7 +24,6 @@
 #include "swarm.h"
 
 // set to null if not x86-64
-int64_t sse3_present {0};
 int64_t ssse3_present {0};
 int64_t sse41_present {0};
 int64_t popcnt_present {0};
@@ -78,7 +77,7 @@ void cpu_features_detect(struct Parameters & p)
     p.mmx_present    = (d >> bit_mmx) & 1;
     p.sse_present    = (d >> bit_sse) & 1;
     p.sse2_present   = (d >> bit_sse2) & 1;
-    sse3_present   = (c >> bit_sse3) & 1;
+    p.sse3_present   = (c >> bit_sse3) & 1;
     ssse3_present  = (c >> bit_ssse3) & 1;
     sse41_present  = (c >> bit_sse41) & 1;
     p.sse42_present  = (c >> bit_sse42) & 1;
@@ -100,7 +99,7 @@ void cpu_features_test(struct Parameters & p) {
 
   if (p.opt_disable_sse3)
     {
-      sse3_present = 0;
+      p.sse3_present = 0;
       ssse3_present = 0;
       sse41_present = 0;
       p.sse42_present = 0;
@@ -122,7 +121,7 @@ void cpu_features_show(struct Parameters const & p)
   if (p.sse2_present != 0) {
     fprintf(logfile, " sse2");
   }
-  if (sse3_present != 0) {
+  if (p.sse3_present != 0) {
     fprintf(logfile, " sse3");
   }
   if (ssse3_present != 0) {
