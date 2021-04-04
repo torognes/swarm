@@ -361,6 +361,7 @@ void db_read(const char * filename, struct Parameters const & p)
   uint64_t dataalloc {memchunk};
   datap = static_cast<char *>(xmalloc(dataalloc));
   uint64_t datalen {0};
+  uint64_t duplicates_found {0};
 
   longest = 0;
   longestheader = 0;

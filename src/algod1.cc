@@ -32,6 +32,8 @@
 constexpr unsigned int one_kilobyte {1 << 10};
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
 
+static uint64_t duplicates_found {0};  // several function calls
+
 /* Information about each amplicon */
 
 static struct ampinfo_s

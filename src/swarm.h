@@ -228,7 +228,6 @@ extern uint64_t longestdbsequence;
 
 extern queryinfo_t query;
 
-extern uint64_t duplicates_found;
 
 /* inline functions */
 

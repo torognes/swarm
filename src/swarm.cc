@@ -45,8 +45,6 @@ int64_t penalty_gapopen;
 
 /* Other variables */
 
-uint64_t duplicates_found {0};
-
 std::FILE * outfile {nullptr};
 std::FILE * statsfile {nullptr};
 std::FILE * uclustfile {nullptr};
