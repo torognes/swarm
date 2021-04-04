@@ -180,6 +180,7 @@ struct Parameters {
   bool opt_version {false};
   bool opt_fastidious {false};
   bool opt_usearch_abundance {false};
+  bool opt_mothur {false};
   std::string input_filename {"-"};
   std::string opt_network_file;
   std::string opt_internal_structure;
@@ -191,8 +192,7 @@ extern std::string opt_output_file;
 extern std::string opt_statistics_file;
 extern std::string opt_uclust_file;
 extern int64_t opt_boundary;  // used by multithreaded functions
-extern bool opt_mothur;
-extern bool opt_no_otu_breaking;
+extern bool opt_no_otu_breaking;  // three function calls
 extern int64_t opt_threads;
 
 extern int64_t penalty_factor;

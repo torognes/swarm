@@ -181,14 +181,14 @@ void dereplicate(struct Parameters const & p)
 
   progress_init("Writing swarms:   ", swarmcount);
 
-  if (opt_mothur) {
+  if (p.opt_mothur) {
     fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, p.opt_differences, swarmcount);
   }
 
   for(auto i = 0U; i < swarmcount; i++)
     {
       unsigned int seed = hashtable[i].seqno_first;
-      if (opt_mothur) {
+      if (p.opt_mothur) {
         fputc('\t', outfile);
       }
       fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
@@ -196,7 +196,7 @@ void dereplicate(struct Parameters const & p)
 
       while (a != 0U)
         {
-          if (opt_mothur) {
+          if (p.opt_mothur) {
             fputc(',', outfile);
           }
           else {
@@ -206,14 +206,14 @@ void dereplicate(struct Parameters const & p)
           a = nextseqtab[a];
         }
 
-      if (!opt_mothur) {
+      if (! p.opt_mothur) {
         fputc('\n', outfile);
       }
 
       progress_update(i+1);
     }
 
-  if (opt_mothur) {
+  if (p.opt_mothur) {
     fputc('\n', outfile);
   }
 

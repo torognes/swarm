@@ -36,7 +36,6 @@ std::string opt_statistics_file;
 std::string opt_uclust_file;
 
 int64_t opt_boundary;
-bool opt_mothur {false};
 bool opt_no_otu_breaking {false};
 int64_t opt_threads;
 
@@ -367,7 +366,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'r':
         /* mothur */
-        opt_mothur = true;
+        p.opt_mothur = true;
         break;
 
       case 's':

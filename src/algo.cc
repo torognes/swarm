@@ -569,7 +569,7 @@ void algo_run(struct Parameters const & p)
       char sep_amplicons {0};
       char sep_swarms {0};
 
-      if (opt_mothur)
+      if (p.opt_mothur)
         {
           /* mothur list file output */
           sep_amplicons = ',';
