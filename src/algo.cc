@@ -136,7 +136,7 @@ void algo_run(struct Parameters const & p)
   if (uclustfile != nullptr)
     {
       dir = static_cast<unsigned char *>
-        (xmalloc(longestamplicon*longestamplicon));
+        (xmalloc(longestamplicon * longestamplicon));
       hearray = static_cast<uint64_t *>
         (xmalloc(2 * longestamplicon * sizeof(uint64_t)));
     }
