@@ -42,7 +42,6 @@ int64_t opt_threads;
 int64_t penalty_factor;
 int64_t penalty_gapextend;
 int64_t penalty_gapopen;
-int64_t penalty_mismatch;
 
 /* Other variables */
 
@@ -181,7 +180,7 @@ void args_show()
       fprintf(logfile,
               "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
               "gap extension: %" PRId64 "\n",
-              penalty_mismatch, penalty_gapopen, penalty_gapextend);
+              p.penalty_mismatch, penalty_gapopen, penalty_gapextend);
     }
   fprintf(logfile, "Break OTUs:        %s\n",
           opt_no_otu_breaking ? "No" : "Yes");
@@ -422,13 +421,13 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   }
 
   // scoring system
-  penalty_mismatch = 2 * p.opt_match_reward + 2 * p.opt_mismatch_penalty;
+  p.penalty_mismatch = 2 * p.opt_match_reward + 2 * p.opt_mismatch_penalty;
   penalty_gapopen = 2 * p.opt_gap_opening_penalty;
   penalty_gapextend = p.opt_match_reward + 2 * p.opt_gap_extension_penalty;
 
-  penalty_factor = gcd(gcd(penalty_mismatch, penalty_gapopen), penalty_gapextend);
+  penalty_factor = gcd(gcd(p.penalty_mismatch, penalty_gapopen), penalty_gapextend);
 
-  penalty_mismatch /= penalty_factor;
+  p.penalty_mismatch /= penalty_factor;
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
 }
@@ -564,7 +563,7 @@ void args_check(std::array<int, n_options> & used_options) {
   }
 
   // scoring system check
-  const int64_t diff_saturation_16 = (std::min((UINT16_MAX / penalty_mismatch),
+  const int64_t diff_saturation_16 = (std::min((UINT16_MAX / p.penalty_mismatch),
                                                (UINT16_MAX - penalty_gapopen)
                                                / penalty_gapextend));
 
@@ -660,7 +659,7 @@ auto main(int argc, char** argv) -> int
   // parse fasta input
   db_read(p.input_filename.c_str(), p);
 
-  score_matrix_init();  // move to algo.cc?
+  score_matrix_init(p);  // move to algo.cc?
 
   // clustering
   switch (p.opt_differences)

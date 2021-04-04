@@ -182,6 +182,7 @@ struct Parameters {
   int64_t avx2_present {0};
   int64_t avx_present {0};
   int64_t sse3_present {0};
+  int64_t penalty_mismatch {2 * match_reward_default + 2 * mismatch_penalty_default};
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
@@ -205,7 +206,7 @@ extern int64_t opt_threads;
 extern int64_t penalty_factor;
 extern int64_t penalty_gapextend;
 extern int64_t penalty_gapopen;
-extern int64_t penalty_mismatch;
+// extern int64_t penalty_mismatch;
 
 extern std::FILE * outfile;
 extern std::FILE * statsfile;
@@ -401,7 +402,7 @@ void nw(char * dseq,
 
 /* functions in matrix.cc */
 
-void score_matrix_init();
+void score_matrix_init(struct Parameters const & p);
 void score_matrix_free();
 
 

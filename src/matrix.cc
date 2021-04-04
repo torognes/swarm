@@ -27,7 +27,7 @@ unsigned char * score_matrix_8 = nullptr;
 unsigned short * score_matrix_16 = nullptr;
 int64_t * score_matrix_63 = nullptr;
 
-void score_matrix_read();
+void score_matrix_read(struct Parameters const & p);
 
 #if 0
 
@@ -56,7 +56,7 @@ void score_matrix_dump()
 
 #endif
 
-void score_matrix_read()
+void score_matrix_read(struct Parameters const & p)
 {
   constexpr int cells {32};
   constexpr long long int one_thousand {1000};
@@ -71,7 +71,7 @@ void score_matrix_read()
 
   for(auto a = 0; a < cells / 2; a++) {
     for(auto b = 0; b < cells / 2; b++) {
-      sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : penalty_mismatch;
+      sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : p.penalty_mismatch;
       // sc = (a==b) ? matchscore : mismatchscore;
       if (sc < lo) {
         lo = sc;
@@ -92,9 +92,9 @@ void score_matrix_read()
   }
 }
 
-void score_matrix_init()
+void score_matrix_init(struct Parameters const & p)
 {
-  score_matrix_read();
+  score_matrix_read(p);
   //  score_matrix_dump();
 }
 

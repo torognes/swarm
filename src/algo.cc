@@ -126,7 +126,7 @@ void algo_run(struct Parameters const & p)
     (xmalloc(amplicons * sizeof(uint64_t)));
 
   auto diff_saturation
-    = static_cast<uint64_t>(std::min(UINT8_MAX / penalty_mismatch,
+    = static_cast<uint64_t>(std::min(UINT8_MAX / p.penalty_mismatch,
                                      UINT8_MAX / (penalty_gapopen +
                                                   penalty_gapextend)));
 
