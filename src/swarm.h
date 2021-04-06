@@ -121,6 +121,7 @@ constexpr unsigned int bloom_bits_default {16};
 constexpr unsigned int qgramlength {5};
 constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
 constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
+const std::string dash_filename {"-"};
 const std::array<char, 32> sym_nt =
   {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -193,12 +194,12 @@ struct Parameters {
   std::string opt_network_file;
   std::string opt_internal_structure;
   std::string opt_seeds;
+  std::string opt_statistics_file;
+  std::string opt_uclust_file;
+  std::string opt_output_file {dash_filename};
 };
 
 extern std::string opt_log;  // used by multithreaded functions
-extern std::string opt_output_file;
-extern std::string opt_statistics_file;
-extern std::string opt_uclust_file;
 extern int64_t opt_boundary;  // used by multithreaded functions
 extern bool opt_no_otu_breaking;  // three function calls
 extern int64_t opt_threads;

@@ -31,9 +31,6 @@ std::string progname;  // unused variable?
 
 struct Parameters p;
 std::string opt_log;
-std::string opt_output_file;
-std::string opt_statistics_file;
-std::string opt_uclust_file;
 
 int64_t opt_boundary;
 bool opt_no_otu_breaking {false};
@@ -151,12 +148,12 @@ void args_show()
 #endif
 
   fprintf(logfile, "Database file:     %s\n", p.input_filename.c_str());
-  fprintf(logfile, "Output file:       %s\n", opt_output_file.c_str());
-  if (! opt_statistics_file.empty()) {
-    fprintf(logfile, "Statistics file:   %s\n", opt_statistics_file.c_str());
+  fprintf(logfile, "Output file:       %s\n", p.opt_output_file.c_str());
+  if (! p.opt_statistics_file.empty()) {
+    fprintf(logfile, "Statistics file:   %s\n", p.opt_statistics_file.c_str());
   }
-  if (! opt_uclust_file.empty()) {
-    fprintf(logfile, "Uclust file:       %s\n", opt_uclust_file.c_str());
+  if (! p.opt_uclust_file.empty()) {
+    fprintf(logfile, "Uclust file:       %s\n", p.opt_uclust_file.c_str());
   }
   if (! p.opt_internal_structure.empty()) {
     fprintf(logfile, "Int. struct. file  %s\n", p.opt_internal_structure.c_str());
@@ -206,12 +203,10 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   /* Set defaults */
   constexpr unsigned int boundary_default {3};
   constexpr unsigned int threads_default {1};
-  const std::string DASH_FILENAME {"-"};
 
   progname = argv[0];
 
   opt_boundary = boundary_default;
-  opt_output_file = DASH_FILENAME;
   opt_threads = threads_default;
   opterr = 1;  // unused variable? get_opt option?
 
@@ -353,7 +348,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'o':
         /* output-file */
-        opt_output_file = optarg;
+        p.opt_output_file = optarg;
         break;
 
       case 'p':
@@ -368,7 +363,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 's':
         /* statistics-file */
-        opt_statistics_file = optarg;
+        p.opt_statistics_file = optarg;
         break;
 
       case 't':
@@ -378,7 +373,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'u':
         /* uclust-file */
-        opt_uclust_file = optarg;
+        p.opt_uclust_file = optarg;
         break;
 
       case 'v':
@@ -574,7 +569,7 @@ void args_check(std::array<int, n_options> & used_options) {
 void open_files()
 {
   // special case (always '-')??
-  outfile = fopen_output(opt_output_file.c_str());
+  outfile = fopen_output(p.opt_output_file.c_str());
   if (outfile == nullptr) {
     fatal("Unable to open output file for writing.");
   }
@@ -597,17 +592,17 @@ void open_files()
       }
     }
 
-  if (! opt_statistics_file.empty())
+  if (! p.opt_statistics_file.empty())
     {
-      statsfile = fopen_output(opt_statistics_file.c_str());
+      statsfile = fopen_output(p.opt_statistics_file.c_str());
       if (statsfile == nullptr) {
         fatal("Unable to open statistics file for writing.");
       }
     }
 
-  if (! opt_uclust_file.empty())
+  if (! p.opt_uclust_file.empty())
     {
-      uclustfile = fopen_output(opt_uclust_file.c_str());
+      uclustfile = fopen_output(p.opt_uclust_file.c_str());
       if (uclustfile == nullptr) {
         fatal("Unable to open uclust file for writing.");
       }
