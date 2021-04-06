@@ -750,6 +750,27 @@ inline void add_amp_to_swarm(unsigned int amp)
   current_swarm_tail = amp;
 }
 
+
+auto write_stats_file(unsigned int swarmcount,
+                      struct Parameters const & p) -> void {
+  progress_init("Writing stats:    ", swarmcount);
+  for(auto i = 0ULL; i < swarmcount; i++)
+    {
+      swarminfo_s * sp = swarminfo + i;
+      if (!sp->attached)
+        {
+          fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
+          fprint_id_noabundance(statsfile, sp->seed, p.opt_usearch_abundance);
+          fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+                  db_getabundance(sp->seed),
+                  sp->singletons, sp->maxgen, sp->maxgen);
+        }
+      progress_update(i);
+    }
+  progress_done();
+}
+
+
 void algo_d1_run(struct Parameters const & p)
 {
   longestamplicon = db_getlongestsequence();
@@ -1365,24 +1386,8 @@ void algo_d1_run(struct Parameters const & p)
     }
 
   /* output statistics to file */
-
-  if (statsfile != nullptr)
-    {
-      progress_init("Writing stats:    ", swarmcount);
-      for(auto i = 0ULL; i < swarmcount; i++)
-        {
-          swarminfo_s * sp = swarminfo + i;
-          if (!sp->attached)
-            {
-              fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
-              fprint_id_noabundance(statsfile, sp->seed, p.opt_usearch_abundance);
-              fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                      db_getabundance(sp->seed),
-                      sp->singletons, sp->maxgen, sp->maxgen);
-            }
-          progress_update(i);
-        }
-      progress_done();
+  if (statsfile != nullptr) {
+    write_stats_file(swarmcount, p);
     }
 
   fprintf(logfile, "\n");
