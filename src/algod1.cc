@@ -751,7 +751,59 @@ inline void add_amp_to_swarm(unsigned int amp)
 }
 
 
-auto write_stats_file(unsigned int swarmcount,
+auto write_structure_file(const unsigned int swarmcount,
+                          struct Parameters const & p) -> void {
+  unsigned int cluster_no {0};
+
+  progress_init("Writing structure:", swarmcount);
+
+  for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
+    {
+      if (! swarminfo[swarmid].attached)
+        {
+          unsigned int seed = swarminfo[swarmid].seed;
+
+          struct ampinfo_s * bp = ampinfo + seed;
+
+          for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
+            {
+              uint64_t graft_parent = ampinfo[a].graft_cand;
+              if (graft_parent != no_swarm)
+                {
+                  fprint_id_noabundance(internal_structure_file,
+                                        graft_parent, p.opt_usearch_abundance);
+                  fprintf(internal_structure_file, "\t");
+                  fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
+                  fprintf(internal_structure_file,
+                          "\t%d\t%u\t%u\n",
+                          2,
+                          cluster_no + 1,
+                          ampinfo[graft_parent].generation + 1);
+                }
+
+              uint64_t parent = ampinfo[a].parent;
+              if (parent != no_swarm)
+                {
+                  fprint_id_noabundance(internal_structure_file, parent, p.opt_usearch_abundance);
+                  fprintf(internal_structure_file, "\t");
+                  fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
+                  fprintf(internal_structure_file,
+                          "\t%u\t%u\t%u\n",
+                          1U,
+                          cluster_no + 1,
+                          ampinfo[a].generation);
+                }
+            }
+
+          ++cluster_no;
+        }
+      progress_update(swarmid);
+    }
+  progress_done();
+}
+
+
+auto write_stats_file(const unsigned int swarmcount,
                       struct Parameters const & p) -> void {
   progress_init("Writing stats:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
@@ -1259,56 +1311,9 @@ void algo_d1_run(struct Parameters const & p)
 
   /* output internal structure */
 
-  if (! p.opt_internal_structure.empty())
-    {
-      unsigned int cluster_no = 0;
-
-      progress_init("Writing structure:", swarmcount);
-
-      for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
-        {
-          if (!swarminfo[swarmid].attached)
-            {
-              unsigned int seed = swarminfo[swarmid].seed;
-
-              struct ampinfo_s * bp = ampinfo + seed;
-
-              for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
-                {
-                  uint64_t graft_parent = ampinfo[a].graft_cand;
-                  if (graft_parent != no_swarm)
-                    {
-                      fprint_id_noabundance(internal_structure_file,
-                                            graft_parent, p.opt_usearch_abundance);
-                      fprintf(internal_structure_file, "\t");
-                      fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
-                      fprintf(internal_structure_file,
-                              "\t%d\t%u\t%u\n",
-                              2,
-                              cluster_no + 1,
-                              ampinfo[graft_parent].generation + 1);
-                    }
-
-                  uint64_t parent = ampinfo[a].parent;
-                  if (parent != no_swarm)
-                    {
-                      fprint_id_noabundance(internal_structure_file, parent, p.opt_usearch_abundance);
-                      fprintf(internal_structure_file, "\t");
-                      fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
-                      fprintf(internal_structure_file,
-                              "\t%u\t%u\t%u\n",
-                              1U,
-                              cluster_no + 1,
-                              ampinfo[a].generation);
-                    }
-                }
-
-              cluster_no++;
-            }
-          progress_update(swarmid);
-        }
-      progress_done();
-    }
+  if (! p.opt_internal_structure.empty()) {
+    write_structure_file(swarmcount, p);
+  }
 
 
   /* output swarm in uclust format */
@@ -1388,7 +1393,7 @@ void algo_d1_run(struct Parameters const & p)
   /* output statistics to file */
   if (statsfile != nullptr) {
     write_stats_file(swarmcount, p);
-    }
+  }
 
   fprintf(logfile, "\n");
   fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
