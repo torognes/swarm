@@ -751,6 +751,116 @@ inline void add_amp_to_swarm(unsigned int amp)
 }
 
 
+auto write_network_file(const unsigned int network_count,
+                        struct Parameters const & p) -> void {
+  progress_init("Dumping network:  ", network_count);
+
+  uint64_t n = 0;
+  for(auto seed = 0U; seed < amplicons; seed++)
+    {
+      struct ampinfo_s * ap = ampinfo + seed;
+
+      unsigned int link_start = ap->link_start;
+      unsigned int link_count = ap->link_count;
+
+      qsort(network + link_start,
+            link_count,
+            sizeof(unsigned int),
+            compare_amp);
+
+      for(auto i = 0U; i < link_count; i++)
+        {
+          unsigned int neighbour = network[link_start + i];
+          fprint_id(network_file, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprintf(network_file, "\t");
+          fprint_id(network_file, neighbour, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprintf(network_file, "\n");
+          n++;
+        }
+      progress_update(n);
+    }
+  progress_done();
+}
+
+
+auto write_swarms(const unsigned int swarmcount,
+                  struct Parameters const & p) -> void {
+  progress_init("Writing swarms:   ", swarmcount);
+
+  if (p.opt_mothur) {
+    fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, p.opt_differences, swarmcount_adjusted);
+  }
+
+  for(auto i = 0U; i < swarmcount; i++)
+    {
+      if (! swarminfo[i].attached)
+        {
+          unsigned int seed = swarminfo[i].seed;
+          for(auto a = seed; a != no_swarm; a = ampinfo[a].next)
+            {
+              if (p.opt_mothur)
+                {
+                  if (a == seed) {
+                    fputc('\t', outfile);
+                  }
+                  else {
+                    fputc(',', outfile);
+                  }
+                }
+              else
+                {
+                  if (a != seed) {
+                    fputc(sepchar, outfile);
+                  }
+                }
+              fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+            }
+          if (! p.opt_mothur) {
+            fputc('\n', outfile);
+          }
+        }
+      progress_update(i+1);
+    }
+
+  if (p.opt_mothur) {
+    fputc('\n', outfile);
+  }
+
+  progress_done();
+}
+
+
+auto write_representative_sequences(const unsigned int swarmcount,
+                                    struct Parameters const & p) -> void {
+  progress_init("Writing seeds:    ", swarmcount);
+
+  auto * sorter = static_cast<unsigned int *>
+    (xmalloc(swarmcount * sizeof(unsigned int)));
+  for(auto i = 0U; i < swarmcount; i++) {
+    sorter[i] = i;
+  }
+  qsort(sorter, swarmcount, sizeof(unsigned int), compare_mass);
+
+  for(auto j = 0U; j < swarmcount; j++)
+    {
+      unsigned int i = sorter[j];
+      if (!swarminfo[i].attached)
+        {
+          unsigned int seed = swarminfo[i].seed;
+          fprintf(fp_seeds, ">");
+          fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, p.opt_usearch_abundance);
+          fprintf(fp_seeds, "\n");
+          db_fprintseq(fp_seeds, seed, 0);
+        }
+      progress_update(i + 1);
+    }
+
+  xfree(sorter);
+
+  progress_done();
+}
+
+
 auto write_structure_file(const unsigned int swarmcount,
                           struct Parameters const & p) -> void {
   unsigned int cluster_no {0};
@@ -906,36 +1016,9 @@ void algo_d1_run(struct Parameters const & p)
 
   /* dump network to file */
 
-  if (! p.opt_network_file.empty())
-    {
-      progress_init("Dumping network:  ", network_count);
-
-      uint64_t n = 0;
-      for(auto seed = 0U; seed < amplicons; seed++)
-        {
-          struct ampinfo_s * ap = ampinfo + seed;
-
-          unsigned int link_start = ap->link_start;
-          unsigned int link_count = ap->link_count;
-
-          qsort(network + link_start,
-                link_count,
-                sizeof(unsigned int),
-                compare_amp);
-
-          for(auto i = 0U; i < link_count; i++)
-            {
-              unsigned int neighbour = network[link_start + i];
-              fprint_id(network_file, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-              fprintf(network_file, "\t");
-              fprint_id(network_file, neighbour, p.opt_usearch_abundance, p.opt_append_abundance);
-              fprintf(network_file, "\n");
-              n++;
-            }
-          progress_update(n);
-        }
-      progress_done();
-    }
+  if (! p.opt_network_file.empty()) {
+    write_network_file(network_count, p);
+  }
 
 
   /* for each non-swarmed amplicon look for subseeds ... */
@@ -1231,86 +1314,14 @@ void algo_d1_run(struct Parameters const & p)
 
 
   /* dump swarms */
-
-  progress_init("Writing swarms:   ", swarmcount);
-
-  if (p.opt_mothur) {
-    fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, p.opt_differences, swarmcount_adjusted);
-  }
-
-  for(auto i = 0U; i < swarmcount; i++)
-    {
-      if (!swarminfo[i].attached)
-        {
-          unsigned int seed = swarminfo[i].seed;
-          for(auto a = seed; a != no_swarm; a = ampinfo[a].next)
-            {
-              if (p.opt_mothur)
-                {
-                  if (a == seed) {
-                    fputc('\t', outfile);
-                  }
-                  else {
-                    fputc(',', outfile);
-                  }
-                }
-              else
-                {
-                  if (a != seed) {
-                    fputc(sepchar, outfile);
-                  }
-                }
-              fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
-            }
-          if (! p.opt_mothur) {
-            fputc('\n', outfile);
-          }
-        }
-      progress_update(i+1);
-    }
-
-  if (p.opt_mothur) {
-    fputc('\n', outfile);
-  }
-
-  progress_done();
-
+  write_swarms(swarmcount, p);
 
   /* dump seeds in fasta format with sum of abundances */
-
-  if (! p.opt_seeds.empty())
-    {
-      progress_init("Writing seeds:    ", swarmcount);
-
-      auto * sorter = static_cast<unsigned int *>
-        (xmalloc(swarmcount * sizeof(unsigned int)));
-      for(auto i = 0U; i < swarmcount; i++) {
-        sorter[i] = i;
-      }
-      qsort(sorter, swarmcount, sizeof(unsigned int), compare_mass);
-
-      for(auto j = 0U; j < swarmcount; j++)
-        {
-          unsigned int i = sorter[j];
-          if (!swarminfo[i].attached)
-            {
-              unsigned int seed = swarminfo[i].seed;
-              fprintf(fp_seeds, ">");
-              fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, p.opt_usearch_abundance);
-              fprintf(fp_seeds, "\n");
-              db_fprintseq(fp_seeds, seed, 0);
-            }
-          progress_update(i+1);
-        }
-
-      xfree(sorter);
-
-      progress_done();
-    }
-
+  if (! p.opt_seeds.empty()) {
+    write_representative_sequences(swarmcount, p);
+  }
 
   /* output internal structure */
-
   if (! p.opt_internal_structure.empty()) {
     write_structure_file(swarmcount, p);
   }
