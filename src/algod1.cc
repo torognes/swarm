@@ -830,6 +830,85 @@ auto write_swarms(const unsigned int swarmcount,
 }
 
 
+auto write_swarms_uclust_format(const unsigned int swarmcount,
+                                struct Parameters const & p,
+                                unsigned char * dir,
+                                uint64_t * hearray) -> void {
+  unsigned int cluster_no = 0;
+  dir = static_cast<unsigned char *>(xmalloc(longestamplicon * longestamplicon));
+  hearray = static_cast<uint64_t *>(xmalloc(2 * longestamplicon * sizeof(uint64_t)));
+
+  progress_init("Writing UCLUST:   ", swarmcount);
+
+  for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
+    {
+      if (!swarminfo[swarmid].attached)
+        {
+          unsigned int seed = swarminfo[swarmid].seed;
+
+          struct ampinfo_s * bp = ampinfo + seed;
+
+          fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+                  cluster_no,
+                  swarminfo[swarmid].size);
+          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprintf(uclustfile, "\t*\n");
+
+          fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+                  cluster_no,
+                  db_getsequencelen(seed));
+          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprintf(uclustfile, "\t*\n");
+
+          for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
+            {
+              char * dseq = db_getsequence(a);
+              int64_t dlen = db_getsequencelen(a);
+              char * qseq = db_getsequence(seed);
+              int64_t qlen = db_getsequencelen(seed);
+
+              int64_t nwscore = 0;
+              int64_t nwdiff = 0;
+              char * nwalignment = nullptr;
+              int64_t nwalignmentlength = 0;
+              constexpr unsigned int one_hundred {100};
+
+              nw(dseq, dlen, qseq, qlen,
+                 score_matrix_63, penalty_gapopen, penalty_gapextend,
+                 & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
+                 dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
+
+              double percentid
+                = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
+                / static_cast<double>(nwalignmentlength);
+
+              fprintf(uclustfile,
+                      "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                      cluster_no,
+                      db_getsequencelen(a),
+                      percentid,
+                      nwdiff > 0 ? nwalignment : "=");
+
+              fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+              fprintf(uclustfile, "\t");
+              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+              fprintf(uclustfile, "\n");
+
+              if (nwalignment != nullptr) {
+                xfree(nwalignment);
+              }
+            }
+
+          ++cluster_no;
+        }
+      progress_update(swarmid);
+    }
+  progress_done();
+  xfree(dir);
+  xfree(hearray);
+}
+
+
 auto write_representative_sequences(const unsigned int swarmcount,
                                     struct Parameters const & p) -> void {
   progress_init("Writing seeds:    ", swarmcount);
@@ -987,14 +1066,6 @@ void algo_d1_run(struct Parameters const & p)
 
   unsigned char * dir = nullptr;
   uint64_t * hearray = nullptr;
-
-  if (uclustfile != nullptr)
-    {
-      dir = static_cast<unsigned char *>
-        (xmalloc(longestamplicon*longestamplicon));
-      hearray = static_cast<uint64_t *>
-        (xmalloc(2 * longestamplicon * sizeof(uint64_t)));
-    }
 
   /* for all amplicons, generate list of matching amplicons */
 
@@ -1326,80 +1397,10 @@ void algo_d1_run(struct Parameters const & p)
     write_structure_file(swarmcount, p);
   }
 
-
   /* output swarm in uclust format */
-
-  if (uclustfile != nullptr)
-    {
-      unsigned int cluster_no = 0;
-
-      progress_init("Writing UCLUST:   ", swarmcount);
-
-      for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
-        {
-          if (!swarminfo[swarmid].attached)
-            {
-              unsigned int seed = swarminfo[swarmid].seed;
-
-              struct ampinfo_s * bp = ampinfo + seed;
-
-              fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
-                      cluster_no,
-                      swarminfo[swarmid].size);
-              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-              fprintf(uclustfile, "\t*\n");
-
-              fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                      cluster_no,
-                      db_getsequencelen(seed));
-              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-              fprintf(uclustfile, "\t*\n");
-
-              for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
-                {
-                  char * dseq = db_getsequence(a);
-                  int64_t dlen = db_getsequencelen(a);
-                  char * qseq = db_getsequence(seed);
-                  int64_t qlen = db_getsequencelen(seed);
-
-                  int64_t nwscore = 0;
-                  int64_t nwdiff = 0;
-                  char * nwalignment = nullptr;
-                  int64_t nwalignmentlength = 0;
-                  constexpr unsigned int one_hundred {100};
-
-                  nw(dseq, dlen, qseq, qlen,
-                     score_matrix_63, penalty_gapopen, penalty_gapextend,
-                     & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
-                     dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
-
-                  double percentid
-                    = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
-                    / static_cast<double>(nwalignmentlength);
-
-                  fprintf(uclustfile,
-                          "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                          cluster_no,
-                          db_getsequencelen(a),
-                          percentid,
-                          nwdiff > 0 ? nwalignment : "=");
-
-                  fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
-                  fprintf(uclustfile, "\t");
-                  fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-                  fprintf(uclustfile, "\n");
-
-                  if (nwalignment != nullptr) {
-                    xfree(nwalignment);
-                  }
-                }
-
-              cluster_no++;
-            }
-          progress_update(swarmid);
-        }
-      progress_done();
-    }
+  if (uclustfile != nullptr) {
+    write_swarms_uclust_format(swarmcount, p, dir, hearray);
+  }
 
   /* output statistics to file */
   if (statsfile != nullptr) {
@@ -1419,12 +1420,6 @@ void algo_d1_run(struct Parameters const & p)
   }
 
   xfree(ampinfo);
-
-  if (uclustfile != nullptr)
-    {
-      xfree(dir);
-      xfree(hearray);
-    }
 
 #ifdef HASHSTATS
   fprintf(logfile, "Tries:      %12lu\n", tries);
