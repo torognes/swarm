@@ -840,6 +840,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 struct Parameters const & p,
                                 unsigned char * dir,
                                 uint64_t * hearray) -> void {
+  constexpr unsigned int one_hundred {100};
   unsigned int cluster_no = 0;
   dir = static_cast<unsigned char *>(xmalloc(longestamplicon * longestamplicon));
   hearray = static_cast<uint64_t *>(xmalloc(2 * longestamplicon * sizeof(uint64_t)));
@@ -877,7 +878,6 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
               int64_t nwdiff = 0;
               char * nwalignment = nullptr;
               int64_t nwalignmentlength = 0;
-              constexpr unsigned int one_hundred {100};
 
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
@@ -1092,7 +1092,6 @@ void algo_d1_run(struct Parameters const & p)
 
 
   /* dump network to file */
-
   if (! p.opt_network_file.empty()) {
     write_network_file(network_count, p);
   }
