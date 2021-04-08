@@ -66,8 +66,8 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 {
   // Size is in bytes for full bitmap, must be power of 2
   // at least 8
-  constexpr unsigned int bytes_per_uint64 {8};
-  size = std::max(size, static_cast<uint64_t>(bytes_per_uint64));
+  constexpr uint64_t bytes_per_uint64 {8};
+  size = std::max(size, bytes_per_uint64);
 
   auto * b = static_cast<struct bloom_s *>(xmalloc(sizeof(struct bloom_s)));
 
@@ -83,6 +83,7 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 
   return b;
 }
+
 
 void bloom_exit(struct bloom_s * b)
 {
