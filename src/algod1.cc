@@ -173,6 +173,7 @@ inline auto check_amp_identical(unsigned int amp1,
   return status;
 }
 
+
 inline void hash_insert(unsigned int amp)
 {
   /* find the first empty bucket */
@@ -232,6 +233,7 @@ void attach(unsigned int seed, unsigned int amp)
   swarmcount_adjusted--;
 }
 
+
 void add_graft_candidate(unsigned int seed, unsigned int amp)
 {
   pthread_mutex_lock(&graft_mutex);
@@ -241,6 +243,7 @@ void add_graft_candidate(unsigned int seed, unsigned int amp)
   }
   pthread_mutex_unlock(&graft_mutex);
 }
+
 
 auto compare_grafts(const void * a, const void * b) -> int
 {
@@ -274,6 +277,7 @@ auto compare_grafts(const void * a, const void * b) -> int
 
   return status;
 }
+
 
 auto attach_candidates(unsigned int amplicon_count) -> unsigned int
 {
@@ -330,6 +334,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   return grafts;
 }
 
+
 auto hash_check_attach(char * seq,
                        unsigned int seqlen,
                        struct var_s * var,
@@ -364,6 +369,7 @@ auto hash_check_attach(char * seq,
   return false;
 }
 
+
 inline auto check_heavy_var_2(char * seq,
                                   unsigned int seqlen,
                                   unsigned int seed,
@@ -387,6 +393,7 @@ inline auto check_heavy_var_2(char * seq,
 
   return matches;
 }
+
 
 void check_heavy_var(struct bloomflex_s * bloom,
                      char * varseq,
@@ -443,6 +450,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
   *v = variant_count;
 }
 
+
 void check_heavy_thread(int64_t t)
 {
   constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
@@ -483,6 +491,7 @@ void check_heavy_thread(int64_t t)
   xfree(variant_list);
 }
 
+
 auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
                         struct var_s * variant_list) -> uint64_t
@@ -509,6 +518,7 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
   return variant_count;
 }
+
 
 void mark_light_thread(int64_t t)
 {
@@ -589,6 +599,7 @@ inline void find_variant_matches(unsigned int seed,
     }
 }
 
+
 void check_variants(unsigned int seed,
                     var_s * variant_list,
                     unsigned int * hits_data,
@@ -606,6 +617,7 @@ void check_variants(unsigned int seed,
     find_variant_matches(seed, variant_list + i, hits_data, hits_count);
   }
 }
+
 
 void network_thread(int64_t t)
 {
@@ -654,6 +666,7 @@ void network_thread(int64_t t)
   xfree(hits_data);
 }
 
+
 void process_seed(unsigned int seed)
 {
   /* update swarm stats */
@@ -698,6 +711,7 @@ void process_seed(unsigned int seed)
     }
 }
 
+
 auto compare_amp(const void * a, const void * b) -> int
 {
   /*
@@ -722,6 +736,7 @@ auto compare_amp(const void * a, const void * b) -> int
   return status;
 }
 
+
 auto compare_mass(const void * a, const void * b) -> int
 {
   const swarminfo_s * x = swarminfo + *(static_cast<const unsigned int *>(a));
@@ -742,6 +757,7 @@ auto compare_mass(const void * a, const void * b) -> int
   }
   return status;
 }
+
 
 inline void add_amp_to_swarm(unsigned int amp)
 {
@@ -849,7 +865,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
-      if (!swarminfo[swarmid].attached)
+      if (! swarminfo[swarmid].attached)
         {
           unsigned int seed = swarminfo[swarmid].seed;
 
@@ -929,7 +945,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
   for(auto j = 0U; j < swarmcount; j++)
     {
       unsigned int i = sorter[j];
-      if (!swarminfo[i].attached)
+      if (! swarminfo[i].attached)
         {
           unsigned int seed = swarminfo[i].seed;
           fprintf(fp_seeds, ">");
@@ -1004,7 +1020,7 @@ auto write_stats_file(const unsigned int swarmcount,
   for(auto i = 0ULL; i < swarmcount; i++)
     {
       swarminfo_s * sp = swarminfo + i;
-      if (!sp->attached)
+      if (! sp->attached)
         {
           fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
           fprint_id_noabundance(statsfile, sp->seed, p.opt_usearch_abundance);
