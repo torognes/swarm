@@ -38,7 +38,7 @@ void bloom_patterns_generate(struct bloom_s * b);
 void bloom_patterns_generate(struct bloom_s * b)
 {
   constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
-  const unsigned int k {8};
+  constexpr unsigned int k {8};
   for(auto i = 0U; i < bloom_pattern_count; i++)
     {
       uint64_t pattern {0};
