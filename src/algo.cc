@@ -78,6 +78,114 @@ auto compare_mass_seed(const void * a, const void * b) -> int
   return status;
 }
 
+
+auto write_representative_sequences(const uint64_t amplicons,
+                                    struct Parameters const & p) -> void {
+
+  uint64_t swarmcount {0};
+  progress_init("Sorting seeds:    ", amplicons);
+  auto * swarminfo = static_cast<struct swarminfo_t *>
+    (xmalloc(swarmed * sizeof(struct swarminfo_t)));
+  uint64_t mass {0};
+  unsigned previd = amps[0].swarmid;
+  unsigned seed = amps[0].ampliconid;
+  mass += db_getabundance(seed);
+  for(auto i = 1ULL; i < amplicons; i++)
+    {
+      unsigned id = amps[i].swarmid;
+      if (id != previd)
+        {
+          swarminfo[swarmcount].seed = seed;
+          swarminfo[swarmcount].mass = mass;
+          swarmcount++;
+          mass = 0;
+          seed = amps[i].ampliconid;
+        }
+      mass += db_getabundance(amps[i].ampliconid);
+      previd = id;
+      progress_update(i);
+    }
+  swarminfo[swarmcount].seed = seed;
+  swarminfo[swarmcount].mass = mass;
+  swarmcount++;
+  qsort(swarminfo, swarmcount, sizeof(swarminfo_t), compare_mass_seed);
+  progress_done();
+
+  progress_init("Writing seeds:    ", swarmcount);
+  for(auto i = 0ULL; i < swarmcount; i++)
+    {
+      uint64_t swarm_mass = swarminfo[i].mass;
+      unsigned int swarm_seed = swarminfo[i].seed;
+
+      fprintf(fp_seeds, ">");
+      fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, p.opt_usearch_abundance);
+      fprintf(fp_seeds, "\n");
+      db_fprintseq(fp_seeds, swarm_seed, 0);
+      progress_update(i);
+    }
+  xfree(swarminfo);
+  progress_done();
+}
+
+
+auto write_swarms_default_format(const uint64_t amplicons,
+                                 struct Parameters const & p) -> void {
+  /* native swarm output */
+  constexpr char sep_amplicons {sepchar};  /* usually a space */
+  constexpr char sep_swarms {'\n'};
+
+  fprint_id(outfile, amps[0].ampliconid,
+            p.opt_usearch_abundance, p.opt_append_abundance);
+  int64_t previd = amps[0].swarmid;
+
+  for(auto i = 1ULL; i < amplicons; i++)
+    {
+      int64_t id = amps[i].swarmid;
+      if (id == previd) {
+        fputc(sep_amplicons, outfile);
+      }
+      else {
+        fputc(sep_swarms, outfile);
+      }
+      fprint_id(outfile, amps[i].ampliconid,
+                p.opt_usearch_abundance, p.opt_append_abundance);
+      previd = id;
+    }
+  fputc('\n', outfile);
+}
+
+
+auto write_swarms_mothur_format(const uint64_t amplicons,
+                                const unsigned int swarmid,
+                                struct Parameters const & p) -> void {
+  /* mothur list file output */
+  constexpr char sep_amplicons {','};
+  constexpr char sep_swarms {'\t'};
+
+  fprintf(outfile, "swarm_%" PRId64 "\t%u\t", p.opt_differences, swarmid);
+
+  fprint_id(outfile, amps[0].ampliconid,
+            p.opt_usearch_abundance, p.opt_append_abundance);
+  int64_t previd = amps[0].swarmid;
+
+  for(auto i = 1ULL; i < amplicons; i++)
+    {
+      int64_t id = amps[i].swarmid;
+      if (id == previd) {
+        fputc(sep_amplicons, outfile);
+      }
+      else {
+        fputc(sep_swarms, outfile);
+      }
+      fprint_id(outfile, amps[i].ampliconid,
+                p.opt_usearch_abundance, p.opt_append_abundance);
+      previd = id;
+    }
+
+  fputc('\n', outfile);
+}
+
+
 void algo_run(struct Parameters const & p)
 {
   search_begin();
@@ -562,96 +670,21 @@ void algo_run(struct Parameters const & p)
     }
 
 
-  /* output results */
-
-  if (amplicons > 0)
-    {
-      char sep_amplicons {0};
-      char sep_swarms {0};
-
-      if (p.opt_mothur)
-        {
-          /* mothur list file output */
-          sep_amplicons = ',';
-          sep_swarms = '\t';
-          fprintf(outfile, "swarm_%" PRId64 "\t%u\t",
-                  p.opt_differences, swarmid);
-        }
-      else
-        {
-          /* native swarm output */
-          sep_amplicons = sepchar;  /* usually a space */
-          sep_swarms = '\n';
-        }
-
-      fprint_id(outfile, amps[0].ampliconid, p.opt_usearch_abundance, p.opt_append_abundance);
-      int64_t previd = amps[0].swarmid;
-
-      for(auto i = 1ULL; i < amplicons; i++)
-        {
-          int64_t id = amps[i].swarmid;
-          if (id == previd) {
-            fputc(sep_amplicons, outfile);
-          }
-          else {
-            fputc(sep_swarms, outfile);
-          }
-          fprint_id(outfile, amps[i].ampliconid, p.opt_usearch_abundance, p.opt_append_abundance);
-          previd = id;
-        }
-
-      fputc('\n', outfile);
+  /* output swarms */
+  if (amplicons > 0) {
+    if (p.opt_mothur) {
+      write_swarms_mothur_format(amplicons, swarmid, p);
     }
+    else {
+      write_swarms_default_format(amplicons, p);
+    }
+  }
 
 
   /* dump seeds in fasta format with sum of abundances */
-
-  if ((! p.opt_seeds.empty()) && (amplicons > 0))
-    {
-      uint64_t swarmcount {0};
-      progress_init("Sorting seeds:    ", amplicons);
-      auto * swarminfo = static_cast<struct swarminfo_t *>
-        (xmalloc(swarmed * sizeof(struct swarminfo_t)));
-      uint64_t mass {0};
-      unsigned previd = amps[0].swarmid;
-      unsigned seed = amps[0].ampliconid;
-      mass += db_getabundance(seed);
-      for(auto i = 1ULL; i < amplicons; i++)
-        {
-          unsigned id = amps[i].swarmid;
-          if (id != previd)
-            {
-              swarminfo[swarmcount].seed = seed;
-              swarminfo[swarmcount].mass = mass;
-              swarmcount++;
-              mass = 0;
-              seed = amps[i].ampliconid;
-            }
-          mass += db_getabundance(amps[i].ampliconid);
-          previd = id;
-          progress_update(i);
-        }
-      swarminfo[swarmcount].seed = seed;
-      swarminfo[swarmcount].mass = mass;
-      swarmcount++;
-      qsort(swarminfo, swarmcount, sizeof(swarminfo_t), compare_mass_seed);
-      progress_done();
-
-      progress_init("Writing seeds:    ", swarmcount);
-      for(auto i = 0ULL; i < swarmcount; i++)
-        {
-          uint64_t swarm_mass = swarminfo[i].mass;
-          unsigned int swarm_seed = swarminfo[i].seed;
-
-          fprintf(fp_seeds, ">");
-          fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, p.opt_usearch_abundance);
-          fprintf(fp_seeds, "\n");
-          db_fprintseq(fp_seeds, swarm_seed, 0);
-          progress_update(i);
-        }
-      xfree(swarminfo);
-      progress_done();
-    }
+  if ((not p.opt_seeds.empty()) && (amplicons > 0)) {
+    write_representative_sequences(amplicons, p);
+  }
 
 
   xfree(qgramdiffs);
