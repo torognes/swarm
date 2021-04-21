@@ -32,7 +32,6 @@ void score_matrix_read(struct Parameters const & p)
 {
   constexpr int cells {32};
   constexpr long long int one_thousand {1000};
-  constexpr unsigned int multiplier {5};
   long long int sc {0};
   long long int hi {-one_thousand};
   long long int lo {one_thousand};
@@ -51,15 +50,15 @@ void score_matrix_read(struct Parameters const & p)
       if (sc > hi) {
         hi = sc;
       }
-      score_matrix_63[(a << multiplier) + b] = sc;
+      score_matrix_63[(a * cells) + b] = sc;
     }
   }
 
   for(auto a = 0; a < cells; a++) {
     for(auto b = 0; b < cells; b++) {
-      sc = score_matrix_63[(a << multiplier) + b];
-      score_matrix_8[(a << multiplier) + b] = static_cast<unsigned char>(sc);
-      score_matrix_16[(a << multiplier) + b] = static_cast<unsigned short>(sc);
+      sc = score_matrix_63[(a * cells) + b];
+      score_matrix_8[(a * cells) + b] = static_cast<unsigned char>(sc);
+      score_matrix_16[(a * cells) + b] = static_cast<unsigned short>(sc);
     }
   }
 }
