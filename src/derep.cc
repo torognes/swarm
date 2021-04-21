@@ -78,6 +78,167 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
 }
 
 
+auto write_stats_file(const uint64_t swarmcount,
+                      struct Parameters const & p,
+                      struct bucket * hashtable) -> void {
+  progress_init("Writing stats:    ", swarmcount);
+  for(auto i = 0ULL; i < swarmcount; i++)
+    {
+      struct bucket * sp = hashtable + i;
+      fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
+      fprint_id_noabundance(statsfile, sp->seqno_first, p.opt_usearch_abundance);
+      fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+              db_getabundance(sp->seqno_first),
+              sp->singletons, 0U, 0U);
+      progress_update(i);
+    }
+  progress_done();
+}
+
+
+auto write_structure_file(const uint64_t swarmcount,
+                          struct Parameters const & p,
+                          struct bucket * hashtable,
+                          unsigned int * nextseqtab) -> void {
+  progress_init("Writing structure:", swarmcount);
+
+  for(uint64_t i = 0; i < swarmcount; i++)
+    {
+      struct bucket * sp = hashtable + i;
+      uint64_t seed = sp->seqno_first;
+      unsigned int a = nextseqtab[seed];
+      while (a != 0U)
+        {
+          fprint_id_noabundance(internal_structure_file, seed, p.opt_usearch_abundance);
+          fprintf(internal_structure_file, "\t");
+          fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
+          fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i+1, 0);
+          a = nextseqtab[a];
+        }
+      progress_update(i);
+    }
+  progress_done();
+}
+
+
+auto write_swarms_uclust_format(const uint64_t swarmcount,
+                                struct Parameters const & p,
+                                struct bucket * hashtable,
+                                unsigned int * nextseqtab) -> void {
+  progress_init("Writing UCLUST:   ", swarmcount);
+
+  for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
+    {
+      struct bucket * bp = hashtable + swarmid;
+
+      unsigned int seed = bp->seqno_first;
+
+      fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+              swarmid,
+              bp->size);
+      fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      fprintf(uclustfile, "\t*\n");
+
+      fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+              swarmid,
+              db_getsequencelen(seed));
+      fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      fprintf(uclustfile, "\t*\n");
+
+      unsigned int a = nextseqtab[seed];
+
+      while (a != 0U)
+        {
+          fprintf(uclustfile,
+                  "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                  swarmid,
+                  db_getsequencelen(a),
+                  100.0,
+                  "=");
+          fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprintf(uclustfile, "\t");
+          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprintf(uclustfile, "\n");
+          a = nextseqtab[a];
+        }
+
+      progress_update(swarmid+1);
+    }
+  progress_done();  
+}
+
+
+auto write_representative_sequences(const uint64_t swarmcount,
+                                    struct Parameters const & p,
+                                    struct bucket * hashtable) -> void {
+  progress_init("Writing seeds:    ", swarmcount);
+  for(auto i = 0U; i < swarmcount; i++)
+    {
+      unsigned int seed = hashtable[i].seqno_first;
+      fprintf(fp_seeds, ">");
+      fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, p.opt_usearch_abundance);
+      fprintf(fp_seeds, "\n");
+      db_fprintseq(fp_seeds, seed, 0);
+      progress_update(i+1);
+    }
+  progress_done();
+}
+
+
+auto write_swarms_mothur_format(const uint64_t swarmcount,
+                                struct Parameters const & p,
+                                struct bucket * hashtable,
+                                unsigned int * nextseqtab) -> void {
+  progress_init("Writing swarms:   ", swarmcount);
+  fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, p.opt_differences, swarmcount);
+
+  for(auto i = 0U; i < swarmcount; i++)
+    {
+      unsigned int seed = hashtable[i].seqno_first;
+      fputc('\t', outfile);
+      fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      unsigned int a = nextseqtab[seed];
+
+      while (a != 0U)
+        {
+          fputc(',', outfile);
+          fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+          a = nextseqtab[a];
+        }
+
+      progress_update(i+1);
+    }
+    fputc('\n', outfile);
+
+  progress_done();
+}
+
+
+auto write_swarms_default_format(const uint64_t swarmcount,
+                                 struct Parameters const & p,
+                                 struct bucket * hashtable,
+                                 unsigned int * nextseqtab) -> void {
+  progress_init("Writing swarms:   ", swarmcount);
+  for(auto i = 0U; i < swarmcount; i++)
+    {
+      unsigned int seed = hashtable[i].seqno_first;
+      fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      unsigned int a = nextseqtab[seed];
+
+      while (a != 0U)
+        {
+          fputc(sepchar, outfile);
+          fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+          a = nextseqtab[a];
+        }
+      fputc('\n', outfile);
+      progress_update(i+1);
+    }
+
+  progress_done();
+}
+
+
 void dereplicate(struct Parameters const & p)
 {
   const uint64_t dbsequencecount = db_getsequencecount();
@@ -178,153 +339,32 @@ void dereplicate(struct Parameters const & p)
 
 
   /* dump swarms */
-
-  progress_init("Writing swarms:   ", swarmcount);
-
   if (p.opt_mothur) {
-    fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, p.opt_differences, swarmcount);
+    write_swarms_mothur_format(swarmcount, p, hashtable, nextseqtab);
   }
-
-  for(auto i = 0U; i < swarmcount; i++)
-    {
-      unsigned int seed = hashtable[i].seqno_first;
-      if (p.opt_mothur) {
-        fputc('\t', outfile);
-      }
-      fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-      unsigned int a = nextseqtab[seed];
-
-      while (a != 0U)
-        {
-          if (p.opt_mothur) {
-            fputc(',', outfile);
-          }
-          else {
-            fputc(sepchar, outfile);
-          }
-          fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
-          a = nextseqtab[a];
-        }
-
-      if (! p.opt_mothur) {
-        fputc('\n', outfile);
-      }
-
-      progress_update(i+1);
-    }
-
-  if (p.opt_mothur) {
-    fputc('\n', outfile);
+  else {
+    write_swarms_default_format(swarmcount, p, hashtable, nextseqtab);
   }
-
-  progress_done();
-
 
   /* dump seeds in fasta format with sum of abundances */
-
-  if (! p.opt_seeds.empty())
-    {
-      progress_init("Writing seeds:    ", swarmcount);
-      for(auto i = 0U; i < swarmcount; i++)
-        {
-          unsigned int seed = hashtable[i].seqno_first;
-          fprintf(fp_seeds, ">");
-          fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, p.opt_usearch_abundance);
-          fprintf(fp_seeds, "\n");
-          db_fprintseq(fp_seeds, seed, 0);
-          progress_update(i+1);
-        }
-      progress_done();
-    }
+  if (not p.opt_seeds.empty()) {
+    write_representative_sequences(swarmcount, p, hashtable);
+  }
 
   /* output swarm in uclust format */
-
-  if (uclustfile != nullptr)
-    {
-      progress_init("Writing UCLUST:   ", swarmcount);
-
-      for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
-        {
-          struct bucket * bp = hashtable + swarmid;
-
-          unsigned int seed = bp->seqno_first;
-
-          fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  swarmid,
-                  bp->size);
-          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-          fprintf(uclustfile, "\t*\n");
-
-          fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  swarmid,
-                  db_getsequencelen(seed));
-          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-          fprintf(uclustfile, "\t*\n");
-
-          unsigned int a = nextseqtab[seed];
-
-          while (a != 0U)
-            {
-              fprintf(uclustfile,
-                      "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                      swarmid,
-                      db_getsequencelen(a),
-                      100.0,
-                      "=");
-              fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
-              fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
-              fprintf(uclustfile, "\n");
-              a = nextseqtab[a];
-            }
-
-          progress_update(swarmid+1);
-        }
-      progress_done();
-    }
+  if (uclustfile != nullptr) {
+    write_swarms_uclust_format(swarmcount, p, hashtable, nextseqtab);
+  }
 
   /* output internal structure to file */
-
-  if (! p.opt_internal_structure.empty())
-    {
-      progress_init("Writing structure:", swarmcount);
-
-      for(uint64_t i = 0; i < swarmcount; i++)
-        {
-          struct bucket * sp = hashtable + i;
-          uint64_t seed = sp->seqno_first;
-          unsigned int a = nextseqtab[seed];
-          while (a != 0U)
-            {
-              fprint_id_noabundance(internal_structure_file, seed, p.opt_usearch_abundance);
-              fprintf(internal_structure_file, "\t");
-              fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
-              fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i+1, 0);
-              a = nextseqtab[a];
-            }
-          progress_update(i);
-        }
-      progress_done();
-    }
+  if (not p.opt_internal_structure.empty()) {
+    write_structure_file(swarmcount, p, hashtable, nextseqtab);
+  }
 
   /* output statistics to file */
-
-  if (statsfile != nullptr)
-    {
-      progress_init("Writing stats:    ", swarmcount);
-      for(auto i = 0ULL; i < swarmcount; i++)
-        {
-          struct bucket * sp = hashtable + i;
-          fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
-          fprint_id_noabundance(statsfile, sp->seqno_first, p.opt_usearch_abundance);
-          fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                  db_getabundance(sp->seqno_first),
-                  sp->singletons, 0U, 0U);
-          progress_update(i);
-        }
-      progress_done();
-    }
-
+  if (statsfile != nullptr) {
+    write_stats_file(swarmcount, p, hashtable);
+  }
 
   fprintf(logfile, "\n");
   fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount);
