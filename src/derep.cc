@@ -33,7 +33,6 @@ struct bucket
   unsigned int singletons;
 };
 
-auto derep_compare(const void * a, const void * b) -> int;
 
 auto derep_compare(const void * a, const void * b) -> int
 {
