@@ -84,19 +84,6 @@ extern seqinfo_t * seqindex;
 seqinfo_t * seqindex {nullptr};
 qgramvector_t * qgrams {nullptr};
 
-auto db_compare_abundance(const void * a, const void * b) -> int;
-
-auto find_swarm_abundance(const char * header,
-                          int * start,
-                          int * end,
-                          int64_t * number) -> bool;
-
-auto find_usearch_abundance(const char * header,
-                            int * start,
-                            int * end,
-                            int64_t * number) -> bool;
-void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abundance, int64_t opt_append_abundance);
-
 
 auto db_getnucleotidecount() -> uint64_t
 {
