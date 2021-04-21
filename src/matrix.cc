@@ -23,38 +23,10 @@
 
 #include "swarm.h"
 
-unsigned char * score_matrix_8 = nullptr;
-unsigned short * score_matrix_16 = nullptr;
-int64_t * score_matrix_63 = nullptr;
+unsigned char * score_matrix_8 {nullptr};
+unsigned short * score_matrix_16 {nullptr};
+int64_t * score_matrix_63 {nullptr};
 
-void score_matrix_read(struct Parameters const & p);
-
-#if 0
-
-/* never used */
-
-void score_matrix_dump()
-{
-  fprintf(logfile, "     ");
-  for(auto i = 0; i < 16; i++)
-    fprintf(logfile, "%2d", i);
-  fprintf(logfile, "\n");
-  fprintf(logfile, "     ");
-  for(auto i = 0; i < 16; i++)
-    fprintf(logfile, " %c", sym_nt[i]);
-  fprintf(logfile, "\n");
-  for(auto i = 0; i < 16; i++)
-  {
-    fprintf(logfile, "%2d %c ", i, sym_nt[i]);
-    for(auto j = 0; j < 16; j++)
-      {
-        fprintf(logfile, "%2" PRId64, score_matrix_63[(i<<5) + j]);
-      }
-    fprintf(logfile, "\n");
-  }
-}
-
-#endif
 
 void score_matrix_read(struct Parameters const & p)
 {
@@ -92,11 +64,6 @@ void score_matrix_read(struct Parameters const & p)
   }
 }
 
-void score_matrix_init(struct Parameters const & p)
-{
-  score_matrix_read(p);
-  //  score_matrix_dump();
-}
 
 void score_matrix_free()
 {

@@ -402,7 +402,7 @@ void nw(char * dseq,
 
 /* functions in matrix.cc */
 
-void score_matrix_init(struct Parameters const & p);
+void score_matrix_read(struct Parameters const & p);
 void score_matrix_free();
 
 
