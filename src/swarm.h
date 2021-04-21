@@ -274,51 +274,6 @@ void qgram_diff_init();
 void qgram_diff_done();
 
 
-/* functions in db.cc */
-
-auto db_getsequencecount() -> unsigned int;
-auto db_getnucleotidecount() -> uint64_t;
-
-auto db_getlongestheader() -> unsigned int;
-auto db_getlongestsequence() -> unsigned int;
-
-auto db_getseqinfo(uint64_t seqno) -> seqinfo_t *;
-
-auto db_getsequence(uint64_t seqno) -> char *;
-auto db_getsequencelen(uint64_t seqno) -> unsigned int;
-
-auto db_gethash(uint64_t seqno) -> uint64_t;
-
-void db_getsequenceandlength(uint64_t seqno,
-                             char ** address,
-                             unsigned int * length);
-
-auto db_getheader(uint64_t seqno) -> char *;
-auto db_getheaderlen(uint64_t seqno) -> unsigned int;
-
-auto db_getabundance(uint64_t seqno) -> uint64_t;
-
-void db_showall();
-void db_free();
-
-void db_putseq(int64_t seqno);
-
-void db_qgrams_init();
-void db_qgrams_done();
-
-void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width);
-
-inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
-{
-  return reinterpret_cast<unsigned char*>(qgrams + seqno);
-}
-
-void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance, int64_t opt_append_abundance);
-void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abundance);
-void fprint_id_with_new_abundance(std::FILE * stream,
-                                  uint64_t seqno,
-                                  uint64_t abundance,
-                                  bool opt_usearch_abundance);
 
 #ifdef __x86_64__
 
