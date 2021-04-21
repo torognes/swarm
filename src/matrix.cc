@@ -30,7 +30,7 @@ int64_t * score_matrix_63 {nullptr};
 
 void score_matrix_read(struct Parameters const & p)
 {
-  constexpr int n_cells {32};
+  constexpr int n_cells {32};  // number of chars in sym_nt
   constexpr long long int one_thousand {1000};
   long long int sc {0};
   long long int hi {-one_thousand};
