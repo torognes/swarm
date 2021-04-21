@@ -28,6 +28,7 @@
 */
 
 #include "swarm.h"
+#include "matrix.h"
 
 constexpr unsigned int one_kilobyte {1 << 10};
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
@@ -858,6 +859,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 uint64_t * hearray) -> void {
   constexpr unsigned int one_hundred {100};
   unsigned int cluster_no = 0;
+  score_matrix_read(p);
   dir = static_cast<unsigned char *>(xmalloc(longestamplicon * longestamplicon));
   hearray = static_cast<uint64_t *>(xmalloc(2 * longestamplicon * sizeof(uint64_t)));
 
@@ -928,6 +930,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   progress_done();
   xfree(dir);
   xfree(hearray);
+  score_matrix_free();
 }
 
 

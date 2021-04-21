@@ -400,12 +400,6 @@ void nw(char * dseq,
         uint64_t dbseqno);
 
 
-/* functions in matrix.cc */
-
-void score_matrix_read(struct Parameters const & p);
-void score_matrix_free();
-
-
 /* functions in scan.cc */
 
 void search_all(uint64_t query_no);

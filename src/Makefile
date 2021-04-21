@@ -91,7 +91,7 @@ OBJS = swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
 
 DEPS = Makefile swarm.h \
 	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h \
-	x86_cpu_features.h
+	x86_cpu_features.h matrix.h
 
 
 all : $(PROG)

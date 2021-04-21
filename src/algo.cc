@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "matrix.h"
 
 static uint64_t count_comparisons_8;
 static uint64_t count_comparisons_16;
@@ -188,6 +189,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 
 void algo_run(struct Parameters const & p)
 {
+  score_matrix_read(p);
   search_begin();
 
   count_comparisons_8 = 0;
@@ -734,5 +736,6 @@ void algo_run(struct Parameters const & p)
 #endif
 
     search_end();
+    score_matrix_free();
 }
 

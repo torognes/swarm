@@ -651,8 +651,6 @@ auto main(int argc, char** argv) -> int
   // parse fasta input
   db_read(p.input_filename.c_str(), p);
 
-  score_matrix_read(p);  // move to algo.cc? no, score_marix is also used in algod1.cc
-
   // clustering
   switch (p.opt_differences)
     {
@@ -670,7 +668,6 @@ auto main(int argc, char** argv) -> int
     }
 
   // clean up
-  score_matrix_free();  // move to algo.cc?
   db_free();
   close_files();
 }
