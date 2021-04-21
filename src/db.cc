@@ -979,35 +979,3 @@ void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
     xfree(buf);
   }
 }
-
-
-#if 0
-
-/* Unused functions */
-
-unsigned int db_getheaderlen(uint64_t seqno)
-{
-  return seqindex[seqno].headerlen;
-}
-
-unsigned int db_getlongestheader()
-{
-  return longestheader;
-}
-
-seqinfo_t * db_getseqinfo(uint64_t seqno)
-{
-  return seqindex+seqno;
-}
-
-void db_putseq(int64_t seqno)
-{
-  char * seq {nullptr};
-  int64_t len {0};
-  db_getsequenceandlength(seqno, & seq, & len);
-  for(auto i = 0LL; i < len; i++) {
-    putchar(sym_nt[1 + nt_extract(seq, i)]);
-  }
-}
-
-#endif
