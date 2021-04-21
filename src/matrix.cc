@@ -30,18 +30,18 @@ int64_t * score_matrix_63 {nullptr};
 
 void score_matrix_read(struct Parameters const & p)
 {
-  constexpr int cells {32};
+  constexpr int n_cells {32};
   constexpr long long int one_thousand {1000};
   long long int sc {0};
   long long int hi {-one_thousand};
   long long int lo {one_thousand};
 
-  score_matrix_8 = static_cast<unsigned char *>(xmalloc(cells * cells * sizeof(char)));
-  score_matrix_16 = static_cast<unsigned short *>(xmalloc(cells * cells * sizeof(short)));
-  score_matrix_63 = static_cast<int64_t *>(xmalloc(cells * cells * sizeof(int64_t)));
+  score_matrix_8 = static_cast<unsigned char *>(xmalloc(n_cells * n_cells * sizeof(char)));
+  score_matrix_16 = static_cast<unsigned short *>(xmalloc(n_cells * n_cells * sizeof(short)));
+  score_matrix_63 = static_cast<int64_t *>(xmalloc(n_cells * n_cells * sizeof(int64_t)));
 
-  for(auto a = 0; a < cells / 2; a++) {
-    for(auto b = 0; b < cells / 2; b++) {
+  for(auto a = 0; a < n_cells / 2; a++) {
+    for(auto b = 0; b < n_cells / 2; b++) {
       sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : p.penalty_mismatch;
       // sc = (a==b) ? matchscore : mismatchscore;
       if (sc < lo) {
@@ -50,15 +50,15 @@ void score_matrix_read(struct Parameters const & p)
       if (sc > hi) {
         hi = sc;
       }
-      score_matrix_63[(a * cells) + b] = sc;
+      score_matrix_63[(a * n_cells) + b] = sc;
     }
   }
 
-  for(auto a = 0; a < cells; a++) {
-    for(auto b = 0; b < cells; b++) {
-      sc = score_matrix_63[(a * cells) + b];
-      score_matrix_8[(a * cells) + b] = static_cast<unsigned char>(sc);
-      score_matrix_16[(a * cells) + b] = static_cast<unsigned short>(sc);
+  for(auto a = 0; a < n_cells; a++) {
+    for(auto b = 0; b < n_cells; b++) {
+      sc = score_matrix_63[(a * n_cells) + b];
+      score_matrix_8[(a * n_cells) + b] = static_cast<unsigned char>(sc);
+      score_matrix_16[(a * n_cells) + b] = static_cast<unsigned short>(sc);
     }
   }
 }
