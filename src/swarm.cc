@@ -40,7 +40,8 @@ int64_t penalty_factor;
 int64_t penalty_gapextend;
 int64_t penalty_gapopen;
 
-/* Other variables */
+
+/* fine names and command line options */
 
 std::FILE * outfile {nullptr};
 std::FILE * statsfile {nullptr};
@@ -52,6 +53,37 @@ std::FILE * network_file {nullptr};
 
 constexpr int n_options {26};
 std::array<int, n_options> used_options {{0}};  // set int values to zero by default
+
+char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
+
+static struct option long_options[] =
+  {
+   {"append-abundance",      required_argument, nullptr, 'a' },
+   {"boundary",              required_argument, nullptr, 'b' },
+   {"ceiling",               required_argument, nullptr, 'c' },
+   {"differences",           required_argument, nullptr, 'd' },
+   {"gap-extension-penalty", required_argument, nullptr, 'e' },
+   {"fastidious",            no_argument,       nullptr, 'f' },
+   {"gap-opening-penalty",   required_argument, nullptr, 'g' },
+   {"help",                  no_argument,       nullptr, 'h' },
+   {"internal-structure",    required_argument, nullptr, 'i' },
+   {"log",                   required_argument, nullptr, 'l' },
+   {"network-file",          required_argument, nullptr, 'j' },
+   {"match-reward",          required_argument, nullptr, 'm' },
+   {"no-otu-breaking",       no_argument,       nullptr, 'n' },
+   {"output-file",           required_argument, nullptr, 'o' },
+   {"mismatch-penalty",      required_argument, nullptr, 'p' },
+   {"mothur",                no_argument,       nullptr, 'r' },
+   {"statistics-file",       required_argument, nullptr, 's' },
+   {"threads",               required_argument, nullptr, 't' },
+   {"uclust-file",           required_argument, nullptr, 'u' },
+   {"version",               no_argument,       nullptr, 'v' },
+   {"seeds",                 required_argument, nullptr, 'w' },
+   {"disable-sse3",          no_argument,       nullptr, 'x' },
+   {"bloom-bits",            required_argument, nullptr, 'y' },
+   {"usearch-abundance",     no_argument,       nullptr, 'z' },
+   {nullptr,                 0,                 nullptr, 0 }
+  };
 
 
 const std::vector<std::string> header_message
@@ -209,39 +241,6 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   opt_boundary = boundary_default;
   opt_threads = threads_default;
   opterr = 1;  // unused variable? get_opt option?
-
-  char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z";
-
-  /* unused short option letters: kq */
-
-  static struct option long_options[] =
-  {
-    {"append-abundance",      required_argument, nullptr, 'a' },
-    {"boundary",              required_argument, nullptr, 'b' },
-    {"ceiling",               required_argument, nullptr, 'c' },
-    {"differences",           required_argument, nullptr, 'd' },
-    {"gap-extension-penalty", required_argument, nullptr, 'e' },
-    {"fastidious",            no_argument,       nullptr, 'f' },
-    {"gap-opening-penalty",   required_argument, nullptr, 'g' },
-    {"help",                  no_argument,       nullptr, 'h' },
-    {"internal-structure",    required_argument, nullptr, 'i' },
-    {"log",                   required_argument, nullptr, 'l' },
-    {"network-file",          required_argument, nullptr, 'j' },
-    {"match-reward",          required_argument, nullptr, 'm' },
-    {"no-otu-breaking",       no_argument,       nullptr, 'n' },
-    {"output-file",           required_argument, nullptr, 'o' },
-    {"mismatch-penalty",      required_argument, nullptr, 'p' },
-    {"mothur",                no_argument,       nullptr, 'r' },
-    {"statistics-file",       required_argument, nullptr, 's' },
-    {"threads",               required_argument, nullptr, 't' },
-    {"uclust-file",           required_argument, nullptr, 'u' },
-    {"version",               no_argument,       nullptr, 'v' },
-    {"seeds",                 required_argument, nullptr, 'w' },
-    {"disable-sse3",          no_argument,       nullptr, 'x' },
-    {"bloom-bits",            required_argument, nullptr, 'y' },
-    {"usearch-abundance",     no_argument,       nullptr, 'z' },
-    {nullptr,                 0,                 nullptr, 0 }
-  };
 
   int c {0};
 
