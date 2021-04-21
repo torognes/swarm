@@ -23,6 +23,8 @@
 
 #include "swarm.h"
 #include "x86_cpu_features.h"
+#include "db.h"
+
 
 /* OPTIONS */
 

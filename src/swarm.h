@@ -273,9 +273,8 @@ void qgram_diff_fast(uint64_t seed,
 void qgram_diff_init();
 void qgram_diff_done();
 
-/* functions in db.cc */
 
-void db_read(const char * filename, struct Parameters const & p);
+/* functions in db.cc */
 
 auto db_getsequencecount() -> unsigned int;
 auto db_getnucleotidecount() -> uint64_t;

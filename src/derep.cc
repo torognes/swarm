@@ -22,6 +22,8 @@
 */
 
 #include "swarm.h"
+#include "db.h"
+
 
 struct bucket
 {
