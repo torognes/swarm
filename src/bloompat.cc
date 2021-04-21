@@ -39,7 +39,7 @@ void bloom_patterns_generate(struct bloom_s * b)
 {
   constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
   constexpr unsigned int k {8};
-  for(auto i = 0U; i < bloom_pattern_count; i++)
+  for(auto i = 0U; i < bloom_pattern_count; i++)  // range-loop '(unsigned long & i : b->patterns)' -> FAIL issue 123??
     {
       uint64_t pattern {0};
       for(auto j = 0U; j < k; j++)
