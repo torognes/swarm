@@ -63,6 +63,24 @@ static int missingabundance {0};
 static uint64_t missingabundance_lineno {0};
 static char * missingabundance_header {nullptr};
 
+struct seqinfo_s
+{
+  char * header;
+  char * seq;
+  uint64_t abundance;
+  uint64_t hdrhash;
+  uint64_t seqhash;
+  int headerlen;
+  unsigned int seqlen;
+  unsigned int clusterid;
+  int abundance_start;
+  int abundance_end;
+  int dummy; /* alignment padding only */
+};
+
+using seqinfo_t = struct seqinfo_s;
+extern seqinfo_t * seqindex;
+
 seqinfo_t * seqindex {nullptr};
 qgramvector_t * qgrams {nullptr};
 

@@ -130,25 +130,6 @@ using WORD = unsigned short;
 using BYTE = unsigned char;
 
 using qgramvector_t = unsigned char[qgramvectorbytes];
-
-struct seqinfo_s
-{
-  char * header;
-  char * seq;
-  uint64_t abundance;
-  uint64_t hdrhash;
-  uint64_t seqhash;
-  int headerlen;
-  unsigned int seqlen;
-  unsigned int clusterid;
-  int abundance_start;
-  int abundance_end;
-  int dummy; /* alignment padding only */
-};
-
-using seqinfo_t = struct seqinfo_s;
-
-extern seqinfo_t * seqindex;
 extern qgramvector_t * qgrams;
 
 struct queryinfo
