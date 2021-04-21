@@ -558,7 +558,7 @@ inline void find_variant_matches(unsigned int seed,
                                  unsigned int * hits_data,
                                  unsigned int * hits_count)
 {
-  if (! bloom_get(bloom_a, var->hash)) {
+  if (not bloom_get(bloom_a, var->hash)) {
     return;
   }
 
@@ -804,7 +804,7 @@ auto write_swarms_default_format(const unsigned int swarmcount,
   progress_init("Writing swarms:   ", swarmcount);
 
   for(auto i = 0U; i < swarmcount; i++) {
-    if (! swarminfo[i].attached) {
+    if (not swarminfo[i].attached) {
       unsigned int seed = swarminfo[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
         if (a != seed) {
@@ -830,7 +830,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
           p.opt_differences, swarmcount_adjusted);
 
   for(auto i = 0U; i < swarmcount; i++) {
-    if (! swarminfo[i].attached) {
+    if (not swarminfo[i].attached) {
       unsigned int seed = swarminfo[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
         if (a == seed) {
@@ -865,7 +865,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
-      if (! swarminfo[swarmid].attached)
+      if (not swarminfo[swarmid].attached)
         {
           unsigned int seed = swarminfo[swarmid].seed;
 
@@ -945,7 +945,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
   for(auto j = 0U; j < swarmcount; j++)
     {
       unsigned int i = sorter[j];
-      if (! swarminfo[i].attached)
+      if (not swarminfo[i].attached)
         {
           unsigned int seed = swarminfo[i].seed;
           fprintf(fp_seeds, ">");
@@ -970,7 +970,7 @@ auto write_structure_file(const unsigned int swarmcount,
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
-      if (! swarminfo[swarmid].attached)
+      if (not swarminfo[swarmid].attached)
         {
           unsigned int seed = swarminfo[swarmid].seed;
 
@@ -1020,7 +1020,7 @@ auto write_stats_file(const unsigned int swarmcount,
   for(auto i = 0ULL; i < swarmcount; i++)
     {
       swarminfo_s * sp = swarminfo + i;
-      if (! sp->attached)
+      if (not sp->attached)
         {
           fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
           fprint_id_noabundance(statsfile, sp->seed, p.opt_usearch_abundance);
@@ -1108,7 +1108,7 @@ void algo_d1_run(struct Parameters const & p)
 
 
   /* dump network to file */
-  if (! p.opt_network_file.empty()) {
+  if (not p.opt_network_file.empty()) {
     write_network_file(network_count, p);
   }
 
@@ -1414,12 +1414,12 @@ void algo_d1_run(struct Parameters const & p)
   }
 
   /* dump seeds in fasta format with sum of abundances */
-  if (! p.opt_seeds.empty()) {
+  if (not p.opt_seeds.empty()) {
     write_representative_sequences(swarmcount, p);
   }
 
   /* output internal structure */
-  if (! p.opt_internal_structure.empty()) {
+  if (not p.opt_internal_structure.empty()) {
     write_structure_file(swarmcount, p);
   }
 
