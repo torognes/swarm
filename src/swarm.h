@@ -68,9 +68,7 @@ constexpr char PRId64[] = "ld";
 #endif
 
 #ifdef __aarch64__
-
 #include <arm_neon.h>
-
 #elif defined __x86_64__
 
 #ifdef __SSE2__
@@ -140,6 +138,7 @@ struct queryinfo
 };
 
 using queryinfo_t = struct queryinfo;
+extern queryinfo_t query;
 
 /* common data */
 
@@ -202,8 +201,6 @@ extern unsigned short * score_matrix_16;
 extern int64_t * score_matrix_63;
 
 extern uint64_t longestdbsequence;
-
-extern queryinfo_t query;
 
 
 /* inline functions */
