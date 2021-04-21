@@ -46,6 +46,13 @@ auto make_nt_map () -> std::array<signed char, n_chars> {
 
 const auto map_nt = make_nt_map();
 
+const std::array<char, 32> sym_nt =
+  {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
+   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
+
+
 static unsigned int sequences {0};
 static uint64_t nucleotides {0};
 static uint64_t headerchars {0};
@@ -72,6 +79,7 @@ auto find_usearch_abundance(const char * header,
                             int64_t * number) -> bool;
 void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abundance, int64_t opt_append_abundance);
 
+
 void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance, int64_t opt_append_abundance)
 {
   seqinfo_t * sp = seqindex + x;
@@ -90,6 +98,7 @@ void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance, int64
     fprintf(stream, "%.*s", hdrlen, h);
   }
 }
+
 
 void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abundance)
 {
@@ -118,6 +127,7 @@ void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abun
   }
 }
 
+
 void fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t seqno,
                                   uint64_t abundance,
@@ -144,6 +154,7 @@ void fprint_id_with_new_abundance(std::FILE * stream,
   }
 }
 
+
 auto db_compare_abundance(const void * a, const void * b) -> int
 {
   const auto * x = reinterpret_cast<const seqinfo_t *>(a);
@@ -161,6 +172,7 @@ auto db_compare_abundance(const void * a, const void * b) -> int
   }
   return status;
 }
+
 
 auto find_swarm_abundance(const char * header,
                           int * start,
@@ -208,6 +220,7 @@ auto find_swarm_abundance(const char * header,
 
   return true;
 }
+
 
 auto find_usearch_abundance(const char * header,
                             int * start,
@@ -278,6 +291,7 @@ auto find_usearch_abundance(const char * header,
 
   return false;
 }
+
 
 void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abundance, int64_t opt_append_abundance)
 {
@@ -353,6 +367,7 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abu
   sp->abundance_start = start;
   sp->abundance_end = end;
 }
+
 
 void db_read(const char * filename, struct Parameters const & p)
 {
@@ -826,6 +841,7 @@ void db_read(const char * filename, struct Parameters const & p)
   fprintf(logfile, " longest %u nt\n", db_getlongestsequence());
 }
 
+
 void db_qgrams_init()
 {
   qgrams = static_cast<qgramvector_t *>
@@ -845,35 +861,42 @@ void db_qgrams_init()
   progress_done();
 }
 
+
 void db_qgrams_done()
 {
   xfree(qgrams);
 }
+
 
 auto db_getsequencecount() -> unsigned int
 {
   return sequences;
 }
 
+
 auto db_getnucleotidecount() -> uint64_t
 {
   return nucleotides;
 }
+
 
 auto db_getlongestsequence() -> unsigned int
 {
   return longest;
 }
 
+
 auto db_gethash(uint64_t seqno) -> uint64_t
 {
   return seqindex[seqno].seqhash;
 }
 
+
 auto db_getsequence(uint64_t seqno) -> char *
 {
   return seqindex[seqno].seq;
 }
+
 
 void db_getsequenceandlength(uint64_t seqno,
                              char ** address,
@@ -883,20 +906,24 @@ void db_getsequenceandlength(uint64_t seqno,
   *length = seqindex[seqno].seqlen;
 }
 
+
 auto db_getsequencelen(uint64_t seqno) -> unsigned int
 {
   return seqindex[seqno].seqlen;
 }
+
 
 auto db_getheader(uint64_t seqno) -> char *
 {
   return seqindex[seqno].header;
 }
 
+
 auto db_getabundance(uint64_t seqno) -> uint64_t
 {
   return seqindex[seqno].abundance;
 }
+
 
 void db_free()
 {
@@ -909,6 +936,7 @@ void db_free()
     xfree(seqindex);
   }
 }
+
 
 void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
 {
@@ -973,7 +1001,7 @@ void db_putseq(int64_t seqno)
   int64_t len {0};
   db_getsequenceandlength(seqno, & seq, & len);
   for(auto i = 0LL; i < len; i++) {
-    putchar(sym_nt[1+nt_extract(seq, i)]);
+    putchar(sym_nt[1 + nt_extract(seq, i)]);
   }
 }
 

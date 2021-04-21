@@ -122,11 +122,6 @@ constexpr unsigned int qgramlength {5};
 constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
 constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
 const std::string dash_filename {"-"};
-const std::array<char, 32> sym_nt =
-  {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 
 /* structures and data types */
