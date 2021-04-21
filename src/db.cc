@@ -80,6 +80,24 @@ auto find_usearch_abundance(const char * header,
 void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abundance, int64_t opt_append_abundance);
 
 
+auto db_getnucleotidecount() -> uint64_t
+{
+  return nucleotides;
+}
+
+
+auto db_getsequencecount() -> unsigned int
+{
+  return sequences;
+}
+
+
+auto db_getlongestsequence() -> unsigned int
+{
+  return longest;
+}
+
+
 void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance, int64_t opt_append_abundance)
 {
   seqinfo_t * sp = seqindex + x;
@@ -865,24 +883,6 @@ void db_qgrams_init()
 void db_qgrams_done()
 {
   xfree(qgrams);
-}
-
-
-auto db_getsequencecount() -> unsigned int
-{
-  return sequences;
-}
-
-
-auto db_getnucleotidecount() -> uint64_t
-{
-  return nucleotides;
-}
-
-
-auto db_getlongestsequence() -> unsigned int
-{
-  return longest;
 }
 
 
