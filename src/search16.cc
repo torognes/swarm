@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "db.h"
 
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
