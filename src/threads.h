@@ -82,7 +82,7 @@ public:
     for(auto i = 0ULL; i < thread_count; i++)
       {
         struct thread_s * tip = thread_array + i;
-        tip->t = i;
+        tip->t = static_cast<int64_t>(i);
         tip->work = 0;
         tip->fun = f;
         pthread_mutex_init(&tip->workmutex, nullptr);
