@@ -192,9 +192,7 @@ auto compareqgramvectors(unsigned char * a, unsigned char * b) -> uint64_t
   if (popcnt_present != 0) {
     return compareqgramvectors_popcnt(a, b);
   }
-  else {
-    return compareqgramvectors_128(a, b);
-  }
+  return compareqgramvectors_128(a, b);
 }
 
 #else
