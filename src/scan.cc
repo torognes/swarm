@@ -114,6 +114,7 @@ void search_init(struct search_data * sdp)
     int nt_value {nt_extract(query.seq, i) + 1};   // 1,  2,   3, or   4
     int byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
     int word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
+
     sdp->qtable[i]   = sdp->dprofile   + byte_offset;
     sdp->qtable_w[i] = sdp->dprofile_w + word_offset;
   }
@@ -245,9 +246,9 @@ void master_dump()
 
 void search_worker_core(int64_t t)
 {
-  search_init(sd+t);
+  search_init(sd + t);
   while(search_getwork(& sd[t].target_count, & sd[t].target_index)) {
-    search_chunk(sd+t, master_bits);
+    search_chunk(sd + t, master_bits);
   }
 }
 
@@ -311,7 +312,7 @@ void search_begin()
     (xmalloc(sizeof(search_data) * opt_threads));
 
   for(auto t = 0ULL; t < opt_threads; t++) {
-    search_alloc(sd+t);
+    search_alloc(sd + t);
   }
 
   pthread_mutex_init(& scan_mutex, nullptr);
@@ -331,7 +332,7 @@ void search_end()
   pthread_mutex_destroy(& scan_mutex);
 
   for(auto t = 0ULL; t < opt_threads; t++) {
-    search_free(sd+t);
+    search_free(sd + t);
   }
   xfree(sd);
 }
