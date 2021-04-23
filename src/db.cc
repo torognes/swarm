@@ -256,7 +256,7 @@ auto find_usearch_abundance(const char * header,
   */
 
   if (header == nullptr) {
-    return false;
+    return false;  // cannot be reached? replace with assert?
   }
 
   const std::string attribute {"size="};
@@ -956,7 +956,7 @@ void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
     buf = buffer;
   }
   else {
-    buf = static_cast<char*>(xmalloc(len+1));
+    buf = static_cast<char*>(xmalloc(len + 1));
   }
 
   for(auto i = 0U; i < len; i++) {
@@ -967,7 +967,7 @@ void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
   if (width < 1) {
     fprintf(fp, "%.*s\n", len, buf);
   }
-  else {
+  else { // unreachable: 'width' is always set to zero in algo, algod1 and derep
     auto rest = len;
     for(auto i = 0U; i < len; i += width) {
       fprintf(fp, "%.*s\n", std::min(rest, width), buf+i);
