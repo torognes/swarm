@@ -237,7 +237,7 @@ void qgram_diff_init()
     (xmalloc(opt_threads * sizeof(struct thread_info_s)));
 
   qgram_threads
-    = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
+    = new ThreadRunner(opt_threads, qgram_worker);
 }
 
 void qgram_diff_done()

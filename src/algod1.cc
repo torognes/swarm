@@ -1102,8 +1102,7 @@ void algo_d1_run(struct Parameters const & p)
   pthread_mutex_init(&network_mutex, nullptr);
   network_amp = 0;
   progress_init("Building network: ", amplicons);
-  auto * network_tr = new ThreadRunner(static_cast<int>(opt_threads),
-                                       network_thread);
+  auto * network_tr = new ThreadRunner(opt_threads, network_thread);
   network_tr->run();
   delete network_tr;
   pthread_mutex_destroy(&network_mutex);
@@ -1361,8 +1360,7 @@ void algo_d1_run(struct Parameters const & p)
           light_progress = 0;
           light_amplicon_count = amplicons_in_small_otus;
           light_amplicon = amplicons - 1;
-          auto * tr = new ThreadRunner(static_cast<int>(opt_threads),
-                                       mark_light_thread);
+          auto * tr = new ThreadRunner(opt_threads, mark_light_thread);
           tr->run();
           delete tr;
           pthread_mutex_destroy(&light_mutex);
@@ -1388,8 +1386,7 @@ void algo_d1_run(struct Parameters const & p)
           heavy_amplicon_count = amplicons_in_large_otus;
           heavy_amplicon = 0;
           auto * heavy_tr
-            = new ThreadRunner(static_cast<int>(opt_threads),
-                               check_heavy_thread);
+            = new ThreadRunner(opt_threads, check_heavy_thread);
           heavy_tr->run();
           delete heavy_tr;
           pthread_mutex_destroy(&heavy_mutex);
