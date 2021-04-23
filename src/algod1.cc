@@ -1388,7 +1388,7 @@ void algo_d1_run(struct Parameters const & p)
           heavy_amplicon_count = amplicons_in_large_otus;
           heavy_amplicon = 0;
           auto * heavy_tr
-            = new ThreadRunner(static_cast<int> (opt_threads),
+            = new ThreadRunner(static_cast<int>(opt_threads),
                                check_heavy_thread);
           heavy_tr->run();
           delete heavy_tr;
