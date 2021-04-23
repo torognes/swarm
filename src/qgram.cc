@@ -234,11 +234,10 @@ void qgram_diff_init()
 {
   /* allocate memory for thread info */
   ti = static_cast<struct thread_info_s *>
-    (xmalloc(static_cast<uint64_t>(opt_threads) *
-             sizeof(struct thread_info_s)));
+    (xmalloc(opt_threads * sizeof(struct thread_info_s)));
 
   qgram_threads
-    = new ThreadRunner(static_cast<int> (opt_threads), qgram_worker);
+    = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
 }
 
 void qgram_diff_done()
@@ -263,7 +262,7 @@ void qgram_diff_fast(uint64_t seed,
     }
   else
     {
-      auto thr = static_cast<uint64_t>(opt_threads);
+      auto thr {opt_threads};
 
       uint64_t * next_amplist = amplist;
       uint64_t * next_difflist = difflist;

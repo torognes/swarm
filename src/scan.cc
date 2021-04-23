@@ -269,7 +269,7 @@ void search_do(uint64_t query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  auto thr = static_cast<uint64_t>(opt_threads);
+  auto thr {opt_threads};
 
   if (bits == bit_mode_8)
     {
@@ -299,9 +299,9 @@ void search_begin()
   longestdbsequence = db_getlongestsequence();
 
   sd = static_cast<struct search_data *>
-    (xmalloc(sizeof(search_data) * static_cast<uint64_t>(opt_threads)));
+    (xmalloc(sizeof(search_data) * opt_threads));
 
-  for(auto t = 0LL; t < opt_threads; t++) {
+  for(auto t = 0ULL; t < opt_threads; t++) {
     search_alloc(sd+t);
   }
 
@@ -310,7 +310,7 @@ void search_begin()
   /* start threads */
 
   search_threads
-    = new ThreadRunner(static_cast<int> (opt_threads), search_worker_core);
+    = new ThreadRunner(static_cast<int>(opt_threads), search_worker_core);
 }
 
 void search_end()
@@ -321,7 +321,7 @@ void search_end()
 
   pthread_mutex_destroy(& scan_mutex);
 
-  for(auto t = 0LL; t < opt_threads; t++) {
+  for(auto t = 0ULL; t < opt_threads; t++) {
     search_free(sd+t);
   }
   xfree(sd);
