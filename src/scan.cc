@@ -66,7 +66,6 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool;
 void search_worker_core(int64_t t);
 auto search_worker(void * vp) -> void *;
 
-
 void search_alloc(struct search_data * sdp)
 {
   constexpr unsigned int one_kilobyte {1024};
@@ -92,7 +91,6 @@ void search_alloc(struct search_data * sdp)
   memset(sdp->dir_array, 0, dirbufferbytes);
 }
 
-
 void search_free(struct search_data * sdp)
 {
   xfree(sdp->qtable);
@@ -102,7 +100,6 @@ void search_free(struct search_data * sdp)
   xfree(sdp->hearray);
   xfree(sdp->dir_array);
 }
-
 
 void search_init(struct search_data * sdp)
 {
@@ -119,7 +116,6 @@ void search_init(struct search_data * sdp)
     sdp->qtable_w[i] = sdp->dprofile_w + word_offset;
   }
 }
-
 
 void search_chunk(struct search_data * sdp, int64_t bits)
 {
@@ -197,7 +193,6 @@ void search_chunk(struct search_data * sdp, int64_t bits)
  }
 }
 
-
 auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 {
   // * countref = how many sequences to search
@@ -225,7 +220,6 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
   return status;
 }
 
-
 #if 0
 
 /* never used */
@@ -243,7 +237,6 @@ void master_dump()
 
 #endif
 
-
 void search_worker_core(int64_t t)
 {
   search_init(sd + t);
@@ -251,7 +244,6 @@ void search_worker_core(int64_t t)
     search_chunk(sd + t, master_bits);
   }
 }
-
 
 void search_do(uint64_t query_no,
                uint64_t listlength,
@@ -278,7 +270,7 @@ void search_do(uint64_t query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  auto thr {opt_threads};
+  auto thr = static_cast<uint64_t>(opt_threads);
 
   if (bits == bit_mode_8)
     {
@@ -303,25 +295,24 @@ void search_do(uint64_t query_no,
   }
 }
 
-
 void search_begin()
 {
   longestdbsequence = db_getlongestsequence();
 
   sd = static_cast<struct search_data *>
-    (xmalloc(sizeof(search_data) * opt_threads));
+    (xmalloc(sizeof(search_data) * static_cast<uint64_t>(opt_threads)));
 
-  for(auto t = 0ULL; t < opt_threads; t++) {
-    search_alloc(sd + t);
+  for(auto t = 0LL; t < opt_threads; t++) {
+    search_alloc(sd+t);
   }
 
   pthread_mutex_init(& scan_mutex, nullptr);
 
   /* start threads */
 
-  search_threads = new ThreadRunner(opt_threads, search_worker_core);
+  search_threads
+    = new ThreadRunner(static_cast<int>(opt_threads), search_worker_core);
 }
-
 
 void search_end()
 {
@@ -331,8 +322,8 @@ void search_end()
 
   pthread_mutex_destroy(& scan_mutex);
 
-  for(auto t = 0ULL; t < opt_threads; t++) {
-    search_free(sd + t);
+  for(auto t = 0LL; t < opt_threads; t++) {
+    search_free(sd+t);
   }
   xfree(sd);
 }

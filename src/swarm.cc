@@ -36,7 +36,7 @@ std::string opt_log;
 
 int64_t opt_boundary;
 bool opt_no_otu_breaking {false};
-uint64_t opt_threads;
+int64_t opt_threads;
 
 int64_t penalty_factor;
 int64_t penalty_gapextend;
@@ -196,7 +196,7 @@ void args_show()
     fprintf(logfile, "Network file       %s\n", p.opt_network_file.c_str());
   }
   fprintf(logfile, "Resolution (d):    %" PRId64 "\n", p.opt_differences);
-  fprintf(logfile, "Threads:           %" PRIu64 "\n", opt_threads);
+  fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
 
   if (p.opt_differences > 1)
     {
