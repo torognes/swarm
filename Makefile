@@ -31,6 +31,7 @@ $(PROG) :
 
 install : $(PROG) $(MAN)
 	/usr/bin/install -c $(PROG) '/usr/local/bin'
+	/usr/bin/install -d '/usr/local/share/man/man1'
 	/usr/bin/install -c $(MAN) '/usr/local/share/man/man1'
 
 clean :
