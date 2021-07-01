@@ -64,7 +64,7 @@ else ifeq ($(MACHINE), aarch64)
 else ifeq ($(MACHINE), arm64)
 	COMMON += -std=c++11
 else ifeq ($(MACHINE), ppc64le)
-	COMMON += -mcpu=power8 -std=gnu++11
+	COMMON += -mcpu=power8 -maltivec -std=gnu++11
 endif
 
 # OS specific

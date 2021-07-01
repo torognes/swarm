@@ -17,8 +17,8 @@ osx_image:
 - xcode12.5
 
 compiler:
-- g++
-- clang
+- gcc
+#- clang
 
 addons:
   apt:
