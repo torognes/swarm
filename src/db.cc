@@ -431,24 +431,26 @@ void db_read(const char * filename, struct Parameters const & p)
       exit(1);
     }
   bool is_regular = S_ISREG(fs.st_mode);
-  int64_t filesize = is_regular ? fs.st_size : 0;
-  int64_t filepos = 0;
+  uint64_t filesize = is_regular ? fs.st_size : 0;
+  uint64_t filepos = 0;
 
   if (! is_regular) {
     fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
   }
 
-  char line[linealloc];
-  line[0] = 0;
-  if (fgets(line, linealloc, fp) == nullptr) {
-    line[0] = 0;
-  }
-
-  filepos += strlen(line);
+  size_t linecap = linealloc;
+  char * line = static_cast<char*>(xmalloc(linecap));
+  ssize_t linelen = getline(& line, & linecap, fp);
+  if (linelen < 0)
+    {
+      line[0] = 0;
+      linelen = 0;
+    }
+  filepos += linelen;
 
   unsigned int lineno {1};
 
-  progress_init("Reading sequences:", static_cast<uint64_t>(filesize));
+  progress_init("Reading sequences:", filesize);
 
   while(line[0] != 0)
     {
@@ -461,10 +463,6 @@ void db_read(const char * filename, struct Parameters const & p)
 
       auto headerlen = static_cast<unsigned int>
         (strcspn(line + 1, " \r\n"));
-
-      if (headerlen >= linealloc - 2) {
-        fatal("The FASTA header line is too long.");
-      }
 
       headerchars += headerlen;
 
@@ -498,12 +496,15 @@ void db_read(const char * filename, struct Parameters const & p)
 
       /* get next line */
 
-      line[0] = 0;
-      if (fgets(line, linealloc, fp) == nullptr) {
-        line[0] = 0;
-      }
+      linelen = getline(& line, & linecap, fp);
+      if (linelen < 0)
+        {
+          line[0] = 0;
+          linelen = 0;
+        }
+      filepos += linelen;
+
       lineno++;
-      filepos += strlen(line);
 
 
       /* store a dummy sequence length */
@@ -576,12 +577,15 @@ void db_read(const char * filename, struct Parameters const & p)
                 }
             }
 
-          line[0] = 0;
-          if (fgets(line, linealloc, fp) == nullptr) {
-            line[0] = 0;
-          }
+          linelen = getline(& line, & linecap, fp);
+          if (linelen < 0)
+            {
+              line[0] = 0;
+              linelen = 0;
+            }
+          filepos += linelen;
+
           lineno++;
-          filepos += strlen(line);
         }
 
       /* fill in real length */
@@ -831,6 +835,13 @@ void db_read(const char * filename, struct Parameters const & p)
     }
 
   progress_done();
+
+  if (line)
+    {
+      xfree(line);
+      line = nullptr;
+      linecap = 0;
+    }
 
   if (missingabundance != 0)
     {
