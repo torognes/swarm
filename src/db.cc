@@ -432,6 +432,7 @@ void db_read(const char * filename, struct Parameters const & p)
     }
   bool is_regular = S_ISREG(fs.st_mode);
   int64_t filesize = is_regular ? fs.st_size : 0;
+  int64_t filepos = 0;
 
   if (! is_regular) {
     fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
@@ -442,6 +443,8 @@ void db_read(const char * filename, struct Parameters const & p)
   if (fgets(line, linealloc, fp) == nullptr) {
     line[0] = 0;
   }
+
+  filepos += strlen(line);
 
   unsigned int lineno {1};
 
@@ -500,6 +503,7 @@ void db_read(const char * filename, struct Parameters const & p)
         line[0] = 0;
       }
       lineno++;
+      filepos += strlen(line);
 
 
       /* store a dummy sequence length */
@@ -577,6 +581,7 @@ void db_read(const char * filename, struct Parameters const & p)
             line[0] = 0;
           }
           lineno++;
+          filepos += strlen(line);
         }
 
       /* fill in real length */
@@ -616,7 +621,7 @@ void db_read(const char * filename, struct Parameters const & p)
       sequences++;
 
       if (is_regular) {
-        progress_update(static_cast<uint64_t>(ftell(fp)));
+        progress_update(filepos);
       }
     }
   progress_done();
