@@ -1,7 +1,8 @@
 Please cite swarm as follows:
 - Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014) Swarm: robust and fast clustering method for amplicon-based studies. PeerJ 2:e593 <http://dx.doi.org/10.7717/peerj.593>
 - Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015) Swarm v2: highly-scalable and high-resolution amplicon clustering. PeerJ 3:e1420 <https://doi.org/10.7717/peerj.1420>
-    
+- Mahé F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T. (2021) Swarm v3: towards tera-scale amplicon clustering. Bioinformatics <https://doi.org/10.1093/bioinformatics/btab493>
+
 Bibtex format:
 
 @article{10.7717/peerj.593,
@@ -32,4 +33,15 @@ Bibtex format:
  issn = {2167-8359},
  url = {https://doi.org/10.7717/peerj.1420},
  doi = {10.7717/peerj.1420}
+}
+
+@article{Mahe2021,
+ title = {{Swarm v3: towards tera-scale amplicon clustering}},
+ author = {Mah{\'{e}}, Fr{\'{e}}d{\'{e}}ric and Czech, Lucas and Stamatakis, Alexandros and Quince, Christopher and de Vargas, Colomban and Dunthorn, Micah and Rognes, Torbj{\o}rn},
+ year = {2021},
+ month = {jul},
+ abstract = {Motivation: Previously we presented swarm, an open-source amplicon clustering program that produces fine-scale molecular operational taxonomic units (OTUs) that are free of arbitrary global clustering thresholds. Here we present swarm v3 to address issues of contemporary datasets that are growing towards tera-byte sizes. Results: When compared to previous swarm versions, swarm v3 has modernized C++ source code, reduced memory footprint by up to 50{\%}, optimized CPU-usage and multithreading (more than 7 times faster with default parameters), and it has been extensively tested for its robustness and logic.},
+ journal = {Bioinformatics},
+ url = {https://doi.org/10.1093/bioinformatics/btab493},
+ doi = {10.1093/BIOINFORMATICS/BTAB493}
 }
