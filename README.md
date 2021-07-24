@@ -356,6 +356,10 @@ Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015)
 Swarm v2: highly-scalable and high-resolution amplicon clustering.
 PeerJ 3:e1420 doi: [10.7717/peerj.1420](http://dx.doi.org/10.7717/peerj.1420)
 
+Mahé F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T. (2021)
+Swarm v3: towards tera-scale amplicon clustering.
+Bioinformatics doi: [10.1093/bioinformatics/btab493](https://doi.org/10.1093/bioinformatics/btab493)
+
 
 ## Acknowledgments ##
 
