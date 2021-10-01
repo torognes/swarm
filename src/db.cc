@@ -341,14 +341,11 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abu
 
       if (find_usearch_abundance(header, & start, & end, & number))
         {
-          if (number > 0) {
-            abundance = number;
+          if (number <= 0) {
+            msg_illegal_abundance_value(lineno, header);
+            exit(1);
           }
-          else
-            {
-              msg_illegal_abundance_value(lineno, header);
-              exit(1);
-            }
+          abundance = number;
         }
     }
   else
@@ -357,14 +354,11 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abu
 
       if (find_swarm_abundance(header, & start, & end, & number))
         {
-          if (number > 0) {
-            abundance = number;
+          if (number <= 0) {
+            msg_illegal_abundance_value(lineno, header);
+            exit(1);
           }
-          else
-            {
-              msg_illegal_abundance_value(lineno, header);
-              exit(1);
-            }
+          abundance = number;
         }
     }
 
