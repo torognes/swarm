@@ -836,7 +836,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   progress_done();
 
-  if (line)
+  if (line != nullptr)
     {
       xfree(line);
       line = nullptr;
