@@ -373,6 +373,7 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abu
       else
         {
           missingabundance++;
+          // record the position of the first missing abundance entry
           if (missingabundance == 1)
             {
               missingabundance_lineno = lineno;
