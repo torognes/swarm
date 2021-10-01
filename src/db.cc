@@ -260,10 +260,9 @@ auto find_usearch_abundance(const char * header,
   }
 
   const std::string attribute {"size="};
-  const std::string digit_chars = "0123456789";
-
-  uint64_t hlen = strlen(header);
-  uint64_t alen = attribute.length();
+  const std::string digit_chars {"0123456789"};
+  const uint64_t hlen = strlen(header);
+  const uint64_t alen = attribute.length();
   uint64_t i = 0;
 
   while (i + alen < hlen)
