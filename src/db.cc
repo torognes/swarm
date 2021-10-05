@@ -103,13 +103,14 @@ auto db_getlongestsequence() -> unsigned int
 }
 
 
-void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance, int64_t opt_append_abundance)
+auto fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance,
+               int64_t opt_append_abundance) -> void
 {
-  seqinfo_t * sp = seqindex + x;
-  char * h = sp->header;
-  int hdrlen = sp->headerlen;
+  const seqinfo_t * sp = seqindex + x;
+  const char * h = sp->header;
+  const int hdrlen = sp->headerlen;
 
-  if (opt_append_abundance != 0 && (sp->abundance_start == sp->abundance_end)) {
+  if ((opt_append_abundance != 0) && (sp->abundance_start == sp->abundance_end)) {
     if (opt_usearch_abundance) {
       fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, h, sp->abundance);
     }
@@ -123,11 +124,11 @@ void fprint_id(std::FILE * stream, uint64_t x, bool opt_usearch_abundance, int64
 }
 
 
-void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abundance)
+auto fprint_id_noabundance(std::FILE * stream, uint64_t seqno, bool opt_usearch_abundance) -> void
 {
-  seqinfo_t * sp = seqindex + x;
-  char * h = sp->header;
-  int hdrlen = sp->headerlen;
+  const seqinfo_t * sp = seqindex + seqno;
+  const char * h = sp->header;
+  const int hdrlen = sp->headerlen;
 
   if (sp->abundance_start < sp->abundance_end)
     {
@@ -151,12 +152,12 @@ void fprint_id_noabundance(std::FILE * stream, uint64_t x, bool opt_usearch_abun
 }
 
 
-void fprint_id_with_new_abundance(std::FILE * stream,
+auto fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t seqno,
                                   uint64_t abundance,
-                                  bool opt_usearch_abundance)
+                                  bool opt_usearch_abundance) -> void
 {
-  seqinfo_t * sp = seqindex + seqno;
+  const seqinfo_t * sp = seqindex + seqno;
 
   if (opt_usearch_abundance) {
     fprintf(stream,
