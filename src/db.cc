@@ -952,11 +952,10 @@ void db_free()
 }
 
 
-void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
+auto db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width) -> void
 {
-  constexpr int default_length {1025};
-  char * seq = db_getsequence(a);
-  unsigned int len = db_getsequencelen(a);
+  constexpr static int default_length {1025};
+  const unsigned int len = db_getsequencelen(a);
   char buffer[default_length];
   char * buf {nullptr};
 
@@ -969,7 +968,7 @@ void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
   }
 
   for(auto i = 0U; i < len; i++) {
-    buf[i] = sym_nt[1 + nt_extract(seq, i)];
+    buf[i] = sym_nt[1 + nt_extract(db_getsequence(a), i)];
   }
   buf[len] = 0;
 
@@ -979,7 +978,7 @@ void db_fprintseq(std::FILE * fp, unsigned int a, unsigned int width)
   else { // unreachable: 'width' is always set to zero in algo, algod1 and derep
     auto rest = len;
     for(auto i = 0U; i < len; i += width) {
-      fprintf(fp, "%.*s\n", std::min(rest, width), buf+i);
+      fprintf(fp, "%.*s\n", std::min(rest, width), buf + i);
       rest -= width;
     }
   }
