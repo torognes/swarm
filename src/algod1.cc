@@ -340,7 +340,7 @@ auto hash_check_attach(char * seq,
   /* seed is the original large swarm seed */
 
   /* compute hash and corresponding hash table index */
-  uint64_t hash = var->hash;
+  const uint64_t hash = var->hash;
   uint64_t j = hash_getindex(hash);
 
   /* find matching buckets */
@@ -350,7 +350,7 @@ auto hash_check_attach(char * seq,
       if (hash_compare_value(j, hash))
         {
           /* check that mass is below threshold */
-          unsigned int amp = hash_get_data(j);
+          const unsigned int amp = hash_get_data(j);
 
           /* make absolutely sure sequences are identical */
           char * ampseq = db_getsequence(amp);
@@ -368,9 +368,9 @@ auto hash_check_attach(char * seq,
 
 
 inline auto check_heavy_var_2(char * seq,
-                                  unsigned int seqlen,
-                                  unsigned int seed,
-                                  struct var_s * variant_list) -> uint64_t
+                              unsigned int seqlen,
+                              unsigned int seed,
+                              struct var_s * variant_list) -> uint64_t
 {
   /* Check second generation microvariants of the heavy swarm amplicons
      and see if any of them are identical to a light swarm amplicon. */
@@ -378,8 +378,8 @@ inline auto check_heavy_var_2(char * seq,
   uint64_t matches = 0;
   unsigned int variant_count = 0;
 
-  uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
-  generate_variants(seq, seqlen, hash, variant_list, & variant_count);
+  const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
+  generate_variants(seq, seqlen, hash, variant_list, &variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
     if (bloom_get(bloom_a, variant_list[i].hash) &&
