@@ -465,7 +465,7 @@ void check_heavy_thread(int64_t t)
   auto * variant_list2 = static_cast<struct var_s *>
     (xmalloc(sizeof(struct var_s) * (i * (longestamplicon + 1) + j)));
 
-  size_t size =
+  const size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
   char * buffer1 = static_cast<char *>(xmalloc(size));
   pthread_mutex_lock(&heavy_mutex);
