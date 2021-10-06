@@ -631,7 +631,7 @@ void open_files()
 }
 
 
-void close_files() {
+auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
     {network_file, internal_structure_file,
      uclustfile, statsfile, fp_seeds, outfile,
