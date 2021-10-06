@@ -88,23 +88,3 @@ auto arch_get_memtotal() -> uint64_t
 
 #endif
 }
-
-void arch_srandom(unsigned int seed)
-{
-  /* initialize pseudo-random number generator */
-
-#ifdef _WIN32
-  srand(seed);
-#else
-  srandom(seed);
-#endif
-}
-
-auto arch_random() -> uint64_t
-{
-#ifdef _WIN32
-  return static_cast<uint64_t>(rand());
-#else
-  return static_cast<uint64_t>(random());
-#endif
-}
