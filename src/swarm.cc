@@ -25,10 +25,8 @@
 #include "x86_cpu_features.h"
 #include "db.h"
 
-
 /* OPTIONS */
 
-constexpr int seed {1};
 std::string progname;  // unused variable?
 
 struct Parameters p;
@@ -647,7 +645,6 @@ auto close_files() -> void {
 auto main(int argc, char** argv) -> int
 {
   // initialization and checks
-  arch_srandom(seed);
   args_init(argc, argv, used_options);
   args_check(used_options);
   open_files();
