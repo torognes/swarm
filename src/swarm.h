@@ -356,8 +356,6 @@ void dereplicate(struct Parameters const & p);
 
 auto arch_get_memused() -> uint64_t;
 auto arch_get_memtotal() -> uint64_t;
-void arch_srandom(unsigned int seed);
-auto arch_random() -> uint64_t;
 
 
 /* new header files */
