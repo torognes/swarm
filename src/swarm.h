@@ -352,12 +352,6 @@ void algo_d1_run(struct Parameters const & p);
 void dereplicate(struct Parameters const & p);
 
 
-/* functions in arch.cc */
-
-auto arch_get_memused() -> uint64_t;
-auto arch_get_memtotal() -> uint64_t;
-
-
 /* new header files */
 
 #include "threads.h"

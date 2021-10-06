@@ -28,6 +28,7 @@
 */
 
 #include "swarm.h"
+#include "arch.h"
 #include "db.h"
 #include "matrix.h"
 
