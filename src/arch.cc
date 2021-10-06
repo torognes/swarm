@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 
+
 auto arch_get_memused() -> uint64_t
 {
 #ifdef _WIN32
@@ -49,6 +50,7 @@ auto arch_get_memused() -> uint64_t
 
 #endif
 }
+
 
 auto arch_get_memtotal() -> uint64_t
 {
