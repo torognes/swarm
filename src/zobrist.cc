@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "pseudo_rng.h"
 
 uint64_t * zobrist_tab_base = nullptr;
 uint64_t * zobrist_tab_byte_base = nullptr;
@@ -54,13 +55,13 @@ void zobrist_init(unsigned int n)
   for(auto i = 0U; i < 4 * n; i++)
     {
       auto z = 0ULL;
-      z = arch_random();
+      z = rand_64();
       z <<= multiplier;
-      z ^= arch_random();
+      z ^= rand_64();
       z <<= multiplier;
-      z ^= arch_random();
+      z ^= rand_64();
       z <<= multiplier;
-      z ^= arch_random();
+      z ^= rand_64();
       zobrist_tab_base[i] = z;
     }
 

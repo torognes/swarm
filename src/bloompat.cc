@@ -32,6 +32,7 @@
 */
 
 #include "swarm.h"
+#include "pseudo_rng.h"
 
 void bloom_patterns_generate(struct bloom_s * b);
 
@@ -45,9 +46,9 @@ void bloom_patterns_generate(struct bloom_s * b)
       for(auto j = 0U; j < k; j++)
         {
           uint64_t onebit {0};
-          onebit = 1ULL << (arch_random() & max_range);  // 0 <= shift <= 63
+          onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
           while ((pattern & onebit) != 0) {
-            onebit = 1ULL << (arch_random() & max_range);
+            onebit = 1ULL << (rand_64() & max_range);
           }
           pattern |= onebit;
         }
