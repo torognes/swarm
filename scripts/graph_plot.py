@@ -6,8 +6,8 @@
 """
 
 __author__ = "Frédéric Mahé <frederic.mahe@cirad.fr>"
-__date__ = "2019/09/24"
-__version__ = "$Revision: 4.0"
+__date__ = "2021/11/26"
+__version__ = "$Revision: 4.1"
 
 import sys
 import os.path
@@ -35,7 +35,7 @@ def option_parse():
                       metavar="<FILENAME>",
                       action="store",
                       dest="swarms",
-                      help="<FILENAME> contains swarm's results")
+                      help="<FILENAME> contains OTUs (swarm's default output)")
 
     parser.add_option("-i", "--internal_structure",
                       metavar="<FILENAME>",
