@@ -10,6 +10,7 @@ __date__ = "2021/11/29"
 __version__ = "$Revision: 4.2"
 
 import sys
+import textwrap
 import os.path
 from igraph import Graph, plot
 from optparse import OptionParser
@@ -27,11 +28,25 @@ def option_parse():
     """
     desc = """Visualize the internal structure of a given OTU."""
 
+    OptionParser.format_epilog = lambda self, formatter: self.epilog
+
     parser = OptionParser(usage="usage: %prog -s FILE -i FILE [-o INT -d INT]",
                           description=desc,
-                          version="%prog version 3.1",
-                          epilog="""usage example: 'swarm -o project.swarms -i project.struct project.fasta' and then 'python3 graph_plot.py -s project.swarms -i project.struct'"""
-                          )
+                          version="%prog version 4.2",
+                          epilog=textwrap.dedent("""\
+
+                          Usage example:
+
+                          swarm \\
+                              project.fasta \\
+                              --output project.swarms \\
+                              --internal-structure project.struct
+
+                          python3 graph_plot.py \\
+                              --swarms project.swarms \\
+                              --internal_structure project.struct
+
+                          """))
 
     parser.add_option("-s", "--swarms",
                       metavar="<FILENAME>",
