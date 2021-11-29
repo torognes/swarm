@@ -6,8 +6,8 @@
 """
 
 __author__ = "Frédéric Mahé <frederic.mahe@cirad.fr>"
-__date__ = "2021/11/26"
-__version__ = "$Revision: 4.1"
+__date__ = "2021/11/29"
+__version__ = "$Revision: 4.2"
 
 import sys
 import os.path
@@ -29,7 +29,9 @@ def option_parse():
 
     parser = OptionParser(usage="usage: %prog -s FILE -i FILE [-o INT -d INT]",
                           description=desc,
-                          version="%prog version 3.1")
+                          version="%prog version 3.1",
+                          epilog="""usage example: 'swarm -o project.swarms -i project.struct project.fasta' and then 'python3 graph_plot.py -s project.swarms -i project.struct'"""
+                          )
 
     parser.add_option("-s", "--swarms",
                       metavar="<FILENAME>",
