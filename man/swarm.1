@@ -141,9 +141,10 @@ defined as a string of [ACGT] or [ACGU] symbols (case insensitive, 'U'
 is replaced with 'T' internally), starting after the end of the header
 line and ending before the next header line or the file end;
 \fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
-exits with an error message if any other symbol is present. Lastly, if
-sequences are not all unique, i.e. were not properly dereplicated,
-swarm will exit with an error message.
+exits with an error message if any other symbol is present; accepted
+sequence lengths range from 1 nucleotide to 67 million
+nucleotides. Lastly, if sequences are not all unique, i.e. were not
+properly dereplicated, swarm will exit with an error message.
 .PP
 Clusters are written to output files (specified with \-i, \-o, \-s and
 \-u) by decreasing abundance of their seed sequences, and then by
