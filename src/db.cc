@@ -577,7 +577,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
           /* check length of longest sequence */
           if (length > max_sequence_length) {
-            fatal("Sequences longer than 67 108 861 symbols are not supported.");
+            fatal("Sequences longer than 67,108,861 symbols are not supported.");
           }
 
           linelen = xgetline(& line, & linecap, fp);
