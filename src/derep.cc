@@ -165,7 +165,7 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
 
       progress_update(swarmid+1);
     }
-  progress_done();  
+  progress_done();
 }
 
 
