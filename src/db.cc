@@ -26,6 +26,10 @@
 constexpr unsigned int memchunk {1 << 20};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
 constexpr long unsigned int n_chars {INT8_MAX + 1};  // 128 ascii chars
+constexpr auto max_sequence_length {67108861};  // (2^26 - 3)
+// for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
+// 2^32 (512 x max_sequence_length) and cannot be addressed with
+// uint32 pointers, which leads to a segmentation fault
 
 auto make_nt_map () -> std::array<signed char, n_chars> {
     // set the 128 ascii chars to '-1' except Aa, Cc, Gg, Tt and Uu
@@ -572,7 +576,7 @@ void db_read(const char * filename, struct Parameters const & p)
             }
 
           /* check length of longest sequence */
-          if (length > 67108861)
+          if (length > max_sequence_length)
             fatal("Sequences longer than 67 108 861 symbols are not supported.");
 
           linelen = xgetline(& line, & linecap, fp);
