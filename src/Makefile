@@ -83,15 +83,12 @@ CXXFLAGS = $(COMMON) $(WARNINGS)
 
 PROG = swarm
 
-OBJS = swarm.o db.o search8.o search16.o nw.o matrix.o util.o scan.o \
-	algo.o algod1.o qgram.o derep.o arch.o \
-	zobrist.o bloompat.o bloomflex.o variants.o hashtable.o \
-	x86_cpu_features.o \
-	$(EXTRAOBJ)
+OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
+	hashtable.o matrix.o nw.o qgram.o scan.o search16.o search8.o \
+	swarm.o util.o variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
 
-DEPS = Makefile swarm.h \
-	threads.h zobrist.h bloompat.h bloomflex.h variants.h hashtable.h \
-	x86_cpu_features.h matrix.h db.h
+DEPS = Makefile arch.h bloomflex.h bloompat.h db.h hashtable.h matrix.h \
+	pseudo_rng.h swarm.h threads.h variants.h x86_cpu_features.h zobrist.h
 
 
 all : $(PROG)
