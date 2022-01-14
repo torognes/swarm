@@ -233,6 +233,7 @@ auto gcd(int64_t a, int64_t b) -> int64_t;
 auto xmalloc(size_t size) -> void *;
 auto xrealloc(void * ptr, size_t size) -> void *;
 void xfree(void * ptr);
+ssize_t xgetline(char ** linep, size_t * linecapp, FILE * stream);
 void progress_init(const char * prompt, uint64_t size);
 void progress_update(uint64_t progress);
 void progress_done();

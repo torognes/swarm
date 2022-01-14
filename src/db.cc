@@ -434,7 +434,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   size_t linecap = linealloc;
   char * line = static_cast<char*>(xmalloc(linecap));
-  ssize_t linelen = getline(& line, & linecap, fp);
+  ssize_t linelen = xgetline(& line, & linecap, fp);
   if (linelen < 0)
     {
       line[0] = 0;
@@ -490,7 +490,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
       /* get next line */
 
-      linelen = getline(& line, & linecap, fp);
+      linelen = xgetline(& line, & linecap, fp);
       if (linelen < 0)
         {
           line[0] = 0;
@@ -571,7 +571,7 @@ void db_read(const char * filename, struct Parameters const & p)
                 }
             }
 
-          linelen = getline(& line, & linecap, fp);
+          linelen = xgetline(& line, & linecap, fp);
           if (linelen < 0)
             {
               line[0] = 0;
