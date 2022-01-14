@@ -162,7 +162,7 @@ auto fopen_output(const char * filename) -> std::FILE *
   return output_stream;
 }
 
-ssize_t xgetline(char ** linep, size_t * linecapp, FILE * stream)
+auto xgetline(char ** linep, size_t * linecapp, FILE * stream) -> ssize_t
 {
 #ifndef _WIN32
 
