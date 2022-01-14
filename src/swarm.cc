@@ -89,7 +89,7 @@ static struct option long_options[] =
 const std::vector<std::string> header_message
   {swarm_version,
    "\n",
-   "Copyright (C) 2012-2021 Torbjorn Rognes and Frederic Mahe\n",
+   "Copyright (C) 2012-2022 Torbjorn Rognes and Frederic Mahe\n",
    "https://github.com/torognes/swarm\n",
    "\n",
    "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n",
@@ -100,9 +100,9 @@ const std::vector<std::string> header_message
    "Swarm v2: highly-scalable and high-resolution amplicon clustering\n",
    "PeerJ 3:e1420 https://doi.org/10.7717/peerj.1420\n",
    "\n",
-   "Mahe F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T (2021)\n",
+   "Mahe F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T (2022)\n",
    "Swarm v3: towards tera-scale amplicon clustering\n",
-   "Bioinformatics https://doi.org/10.1093/bioinformatics/btab493\n",
+   "Bioinformatics 38:1, 267-269 https://doi.org/10.1093/bioinformatics/btab493\n",
    "\n"};
 
 
