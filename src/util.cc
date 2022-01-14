@@ -164,18 +164,30 @@ auto fopen_output(const char * filename) -> std::FILE *
 
 ssize_t xgetline(char ** linep, size_t * linecapp, FILE * stream)
 {
+#ifndef _WIN32
+
+  return getline(linep, linecapp, stream);
+
+#else
+
   /*
      Replacement for the getline function.
      May be used on Windows and other non-POSIX systems.
      Dynamic buffer expansion while reading input using fgets.
+     Considerably slower since it calls getc repeatedly.
+
+     Using fgets is much faster but does not work properly as
+     it cannot handle NUL characters in the string correctly.
+     Important for correct counting of characters and file size.
   */
 
   const size_t minsize = 2;
-  const size_t maxsize = (size_t)(SSIZE_MAX) + 1;
+  const size_t maxsize = SIZE_MAX / 2;
 
   /* Error if linep or linecapp pointers are null */
   if ((linep == nullptr) || (linecapp == nullptr))
     {
+      errno = EINVAL;
       return -1;
     }
 
@@ -183,96 +195,83 @@ ssize_t xgetline(char ** linep, size_t * linecapp, FILE * stream)
     {
       /* allocate a default buffer if linep is a null pointer */
       *linecapp = minsize;
-      *linep = (char *) xmalloc(*linecapp);
-    }
-  else if (*linecapp < minsize)
-    {
-      /* reallocate a default buffer if provided buffer is too small */
-      *linecapp = minsize;
-      *linep = (char *) xrealloc(*linep, *linecapp);
+      *linep = (char *) malloc(*linecapp);
+      if (*linep == nullptr)
+        return -1;
     }
 
-  /* repeatedly call fgets until entire line has been read */
-
-  char * p = *linep;      // pointer to where to read next
-  size_t len = 0;         // total number of chars read
-  size_t rem = *linecapp; // remaining capacity in buffer
+  char * p = *linep;            // pointer to where to put next char
+  char * e = p + *linecapp - 1; // pointer to last byte in buffer
+  size_t len = 0;
+  *p = 0;
 
   while (1)
     {
-      /* size = amount to read using fgets */
-      int size;
-      if (rem <= INT_MAX)
-        size = rem;
-      else
-        size = INT_MAX;
-
-      /* read using fgets */
-      char * s = fgets(p, size, stream);
-
-      /* EOF before any characters read? or Error? */
-      if ((s == nullptr) || ferror(stream))
+      while (p < e)
         {
-          return -1;
-        }
-
-      /* no error, at least 1 char read */
-
-      /* determine length of string just read */
-      uint64_t slen = strlen(s);
-      p += slen;
-      len += slen;
-      rem -= slen;
-
-      /* check if last character was newline */
-      /* or if we have reached eof */
-      if ((s[slen-1] == '\n') || feof(stream))
-        {
-          /* Success: we are done, return length */
-          return len;
-        }
-      else
-        {
-          /* Need to read more */
-
-          if (len > maxsize)
+          int c = getc(stream);
+          switch(c)
             {
-              /* Error: Delimiter not found in first SSIZE_MAX chars. */
-              return -1;
-            }
-
-          /* Expand buffer? Needs space for at least 1 char + NUL */
-          if (rem < minsize)
-            {
-              /* Already too big */
-              if (*linecapp >= maxsize)
-                return -1;
-
-              /* Increase buffer size exponentially */
-              size_t newlinecap = minsize;
-              while ((newlinecap <= *linecapp) && (newlinecap < maxsize))
-                newlinecap *= 2;
-
-              if (newlinecap > maxsize)
-                return -1;
-
-              /* Expand buffer using realloc */
-              char * newlinep = (char *) realloc(*linep, newlinecap);
-              if (newlinep == nullptr)
+            case -1:
+              if (feof(stream))
                 {
-                  /* memory allocation error */
+                  // EOF, add NUL
+                  *p = 0;
+                  len = p - *linep;
+                  if (len > 0)
+                    return len;
+                  else
+                    return -1;
+                }
+              else
+                {
+                  // Error
                   return -1;
                 }
 
-              /* updates */
-              size_t expand = newlinecap - *linecapp;
-              *linep = newlinep;
-              *linecapp = newlinecap;
-              p = newlinep + len;
-              rem += expand;
-            }
+            case '\n':
+              // Newline
+              *p++ = c;
+              *p = 0;
+              return p - *linep;
 
-          /* read more */
+            default:
+              // Ordinary character, including NUL
+              *p++ = c;
+              break;
+            }
         }
+
+      // Increase buffer size
+
+      if (*linecapp >= maxsize)
+        {
+          errno = EOVERFLOW;
+          return -1;
+        }
+
+      size_t newlinecap = minsize;
+      while ((newlinecap <= *linecapp) && (newlinecap < maxsize))
+        newlinecap *= 2;
+
+      if (newlinecap > maxsize)
+        {
+          errno = EOVERFLOW;
+          return -1;
+        }
+
+      char * newlinep = (char *) realloc(*linep, newlinecap);
+      if (newlinep == nullptr)
+        {
+          // Memory allocation error
+          return -1;
+        }
+
+      len = p - *linep;
+      *linep = newlinep;
+      *linecapp = newlinecap;
+      p = newlinep + len;
+      e = p + *linecapp - 1;
     }
+#endif
 }
