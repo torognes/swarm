@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include <cmath>
 
 
 struct bucket
@@ -67,15 +68,13 @@ auto derep_compare(const void * a, const void * b) -> int
 
 
 auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
-  /* adjust size of hash table for 2/3 fill rate */
-  constexpr unsigned int hashfillpct {70};
+  // adjust hash table size for at most 70% fill rate;
+  // i.e. calculate the smallest power of two not smaller than x
+  // (refactor to std::bit_ceil with C++20)
+  constexpr unsigned int hashfill_pct {70};
   constexpr unsigned int one_hundred_pct {100};
-  uint64_t hashtablesize {1};
-  // db seqs > 70% hash table size (avoid division to keep working with ints)
-  while (one_hundred_pct * sequence_count > hashfillpct * hashtablesize) {
-    hashtablesize <<= 1;
-  }
-  return hashtablesize;
+  assert(sequence_count > 0);
+  return std::pow(2, std::ceil(std::log2(one_hundred_pct * sequence_count / hashfill_pct)));
 }
 
 
