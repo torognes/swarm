@@ -74,6 +74,7 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
   constexpr unsigned int hashfill_pct {70};
   constexpr unsigned int one_hundred_pct {100};
   assert(sequence_count > 0);
+  // assert(sequence_count < (2^64 - 1) / 3)  // otherwise hashtable_size > unit64
   return std::pow(2, std::ceil(std::log2(one_hundred_pct * sequence_count / hashfill_pct)));
 }
 
