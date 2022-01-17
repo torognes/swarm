@@ -171,14 +171,14 @@ auto xgetline(char ** linep, size_t * linecapp, FILE * stream) -> ssize_t
 #else
 
   /*
-     Replacement for the getline function.
+     Replacement for the POSIX getline function.
      May be used on Windows and other non-POSIX systems.
-     Dynamic buffer expansion while reading input using fgets.
+     Dynamic buffer expansion while reading input.
      Considerably slower since it calls getc repeatedly.
 
      Using fgets is much faster but does not work properly as
-     it cannot handle NUL characters in the string correctly.
-     Important for correct counting of characters and file size.
+     it cannot handle NUL characters in the string correctly,
+     which is important for correct counting of characters and file size.
   */
 
   const size_t minsize = 2;
