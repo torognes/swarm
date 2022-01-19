@@ -348,16 +348,16 @@ rm "${AMPLICONS}"
 
 To cite **swarm**, please refer to:
 
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014)
-Swarm: robust and fast clustering method for amplicon-based studies.
+**Swarm: robust and fast clustering method for amplicon-based studies.**<br />
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2014)<br />
 PeerJ 2:e593 doi: [10.7717/peerj.593](http://dx.doi.org/10.7717/peerj.593)
 
-Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015)
-Swarm v2: highly-scalable and high-resolution amplicon clustering.
+**Swarm v2: highly-scalable and high-resolution amplicon clustering.**<br />
+Mahé F, Rognes T, Quince C, de Vargas C, Dunthorn M. (2015)<br />
 PeerJ 3:e1420 doi: [10.7717/peerj.1420](http://dx.doi.org/10.7717/peerj.1420)
 
-Mahé F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T. (2021)
-Swarm v3: towards tera-scale amplicon clustering.
+**Swarm v3: towards tera-scale amplicon clustering.**<br />
+Mahé F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T. (2021)<br />
 Bioinformatics doi: [10.1093/bioinformatics/btab493](https://doi.org/10.1093/bioinformatics/btab493)
 
 
@@ -549,7 +549,7 @@ when `d = 0`.
 
 ### version 2.0.1 ###
 
-**swarm** 2.0.1 is a development release that partially implements the 
+**swarm** 2.0.1 is a development release that partially implements the
 fastidious option.
 
 ### version 2.0.0 ###
