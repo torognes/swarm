@@ -966,7 +966,7 @@ auto db_fprintseq(std::FILE * fp, unsigned int a) -> void
   char buffer[default_length];
   char * buf {nullptr};
 
-  // buf = len < default_length ? buffer : static_cast<char*>(xmalloc(len+1));
+  // optimization: use a static buffer (allocate only once)?
   if (len < default_length) {
     buf = buffer;
   }
