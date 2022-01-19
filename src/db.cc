@@ -26,7 +26,7 @@
 constexpr unsigned int memchunk {1 << 20};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
 constexpr long unsigned int n_chars {INT8_MAX + 1};  // 128 ascii chars
-constexpr auto max_sequence_length {67108861};  // (2^26 - 3)
+constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
 // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
 // 2^32 (512 x max_sequence_length) and cannot be addressed with
 // uint32 pointers, which leads to a segmentation fault
