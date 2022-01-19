@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <iostream>
 #include "swarm.h"
 
 static const char * progress_prompt;
@@ -74,11 +75,14 @@ auto gcd(int64_t a, int64_t b) -> int64_t
   return b == 0 ? a : gcd(b, a % b);
 }
 
-[[ noreturn ]] void fatal(const char * msg)
+
+[[ noreturn ]]
+auto fatal(const char * msg) -> void
 {
-  fprintf(stderr, "\nError: %s\n", msg);
+  std::cerr << "\nError: " << msg << '\n';
   exit(1);
 }
+
 
 auto xmalloc(size_t size) -> void *
 {
