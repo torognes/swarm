@@ -319,11 +319,13 @@ auto find_usearch_abundance(const char * header,
 
 
 auto msg_illegal_abundance_value(uint64_t lineno, char * header) -> void {
-  fprintf(stderr,
-          "\nError: Illegal abundance value on line %" PRIu64 ":\n%s\n"
-          "Abundance values should be positive integers.\n\n",
-          lineno,
-          header);
+  const std::string message {
+    std::string("Illegal abundance value on line ")
+    + std::to_string(lineno)
+    + ":\n"
+    + header
+    + "\nAbundance values should be positive integers.\n"};
+  fatal(message.c_str());
 }
 
 
@@ -346,7 +348,6 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
         {
           if (number <= 0) {
             msg_illegal_abundance_value(lineno, header);
-            exit(1);
           }
           abundance = number;
         }
@@ -359,7 +360,6 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
         {
           if (number <= 0) {
             msg_illegal_abundance_value(lineno, header);
-            exit(1);
           }
           abundance = number;
         }
