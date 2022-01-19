@@ -962,7 +962,6 @@ void db_free()
 auto db_fprintseq(std::FILE * fp, unsigned int a) -> void
 {
   constexpr static int default_length {1025};
-  constexpr unsigned int width {0};  // temporary
   const unsigned int len = db_getsequencelen(a);
   char buffer[default_length];
   char * buf {nullptr};
@@ -980,16 +979,7 @@ auto db_fprintseq(std::FILE * fp, unsigned int a) -> void
   }
   buf[len] = 0;
 
-  if (width < 1) {
-    fprintf(fp, "%.*s\n", len, buf);
-  }
-  else { // unreachable: 'width' is always set to zero in algo, algod1 and derep
-    auto rest = len;
-    for(auto i = 0U; i < len; i += width) {
-      fprintf(fp, "%.*s\n", std::min(rest, width), buf + i);
-      rest -= width;
-    }
-  }
+  fprintf(fp, "%.*s\n", len, buf);
 
   if (len >= default_length) {
     xfree(buf);
