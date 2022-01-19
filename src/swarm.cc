@@ -273,12 +273,12 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
                 }
                 longoptindex++;
               }
-
-            fprintf(stderr,
-                    "Error: Option -%c or --%s specified more than once.\n",
-                    c,
-                    long_options[longoptindex].name);
-            exit(1);
+            std::string message {std::string("Option -")
+              + static_cast<char>(c)
+              + " or --"
+              + long_options[longoptindex].name
+              + " specified more than once.\n"};
+            fatal(message.c_str());
           }
         used_options[optindex] = 1;
       }
