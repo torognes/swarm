@@ -163,13 +163,14 @@ void close_files();
 
 auto args_long(char * str, const char * option) -> int64_t
 {
+  const std::string message_prefix {"Invalid numeric argument for option "};
   constexpr int base_value {10};
   char * endptr {nullptr};
   int64_t temp = strtol(str, & endptr, base_value);
   if (*endptr != 0)
     {
-      fprintf(stderr, "\nInvalid numeric argument for option %s\n", option);
-      exit(1);
+      std::string message {message_prefix + option + '\n'};
+      fatal(message.c_str());
     }
   return temp;
 }
