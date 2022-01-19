@@ -273,7 +273,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
                 }
                 longoptindex++;
               }
-            std::string message {std::string("Option -")
+            const std::string message {std::string("Option -")
               + static_cast<char>(c)
               + " or --"
               + long_options[longoptindex].name
@@ -448,9 +448,10 @@ void args_check(std::array<int, n_options> & used_options) {
 
   if ((opt_threads < 1) || (opt_threads > max_threads))
     {
-      fprintf(stderr, "\nError: Illegal number of threads specified with "
-              "-t or --threads, must be in the range 1 to %u.\n", max_threads);
-      exit(1);
+      const std::string message {"Illegal number of threads specified with "
+        "-t or --threads, must be in the range 1 to "
+        + std::to_string(max_threads)};
+      fatal(message.c_str());
     }
 
   if ((p.opt_differences < 0) || (p.opt_differences > UINT8_MAX)) {
