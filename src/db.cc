@@ -327,7 +327,8 @@ auto msg_illegal_abundance_value(uint64_t lineno, char * header) -> void {
 }
 
 
-void find_abundance(struct seqinfo_s * sp, uint64_t lineno, bool opt_usearch_abundance, int64_t opt_append_abundance)
+void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
+                    bool opt_usearch_abundance, int64_t opt_append_abundance)
 {
   char * header = sp->header;
 
