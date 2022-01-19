@@ -962,8 +962,8 @@ void db_free()
 auto db_fprintseq(std::FILE * fp, const unsigned int seqno) -> void
 {
   constexpr static int default_length {1025};
-  const unsigned int len = db_getsequencelen(seqno);
-  char * const seqptr = db_getsequence(seqno);
+  const unsigned int len {db_getsequencelen(seqno)};
+  char * const seqptr {db_getsequence(seqno)};
   char buffer[default_length];
   char * buf {nullptr};
 
