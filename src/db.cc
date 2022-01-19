@@ -415,9 +415,7 @@ void db_read(const char * filename, struct Parameters const & p)
           exit(1);
         }
     }
-  else {
-    fp = stdin;
-  }
+  assert(filename != nullptr);  // filename is set to '-' (stdin) by default
 
   /* get file size */
 
