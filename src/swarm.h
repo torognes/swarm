@@ -229,7 +229,7 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
 /* functions in util.cc */
 
 auto gcd(int64_t a, int64_t b) -> int64_t;
-[[ noreturn ]] void fatal(const char * msg);
+[[ noreturn ]] auto fatal(const char * msg) -> void;
 auto xmalloc(size_t size) -> void *;
 auto xrealloc(void * ptr, size_t size) -> void *;
 void xfree(void * ptr);
