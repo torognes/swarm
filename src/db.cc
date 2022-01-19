@@ -959,10 +959,10 @@ void db_free()
 }
 
 
-auto db_fprintseq(std::FILE * fp, unsigned int a) -> void
+auto db_fprintseq(std::FILE * fp, unsigned int seqno) -> void
 {
   constexpr static int default_length {1025};
-  const unsigned int len = db_getsequencelen(a);
+  const unsigned int len = db_getsequencelen(seqno);
   char buffer[default_length];
   char * buf {nullptr};
 
@@ -975,7 +975,7 @@ auto db_fprintseq(std::FILE * fp, unsigned int a) -> void
   }
 
   for(auto i = 0U; i < len; i++) {
-    buf[i] = sym_nt[1 + nt_extract(db_getsequence(a), i)];
+    buf[i] = sym_nt[1 + nt_extract(db_getsequence(seqno), i)];
   }
   buf[len] = 0;
 
