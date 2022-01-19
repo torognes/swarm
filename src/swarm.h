@@ -165,7 +165,7 @@ struct Parameters {
   bool opt_fastidious {false};
   bool opt_usearch_abundance {false};
   bool opt_mothur {false};
-  std::string input_filename {"-"};
+  std::string input_filename {dash_filename};
   std::string opt_network_file;
   std::string opt_internal_structure;
   std::string opt_seeds;
