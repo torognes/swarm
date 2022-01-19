@@ -179,7 +179,7 @@ auto write_representative_sequences(const uint64_t swarmcount,
       fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, p.opt_usearch_abundance);
       fprintf(fp_seeds, "\n");
-      db_fprintseq(fp_seeds, seed, 0);
+      db_fprintseq(fp_seeds, seed);
       progress_update(i+1);
     }
   progress_done();

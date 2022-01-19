@@ -122,7 +122,7 @@ auto write_representative_sequences(const uint64_t amplicons,
       fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, p.opt_usearch_abundance);
       fprintf(fp_seeds, "\n");
-      db_fprintseq(fp_seeds, swarm_seed, 0);
+      db_fprintseq(fp_seeds, swarm_seed);
       progress_update(i);
     }
   xfree(swarminfo);
