@@ -405,17 +405,16 @@ void db_read(const char * filename, struct Parameters const & p)
   nucleotides = 0;
   headerchars = 0;
 
-  std::FILE * fp {nullptr};
-  if (filename != nullptr)
-    {
-      fp = fopen_input(filename);
-      if (fp == nullptr)
-        {
-          fprintf(stderr, "\nError: Unable to open input data file (%s).\n", filename);
-          exit(1);
-        }
-    }
+  /* open input file or stream */
+
   assert(filename != nullptr);  // filename is set to '-' (stdin) by default
+
+  std::FILE * fp { fopen_input(filename) };
+  if (fp == nullptr)
+    {
+      fprintf(stderr, "\nError: Unable to open input data file (%s).\n", filename);
+      exit(1);
+    }
 
   /* get file size */
 
