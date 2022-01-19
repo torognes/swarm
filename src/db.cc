@@ -961,28 +961,15 @@ void db_free()
 
 auto db_fprintseq(std::FILE * fp, const unsigned int seqno) -> void
 {
-  constexpr static int default_length {1025};
   const unsigned int len {db_getsequencelen(seqno)};
   char * const seqptr {db_getsequence(seqno)};
-  char buffer[default_length];
-  char * buf {nullptr};
+  static std::vector<char> buffer(db_getlongestsequence() + 1, '\0');
 
-  // optimization: use a static buffer (allocate only once)?
-  if (len < default_length) {
-    buf = buffer;
-  }
-  else {
-    buf = static_cast<char*>(xmalloc(len + 1));
-  }
-
+  // decode to nucleotides (A, C, G and T)
   for(auto i = 0U; i < len; i++) {
-    buf[i] = sym_nt[1 + nt_extract(seqptr, i)];
+    buffer[i] = sym_nt[1 + nt_extract(seqptr, i)];
   }
-  buf[len] = 0;
+  buffer[len] = '\0';
 
-  fprintf(fp, "%.*s\n", len, buf);
-
-  if (len >= default_length) {
-    xfree(buf);
-  }
+  fprintf(fp, "%.*s\n", len, buffer.data());
 }
