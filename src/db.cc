@@ -404,8 +404,7 @@ void db_read(const char * filename, struct Parameters const & p)
   std::FILE * fp { fopen_input(filename) };
   if (fp == nullptr)
     {
-      fprintf(stderr, "\nError: Unable to open input data file (%s).\n", filename);
-      exit(1);
+      fatal(error_prefix, "Unable to open input data file (", filename, ").\n");
     }
 
   /* get file size */
@@ -414,8 +413,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   if (fstat(fileno(fp), & fs) != 0)
     {
-      fprintf(stderr, "\nUnable to fstat on input file (%s)\n", filename);
-      exit(1);
+      fatal(error_prefix, "Unable to fstat on input file (", filename, ").\n");
     }
   bool is_regular = S_ISREG(fs.st_mode);
   uint64_t filesize = is_regular ? fs.st_size : 0;
@@ -549,18 +547,13 @@ void db_read(const char * filename, struct Parameters const & p)
               else if ((c != new_line) && (c != carriage_return))
                 {
                   if ((c >= start_chars_range) && (c <= end_chars_range)) {
-                    fprintf(stderr,
-                            "\nError: Illegal character '%c' in sequence on line %u\n",
-                            c,
-                            lineno);
+                    fatal(error_prefix, "Illegal character '", static_cast<char>(c),
+                          "' in sequence on line ", lineno, ".");
                   }
                   else {
-                    fprintf(stderr,
-                            "\nError: Illegal character (ascii no %d) in sequence on line %u\n",
-                            c,
-                            lineno);
+                    fatal(error_prefix, "Illegal character (ascii no ", static_cast<char>(c),
+                          ") in sequence on line ", lineno, ".");
                   }
-                  exit(1);
                 }
             }
 
@@ -586,8 +579,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
       if (length == 0)
         {
-          fprintf(stderr, "\nError: Empty sequence found on line %u.\n\n", lineno-1);
-          exit(1);
+          fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
         }
 
       nucleotides += length;
@@ -768,10 +760,7 @@ void db_read(const char * filename, struct Parameters const & p)
       if (hdrfound != nullptr)
         {
           duplicatedidentifiers++;
-          fprintf(stderr, "\nError: Duplicated sequence identifier: %.*s\n\n",
-                  id_len,
-                  seqindex_p->header + id_start);
-          exit(1);
+          fatal(error_prefix, "Duplicated sequence identifier: ", seqindex_p->header + id_start);
         }
 
       hdrhashtable[hdrhashindex] = seqindex_p;
@@ -815,15 +804,13 @@ void db_read(const char * filename, struct Parameters const & p)
 
   if (duplicates_found != 0U)
     {
-      fprintf(logfile,
-              "\n\n"
-              "Error: some fasta entries have identical sequences.\n"
-              "Swarm expects dereplicated fasta files.\n"
-              "Such files can be produced with swarm or vsearch:\n"
-              " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
-              "or\n"
-              " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
-      exit(1);
+      fatal(error_prefix,
+            "some fasta entries have identical sequences.\n"
+            "Swarm expects dereplicated fasta files.\n"
+            "Such files can be produced with swarm or vsearch:\n"
+            " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
+            "or\n"
+            " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta");
     }
 
   progress_done();
@@ -837,18 +824,15 @@ void db_read(const char * filename, struct Parameters const & p)
 
   if (missingabundance != 0)
     {
-      fprintf(stderr,
-              "\nError: Abundance annotations not found for %d sequences, starting on line %" PRIu64 ".\n"
-              ">%s\n"
-              "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
-              "The -z option must be used if the abundance annotation is in the latter format.\n"
-              "Abundance annotations can be produced by dereplicating the sequences.\n"
-              "The header is defined as the string comprised between the \">\" symbol\n"
-              "and the first space or the end of the line, whichever comes first.\n\n",
-              missingabundance,
-              missingabundance_lineno,
-              missingabundance_header);
-      exit(1);
+      fatal(error_prefix, "Abundance annotations not found for ",
+            missingabundance, " sequences, starting on line ",
+            missingabundance_lineno, ".\n>",
+            missingabundance_header, "\n",
+            "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
+            "The -z option must be used if the abundance annotation is in the latter format.\n"
+            "Abundance annotations can be produced by dereplicating the sequences.\n"
+            "The header is defined as the string comprised between the \">\" symbol\n"
+            "and the first space or the end of the line, whichever comes first.");
     }
 
   if (!presorted)
