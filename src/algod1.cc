@@ -1073,15 +1073,13 @@ void algo_d1_run(struct Parameters const & p)
 
   if (duplicates_found != 0U)
     {
-      fprintf(logfile,
-              "\n\n"
-              "Error: some fasta entries have identical sequences.\n"
-              "Swarm expects dereplicated fasta files.\n"
-              "Such files can be produced with swarm or vsearch:\n"
-              " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
-              "or\n"
-              " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
-      exit(1);
+      fatal(error_prefix,
+            "some fasta entries have identical sequences.\n"
+            "Swarm expects dereplicated fasta files.\n"
+            "Such files can be produced with swarm or vsearch:\n"
+            " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
+            "or\n"
+            " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
     }
 
   progress_done();
