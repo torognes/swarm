@@ -87,7 +87,7 @@ static struct option long_options[] =
 
 
 const std::vector<std::string> header_message
-  {swarm_version,
+  {"Swarm 3.1.0",
    "\n",
    "Copyright (C) 2012-2022 Torbjorn Rognes and Frederic Mahe\n",
    "https://github.com/torognes/swarm\n",
