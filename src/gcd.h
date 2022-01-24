@@ -27,7 +27,7 @@
 // Computes the greatest common divisor of two integers
 // C++17: refactor with std::gcd()
 template <typename Number>
-Number gcd(Number num1, Number num2) {
+auto gcd(Number num1, Number num2) -> Number {
 
   // gcd(a, b) = gcd(|a|, |b|)
   if (num1 < 0) { num1 = -num1; }
