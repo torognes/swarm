@@ -318,17 +318,6 @@ auto find_usearch_abundance(const char * header,
 }
 
 
-auto msg_illegal_abundance_value(uint64_t lineno, char * header) -> void {
-  const std::string message {
-    std::string("Illegal abundance value on line ")
-    + std::to_string(lineno)
-    + ":\n"
-    + header
-    + "\nAbundance values should be positive integers.\n"};
-  fatal(error_prefix, message.c_str());
-}
-
-
 void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
                     bool opt_usearch_abundance, int64_t opt_append_abundance)
 {
@@ -347,7 +336,8 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
       if (find_usearch_abundance(header, & start, & end, & number))
         {
           if (number <= 0) {
-            msg_illegal_abundance_value(lineno, header);
+            fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
+                  header, "\nAbundance values should be positive integers.");
           }
           abundance = number;
         }
@@ -359,7 +349,8 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
       if (find_swarm_abundance(header, & start, & end, & number))
         {
           if (number <= 0) {
-            msg_illegal_abundance_value(lineno, header);
+            fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
+                  header, "\nAbundance values should be positive integers.");
           }
           abundance = number;
         }
