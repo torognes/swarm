@@ -244,7 +244,6 @@ auto fatal(T head, Tail... tail) -> void {
 
 /* functions in util.cc */
 
-auto gcd(int64_t a, int64_t b) -> int64_t;
 auto xmalloc(size_t size) -> void *;
 auto xrealloc(void * ptr, size_t size) -> void *;
 void xfree(void * ptr);

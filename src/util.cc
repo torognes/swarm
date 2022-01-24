@@ -68,12 +68,6 @@ void progress_done()
   fflush(logfile);
 }
 
-// C++17: refactor with std::gcd()
-auto gcd(int64_t a, int64_t b) -> int64_t
-{
-  return b == 0 ? a : gcd(b, a % b);
-}
-
 
 auto fatal() -> void {
     std::cerr << '\n';
