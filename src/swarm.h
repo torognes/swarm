@@ -107,8 +107,9 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* constants */
 
-const std::string error_prefix {"\nError: "};
+static char const * const error_prefix {"\nError: "};  // C++17: refactor by moving to fatal template
 constexpr char sepchar {' '};
+constexpr char dash_filename {'-'};
 constexpr unsigned int opt_differences_default {1};
 constexpr unsigned int ceiling_default {0};
 constexpr unsigned int append_abundance_default {0};
@@ -120,7 +121,6 @@ constexpr unsigned int bloom_bits_default {16};
 constexpr unsigned int qgramlength {5};
 constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
 constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
-const std::string dash_filename {"-"};
 
 
 /* structures and data types */
