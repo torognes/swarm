@@ -24,6 +24,7 @@
 
 #include <algorithm>
 
+// Computes the greatest common divisor of two integers
 // C++17: refactor with std::gcd()
 template <typename Number>
 Number gcd(Number num1, Number num2) {
