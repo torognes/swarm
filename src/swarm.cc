@@ -403,7 +403,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
       default:
         show(header_message);
         show(args_usage_message);
-        exit(1);
+        fatal();
     }
   }
 
