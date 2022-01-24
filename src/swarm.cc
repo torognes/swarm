@@ -163,14 +163,12 @@ void close_files();
 
 auto args_long(char * str, const char * option) -> int64_t
 {
-  const std::string message_prefix {"Invalid numeric argument for option "};
   constexpr int base_value {10};
   char * endptr {nullptr};
   int64_t temp = strtol(str, & endptr, base_value);
   if (*endptr != 0)
     {
-      std::string message {message_prefix + option + '\n'};
-      fatal(message.c_str());
+      fatal(error_prefix, "Invalid numeric argument for option ", option, ".");
     }
   return temp;
 }
@@ -273,12 +271,9 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
                 }
                 longoptindex++;
               }
-            const std::string message {std::string("Option -")
-              + static_cast<char>(c)
-              + " or --"
-              + long_options[longoptindex].name
-              + " specified more than once.\n"};
-            fatal(message.c_str());
+            fatal(error_prefix, "Option -", static_cast<char>(c),
+                  " or --", long_options[longoptindex].name,
+                  " specified more than once.");
           }
         used_options[optindex] = 1;
       }
@@ -448,105 +443,103 @@ void args_check(std::array<int, n_options> & used_options) {
 
   if ((opt_threads < 1) || (opt_threads > max_threads))
     {
-      const std::string message {"Illegal number of threads specified with "
-        "-t or --threads, must be in the range 1 to "
-        + std::to_string(max_threads)};
-      fatal(message.c_str());
+      fatal(error_prefix, "Illegal number of threads specified with "
+            "-t or --threads, must be in the range 1 to ", max_threads, ".");
     }
 
   if ((p.opt_differences < 0) || (p.opt_differences > UINT8_MAX)) {
-    fatal("Illegal number of differences specified with -d or --differences, "
-          "must be in the range 0 to 255.");
+    fatal(error_prefix, "Illegal number of differences specified with -d or --differences, "
+          "must be in the range 0 to ", UINT8_MAX, ".");
   }
 
   if (p.opt_fastidious && (p.opt_differences != 1)) {
-    fatal("Fastidious mode (specified with -f or --fastidious) only works "
+    fatal(error_prefix, "Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
   }
 
   if (p.opt_disable_sse3 && (p.opt_differences < 2)) {
-    fatal("Option --disable-sse3 or -x has no effect when d < 2. "
+    fatal(error_prefix, "Option --disable-sse3 or -x has no effect when d < 2 "
           "(SSE3 instructions are only used when d > 1).");
   }
 
   if (! p.opt_fastidious)
     {
       if (used_options[boundary_index] != 0) {
-        fatal("Option -b or --boundary specified without -f or --fastidious.\n");
+        fatal(error_prefix, "Option -b or --boundary specified without -f or --fastidious.");
       }
       if (used_options[ceiling_index] != 0) {
-        fatal("Option -c or --ceiling specified without -f or --fastidious.\n");
+        fatal(error_prefix, "Option -c or --ceiling specified without -f or --fastidious.");
       }
       if (used_options[bloom_bits_index] != 0) {
-        fatal("Option -y or --bloom-bits specified without -f or --fastidious.\n");
+        fatal(error_prefix, "Option -y or --bloom-bits specified without -f or --fastidious.");
       }
     }
 
   if (p.opt_differences < 2)
     {
       if (used_options[match_reward_index] != 0) {
-        fatal("Option -m or --match-reward specified when d < 2.");
+        fatal(error_prefix, "Option -m or --match-reward specified when d < 2.");
       }
       if (used_options[mismatch_penalty_index] != 0) {
-        fatal("Option -p or --mismatch-penalty specified when d < 2.");
+        fatal(error_prefix, "Option -p or --mismatch-penalty specified when d < 2.");
       }
       if (used_options[gap_opening_penalty_index] != 0) {
-        fatal("Option -g or --gap-opening-penalty specified when d < 2.");
+        fatal(error_prefix, "Option -g or --gap-opening-penalty specified when d < 2.");
       }
       if (used_options[gap_extension_penalty_index] != 0) {
-        fatal("Option -e or --gap-extension-penalty specified when d < 2.");
+        fatal(error_prefix, "Option -e or --gap-extension-penalty specified when d < 2.");
       }
     }
 
   if (p.opt_gap_opening_penalty < 0) {
-    fatal("Illegal gap opening penalty specified with -g or "
+    fatal(error_prefix, "Illegal gap opening penalty specified with -g or "
           "--gap-opening-penalty, must not be negative.");
   }
 
   if (p.opt_gap_extension_penalty < 0) {
-    fatal("Illegal gap extension penalty specified with -e or "
+    fatal(error_prefix, "Illegal gap extension penalty specified with -e or "
           "--gap-extension-penalty, must not be negative.");
   }
 
   if ((p.opt_gap_opening_penalty + p.opt_gap_extension_penalty) < 1) {
-    fatal("Illegal gap penalties specified, the sum of the gap open and "
+    fatal(error_prefix, "Illegal gap penalties specified, the sum of the gap open and "
           "the gap extension penalty must be at least 1.");
   }
 
   if (p.opt_match_reward < 1) {
-    fatal("Illegal match reward specified with -m or --match-reward, "
+    fatal(error_prefix, "Illegal match reward specified with -m or --match-reward, "
           "must be at least 1.");
   }
 
   if (p.opt_mismatch_penalty < 1) {
-    fatal("Illegal mismatch penalty specified with -p or --mismatch-penalty, "
+    fatal(error_prefix, "Illegal mismatch penalty specified with -p or --mismatch-penalty, "
           "must be at least 1.");
   }
 
   if (opt_boundary < 2) {
-    fatal("Illegal boundary specified with -b or --boundary, "
+    fatal(error_prefix, "Illegal boundary specified with -b or --boundary, "
           "must be at least 2.");
   }
 
   if ((used_options[ceiling_index] != 0) && ((p.opt_ceiling < min_ceiling) ||
                                              (p.opt_ceiling > max_ceiling))) {
-    fatal("Illegal memory ceiling specified with -c or --ceiling, "
+    fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
 
   if ((p.opt_bloom_bits < min_bits_per_entry) ||
       (p.opt_bloom_bits > max_bits_per_entry)) {
-    fatal("Illegal number of Bloom filter bits specified with -y or "
+    fatal(error_prefix, "Illegal number of Bloom filter bits specified with -y or "
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
   if ((used_options[append_abundance_index] != 0) && (p.opt_append_abundance < 1)) {
-    fatal("Illegal abundance value specified with -a or --append-abundance, "
+    fatal(error_prefix, "Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
 
   if ((! p.opt_network_file.empty()) && (p.opt_differences != 1)) {
-    fatal("A network file can only written when d=1.");
+    fatal(error_prefix, "A network file can only written when d = 1.");
   }
 
   if (p.opt_version) {
@@ -566,7 +559,7 @@ void args_check(std::array<int, n_options> & used_options) {
                                                / penalty_gapextend));
 
   if (p.opt_differences > diff_saturation_16) {
-    fatal("Resolution (d) too high for the given scoring system");
+    fatal(error_prefix, "Resolution (d) too high for the given scoring system.");
   }
 }
 
@@ -576,7 +569,7 @@ void open_files()
   // special case (always '-')??
   outfile = fopen_output(p.opt_output_file.c_str());
   if (outfile == nullptr) {
-    fatal("Unable to open output file for writing.");
+    fatal(error_prefix, "Unable to open output file for writing.");
   }
 
   /* open files */
@@ -585,7 +578,7 @@ void open_files()
     {
       logfile = fopen_output(opt_log.c_str());
       if (logfile == nullptr) {
-        fatal("Unable to open log file for writing.");
+        fatal(error_prefix, "Unable to open log file for writing.");
       }
     }
 
@@ -593,7 +586,7 @@ void open_files()
     {
       fp_seeds = fopen_output(p.opt_seeds.c_str());
       if (fp_seeds == nullptr) {
-        fatal("Unable to open seeds file for writing.");
+        fatal(error_prefix, "Unable to open seeds file for writing.");
       }
     }
 
@@ -601,7 +594,7 @@ void open_files()
     {
       statsfile = fopen_output(p.opt_statistics_file.c_str());
       if (statsfile == nullptr) {
-        fatal("Unable to open statistics file for writing.");
+        fatal(error_prefix, "Unable to open statistics file for writing.");
       }
     }
 
@@ -609,7 +602,7 @@ void open_files()
     {
       uclustfile = fopen_output(p.opt_uclust_file.c_str());
       if (uclustfile == nullptr) {
-        fatal("Unable to open uclust file for writing.");
+        fatal(error_prefix, "Unable to open uclust file for writing.");
       }
     }
 
@@ -617,7 +610,7 @@ void open_files()
     {
       internal_structure_file = fopen_output(p.opt_internal_structure.c_str());
       if (internal_structure_file == nullptr) {
-        fatal("Unable to open internal structure file for writing.");
+        fatal(error_prefix, "Unable to open internal structure file for writing.");
       }
     }
 
@@ -625,7 +618,7 @@ void open_files()
     {
       network_file = fopen_output(p.opt_network_file.c_str());
       if (network_file == nullptr) {
-        fatal("Unable to open network file for writing.");
+        fatal(error_prefix, "Unable to open network file for writing.");
       }
     }
 }

@@ -67,7 +67,7 @@ auto arch_get_memtotal() -> uint64_t
   int64_t ram = 0;
   size_t length = sizeof(ram);
   if(sysctl(mib, 2, &ram, &length, nullptr, 0) == -1) {
-    fatal("Cannot determine amount of RAM");
+    fatal(error_prefix, "Cannot determine amount of RAM.");
   }
   return static_cast<uint64_t>(ram);
 
@@ -76,7 +76,7 @@ auto arch_get_memtotal() -> uint64_t
   int64_t phys_pages = sysconf(_SC_PHYS_PAGES);
   int64_t pagesize = sysconf(_SC_PAGESIZE);
   if ((phys_pages == -1) || (pagesize == -1)) {
-    fatal("Cannot determine amount of RAM");
+    fatal(error_prefix, "Cannot determine amount of RAM.");
   }
   return static_cast<uint64_t>(pagesize * phys_pages);
 
@@ -84,7 +84,7 @@ auto arch_get_memtotal() -> uint64_t
 
   struct sysinfo si;
   if (sysinfo(&si)) {
-    fatal("Cannot determine amount of RAM");
+    fatal(error_prefix, "Cannot determine amount of RAM.");
   }
   return si.totalram * si.mem_unit;
 

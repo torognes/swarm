@@ -325,7 +325,7 @@ auto msg_illegal_abundance_value(uint64_t lineno, char * header) -> void {
     + ":\n"
     + header
     + "\nAbundance values should be positive integers.\n"};
-  fatal(message.c_str());
+  fatal(error_prefix, message.c_str());
 }
 
 
@@ -454,7 +454,7 @@ void db_read(const char * filename, struct Parameters const & p)
       /* the header ends at a space, cr, lf or null character */
 
       if (line[0] != '>') {
-        fatal("Illegal header line in fasta file.");
+        fatal(error_prefix, "Illegal header line in fasta file.");
       }
 
       auto headerlen = static_cast<unsigned int>
@@ -575,7 +575,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
           /* check length of longest sequence */
           if (length > max_sequence_length) {
-            fatal("Sequences longer than 67,108,861 symbols are not supported.");
+            fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
           }
 
           linelen = xgetline(& line, & linecap, fp);
@@ -696,7 +696,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
       if ((seqindex_p->abundance_start == 0) &&
           (seqindex_p->abundance_end == seqindex_p->headerlen)) {
-        fatal("Empty sequence identifier");
+        fatal(error_prefix, "Empty sequence identifier.");
       }
 
       /* check if the sequences are presorted by abundance and header */

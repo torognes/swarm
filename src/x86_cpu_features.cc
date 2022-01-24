@@ -94,7 +94,7 @@ void cpu_features_detect(struct Parameters & p)
 
 void cpu_features_test(struct Parameters & p) {
   if (p.sse2_present == 0) {
-    fatal("This program requires a processor with SSE2 instructions.\n");
+    fatal(error_prefix, "This program requires a processor with SSE2 instructions.");
   }
 
   if (p.opt_disable_sse3)

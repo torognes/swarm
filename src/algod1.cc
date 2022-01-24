@@ -1307,7 +1307,7 @@ void algo_d1_run(struct Parameters const & p)
               if (new_bits < bits)
                 {
                   if (new_bits < 2) {
-                    fatal("Insufficient memory remaining for Bloom filter");
+                    fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
                   }
                   fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;

@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <iostream>
 #include "swarm.h"
 
 static const char * progress_prompt;
@@ -69,18 +68,16 @@ void progress_done()
   fflush(logfile);
 }
 
-// std::gcd() in C++17
+// C++17: refactor with std::gcd()
 auto gcd(int64_t a, int64_t b) -> int64_t
 {
   return b == 0 ? a : gcd(b, a % b);
 }
 
 
-[[ noreturn ]]
-auto fatal(const char * msg) -> void
-{
-  std::cerr << "\nError: " << msg << '\n';
-  exit(1);
+auto fatal() -> void {
+    std::cerr << '\n';
+    exit(1);
 }
 
 
@@ -98,7 +95,7 @@ auto xmalloc(size_t size) -> void *
   }
 #endif
   if (t == nullptr) {
-    fatal("Unable to allocate enough memory.");
+    fatal(error_prefix, "Unable to allocate enough memory.");
   }
   return t;
 }
@@ -114,7 +111,7 @@ auto xrealloc(void *ptr, size_t size) -> void *
   void * t = realloc(ptr, size);
 #endif
   if (t == nullptr) {
-    fatal("Unable to reallocate enough memory.");
+    fatal(error_prefix, "Unable to allocate enough memory.");
   }
   return t;
 }
@@ -130,7 +127,7 @@ void xfree(void * ptr)
 #endif
     }
   else {
-    fatal("Trying to free a null pointer");
+    fatal(error_prefix, "Trying to free a null pointer.");
   }
 }
 

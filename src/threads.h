@@ -91,7 +91,7 @@ public:
                            &attr,
                            worker,
                            static_cast<void*>(thread_array + i)) != 0) {
-          fatal("Cannot create thread");
+          fatal(error_prefix, "Cannot create thread.");
         }
       }
   }
@@ -115,7 +115,7 @@ public:
 
         /* wait for worker to quit */
         if (pthread_join(tip->pthread, nullptr) != 0) {
-          fatal("Cannot join thread");
+          fatal(error_prefix, "Cannot join thread.");
         }
 
         pthread_cond_destroy(&tip->workcond);

@@ -49,6 +49,7 @@ constexpr char PRId64[] = "ld";
 #include <cstring>
 #include <fcntl.h>
 #include <getopt.h>
+#include <iostream>
 #include <pthread.h>
 #include <string>
 #include <sys/stat.h>
@@ -107,6 +108,7 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 /* constants */
 
 const std::string swarm_version = {"Swarm 3.1.0"};
+const std::string error_prefix {"\nError: "};
 constexpr char sepchar {' '};
 constexpr unsigned int opt_differences_default {1};
 constexpr unsigned int ceiling_default {0};
@@ -226,10 +228,24 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
   return ((len + max_nt_per_uint64 - 1) >> drop_remainder) << convert_to_bytes;
 }
 
+
+/* message and exit with an error (variadic template with compile-time recursion) */
+
+// C++17: refactor with fold expression
+// C++20: refactor with Printable concept
+
+auto fatal() -> void;
+
+template <typename T, typename... Tail>
+auto fatal(T head, Tail... tail) -> void {
+    std::cerr << head;
+    fatal(tail...);
+}
+
+
 /* functions in util.cc */
 
 auto gcd(int64_t a, int64_t b) -> int64_t;
-[[ noreturn ]] auto fatal(const char * msg) -> void;
 auto xmalloc(size_t size) -> void *;
 auto xrealloc(void * ptr, size_t size) -> void *;
 void xfree(void * ptr);
