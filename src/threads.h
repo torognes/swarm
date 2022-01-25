@@ -22,6 +22,7 @@
 */
 
 #include <cstdint>
+#include <pthread.h>
 
 class ThreadRunner
 {
