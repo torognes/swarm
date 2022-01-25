@@ -630,8 +630,6 @@ void db_read(const char * filename, struct Parameters const & p)
     static_cast<seqinfo_t **>(xmalloc(hdrhashsize * sizeof(seqinfo_t *)));
   memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
 
-  uint64_t duplicatedidentifiers {0};
-
   /* set up hash to check for unique sequences */
 
   uint64_t seqhashsize {2 * sequences};
@@ -759,7 +757,6 @@ void db_read(const char * filename, struct Parameters const & p)
 
       if (hdrfound != nullptr)
         {
-          duplicatedidentifiers++;
           const std::string full_header {seqindex_p->header + id_start};
           fatal(error_prefix, "Duplicated sequence identifier: ", full_header.substr(0, id_len));
         }
