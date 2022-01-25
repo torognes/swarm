@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "db.h"
 #include "matrix.h"
+#include "nw.h"
 #include "scan.h"
 #include "util.h"
 

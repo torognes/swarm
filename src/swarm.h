@@ -309,25 +309,6 @@ void search16(WORD * * q_start,
               uint64_t * dirbuffer);
 
 
-/* functions in nw.cc */
-
-void nw(char * dseq,
-        int64_t dlen,
-        char * qseq,
-        int64_t qlen,
-        int64_t * score_matrix,
-        int64_t gapopen,
-        int64_t gapextend,
-        int64_t * nwscore,
-        int64_t * nwdiff,
-        int64_t * nwalignmentlength,
-        char ** nwalignment,
-        unsigned char * dir,
-        int64_t * hearray,
-        uint64_t queryno,
-        uint64_t dbseqno);
-
-
 /* functions in algo.cc */
 
 void algo_run(struct Parameters const & p);

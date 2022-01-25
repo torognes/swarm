@@ -34,6 +34,7 @@
 #include "db.h"
 #include "hashtable.h"
 #include "matrix.h"
+#include "nw.h"
 #include "threads.h"
 #include "variants.h"
 #include "util.h"

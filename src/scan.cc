@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include "nw.h"
 #include "threads.h"
 #include "util.h"
 
