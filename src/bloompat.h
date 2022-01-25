@@ -21,6 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cstdint>
+
 constexpr unsigned int bloom_pattern_shift {10};
 constexpr unsigned int bloom_pattern_count {1 << bloom_pattern_shift};
 constexpr unsigned int bloom_pattern_mask {bloom_pattern_count - 1};

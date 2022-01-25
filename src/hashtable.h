@@ -21,6 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cstdint>
+
 extern uint64_t hash_mask;
 extern unsigned char * hash_occupied;
 extern uint64_t * hash_values;
