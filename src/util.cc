@@ -29,7 +29,7 @@ static uint64_t progress_size;
 static uint64_t progress_chunk;
 const size_t memalignment = 16;
 
-void progress_init(const char * prompt, uint64_t size)
+auto progress_init(const char * prompt, uint64_t size) -> void
 {
   constexpr uint64_t progress_granularity {200};
   progress_prompt = prompt;
@@ -45,7 +45,7 @@ void progress_init(const char * prompt, uint64_t size)
   }
 }
 
-void progress_update(uint64_t progress)
+auto progress_update(uint64_t progress) -> void
 {
   if (opt_log.empty() && (progress >= progress_next))
     {
@@ -57,7 +57,7 @@ void progress_update(uint64_t progress)
     }
 }
 
-void progress_done()
+auto progress_done() -> void
 {
   if (! opt_log.empty()) {
     fprintf(logfile, " %.0f%%\n", 100.0);
@@ -110,7 +110,7 @@ auto xrealloc(void *ptr, size_t size) -> void *
   return t;
 }
 
-void xfree(void * ptr)
+auto xfree(void * ptr) -> void
 {
   if (ptr != nullptr)
     {

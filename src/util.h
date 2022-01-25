@@ -26,10 +26,10 @@
 
 auto xmalloc(size_t size) -> void *;
 auto xrealloc(void * ptr, size_t size) -> void *;
-void xfree(void * ptr);
+auto xfree(void * ptr) -> void;
 auto xgetline(char ** linep, size_t * linecapp, FILE * stream) -> ssize_t;
-void progress_init(const char * prompt, uint64_t size);
-void progress_update(uint64_t progress);
-void progress_done();
+auto progress_init(const char * prompt, uint64_t size) -> void;
+auto progress_update(uint64_t progress) -> void;
+auto progress_done() -> void;
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> std::FILE *;
