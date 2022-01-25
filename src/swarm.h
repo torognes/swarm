@@ -371,4 +371,3 @@ void dereplicate(struct Parameters const & p);
 #include "threads.h"
 #include "bloompat.h"
 #include "bloomflex.h"
-#include "variants.h"

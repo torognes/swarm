@@ -32,6 +32,7 @@
 #include "arch.h"
 #include "db.h"
 #include "matrix.h"
+#include "variants.h"
 #include "zobrist.h"
 
 constexpr unsigned int one_kilobyte {1 << 10};
