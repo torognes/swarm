@@ -25,6 +25,8 @@
 #include "x86_cpu_features.h"
 #include "db.h"
 #include "gcd.h"
+#include "util.h"
+
 
 /* OPTIONS */
 

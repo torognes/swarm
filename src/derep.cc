@@ -24,6 +24,7 @@
 #include <cmath>
 #include "swarm.h"
 #include "db.h"
+#include "util.h"
 #include "zobrist.h"
 
 

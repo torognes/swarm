@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "pseudo_rng.h"
+#include "util.h"
 #include "zobrist.h"
 
 

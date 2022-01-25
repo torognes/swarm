@@ -34,6 +34,7 @@
 #include "swarm.h"
 #include "bloomflex.h"
 #include "pseudo_rng.h"
+#include "util.h"
 
 void bloomflex_patterns_generate(struct bloomflex_s * b);
 

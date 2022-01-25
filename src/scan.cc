@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "db.h"
 #include "threads.h"
+#include "util.h"
 
 
 static pthread_mutex_t scan_mutex;

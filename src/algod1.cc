@@ -36,6 +36,7 @@
 #include "matrix.h"
 #include "threads.h"
 #include "variants.h"
+#include "util.h"
 #include "zobrist.h"
 
 constexpr unsigned int one_kilobyte {1 << 10};

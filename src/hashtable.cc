@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "util.h"
 
 uint64_t hash_mask {0};
 unsigned char * hash_occupied {nullptr};

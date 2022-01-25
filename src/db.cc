@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "util.h"
 #include "zobrist.h"
 
 
