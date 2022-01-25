@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "db.h"
 #include "matrix.h"
+#include "scan.h"
 #include "util.h"
 
 static uint64_t count_comparisons_8;

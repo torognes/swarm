@@ -328,20 +328,6 @@ void nw(char * dseq,
         uint64_t dbseqno);
 
 
-/* functions in scan.cc */
-
-void search_all(uint64_t query_no);
-void search_do(uint64_t query_no,
-               uint64_t listlength,
-               uint64_t * targets,
-               uint64_t * scores,
-               uint64_t * diffs,
-               uint64_t * alignlengths,
-               int bits);
-void search_begin();
-void search_end();
-
-
 /* functions in algo.cc */
 
 void algo_run(struct Parameters const & p);
