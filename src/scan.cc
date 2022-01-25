@@ -222,23 +222,6 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
   return status;
 }
 
-#if 0
-
-/* never used */
-
-void master_dump()
-{
-  printf("master_dump\n");
-  printf("   i    t    s    d\n");
-  for(auto i = 0ULL; i < 1403; i++)
-    {
-      printf("%4" PRIu64 " %4" PRIu64 " %4" PRIu64 " %4" PRIu64 "\n",
-             i, master_targets[i], master_scores[i], master_diffs[i]);
-    }
-}
-
-#endif
-
 void search_worker_core(int64_t t)
 {
   search_init(sd + t);
