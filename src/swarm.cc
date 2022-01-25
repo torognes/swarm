@@ -420,11 +420,9 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   const int64_t penalty_factor {gcd(gcd(p.penalty_mismatch, penalty_gapopen), penalty_gapextend)};
 
   // clang: risk of DivideZero, but that would require gcd(0, 0) which is not possible
-  if (penalty_factor != 0) {
-    p.penalty_mismatch /= penalty_factor;
-    penalty_gapopen /= penalty_factor;
-    penalty_gapextend /= penalty_factor;
-  }
+  p.penalty_mismatch /= penalty_factor;
+  penalty_gapopen /= penalty_factor;
+  penalty_gapextend /= penalty_factor;
 }
 
 
