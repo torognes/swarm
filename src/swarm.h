@@ -369,5 +369,3 @@ void dereplicate(struct Parameters const & p);
 /* new header files */
 
 #include "threads.h"
-#include "bloompat.h"
-#include "bloomflex.h"

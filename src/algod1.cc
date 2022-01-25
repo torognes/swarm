@@ -28,9 +28,11 @@
 */
 
 #include "swarm.h"
-#include "hashtable.h"
 #include "arch.h"
+#include "bloomflex.h"
+#include "bloompat.h"
 #include "db.h"
+#include "hashtable.h"
 #include "matrix.h"
 #include "variants.h"
 #include "zobrist.h"
