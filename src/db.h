@@ -62,7 +62,7 @@ void db_qgrams_init();
 
 void db_qgrams_done();
 
-auto db_fprintseq(std::FILE * fp, const unsigned int seqno) -> void;
+auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void;
 
 void fprint_id(std::FILE * stream,
                uint64_t x,

@@ -401,8 +401,8 @@ void db_read(const char * filename, struct Parameters const & p)
 
   assert(filename != nullptr);  // filename is set to '-' (stdin) by default
 
-  std::FILE * fp { fopen_input(filename) };
-  if (fp == nullptr)
+  std::FILE * input_fp { fopen_input(filename) };
+  if (input_fp == nullptr)
     {
       fatal(error_prefix, "Unable to open input data file (", filename, ").\n");
     }
@@ -411,7 +411,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   struct stat fs;
 
-  if (fstat(fileno(fp), & fs) != 0)
+  if (fstat(fileno(input_fp), & fs) != 0)
     {
       fatal(error_prefix, "Unable to fstat on input file (", filename, ").\n");
     }
@@ -425,7 +425,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   size_t linecap = linealloc;
   char * line = static_cast<char*>(xmalloc(linecap));
-  ssize_t linelen = xgetline(& line, & linecap, fp);
+  ssize_t linelen = xgetline(& line, & linecap, input_fp);
   if (linelen < 0)
     {
       line[0] = 0;
@@ -481,7 +481,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
       /* get next line */
 
-      linelen = xgetline(& line, & linecap, fp);
+      linelen = xgetline(& line, & linecap, input_fp);
       if (linelen < 0)
         {
           line[0] = 0;
@@ -562,7 +562,7 @@ void db_read(const char * filename, struct Parameters const & p)
             fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
           }
 
-          linelen = xgetline(& line, & linecap, fp);
+          linelen = xgetline(& line, & linecap, input_fp);
           if (linelen < 0)
             {
               line[0] = 0;
@@ -614,7 +614,7 @@ void db_read(const char * filename, struct Parameters const & p)
     }
   progress_done();
 
-  fclose(fp);
+  fclose(input_fp);
 
   /* init zobrist hashing */
 
@@ -933,7 +933,7 @@ void db_free()
 }
 
 
-auto db_fprintseq(std::FILE * fp, const unsigned int seqno) -> void
+auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
 {
   const unsigned int len {db_getsequencelen(seqno)};
   char * const seqptr {db_getsequence(seqno)};
@@ -945,5 +945,5 @@ auto db_fprintseq(std::FILE * fp, const unsigned int seqno) -> void
   }
   buffer[len] = '\0';
 
-  fprintf(fp, "%.*s\n", len, buffer.data());
+  fprintf(fastaout_fp, "%.*s\n", len, buffer.data());
 }
