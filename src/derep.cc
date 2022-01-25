@@ -21,9 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cmath>
 #include "swarm.h"
 #include "db.h"
-#include <cmath>
+#include "zobrist.h"
 
 
 struct bucket

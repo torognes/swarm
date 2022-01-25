@@ -23,9 +23,12 @@
 
 #include "swarm.h"
 #include "pseudo_rng.h"
+#include "zobrist.h"
+
 
 uint64_t * zobrist_tab_base = nullptr;
 uint64_t * zobrist_tab_byte_base = nullptr;
+
 
 void zobrist_init(unsigned int n)
 {

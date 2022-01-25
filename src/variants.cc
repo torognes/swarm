@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "zobrist.h"
 
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 {

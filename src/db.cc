@@ -22,6 +22,8 @@
 */
 
 #include "swarm.h"
+#include "zobrist.h"
+
 
 constexpr unsigned int memchunk {1 << 20};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
