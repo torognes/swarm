@@ -273,42 +273,6 @@ auto compareqgramvectors_popcnt(unsigned char * a, unsigned char * b)
 
 #endif
 
-/* functions in search8.cc */
-
-void search8(BYTE * * q_start,
-             BYTE gap_open_penalty,
-             BYTE gap_extend_penalty,
-             BYTE * score_matrix,
-             BYTE * dprofile,
-             BYTE * hearray,
-             uint64_t sequences,
-             uint64_t * seqnos,
-             uint64_t * scores,
-             uint64_t * diffs,
-             uint64_t * alignmentlengths,
-             uint64_t qlen,
-             uint64_t dirbuffersize,
-             uint64_t * dirbuffer);
-
-
-/* functions in search16.cc */
-
-void search16(WORD * * q_start,
-              WORD gap_open_penalty,
-              WORD gap_extend_penalty,
-              WORD * score_matrix,
-              WORD * dprofile,
-              WORD * hearray,
-              uint64_t sequences,
-              uint64_t * seqnos,
-              uint64_t * scores,
-              uint64_t * diffs,
-              uint64_t * alignmentlengths,
-              uint64_t qlen,
-              uint64_t dirbuffersize,
-              uint64_t * dirbuffer);
-
-
 /* functions in algo.cc */
 
 void algo_run(struct Parameters const & p);

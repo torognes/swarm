@@ -24,6 +24,8 @@
 #include "swarm.h"
 #include "db.h"
 #include "nw.h"
+#include "search8.h"
+#include "search16.h"
 #include "threads.h"
 #include "util.h"
 
