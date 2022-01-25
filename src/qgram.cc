@@ -22,6 +22,8 @@
 */
 
 #include "swarm.h"
+#include "threads.h"
+
 
 static ThreadRunner * qgram_threads = nullptr;
 

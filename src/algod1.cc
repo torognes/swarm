@@ -34,6 +34,7 @@
 #include "db.h"
 #include "hashtable.h"
 #include "matrix.h"
+#include "threads.h"
 #include "variants.h"
 #include "zobrist.h"
 

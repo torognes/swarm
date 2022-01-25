@@ -363,8 +363,3 @@ void algo_d1_run(struct Parameters const & p);
 /* functions in derep.cc */
 
 void dereplicate(struct Parameters const & p);
-
-
-/* new header files */
-
-#include "threads.h"
