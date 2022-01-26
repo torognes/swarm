@@ -152,6 +152,7 @@ const vector unsigned char perm_bits =
 
 #endif
 
+
 void align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
                            VECTORTYPE ** qp,
@@ -161,6 +162,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE * F0,
                            uint64_t * dir_long,
                            VECTORTYPE * H0);
+
 
 void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * hep,
@@ -175,6 +177,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MQ,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0);
+
 
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
@@ -524,6 +527,7 @@ inline void onestep_8(VECTORTYPE & H,
   *((DIR) + 3) = v_mask_eq(H, E);
 }
 
+
 void align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
                            VECTORTYPE ** qp,
@@ -599,6 +603,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   Sm[2] = h7;
   Sm[3] = h8;
 }
+
 
 void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * hep,
@@ -694,6 +699,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
   Sm[2] = h7;
   Sm[3] = h8;
 }
+
 
 inline auto backtrack_8(char * qseq,
                             char * dseq,
@@ -850,6 +856,7 @@ inline auto backtrack_8(char * qseq,
   * alignmentlengthp = aligned;
   return aligned - matches;
 }
+
 
 void search8(BYTE * * q_start,
              BYTE gap_open_penalty,
