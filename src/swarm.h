@@ -196,8 +196,6 @@ extern unsigned char * score_matrix_8;
 extern unsigned short * score_matrix_16;
 extern int64_t * score_matrix_63;
 
-extern uint64_t longestdbsequence;
-
 
 /* inline functions */
 

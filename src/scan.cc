@@ -179,7 +179,8 @@ void search_chunk(struct search_data * sdp, int64_t bits)
              master_alignlengths + sdp->target_index,
              static_cast<uint64_t>(query.len),
              dirbufferbytes / sizeof(uint64_t),
-             sdp->dir_array);
+             sdp->dir_array,
+             longestdbsequence);
    }
  else {
     search8(sdp->qtable,
@@ -195,7 +196,8 @@ void search_chunk(struct search_data * sdp, int64_t bits)
             master_alignlengths + sdp->target_index,
             static_cast<uint64_t>(query.len),
             dirbufferbytes / sizeof(uint64_t),
-            sdp->dir_array);
+            sdp->dir_array,
+            longestdbsequence);
  }
 }
 

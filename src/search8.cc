@@ -683,7 +683,8 @@ inline auto backtrack_8(char * qseq,
                         uint64_t offset,
                         uint64_t dirbuffersize,
                         uint64_t channel,
-                        uint64_t * alignmentlengthp) -> uint64_t
+                        uint64_t * alignmentlengthp,
+                        const uint64_t longestdbsequence) -> uint64_t
 {
   constexpr unsigned int offset0 {0};
   constexpr unsigned int offset1 {offset0 + 16};
@@ -845,7 +846,8 @@ void search8(BYTE * * q_start,
              uint64_t * alignmentlengths,
              uint64_t qlen,
              uint64_t dirbuffersize,
-             uint64_t * dirbuffer)
+             uint64_t * dirbuffer,
+             const uint64_t longestdbsequence)
 {
   VECTORTYPE Q;
   VECTORTYPE R;
@@ -1005,7 +1007,8 @@ void search8(BYTE * * q_start,
                                              dirbuffer,
                                              offset,
                                              dirbuffersize, c,
-                                             alignmentlengths + cand_id);
+                                             alignmentlengths + cand_id,
+                                             longestdbsequence);
                         }
                       else
                         {
