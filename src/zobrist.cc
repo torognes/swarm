@@ -31,7 +31,7 @@ uint64_t * zobrist_tab_base = nullptr;
 uint64_t * zobrist_tab_byte_base = nullptr;
 
 
-void zobrist_init(unsigned int n)
+void zobrist_init(const unsigned int n)
 {
   /*
     Generate 4n random 64-bit numbers. They will represent the four
