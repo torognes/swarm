@@ -42,24 +42,6 @@ static struct thread_info_s
   uint64_t * difflist;
 } * ti;
 
-#if 0
-
-/* never used */
-
-void printqgrams(unsigned char * qgramvector)
-{
-  /* print qgramvector */
-  fprintf(logfile, "qgram vector:\n");
-  for(auto i = 0; i < qgramvectorbytes; i++)
-  {
-    fprintf(logfile, "%02x", qgramvector[i]);
-    if ((i % 32) == 31) {
-      fprintf(logfile, "\n");
-    }
-  }
-}
-
-#endif
 
 void findqgrams(unsigned char * seq, uint64_t seqlen,
                 unsigned char * qgramvector)
