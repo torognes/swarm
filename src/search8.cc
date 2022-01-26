@@ -676,14 +676,14 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 
 
 inline auto backtrack_8(char * qseq,
-                            char * dseq,
-                            uint64_t qlen,
-                            uint64_t dlen,
-                            uint64_t * dirbuffer,
-                            uint64_t offset,
-                            uint64_t dirbuffersize,
-                            uint64_t channel,
-                            uint64_t * alignmentlengthp) -> uint64_t
+                        char * dseq,
+                        uint64_t qlen,
+                        uint64_t dlen,
+                        uint64_t * dirbuffer,
+                        uint64_t offset,
+                        uint64_t dirbuffersize,
+                        uint64_t channel,
+                        uint64_t * alignmentlengthp) -> uint64_t
 {
   constexpr unsigned int offset0 {0};
   constexpr unsigned int offset1 {offset0 + 16};
