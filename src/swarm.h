@@ -216,10 +216,10 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
 {
   // Compute number of bytes used for compressed sequence of length len
   // (minimum result is 8 bytes)
-  constexpr unsigned int max_nt_per_uint64 {1 << 5};  // 32 nt fit in 64 bits
-  constexpr unsigned int drop_remainder {5};  // (len+31) % 32 = remainder (drop it)
-  constexpr unsigned int convert_to_bytes {3};  // times 8 to get the number of bytes
-  return ((len + max_nt_per_uint64 - 1) >> drop_remainder) << convert_to_bytes;
+  constexpr unsigned int max_nt_per_uint64 {32};  // 32 nt fit in 64 bits
+  constexpr unsigned int drop_remainder {5};  // (len + 31) % 32 (drop remainder)
+  constexpr unsigned int bytes_per_uint64 {8};  // times 8 to get the number of bytes
+  return ((len + max_nt_per_uint64 - 1) >> drop_remainder) * bytes_per_uint64;
 }
 
 
@@ -235,19 +235,6 @@ auto fatal(T head, Tail... tail) -> void {
     std::cerr << head;
     fatal(tail...);
 }
-
-
-/* functions in qgram.cc */
-
-void findqgrams(unsigned char * seq, uint64_t seqlen,
-                unsigned char * qgramvector);
-auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t;
-void qgram_diff_fast(uint64_t seed,
-                     uint64_t listlen,
-                     uint64_t * amplist,
-                     uint64_t * difflist);
-void qgram_diff_init();
-void qgram_diff_done();
 
 
 /* functions in algo.cc */

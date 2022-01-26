@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include "qgram.h"
 #include "matrix.h"
 #include "nw.h"
 #include "scan.h"
