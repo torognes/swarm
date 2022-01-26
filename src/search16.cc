@@ -27,10 +27,7 @@
 #ifdef __x86_64__
 
 #include "ssse3.h"
-
-#ifdef __SSE4_1__
 #include "sse41.h"
-#endif
 
 #endif
 

@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
 
 #ifdef __x86_64__
 #ifdef __SSE4_1__
@@ -34,8 +33,12 @@
 
   This code requires the _mm_min_epu16 intrinsic implemented
   with the PMINUW instruction on the CPU. That instruction was
-  available starting with the Penryn archtecture in 2008.
+  available starting with the Penryn architecture in 2008.
 */
+
+#include <cstdint>
+#include <smmintrin.h>
+
 
 using VECTORTYPE = __m128i;
 #define v_min(a, b) _mm_min_epu16((a), (b))
