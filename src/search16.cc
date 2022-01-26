@@ -146,39 +146,6 @@ const vector unsigned char perm_bits =
 
 #endif
 
-void align_cells_regular_16(VECTORTYPE * Sm,
-                            VECTORTYPE * hep,
-                            VECTORTYPE ** qp,
-                            VECTORTYPE * Qm,
-                            VECTORTYPE * Rm,
-                            uint64_t ql,
-                            VECTORTYPE * F0,
-                            uint64_t * dir_long,
-                            VECTORTYPE * H0);
-
-void align_cells_masked_16(VECTORTYPE * Sm,
-                           VECTORTYPE * hep,
-                           VECTORTYPE ** qp,
-                           VECTORTYPE * Qm,
-                           VECTORTYPE * Rm,
-                           uint64_t ql,
-                           VECTORTYPE * F0,
-                           uint64_t * dir_long,
-                           VECTORTYPE * H0,
-                           VECTORTYPE * Mm,
-                           VECTORTYPE * MQ,
-                           VECTORTYPE * MR,
-                           VECTORTYPE * MQ0);
-
-auto backtrack_16(char * qseq,
-                  char * dseq,
-                  uint64_t qlen,
-                  uint64_t dlen,
-                  uint64_t * dirbuffer,
-                  uint64_t offset,
-                  uint64_t dirbuffersize,
-                  uint64_t channel,
-                  uint64_t * alignmentlengthp) -> uint64_t;
 
 inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
