@@ -466,61 +466,6 @@ auto backtrack_16(char * qseq,
   uint64_t maskextup   = 3ULL << (2 * channel + offset2);
   uint64_t maskextleft = 3ULL << (2 * channel + offset3);
 
-#if 0
-
-  printf("Dumping backtracking array\n");
-
-  for(auto i = 0ULL; i < qlen; i++)
-    {
-      for(auto j = 0ULL; j < dlen; j++)
-        {
-          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
-                                  + 4 * i + (j & 3)) % dirbuffersize];
-          if (d & maskleft)
-            {
-              printf("<");
-            }
-          else if (!(d & maskup))
-            {
-              printf("^");
-            }
-          else
-            {
-              printf("\\");
-            }
-        }
-      printf("\n");
-    }
-
-  printf("Dumping gap extension array\n");
-
-  for(auto i = 0ULL; i < qlen; i++)
-    {
-      for(auto j = 0ULL; j < dlen; j++)
-        {
-          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 *(j / 4)
-                                  + 4 * i + (j & 3)) % dirbuffersize];
-          if (!(d & maskextup))
-            {
-              if (!(d & maskextleft))
-                printf("+");
-              else
-                printf("^");
-            }
-          else if (!(d & maskextleft))
-            {
-              printf("<");
-            }
-          else
-            {
-              printf("\\");
-            }
-        }
-      printf("\n");
-    }
-
-#endif
-
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
