@@ -256,16 +256,6 @@ void qgram_diff_done();
 
 #ifdef __x86_64__
 
-/* functions in ssse3.cc */
-
-void dprofile_shuffle8(BYTE * dprofile,
-                       BYTE * score_matrix,
-                       BYTE * dseq_byte);
-
-void dprofile_shuffle16(WORD * dprofile,
-                        WORD * score_matrix,
-                        BYTE * dseq_byte);
-
 /* function in popcnt.cc */
 
 auto compareqgramvectors_popcnt(unsigned char * a, unsigned char * b)

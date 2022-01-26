@@ -24,6 +24,13 @@
 #include "swarm.h"
 #include "db.h"
 
+#ifdef __x86_64__
+
+#include "ssse3.h"
+
+#endif
+
+
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
 
