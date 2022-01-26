@@ -124,9 +124,6 @@ constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
 
 /* structures and data types */
 
-using WORD = unsigned short;
-using BYTE = unsigned char;
-
 using qgramvector_t = unsigned char[qgramvectorbytes];
 extern qgramvector_t * qgrams;
 

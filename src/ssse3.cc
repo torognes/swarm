@@ -37,6 +37,10 @@
   available starting with the Intel Core archtecture in 2006.
 */
 
+using WORD = unsigned short;
+using BYTE = unsigned char;
+
+
 /* 8-bit version with 16 channels */
 
 void dprofile_shuffle8(BYTE * dprofile,
