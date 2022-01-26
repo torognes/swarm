@@ -28,6 +28,10 @@
 
 #include "ssse3.h"
 
+#ifdef __SSE4_1__
+#include "sse41.h"
+#endif
+
 #endif
 
 constexpr unsigned int channels {8};
@@ -168,36 +172,6 @@ void align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * MQ,
                            VECTORTYPE * MR,
                            VECTORTYPE * MQ0);
-
-#ifdef __x86_64__
-
-/* functions defined in sse41.cc */
-
-void align_cells_regular_16_sse41(VECTORTYPE * Sm,
-                                  VECTORTYPE * hep,
-                                  VECTORTYPE ** qp,
-                                  VECTORTYPE * Qm,
-                                  VECTORTYPE * Rm,
-                                  uint64_t ql,
-                                  VECTORTYPE * F0,
-                                  uint64_t * dir_long,
-                                  VECTORTYPE * H0);
-
-void align_cells_masked_16_sse41(VECTORTYPE * Sm,
-                                 VECTORTYPE * hep,
-                                 VECTORTYPE ** qp,
-                                 VECTORTYPE * Qm,
-                                 VECTORTYPE * Rm,
-                                 uint64_t ql,
-                                 VECTORTYPE * F0,
-                                 uint64_t * dir_long,
-                                 VECTORTYPE * H0,
-                                 VECTORTYPE * Mm,
-                                 VECTORTYPE * MQ,
-                                 VECTORTYPE * MR,
-                                 VECTORTYPE * MQ0);
-
-#endif
 
 auto backtrack_16(char * qseq,
                   char * dseq,
@@ -509,13 +483,13 @@ void align_cells_masked_16(VECTORTYPE * Sm,
 }
 
 auto backtrack_16(char * qseq,
-                      char * dseq,
-                      uint64_t qlen,
-                      uint64_t dlen,
-                      uint64_t * dirbuffer,
-                      uint64_t offset,
-                      uint64_t dirbuffersize,
-                      uint64_t channel,
+                  char * dseq,
+                  uint64_t qlen,
+                  uint64_t dlen,
+                  uint64_t * dirbuffer,
+                  uint64_t offset,
+                  uint64_t dirbuffersize,
+                  uint64_t channel,
                   uint64_t * alignmentlengthp,
                   const uint64_t longestdbsequence) -> uint64_t
 {
