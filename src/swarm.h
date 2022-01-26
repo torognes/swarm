@@ -253,16 +253,6 @@ void qgram_diff_init();
 void qgram_diff_done();
 
 
-
-#ifdef __x86_64__
-
-/* function in popcnt.cc */
-
-auto compareqgramvectors_popcnt(unsigned char * a, unsigned char * b)
-  -> uint64_t;
-
-#endif
-
 /* functions in algo.cc */
 
 void algo_run(struct Parameters const & p);
