@@ -30,9 +30,11 @@
 
 #endif
 
-
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
+using BYTE = unsigned char;
+using WORD = unsigned short;
+
 
 /* uses 8 unsigned 16-bit values */
 
