@@ -76,18 +76,16 @@ constexpr char PRId64[] = "ld";
 #endif
 
 #ifdef __SSSE3__
-#include <tmmintrin.h>
+#include <tmmintrin.h>  // could be removed?
 #endif
 
 #ifdef __SSE4_1__
-#include <smmintrin.h>
+#include <smmintrin.h>  // could be removed?
 #endif
 
 #ifdef __POPCNT__
 #include <popcntintrin.h>
 #endif
-
-#define CAST_m128i_ptr(x) (reinterpret_cast<__m128i*>(x))
 
 #elif defined __PPC__
 

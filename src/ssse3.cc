@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
 
 #ifdef __x86_64__
 #ifdef __SSSE3__
@@ -34,8 +33,12 @@
 
   This code requires the _mm_shuffle_epi8 intrinsic implemented
   with the PSHUFB instruction on the CPU. That instruction was
-  available starting with the Intel Core archtecture in 2006.
+  available starting with the Intel Core architecture in 2006.
 */
+
+#include <tmmintrin.h>
+
+#define CAST_m128i_ptr(x) (reinterpret_cast<__m128i*>(x))
 
 using WORD = unsigned short;
 using BYTE = unsigned char;
