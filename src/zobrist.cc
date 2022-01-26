@@ -93,15 +93,16 @@ void zobrist_exit()
   xfree(zobrist_tab_base);
 }
 
-auto zobrist_hash(unsigned char * s, unsigned int len) -> uint64_t
+
+auto zobrist_hash(unsigned char * seq, unsigned int len) -> uint64_t
 {
-  /* compute the Zobrist hash function of sequence s of length len. */
+  /* compute the Zobrist hash function of sequence seq of length len. */
   /* len is the actual number of bases in the sequence */
-  /* it is encoded in (len+3)/4 bytes */
+  /* it is encoded in (len + 3 ) / 4 bytes */
 
   constexpr unsigned int offset {64};
   constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
-  auto * q = reinterpret_cast<uint64_t *>(s);
+  auto * q = reinterpret_cast<uint64_t *>(seq);
   uint64_t z = 0;
   unsigned int p = 0;
   auto * qb = reinterpret_cast<unsigned char *>(q);
@@ -135,13 +136,14 @@ auto zobrist_hash(unsigned char * s, unsigned int len) -> uint64_t
   return z;
 }
 
-auto zobrist_hash_delete_first(unsigned char * s, unsigned int len) -> uint64_t
+
+auto zobrist_hash_delete_first(unsigned char * seq, unsigned int len) -> uint64_t
 {
-  /* compute the Zobrist hash function of sequence s,
+  /* compute the Zobrist hash function of sequence seq,
      but delete the first base */
 
   constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
-  auto * q = reinterpret_cast<uint64_t *>(s);
+  auto * q = reinterpret_cast<uint64_t *>(seq);
   uint64_t x = q[0];
   uint64_t z = 0;
   for(auto p = 1U; p < len; p++)
@@ -157,13 +159,13 @@ auto zobrist_hash_delete_first(unsigned char * s, unsigned int len) -> uint64_t
   return z;
 }
 
-auto zobrist_hash_insert_first(unsigned char * s, unsigned int len) -> uint64_t
+auto zobrist_hash_insert_first(unsigned char * seq, unsigned int len) -> uint64_t
 {
-  /* compute the Zobrist hash function of sequence s,
+  /* compute the Zobrist hash function of sequence seq,
      but insert a gap (no value) before the first base */
 
   constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
-  auto * q = reinterpret_cast<uint64_t *>(s);
+  auto * q = reinterpret_cast<uint64_t *>(seq);
   uint64_t x = 0;
   uint64_t z = 0;
   for(auto p = 0U; p < len; p++)
