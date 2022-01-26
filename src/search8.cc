@@ -33,6 +33,8 @@
 
 constexpr unsigned int channels {16};
 constexpr unsigned int cdepth {4};
+using BYTE = unsigned char;
+
 
 /* uses 16 unsigned 8-bit values */
 
