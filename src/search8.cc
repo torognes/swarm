@@ -153,32 +153,6 @@ const vector unsigned char perm_bits =
 #endif
 
 
-void align_cells_regular_8(VECTORTYPE * Sm,
-                           VECTORTYPE * hep,
-                           VECTORTYPE ** qp,
-                           VECTORTYPE * Qm,
-                           VECTORTYPE * Rm,
-                           uint64_t ql,
-                           VECTORTYPE * F0,
-                           uint64_t * dir_long,
-                           VECTORTYPE * H0);
-
-
-void align_cells_masked_8(VECTORTYPE * Sm,
-                          VECTORTYPE * hep,
-                          VECTORTYPE ** qp,
-                          VECTORTYPE * Qm,
-                          VECTORTYPE * Rm,
-                          uint64_t ql,
-                          VECTORTYPE * F0,
-                          uint64_t * dir_long,
-                          VECTORTYPE * H0,
-                          VECTORTYPE * Mm,
-                          VECTORTYPE * MQ,
-                          VECTORTYPE * MR,
-                          VECTORTYPE * MQ0);
-
-
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
