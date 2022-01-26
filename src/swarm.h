@@ -201,15 +201,15 @@ extern uint64_t longestdbsequence;
 
 /* inline functions */
 
-inline auto nt_extract(char * seq, uint64_t i) -> unsigned char
+inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
 {
-  // Extract compressed nucleotide in sequence seq at position i
+  // Extract compressed nucleotide in sequence seq at position pos
   constexpr unsigned int max_nt_per_uint64 {1 << 5};  // 32 nt fit in 64 bits
   constexpr unsigned int drop_remainder {5};  // (len+31) % 32 = remainder (drop it)
   constexpr unsigned int max_range {3};
   // outputs four possible values: 0, 1, 2 or 3
-  return (((reinterpret_cast<uint64_t*>(seq))[i >> drop_remainder]) >> \
-          ((i & (max_nt_per_uint64 - 1)) << 1)) & max_range;
+  return (((reinterpret_cast<uint64_t*>(seq))[pos >> drop_remainder]) >> \
+          ((pos & (max_nt_per_uint64 - 1)) << 1)) & max_range;
 }
 
 inline auto nt_bytelength(unsigned int len) -> unsigned int
