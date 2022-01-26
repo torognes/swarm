@@ -104,32 +104,32 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
   constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
   auto * q = reinterpret_cast<uint64_t *>(seq);
   uint64_t z = 0;
-  unsigned int p = 0;
+  unsigned int pos = 0;
   auto * qb = reinterpret_cast<unsigned char *>(q);
 
-  while (p + nt_per_uint64 < len)
+  while (pos + nt_per_uint64 < len)
     {
       for(auto i = 0U; i < nt_per_uint64; i += 4) {
         // i = {0, 4, 8, 12, 16, 20, 24, 28}
-        z ^= zobrist_tab_byte_base[offset * (p + i) + *qb++];
+        z ^= zobrist_tab_byte_base[offset * (pos + i) + *qb++];
       }
-      p += nt_per_uint64;
+      pos += nt_per_uint64;
     }
 
-  while (p + 4 < len)
+  while (pos + 4 < len)
     {
-      z ^= zobrist_tab_byte_base[offset * p + *qb++];
-      p += 4;
+      z ^= zobrist_tab_byte_base[offset * pos + *qb++];
+      pos += 4;
     }
 
-  if (p < len)
+  if (pos < len)
     {
       uint64_t x = *qb++;
-      while (p < len)
+      while (pos < len)
         {
-          z ^= zobrist_value(p, x & 3);
+          z ^= zobrist_value(pos, x & 3);
           x >>= 2;
-          p++;
+          pos++;
         }
     }
 
@@ -146,15 +146,15 @@ auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> u
   auto * q = reinterpret_cast<uint64_t *>(seq);
   uint64_t x = q[0];
   uint64_t z = 0;
-  for(auto p = 1U; p < len; p++)
+  for(auto pos = 1U; pos < len; pos++)
     {
-      if ((p & (nt_per_uint64 - 1)) == 0) {
-        x = q[p / nt_per_uint64];
+      if ((pos & (nt_per_uint64 - 1)) == 0) {
+        x = q[pos / nt_per_uint64];
       }
       else {
         x >>= 2;
       }
-      z ^= zobrist_value(p - 1, x & 3);
+      z ^= zobrist_value(pos - 1, x & 3);
     }
   return z;
 }
@@ -168,15 +168,15 @@ auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> u
   auto * q = reinterpret_cast<uint64_t *>(seq);
   uint64_t x = 0;
   uint64_t z = 0;
-  for(auto p = 0U; p < len; p++)
+  for(auto pos = 0U; pos < len; pos++)
     {
-      if ((p & (nt_per_uint64 - 1)) == 0) {
-        x = q[p / nt_per_uint64];
+      if ((pos & (nt_per_uint64 - 1)) == 0) {
+        x = q[pos / nt_per_uint64];
       }
       else {
         x >>= 2;
       }
-      z ^= zobrist_value(p + 1, x & 3);
+      z ^= zobrist_value(pos + 1, x & 3);
     }
   return z;
 }
