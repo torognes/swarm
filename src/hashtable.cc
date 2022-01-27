@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "util.h"
+#include "utils/hashtable_size.h"
 
 
 uint64_t hash_mask {0};
@@ -40,19 +41,15 @@ void hash_zap()
 
 void hash_alloc(const uint64_t amplicons)
 {
-  constexpr unsigned int hashfillpct {70};
-  constexpr unsigned int one_hundred_pct {100};
   constexpr int padding {63};  // make sure our final value is >= 64 / 8
   constexpr int convert_to_bytes {8};
-  hashtablesize = 1;
-  // amplicons > 70% hash table size (avoid division to keep working with ints)
-  while (one_hundred_pct * amplicons > hashfillpct * hashtablesize) {
-    hashtablesize <<= 1;
-  }
+
+  hashtablesize = compute_hashtable_size(amplicons);
   hash_mask = hashtablesize - 1;
 
   hash_occupied =
     static_cast<unsigned char *>(xmalloc((hashtablesize + padding) / convert_to_bytes));
+
   hash_zap();
 
   hash_values =
