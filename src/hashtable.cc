@@ -37,7 +37,7 @@ void hash_zap()
   memset(hash_occupied, 0, (hash_tablesize + padding) / convert_to_bytes);
 }
 
-void hash_alloc(uint64_t amplicons)
+void hash_alloc(const uint64_t amplicons)
 {
   constexpr unsigned int hashfillpct {70};
   constexpr unsigned int one_hundred_pct {100};
