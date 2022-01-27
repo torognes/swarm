@@ -35,7 +35,6 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
   constexpr unsigned int numerator {7};
   constexpr unsigned int denominator {10};
   static_assert(numerator != 0, "Error: will result in a divide-by-zero");
-  assert(sequence_count > 0);
   assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
   return std::pow(2, std::ceil(std::log2(denominator * (sequence_count + 1) / numerator)));
 }
