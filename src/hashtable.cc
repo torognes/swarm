@@ -24,17 +24,18 @@
 #include "swarm.h"
 #include "util.h"
 
+
 uint64_t hash_mask {0};
 unsigned char * hash_occupied {nullptr};
 uint64_t * hash_values {nullptr};
 unsigned int * hash_data {nullptr};
-uint64_t hash_tablesize {0};
+uint64_t hashtablesize {0};
 
 void hash_zap()
 {
   constexpr int padding {63};  // make sure our final value is >= 64 / 8
   constexpr int convert_to_bytes {8};
-  memset(hash_occupied, 0, (hash_tablesize + padding) / convert_to_bytes);
+  memset(hash_occupied, 0, (hashtablesize + padding) / convert_to_bytes);
 }
 
 void hash_alloc(const uint64_t amplicons)
@@ -43,22 +44,22 @@ void hash_alloc(const uint64_t amplicons)
   constexpr unsigned int one_hundred_pct {100};
   constexpr int padding {63};  // make sure our final value is >= 64 / 8
   constexpr int convert_to_bytes {8};
-  hash_tablesize = 1;
+  hashtablesize = 1;
   // amplicons > 70% hash table size (avoid division to keep working with ints)
-  while (one_hundred_pct * amplicons > hashfillpct * hash_tablesize) {
-    hash_tablesize <<= 1;
+  while (one_hundred_pct * amplicons > hashfillpct * hashtablesize) {
+    hashtablesize <<= 1;
   }
-  hash_mask = hash_tablesize - 1;
+  hash_mask = hashtablesize - 1;
 
   hash_occupied =
-    static_cast<unsigned char *>(xmalloc((hash_tablesize + padding) / convert_to_bytes));
+    static_cast<unsigned char *>(xmalloc((hashtablesize + padding) / convert_to_bytes));
   hash_zap();
 
   hash_values =
-    static_cast<uint64_t *>(xmalloc(hash_tablesize * sizeof(uint64_t)));
+    static_cast<uint64_t *>(xmalloc(hashtablesize * sizeof(uint64_t)));
 
   hash_data = static_cast<unsigned int *>
-    (xmalloc(hash_tablesize * sizeof(unsigned int)));
+    (xmalloc(hashtablesize * sizeof(unsigned int)));
 }
 
 void hash_free()

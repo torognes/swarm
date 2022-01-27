@@ -27,11 +27,11 @@ extern uint64_t hash_mask;
 extern unsigned char * hash_occupied;
 extern uint64_t * hash_values;
 extern unsigned int * hash_data;
-extern uint64_t hash_tablesize;
+extern uint64_t hashtablesize;
 
 inline auto hash_get_tablesize() -> uint64_t
 {
-  return hash_tablesize;
+  return hashtablesize;
 }
 
 inline auto hash_getindex(uint64_t hash) -> uint64_t
