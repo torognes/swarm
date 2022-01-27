@@ -70,14 +70,17 @@ auto derep_compare(const void * a, const void * b) -> int
 
 
 auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
-  // adjust hash table size for at most 70% fill rate;
-  // i.e. calculate the smallest power of two not smaller than x
-  // (refactor to std::bit_ceil with C++20)
-  constexpr unsigned int hashfill_pct {70};
-  constexpr unsigned int one_hundred_pct {100};
+  // adjust hash table size for at most 70% fill rate (7/10th);
+  // i.e. calculate the smallest power of two not smaller than
+  // 10/7 times the number of sequences.
+  // Note that hash table size can be at least 2^1 and at most 2^63.
+  // C++20: refactor with std::bit_ceil()
+  constexpr unsigned int numerator {7};
+  constexpr unsigned int denominator {10};
+  static_assert(numerator != 0, "Error: will result in a divide-by-zero");
   assert(sequence_count > 0);
-  // assert(sequence_count < (2^64 - 1) / 3)  // otherwise hashtable_size > unit64
-  return std::pow(2, std::ceil(std::log2(one_hundred_pct * sequence_count / hashfill_pct)));
+  assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
+  return std::pow(2, std::ceil(std::log2(denominator * sequence_count / numerator)));
 }
 
 
