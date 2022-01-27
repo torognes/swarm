@@ -27,12 +27,7 @@ extern uint64_t hash_mask;
 extern unsigned char * hash_occupied;
 extern uint64_t * hash_values;
 extern unsigned int * hash_data;
-extern uint64_t hashtablesize;
 
-inline auto hash_get_tablesize() -> uint64_t
-{
-  return hashtablesize;
-}
 
 inline auto hash_getindex(uint64_t hash) -> uint64_t
 {
@@ -81,8 +76,8 @@ inline void hash_set_data(uint64_t j, unsigned int x)
   hash_data[j] = x;
 }
 
-void hash_zap();
+void hash_zap(uint64_t hashtablesize);
 
-void hash_alloc(uint64_t amplicons);
+auto hash_alloc(uint64_t amplicons) -> uint64_t;
 
 void hash_free();

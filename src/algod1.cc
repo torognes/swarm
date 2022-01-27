@@ -1059,8 +1059,8 @@ void algo_d1_run(struct Parameters const & p)
 
   /* compute hash for all amplicons and store them in a hash table */
 
-  hash_alloc(amplicons);
-  bloom_a = bloom_init(hash_get_tablesize());
+  const uint64_t hashtablesize {hash_alloc(amplicons)};
+  bloom_a = bloom_init(hashtablesize);
 
   duplicates_found = 0;
 
@@ -1348,7 +1348,7 @@ void algo_d1_run(struct Parameters const & p)
           /* Empty the old hash and bloom filter
              before we reinsert only the light swarm amplicons */
 
-          hash_zap();
+          hash_zap(hashtablesize);
           bloom_zap(bloom_a);
 
           progress_init("Adding light swarm amplicons to Bloom filter",
