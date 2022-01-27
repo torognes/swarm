@@ -85,10 +85,12 @@ PROG = swarm
 
 OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	hashtable.o matrix.o nw.o qgram.o scan.o search16.o search8.o \
-	swarm.o util.o variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
+	swarm.o util.o utils/hashtable_size.o variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
 
-DEPS = Makefile arch.h bloomflex.h bloompat.h db.h hashtable.h matrix.h \
-	pseudo_rng.h swarm.h threads.h variants.h x86_cpu_features.h zobrist.h
+DEPS = Makefile arch.h bloomflex.h bloompat.h db.h gcd.h hashtable.h matrix.h \
+	nw.h pseudo_rng.h qgram.h scan.h search16.h search8.h swarm.h util.h \
+	utils/hashtable_size.h threads.h variants.h \
+	x86_cpu_features.h zobrist.h
 
 
 all : $(PROG)
@@ -99,7 +101,7 @@ swarm : $(OBJS) $(DEPS)
 	cp -a $(BIN) ../bin
 
 clean :
-	rm -f swarm *.o *~ gmon.out *.gcno *.gcda *.gcov ../bin/swarm
+	rm -f swarm *.o ./utils/*.o *~ gmon.out *.gcno *.gcda *.gcov ../bin/swarm
 
 .o : .cc $(DEPS)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

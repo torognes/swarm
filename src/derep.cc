@@ -21,10 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cmath>
 #include "swarm.h"
 #include "db.h"
 #include "util.h"
+#include "utils/hashtable_size.h"
 #include "zobrist.h"
 
 
@@ -66,21 +66,6 @@ auto derep_compare(const void * a, const void * b) -> int
   }
 
   return status;
-}
-
-
-auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
-  // adjust hash table size for at most 70% fill rate (7/10th);
-  // i.e. calculate the smallest power of two not smaller than
-  // 10/7 times the number of sequences.
-  // Note that hash table size can be at least 2^1 and at most 2^63.
-  // C++20: refactor with std::bit_ceil()
-  constexpr unsigned int numerator {7};
-  constexpr unsigned int denominator {10};
-  static_assert(numerator != 0, "Error: will result in a divide-by-zero");
-  assert(sequence_count > 0);
-  assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
-  return std::pow(2, std::ceil(std::log2(denominator * sequence_count / numerator)));
 }
 
 

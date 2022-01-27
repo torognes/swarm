@@ -1,0 +1,40 @@
+/*
+    SWARM
+
+    Copyright (C) 2012-2022 Torbjorn Rognes and Frederic Mahe
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+    Department of Informatics, University of Oslo,
+    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+*/
+
+#include <cassert>
+#include <cstdint>
+#include <cmath>
+
+auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
+  // adjust hash table size for at most 70% fill rate (7/10th);
+  // i.e. calculate the smallest power of two not smaller than
+  // 10/7 times the number of sequences.
+  // Note that hash table size can be at least 2^1 and at most 2^63.
+  // C++20: refactor with std::bit_ceil()
+  constexpr unsigned int numerator {7};
+  constexpr unsigned int denominator {10};
+  static_assert(numerator != 0, "Error: will result in a divide-by-zero");
+  assert(sequence_count > 0);
+  assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
+  return std::pow(2, std::ceil(std::log2(denominator * sequence_count / numerator)));
+}
