@@ -45,7 +45,7 @@ auto progress_init(const char * prompt, uint64_t size) -> void
   }
 }
 
-auto progress_update(uint64_t progress) -> void
+auto progress_update(const uint64_t progress) -> void
 {
   if (opt_log.empty() && (progress >= progress_next))
     {
