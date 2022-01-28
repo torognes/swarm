@@ -37,9 +37,9 @@ void score_matrix_read(struct Parameters const & p)
   long long int hi {-one_thousand};
   long long int lo {one_thousand};
 
-  score_matrix_8 = static_cast<unsigned char *>(xmalloc(n_cells * n_cells * sizeof(char)));
-  score_matrix_16 = static_cast<unsigned short *>(xmalloc(n_cells * n_cells * sizeof(short)));
-  score_matrix_63 = static_cast<int64_t *>(xmalloc(n_cells * n_cells * sizeof(int64_t)));
+  score_matrix_8 = new unsigned char[n_cells * n_cells];
+  score_matrix_16 = new unsigned short[n_cells * n_cells];
+  score_matrix_63 = new int64_t[n_cells * n_cells];
 
   for(auto a = 0; a < n_cells / 2; a++) {
     for(auto b = 0; b < n_cells / 2; b++) {
@@ -67,10 +67,10 @@ void score_matrix_read(struct Parameters const & p)
 
 void score_matrix_free()
 {
-  xfree(score_matrix_8);
+  delete [] score_matrix_8;
   score_matrix_8 = nullptr;
-  xfree(score_matrix_16);
+  delete [] score_matrix_16;
   score_matrix_16 = nullptr;
-  xfree(score_matrix_63);
+  delete [] score_matrix_63;
   score_matrix_63 = nullptr;
 }
