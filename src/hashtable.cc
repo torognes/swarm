@@ -50,11 +50,9 @@ auto hash_alloc(const uint64_t amplicons) -> uint64_t
 
   hash_occupied = new unsigned char[(hashtablesize + padding) / convert_to_bytes] { };
 
-  hash_zap(hashtablesize);
+  hash_values = new uint64_t[hashtablesize] { };
 
-  hash_values = new uint64_t[hashtablesize];
-
-  hash_data = new unsigned int[hashtablesize];
+  hash_data = new unsigned int[hashtablesize] { };
 
   return hashtablesize;
 }
