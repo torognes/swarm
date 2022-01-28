@@ -31,21 +31,15 @@
   https://doi.org/10.1145/1498698.1594230
 */
 
-#include "swarm.h"
+#include <cstdint>
+#include <cstring>
 #include "bloomflex.h"
 #include "pseudo_rng.h"
-#include "util.h"
 
-void bloomflex_patterns_generate(struct bloomflex_s * b);
 
-void bloomflex_patterns_generate(struct bloomflex_s * b)
+auto bloomflex_patterns_generate(struct bloomflex_s * b) -> void
 {
   constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
-#if 0
-  printf("Generating %" PRIu64 " patterns with %" PRIu64 " bits set.\n",
-         b->pattern_count,
-         b->pattern_k);
-#endif
   for(auto i = 0U; i < b->pattern_count; i++)
     {
       uint64_t pattern {0};
@@ -61,6 +55,7 @@ void bloomflex_patterns_generate(struct bloomflex_s * b)
       b->patterns[i] = pattern;
     }
 }
+
 
 auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
 {
@@ -86,7 +81,8 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
   return b;
 }
 
-void bloomflex_exit(struct bloomflex_s * b)
+
+auto bloomflex_exit(struct bloomflex_s * b) -> void
 {
   delete [] b->bitmap;
   b->bitmap = nullptr;
