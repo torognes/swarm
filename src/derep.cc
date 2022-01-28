@@ -236,10 +236,7 @@ void dereplicate(struct Parameters const & p)
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
   const uint64_t derep_hash_mask = hashtablesize - 1;
 
-  auto * hashtable =
-    static_cast<struct bucket *>(xmalloc(sizeof(bucket) * hashtablesize));
-
-  memset(hashtable, 0, sizeof(bucket) * hashtablesize);
+  auto * hashtable {new struct bucket[hashtablesize] { }};
 
   uint64_t swarmcount = 0;
   uint64_t maxmass = 0;
@@ -363,5 +360,6 @@ void dereplicate(struct Parameters const & p)
   fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
 
   xfree(nextseqtab);
-  xfree(hashtable);
+  delete [] hashtable;
+  hashtable = nullptr;
 }
