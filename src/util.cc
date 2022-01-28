@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "utils/fatal.h"
 
 static const char * progress_prompt;
 static uint64_t progress_next;
@@ -66,12 +67,6 @@ auto progress_done() -> void
     fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
   }
   fflush(logfile);
-}
-
-
-auto fatal() -> void {
-    std::cerr << '\n';
-    exit(1);
 }
 
 

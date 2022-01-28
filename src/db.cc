@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "qgram.h"
 #include "util.h"
+#include "utils/fatal.h"
 #include "zobrist.h"
 
 

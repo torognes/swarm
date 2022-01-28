@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "utils/fatal.h"
 
 // set to null if not x86-64
 int64_t ssse3_present {0};

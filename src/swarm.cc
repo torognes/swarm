@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "x86_cpu_features.h"
 #include "db.h"
+#include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "util.h"
 

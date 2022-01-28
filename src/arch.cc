@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "utils/fatal.h"
 
 
 auto arch_get_memused() -> uint64_t

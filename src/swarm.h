@@ -104,7 +104,6 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* constants */
 
-static char const * const error_prefix {"\nError: "};  // C++17: refactor by moving to fatal template
 constexpr char sepchar {' '};
 constexpr char dash_filename {'-'};
 constexpr unsigned int opt_differences_default {1};
@@ -216,20 +215,6 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
   constexpr unsigned int drop_remainder {5};  // (len + 31) % 32 (drop remainder)
   constexpr unsigned int bytes_per_uint64 {8};  // times 8 to get the number of bytes
   return ((len + max_nt_per_uint64 - 1) >> drop_remainder) * bytes_per_uint64;
-}
-
-
-/* message and exit with an error (variadic template with compile-time recursion) */
-
-// C++17: refactor with fold expression
-// C++20: refactor with Printable concept
-
-auto fatal() -> void;
-
-template <typename T, typename... Tail>
-auto fatal(T head, Tail... tail) -> void {
-    std::cerr << head;
-    fatal(tail...);
 }
 
 

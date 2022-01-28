@@ -22,8 +22,8 @@
 */
 
 #include <cstdint>
+#include "utils/fatal.h"
 #include <pthread.h>
-#include "util.h"
 
 class ThreadRunner
 {
