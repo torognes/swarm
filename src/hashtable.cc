@@ -22,7 +22,7 @@
 */
 
 #include <cstdint>
-#include <cstring>
+#include <cstring>  // memset
 #include "utils/hashtable_size.h"
 
 
