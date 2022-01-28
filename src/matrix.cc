@@ -22,7 +22,8 @@
 */
 
 #include "swarm.h"
-#include "util.h"
+#include <cstdint>
+
 
 unsigned char * score_matrix_8 {nullptr};
 unsigned short * score_matrix_16 {nullptr};
