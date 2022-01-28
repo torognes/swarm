@@ -67,7 +67,7 @@ void bloom_zap(struct bloom_s * b)
 
 auto bloom_init(uint64_t size) -> struct bloom_s *
 {
-  // Size is in bytes for full bitmap, must be power of 2
+  // Size is in bytes for full bitmap, must be power of 2,
   // at least 8
   constexpr uint64_t bytes_per_uint64 {8};
   size = std::max(size, bytes_per_uint64);
