@@ -21,9 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
+#include <cstdint>
 #include "pseudo_rng.h"
-#include "util.h"
 #include "zobrist.h"
 
 
