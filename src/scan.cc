@@ -310,6 +310,7 @@ void search_end()
   /* finish and clean up worker threads */
 
   delete search_threads;
+  search_threads = nullptr;
 
   pthread_mutex_destroy(& scan_mutex);
 
