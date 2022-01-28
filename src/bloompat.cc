@@ -31,12 +31,12 @@
   https://doi.org/10.1145/1498698.1594230
 */
 
+#include <cstdint>
 #include "swarm.h"
 #include "bloompat.h"
 #include "pseudo_rng.h"
 #include "util.h"
 
-void bloom_patterns_generate(struct bloom_s * b);
 
 void bloom_patterns_generate(struct bloom_s * b)
 {
@@ -72,13 +72,13 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
   constexpr uint64_t bytes_per_uint64 {8};
   size = std::max(size, bytes_per_uint64);
 
-  auto * b = static_cast<struct bloom_s *>(xmalloc(sizeof(struct bloom_s)));
+  auto * b {new struct bloom_s};
 
   b->size = size;
 
   b->mask = (size >> 3) - 1;
 
-  b->bitmap = static_cast<uint64_t *>(xmalloc(size));
+  b->bitmap = new uint64_t[size];
 
   bloom_zap(b);
 
@@ -90,6 +90,8 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 
 void bloom_exit(struct bloom_s * b)
 {
-  xfree(b->bitmap);
-  xfree(b);
+  delete [] b->bitmap;
+  b->bitmap = nullptr;
+  delete b;
+  b = nullptr;
 }
