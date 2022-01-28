@@ -548,13 +548,13 @@ void args_check(std::array<int, n_options> & used_options) {
 
   if (p.opt_version) {
     show(header_message);
-    exit(0);
+    std::exit(EXIT_SUCCESS);
   }
 
   if (p.opt_help) {
     show(header_message);
     show(args_usage_message);
-    exit(0);
+    std::exit(EXIT_SUCCESS);
   }
 
   // scoring system check
