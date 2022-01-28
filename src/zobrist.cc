@@ -48,8 +48,7 @@ void zobrist_init(const unsigned int n)
 
   /* allocate memory for tables */
 
-  zobrist_tab_base = static_cast<uint64_t *>
-    (xmalloc(4 * n * sizeof(uint64_t)));
+  zobrist_tab_base = new uint64_t[4 * n];
 
   zobrist_tab_byte_base = static_cast<uint64_t *>
     (xmalloc(byte_range * (n / 4) * sizeof(uint64_t)));
@@ -90,7 +89,8 @@ void zobrist_init(const unsigned int n)
 void zobrist_exit()
 {
   xfree(zobrist_tab_byte_base);
-  xfree(zobrist_tab_base);
+  delete [] zobrist_tab_base;
+  zobrist_tab_base = nullptr;
 }
 
 
