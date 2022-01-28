@@ -23,7 +23,6 @@
 
 #include "swarm.h"
 #include "db.h"
-#include "nw.h"
 #include "search8.h"
 #include "search16.h"
 #include "threads.h"
@@ -119,40 +118,6 @@ void search_chunk(struct search_data * sdp, int64_t bits)
   if (sdp->target_count == 0) {
     return;
   }
-
-#if 0
-
-  for(auto i = 0ULL; i < sdp->target_count; i++)
-    {
-    char * dseq;
-    unsigned int dlen;
-    char * nwalignment;
-
-    uint64_t seqno = master_targets[sdp->target_index + i];
-    db_getsequenceandlength(seqno, & dseq, & dlen);
-
-    nw(dseq, dlen,
-       query.seq, query.len,
-       score_matrix_63,
-       penalty_gapopen, penalty_gapextend,
-       (int64_t *)(master_scores) + sdp->target_index + i,
-       (int64_t *)(master_diffs) + sdp->target_index + i,
-       (int64_t *)(master_alignlengths) + sdp->target_index + i,
-       & nwalignment,
-       (unsigned char *) sdp->dir_array,
-       (int64_t *) sdp->hearray,
-       query.qno, seqno);
-
-#if 0
-    printf("\nAlignment: %s\n", nwalignment);
-#endif
-
-    xfree(nwalignment);
-  }
-
-  return;
-
-#endif
 
  if (bits == bit_mode_16)
    {
