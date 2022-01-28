@@ -80,31 +80,28 @@ void search_alloc(struct search_data * sdp)
 
   dirbufferbytes =
     bytes_per_uint64 * longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
-  sdp->qtable = static_cast<BYTE**>
-    (xmalloc(longestdbsequence * sizeof(BYTE*)));
-  sdp->qtable_w = static_cast<WORD**>
-    (xmalloc(longestdbsequence * sizeof(WORD*)));
-  sdp->dprofile = static_cast<BYTE*>
-    (xmalloc(2 * one_kilobyte));  // 4 * 16 * 32
-  sdp->dprofile_w = static_cast<WORD*>
-    (xmalloc(2 * one_kilobyte));  // 4 * 2 * 8 * 32
-  sdp->hearray = static_cast<BYTE*>
-    (xmalloc(longestdbsequence * nt_per_uint64));
-  sdp->dir_array = static_cast<uint64_t *>
-    (xmalloc(dirbufferbytes));
-
-  memset(sdp->hearray, 0, longestdbsequence * nt_per_uint64);
-  memset(sdp->dir_array, 0, dirbufferbytes);
+  sdp->qtable = new BYTE*[longestdbsequence];
+  sdp->qtable_w = new WORD*[longestdbsequence];
+  sdp->dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
+  sdp->dprofile_w = new WORD[2 * one_kilobyte];  // 4 * 2 * 8 * 32
+  sdp->hearray = new BYTE[longestdbsequence * nt_per_uint64] { };
+  sdp->dir_array = new uint64_t[dirbufferbytes] { };
 }
 
 void search_free(struct search_data * sdp)
 {
-  xfree(sdp->qtable);
-  xfree(sdp->qtable_w);
-  xfree(sdp->dprofile);
-  xfree(sdp->dprofile_w);
-  xfree(sdp->hearray);
-  xfree(sdp->dir_array);
+  delete [] sdp->qtable;
+  sdp->qtable = nullptr;
+  delete [] sdp->qtable_w;
+  sdp->qtable_w = nullptr;
+  delete [] sdp->dprofile;
+  sdp->dprofile = nullptr;
+  delete [] sdp->dprofile_w;
+  sdp->dprofile_w = nullptr;
+  delete [] sdp->hearray;
+  sdp->hearray = nullptr;
+  delete [] sdp->dir_array;
+  sdp->dir_array = nullptr;
 }
 
 void search_init(struct search_data * sdp)
@@ -290,8 +287,7 @@ void search_begin()
 {
   longestdbsequence = db_getlongestsequence();
 
-  sd = static_cast<struct search_data *>
-    (xmalloc(sizeof(search_data) * static_cast<uint64_t>(opt_threads)));
+  sd = new struct search_data[static_cast<uint64_t>(opt_threads)];
 
   for(auto t = 0LL; t < opt_threads; t++) {
     search_alloc(sd+t);
@@ -317,5 +313,6 @@ void search_end()
   for(auto t = 0LL; t < opt_threads; t++) {
     search_free(sd+t);
   }
-  xfree(sd);
+  delete [] sd;
+  sd = nullptr;
 }
