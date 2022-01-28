@@ -79,8 +79,7 @@ public:
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
     /* allocate memory for thread data */
-    thread_array = static_cast<struct thread_s *>
-      (xmalloc(static_cast<uint64_t>(thread_count) * sizeof(struct thread_s)));
+    thread_array = new struct thread_s[static_cast<uint64_t>(thread_count)];
 
     /* init and create worker threads */
     for(auto i = 0LL; i < thread_count; i++)
@@ -126,7 +125,8 @@ public:
         pthread_mutex_destroy(&tip->workmutex);
       }
 
-    xfree(thread_array);
+    delete [] thread_array;
+    thread_array = nullptr;
     pthread_attr_destroy(&attr);
   }
 
