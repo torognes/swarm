@@ -243,9 +243,7 @@ void dereplicate(struct Parameters const & p)
   unsigned int maxsize = 0;
 
   /* alloc and init table of links to other sequences in cluster */
-  auto * nextseqtab = static_cast<unsigned int *>
-    (xmalloc(sizeof(unsigned int) * dbsequencecount));
-  memset(nextseqtab, 0, sizeof(unsigned int) * dbsequencecount);
+  auto * nextseqtab {new unsigned int[dbsequencecount] { }};
 
   progress_init("Dereplicating:    ", dbsequencecount);
 
@@ -359,7 +357,8 @@ void dereplicate(struct Parameters const & p)
   fprintf(logfile, "Largest swarm:     %u\n", maxsize);
   fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
 
-  xfree(nextseqtab);
+  delete [] nextseqtab;
+  nextseqtab = nullptr;
   delete [] hashtable;
   hashtable = nullptr;
 }
