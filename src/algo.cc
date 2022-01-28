@@ -90,8 +90,7 @@ auto write_representative_sequences(const uint64_t amplicons,
 
   uint64_t swarmcount {0};
   progress_init("Sorting seeds:    ", amplicons);
-  auto * swarminfo = static_cast<struct swarminfo_t *>
-    (xmalloc(swarmed * sizeof(struct swarminfo_t)));
+  auto * swarminfo {new struct swarminfo_t[swarmed]};
   uint64_t mass {0};
   unsigned previd = amps[0].swarmid;
   unsigned seed = amps[0].ampliconid;
@@ -129,7 +128,8 @@ auto write_representative_sequences(const uint64_t amplicons,
       db_fprintseq(fp_seeds, swarm_seed);
       progress_update(i);
     }
-  xfree(swarminfo);
+  delete [] swarminfo;
+  swarminfo = nullptr;
   progress_done();
 }
 
@@ -216,29 +216,16 @@ void algo_run(struct Parameters const & p)
 
   qgram_diff_init();
 
-  amps = static_cast<struct ampliconinfo_s *>
-    (xmalloc(amplicons * sizeof(struct ampliconinfo_s)));
-
-  targetampliconids = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-  targetindices = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-  scores = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-  diffs = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-  alignlengths = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-
-  qgramamps = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-  qgramdiffs = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-  qgramindices = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
-
-  auto * hits = static_cast<uint64_t *>
-    (xmalloc(amplicons * sizeof(uint64_t)));
+  amps = new struct ampliconinfo_s[amplicons];
+  targetampliconids = new uint64_t[amplicons];
+  targetindices = new uint64_t[amplicons];
+  scores = new uint64_t[amplicons];
+  diffs = new uint64_t[amplicons];
+  alignlengths = new uint64_t[amplicons];
+  qgramamps = new uint64_t[amplicons];
+  qgramdiffs = new uint64_t[amplicons];
+  qgramindices = new uint64_t[amplicons];
+  auto * hits {new uint64_t[amplicons]};
 
   auto diff_saturation
     = static_cast<uint64_t>(std::min(UINT8_MAX / p.penalty_mismatch,
@@ -694,16 +681,26 @@ void algo_run(struct Parameters const & p)
   }
 
 
-  xfree(qgramdiffs);
-  xfree(qgramamps);
-  xfree(qgramindices);
-  xfree(hits);
-  xfree(alignlengths);
-  xfree(diffs);
-  xfree(scores);
-  xfree(targetindices);
-  xfree(targetampliconids);
-  xfree(amps);
+  delete [] qgramdiffs;
+  qgramdiffs = nullptr;
+  delete [] qgramamps;
+  qgramamps = nullptr;
+  delete [] qgramindices;
+  qgramindices = nullptr;
+  delete [] hits;
+  hits = nullptr;
+  delete [] alignlengths;
+  alignlengths = nullptr;
+  delete [] diffs;
+  diffs = nullptr;
+  delete [] scores;
+  scores = nullptr;
+  delete [] targetindices;
+  targetindices = nullptr;
+  delete [] targetampliconids;
+  targetampliconids = nullptr;
+  delete [] amps;
+  amps = nullptr;
 
   db_qgrams_done();
 
