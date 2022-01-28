@@ -392,7 +392,7 @@ void db_read(const char * filename, struct Parameters const & p)
   /* allocate space */
 
   uint64_t dataalloc {memchunk};
-  datap = static_cast<char *>(xmalloc(dataalloc));
+  datap = new char[dataalloc];
   uint64_t datalen {0};
   uint64_t duplicates_found {0};
 
@@ -429,7 +429,7 @@ void db_read(const char * filename, struct Parameters const & p)
   }
 
   size_t linecap = linealloc;
-  char * line = static_cast<char*>(xmalloc(linecap));
+  char * line {new char[linecap]};
   ssize_t linelen = xgetline(& line, & linecap, input_fp);
   if (linelen < 0)
     {
@@ -631,9 +631,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   uint64_t hdrhashsize {2 * sequences};
 
-  auto * * hdrhashtable =
-    static_cast<seqinfo_t **>(xmalloc(hdrhashsize * sizeof(seqinfo_t *)));
-  memset(hdrhashtable, 0, hdrhashsize * sizeof(seqinfo_t *));
+  auto * * hdrhashtable {new seqinfo_t*[hdrhashsize] { }};
 
   /* set up hash to check for unique sequences */
 
@@ -643,14 +641,12 @@ void db_read(const char * filename, struct Parameters const & p)
 
   if (p.opt_differences > 1)
     {
-      seqhashtable =
-        static_cast<seqinfo_t **>(xmalloc(seqhashsize * sizeof(seqinfo_t *)));
-      memset(seqhashtable, 0, seqhashsize * sizeof(seqinfo_t *));
+      seqhashtable = new seqinfo_t*[seqhashsize] { };
     }
 
   /* create indices */
 
-  seqindex = static_cast<seqinfo_t *>(xmalloc(sequences * sizeof(seqinfo_t)));
+  seqindex = new seqinfo_t[sequences];
   seqinfo_t * seqindex_p {seqindex};
 
   seqinfo_t * lastseq {nullptr};
@@ -818,12 +814,9 @@ void db_read(const char * filename, struct Parameters const & p)
 
   progress_done();
 
-  if (line != nullptr)
-    {
-      xfree(line);
-      line = nullptr;
-      linecap = 0;
-    }
+  delete [] line;
+  line = nullptr;
+  linecap = 0;
 
   if (missingabundance != 0)
     {
@@ -845,13 +838,11 @@ void db_read(const char * filename, struct Parameters const & p)
       progress_done();
     }
 
-  xfree(hdrhashtable);
+  delete [] hdrhashtable;
+  hdrhashtable = nullptr;
 
-  if (seqhashtable != nullptr)
-    {
-      xfree(seqhashtable);
-      seqhashtable = nullptr;
-    }
+  delete [] seqhashtable;
+  seqhashtable = nullptr;
 
   // user report
   fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
@@ -862,8 +853,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
 void db_qgrams_init()
 {
-  qgrams = static_cast<qgramvector_t *>
-    (xmalloc(sequences * sizeof(qgramvector_t)));
+  qgrams = new qgramvector_t[sequences];
 
   seqinfo_t * seqindex_p {seqindex};
   progress_init("Find qgram vects: ", sequences);
@@ -882,7 +872,8 @@ void db_qgrams_init()
 
 void db_qgrams_done()
 {
-  xfree(qgrams);
+  delete [] qgrams;
+  qgrams = nullptr;
 }
 
 
@@ -929,12 +920,10 @@ void db_free()
 {
   zobrist_exit();
 
-  if (datap != nullptr) {
-    xfree(datap);
-  }
-  if (seqindex != nullptr) {
-    xfree(seqindex);
-  }
+  delete [] datap;
+  datap = nullptr;
+  delete [] seqindex;
+  seqindex = nullptr;
 }
 
 
