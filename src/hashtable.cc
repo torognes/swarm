@@ -48,8 +48,7 @@ auto hash_alloc(const uint64_t amplicons) -> uint64_t
   const uint64_t hashtablesize {compute_hashtable_size(amplicons)};
   hash_mask = hashtablesize - 1;
 
-  hash_occupied =
-    static_cast<unsigned char *>(xmalloc((hashtablesize + padding) / convert_to_bytes));
+  hash_occupied = new unsigned char[(hashtablesize + padding) / convert_to_bytes] { };
 
   hash_zap(hashtablesize);
 
@@ -65,7 +64,8 @@ auto hash_alloc(const uint64_t amplicons) -> uint64_t
 
 void hash_free()
 {
-  xfree(hash_occupied);
+  delete [] hash_occupied;
+  hash_occupied = nullptr;
   xfree(hash_values);
   xfree(hash_data);
 }
