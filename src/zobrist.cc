@@ -46,12 +46,9 @@ void zobrist_init(const unsigned int n)
   constexpr unsigned int byte_range {256};
   constexpr unsigned int multiplier {16};
 
-  /* allocate memory for tables */
+  /* allocate base table and fill with random 64 bit numbers */
 
   zobrist_tab_base = new uint64_t[4 * n];
-  zobrist_tab_byte_base = new uint64_t[byte_range * (n / 4)];
-
-  /* fill table with random 64 bit numbers */
 
   for(auto i = 0U; i < 4 * n; i++)
     {
@@ -66,7 +63,9 @@ void zobrist_init(const unsigned int n)
       zobrist_tab_base[i] = z;
     }
 
-  /* combine into bytes for faster computations */
+  /* allocate byte table and combine into bytes for faster computations */
+
+  zobrist_tab_byte_base = new uint64_t[byte_range * (n / 4)];
 
   for(auto i = 0U; i < n / 4; i++) {
     for(auto j = 0U; j < byte_range; j++) {
