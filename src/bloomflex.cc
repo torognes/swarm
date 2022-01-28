@@ -68,7 +68,8 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
 
   constexpr unsigned int multiplier {16};  // multiply by 65,536
   constexpr unsigned int divider {3};  // divide by 8
-  auto * b = static_cast<struct bloomflex_s *>(xmalloc(sizeof(struct bloomflex_s)));
+
+  auto * b {new struct bloomflex_s};
   b->size = size >> divider;
 
   b->pattern_shift = multiplier;
@@ -76,10 +77,10 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
   b->pattern_mask = b->pattern_count - 1;
   b->pattern_k = k;
 
-  b->patterns = static_cast<uint64_t *>(xmalloc(b->pattern_count * sizeof(uint64_t)));
+  b->patterns = new uint64_t[b->pattern_count];
   bloomflex_patterns_generate(b);
 
-  b->bitmap = static_cast<uint64_t *>(xmalloc(size));
+  b->bitmap = new uint64_t[size];
   memset(b->bitmap, UINT8_MAX, size);
 
   return b;
@@ -87,7 +88,10 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
 
 void bloomflex_exit(struct bloomflex_s * b)
 {
-  xfree(b->bitmap);
-  xfree(b->patterns);
-  xfree(b);
+  delete [] b->bitmap;
+  b->bitmap = nullptr;
+  delete [] b->patterns;
+  b->patterns = nullptr;
+  delete b;
+  b = nullptr;
 }
