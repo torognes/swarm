@@ -111,7 +111,7 @@ void search_init(struct search_data * sdp)
   }
 }
 
-void search_chunk(struct search_data * sdp, int64_t bits)
+void search_chunk(struct search_data * sdp, const int64_t bits)
 {
   constexpr unsigned int bit_mode_16 {16};
   if (sdp->target_count == 0) {
