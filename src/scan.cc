@@ -64,13 +64,6 @@ static uint64_t dirbufferbytes;
 queryinfo_t query;
 uint64_t longestdbsequence;
 
-void search_alloc(struct search_data * sdp);
-void search_free(struct search_data * sdp);
-void search_init(struct search_data * sdp);
-void search_chunk(struct search_data * sdp, int64_t bits);
-auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool;
-void search_worker_core(int64_t t);
-auto search_worker(void * vp) -> void *;
 
 void search_alloc(struct search_data * sdp)
 {
