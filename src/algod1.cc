@@ -1445,8 +1445,9 @@ void algo_d1_run(struct Parameters const & p)
   bloom_exit(bloom_a);
   hash_free();
 
-  delete [] swarminfo;
-  swarminfo = nullptr;
+  if (swarminfo != nullptr) {
+    xfree(swarminfo);
+  }
 
   delete [] ampinfo;
   ampinfo = nullptr;
