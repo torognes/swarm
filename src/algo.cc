@@ -237,10 +237,8 @@ void algo_run(struct Parameters const & p)
 
   if (uclustfile != nullptr)
     {
-      dir = static_cast<unsigned char *>
-        (xmalloc(longestamplicon * longestamplicon));
-      hearray = static_cast<uint64_t *>
-        (xmalloc(2 * longestamplicon * sizeof(uint64_t)));
+      dir = new unsigned char[longestamplicon * longestamplicon];
+      hearray = new uint64_t[2 * longestamplicon];
     }
 
   /* set ampliconid for all */
@@ -634,9 +632,8 @@ void algo_run(struct Parameters const & p)
               fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
-              if (nwalignment != nullptr) {
-                xfree(nwalignment);
-              }
+              delete [] nwalignment;
+              nwalignment = nullptr;
             }
 
         }
@@ -659,8 +656,10 @@ void algo_run(struct Parameters const & p)
 
   if (uclustfile != nullptr)
     {
-      xfree(dir);
-      xfree(hearray);
+      delete [] dir;
+      dir = nullptr;
+      delete [] hearray;
+      hearray = nullptr;
     }
 
 
