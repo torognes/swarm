@@ -30,7 +30,7 @@ static uint64_t progress_size;
 static uint64_t progress_chunk;
 
 
-auto progress_init(const char * prompt, uint64_t size) -> void
+auto progress_init(const char * prompt, const uint64_t size) -> void
 {
   constexpr uint64_t progress_granularity {200};
   progress_prompt = prompt;
