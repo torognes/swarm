@@ -299,8 +299,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   progress_init("Grafting light swarms on heavy swarms", pair_count);
 
   /* allocate memory */
-  graft_array = static_cast<struct graft_cand *>
-    (xmalloc(pair_count * sizeof(struct graft_cand)));
+  graft_array = new struct graft_cand[pair_count];  // refactor to std::vector
 
   /* fill in */
   unsigned int j = 0;
@@ -336,7 +335,8 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
       progress_update(i+1);
     }
   progress_done();
-  xfree(graft_array);
+  delete [] graft_array;
+  graft_array = nullptr;
   return grafts;
 }
 
@@ -464,14 +464,12 @@ void check_heavy_thread(int64_t t)
   constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
   (void) t;
 
-  auto * variant_list = static_cast<struct var_s *>
-    (xmalloc(sizeof(struct var_s) * (i * longestamplicon + j)));
-  auto * variant_list2 = static_cast<struct var_s *>
-    (xmalloc(sizeof(struct var_s) * (i * (longestamplicon + 1) + j)));
+  auto * variant_list {new struct var_s[i * longestamplicon + j]};
+  auto * variant_list2 {new struct var_s[i * (longestamplicon + 1) + j]};
 
   const size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
-  char * buffer1 = static_cast<char *>(xmalloc(size));
+  char * buffer1 {new char[size]};
   pthread_mutex_lock(&heavy_mutex);
   while ((heavy_amplicon < amplicons) &&
          (heavy_progress < heavy_amplicon_count))
@@ -491,10 +489,12 @@ void check_heavy_thread(int64_t t)
         }
     }
   pthread_mutex_unlock(&heavy_mutex);
-  xfree(buffer1);
-
-  xfree(variant_list2);
-  xfree(variant_list);
+  delete [] buffer1;
+  buffer1 = nullptr;
+  delete [] variant_list2;
+  variant_list2 = nullptr;
+  delete [] variant_list;
+  variant_list = nullptr;
 }
 
 
@@ -533,8 +533,7 @@ void mark_light_thread(int64_t t)
 
   (void) t;
 
-  auto * variant_list = static_cast<struct var_s *>
-    (xmalloc(sizeof(struct var_s) * (i * longestamplicon + j)));
+  auto * variant_list {new struct var_s[i * longestamplicon + j]};
 
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
@@ -552,7 +551,8 @@ void mark_light_thread(int64_t t)
     }
   pthread_mutex_unlock(&light_mutex);
 
-  xfree(variant_list);
+  delete [] variant_list;
+  variant_list = nullptr;
 }
 
 
@@ -632,11 +632,8 @@ void network_thread(int64_t t)
 
   (void) t;
 
-  auto * hits_data = static_cast<unsigned int *>
-    (xmalloc((i * longestamplicon + j + 1) * sizeof(unsigned int)));
-
-  auto * variant_list = static_cast<struct var_s *>
-    (xmalloc((i * longestamplicon + j + 1) * sizeof(struct var_s)));
+  auto * hits_data {new unsigned int[i * longestamplicon + j + 1]};
+  auto * variant_list {new struct var_s[i * longestamplicon + j + 1]};
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
@@ -668,8 +665,10 @@ void network_thread(int64_t t)
     }
   pthread_mutex_unlock(&network_mutex);
 
-  xfree(variant_list);
-  xfree(hits_data);
+  delete [] variant_list;
+  variant_list = nullptr;
+  delete [] hits_data;
+  hits_data = nullptr;
 }
 
 
@@ -865,8 +864,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   constexpr unsigned int one_hundred {100};
   unsigned int cluster_no = 0;
   score_matrix_read(p);
-  dir = static_cast<unsigned char *>(xmalloc(longestamplicon * longestamplicon));
-  hearray = static_cast<uint64_t *>(xmalloc(2 * longestamplicon * sizeof(uint64_t)));
+  dir = new unsigned char[longestamplicon * longestamplicon];
+  hearray = new uint64_t[2 * longestamplicon];
 
   progress_init("Writing UCLUST:   ", swarmcount);
 
@@ -923,9 +922,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
               fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\n");
 
-              if (nwalignment != nullptr) {
-                xfree(nwalignment);
-              }
+              delete [] nwalignment;
+              nwalignment = nullptr;
             }
 
           ++cluster_no;
@@ -933,8 +931,10 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
       progress_update(swarmid);
     }
   progress_done();
-  xfree(dir);
-  xfree(hearray);
+  delete [] dir;
+  dir = nullptr;
+  delete [] hearray;
+  hearray = nullptr;
   score_matrix_free();
 }
 
@@ -943,8 +943,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
                                     struct Parameters const & p) -> void {
   progress_init("Writing seeds:    ", swarmcount);
 
-  auto * sorter = static_cast<unsigned int *>
-    (xmalloc(swarmcount * sizeof(unsigned int)));
+  auto * sorter {new unsigned int[swarmcount]};
   for(auto i = 0U; i < swarmcount; i++) {
     sorter[i] = i;
   }
@@ -964,7 +963,8 @@ auto write_representative_sequences(const unsigned int swarmcount,
       progress_update(i + 1);
     }
 
-  xfree(sorter);
+  delete [] sorter;
+  sorter = nullptr;
 
   progress_done();
 }
@@ -1047,15 +1047,13 @@ void algo_d1_run(struct Parameters const & p)
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
-  ampinfo = static_cast<struct ampinfo_s *>
-    (xmalloc(amplicons * sizeof(struct ampinfo_s)));
+  ampinfo = new struct ampinfo_s[amplicons];
 
   // max number of microvariants = 7 * len + 4
   constexpr unsigned int m_i {7};
   constexpr unsigned int m_j {4};
   global_hits_alloc = m_i * longestamplicon + m_j + 1;
-  global_hits_data = static_cast<unsigned int *>
-    (xmalloc(global_hits_alloc * sizeof(unsigned int)));
+  global_hits_data = new unsigned int[global_hits_alloc];
 
   /* compute hash for all amplicons and store them in a hash table */
 
@@ -1097,8 +1095,7 @@ void algo_d1_run(struct Parameters const & p)
 
   /* for all amplicons, generate list of matching amplicons */
 
-  network = static_cast<unsigned int*>
-    (xmalloc(network_alloc * sizeof(unsigned int)));
+  network = new unsigned int[network_alloc];
   network_count = 0;
 
   pthread_mutex_init(&network_mutex, nullptr);
@@ -1226,9 +1223,10 @@ void algo_d1_run(struct Parameters const & p)
     }
   progress_done();
 
-  xfree(global_hits_data);
+  delete [] global_hits_data;
+  global_hits_data = nullptr;
 
-  xfree(network);
+  delete [] network;
   network = nullptr;
 
   swarmcount_adjusted = swarmcount;
@@ -1447,11 +1445,11 @@ void algo_d1_run(struct Parameters const & p)
   bloom_exit(bloom_a);
   hash_free();
 
-  if (swarminfo != nullptr) {
-    xfree(swarminfo);
-  }
+  delete [] swarminfo;
+  swarminfo = nullptr;
 
-  xfree(ampinfo);
+  delete [] ampinfo;
+  ampinfo = nullptr;
 
 #ifdef HASHSTATS
   fprintf(logfile, "Tries:      %12lu\n", tries);
