@@ -28,7 +28,7 @@ static const char * progress_prompt;
 static uint64_t progress_next;
 static uint64_t progress_size;
 static uint64_t progress_chunk;
-const size_t memalignment = 16;
+
 
 auto progress_init(const char * prompt, uint64_t size) -> void
 {
@@ -76,6 +76,7 @@ auto xrealloc(void *ptr, size_t size) -> void *
     size = 1;
   }
 #ifdef _WIN32
+  constexpr size_t memalignment = 16;
   void * t = _aligned_realloc(ptr, size, memalignment);
 #else
   void * t = realloc(ptr, size);
