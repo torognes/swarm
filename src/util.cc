@@ -70,25 +70,6 @@ auto progress_done() -> void
 }
 
 
-auto xmalloc(size_t size) -> void *
-{
-  if (size == 0) {
-    size = 1;
-  }
-  void * t {nullptr};
-#ifdef _WIN32
-  t = _aligned_malloc(size, memalignment);
-#else
-  if (posix_memalign(& t, memalignment, size) != 0) {
-    t = nullptr;
-  }
-#endif
-  if (t == nullptr) {
-    fatal(error_prefix, "Unable to allocate enough memory.");
-  }
-  return t;
-}
-
 auto xrealloc(void *ptr, size_t size) -> void *
 {
   if (size == 0) {
