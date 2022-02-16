@@ -167,7 +167,7 @@ auto xgetline(char ** linep, size_t * linecapp, FILE * stream) -> ssize_t
     {
       /* allocate a default buffer if linep is a null pointer */
       *linecapp = minsize;
-      *linep = new char[*linecapp];
+      *linep = (char *) malloc(*linecapp);  // refactor C++11: *linep = new char[*linecapp];
       if (*linep == nullptr)
         return -1;
     }
