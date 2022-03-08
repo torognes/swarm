@@ -425,7 +425,7 @@ void db_read(const char * filename, struct Parameters const & p)
   uint64_t filepos = 0;
 
   if (! is_regular) {
-    fprintf(logfile, "Waiting for data... (Hit Ctrl-C and run swarm -h if you meant to read data from a file.)\n");
+    fprintf(logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
   }
 
   size_t linecap = linealloc;
