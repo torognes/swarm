@@ -348,8 +348,8 @@ uclust-like format with 10 columns and 3 different type of entries (S,
 H or C). That option does not modify \fBswarm\fR's default output
 format. Each fasta sequence in the input file can be either a cluster
 centroid (S) or a hit (H) assigned to a cluster. Cluster records (C)
-summarize information (size, centroid header) for each cluster. Column
-content varies with the type of entry (S, H or C):
+summarize information for each cluster (number of hits, centroid
+header). Column content varies with the type of entry (S, H or C):
 .RS
 .RS
 .nr step 1 1
@@ -358,7 +358,7 @@ Record type: S, H, or C.
 .IP \n+[step].
 Cluster number (zero-based).
 .IP \n+[step].
-Centroid length (S), query length (H), or cluster size (C).
+Centroid length (S), query length (H), or number of hits (C).
 .IP \n+[step].
 Percentage of similarity with the centroid sequence (H), or set to '*'
 (S, C).
