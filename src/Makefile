@@ -43,7 +43,7 @@ ifdef COVERAGE
 	LIBS += -lgcov
 	LINKFLAGS += --coverage
 else
-	COMMON += -flto -O3
+	COMMON += -flto=auto -O3
 endif
 
 # Machine specific
