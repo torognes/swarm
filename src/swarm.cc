@@ -171,7 +171,12 @@ auto args_long(char * str, const char * option) -> int64_t
   int64_t temp = strtol(str, & endptr, base_value);
   if (*endptr != 0)
     {
-      fatal(error_prefix, "Invalid numeric argument for option ", option, ".");
+      fatal(error_prefix, "Invalid numeric argument for option ", option, ".\n\n",
+            "Frequent causes are:\n",
+            " - a missing space between an argument and the next option,\n",
+            " - a long option name not starting with a double dash\n",
+            "   (swarm accepts '--help' or '-h', but not '-help')\n\n",
+            "Please see 'swarm --help' for more details.");
     }
   return temp;
 }
