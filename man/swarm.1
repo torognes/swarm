@@ -51,7 +51,7 @@ High-precision clustering:
 Conservative clustering:
 .SY swarm
 .RB \-d " 2+"
-.OP \-nrz
+.OP \-nrxz
 .OP \-a int
 .OP \-e int
 .OP \-g int
@@ -413,6 +413,11 @@ Default gap opening penalty is 12.
 .TP
 .BI \-e\fP,\fB\ \-\-gap\-extension\-penalty\~ "positive integer"
 Default gap extension penalty is 4.
+.TP
+.B \-x\fP,\fB\ \-\-disable\-sse3
+On the x86-64 CPU architecture, disable SSE3 and later
+instructions. This option is meant for developers, not for regular
+users.
 .LP
 .RE
 As \fBswarm\fR focuses on close relationships (e.g., \fId\fR = 2 or
