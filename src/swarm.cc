@@ -118,7 +118,6 @@ const std::vector<std::string> args_usage_message
    " -h, --help                          display this help and exit\n",
    " -t, --threads INTEGER               number of threads to use (1)\n",
    " -v, --version                       display version information and exit\n",
-   " -x, --disable-sse3                  disable SSE3 and later x86 instructions\n",
    "\n",
    "Clustering options:\n",
    " -d, --differences INTEGER           resolution (1)\n",
@@ -147,6 +146,7 @@ const std::vector<std::string> args_usage_message
    " -p, --mismatch-penalty INTEGER      penalty for nucleotide mismatch (4)\n",
    " -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n",
    " -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n",
+   " -x, --disable-sse3                  disable SSE3 and later x86 instructions\n",
 #ifndef __WIN32
    "\n",
    "See 'man swarm' for more details.\n",
