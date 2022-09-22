@@ -390,7 +390,7 @@ methods, here are some links:
 * [Crunchclust](https://code.google.com/p/crunchclust/)
 
 
-## Version history ##
+## Roadmap ##
 
 swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 
@@ -400,6 +400,20 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 > MINOR version when you add functionality in a backwards compatible manner, and
 > PATCH version when you make backwards compatible bug fixes.
 
+swarm 3.1.x:
+- use more C++11 and STL features,
+- eliminate 99% of clang-tidy's warnings,
+- measure the effect of code modernization on compilation time, binary size and run-time performances
+
+swarm 3.1.y:
+- refactor to reduce cyclomatic complexity (simpler and shorter functions),
+- reduce/eliminate linuxisms to improve portability
+
+swarm 3.2.0:
+- swarm can be compiled on a BSD or a Windows system
+
+
+## Version history ##
 
 ### version 3.1 ###
 
