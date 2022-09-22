@@ -184,8 +184,8 @@ converted to fasta.
 
 ### Dereplication (mandatory) ###
 
-In a sample, or collection of sample, a given sequence is likely to
-appear several times. That number of strictly identical occurrences
+In a sample, or collection of sample, a given sequence may appear
+several times. That number of strictly identical occurrences
 represents the *abundance* value of the sequence. Swarm requires all
 fasta entries to present abundance values to be able to produce
 high-resolution clusters, like this:
