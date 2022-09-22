@@ -176,8 +176,8 @@ file. Warning, these examples may not be suitable for very large
 files.
 
 We assume your SFF or FASTQ files have been properly pair-assembled
-(with [pear](https://github.com/xflouris/PEAR) for example), trimmed
-from adaptors and primers (with
+(with [vsearch](https://github.com/torognes/vsearch) for example),
+trimmed from adaptors and primers (with
 [cutadapt](https://code.google.com/p/cutadapt/) for example), and
 converted to fasta.
 
