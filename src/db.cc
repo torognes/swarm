@@ -35,6 +35,7 @@ constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
 // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
 // 2^32 (512 x max_sequence_length) and cannot be addressed with
 // uint32 pointers, which leads to a segmentation fault
+constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
 auto make_nt_map () -> std::array<signed char, n_chars> {
     // set the 128 ascii chars to '-1' except Aa, Cc, Gg, Tt and Uu
@@ -460,6 +461,9 @@ void db_read(const char * filename, struct Parameters const & p)
         longestheader = headerlen;
       }
 
+      if (longestheader > max_header_length) {
+        fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
+      }
 
       /* store the line number */
 
