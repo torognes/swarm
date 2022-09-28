@@ -635,7 +635,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   uint64_t hdrhashsize {2 * sequences};
 
-  auto * * hdrhashtable {new seqinfo_t*[hdrhashsize] { }};
+  auto * * hdrhashtable = new seqinfo_t*[hdrhashsize] { };
 
   /* set up hash to check for unique sequences */
 

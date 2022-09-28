@@ -71,7 +71,7 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
   constexpr uint64_t bytes_per_uint64 {8};
   size = std::max(size, bytes_per_uint64);
 
-  auto * b {new struct bloom_s};
+  auto * b = new struct bloom_s;
 
   b->size = size;
 

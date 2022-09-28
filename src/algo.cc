@@ -90,7 +90,7 @@ auto write_representative_sequences(const uint64_t amplicons,
 
   uint64_t swarmcount {0};
   progress_init("Sorting seeds:    ", amplicons);
-  auto * swarminfo {new struct swarminfo_t[swarmed]};
+  auto * swarminfo = new struct swarminfo_t[swarmed];
   uint64_t mass {0};
   unsigned previd = amps[0].swarmid;
   unsigned seed = amps[0].ampliconid;
@@ -225,7 +225,7 @@ void algo_run(struct Parameters const & p)
   qgramamps = new uint64_t[amplicons];
   qgramdiffs = new uint64_t[amplicons];
   qgramindices = new uint64_t[amplicons];
-  auto * hits {new uint64_t[amplicons]};
+  auto * hits = new uint64_t[amplicons];
 
   auto diff_saturation
     = static_cast<uint64_t>(std::min(UINT8_MAX / p.penalty_mismatch,

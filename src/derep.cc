@@ -237,14 +237,14 @@ void dereplicate(struct Parameters const & p)
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
   const uint64_t derep_hash_mask = hashtablesize - 1;
 
-  auto * hashtable {new struct bucket[hashtablesize] { }};
+  auto * hashtable = new struct bucket[hashtablesize] { };
 
   uint64_t swarmcount = 0;
   uint64_t maxmass = 0;
   unsigned int maxsize = 0;
 
   /* alloc and init table of links to other sequences in cluster */
-  auto * nextseqtab {new unsigned int[dbsequencecount] { }};
+  auto * nextseqtab = new unsigned int[dbsequencecount] { };
 
   progress_init("Dereplicating:    ", dbsequencecount);
 

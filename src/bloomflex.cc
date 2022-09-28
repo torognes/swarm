@@ -64,7 +64,7 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
   constexpr unsigned int multiplier {16};  // multiply by 65,536
   constexpr unsigned int divider {3};  // divide by 8
 
-  auto * b {new struct bloomflex_s};
+  auto * b = new struct bloomflex_s;
   b->size = size >> divider;
 
   b->pattern_shift = multiplier;

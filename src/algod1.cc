@@ -464,8 +464,8 @@ void check_heavy_thread(int64_t t)
   constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
   (void) t;
 
-  auto * variant_list {new struct var_s[i * longestamplicon + j]};
-  auto * variant_list2 {new struct var_s[i * (longestamplicon + 1) + j]};
+  auto * variant_list = new struct var_s[i * longestamplicon + j];
+  auto * variant_list2 = new struct var_s[i * (longestamplicon + 1) + j];
 
   const size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
@@ -533,7 +533,7 @@ void mark_light_thread(int64_t t)
 
   (void) t;
 
-  auto * variant_list {new struct var_s[i * longestamplicon + j]};
+  auto * variant_list = new struct var_s[i * longestamplicon + j];
 
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
@@ -632,8 +632,8 @@ void network_thread(int64_t t)
 
   (void) t;
 
-  auto * hits_data {new unsigned int[i * longestamplicon + j + 1]};
-  auto * variant_list {new struct var_s[i * longestamplicon + j + 1]};
+  auto * hits_data = new unsigned int[i * longestamplicon + j + 1];
+  auto * variant_list = new struct var_s[i * longestamplicon + j + 1];
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
