@@ -31,12 +31,12 @@
 
 struct bucket
 {
-  uint64_t hash;
-  unsigned int seqno_first;
-  unsigned int seqno_last;
-  uint64_t mass;
-  unsigned int size;
-  unsigned int singletons;
+  uint64_t hash = 0;
+  unsigned int seqno_first = 0;
+  unsigned int seqno_last = 0;
+  uint64_t mass = 0;
+  unsigned int size = 0;
+  unsigned int singletons = 0;
 };
 
 
@@ -237,7 +237,7 @@ void dereplicate(struct Parameters const & p)
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
   const uint64_t derep_hash_mask = hashtablesize - 1;
 
-  auto * hashtable = new struct bucket[hashtablesize] { };
+  auto * hashtable = new struct bucket[hashtablesize];
 
   uint64_t swarmcount = 0;
   uint64_t maxmass = 0;

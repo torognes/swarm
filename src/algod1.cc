@@ -943,7 +943,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
                                     struct Parameters const & p) -> void {
   progress_init("Writing seeds:    ", swarmcount);
 
-  auto * sorter {new unsigned int[swarmcount]};
+  auto * sorter = new unsigned int[swarmcount];
   for(auto i = 0U; i < swarmcount; i++) {
     sorter[i] = i;
   }
