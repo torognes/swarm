@@ -21,9 +21,25 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifdef __x86_64__
+#ifdef __SSE4_1__
+
+/*
+  SSE4.1 specific code for x86-64
+
+  Only include if __SSE4_1__ is defined, which is done by the
+  gcc compiler when the -msse4.1 option or similar is given.
+
+  This code requires the _mm_min_epu16 intrinsic implemented
+  with the PMINUW instruction on the CPU. That instruction was
+  available starting with the Penryn architecture in 2008.
+*/
+
 #include <cstdint>
 #include <smmintrin.h>
 
+#endif
+#endif
 
 using VECTORTYPE = __m128i;
 
