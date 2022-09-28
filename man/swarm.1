@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "March 1, 2021" "version 3.1.0" "USER COMMANDS"
+.TH swarm 1 "September 28, 2022" "version 3.1.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -490,7 +490,7 @@ Source code and binaries available at
 .UE .
 .\" ============================================================================
 .SH COPYRIGHT
-Copyright (C) 2012-2021 Frédéric Mahé & Torbjørn Rognes
+Copyright (C) 2012-2022 Frédéric Mahé & Torbjørn Rognes
 .PP
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -526,6 +526,11 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v3.1.1\~ "released September 28, 2022"
+Version 3.1.1 eliminates a risk of segmentation fault with extremely
+long sequence headers. Documentation and error messages have been
+improved, and code cleaning continued.
 .TP
 .BR v3.1.0\~ "released March 1, 2021"
 Version 3.1.0 includes a fix for a bug in the 16-bit SIMD alignment

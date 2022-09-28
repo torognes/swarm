@@ -416,6 +416,12 @@ swarm 3.2.0:
 
 ## Version history ##
 
+### version 3.1.1 ###
+
+**swarm** 3.1.1 eliminates a risk of segmentation fault with extremely
+long sequence headers. Documentation and error messages have been
+improved, and code cleaning continued.
+
 ### version 3.1 ###
 
 **swarm** 3.1 includes a fix for a bug in the 16-bit SIMD alignment
