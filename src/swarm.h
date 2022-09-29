@@ -104,6 +104,7 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* constants */
 
+const std::string swarm_version {"3.1.0"};
 constexpr char sepchar {' '};
 constexpr char dash_filename {'-'};
 constexpr unsigned int opt_differences_default {1};
