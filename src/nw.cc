@@ -190,7 +190,7 @@ void nw(char * dseq,
   int64_t dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
-  int64_t score {0};
+  int64_t score {0}; // [[maybe_unused]]
   int64_t alength {0};
   int64_t matches {0};
 
