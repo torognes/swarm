@@ -26,7 +26,7 @@ EXTRAOBJ =
 LINKOPT =
 LIBS = -lpthread
 WARNINGS = -Wall -Wextra
-CLANG = clang++
+CLANG = clang
 
 # Run "make RELEASE=1" to compile for release
 ifdef RELEASE
@@ -44,7 +44,8 @@ ifdef COVERAGE
 	LIBS += -lgcov
 	LINKFLAGS += --coverage
 else
-	ifeq ($(CLANG), $(findstring $(CLANG), $(CXX)))
+	COMPILER_VERSION := $(shell $(CXX) --version)
+	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
 		COMMON += -flto=full
 	else
 		COMMON += -flto=auto
