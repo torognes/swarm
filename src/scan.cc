@@ -197,7 +197,7 @@ auto adjust_thread_number(const int n_bits,
   constexpr unsigned int channels_8 {8};
   constexpr unsigned int channels_16 {16};
   constexpr unsigned int bit_mode_16 {16};
-  auto channels{channels_16};
+  auto channels {channels_16};
 
   assert(remaining_sequences > 0);
   assert(n_threads > 0);
