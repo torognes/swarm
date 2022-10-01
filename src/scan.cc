@@ -195,25 +195,21 @@ auto adjust_thread_number(const int n_bits,
                           const uint64_t remaining_sequences,
                           uint64_t n_threads) -> uint64_t {
   constexpr unsigned int channels_8 {8};
-  constexpr unsigned int bit_mode_8 {8};
   constexpr unsigned int channels_16 {16};
+  constexpr unsigned int bit_mode_16 {16};
+  auto channels{channels_16};
 
   assert(remaining_sequences > 0);
   assert(n_threads > 0);
-  assert((n_bits == bit_mode_8) || (n_bits == bit_mode_8 * 2));
+  assert((n_bits == bit_mode_16) || (n_bits == bit_mode_16 / 2));
 
-  if (n_bits == bit_mode_8)
-    {
-      if (remaining_sequences <= (channels_16 - 1) * n_threads) {
-        n_threads = (remaining_sequences + channels_16 - 1) / channels_16;
-      }
-    }
-  else
-    {
-      if (remaining_sequences <= (channels_8 - 1) * n_threads) {
-        n_threads = (remaining_sequences + channels_8 - 1) / channels_8;
-      }
-    }
+  if (n_bits == bit_mode_16) {
+    channels = channels_8;
+  }
+
+  if (remaining_sequences <= (channels - 1) * n_threads) {
+    n_threads = (remaining_sequences + channels - 1) / channels;
+  }
 
   return n_threads;
 }
