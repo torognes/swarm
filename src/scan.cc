@@ -190,6 +190,50 @@ void search_worker_core(int64_t t)
   }
 }
 
+
+auto adjust_thread_number(const int n_bits,
+                          const uint64_t remaining_sequences,
+                          uint64_t n_threads) -> uint64_t {
+  constexpr unsigned int channels_8 {8};
+  constexpr unsigned int bit_mode_8 {8};
+  constexpr unsigned int channels_16 {16};
+
+  assert(remaining_sequences > 0);
+  assert(n_threads > 0);
+  assert((n_bits == bit_mode_8) || (n_bits == bit_mode_8 * 2));
+
+  if (n_bits == bit_mode_8)
+    {
+      if (remaining_sequences <= (channels_16 - 1) * n_threads) {
+        n_threads = (remaining_sequences + channels_16 - 1) / channels_16;
+      }
+    }
+  else
+    {
+      if (remaining_sequences <= (channels_8 - 1) * n_threads) {
+        n_threads = (remaining_sequences + channels_8 - 1) / channels_8;
+      }
+    }
+
+  return n_threads;
+}
+
+// arguments: bits, master_length, thr
+// static_assert(adjust_thread_number( 8, 32, 10) == 2);
+// static_assert(adjust_thread_number( 8, 32,  3) == 2);
+// static_assert(adjust_thread_number( 8, 31,  2) == 2);
+// static_assert(adjust_thread_number( 8, 17,  2) == 2);
+// static_assert(adjust_thread_number( 8, 16,  2) == 1);
+// static_assert(adjust_thread_number( 8,  1,  2) == 1);
+// static_assert(adjust_thread_number( 8, 32,  1) == 1);
+// static_assert(adjust_thread_number(16, 17, 10) == 3);
+// static_assert(adjust_thread_number(16, 17,  3) == 3);
+// static_assert(adjust_thread_number(16, 16,  3) == 2);
+// static_assert(adjust_thread_number(16, 15,  2) == 2);
+// static_assert(adjust_thread_number(16,  1,  3) == 1);
+// static_assert(adjust_thread_number(16, 17,  1) == 1);
+
+
 void search_do(uint64_t query_no,
                uint64_t listlength,
                uint64_t * targets,
@@ -199,9 +243,6 @@ void search_do(uint64_t query_no,
                int bits)
 {
   // constexpr unsigned int bit_mode_16 {16};
-  constexpr unsigned int channels_8 {8};
-  constexpr unsigned int bit_mode_8 {8};
-  constexpr unsigned int channels_16 {16};
   query.qno = query_no;
   unsigned int query_len = 0;
   db_getsequenceandlength(query_no, &query.seq, &query_len);
@@ -217,18 +258,7 @@ void search_do(uint64_t query_no,
 
   auto thr = static_cast<uint64_t>(opt_threads);
 
-  if (bits == bit_mode_8)
-    {
-      if (master_length <= (channels_16 - 1) * thr) {
-        thr = (master_length + channels_16 - 1) / channels_16;
-      }
-    }
-  else
-    {
-      if (master_length <= (channels_8 - 1) * thr) {
-        thr = (master_length + channels_8 - 1) / channels_8;
-      }
-    }
+  thr = adjust_thread_number(bits, master_length, thr);
 
   remainingchunks = thr;
 
