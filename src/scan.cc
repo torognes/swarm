@@ -166,7 +166,7 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 
   if (master_next < master_length)
     {
-      uint64_t chunksize =
+      const uint64_t chunksize =
         ((master_length - master_next + remainingchunks - 1) / remainingchunks);
 
       * countref = chunksize;
