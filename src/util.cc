@@ -108,7 +108,7 @@ auto fopen_input(const char * filename) -> std::FILE *
   std::FILE * input_stream = nullptr;
 
   if (strcmp(filename, "-") == 0) {
-    int fd = dup(STDIN_FILENO);
+    const int fd = dup(STDIN_FILENO);
     input_stream = fd > 0 ? fdopen(fd, "rb") : nullptr;
   }
   else {
@@ -124,7 +124,7 @@ auto fopen_output(const char * filename) -> std::FILE *
   std::FILE * output_stream {nullptr};
 
   if (strcmp(filename, "-") == 0) {
-    int fd = dup(STDOUT_FILENO);
+    const int fd = dup(STDOUT_FILENO);
     output_stream = fd > 0 ? fdopen(fd, "w") : nullptr;
   }
   else {
