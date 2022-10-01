@@ -102,9 +102,9 @@ void search_init(struct search_data * sdp)
 
   for(auto i = 0U; i < query.len; i++)
   {
-    int nt_value {nt_extract(query.seq, i) + 1};   // 1,  2,   3, or   4
-    int byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
-    int word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
+    const int nt_value {nt_extract(query.seq, i) + 1};   // 1,  2,   3, or   4
+    const int byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
+    const int word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
 
     sdp->qtable[i]   = sdp->dprofile   + byte_offset;
     sdp->qtable_w[i] = sdp->dprofile_w + word_offset;
