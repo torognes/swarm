@@ -70,7 +70,7 @@ void cpu_features_detect(struct Parameters & p)
   unsigned int d {0};
 
   cpuid(0, 0, a, b, c, d);
-  unsigned int maxlevel = a & UINT8_MAX;
+  const unsigned int maxlevel = a & UINT8_MAX;
 
   if (maxlevel >= 1)
   {
