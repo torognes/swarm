@@ -207,8 +207,8 @@ auto adjust_thread_number(const int n_bits,
     channels = channels_8;
   }
 
-  if (remaining_sequences <= (channels - 1) * n_threads) {
-    n_threads = (remaining_sequences + channels - 1) / channels;
+  while (remaining_sequences <= (n_threads - 1) * channels) {
+    --n_threads;
   }
 
   return n_threads;
