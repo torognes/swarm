@@ -168,7 +168,7 @@ auto args_long(char * str, const char * option) -> int64_t
 {
   constexpr int base_value {10};
   char * endptr {nullptr};
-  int64_t temp = strtol(str, & endptr, base_value);
+  const int64_t temp = strtol(str, & endptr, base_value);
   if (*endptr != 0)
     {
       fatal(error_prefix, "Invalid numeric argument for option ", option, ".\n\n",
