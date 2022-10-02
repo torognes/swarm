@@ -273,7 +273,7 @@ void search_begin()
   sd = new struct search_data[static_cast<uint64_t>(opt_threads)];
 
   for(auto t = 0LL; t < opt_threads; t++) {
-    search_alloc(sd+t);
+    search_alloc(sd + t);
   }
 
   pthread_mutex_init(& scan_mutex, nullptr);
@@ -294,7 +294,7 @@ void search_end()
   pthread_mutex_destroy(& scan_mutex);
 
   for(auto t = 0LL; t < opt_threads; t++) {
-    search_free(sd+t);
+    search_free(sd + t);
   }
   delete [] sd;
   sd = nullptr;
