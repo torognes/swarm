@@ -117,12 +117,12 @@ const unsigned char maskextleft = 8;
 */
 
 void nw(char * dseq,
-        int64_t dlen,
+        const int64_t dlen,
         char * qseq,
-        int64_t qlen,
+        const int64_t qlen,
         int64_t * score_matrix,
-        int64_t gapopen,
-        int64_t gapextend,
+        const int64_t gapopen,
+        const int64_t gapextend,
         int64_t * nwscore,
         int64_t * nwdiff,
         int64_t * nwalignmentlength,
