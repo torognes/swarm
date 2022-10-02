@@ -201,6 +201,7 @@ auto adjust_thread_number(const int n_bits,
 
   assert(remaining_sequences != 0);
   assert(n_threads != 0);
+  assert((n_threads - 1) <= (ULLONG_MAX / channels_8));
   assert((n_bits == bit_mode_16) || (n_bits == bit_mode_16 / 2));
 
   if (n_bits == bit_mode_16) {
