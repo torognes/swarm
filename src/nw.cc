@@ -132,9 +132,9 @@ void nw(char * dseq,
         uint64_t queryno,
         uint64_t dbseqno)
 {
-  /* dir must point to at least qlen*dlen bytes of allocated memory
-     hearray must point to at least 2*qlen longs of allocated memory
-     (8*qlen bytes) */
+  /* dir must point to at least qlen * dlen bytes of allocated memory
+     hearray must point to at least 2 * qlen longs of allocated memory
+     (8 * qlen bytes) */
   constexpr unsigned int multiplier {5};
 
   int64_t n {0};
