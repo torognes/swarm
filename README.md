@@ -131,6 +131,8 @@ this way:
 ```sh
 cd ./man/
 gzip -c swarm.1 > swarm.1.gz
+mv swarm.1.gz /usr/local/share/man/man1/
+# or
 mv swarm.1.gz /usr/share/man/man1/
 ```
 
