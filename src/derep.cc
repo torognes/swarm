@@ -276,7 +276,7 @@ void dereplicate(struct Parameters const & p)
         {
           bp++;
           j++;
-          if (bp >= hashtable + hashtablesize)
+          if (bp >= hashtable + hashtablesize) // wrap around the table if we reach the end
             {
               bp = hashtable;
               j = 0;
