@@ -6,3 +6,4 @@ swarm
 *.gcda
 *.gcno
 .gdb_history
+*.clang
