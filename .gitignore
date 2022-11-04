@@ -5,3 +5,4 @@ swarm
 .DS_Store
 *.gcda
 *.gcno
+.gdb_history
