@@ -234,7 +234,7 @@ void search_do(uint64_t query_no,
                uint64_t * scores,
                uint64_t * diffs,
                uint64_t * alignlengths,
-               int bits)
+               const int bits)
 {
   unsigned int query_len = 0;
   query.qno = query_no;
