@@ -24,7 +24,7 @@
 #include "swarm.h"
 #include "util.h"
 
-void pushop(const char newop, char ** cigarendp, char * op, int * count);
+void pushop(char newop, char ** cigarendp, char * op, int * count);
 void finishop(char ** cigarendp, char * op, int * count);
 
 void pushop(const char newop, char ** cigarendp, char * op, int * count)
