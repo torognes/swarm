@@ -248,9 +248,11 @@ void search_do(uint64_t query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  auto thr = static_cast<uint64_t>(opt_threads);
-
-  thr = adjust_thread_number(bits, master_length, thr);
+  const auto thr {
+    adjust_thread_number(bits,
+                         master_length,
+                         static_cast<uint64_t>(opt_threads))
+  };
 
   remainingchunks = thr;
 
