@@ -182,7 +182,7 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
   return status;
 }
 
-void search_worker_core(int64_t t)
+void search_worker_core(const int64_t t)
 {
   search_init(sd + t);
   while(search_getwork(& sd[t].target_count, & sd[t].target_index)) {
