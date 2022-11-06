@@ -196,7 +196,7 @@ auto adjust_thread_number(const int n_bits,
                           uint64_t n_threads) -> uint64_t {
   constexpr unsigned int channels_8 {8};
   constexpr unsigned int channels_16 {16};
-  constexpr unsigned int bit_mode_16 {16};
+  constexpr unsigned int bit_mode_16 {16};  // refactoring: should be an enum class
   const auto channels { (n_bits == bit_mode_16) ? channels_8 : channels_16 };
 
   assert(remaining_sequences != 0);
