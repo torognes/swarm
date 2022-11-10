@@ -91,7 +91,7 @@ void dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
                         BYTE * dseq_byte)
 {
-  constexpr unsigned int channels {8};  // does 8 represent the number of channels?
+  static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
   __m128i m0;
   __m128i m1;
   __m128i m2;

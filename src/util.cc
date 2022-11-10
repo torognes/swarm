@@ -33,7 +33,7 @@ constexpr size_t memalignment = 16;
 
 auto progress_init(const char * prompt, const uint64_t size) -> void
 {
-  constexpr uint64_t progress_granularity {200};
+  static constexpr uint64_t progress_granularity {200};
   progress_prompt = prompt;
   progress_size = size;
   progress_chunk = size < progress_granularity ?

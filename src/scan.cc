@@ -65,9 +65,9 @@ uint64_t longestdbsequence;
 
 void search_alloc(struct search_data * sdp)
 {
-  constexpr unsigned int one_kilobyte {1024};
-  constexpr unsigned int nt_per_uint64 {32};
-  constexpr unsigned int bytes_per_uint64 {8};
+  static constexpr unsigned int one_kilobyte {1024};
+  static constexpr unsigned int nt_per_uint64 {32};
+  static constexpr unsigned int bytes_per_uint64 {8};
 
   dirbufferbytes =
     bytes_per_uint64 * longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
@@ -97,8 +97,8 @@ void search_free(struct search_data * sdp)
 
 void search_init(struct search_data * sdp)
 {
-  constexpr int byte_multiplier {64};
-  constexpr int word_multiplier {32};
+  static constexpr int byte_multiplier {64};
+  static constexpr int word_multiplier {32};
 
   for(auto i = 0U; i < query.len; i++)
   {
@@ -113,7 +113,7 @@ void search_init(struct search_data * sdp)
 
 void search_chunk(struct search_data * sdp, const int64_t bits)
 {
-  constexpr unsigned int bit_mode_16 {16};
+  static constexpr unsigned int bit_mode_16 {16};
 
   assert(sdp->target_count != 0);
   assert((bits == bit_mode_16) || (bits == bit_mode_16 / 2));
@@ -195,9 +195,9 @@ void search_worker_core(const int64_t t)
 auto adjust_thread_number(const int n_bits,
                           const uint64_t remaining_sequences,
                           uint64_t n_threads) -> uint64_t {
-  constexpr unsigned int channels_8 {8};
-  constexpr unsigned int channels_16 {16};
-  constexpr unsigned int bit_mode_16 {16};  // refactoring: should be an enum class
+  static constexpr unsigned int channels_8 {8};
+  static constexpr unsigned int channels_16 {16};
+  static constexpr unsigned int bit_mode_16 {16};  // refactoring: should be an enum class
   const auto channels { (n_bits == bit_mode_16) ? channels_8 : channels_16 };
 
   assert(remaining_sequences != 0);

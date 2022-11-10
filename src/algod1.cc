@@ -240,7 +240,10 @@ void add_graft_candidate(unsigned int seed, unsigned int amp)
 {
   pthread_mutex_lock(&graft_mutex);
   graft_candidates++;
-  if ((ampinfo[amp].graft_cand == no_swarm)||(ampinfo[amp].graft_cand > seed)) {
+  // if there is no heavy candidate to graft amp, or if seed is
+  // earlier in the sorting order, then we change the attachment to
+  // seed
+  if ((ampinfo[amp].graft_cand == no_swarm) || (ampinfo[amp].graft_cand > seed)) {
     ampinfo[amp].graft_cand = seed;
   }
   pthread_mutex_unlock(&graft_mutex);
@@ -265,15 +268,15 @@ auto compare_grafts(const void * a, const void * b) -> int
   else if (x->parent > y->parent) {
     status = +1;
   }
-  else {
-    if (x->child < y->child) {
+  else { // x->parent == y->parent, then assert(x->child != y->child);
+    if (x->child < y->child) {  // reached!
       status = -1;
     }
-    else if (x->child > y->child) {
+    else if (x->child > y->child) {  // reachable with AF....fas
       status = +1;
     }
     else {
-      status = 0;
+      status = 0;  // should be an assertion
     }
   }
 
@@ -455,9 +458,9 @@ void check_heavy_var(struct bloomflex_s * bloom,
 
 void check_heavy_thread(int64_t t)
 {
-  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
-  constexpr unsigned int j {4};  //                               i * len + j
-  constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
+  static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
+  static constexpr unsigned int j {4};  //                               i * len + j
+  static constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
   (void) t;
 
   auto * variant_list = new struct var_s[i * longestamplicon + j];
@@ -524,8 +527,8 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
 void mark_light_thread(int64_t t)
 {
-  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
-  constexpr unsigned int j {4};  //                               i * len + j
+  static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
+  static constexpr unsigned int j {4};  //                               i * len + j
 
   (void) t;
 
@@ -623,8 +626,8 @@ void check_variants(unsigned int seed,
 
 void network_thread(int64_t t)
 {
-  constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
-  constexpr unsigned int j {4};  //                               i * len + j
+  static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
+  static constexpr unsigned int j {4};  //                               i * len + j
 
   (void) t;
 
@@ -853,7 +856,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 struct Parameters const & p,
                                 unsigned char * dir,
                                 uint64_t * hearray) -> void {
-  constexpr unsigned int one_hundred {100};
+  static constexpr unsigned int one_hundred {100};
   unsigned int cluster_no = 0;
   score_matrix_read(p);
   dir = new unsigned char[longestamplicon * longestamplicon];
@@ -1042,8 +1045,8 @@ void algo_d1_run(struct Parameters const & p)
   ampinfo = new struct ampinfo_s[amplicons];
 
   // max number of microvariants = 7 * len + 4
-  constexpr unsigned int m_i {7};
-  constexpr unsigned int m_j {4};
+  static constexpr unsigned int m_i {7};
+  static constexpr unsigned int m_j {4};
   global_hits_alloc = m_i * longestamplicon + m_j + 1;
   global_hits_data = new unsigned int[global_hits_alloc];
 
@@ -1275,8 +1278,8 @@ void algo_d1_run(struct Parameters const & p)
           /* n: number of entries in the bloom filter */
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
-          constexpr unsigned int microvariants {7};
-          constexpr double hash_functions_per_bit {4.0 / 10};
+          static constexpr unsigned int microvariants {7};
+          static constexpr double hash_functions_per_bit {4.0 / 10};
           assert(p.opt_bloom_bits <= 64);  // larger than expected"
           assert(p.opt_bloom_bits >= 2);  // smaller than expected"
           auto bits = static_cast<unsigned int>(p.opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
@@ -1289,7 +1292,7 @@ void algo_d1_run(struct Parameters const & p)
           }
 
           uint64_t m = bits * microvariants * nucleotides_in_small_otus;
-          constexpr unsigned int min_total_bloom_filter_length_in_bits {64};
+          static constexpr unsigned int min_total_bloom_filter_length_in_bits {64};
 
           uint64_t memtotal = arch_get_memtotal();
           uint64_t memused = arch_get_memused();

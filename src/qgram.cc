@@ -49,7 +49,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
-  constexpr unsigned int max_range {7};
+  static constexpr unsigned int max_range {7};
 
   memset(qgramvector, 0, qgramvectorbytes);
 
@@ -111,9 +111,9 @@ auto compareqgramvectors_128(unsigned char * a, unsigned char * b) -> uint64_t;
 
 auto popcount_128(__m128i x) -> uint64_t
 {
-  constexpr unsigned char m1 {0x55};  // '0101 0101'
-  constexpr unsigned char m2 {0x33};  // '0011 0011'
-  constexpr unsigned char m4 {0x0f};  // '0000 1111'
+  static constexpr unsigned char m1 {0x55};  // '0101 0101'
+  static constexpr unsigned char m2 {0x33};  // '0011 0011'
+  static constexpr unsigned char m4 {0x0f};  // '0000 1111'
 
   __m128i mask1 = _mm_set_epi8(m1, m1, m1, m1, m1, m1, m1, m1,
                                m1, m1, m1, m1, m1, m1, m1, m1);

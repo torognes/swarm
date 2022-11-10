@@ -85,11 +85,11 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   uint64_t * dir_long,
                                   VECTORTYPE * H0)
 {
-  constexpr unsigned int step {16};
-  constexpr unsigned int offset0 {0};
-  constexpr unsigned int offset1 {offset0 + 4};
-  constexpr unsigned int offset2 {offset1 + 4};
-  constexpr unsigned int offset3 {offset2 + 4};
+  static constexpr unsigned int step {16};
+  static constexpr unsigned int offset0 {0};
+  static constexpr unsigned int offset1 {offset0 + 4};
+  static constexpr unsigned int offset2 {offset1 + 4};
+  static constexpr unsigned int offset3 {offset2 + 4};
 
   VECTORTYPE Q;
   VECTORTYPE R;
@@ -168,11 +168,11 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * MR,
                                  VECTORTYPE * MQ0)
 {
-  constexpr unsigned int step {16};
-  constexpr unsigned int offset0 {0};
-  constexpr unsigned int offset1 {offset0 + 4};
-  constexpr unsigned int offset2 {offset1 + 4};
-  constexpr unsigned int offset3 {offset2 + 4};
+  static constexpr unsigned int step {16};
+  static constexpr unsigned int offset0 {0};
+  static constexpr unsigned int offset1 {offset0 + 4};
+  static constexpr unsigned int offset2 {offset1 + 4};
+  static constexpr unsigned int offset3 {offset2 + 4};
 
   VECTORTYPE Q;
   VECTORTYPE R;

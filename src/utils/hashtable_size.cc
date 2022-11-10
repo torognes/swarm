@@ -32,8 +32,8 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
   // 10/7 times the number of sequences.
   // Note that hash table size can be at least 2^1 and at most 2^63.
   // C++20: refactor with std::bit_ceil()
-  constexpr unsigned int numerator {7};
-  constexpr unsigned int denominator {10};
+  static constexpr unsigned int numerator {7};
+  static constexpr unsigned int denominator {10};
   static_assert(numerator != 0, "Error: will result in a divide-by-zero");
   assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
   return static_cast<uint64_t>(std::pow(2, std::ceil(std::log2(denominator * (sequence_count + 1) / numerator))));
@@ -43,8 +43,8 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
 /* old function
 
 auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
-  constexpr unsigned int numerator {7};
-  constexpr unsigned int denominator {10};
+  static constexpr unsigned int numerator {7};
+  static constexpr unsigned int denominator {10};
   uint64_t hashtablesize = 2;
   while (denominator * sequence_count > numerator * hashtablesize) {
     hashtablesize *= 2;

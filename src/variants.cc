@@ -27,9 +27,9 @@
 
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 {
-  constexpr unsigned int divider {5};
-  constexpr unsigned int max_range {31};
-  constexpr unsigned long long int two_bits {3};  // '... 0011' in binary
+  static constexpr unsigned int divider {5};
+  static constexpr unsigned int max_range {31};
+  static constexpr unsigned long long int two_bits {3};  // '... 0011' in binary
   unsigned int whichlong = pos >> divider;
   uint64_t shift = (pos & max_range) << 1;  // 0, 2, 4, 6, ..., 60, 62
   uint64_t mask = two_bits << shift;

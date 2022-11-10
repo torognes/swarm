@@ -35,16 +35,16 @@ unsigned int * hash_data {nullptr};
 
 void hash_zap(const uint64_t hashtablesize)
 {
-  constexpr int padding {63};  // make sure our final value is >= 64 / 8
-  constexpr int convert_to_bytes {8};
+  static constexpr int padding {63};  // make sure our final value is >= 64 / 8
+  static constexpr int convert_to_bytes {8};
   memset(hash_occupied, 0, (hashtablesize + padding) / convert_to_bytes);
 }
 
 
 auto hash_alloc(const uint64_t amplicons) -> uint64_t
 {
-  constexpr int padding {63};  // make sure our final value is >= 64 / 8
-  constexpr int convert_to_bytes {8};
+  static constexpr int padding {63};  // make sure our final value is >= 64 / 8
+  static constexpr int convert_to_bytes {8};
 
   const uint64_t hashtablesize {compute_hashtable_size(amplicons)};
   hash_mask = hashtablesize - 1;

@@ -151,7 +151,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE * dseq)
 {
-  constexpr unsigned int multiplier {5};
+  static constexpr unsigned int multiplier {5};
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
@@ -282,11 +282,11 @@ void align_cells_regular_16(VECTORTYPE * Sm,
                             uint64_t * dir_long,
                             VECTORTYPE * H0)
 {
-  constexpr unsigned int step {16};
-  constexpr unsigned int offset0 {0};
-  constexpr unsigned int offset1 {offset0 + 4};
-  constexpr unsigned int offset2 {offset1 + 4};
-  constexpr unsigned int offset3 {offset2 + 4};
+  static constexpr unsigned int step {16};
+  static constexpr unsigned int offset0 {0};
+  static constexpr unsigned int offset1 {offset0 + 4};
+  static constexpr unsigned int offset2 {offset1 + 4};
+  static constexpr unsigned int offset3 {offset2 + 4};
 
   VECTORTYPE Q;
   VECTORTYPE R;
@@ -364,11 +364,11 @@ void align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * MR,
                            VECTORTYPE * MQ0)
 {
-  constexpr unsigned int step {16};
-  constexpr unsigned int offset0 {0};
-  constexpr unsigned int offset1 {offset0 + 4};
-  constexpr unsigned int offset2 {offset1 + 4};
-  constexpr unsigned int offset3 {offset2 + 4};
+  static constexpr unsigned int step {16};
+  static constexpr unsigned int offset0 {0};
+  static constexpr unsigned int offset1 {offset0 + 4};
+  static constexpr unsigned int offset2 {offset1 + 4};
+  static constexpr unsigned int offset3 {offset2 + 4};
 
   VECTORTYPE Q;
   VECTORTYPE R;
@@ -457,10 +457,10 @@ auto backtrack_16(char * qseq,
                   uint64_t * alignmentlengthp,
                   const uint64_t longestdbsequence) -> uint64_t
 {
-  constexpr unsigned int offset0 {0};
-  constexpr unsigned int offset1 {offset0 + 16};
-  constexpr unsigned int offset2 {offset1 + 16};
-  constexpr unsigned int offset3 {offset2 + 16};
+  static constexpr unsigned int offset0 {0};
+  static constexpr unsigned int offset1 {offset0 + 16};
+  static constexpr unsigned int offset2 {offset1 + 16};
+  static constexpr unsigned int offset3 {offset2 + 16};
   uint64_t maskup      = 3ULL << (2 * channel + offset0);
   uint64_t maskleft    = 3ULL << (2 * channel + offset1);
   uint64_t maskextup   = 3ULL << (2 * channel + offset2);

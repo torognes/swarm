@@ -40,7 +40,7 @@
 
 auto bloomflex_patterns_generate(struct bloomflex_s * b) -> void
 {
-  constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
+  static constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
   for(auto i = 0U; i < b->pattern_count; i++)
     {
       uint64_t pattern {0};
@@ -62,8 +62,8 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
 {
   /* Input size is in bytes for full bitmap */
 
-  constexpr unsigned int multiplier {16};  // multiply by 65,536
-  constexpr unsigned int divider {3};  // divide by 8
+  static constexpr unsigned int multiplier {16};  // multiply by 65,536
+  static constexpr unsigned int divider {3};  // divide by 8
 
   auto * b = static_cast<struct bloomflex_s *>(xmalloc(sizeof(struct bloomflex_s)));
   b->size = size >> divider;

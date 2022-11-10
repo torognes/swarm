@@ -39,8 +39,8 @@
 
 void bloom_patterns_generate(struct bloom_s * b)
 {
-  constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
-  constexpr unsigned int k {8};
+  static constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
+  static constexpr unsigned int k {8};
   for(auto i = 0U; i < bloom_pattern_count; i++)  // range-loop '(unsigned long & i : b->patterns)' -> FAIL issue 123??
     {
       uint64_t pattern {0};
@@ -68,7 +68,7 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 {
   // Size is in bytes for full bitmap, must be power of 2,
   // at least 8
-  constexpr uint64_t bytes_per_uint64 {8};
+  static constexpr uint64_t bytes_per_uint64 {8};
   size = std::max(size, bytes_per_uint64);
 
   auto * b = new struct bloom_s;

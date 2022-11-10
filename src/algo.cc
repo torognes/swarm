@@ -137,8 +137,8 @@ auto write_representative_sequences(const uint64_t amplicons,
 auto write_swarms_default_format(const uint64_t amplicons,
                                  struct Parameters const & p) -> void {
   /* native swarm output */
-  constexpr char sep_amplicons {sepchar};  /* usually a space */
-  constexpr char sep_swarms {'\n'};
+  static constexpr char sep_amplicons {sepchar};  /* usually a space */
+  static constexpr char sep_swarms {'\n'};
 
   fprint_id(outfile, amps[0].ampliconid,
             p.opt_usearch_abundance, p.opt_append_abundance);
@@ -165,8 +165,8 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
                                 const unsigned int swarmid,
                                 struct Parameters const & p) -> void {
   /* mothur list file output */
-  constexpr char sep_amplicons {','};
-  constexpr char sep_swarms {'\t'};
+  static constexpr char sep_amplicons {','};
+  static constexpr char sep_swarms {'\t'};
 
   fprintf(outfile, "swarm_%" PRId64 "\t%u\t", p.opt_differences, swarmid);
 
@@ -247,8 +247,8 @@ void algo_run(struct Parameters const & p)
   }
 
   /* always search in 8 bit mode unless resolution is very high */
-  constexpr int bit_mode_8 {8};
-  constexpr int bit_mode_16 {16};
+  static constexpr int bit_mode_8 {8};
+  static constexpr int bit_mode_16 {16};
   int bits {bit_mode_8};
 
   if (static_cast<uint64_t>(p.opt_differences) > diff_saturation) {

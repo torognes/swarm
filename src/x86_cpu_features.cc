@@ -52,17 +52,17 @@ void cpuid(unsigned int f1,
 
 void cpu_features_detect(struct Parameters & p)
 {
-  constexpr unsigned int post_pentium {7};  // new cpus: a & 0xff > 6
-  constexpr unsigned int bit_mmx {23};
-  constexpr unsigned int bit_sse {25};
-  constexpr unsigned int bit_sse2 {26};
-  constexpr unsigned int bit_sse3 {0};
-  constexpr unsigned int bit_ssse3 {9};
-  constexpr unsigned int bit_sse41 {19};
-  constexpr unsigned int bit_sse42 {20};
-  constexpr unsigned int bit_popcnt {23};
-  constexpr unsigned int bit_avx {28};
-  constexpr unsigned int bit_avx2 {5};
+  static constexpr unsigned int post_pentium {7};  // new cpus: a & 0xff > 6
+  static constexpr unsigned int bit_mmx {23};
+  static constexpr unsigned int bit_sse {25};
+  static constexpr unsigned int bit_sse2 {26};
+  static constexpr unsigned int bit_sse3 {0};
+  static constexpr unsigned int bit_ssse3 {9};
+  static constexpr unsigned int bit_sse41 {19};
+  static constexpr unsigned int bit_sse42 {20};
+  static constexpr unsigned int bit_popcnt {23};
+  static constexpr unsigned int bit_avx {28};
+  static constexpr unsigned int bit_avx2 {5};
 
   unsigned int a {0};
   unsigned int b {0};

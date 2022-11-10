@@ -166,7 +166,7 @@ void close_files();
 
 auto args_long(char * str, const char * option) -> int64_t
 {
-  constexpr int base_value {10};
+  static constexpr int base_value {10};
   char * endptr {nullptr};
   const int64_t temp = strtol(str, & endptr, base_value);
   if (*endptr != 0)
@@ -244,8 +244,8 @@ void show(const std::vector<std::string> & message)
 void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 {
   /* Set defaults */
-  constexpr unsigned int boundary_default {3};
-  constexpr unsigned int threads_default {1};
+  static constexpr unsigned int boundary_default {3};
+  static constexpr unsigned int threads_default {1};
 
   progname = argv[0];
 
@@ -435,20 +435,20 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
 
 void args_check(std::array<int, n_options> & used_options) {
-  constexpr unsigned int min_bits_per_entry {2};
-  constexpr unsigned int max_bits_per_entry {64};
-  constexpr unsigned int min_ceiling {8};
-  constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
-  constexpr unsigned int max_threads {256};
+  static constexpr unsigned int min_bits_per_entry {2};
+  static constexpr unsigned int max_bits_per_entry {64};
+  static constexpr unsigned int min_ceiling {8};
+  static constexpr unsigned int max_ceiling {1 << 30};  // 1,073,741,824 (MiB of RAM)
+  static constexpr unsigned int max_threads {256};
   // meaning of the used_options values
-  constexpr unsigned int append_abundance_index {0};
-  constexpr unsigned int boundary_index {1};
-  constexpr unsigned int ceiling_index {2};
-  constexpr unsigned int gap_extension_penalty_index {4};
-  constexpr unsigned int gap_opening_penalty_index {6};
-  constexpr unsigned int match_reward_index {12};
-  constexpr unsigned int mismatch_penalty_index {15};
-  constexpr unsigned int bloom_bits_index {24};
+  static constexpr unsigned int append_abundance_index {0};
+  static constexpr unsigned int boundary_index {1};
+  static constexpr unsigned int ceiling_index {2};
+  static constexpr unsigned int gap_extension_penalty_index {4};
+  static constexpr unsigned int gap_opening_penalty_index {6};
+  static constexpr unsigned int match_reward_index {12};
+  static constexpr unsigned int mismatch_penalty_index {15};
+  static constexpr unsigned int bloom_bits_index {24};
 
   if ((opt_threads < 1) || (opt_threads > max_threads))
     {
