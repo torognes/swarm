@@ -418,6 +418,12 @@ swarm 3.2.0:
 
 ## Version history ##
 
+### version 3.1.2 ###
+
+**swarm** 3.1.2 fixes a bug with fastidious mode introduced in version
+3.1.1, that could cause Swarm to crash. Probably due to allocating too
+much memory.
+
 ### version 3.1.1 ###
 
 **swarm** 3.1.1 eliminates a risk of segmentation fault with extremely

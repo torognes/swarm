@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "September 29, 2022" "version 3.1.1" "USER COMMANDS"
+.TH swarm 1 "November 10, 2022" "version 3.1.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -526,6 +526,10 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v3.1.2\~ "released November 10, 2022"
+Fix a bug with fastidious mode introduced in version 3.1.1, that could
+cause Swarm to crash. Probably due to allocating too much memory.
 .TP
 .BR v3.1.1\~ "released September 29, 2022"
 Version 3.1.1 eliminates a risk of segmentation fault with extremely
