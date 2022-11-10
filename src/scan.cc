@@ -198,7 +198,7 @@ auto adjust_thread_number(const int n_bits,
   static constexpr unsigned int channels_8 {8};
   static constexpr unsigned int channels_16 {16};
   static constexpr unsigned int bit_mode_16 {16};  // refactoring: should be an enum class
-  const auto channels { (n_bits == bit_mode_16) ? channels_8 : channels_16 };
+  const auto channels = (n_bits == bit_mode_16) ? channels_8 : channels_16;
 
   assert(remaining_sequences != 0);
   assert(n_threads != 0);
@@ -249,11 +249,10 @@ void search_do(uint64_t query_no,
   master_alignlengths = alignlengths;
   master_bits = bits;
 
-  const auto thr {
+  const auto thr =
     adjust_thread_number(bits,
                          master_length,
-                         static_cast<uint64_t>(opt_threads))
-  };
+                         static_cast<uint64_t>(opt_threads));
 
   remainingchunks = thr;
 
