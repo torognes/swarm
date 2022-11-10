@@ -25,6 +25,7 @@
 #include <cstdio>
 
 
+auto xmalloc(size_t size) -> void *;
 auto xrealloc(void * ptr, size_t size) -> void *;
 auto xfree(void * ptr) -> void;
 auto xgetline(char ** linep, size_t * linecapp, FILE * stream) -> ssize_t;

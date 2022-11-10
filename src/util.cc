@@ -28,6 +28,7 @@ static const char * progress_prompt;
 static uint64_t progress_next;
 static uint64_t progress_size;
 static uint64_t progress_chunk;
+constexpr size_t memalignment = 16;
 
 
 auto progress_init(const char * prompt, const uint64_t size) -> void
@@ -70,13 +71,32 @@ auto progress_done() -> void
 }
 
 
+auto xmalloc(size_t size) -> void *
+{
+  if (size == 0) {
+    size = 1;
+  }
+  void * t {nullptr};
+#ifdef _WIN32
+  t = _aligned_malloc(size, memalignment);
+#else
+  if (posix_memalign(& t, memalignment, size) != 0) {
+    t = nullptr;
+  }
+#endif
+  if (t == nullptr) {
+    fatal(error_prefix, "Unable to allocate enough memory.");
+  }
+  return t;
+}
+
+
 auto xrealloc(void *ptr, size_t size) -> void *
 {
   if (size == 0) {
     size = 1;
   }
 #ifdef _WIN32
-  constexpr size_t memalignment = 16;
   void * t = _aligned_realloc(ptr, size, memalignment);
 #else
   void * t = realloc(ptr, size);
