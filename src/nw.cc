@@ -70,10 +70,10 @@ void finishop(char ** cigarendp, char * op, int * count)
   }
 }
 
-const unsigned char maskup      = 1;
-const unsigned char maskleft    = 2;
-const unsigned char maskextup   = 4;
-const unsigned char maskextleft = 8;
+constexpr unsigned char maskup      = 1;
+constexpr unsigned char maskleft    = 2;
+constexpr unsigned char maskextup   = 4;
+constexpr unsigned char maskextleft = 8;
 
 /*
 
