@@ -155,7 +155,7 @@ void nw(char * dseq,
 
       for(auto i = 0L; i < qlen; i++)
         {
-          int64_t index = qlen * j + i;
+          const int64_t index = qlen * j + i;
 
           n = *hep;
           e = *(hep+1);
