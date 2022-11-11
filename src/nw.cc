@@ -38,7 +38,7 @@ void pushop(const char newop, char ** cigarendp, char * op, int * count)
     if (*count > 1)
     {
       char buf[buffer_length];
-      int len = snprintf(buf, buffer_length, "%d", *count);
+      const int len = snprintf(buf, buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
       memcpy(*cigarendp, buf, static_cast<size_t>(len));
@@ -58,7 +58,7 @@ void finishop(char ** cigarendp, char * op, int * count)
     if (*count > 1)
     {
       char buf[buffer_length];
-      int len = snprintf(buf, buffer_length, "%d", *count);
+      const int len = snprintf(buf, buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
       memcpy(*cigarendp, buf, static_cast<size_t>(len));
