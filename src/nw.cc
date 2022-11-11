@@ -148,8 +148,7 @@ void nw(char * dseq,
 
   for(auto j = 0L; j < dlen; j++)
     {
-      int64_t * hep {nullptr};
-      hep = hearray;
+      int64_t * hep = hearray;
       int64_t f = 2 * gapopen + (j+2) * gapextend;
       int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
