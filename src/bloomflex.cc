@@ -66,7 +66,7 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
   static constexpr unsigned int divider {3};  // divide by 8
 
   auto * b = static_cast<struct bloomflex_s *>(xmalloc(sizeof(struct bloomflex_s)));
-  b->size = size >> divider;
+  b->size = size >> divider;  // divide by 8 to get number of uint64
 
   b->pattern_shift = multiplier;
   b->pattern_count = 1 << b->pattern_shift;
@@ -76,6 +76,7 @@ auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *
   b->patterns = static_cast<uint64_t *>(xmalloc(b->pattern_count * sizeof(uint64_t)));
   bloomflex_patterns_generate(b);
 
+  // b->bitmap = new uint64_t[size / sizeof(uint64_t)];  fix for std::bad_alloc crash
   b->bitmap = static_cast<uint64_t *>(xmalloc(size));
   memset(b->bitmap, UINT8_MAX, size);
 
