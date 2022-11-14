@@ -1294,14 +1294,14 @@ void algo_d1_run(struct Parameters const & p)
           uint64_t m = bits * microvariants * nucleotides_in_small_otus;
           static constexpr unsigned int min_total_bloom_filter_length_in_bits {64};
 
-          uint64_t memtotal = arch_get_memtotal();
-          uint64_t memused = arch_get_memused();
+          const uint64_t memtotal = arch_get_memtotal();
+          const uint64_t memused = arch_get_memused();
 
           if (p.opt_ceiling != 0)
             {
-              uint64_t memrest
+              const uint64_t memrest
                 = one_megabyte * static_cast<uint64_t>(p.opt_ceiling) - memused;
-              auto new_bits =
+              const auto new_bits =
                 static_cast<unsigned int>(sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_otus));
               if (new_bits < bits)
                 {
