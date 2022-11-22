@@ -48,7 +48,7 @@ else
 	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
 		COMMON += -flto=full
 	else
-		COMMON += -flto=auto
+		COMMON += -flto
 	endif
 	COMMON += -O3
 endif
