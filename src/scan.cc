@@ -57,7 +57,7 @@ static uint64_t * master_scores;
 static uint64_t * master_diffs;
 static uint64_t * master_alignlengths;
 static int master_bits;
-static uint64_t dirbufferbytes;
+static uint64_t dirbuffersize;
 
 queryinfo_t query;
 uint64_t longestdbsequence;
@@ -67,16 +67,14 @@ void search_alloc(struct search_data * sdp)
 {
   static constexpr unsigned int one_kilobyte {1024};
   static constexpr unsigned int nt_per_uint64 {32};
-  static constexpr unsigned int bytes_per_uint64 {8};
 
-  dirbufferbytes =
-    bytes_per_uint64 * longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
+  dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
   sdp->qtable = new BYTE*[longestdbsequence];
   sdp->qtable_w = new WORD*[longestdbsequence];
   sdp->dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
-  sdp->dprofile_w = new WORD[2 * one_kilobyte];  // 4 * 2 * 8 * 32
+  sdp->dprofile_w = new WORD[1 * one_kilobyte];  // 4 * 2 * 8 * 32
   sdp->hearray = new BYTE[longestdbsequence * nt_per_uint64] { };
-  sdp->dir_array = new uint64_t[dirbufferbytes] { };
+  sdp->dir_array = new uint64_t[dirbuffersize] { };
 }
 
 void search_free(struct search_data * sdp)
@@ -132,7 +130,7 @@ void search_chunk(struct search_data * sdp, const int64_t bits)
              master_diffs + sdp->target_index,
              master_alignlengths + sdp->target_index,
              static_cast<uint64_t>(query.len),
-             dirbufferbytes / sizeof(uint64_t),
+             dirbuffersize,
              sdp->dir_array,
              longestdbsequence);
    }
@@ -149,7 +147,7 @@ void search_chunk(struct search_data * sdp, const int64_t bits)
             master_diffs + sdp->target_index,
             master_alignlengths + sdp->target_index,
             static_cast<uint64_t>(query.len),
-            dirbufferbytes / sizeof(uint64_t),
+            dirbuffersize,
             sdp->dir_array,
             longestdbsequence);
  }
