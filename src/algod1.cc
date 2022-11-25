@@ -917,7 +917,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
               fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\n");
 
-              delete [] nwalignment;
+              if (nwalignment != nullptr)
+                xfree(nwalignment);
               nwalignment = nullptr;
             }
 
@@ -1048,7 +1049,8 @@ void algo_d1_run(struct Parameters const & p)
   static constexpr unsigned int m_i {7};
   static constexpr unsigned int m_j {4};
   global_hits_alloc = m_i * longestamplicon + m_j + 1;
-  global_hits_data = new unsigned int[global_hits_alloc];
+  global_hits_data = static_cast<unsigned int *>
+    (xmalloc(global_hits_alloc * sizeof(unsigned int)));
 
   /* compute hash for all amplicons and store them in a hash table */
 
@@ -1090,7 +1092,9 @@ void algo_d1_run(struct Parameters const & p)
 
   /* for all amplicons, generate list of matching amplicons */
 
-  network = new unsigned int[network_alloc];
+  network = static_cast<unsigned int*>
+    (xmalloc(network_alloc * sizeof(unsigned int)));
+
   network_count = 0;
 
   pthread_mutex_init(&network_mutex, nullptr);
@@ -1218,10 +1222,12 @@ void algo_d1_run(struct Parameters const & p)
     }
   progress_done();
 
-  delete [] global_hits_data;
+  if (global_hits_data != nullptr)
+    xfree(global_hits_data);
   global_hits_data = nullptr;
 
-  delete [] network;
+  if (network != nullptr)
+    xfree(network);
   network = nullptr;
 
   swarmcount_adjusted = swarmcount;

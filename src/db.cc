@@ -393,7 +393,7 @@ void db_read(const char * filename, struct Parameters const & p)
   /* allocate space */
 
   uint64_t dataalloc {memchunk};
-  datap = new char[dataalloc];
+  datap = static_cast<char *>(xmalloc(dataalloc));
   uint64_t datalen {0};
   uint64_t duplicates_found {0};
 
@@ -924,7 +924,8 @@ void db_free()
 {
   zobrist_exit();
 
-  delete [] datap;
+  if (datap != nullptr)
+    xfree(datap);
   datap = nullptr;
   delete [] seqindex;
   seqindex = nullptr;

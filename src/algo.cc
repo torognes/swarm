@@ -632,7 +632,8 @@ void algo_run(struct Parameters const & p)
               fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
-              delete [] nwalignment;
+              if (nwalignment != nullptr)
+                xfree(nwalignment);
               nwalignment = nullptr;
             }
 
