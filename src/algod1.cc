@@ -58,7 +58,7 @@ static struct ampinfo_s
   unsigned int link_count;
 } * ampinfo = nullptr;
 
-/* Information about each swarm (OTU) */
+/* Information about each swarm (cluster) */
 
 static struct swarminfo_s
 {
@@ -1242,9 +1242,9 @@ void algo_d1_run(struct Parameters const & p)
       fprintf(logfile, "Largest swarm:     %u\n", largest);
       fprintf(logfile, "\n");
 
-      uint64_t small_otus = 0;
-      uint64_t amplicons_in_small_otus = 0;
-      uint64_t nucleotides_in_small_otus = 0;
+      uint64_t small_clusters = 0;
+      uint64_t amplicons_in_small_clusters = 0;
+      uint64_t nucleotides_in_small_clusters = 0;
 
       progress_init("Counting amplicons in heavy and light swarms",
                     swarmcount);
@@ -1254,25 +1254,25 @@ void algo_d1_run(struct Parameters const & p)
           struct swarminfo_s * sp = swarminfo + i;
           if (sp->mass < static_cast<uint64_t>(opt_boundary))
             {
-              amplicons_in_small_otus += sp->size;
-              nucleotides_in_small_otus += sp->sumlen;
-              small_otus++;
+              amplicons_in_small_clusters += sp->size;
+              nucleotides_in_small_clusters += sp->sumlen;
+              small_clusters++;
             }
           progress_update(i+1);
         }
       progress_done();
 
-      uint64_t amplicons_in_large_otus = amplicons - amplicons_in_small_otus;
-      uint64_t large_otus = swarmcount - small_otus;
+      uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
+      uint64_t large_clusters = swarmcount - small_clusters;
 
       fprintf(logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-              large_otus, amplicons_in_large_otus);
+              large_clusters, amplicons_in_large_clusters);
       fprintf(logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-              small_otus, amplicons_in_small_otus);
+              small_clusters, amplicons_in_small_clusters);
       fprintf(logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
-              nucleotides_in_small_otus);
+              nucleotides_in_small_clusters);
 
-      if ((small_otus == 0) || (large_otus == 0))
+      if ((small_clusters == 0) || (large_clusters == 0))
         {
           fprintf(logfile, "Only light or heavy swarms found - "
                   "no need for further analysis.\n");
@@ -1297,7 +1297,7 @@ void algo_d1_run(struct Parameters const & p)
             k = 1;
           }
 
-          uint64_t m = bits * microvariants * nucleotides_in_small_otus;
+          uint64_t m = bits * microvariants * nucleotides_in_small_clusters;
           static constexpr unsigned int min_total_bloom_filter_length_in_bits {64};
 
           const uint64_t memtotal = arch_get_memtotal();
@@ -1308,7 +1308,7 @@ void algo_d1_run(struct Parameters const & p)
               const uint64_t memrest
                 = one_megabyte * static_cast<uint64_t>(p.opt_ceiling) - memused;
               const auto new_bits =
-                static_cast<unsigned int>(sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_otus));
+                static_cast<unsigned int>(sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_clusters));
               if (new_bits < bits)
                 {
                   if (new_bits < 2) {
@@ -1322,7 +1322,7 @@ void algo_d1_run(struct Parameters const & p)
                     k = 1;
                   }
 
-                  m = bits * microvariants * nucleotides_in_small_otus;
+                  m = bits * microvariants * nucleotides_in_small_clusters;
                 }
             }
 
@@ -1351,16 +1351,16 @@ void algo_d1_run(struct Parameters const & p)
           bloom_zap(bloom_a);
 
           progress_init("Adding light swarm amplicons to Bloom filter",
-                        amplicons_in_small_otus);
+                        amplicons_in_small_clusters);
 
           /* process amplicons in order from least to most abundant */
-          /* but stop when all amplicons in small otus are processed */
+          /* but stop when all amplicons in small clusters are processed */
 
           light_variants = 0;
 
           pthread_mutex_init(&light_mutex, nullptr);
           light_progress = 0;
-          light_amplicon_count = amplicons_in_small_otus;
+          light_amplicon_count = amplicons_in_small_clusters;
           light_amplicon = amplicons - 1;
           auto * tr = new ThreadRunner(static_cast<int>(opt_threads),
                                        mark_light_thread);
@@ -1375,10 +1375,10 @@ void algo_d1_run(struct Parameters const & p)
                   light_variants);
 
           progress_init("Checking heavy swarm amplicons against Bloom filter",
-                        amplicons_in_large_otus);
+                        amplicons_in_large_clusters);
 
           /* process amplicons in order from most to least abundant */
-          /* but stop when all amplicons in large otus are processed */
+          /* but stop when all amplicons in large clusters are processed */
 
           pthread_mutex_init(&graft_mutex, nullptr);
 
@@ -1386,7 +1386,7 @@ void algo_d1_run(struct Parameters const & p)
 
           pthread_mutex_init(&heavy_mutex, nullptr);
           heavy_progress = 0;
-          heavy_amplicon_count = amplicons_in_large_otus;
+          heavy_amplicon_count = amplicons_in_large_clusters;
           heavy_amplicon = 0;
           auto * heavy_tr
             = new ThreadRunner(static_cast<int>(opt_threads),

@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    Visualize the internal structure of a swarm (color vertices by
+    Visualize the internal structure of a swarm cluster (color vertices by
     abundance). Requires the module igraph and python 3.
+
 """
 
 __author__ = "Frédéric Mahé <frederic.mahe@cirad.fr>"
-__date__ = "2021/11/29"
-__version__ = "$Revision: 4.2"
+__date__ = "2022/11/27"
+__version__ = "$Revision: 4.3"
 
 import sys
 import textwrap
 import os.path
-from igraph import Graph, plot
 from optparse import OptionParser
+from igraph import Graph, plot
 
 # *************************************************************************** #
 #                                                                             #
@@ -26,7 +27,7 @@ def option_parse():
     """
     Parse arguments from command line.
     """
-    desc = """Visualize the internal structure of a given OTU."""
+    desc = """Visualize the internal structure of a given cluster."""
 
     OptionParser.format_epilog = lambda self, formatter: self.epilog
 
@@ -52,21 +53,21 @@ def option_parse():
                       metavar="<FILENAME>",
                       action="store",
                       dest="swarms",
-                      help="<FILENAME> contains OTUs (swarm's default output)")
+                      help="<FILENAME> contains clusters (swarm's default output)")
 
     parser.add_option("-i", "--internal_structure",
                       metavar="<FILENAME>",
                       action="store",
                       dest="internal_structure",
-                      help="<FILENAME> contains OTUs' internal structure")
+                      help="<FILENAME> contains clusters' internal structure")
 
-    parser.add_option("-o", "--OTU",
+    parser.add_option("-c", "--cluster",
                       metavar="<INTEGER>",
                       action="store",
                       type="int",
-                      dest="OTU",
+                      dest="cluster",
                       default=1,
-                      help="Select the nth OTU (first by default)")
+                      help="Select the nth cluster (first by default)")
 
     parser.add_option("-d", "--drop",
                       metavar="<INTEGER>",
@@ -80,19 +81,19 @@ def option_parse():
     (options, args) = parser.parse_args()
 
     return options.swarms, options.internal_structure, \
-        options.OTU, options.drop
+        options.cluster, options.drop
 
 
-def parse_files(swarms, internal_structure, OTU, drop):
+def parse_files(swarms, internal_structure, cluster, drop):
     """
     """
     # List amplicon ids and abundances
     amplicons = list()
     with open(swarms, "r") as swarms:
         for i, swarm in enumerate(swarms):
-            if i == OTU - 1:
+            if i == cluster - 1:
                 # Deal with ";size=" in a rather clumsy way... but it works
-                print("Reading target OTU", file=sys.stdout)
+                print("Reading target cluster", file=sys.stdout)
                 amplicons = [
                     tuple(
                         item.replace(";size=", "_").rstrip(";").rsplit("_", 1))
@@ -116,15 +117,15 @@ def parse_files(swarms, internal_structure, OTU, drop):
         print("Parsing amplicon relationships", file=sys.stdout)
         for line in internal_structure:
             # Get the first four elements of the line
-            ampliconA, ampliconB, d, OTU_number = line.strip().split("\t")[0:4]
-            OTU_number = int(OTU_number)
-            if OTU_number == OTU:
+            ampliconA, ampliconB, d, cluster_number = line.strip().split("\t")[0:4]
+            cluster_number = int(cluster_number)
+            if cluster_number == cluster:
                 amplicon_connected[ampliconA] = True
                 amplicon_connected[ampliconB] = True
                 if ampliconA in amplicon_index and ampliconB in amplicon_index:
                     relations.append((amplicon_index[ampliconA],
                                       amplicon_index[ampliconB]))
-            elif OTU_number > OTU:
+            elif cluster_number > cluster:
                 break
 
     # Drop amplicons grafted with the fastidious option
@@ -133,7 +134,7 @@ def parse_files(swarms, internal_structure, OTU, drop):
 
     # Deal with errors
     if not amplicons or not relations:
-        print("Error: OTU does not exists or contains only one element.",
+        print("Error: cluster does not exists or contains only one element.",
               file=sys.stderr)
         sys.exit(-1)
 
@@ -193,16 +194,19 @@ def main():
     Backbone of the script
     """
     # Parse command line options.
-    swarms, internal_structure, OTU, drop = option_parse()
+    swarms, internal_structure, cluster, drop = option_parse()
 
     # Output file
     basename = os.path.splitext(swarms)[0]
-    output_pdf = basename + "_OTU_" + str(OTU) + ".pdf"
-    # output_svg = basename + "_OTU_" + str(OTU) + ".svg"
-    output_graphml = basename + "_OTU_" + str(OTU) + ".graphml"
+    output_pdf = basename + "_cluster_" + str(cluster) + ".pdf"
+    # output_svg = basename + "_cluster_" + str(cluster) + ".svg"
+    output_graphml = basename + "_cluster_" + str(cluster) + ".graphml"
 
     # Collect data
-    amplicons, relations = parse_files(swarms, internal_structure, OTU, drop)
+    amplicons, relations = parse_files(swarms,
+                                       internal_structure,
+                                       cluster,
+                                       drop)
 
     # Build the graph with igraph
     g, bbox = build_graph(amplicons, relations)
