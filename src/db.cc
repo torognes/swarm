@@ -924,8 +924,9 @@ void db_free()
 {
   zobrist_exit();
 
-  if (datap != nullptr)
+  if (datap != nullptr) {
     xfree(datap);
+  }
   datap = nullptr;
   delete [] seqindex;
   seqindex = nullptr;

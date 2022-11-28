@@ -917,8 +917,9 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
               fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
               fprintf(uclustfile, "\n");
 
-              if (nwalignment != nullptr)
+              if (nwalignment != nullptr) {
                 xfree(nwalignment);
+              }
               nwalignment = nullptr;
             }
 
@@ -1222,12 +1223,14 @@ void algo_d1_run(struct Parameters const & p)
     }
   progress_done();
 
-  if (global_hits_data != nullptr)
+  if (global_hits_data != nullptr) {
     xfree(global_hits_data);
+  }
   global_hits_data = nullptr;
 
-  if (network != nullptr)
+  if (network != nullptr) {
     xfree(network);
+  }
   network = nullptr;
 
   swarmcount_adjusted = swarmcount;
