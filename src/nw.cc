@@ -202,9 +202,9 @@ void nw(char * dseq,
   int64_t i = qlen;
   int64_t j = dlen;
 
-  while ((i>0) && (j>0))
+  while ((i > 0) && (j > 0))
     {
-      int d = dir[qlen*(j-1)+(i-1)];
+      int d = dir[qlen * (j - 1) + (i - 1)];
 
       alength++;
 
@@ -254,7 +254,7 @@ void nw(char * dseq,
         }
     }
 
-  while(i>0)
+  while(i > 0)
     {
       alength++;
       // score += gapextend;
@@ -265,7 +265,7 @@ void nw(char * dseq,
       pushop('D', &cigarend, &op, &count);
     }
 
-  while(j>0)
+  while(j > 0)
     {
       alength++;
       // score += gapextend;
