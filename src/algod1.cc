@@ -1341,7 +1341,11 @@ void algo_d1_run(struct Parameters const & p)
                   bits, m, k, static_cast<double>(m) / (sizeof(uint64_t) * one_megabyte));
 
 
-          bloom_f = bloomflex_init(m / sizeof(uint64_t), k);  // m is in bits (divide by 8 to get bytes)
+          // m is in bits (divide by 8 to get bytes)
+          // m is guaranteed to be at least 64 (see code above)
+          constexpr auto n_bits_in_a_byte = 8;
+          uint64_t n_bytes = ((m - 1) / n_bits_in_a_byte) + 1;
+          bloom_f = bloomflex_init(n_bytes, k);
 
 
           /* Empty the old hash and bloom filter
