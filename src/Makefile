@@ -48,7 +48,12 @@ else
 	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
 		COMMON += -flto=full
 	else
-		COMMON += -flto
+		GCCVERSIONGTEQ12 := $(shell expr `gcc -dumpversion | cut -f 1 -d "."` \>= 12)
+		ifeq "$(GCCVERSIONGTEQ12)" "1"
+			COMMON += -flto=auto
+		else
+			COMMON += -flto
+		endif
 	endif
 	COMMON += -O3
 endif
