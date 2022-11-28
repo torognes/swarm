@@ -1343,8 +1343,9 @@ void algo_d1_run(struct Parameters const & p)
 
           // m is in bits (divide by 8 to get bytes)
           // m is guaranteed to be at least 64 (see code above)
-          constexpr auto n_bits_in_a_byte = 8;
-          uint64_t n_bytes = ((m - 1) / n_bits_in_a_byte) + 1;
+          static constexpr auto n_bits_in_a_byte {8U};
+          assert(m != 0);  // safeguard for future changes
+          const uint64_t n_bytes = ((m - 1) / n_bits_in_a_byte) + 1;
           bloom_f = bloomflex_init(n_bytes, k);
 
 
