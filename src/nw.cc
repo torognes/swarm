@@ -187,7 +187,7 @@ void nw(char * dseq,
   int64_t dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
-  int64_t score {0}; // [[maybe_unused]]
+  // int64_t score {0}; // [[maybe_unused]]
   int64_t alength {0};
   int64_t matches {0};
 
@@ -210,39 +210,39 @@ void nw(char * dseq,
 
       if ((op == 'I') && ((d & maskextleft) != 0))
         {
-          score += gapextend;
+          // score += gapextend;
           j--;
           pushop('I', &cigarend, &op, &count);
         }
       else if ((op == 'D') && ((d & maskextup) != 0))
         {
-          score += gapextend;
+          // score += gapextend;
           i--;
           pushop('D', &cigarend, &op, &count);
         }
       else if ((d & maskleft) != 0)
         {
-          score += gapextend;
-          if (op != 'I') {
-            score += gapopen;
-          }
+          // score += gapextend;
+          // if (op != 'I') {
+          //   score += gapopen;
+          // }
           j--;
           pushop('I', &cigarend, &op, &count);
         }
       else if ((d & maskup) != 0)
         {
-          score += gapextend;
-          if (op != 'D') {
-            score += gapopen;
-          }
+          // score += gapextend;
+          // if (op != 'D') {
+          //   score += gapopen;
+          // }
           i--;
           pushop('D', &cigarend, &op, &count);
         }
       else
         {
-          score += score_matrix
-            [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << multiplier)
-             +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
+          // score += score_matrix
+          //   [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << multiplier)
+          //    +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
 
           if (nt_extract(qseq, static_cast<uint64_t>(i - 1)) ==
               nt_extract(dseq, static_cast<uint64_t>(j - 1))) {
@@ -257,10 +257,10 @@ void nw(char * dseq,
   while(i>0)
     {
       alength++;
-      score += gapextend;
-      if (op != 'D') {
-        score += gapopen;
-      }
+      // score += gapextend;
+      // if (op != 'D') {
+      //   score += gapopen;
+      // }
       i--;
       pushop('D', &cigarend, &op, &count);
     }
@@ -268,10 +268,10 @@ void nw(char * dseq,
   while(j>0)
     {
       alength++;
-      score += gapextend;
-      if (op != 'I') {
-        score += gapopen;
-      }
+      // score += gapextend;
+      // if (op != 'I') {
+      //   score += gapopen;
+      // }
       j--;
       pushop('I', &cigarend, &op, &count);
     }
@@ -289,7 +289,7 @@ void nw(char * dseq,
   * nwalignmentlength = alength;
   * nwalignment = cigar;
 
-  assert(score == dist);
+  // assert(score == dist);
 
   (void) queryno;
   (void) dbseqno;
