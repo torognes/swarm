@@ -1326,7 +1326,7 @@ void algo_d1_run(struct Parameters const & p)
                 }
             }
 
-          if (m < min_total_bloom_filter_length_in_bits) {
+          if (m < min_total_bloom_filter_length_in_bits) {  // refactor C++17: std::clamp()
             m = min_total_bloom_filter_length_in_bits;  // at least 64 bits
           }
 
