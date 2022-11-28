@@ -254,7 +254,7 @@ auto compare_grafts(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct graft_cand *>(a);
   const auto * y = static_cast<const struct graft_cand *>(b);
-  int status {0};
+  int status {0};       // set breakpoint here, then use display
 
   /* replace with a three-way comparison '<=>' in a few years */
   // status = x->parent <=> y->parent : -1 : 0 : +1;
@@ -269,7 +269,7 @@ auto compare_grafts(const void * a, const void * b) -> int
     status = +1;
   }
   else { // x->parent == y->parent, then assert(x->child != y->child);
-    if (x->child < y->child) {  // reached!
+    if (x->child < y->child) {  // reached with -d 1 -f <(printf ">s1_3\nGGGG\n>s2_2\nGGGGCC\n>s3_1\nGGGGGG\n")
       status = -1;
     }
     else if (x->child > y->child) {  // reachable with AF....fas
@@ -1346,8 +1346,9 @@ void algo_d1_run(struct Parameters const & p)
 
           // m is in bits (divide by 8 to get bytes)
           // m is guaranteed to be at least 64 (see code above)
-          static constexpr auto n_bits_in_a_byte {8U};
+          static constexpr auto n_bits_in_a_byte = 8U;
           assert(m != 0);  // safeguard for future changes
+          assert(m >= 64);
           const uint64_t n_bytes = ((m - 1) / n_bits_in_a_byte) + 1;
           bloom_f = bloomflex_init(n_bytes, k);
 
