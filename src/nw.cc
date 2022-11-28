@@ -206,18 +206,18 @@ void nw(char * dseq,
     {
       int d = dir[qlen * (j - 1) + (i - 1)];
 
-      alength++;
+      ++alength;
 
       if ((op == 'I') && ((d & maskextleft) != 0))
         {
           // score += gapextend;
-          j--;
+          --j;
           pushop('I', &cigarend, &op, &count);
         }
       else if ((op == 'D') && ((d & maskextup) != 0))
         {
           // score += gapextend;
-          i--;
+          --i;
           pushop('D', &cigarend, &op, &count);
         }
       else if ((d & maskleft) != 0)
@@ -226,7 +226,7 @@ void nw(char * dseq,
           // if (op != 'I') {
           //   score += gapopen;
           // }
-          j--;
+          --j;
           pushop('I', &cigarend, &op, &count);
         }
       else if ((d & maskup) != 0)
@@ -235,7 +235,7 @@ void nw(char * dseq,
           // if (op != 'D') {
           //   score += gapopen;
           // }
-          i--;
+          --i;
           pushop('D', &cigarend, &op, &count);
         }
       else
@@ -246,33 +246,33 @@ void nw(char * dseq,
 
           if (nt_extract(qseq, static_cast<uint64_t>(i - 1)) ==
               nt_extract(dseq, static_cast<uint64_t>(j - 1))) {
-            matches++;
+            ++matches;
           }
-          i--;
-          j--;
+          --i;
+          --j;
           pushop('M', &cigarend, &op, &count);
         }
     }
 
   while(i > 0)
     {
-      alength++;
+      ++alength;
       // score += gapextend;
       // if (op != 'D') {
       //   score += gapopen;
       // }
-      i--;
+      --i;
       pushop('D', &cigarend, &op, &count);
     }
 
   while(j > 0)
     {
-      alength++;
+      ++alength;
       // score += gapextend;
       // if (op != 'I') {
       //   score += gapopen;
       // }
-      j--;
+      --j;
       pushop('I', &cigarend, &op, &count);
     }
 
