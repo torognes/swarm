@@ -417,7 +417,7 @@ swarm 3.1.y:
 swarm 3.2.0:
 - swarm can be compiled on a BSD or a Windows system
 
-(in late-2023 GCC 8 will become the new *de facto* standard for HPC centers)
+(in late-2024 GCC 8 will become the new *de facto* standard for HPC centers)
 
 swarm 4.0.0:
 - drop compatibility with GCC 4 and GCC 5,
