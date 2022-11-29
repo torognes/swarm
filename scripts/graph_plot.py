@@ -8,7 +8,7 @@
 
 __author__ = "Frédéric Mahé <frederic.mahe@cirad.fr>"
 __date__ = "2022/11/27"
-__version__ = "$Revision: 4.3"
+__version__ = "$Revision: 5.0"
 
 import sys
 import textwrap
