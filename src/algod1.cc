@@ -254,13 +254,7 @@ auto compare_grafts(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct graft_cand *>(a);
   const auto * y = static_cast<const struct graft_cand *>(b);
-  int status {0};       // set breakpoint here, then use display
-
-  /* replace with a three-way comparison '<=>' in a few years */
-  // status = x->parent <=> y->parent : -1 : 0 : +1;
-  // if (status == 0) {
-  //   status = x->child <=> y->child : -1 : 0 : +1;
-  // }
+  int status {0};
 
   if (x->parent < y->parent) {
     status = -1;
@@ -268,15 +262,17 @@ auto compare_grafts(const void * a, const void * b) -> int
   else if (x->parent > y->parent) {
     status = +1;
   }
-  else { // x->parent == y->parent, then assert(x->child != y->child);
-    if (x->child < y->child) {  // reached with -d 1 -f <(printf ">s1_3\nGGGG\n>s2_2\nGGGGCC\n>s3_1\nGGGGGG\n")
+  else { // x->parent == y->parent
+    // assert(x->child != y->child); always true, children have different index values, by construction
+    // assert(x->child < y->child);  that seems to be always true in my tests, even on large datasets
+    if (x->child < y->child) {
       status = -1;
     }
-    else if (x->child > y->child) {  // reachable with AF....fas
+    else if (x->child > y->child) {  // unreachable?
       status = +1;
     }
     else {
-      status = 0;  // should be an assertion
+      status = 0;  // unreachable, replace with above assertion
     }
   }
 
@@ -306,7 +302,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
     if (ampinfo[i].graft_cand != no_swarm)
       {
         graft_array[j].parent = ampinfo[i].graft_cand;
-        graft_array[j].child = i;
+        graft_array[j].child = i;  // so two children cannot have the same uint value
         j++;
       }
   }
