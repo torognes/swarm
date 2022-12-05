@@ -427,6 +427,24 @@ swarm 4.0.0:
 
 ## Version history ##
 
+### version 3.1.3 ###
+
+**swarm** 3.1.3 fixes a few minor bugs, removes warnings, and improves code
+and documentation:
+- fix: bug introduced in version 3.1.1, that caused swarm to allocate way too
+much memory when d > 1 (bug had no impact on clustering results),
+- fix: off-by-one error when allocating memory for a Bloom filter (bug had no
+impact on clustering results),
+- fix: compilation warning with GCC 12 (and more recent) when using link-time
+optimization,
+- fix: compilation warning with clang 13 (and more recent): unused set
+variable,
+- fix: five clang-tidy warnings (readability-braces-around-statements),
+- fix: minor code refactoring,
+- improve: more uniform vocabulary throughout swarm's documentation (code,
+help, manpage, README, companion scripts and wiki),
+- improve: code coverage of our test suite (swarm-tests).
+
 ### version 3.1.2 ###
 
 **swarm** 3.1.2 fixes a bug with fastidious mode introduced in version

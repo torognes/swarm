@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "November 10, 2022" "version 3.1.2" "USER COMMANDS"
+.TH swarm 1 "December 5, 2022" "version 3.1.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -526,6 +526,18 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v3.1.3\~ "released December 5, 2022"
+Version 3.1.3 fixes a few minor bugs, removes warnings, and improves code and documentation:
+fix: bug introduced in version 3.1.1, that caused swarm to allocate way too much memory when d > 1 (bug had no impact on clustering results),
+fix: off-by-one error when allocating memory for a Bloom filter (bug had no impact on clustering results),
+fix: compilation warning with GCC 12 (and more recent) when using link-time optimization,
+fix: compilation warning with clang 13 (and more recent): unused set variable,
+fix: five clang-tidy warnings (readability-braces-around-statements),
+fix: minor code refactoring,
+improve: more uniform vocabulary throughout swarm's documentation (code, help, manpage, README, companion scripts and wiki),
+improve: code coverage of our test suite (swarm-tests).
+
 .TP
 .BR v3.1.2\~ "released November 10, 2022"
 Fix a bug with fastidious mode introduced in version 3.1.1, that could
