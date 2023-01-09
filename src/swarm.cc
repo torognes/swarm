@@ -1,7 +1,7 @@
 /*
     SWARM
 
-    Copyright (C) 2012-2022 Torbjorn Rognes and Frederic Mahe
+    Copyright (C) 2012-2023 Torbjorn Rognes and Frederic Mahe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -92,7 +92,7 @@ static struct option long_options[] =
 const std::vector<std::string> header_message
   {"Swarm ", swarm_version,
    "\n",
-   "Copyright (C) 2012-2022 Torbjorn Rognes and Frederic Mahe\n",
+   "Copyright (C) 2012-2023 Torbjorn Rognes and Frederic Mahe\n",
    "https://github.com/torognes/swarm\n",
    "\n",
    "Mahe F, Rognes T, Quince C, de Vargas C, Dunthorn M (2014)\n",
