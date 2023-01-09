@@ -104,6 +104,15 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* constants */
 
+// C++17 refactor: use 'inline constexpr' in header files
+
+// At file scope, constexpr implies const, and const implies
+// static. So plain constexpr variables in headers will be duplicated
+// in all cpp files that include them, and because they have internal
+// linkage, they wont be de-duplicated.  'inline constexpr' variables
+// will be de-duplicated by the linker.
+// (source: https://www.youtube.com/watch?v=QVHwOOrSh3w)
+
 const std::string swarm_version {"3.1.3"};
 constexpr char sepchar {' '};
 constexpr char dash_filename {'-'};
