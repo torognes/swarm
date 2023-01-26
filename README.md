@@ -24,11 +24,9 @@ swarm 3.0 introduces:
 * binaries for Windows x86-64, macOS ARM64, GNU/Linux ARM64, and
   GNU/Linux POWER8,
 * an updated, hardened, and thoroughly tested code (734 carefully
-  crafted black-box tests).
-
-Please note that:
-* strict dereplication of input sequences is now mandatory,
-* \-\-seeds option (\-w) now outputs results sorted by decreasing
+  crafted black-box tests),
+* strict dereplication of input sequences is now **mandatory**,
+* `--seeds` option (`-w`) now outputs results sorted by decreasing
   abundance, and then by alphabetical order of sequence labels.
 
 swarm 2.0 introduced several novelties and improvements over swarm
