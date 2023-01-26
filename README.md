@@ -22,7 +22,7 @@ swarm 3.0 introduces:
 * a much faster default algorithm,
 * a reduced memory footprint,
 * binaries for Windows x86-64, GNU/Linux ARM 64, and GNU/Linux POWER8,
-* an updated, hardened, and thoroughly tested code (732 carefully
+* an updated, hardened, and thoroughly tested code (734 carefully
   crafted black-box tests).
 
 Please note that:
