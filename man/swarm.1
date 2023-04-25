@@ -187,6 +187,7 @@ number of differences is calculated as the number of mismatches
 (substitutions, insertions or deletions) between the two amplicons
 once the optimal pairwise global alignment has been found
 (see 'pairwise alignment advanced options' to influence that step).
+
 Any \fIinteger\fR from 0 to 255 can be used, but high \fId\fR values
 will decrease the taxonomical resolution of \fBswarm\fR
 results. Commonly used \fId\fR values are 1, 2 or 3, rarely
@@ -236,17 +237,20 @@ purely stochastic reasons, interrupting the aggregation process. The
 fastidious option will create virtual amplicons, allowing to graft
 small clusters upon larger ones. By default, a cluster is considered
 large if it has a total abundance of 3 or more (see the \-\-boundary
-option to modify that value). To speed things up, \fBswarm\fR uses a
-Bloom filter to store intermediate results. Warning, the second
-clustering pass can be 2 to 3 times slower than the first pass and
-requires much more memory to store the virtual amplicons in Bloom
-filters. See the options \-\-bloom\-bits (\-y) or \-\-ceiling (\-c) to
-control the memory footprint of the Bloom filter. The fastidious
-option modifies clustering results: the output files produced by the
-options \-\-log (\-l), \-\-output\-file (\-o), \-\-mothur (\-r),
-\-\-uclust\-file, and \-\-seeds (\-w) are updated to reflect these
-modifications; the file \-\-statistics\-file (\-s) is partially
-updated (columns 6 and 7 are not updated); the output file
+option to modify that value).
+
+To speed things up, \fBswarm\fR uses a Bloom filter to store
+intermediate results. Warning, the second clustering pass can be 2 to
+3 times slower than the first pass and requires much more memory to
+store the virtual amplicons in Bloom filters. See the options
+\-\-bloom\-bits (\-y) or \-\-ceiling (\-c) to control the memory
+footprint of the Bloom filter.
+
+The fastidious option modifies clustering results: the output files
+produced by the options \-\-log (\-l), \-\-output\-file (\-o),
+\-\-mothur (\-r), \-\-uclust\-file, and \-\-seeds (\-w) are updated to
+reflect these modifications; the file \-\-statistics\-file (\-s) is
+partially updated (columns 6 and 7 are not updated); the output file
 \-\-internal\-structure (\-i) is partially updated (column 5 is not
 updated for amplicons that belonged to the small cluster).
 .TP
