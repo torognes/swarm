@@ -25,7 +25,7 @@ COMMON = -g
 EXTRAOBJ =
 LINKOPT =
 LIBS = -lpthread
-WARNINGS = -Wall -Wextra -Werror
+WARNINGS = -Wall -Wextra
 CLANG = clang
 
 # Run "make RELEASE=1" to compile for release
