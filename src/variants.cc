@@ -76,19 +76,15 @@ void generate_variant_sequence(char * seed_sequence,
 {
   /* generate the actual sequence of a variant */
 
-  assert((var->type == substitution) ||
-         (var->type == deletion) ||
-         (var->type == insertion));
-
   switch (var->type)
     {
-    case substitution:
+    case Variant::substitution:
       memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
       nt_set(seq, var->pos, var->base);
       * seqlen = seed_seqlen;
       break;
 
-    case deletion:
+    case Variant::deletion:
       seq_copy(seq, 0,
                seed_sequence, 0,
                var->pos);
@@ -98,7 +94,7 @@ void generate_variant_sequence(char * seed_sequence,
       * seqlen = seed_seqlen - 1;
       break;
 
-    case insertion:
+    case Variant::insertion:
       seq_copy(seq, 0,
                seed_sequence, 0,
                var->pos);
@@ -121,15 +117,11 @@ auto check_variant(char * seed_sequence,
   /* make sure seed with given variant is really identical to amp */
   /* we know the hashes are identical */
 
-  assert((var->type == substitution) ||
-         (var->type == deletion) ||
-         (var->type == insertion));
-
   bool equal {false};
 
   switch (var->type)
     {
-    case substitution:
+    case Variant::substitution:
       equal = ((seed_seqlen == amp_seqlen) &&
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
@@ -140,7 +132,7 @@ auto check_variant(char * seed_sequence,
                               seed_seqlen - var->pos - 1)));
       break;
 
-    case deletion:
+    case Variant::deletion:
       equal = (((seed_seqlen - 1) == amp_seqlen) &&
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
@@ -150,7 +142,7 @@ auto check_variant(char * seed_sequence,
                               seed_seqlen - var->pos - 1)));
       break;
 
-    case insertion:
+    case Variant::insertion:
       equal = (((seed_seqlen + 1) == amp_seqlen) &&
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
@@ -166,7 +158,7 @@ auto check_variant(char * seed_sequence,
 }
 
 inline void add_variant(uint64_t hash,
-                        unsigned char type,
+                        Variant type,
                         unsigned int pos,
                         unsigned char base,
                         var_s * variant_list,
@@ -198,7 +190,7 @@ void generate_variants(char * sequence,
         if (v != base)
           {
             uint64_t hash2 = hash1 ^ zobrist_value(i, v);
-            add_variant(hash2, substitution, i, v,
+            add_variant(hash2, Variant::substitution, i, v,
                         variant_list, variant_count);
           }
       }
@@ -207,7 +199,7 @@ void generate_variants(char * sequence,
   /* deletions */
 
   hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
-  add_variant(hash, deletion, 0, 0, variant_list, variant_count);
+  add_variant(hash, Variant::deletion, 0, 0, variant_list, variant_count);
   unsigned char base_deleted = nt_extract(sequence, 0);
   for(auto i = 1U; i < seqlen; i++)
     {
@@ -215,7 +207,7 @@ void generate_variants(char * sequence,
       if (v != base_deleted)
         {
           hash ^= zobrist_value(i - 1, base_deleted) ^ zobrist_value(i - 1, v);
-          add_variant(hash, deletion, i, 0, variant_list, variant_count);
+          add_variant(hash, Variant::deletion, i, 0, variant_list, variant_count);
           base_deleted = v;
         }
     }
@@ -226,7 +218,7 @@ void generate_variants(char * sequence,
   for(unsigned char v = 0; v < 4; v++)
     {
       uint64_t hash1 = hash ^ zobrist_value(0, v);
-      add_variant(hash1, insertion, 0, v, variant_list, variant_count);
+      add_variant(hash1, Variant::insertion, 0, v, variant_list, variant_count);
     }
   for(auto i = 0U; i < seqlen; i++)
     {
@@ -236,7 +228,7 @@ void generate_variants(char * sequence,
         if (v != base)
           {
             uint64_t hash1 = hash ^ zobrist_value(i + 1, v);
-            add_variant(hash1, insertion, i + 1, v,
+            add_variant(hash1, Variant::insertion, i + 1, v,
                         variant_list, variant_count);
           }
       }

@@ -24,16 +24,13 @@
 #include <cstdint>
 
 /* Variant information */
-
-constexpr int substitution {1};
-constexpr int deletion {2};
-constexpr int insertion {3};
+enum class Variant : unsigned char { substitution, deletion, insertion };
 
 struct var_s
 {
   uint64_t hash;
   unsigned int pos;
-  unsigned char type;
+  Variant type;
   unsigned char base;
   unsigned short dummy; /* for alignment padding only */
 };
