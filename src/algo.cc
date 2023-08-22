@@ -68,14 +68,14 @@ auto compare_mass_seed(const void * a, const void * b) -> int
   const auto * x = static_cast<const struct swarminfo_t *>(a);
   const auto * y = static_cast<const struct swarminfo_t *>(b);
 
-  const auto m = x->mass;
-  const auto n = y->mass;
+  const auto mass_x = x->mass;
+  const auto mass_y = y->mass;
   int status {0};
 
-  if (m > n) {
+  if (mass_x > mass_y) {
     status = -1;
   }
-  else if (m < n) {
+  else if (mass_x < mass_y) {
     status = +1;
   }
   else {
