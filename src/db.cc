@@ -191,18 +191,18 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
 
 auto db_compare_abundance(const void * ptr_a, const void * ptr_b) -> int
 {
-  const auto * x = reinterpret_cast<const seqinfo_t *>(ptr_a);
-  const auto * y = reinterpret_cast<const seqinfo_t *>(ptr_b);
+  const auto * seqinfo_x = reinterpret_cast<const seqinfo_t *>(ptr_a);
+  const auto * seqinfo_y = reinterpret_cast<const seqinfo_t *>(ptr_b);
 
-  if (x->abundance > y->abundance) {
+  if (seqinfo_x->abundance > seqinfo_y->abundance) {
     return -1;
   }
 
-  if (x->abundance < y->abundance) {
+  if (seqinfo_x->abundance < seqinfo_y->abundance) {
     return +1;
   }
 
-  return std::strcmp(x->header, y->header);
+  return std::strcmp(seqinfo_x->header, seqinfo_y->header);
 }
 
 
