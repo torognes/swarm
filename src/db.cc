@@ -227,28 +227,28 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  const char * underscore_ptr = std::strrchr(header, '_');
+  const char * abundance_string = std::strrchr(header, '_');
 
-  if (underscore_ptr == nullptr) {
+  if (abundance_string == nullptr) {
     return false;
   }
 
-  const size_t digits = std::strspn(underscore_ptr + 1, digit_chars.c_str());
+  const size_t digits = std::strspn(abundance_string + 1, digit_chars.c_str());
 
   if (digits > max_digits) {
     return false;
   }
 
-  if (underscore_ptr[digits + 1] != 0) {
+  if (abundance_string[digits + 1] != 0) {
     return false;
   }
 
-  const int64_t s = underscore_ptr - header;
-  const int64_t e = s + 1 + static_cast<int64_t>(digits);
+  const int64_t abundance_start = abundance_string - header;
+  const int64_t abundance_end = abundance_start + 1 + static_cast<int64_t>(digits);
 
-  * start = static_cast<int>(s);
-  * end = static_cast<int>(e);
-  * number = std::atol(underscore_ptr + 1);
+  * start = static_cast<int>(abundance_start);
+  * end = static_cast<int>(abundance_end);
+  * number = std::atol(abundance_string + 1);
 
   return true;
 }
