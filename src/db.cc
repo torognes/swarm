@@ -235,7 +235,7 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  size_t digits = strspn(us + 1, digit_chars.c_str());
+  const size_t digits = strspn(us + 1, digit_chars.c_str());
 
   if (digits > max_digits) {
     return false;
@@ -245,8 +245,8 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  int64_t s = us - header;
-  int64_t e = s + 1 + static_cast<int64_t>(digits);
+  const int64_t s = us - header;
+  const int64_t e = s + 1 + static_cast<int64_t>(digits);
 
   * start = static_cast<int>(s);
   * end = static_cast<int>(e);
@@ -292,7 +292,7 @@ auto find_usearch_abundance(const char * header,
           continue;
         }
 
-      uint64_t digits = strspn(header + i + alen, digit_chars.c_str());
+      const uint64_t digits = strspn(header + i + alen, digit_chars.c_str());
 
       /* check for at least one digit */
       if (digits == 0)
@@ -421,8 +421,8 @@ void db_read(const char * filename, struct Parameters const & p)
     {
       fatal(error_prefix, "Unable to fstat on input file (", filename, ").\n");
     }
-  bool is_regular = S_ISREG(fs.st_mode);
-  uint64_t filesize = is_regular ? fs.st_size : 0;
+  const bool is_regular = S_ISREG(fs.st_mode);
+  const uint64_t filesize = is_regular ? fs.st_size : 0;
   uint64_t filepos = 0;
 
   if (! is_regular) {
@@ -510,7 +510,7 @@ void db_read(const char * filename, struct Parameters const & p)
           dataalloc += memchunk;
           datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
-      uint64_t datalen_seqlen = datalen;
+      const uint64_t datalen_seqlen = datalen;
       memcpy(datap + datalen, & length, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
@@ -531,7 +531,7 @@ void db_read(const char * filename, struct Parameters const & p)
           char * line_ptr = line;
           while((c = static_cast<unsigned char>(*line_ptr++)) != 0U)
             {
-              signed char m = map_nt[static_cast<unsigned int>(c)];
+              const signed char m = map_nt[static_cast<unsigned int>(c)];
               if (m >= 0)
                 {
                   nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
@@ -628,18 +628,18 @@ void db_read(const char * filename, struct Parameters const & p)
   /* init zobrist hashing */
 
   // add 2 for two insertions
-  unsigned int zobrist_len = std::max(4 * longestheader, longest + 2);
+  const unsigned int zobrist_len = std::max(4 * longestheader, longest + 2);
   zobrist_init(zobrist_len);
 
   /* set up hash to check for unique headers */
 
-  uint64_t hdrhashsize {2 * sequences};
+  const uint64_t hdrhashsize {2 * sequences};
 
   auto * * hdrhashtable = new seqinfo_t*[hdrhashsize] { };
 
   /* set up hash to check for unique sequences */
 
-  uint64_t seqhashsize {2 * sequences};
+  const uint64_t seqhashsize {2 * sequences};
 
   seqinfo_t * * seqhashtable {nullptr};
 
@@ -662,7 +662,7 @@ void db_read(const char * filename, struct Parameters const & p)
   for(auto i = 0ULL; i < sequences; i++)
     {
       /* get line number */
-      unsigned int line_number = *(reinterpret_cast<unsigned int*>(pl));
+      const unsigned int line_number = *(reinterpret_cast<unsigned int*>(pl));
       pl += sizeof(unsigned int);
 
       /* get header */
@@ -671,7 +671,7 @@ void db_read(const char * filename, struct Parameters const & p)
       pl += seqindex_p->headerlen + 1;
 
       /* and sequence */
-      unsigned int seqlen = *(reinterpret_cast<unsigned int*>(pl));
+      const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(pl));
       seqindex_p->seqlen = seqlen;
       pl += sizeof(unsigned int);
       seqindex_p->seq = pl;
@@ -722,9 +722,9 @@ void db_read(const char * filename, struct Parameters const & p)
           id_len = seqindex_p->headerlen - seqindex_p->abundance_end;
         }
 
-      uint64_t hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
-                                      (seqindex_p->header + id_start),
-                                      4 * static_cast<unsigned int>(id_len));
+      const uint64_t hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
+                                            (seqindex_p->header + id_start),
+                                            4 * static_cast<unsigned int>(id_len));
 
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
