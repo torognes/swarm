@@ -95,7 +95,7 @@ auto write_representative_sequences(const uint64_t amplicons,
   mass += db_getabundance(seed);
   for(auto i = 1ULL; i < amplicons; i++)
     {
-      unsigned id = amps[i].swarmid;
+      const unsigned int id = amps[i].swarmid;
       if (id != previd)
         {
           swarminfo[swarmcount].seed = seed;
@@ -117,8 +117,8 @@ auto write_representative_sequences(const uint64_t amplicons,
   progress_init("Writing seeds:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
-      uint64_t swarm_mass = swarminfo[i].mass;
-      unsigned int swarm_seed = swarminfo[i].seed;
+      const uint64_t swarm_mass = swarminfo[i].mass;
+      const unsigned int swarm_seed = swarminfo[i].seed;
 
       fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, p.opt_usearch_abundance);
