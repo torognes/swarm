@@ -233,7 +233,7 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  const size_t digits = strspn(underscore_ptr + 1, digit_chars.c_str());
+  const size_t digits = std::strspn(underscore_ptr + 1, digit_chars.c_str());
 
   if (digits > max_digits) {
     return false;
