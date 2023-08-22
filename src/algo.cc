@@ -366,18 +366,18 @@ void algo_run(struct Parameters const & p)
                      bits);
 #endif
 
-              uint64_t diff = diffs[t];
+              const uint64_t diff = diffs[t];
 
               if (diff <= static_cast<uint64_t>(p.opt_differences))
                 {
-                  uint64_t i = targetindices[t];
+                  const uint64_t i = targetindices[t];
 
                   /* move the target (i) to the position (swarmed)
                      of the first unswarmed amplicon in the pool */
 
                   if (swarmed < i)
                     {
-                      struct ampliconinfo_s temp = amps[i];
+                      const struct ampliconinfo_s temp = amps[i];
                       for(auto j = i; j > swarmed; j--)
                         {
                           amps[j] = amps[j-1];
@@ -395,7 +395,7 @@ void algo_run(struct Parameters const & p)
                     maxradius = diff;
                   }
 
-                  unsigned poolampliconid = amps[swarmed].ampliconid;
+                  const unsigned int poolampliconid = amps[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
                   if (! p.opt_internal_structure.empty())
