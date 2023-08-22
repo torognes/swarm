@@ -193,18 +193,16 @@ auto db_compare_abundance(const void * a, const void * b) -> int
 {
   const auto * x = reinterpret_cast<const seqinfo_t *>(a);
   const auto * y = reinterpret_cast<const seqinfo_t *>(b);
-  int status {0};
 
   if (x->abundance > y->abundance) {
-    status = -1;
+    return -1;
   }
-  else if (x->abundance < y->abundance) {
-    status = +1;
+
+  if (x->abundance < y->abundance) {
+    return +1;
   }
-  else {
-    status = std::strcmp(x->header, y->header);
-  }
-  return status;
+
+  return std::strcmp(x->header, y->header);
 }
 
 
