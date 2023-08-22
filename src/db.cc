@@ -535,8 +535,8 @@ void db_read(const char * filename, struct Parameters const & p)
               if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
                 {
                   nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
-                  length++;
-                  nt_bufferlen++;
+                  ++length;
+                  ++nt_bufferlen;
 
                   if (nt_bufferlen == nt_buffersize)
                     {
@@ -579,7 +579,7 @@ void db_read(const char * filename, struct Parameters const & p)
             }
           filepos += linelen;
 
-          lineno++;
+          ++lineno;
         }
 
       /* fill in real length */
