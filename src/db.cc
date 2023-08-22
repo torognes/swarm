@@ -116,16 +116,16 @@ auto db_getlongestsequence() -> unsigned int
 auto fprint_id(std::FILE * stream, uint64_t offset, bool opt_usearch_abundance,
                int64_t opt_append_abundance) -> void
 {
-  const seqinfo_t * sp = seqindex + offset;
-  const char * hdrstr = sp->header;
-  const int hdrlen = sp->headerlen;
+  const seqinfo_t * seqinfo = seqindex + offset;
+  const char * hdrstr = seqinfo->header;
+  const int hdrlen = seqinfo->headerlen;
 
-  if ((opt_append_abundance != 0) && (sp->abundance_start == sp->abundance_end)) {
+  if ((opt_append_abundance != 0) && (seqinfo->abundance_start == seqinfo->abundance_end)) {
     if (opt_usearch_abundance) {
-      fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, sp->abundance);
+      fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, seqinfo->abundance);
     }
     else {
-      fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, sp->abundance);
+      fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, seqinfo->abundance);
     }
   }
   else {
