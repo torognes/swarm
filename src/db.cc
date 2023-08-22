@@ -136,24 +136,24 @@ auto fprint_id(std::FILE * stream, uint64_t offset, bool opt_usearch_abundance,
 
 auto fprint_id_noabundance(std::FILE * stream, uint64_t seqno, bool opt_usearch_abundance) -> void
 {
-  const seqinfo_t * sp = seqindex + seqno;
-  const char * hdrstr = sp->header;
-  const int hdrlen = sp->headerlen;
+  const seqinfo_t * seqinfo = seqindex + seqno;
+  const char * hdrstr = seqinfo->header;
+  const int hdrlen = seqinfo->headerlen;
 
-  if (sp->abundance_start < sp->abundance_end)
+  if (seqinfo->abundance_start < seqinfo->abundance_end)
     {
       /* print start of header */
-      fprintf(stream, "%.*s", sp->abundance_start, hdrstr);
+      fprintf(stream, "%.*s", seqinfo->abundance_start, hdrstr);
 
       if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
-          if ((sp->abundance_start > 0) && (sp->abundance_end < hdrlen)) {
+          if ((seqinfo->abundance_start > 0) && (seqinfo->abundance_end < hdrlen)) {
             fprintf(stream, ";");
           }
 
           /* print remaining part */
-          fprintf(stream, "%.*s", hdrlen - sp->abundance_end, hdrstr + sp->abundance_end);
+          fprintf(stream, "%.*s", hdrlen - seqinfo->abundance_end, hdrstr + seqinfo->abundance_end);
         }
     }
   else {
