@@ -70,18 +70,16 @@ auto compare_mass_seed(const void * a, const void * b) -> int
 
   const auto mass_x = x->mass;
   const auto mass_y = y->mass;
-  int status {0};
 
   if (mass_x > mass_y) {
-    status = -1;
+    return -1;
   }
-  else if (mass_x < mass_y) {
-    status = +1;
+
+  if (mass_x < mass_y) {
+    return +1;
   }
-  else {
-    status = strcmp(db_getheader(x->seed), db_getheader(y->seed));
-  }
-  return status;
+
+  return strcmp(db_getheader(x->seed), db_getheader(y->seed));
 }
 
 
