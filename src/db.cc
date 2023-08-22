@@ -266,8 +266,8 @@ auto find_usearch_abundance(const char * header,
 
   assert(header != nullptr); // header cannot be a nullptr at this stage
 
-  const std::string attribute {"size="};
-  const std::string digit_chars {"0123456789"};
+  static const std::string attribute {"size="};
+  static const std::string digit_chars {"0123456789"};
   const uint64_t hlen = strlen(header);
   const uint64_t alen = attribute.length();
   uint64_t i = 0;
