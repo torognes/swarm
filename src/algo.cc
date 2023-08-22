@@ -100,7 +100,7 @@ auto write_representative_sequences(const uint64_t amplicons,
         {
           swarminfo[swarmcount].seed = seed;
           swarminfo[swarmcount].mass = mass;
-          swarmcount++;
+          ++swarmcount;
           mass = 0;
           seed = amps[i].ampliconid;
         }
@@ -110,7 +110,7 @@ auto write_representative_sequences(const uint64_t amplicons,
     }
   swarminfo[swarmcount].seed = seed;
   swarminfo[swarmcount].mass = mass;
-  swarmcount++;
+  ++swarmcount;
   qsort(swarminfo, swarmcount, sizeof(swarminfo_t), compare_mass_seed);
   progress_done();
 
@@ -269,7 +269,7 @@ void algo_run(struct Parameters const & p)
 
       /* process each initial seed */
 
-      swarmid++;
+      ++swarmid;
 
       uint64_t swarmsize {0};
       uint64_t amplicons_copies {0};
@@ -280,7 +280,7 @@ void algo_run(struct Parameters const & p)
       uint64_t seedindex {0};
 
       seedindex = seeded;
-      seeded++;
+      ++seeded;
 
       amps[seedindex].swarmid = swarmid;
       amps[seedindex].generation = 0;
@@ -292,11 +292,11 @@ void algo_run(struct Parameters const & p)
       uint64_t abundance = db_getabundance(seedampliconid);
       amplicons_copies += abundance;
       if (abundance == 1) {
-        singletons++;
+        ++singletons;
       }
 
       swarmsize = 1;
-      swarmed++;
+      ++swarmed;
 
 
       /* find diff estimates between seed and each amplicon in pool */
@@ -311,7 +311,7 @@ void algo_run(struct Parameters const & p)
           if ((opt_no_otu_breaking) || (db_getabundance(ampid) <= abundance))
             {
               qgramamps[i] = ampid;
-              listlen++;
+              ++listlen;
             }
         }
 
@@ -330,7 +330,7 @@ void algo_run(struct Parameters const & p)
             {
               targetindices[targetcount] = swarmed + i;
               targetampliconids[targetcount] = poolampliconid;
-              targetcount++;
+              ++targetcount;
             }
         }
 
@@ -339,7 +339,7 @@ void algo_run(struct Parameters const & p)
           search_do(seedampliconid, targetcount, targetampliconids,
                     scores, diffs, alignlengths, bits);
 #ifdef VERBOSE
-          searches++;
+          ++searches;
 #endif
 
           if (bits == bit_mode_8) {
@@ -415,12 +415,12 @@ void algo_run(struct Parameters const & p)
                   abundance = db_getabundance(poolampliconid);
                   amplicons_copies += abundance;
                   if (abundance == 1) {
-                    singletons++;
+                    ++singletons;
                   }
 
-                  swarmsize++;
+                  ++swarmsize;
 
-                  swarmed++;
+                  ++swarmed;
                 }
             }
 
@@ -443,7 +443,7 @@ void algo_run(struct Parameters const & p)
               subseedgeneration = amps[subseedindex].generation;
               subseedabundance = db_getabundance(subseedampliconid);
 
-              seeded++;
+              ++seeded;
 
               targetcount = 0;
 
@@ -459,7 +459,7 @@ void algo_run(struct Parameters const & p)
                     {
                       qgramamps[subseedlistlen] = targetampliconid;
                       qgramindices[subseedlistlen] = i;
-                      subseedlistlen++;
+                      ++subseedlistlen;
                     }
                 }
 
@@ -475,7 +475,7 @@ void algo_run(struct Parameters const & p)
                   {
                     targetindices[targetcount] = qgramindices[i];
                     targetampliconids[targetcount] = qgramamps[i];
-                    targetcount++;
+                    ++targetcount;
                   }
               }
 
@@ -484,7 +484,7 @@ void algo_run(struct Parameters const & p)
                   search_do(subseedampliconid, targetcount, targetampliconids,
                             scores, diffs, alignlengths, bits);
 #ifdef VERBOSE
-                  searches++;
+                  ++searches;
 #endif
 
                   if (bits == bit_mode_8) {
@@ -563,12 +563,12 @@ void algo_run(struct Parameters const & p)
                           abundance = db_getabundance(poolampliconid);
                           amplicons_copies += abundance;
                           if (abundance == 1) {
-                            singletons++;
+                            ++singletons;
                           }
 
-                          swarmsize++;
+                          ++swarmsize;
 
-                          swarmed++;
+                          ++swarmed;
                         }
                     }
                 }
