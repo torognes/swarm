@@ -117,19 +117,19 @@ auto fprint_id(std::FILE * stream, uint64_t offset, bool opt_usearch_abundance,
                int64_t opt_append_abundance) -> void
 {
   const seqinfo_t * sp = seqindex + offset;
-  const char * h = sp->header;
+  const char * hdrstr = sp->header;
   const int hdrlen = sp->headerlen;
 
   if ((opt_append_abundance != 0) && (sp->abundance_start == sp->abundance_end)) {
     if (opt_usearch_abundance) {
-      fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, h, sp->abundance);
+      fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, sp->abundance);
     }
     else {
-      fprintf(stream, "%.*s_%" PRIu64, hdrlen, h, sp->abundance);
+      fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, sp->abundance);
     }
   }
   else {
-    fprintf(stream, "%.*s", hdrlen, h);
+    fprintf(stream, "%.*s", hdrlen, hdrstr);
   }
 }
 
