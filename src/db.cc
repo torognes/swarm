@@ -371,7 +371,7 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
       }
       else
         {
-          missingabundance++;
+          ++missingabundance;
           // record the position of the first missing abundance entry
           if (missingabundance == 1)
             {
@@ -497,7 +497,7 @@ void db_read(const char * filename, struct Parameters const & p)
         }
       filepos += linelen;
 
-      lineno++;
+      ++lineno;
 
 
       /* store a dummy sequence length */
@@ -614,7 +614,7 @@ void db_read(const char * filename, struct Parameters const & p)
           nt_bufferlen = 0;  // that value is never read again, all tests pass without it
         }
 
-      sequences++;
+      ++sequences;
 
       if (is_regular) {
         progress_update(filepos);
@@ -794,13 +794,13 @@ void db_read(const char * filename, struct Parameters const & p)
 
           if (seqfound != nullptr)
             {
-              duplicates_found++;
+              ++duplicates_found;
               break;
             }
           seqhashtable[seqhashindex] = seqindex_p;
         }
 
-      seqindex_p++;
+      ++seqindex_p;
       progress_update(i);
     }
 
@@ -866,7 +866,7 @@ void db_qgrams_init()
       findqgrams(reinterpret_cast<unsigned char*>(seqindex_p->seq),
                  seqindex_p->seqlen,
                  qgrams[i]);
-      seqindex_p++;
+      ++seqindex_p;
       progress_update(i);
     }
   progress_done();
