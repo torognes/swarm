@@ -248,7 +248,7 @@ auto find_swarm_abundance(const char * header,
 
   * start = static_cast<int>(s);
   * end = static_cast<int>(e);
-  * number = atol(us + 1);
+  * number = std::atol(us + 1);
 
   return true;
 }
