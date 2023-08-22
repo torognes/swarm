@@ -290,19 +290,19 @@ auto find_usearch_abundance(const char * header,
           continue;
         }
 
-      const uint64_t digits = std::strspn(header + position + alen, digit_chars.c_str());
+      const uint64_t n_digits = std::strspn(header + position + alen, digit_chars.c_str());
 
       /* check for at least one digit */
-      if (digits == 0)
+      if (n_digits == 0)
         {
           position += alen + 1;
           continue;
         }
 
       /* check for ';' after */
-      if ((position + alen + digits < hlen) && (header[position + alen + digits] != ';'))
+      if ((position + alen + n_digits < hlen) && (header[position + alen + n_digits] != ';'))
         {
-          position += alen + digits + 2;
+          position += alen + n_digits + 2;
           continue;
         }
 
@@ -313,8 +313,9 @@ auto find_usearch_abundance(const char * header,
       else {
         * start = 0;
       }
-      * end   = static_cast<int>(std::min(position + alen + digits + 1, hlen));
+      * end   = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
       * number = std::atol(header + position + alen);
+
       return true;
     }
 
