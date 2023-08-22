@@ -144,7 +144,7 @@ auto write_swarms_default_format(const uint64_t amplicons,
 
   for(auto i = 1ULL; i < amplicons; i++)
     {
-      int64_t id = amps[i].swarmid;
+      const int64_t id = amps[i].swarmid;
       if (id == previd) {
         fputc(sep_amplicons, outfile);
       }
@@ -174,7 +174,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 
   for(auto i = 1ULL; i < amplicons; i++)
     {
-      int64_t id = amps[i].swarmid;
+      const int64_t id = amps[i].swarmid;
       if (id == previd) {
         fputc(sep_amplicons, outfile);
       }
@@ -207,8 +207,8 @@ void algo_run(struct Parameters const & p)
 
   uint64_t maxgenerations {0};
 
-  uint64_t amplicons = db_getsequencecount();
-  uint64_t longestamplicon = db_getlongestsequence();
+  const uint64_t amplicons = db_getsequencecount();
+  const uint64_t longestamplicon = db_getlongestsequence();
 
   db_qgrams_init();
 
@@ -286,7 +286,7 @@ void algo_run(struct Parameters const & p)
       amps[seedindex].generation = 0;
       amps[seedindex].radius = 0;
 
-      uint64_t seedampliconid = amps[seedindex].ampliconid;
+      const uint64_t seedampliconid = amps[seedindex].ampliconid;
       hits[hitcount++] = seedampliconid;
 
       uint64_t abundance = db_getabundance(seedampliconid);
@@ -307,7 +307,7 @@ void algo_run(struct Parameters const & p)
 
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
-          unsigned ampid = amps[swarmed+i].ampliconid;
+          const unsigned int ampid = amps[swarmed+i].ampliconid;
           if ((opt_no_otu_breaking) || (db_getabundance(ampid) <= abundance))
             {
               qgramamps[i] = ampid;
@@ -323,8 +323,8 @@ void algo_run(struct Parameters const & p)
 
       for(auto i = 0ULL; i < listlen; i++)
         {
-          uint64_t poolampliconid = qgramamps[i];
-          uint64_t diff = qgramdiffs[i];
+          const uint64_t poolampliconid = qgramamps[i];
+          const uint64_t diff = qgramdiffs[i];
           amps[swarmed+i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(p.opt_differences))
             {
