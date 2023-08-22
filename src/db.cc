@@ -314,7 +314,7 @@ auto find_usearch_abundance(const char * header,
         * start = 0;
       }
       * end   = static_cast<int>(std::min(i + alen + digits + 1, hlen));
-      * number = atol(header + i + alen);
+      * number = std::atol(header + i + alen);
       return true;
     }
 
