@@ -450,7 +450,7 @@ void algo_run(struct Parameters const & p)
               uint64_t subseedlistlen {0};
               for(auto i = swarmed; i < amplicons; i++)
                 {
-                  uint64_t targetampliconid = amps[i].ampliconid;
+                  const uint64_t targetampliconid = amps[i].ampliconid;
                   if ((amps[i].diffestimate <=
                        subseedradius + p.opt_differences) &&
                       ((opt_no_otu_breaking) ||
@@ -496,11 +496,11 @@ void algo_run(struct Parameters const & p)
 
                   for(auto t = 0ULL; t < targetcount; t++)
                     {
-                      uint64_t diff = diffs[t];
+                      const uint64_t diff = diffs[t];
 
                       if (diff <= static_cast<uint64_t>(p.opt_differences))
                         {
-                          uint64_t i = targetindices[t];
+                          const uint64_t i = targetindices[t];
 
                           /* find correct position in list */
 
@@ -510,7 +510,7 @@ void algo_run(struct Parameters const & p)
                              but unseeded part of the list, so that the
                              swarmed amplicons are ordered by id */
 
-                          uint64_t targetampliconid = amps[i].ampliconid;
+                          const uint64_t targetampliconid = amps[i].ampliconid;
                           uint64_t pos = swarmed;
 
                           while ((pos > seeded) &&
@@ -521,7 +521,7 @@ void algo_run(struct Parameters const & p)
 
                           if (pos < i)
                             {
-                              struct ampliconinfo_s temp = amps[i];
+                              const struct ampliconinfo_s temp = amps[i];
                               for(auto j = i; j > pos; j--)
                                 {
                                   amps[j] = amps[j-1];
@@ -541,7 +541,7 @@ void algo_run(struct Parameters const & p)
                             maxradius = amps[pos].radius;
                           }
 
-                          unsigned poolampliconid = amps[pos].ampliconid;
+                          const unsigned int poolampliconid = amps[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
 
                           if (! p.opt_internal_structure.empty())
@@ -599,12 +599,12 @@ void algo_run(struct Parameters const & p)
 
           for(auto i = 1ULL; i < hitcount; i++)
             {
-              uint64_t hit = hits[i];
+              const uint64_t hit = hits[i];
 
               char * dseq = db_getsequence(hit);
-              int64_t dlen = db_getsequencelen(hit);
+              const int64_t dlen = db_getsequencelen(hit);
               char * qseq = db_getsequence(seedampliconid);
-              int64_t qlen = db_getsequencelen(seedampliconid);
+              const int64_t qlen = db_getsequencelen(seedampliconid);
 
               int64_t nwscore {0};
               int64_t nwdiff {0};
@@ -616,7 +616,7 @@ void algo_run(struct Parameters const & p)
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                  dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
-              double percentid
+              const double percentid
                 = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
                 / static_cast<double>(nwalignmentlength);
 
