@@ -528,8 +528,8 @@ void db_read(const char * filename, struct Parameters const & p)
       while ((line[0] != 0) && (line[0] != '>'))
         {
           unsigned char c {0};
-          char * pl = line;
-          while((c = static_cast<unsigned char>(*pl++)) != 0U)
+          char * line_ptr = line;
+          while((c = static_cast<unsigned char>(*line_ptr++)) != 0U)
             {
               signed char m {0};
               if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
