@@ -284,7 +284,7 @@ auto find_usearch_abundance(const char * header,
       i = static_cast<uint64_t>(r - header);
 
       /* check for ';' in front */
-      if ((i > 0) && (header[i-1] != ';'))
+      if ((i > 0) && (header[i - 1] != ';'))
         {
           i += alen + 1;
           continue;
