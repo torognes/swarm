@@ -274,14 +274,14 @@ auto find_usearch_abundance(const char * header,
 
   while (position + alen < hlen)
     {
-      const char * r = std::strstr(header + position, attribute.c_str());
+      const char * result = std::strstr(header + position, attribute.c_str());
 
       /* no match */
-      if (r == nullptr) {
+      if (result == nullptr) {
         break;
       }
 
-      position = static_cast<uint64_t>(r - header);
+      position = static_cast<uint64_t>(result - header);
 
       /* check for ';' in front */
       if ((position > 0) && (header[position - 1] != ';'))
