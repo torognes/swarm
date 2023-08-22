@@ -274,7 +274,7 @@ auto find_usearch_abundance(const char * header,
 
   while (i + alen < hlen)
     {
-      const char * r = strstr(header + i, attribute.c_str());
+      const char * r = std::strstr(header + i, attribute.c_str());
 
       /* no match */
       if (r == nullptr) {
