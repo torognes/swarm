@@ -325,7 +325,7 @@ void algo_run(struct Parameters const & p)
         {
           const uint64_t poolampliconid = qgramamps[i];
           const uint64_t diff = qgramdiffs[i];
-          amps[swarmed+i].diffestimate = static_cast<unsigned int>(diff);
+          amps[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(p.opt_differences))
             {
               targetindices[targetcount] = swarmed + i;
@@ -724,11 +724,11 @@ void algo_run(struct Parameters const & p)
 
   fprintf(logfile, "Comparisons (8b):  %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_8, (200.0 * count_comparisons_8 /
-                                amplicons / (amplicons+1)));
+                                amplicons / (amplicons + 1)));
 
   fprintf(logfile, "Comparisons (16b): %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_16, (200.0 * count_comparisons_16 /
-                                 amplicons / (amplicons+1)));
+                                 amplicons / (amplicons + 1)));
 
   fprintf(logfile, "Comparisons (tot): %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_8 + count_comparisons_16,
