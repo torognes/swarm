@@ -167,23 +167,23 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
                                   uint64_t abundance,
                                   bool opt_usearch_abundance) -> void
 {
-  const seqinfo_t * sp = seqindex + seqno;
+  const seqinfo_t * seqinfo = seqindex + seqno;
 
   if (opt_usearch_abundance) {
     fprintf(stream,
             "%.*s%ssize=%" PRIu64 ";%.*s",
-            sp->abundance_start,
-            sp->header,
-            sp->abundance_start > 0 ? ";" : "",
+            seqinfo->abundance_start,
+            seqinfo->header,
+            seqinfo->abundance_start > 0 ? ";" : "",
             abundance,
-            sp->headerlen - sp->abundance_end,
-            sp->header + sp->abundance_end);
+            seqinfo->headerlen - seqinfo->abundance_end,
+            seqinfo->header + seqinfo->abundance_end);
   }
   else {
     fprintf(stream,
             "%.*s_%" PRIu64,
-            sp->abundance_start,
-            sp->header,
+            seqinfo->abundance_start,
+            seqinfo->header,
             abundance);
   }
 }
