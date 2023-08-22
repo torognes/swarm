@@ -224,7 +224,7 @@ auto find_swarm_abundance(const char * header,
   static const std::string digit_chars = "0123456789";
 
   if (header == nullptr) {
-    return false;
+    return false;  // refactoring: if header cannot be a nullptr, replace with assert
   }
 
   const char * abundance_string = std::strrchr(header, '_');
