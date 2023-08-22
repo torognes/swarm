@@ -531,8 +531,8 @@ void db_read(const char * filename, struct Parameters const & p)
           char * line_ptr = line;
           while((c = static_cast<unsigned char>(*line_ptr++)) != 0U)
             {
-              signed char m {0};
-              if ((m = map_nt[static_cast<unsigned int>(c)]) >= 0)
+              signed char m = map_nt[static_cast<unsigned int>(c)];
+              if (m >= 0)
                 {
                   nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
                   ++length;
