@@ -233,18 +233,18 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  const size_t digits = std::strspn(abundance_string + 1, digit_chars.c_str());
+  const size_t n_digits = std::strspn(abundance_string + 1, digit_chars.c_str());
 
-  if (digits > max_digits) {
+  if (n_digits > max_digits) {
     return false;
   }
 
-  if (abundance_string[digits + 1] != 0) {
+  if (abundance_string[n_digits + 1] != 0) {
     return false;
   }
 
   const int64_t abundance_start = abundance_string - header;
-  const int64_t abundance_end = abundance_start + 1 + static_cast<int64_t>(digits);
+  const int64_t abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
 
   * start = static_cast<int>(abundance_start);
   * end = static_cast<int>(abundance_end);
