@@ -202,7 +202,7 @@ auto db_compare_abundance(const void * a, const void * b) -> int
     status = +1;
   }
   else {
-    status = strcmp(x->header, y->header);
+    status = std::strcmp(x->header, y->header);
   }
   return status;
 }
@@ -229,7 +229,7 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  const char * us = strrchr(header, '_');
+  const char * us = std::strrchr(header, '_');
 
   if (us == nullptr) {
     return false;
@@ -292,7 +292,7 @@ auto find_usearch_abundance(const char * header,
           continue;
         }
 
-      const uint64_t digits = strspn(header + i + alen, digit_chars.c_str());
+      const uint64_t digits = std::strspn(header + i + alen, digit_chars.c_str());
 
       /* check for at least one digit */
       if (digits == 0)
@@ -453,7 +453,7 @@ void db_read(const char * filename, struct Parameters const & p)
       }
 
       auto headerlen = static_cast<unsigned int>
-        (strcspn(line + 1, " \r\n"));
+        (std::strcspn(line + 1, " \r\n"));
 
       headerchars += headerlen;
 
@@ -667,7 +667,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
       /* get header */
       seqindex_p->header = pl;
-      seqindex_p->headerlen = static_cast<int>(strlen(seqindex_p->header));
+      seqindex_p->headerlen = static_cast<int>(std::strlen(seqindex_p->header));
       pl += seqindex_p->headerlen + 1;
 
       /* and sequence */
@@ -694,7 +694,7 @@ void db_read(const char * filename, struct Parameters const & p)
           }
           else if (lastseq->abundance == seqindex_p->abundance)
             {
-              if (strcmp(lastseq->header, seqindex_p->header) > 0) {
+              if (std::strcmp(lastseq->header, seqindex_p->header) > 0) {
                 presorted = false;
               }
             }
@@ -750,9 +750,9 @@ void db_read(const char * filename, struct Parameters const & p)
                 }
 
               if ((id_len == hit_id_len) &&
-                  (strncmp(seqindex_p->header + id_start,
-                           hdrfound->header + hit_id_start,
-                           static_cast<uint64_t>(id_len)) == 0)) {
+                  (std::strncmp(seqindex_p->header + id_start,
+                                hdrfound->header + hit_id_start,
+                                static_cast<uint64_t>(id_len)) == 0)) {
                 break;
               }
             }
