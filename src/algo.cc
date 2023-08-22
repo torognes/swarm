@@ -328,7 +328,7 @@ void algo_run(struct Parameters const & p)
           amps[swarmed+i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(p.opt_differences))
             {
-              targetindices[targetcount] = swarmed+i;
+              targetindices[targetcount] = swarmed + i;
               targetampliconids[targetcount] = poolampliconid;
               targetcount++;
             }
