@@ -79,7 +79,7 @@ auto compare_mass_seed(const void * a, const void * b) -> int
     return +1;
   }
 
-  return strcmp(db_getheader(x->seed), db_getheader(y->seed));
+  return std::strcmp(db_getheader(x->seed), db_getheader(y->seed));
 }
 
 
