@@ -270,51 +270,51 @@ auto find_usearch_abundance(const char * header,
   static const std::string digit_chars {"0123456789"};
   const uint64_t hlen = strlen(header);
   const uint64_t alen = attribute.length();
-  uint64_t i = 0;
+  uint64_t position = 0;
 
-  while (i + alen < hlen)
+  while (position + alen < hlen)
     {
-      const char * r = std::strstr(header + i, attribute.c_str());
+      const char * r = std::strstr(header + position, attribute.c_str());
 
       /* no match */
       if (r == nullptr) {
         break;
       }
 
-      i = static_cast<uint64_t>(r - header);
+      position = static_cast<uint64_t>(r - header);
 
       /* check for ';' in front */
-      if ((i > 0) && (header[i - 1] != ';'))
+      if ((position > 0) && (header[position - 1] != ';'))
         {
-          i += alen + 1;
+          position += alen + 1;
           continue;
         }
 
-      const uint64_t digits = std::strspn(header + i + alen, digit_chars.c_str());
+      const uint64_t digits = std::strspn(header + position + alen, digit_chars.c_str());
 
       /* check for at least one digit */
       if (digits == 0)
         {
-          i += alen + 1;
+          position += alen + 1;
           continue;
         }
 
       /* check for ';' after */
-      if ((i + alen + digits < hlen) && (header[i + alen + digits] != ';'))
+      if ((position + alen + digits < hlen) && (header[position + alen + digits] != ';'))
         {
-          i += alen + digits + 2;
+          position += alen + digits + 2;
           continue;
         }
 
       /* ok */
-      if (i > 0) {
-        * start = static_cast<int>(i - 1);
+      if (position > 0) {
+        * start = static_cast<int>(position - 1);
       }
       else {
         * start = 0;
       }
-      * end   = static_cast<int>(std::min(i + alen + digits + 1, hlen));
-      * number = std::atol(header + i + alen);
+      * end   = static_cast<int>(std::min(position + alen + digits + 1, hlen));
+      * number = std::atol(header + position + alen);
       return true;
     }
 
