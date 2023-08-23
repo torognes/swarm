@@ -75,20 +75,20 @@ void cpu_features_detect(struct Parameters & p)
   if (maxlevel >= 1)
   {
     cpuid(1, 0, a, b, c, d);
-    p.mmx_present    = (d >> bit_mmx) & 1;
-    p.sse_present    = (d >> bit_sse) & 1;
-    p.sse2_present   = (d >> bit_sse2) & 1;
-    p.sse3_present   = (c >> bit_sse3) & 1;
-    ssse3_present  = (c >> bit_ssse3) & 1;
-    sse41_present  = (c >> bit_sse41) & 1;
-    p.sse42_present  = (c >> bit_sse42) & 1;
-    popcnt_present = (c >> bit_popcnt) & 1;
-    p.avx_present    = (c >> bit_avx) & 1;
+    p.mmx_present    = (d >> bit_mmx) & 1U;
+    p.sse_present    = (d >> bit_sse) & 1U;
+    p.sse2_present   = (d >> bit_sse2) & 1U;
+    p.sse3_present   = (c >> bit_sse3) & 1U;
+    ssse3_present  = (c >> bit_ssse3) & 1U;
+    sse41_present  = (c >> bit_sse41) & 1U;
+    p.sse42_present  = (c >> bit_sse42) & 1U;
+    popcnt_present = (c >> bit_popcnt) & 1U;
+    p.avx_present    = (c >> bit_avx) & 1U;
 
     if (maxlevel >= post_pentium)
     {
       cpuid(post_pentium, 0, a, b, c, d);
-      p.avx2_present   = (b >> bit_avx2) & 1;
+      p.avx2_present   = (b >> bit_avx2) & 1U;
     }
   }
 }
