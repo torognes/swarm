@@ -228,7 +228,7 @@ void generate_variants(char * sequence,
   for(auto offset = 0U; offset < seqlen; offset++)
     {
       const unsigned char base = nt_extract(sequence, offset);
-      hash ^= zobrist_value(offset, base) ^ zobrist_value(offset+1, base);
+      hash ^= zobrist_value(offset, base) ^ zobrist_value(offset + 1, base);
       for(unsigned char v = 0; v < 4; v++) {
         if (v != base)
           {
