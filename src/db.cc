@@ -625,7 +625,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
 
   /* init zobrist hashing */
 
-  // add 2 for two insertions
+  // add 2 for two insertions (refactoring: insertions in headers?)
   const unsigned int zobrist_len = std::max(4 * longestheader, longest + 2);
   zobrist_init(zobrist_len);
 
