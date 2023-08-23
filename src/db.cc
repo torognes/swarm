@@ -526,11 +526,11 @@ void db_read(const char * filename, struct Parameters const & parameters)
 
       while ((line[0] != 0) && (line[0] != '>'))
         {
-          unsigned char c {0};
+          unsigned char character {0};
           char * line_ptr = line;
-          while((c = static_cast<unsigned char>(*line_ptr++)) != 0U)
+          while((character = static_cast<unsigned char>(*line_ptr++)) != 0U)
             {
-              const signed char m = map_nt[static_cast<unsigned int>(c)];
+              const signed char m = map_nt[static_cast<unsigned int>(character)];
               if (m >= 0)
                 {
                   nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
@@ -552,14 +552,14 @@ void db_read(const char * filename, struct Parameters const & parameters)
                       nt_buffer = 0;
                     }
                 }
-              else if ((c != new_line) && (c != carriage_return))
+              else if ((character != new_line) && (character != carriage_return))
                 {
-                  if ((c >= start_chars_range) && (c <= end_chars_range)) {
-                    fatal(error_prefix, "Illegal character '", static_cast<char>(c),
+                  if ((character >= start_chars_range) && (character <= end_chars_range)) {
+                    fatal(error_prefix, "Illegal character '", static_cast<char>(character),
                           "' in sequence on line ", lineno, ".");
                   }
                   else {
-                    fatal(error_prefix, "Illegal character (ascii no ", static_cast<char>(c),
+                    fatal(error_prefix, "Illegal character (ascii no ", static_cast<char>(character),
                           ") in sequence on line ", lineno, ".");
                   }
                 }
