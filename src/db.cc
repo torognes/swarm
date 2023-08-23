@@ -621,7 +621,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
     }
   progress_done();
 
-  fclose(input_fp);
+  std::fclose(input_fp);
 
   /* init zobrist hashing */
 

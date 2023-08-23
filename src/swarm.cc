@@ -640,7 +640,7 @@ auto close_files() -> void {
      logfile};
   for (auto * const file_handle : file_handles) {
     if (file_handle != nullptr) {
-      fclose(file_handle);
+      std::fclose(file_handle);
     }
   }
 }
