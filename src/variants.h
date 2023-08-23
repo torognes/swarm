@@ -31,7 +31,7 @@ struct var_s
   uint64_t hash;
   unsigned int pos;
   Variant type;
-  unsigned char base;
+  unsigned char base;  // encoded nucleotide: 0, 1, 2, or 3
   unsigned short dummy; /* for alignment padding only */
 };
 
