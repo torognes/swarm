@@ -40,15 +40,15 @@ inline void nt_set(char * seq, unsigned int pos, unsigned int base)
   (reinterpret_cast<uint64_t *>(seq))[whichlong] = mutated_sequence;
 }
 
-inline void seq_copy(char * a,
+inline void seq_copy(char * seq_a,
                      unsigned int a_start,
-                     char * b,
+                     char * seq_b,
                      unsigned int b_start,
                      unsigned int length)
 {
   /* copy part of the compressed sequence b to a */
   for(auto i = 0U; i < length; i++) {
-    nt_set(a, a_start + i, nt_extract(b, b_start + i));
+    nt_set(seq_a, a_start + i, nt_extract(seq_b, b_start + i));
   }
 }
 
