@@ -323,10 +323,10 @@ auto find_usearch_abundance(const char * header,
 }
 
 
-void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
+void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
                     bool opt_usearch_abundance, int64_t opt_append_abundance)
 {
-  char * header = sp->header;
+  char * header = seqinfo->header;
 
   /* read size/abundance annotation */
   int64_t abundance = 0;
@@ -363,7 +363,7 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
 
   if (abundance == 0)
     {
-      start = sp->headerlen;
+      start = seqinfo->headerlen;
       end = start;
 
       if (opt_append_abundance != 0) {
@@ -381,9 +381,9 @@ void find_abundance(struct seqinfo_s * sp, uint64_t lineno,
         }
     }
 
-  sp->abundance = static_cast<uint64_t>(abundance);
-  sp->abundance_start = start;
-  sp->abundance_end = end;
+  seqinfo->abundance = static_cast<uint64_t>(abundance);
+  seqinfo->abundance_start = start;
+  seqinfo->abundance_end = end;
 }
 
 
