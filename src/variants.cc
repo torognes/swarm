@@ -187,11 +187,11 @@ void generate_variants(char * sequence,
     {
       const unsigned char base_substituted = nt_extract(sequence, i);
       const uint64_t hash1 = hash ^ zobrist_value(i, base_substituted);
-      for(unsigned char v = 0; v < 4; v++) {
-        if (v != base_substituted)
+      for(unsigned char base = 0; base < 4; base++) {
+        if (base != base_substituted)
           {
-            const uint64_t hash2 = hash1 ^ zobrist_value(i, v);
-            add_variant(hash2, Variant::substitution, i, v,
+            const uint64_t hash2 = hash1 ^ zobrist_value(i, base);
+            add_variant(hash2, Variant::substitution, i, base,
                         variant_list, variant_count);
           }
       }
