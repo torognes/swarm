@@ -416,7 +416,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
 
   struct stat fs;
 
-  if (fstat(fileno(input_fp), & fs) != 0)
+  if (fstat(fileno(input_fp), & fs) != 0)  // refactor: fstat and fileno linuxisms
     {
       fatal(error_prefix, "Unable to fstat on input file (", filename, ").\n");
     }
