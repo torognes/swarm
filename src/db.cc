@@ -414,7 +414,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
 
   /* get file size */
 
-  struct stat fstat_buffer;
+  struct stat fstat_buffer;  // refactor: complex uninitialized struct for fstat() 
 
   if (fstat(fileno(input_fp), &fstat_buffer) != 0)  // refactor: fstat and fileno linuxisms
     {
