@@ -218,11 +218,13 @@ void generate_variants(char * sequence,
   /* insertions */
 
   hash = zobrist_hash_insert_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
-  for(unsigned char v = 0; v < 4; v++)
+  // insert before the first position in the sequence
+  for(unsigned char base = 0; base < 4; base++)
     {
-      const uint64_t hash1 = hash ^ zobrist_value(0, v);
-      add_variant(hash1, Variant::insertion, 0, v, variant_list, variant_count);
+      const uint64_t hash1 = hash ^ zobrist_value(0, base);
+      add_variant(hash1, Variant::insertion, 0, base, variant_list, variant_count);
     }
+  // insert after each position in the sequence
   for(auto offset = 0U; offset < seqlen; offset++)
     {
       const unsigned char base = nt_extract(sequence, offset);
