@@ -227,10 +227,10 @@ void generate_variants(char * sequence,
   // insert after each position in the sequence
   for(auto offset = 0U; offset < seqlen; offset++)
     {
-      const unsigned char base = nt_extract(sequence, offset);
-      hash ^= zobrist_value(offset, base) ^ zobrist_value(offset + 1, base);
+      const unsigned char previous_base = nt_extract(sequence, offset);
+      hash ^= zobrist_value(offset, previous_base) ^ zobrist_value(offset + 1, previous_base);
       for(unsigned char v = 0; v < 4; v++) {
-        if (v != base)
+        if (v != previous_base)
           {
             const uint64_t hash1 = hash ^ zobrist_value(offset + 1, v);
             add_variant(hash1, Variant::insertion, offset + 1, v,
