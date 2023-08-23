@@ -207,12 +207,12 @@ void generate_variants(char * sequence,
   for(auto offset = 1U; offset < seqlen; offset++)
     {
       const unsigned char current_base = nt_extract(sequence, offset);
-      if (current_base != previous_base)
-        {
-          hash ^= zobrist_value(offset - 1, previous_base) ^ zobrist_value(offset - 1, current_base);
-          add_variant(hash, Variant::deletion, offset, 0, variant_list, variant_count);
-          previous_base = current_base;
-        }
+      if (current_base == previous_base) {
+        continue;
+      }
+      hash ^= zobrist_value(offset - 1, previous_base) ^ zobrist_value(offset - 1, current_base);
+      add_variant(hash, Variant::deletion, offset, 0, variant_list, variant_count);
+      previous_base = current_base;
     }
 
   /* insertions */
