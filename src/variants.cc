@@ -185,10 +185,10 @@ void generate_variants(char * sequence,
 
   for(auto offset = 0U; offset < seqlen; offset++)
     {
-      const unsigned char base_substituted = nt_extract(sequence, offset);
-      const uint64_t hash1 = hash ^ zobrist_value(offset, base_substituted);
+      const unsigned char current_base = nt_extract(sequence, offset);
+      const uint64_t hash1 = hash ^ zobrist_value(offset, current_base);
       for(unsigned char base = 0; base < 4; base++) {
-        if (base == base_substituted) {
+        if (base == current_base) {
           continue;
         }
 
@@ -206,12 +206,12 @@ void generate_variants(char * sequence,
   unsigned char base_deleted = nt_extract(sequence, 0);
   for(auto offset = 1U; offset < seqlen; offset++)
     {
-      const unsigned char v = nt_extract(sequence, offset);
-      if (v != base_deleted)
+      const unsigned char base = nt_extract(sequence, offset);
+      if (base != base_deleted)
         {
-          hash ^= zobrist_value(offset - 1, base_deleted) ^ zobrist_value(offset - 1, v);
+          hash ^= zobrist_value(offset - 1, base_deleted) ^ zobrist_value(offset - 1, base);
           add_variant(hash, Variant::deletion, offset, 0, variant_list, variant_count);
-          base_deleted = v;
+          base_deleted = base;
         }
     }
 
@@ -227,10 +227,10 @@ void generate_variants(char * sequence,
   // insert after each position in the sequence
   for(auto offset = 0U; offset < seqlen; offset++)
     {
-      const unsigned char previous_base = nt_extract(sequence, offset);
-      hash ^= zobrist_value(offset, previous_base) ^ zobrist_value(offset + 1, previous_base);
+      const unsigned char current_base = nt_extract(sequence, offset);
+      hash ^= zobrist_value(offset, current_base) ^ zobrist_value(offset + 1, current_base);
       for(unsigned char base = 0; base < 4; base++) {
-        if (base == previous_base) {
+        if (base == current_base) {
           continue;
         }
         const uint64_t hash1 = hash ^ zobrist_value(offset + 1, base);
