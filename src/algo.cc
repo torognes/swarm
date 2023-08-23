@@ -111,7 +111,7 @@ auto write_representative_sequences(const uint64_t amplicons,
   swarminfo[swarmcount].seed = seed;
   swarminfo[swarmcount].mass = mass;
   ++swarmcount;
-  qsort(swarminfo, swarmcount, sizeof(swarminfo_t), compare_mass_seed);
+  std::qsort(swarminfo, swarmcount, sizeof(swarminfo_t), compare_mass_seed);
   progress_done();
 
   progress_init("Writing seeds:    ", swarmcount);

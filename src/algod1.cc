@@ -308,7 +308,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   }
 
   /* sort */
-  qsort(graft_array, pair_count, sizeof(struct graft_cand), compare_grafts);
+  std::qsort(graft_array, pair_count, sizeof(struct graft_cand), compare_grafts);
 
   /* attach in order */
   for(auto i = 0U; i < pair_count; i++)
@@ -775,7 +775,7 @@ auto write_network_file(const unsigned int network_count,
       unsigned int link_start = ap->link_start;
       unsigned int link_count = ap->link_count;
 
-      qsort(network + link_start,
+      std::qsort(network + link_start,
             link_count,
             sizeof(unsigned int),
             compare_amp);
@@ -940,7 +940,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
   for(auto i = 0U; i < swarmcount; i++) {
     sorter[i] = i;
   }
-  qsort(sorter, swarmcount, sizeof(unsigned int), compare_mass);
+  std::qsort(sorter, swarmcount, sizeof(unsigned int), compare_mass);
 
   for(auto j = 0U; j < swarmcount; j++)
     {
@@ -1147,7 +1147,7 @@ void algo_d1_run(struct Parameters const & p)
           process_seed(seed);
 
           /* sort hits */
-          qsort(global_hits_data, global_hits_count,
+          std::qsort(global_hits_data, global_hits_count,
                 sizeof(unsigned int), compare_amp);
 
           /* add subseeds on list to current swarm */
@@ -1169,7 +1169,7 @@ void algo_d1_run(struct Parameters const & p)
                 }
 
               /* sort all of this generation */
-              qsort(global_hits_data, global_hits_count,
+              std::qsort(global_hits_data, global_hits_count,
                     sizeof(unsigned int), compare_amp);
 
               /* add them to the swarm */

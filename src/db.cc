@@ -836,7 +836,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
   if (! presorted)
     {
       progress_init("Abundance sorting:", 1);
-      qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
+      std::qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
       progress_done();
     }
 

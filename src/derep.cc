@@ -321,7 +321,7 @@ void dereplicate(struct Parameters const & p)
   progress_done();
 
   progress_init("Sorting:          ", 1);
-  qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare);
+  std::qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare);
   progress_done();
 
 
