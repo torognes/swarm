@@ -37,10 +37,9 @@ constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
 // uint32 pointers, which leads to a segmentation fault
 constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
-auto make_nt_map () -> std::array<signed char, n_chars> {
-    // set the 128 ascii chars to '-1' except Aa, Cc, Gg, Tt and Uu
-  std::array<signed char, n_chars> ascii_map {{0}};
-    ascii_map.fill(-1);
+auto make_nt_map () -> std::array<uint64_t, n_chars> {
+    // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
+  std::array<uint64_t, n_chars> ascii_map {{0}};
     ascii_map['A'] = 1;
     ascii_map['a'] = 1;
     ascii_map['C'] = 2;
@@ -530,10 +529,10 @@ void db_read(const char * filename, struct Parameters const & parameters)
           char * line_ptr = line;
           while((character = static_cast<unsigned char>(*line_ptr++)) != 0U)
             {
-              const signed char mapped_char = map_nt[static_cast<unsigned int>(character)];
-              if (mapped_char >= 0)
+              const auto mapped_char = map_nt[static_cast<unsigned int>(character)];
+              if (mapped_char != 0)
                 {
-                  nt_buffer |= ((static_cast<uint64_t>(mapped_char)) - 1) << (2 * nt_bufferlen);
+                  nt_buffer |= (mapped_char - 1) << (2 * nt_bufferlen);
                   ++length;
                   ++nt_bufferlen;
 
