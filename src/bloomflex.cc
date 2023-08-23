@@ -69,7 +69,7 @@ auto bloomflex_init(const uint64_t size, const unsigned int k) -> struct bloomfl
   b->size = size >> divider;  // divide by 8 to get number of uint64
 
   b->pattern_shift = multiplier;
-  b->pattern_count = 1 << b->pattern_shift;
+  b->pattern_count = 1U << b->pattern_shift;
   b->pattern_mask = b->pattern_count - 1;
   b->pattern_k = k;
 
