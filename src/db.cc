@@ -533,7 +533,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
               const signed char m = map_nt[static_cast<unsigned int>(character)];
               if (m >= 0)
                 {
-                  nt_buffer |= ((static_cast<uint64_t>(m))-1) << (2 * nt_bufferlen);
+                  nt_buffer |= ((static_cast<uint64_t>(m)) - 1) << (2 * nt_bufferlen);
                   ++length;
                   ++nt_bufferlen;
 
