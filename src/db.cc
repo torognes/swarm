@@ -527,9 +527,9 @@ void db_read(const char * filename, struct Parameters const & parameters)
         {
           unsigned char character {0};
           char * line_ptr = line;
-          while((character = static_cast<unsigned char>(*line_ptr++)) != 0U)
+          while((character = static_cast<signed char>(*line_ptr++)) != 0)
             {
-              const auto mapped_char = map_nt[static_cast<unsigned int>(character)];
+              const auto mapped_char = map_nt[character];
               if (mapped_char != 0)
                 {
                   nt_buffer |= (mapped_char - 1) << (2 * nt_bufferlen);
@@ -554,11 +554,11 @@ void db_read(const char * filename, struct Parameters const & parameters)
               else if ((character != new_line) && (character != carriage_return))
                 {
                   if ((character >= start_chars_range) && (character <= end_chars_range)) {
-                    fatal(error_prefix, "Illegal character '", static_cast<char>(character),
+                    fatal(error_prefix, "Illegal character '", character,
                           "' in sequence on line ", lineno, ".");
                   }
                   else {
-                    fatal(error_prefix, "Illegal character (ascii no ", static_cast<char>(character),
+                    fatal(error_prefix, "Illegal character (ascii no ", character,
                           ") in sequence on line ", lineno, ".");
                   }
                 }
