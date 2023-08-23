@@ -32,7 +32,7 @@ inline void nt_set(char * seq, unsigned int pos, unsigned int base)
   static constexpr unsigned int max_range {31};
   static constexpr unsigned long long int two_bits {3};  // '... 0011' in binary
   const unsigned int whichlong = pos >> divider;
-  const uint64_t shift = (pos & max_range) << 1;  // 0, 2, 4, 6, ..., 60, 62
+  const uint64_t shift = (pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
   const uint64_t mask = two_bits << shift;
   uint64_t mutated_sequence = (reinterpret_cast<uint64_t *>(seq))[whichlong];
   mutated_sequence &= ~ mask;
