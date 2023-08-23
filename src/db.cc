@@ -655,7 +655,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
 
   bool presorted {true};
 
-  char * pl {datap};
+  char * pl {datap};  // refactoring: purpose and how to rename?
   progress_init("Indexing database:", sequences);
   for(auto i = 0ULL; i < sequences; i++)
     {
