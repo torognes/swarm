@@ -168,11 +168,11 @@ inline void add_variant(uint64_t hash,
 #ifdef HASHSTATS
   tries++;
 #endif
-  var_s * v = variant_list + (*variant_count)++;
-  v->hash = hash;
-  v->type = type;
-  v->pos = pos;
-  v->base = base;
+  var_s * variant = variant_list + (*variant_count)++;
+  variant->hash = hash;
+  variant->type = type;
+  variant->pos = pos;
+  variant->base = base;
 }
 
 void generate_variants(char * sequence,
