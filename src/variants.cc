@@ -204,13 +204,13 @@ void generate_variants(char * sequence,
   hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
   add_variant(hash, Variant::deletion, 0, 0, variant_list, variant_count);
   unsigned char base_deleted = nt_extract(sequence, 0);
-  for(auto i = 1U; i < seqlen; i++)
+  for(auto offset = 1U; offset < seqlen; offset++)
     {
-      const unsigned char v = nt_extract(sequence, i);
+      const unsigned char v = nt_extract(sequence, offset);
       if (v != base_deleted)
         {
-          hash ^= zobrist_value(i - 1, base_deleted) ^ zobrist_value(i - 1, v);
-          add_variant(hash, Variant::deletion, i, 0, variant_list, variant_count);
+          hash ^= zobrist_value(offset - 1, base_deleted) ^ zobrist_value(offset - 1, v);
+          add_variant(hash, Variant::deletion, offset, 0, variant_list, variant_count);
           base_deleted = v;
         }
     }
@@ -223,15 +223,15 @@ void generate_variants(char * sequence,
       const uint64_t hash1 = hash ^ zobrist_value(0, v);
       add_variant(hash1, Variant::insertion, 0, v, variant_list, variant_count);
     }
-  for(auto i = 0U; i < seqlen; i++)
+  for(auto offset = 0U; offset < seqlen; offset++)
     {
-      const unsigned char base = nt_extract(sequence, i);
-      hash ^= zobrist_value(i, base) ^ zobrist_value(i+1, base);
+      const unsigned char base = nt_extract(sequence, offset);
+      hash ^= zobrist_value(offset, base) ^ zobrist_value(offset+1, base);
       for(unsigned char v = 0; v < 4; v++) {
         if (v != base)
           {
-            const uint64_t hash1 = hash ^ zobrist_value(i + 1, v);
-            add_variant(hash1, Variant::insertion, i + 1, v,
+            const uint64_t hash1 = hash ^ zobrist_value(offset + 1, v);
+            add_variant(hash1, Variant::insertion, offset + 1, v,
                         variant_list, variant_count);
           }
       }
