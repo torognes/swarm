@@ -125,7 +125,7 @@ constexpr unsigned int gap_opening_penalty_default {12};
 constexpr unsigned int gap_extension_penalty_default {4};
 constexpr unsigned int bloom_bits_default {16};
 constexpr unsigned int qgramlength {5};
-constexpr unsigned int qgramvectorbits {1 << (2 * qgramlength)};
+constexpr unsigned int qgramvectorbits {1U << (2 * qgramlength)};
 constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
 
 
@@ -214,7 +214,7 @@ inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
   static constexpr unsigned int max_range {3};
   // outputs four possible values: 0, 1, 2 or 3
   return (((reinterpret_cast<uint64_t*>(seq))[pos >> drop_remainder]) >> \
-          ((pos & (max_nt_per_uint64 - 1)) << 1)) & max_range;
+          ((pos & (max_nt_per_uint64 - 1)) << 1U)) & max_range;
 }
 
 inline auto nt_bytelength(unsigned int len) -> unsigned int
