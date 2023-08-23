@@ -80,7 +80,7 @@ void generate_variant_sequence(char * seed_sequence,
   switch (var->type)
     {
     case Variant::substitution:
-      memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
+      std::memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
       nt_set(seq, var->pos, var->base);
       * seqlen = seed_seqlen;
       break;
