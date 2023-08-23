@@ -27,6 +27,7 @@
 
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 {
+  // base = replacement nucleotide = encoded as 0, 1, 2, 3
   static constexpr unsigned int divider {5};
   static constexpr unsigned int max_range {31};
   static constexpr unsigned long long int two_bits {3};  // '... 0011' in binary
