@@ -484,7 +484,7 @@ auto backtrack_16(char * qseq,
       uint64_t d
         = dirbuffer[(offset
                      + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
-                     + static_cast<uint64_t>(4 * i + (j & 3)))
+                     + static_cast<uint64_t>(4 * i + (j & 3U)))
                     % dirbuffersize];
 
       if ((op == 'I') && ((d & maskextleft) == 0U))
