@@ -229,11 +229,11 @@ void generate_variants(char * sequence,
     {
       const unsigned char previous_base = nt_extract(sequence, offset);
       hash ^= zobrist_value(offset, previous_base) ^ zobrist_value(offset + 1, previous_base);
-      for(unsigned char v = 0; v < 4; v++) {
-        if (v != previous_base)
+      for(unsigned char base = 0; base < 4; base++) {
+        if (base != previous_base)
           {
-            const uint64_t hash1 = hash ^ zobrist_value(offset + 1, v);
-            add_variant(hash1, Variant::insertion, offset + 1, v,
+            const uint64_t hash1 = hash ^ zobrist_value(offset + 1, base);
+            add_variant(hash1, Variant::insertion, offset + 1, base,
                         variant_list, variant_count);
           }
       }
