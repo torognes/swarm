@@ -24,7 +24,7 @@
 #include <cstdint>
 
 constexpr unsigned int bloom_pattern_shift {10};
-constexpr unsigned int bloom_pattern_count {1 << bloom_pattern_shift};
+constexpr unsigned int bloom_pattern_count {1U << bloom_pattern_shift};
 constexpr unsigned int bloom_pattern_mask {bloom_pattern_count - 1};
 
 struct bloom_s
