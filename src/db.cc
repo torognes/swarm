@@ -387,7 +387,7 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
 }
 
 
-void db_read(const char * filename, struct Parameters const & p)
+void db_read(const char * filename, struct Parameters const & parameters)
 {
   /* allocate space */
 
@@ -642,7 +642,7 @@ void db_read(const char * filename, struct Parameters const & p)
 
   seqinfo_t * * seqhashtable {nullptr};
 
-  if (p.opt_differences > 1)
+  if (parameters.opt_differences > 1)
     {
       seqhashtable = new seqinfo_t*[seqhashsize] { };
     }
@@ -677,7 +677,7 @@ void db_read(const char * filename, struct Parameters const & p)
       pl += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
-      find_abundance(seqindex_p, line_number, p.opt_usearch_abundance, p.opt_append_abundance);
+      find_abundance(seqindex_p, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       if ((seqindex_p->abundance_start == 0) &&
           (seqindex_p->abundance_end == seqindex_p->headerlen)) {
@@ -772,7 +772,7 @@ void db_read(const char * filename, struct Parameters const & p)
                                          (seqindex_p->seq),
                                          seqindex_p->seqlen);
 
-      if (p.opt_differences > 1)
+      if (parameters.opt_differences > 1)
         {
           /* Check for duplicated sequences using hash table, */
           /* but only for d>1. Handled internally for d=1.    */
