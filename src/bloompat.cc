@@ -75,7 +75,7 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 
   b->size = size;
 
-  b->mask = (size >> 3) - 1;
+  b->mask = (size >> 3U) - 1;
 
   b->bitmap = new uint64_t[size];
 
