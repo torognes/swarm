@@ -530,10 +530,10 @@ void db_read(const char * filename, struct Parameters const & parameters)
           char * line_ptr = line;
           while((character = static_cast<unsigned char>(*line_ptr++)) != 0U)
             {
-              const signed char m = map_nt[static_cast<unsigned int>(character)];
-              if (m >= 0)
+              const signed char mapped_char = map_nt[static_cast<unsigned int>(character)];
+              if (mapped_char >= 0)
                 {
-                  nt_buffer |= ((static_cast<uint64_t>(m)) - 1) << (2 * nt_bufferlen);
+                  nt_buffer |= ((static_cast<uint64_t>(mapped_char)) - 1) << (2 * nt_bufferlen);
                   ++length;
                   ++nt_bufferlen;
 
