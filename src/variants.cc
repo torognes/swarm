@@ -203,15 +203,15 @@ void generate_variants(char * sequence,
 
   hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
   add_variant(hash, Variant::deletion, 0, 0, variant_list, variant_count);
-  unsigned char base_deleted = nt_extract(sequence, 0);
+  unsigned char previous_base = nt_extract(sequence, 0);
   for(auto offset = 1U; offset < seqlen; offset++)
     {
-      const unsigned char base = nt_extract(sequence, offset);
-      if (base != base_deleted)
+      const unsigned char current_base = nt_extract(sequence, offset);
+      if (current_base != previous_base)
         {
-          hash ^= zobrist_value(offset - 1, base_deleted) ^ zobrist_value(offset - 1, base);
+          hash ^= zobrist_value(offset - 1, previous_base) ^ zobrist_value(offset - 1, current_base);
           add_variant(hash, Variant::deletion, offset, 0, variant_list, variant_count);
-          base_deleted = base;
+          previous_base = current_base;
         }
     }
 
