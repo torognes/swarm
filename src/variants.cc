@@ -52,9 +52,9 @@ inline void seq_copy(char * seq_a,
   }
 }
 
-inline auto seq_identical(char * a,
+inline auto seq_identical(char * seq_a,
                           unsigned int a_start,
-                          char * b,
+                          char * seq_b,
                           unsigned int b_start,
                           unsigned int length) -> bool
 {
@@ -63,8 +63,8 @@ inline auto seq_identical(char * a,
 
   bool equal {true};
   for(auto i = 0U; i < length; i++) {
-    equal = equal && (nt_extract(a, a_start + i) ==
-                      nt_extract(b, b_start + i));
+    equal = equal && (nt_extract(seq_a, a_start + i) ==
+                      nt_extract(seq_b, b_start + i));
   }
   return equal;
 }
