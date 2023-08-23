@@ -189,7 +189,7 @@ void generate_variants(char * sequence,
       const uint64_t hash1 = hash ^ zobrist_value(offset, base_substituted);
       for(unsigned char base = 0; base < 4; base++) {
         if (base == base_substituted) {
-          continue ;
+          continue;
         }
 
         const uint64_t hash2 = hash1 ^ zobrist_value(offset, base);
