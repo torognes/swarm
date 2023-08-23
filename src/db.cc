@@ -834,7 +834,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
             "and the first space or the end of the line, whichever comes first.");
     }
 
-  if (!presorted)
+  if (! presorted)
     {
       progress_init("Abundance sorting:", 1);
       qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
