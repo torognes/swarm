@@ -471,7 +471,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
           dataalloc += memchunk;
           datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
-      memcpy(datap + datalen, & lineno, sizeof(unsigned int));
+      std::memcpy(datap + datalen, & lineno, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
 
@@ -482,7 +482,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
           dataalloc += memchunk;
           datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
-      memcpy(datap + datalen, line + 1, headerlen);
+      std::memcpy(datap + datalen, line + 1, headerlen);
       *(datap + datalen + headerlen) = 0;
       datalen += headerlen + 1;
 
@@ -510,7 +510,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
           datap = static_cast<char *>(xrealloc(datap, dataalloc));
         }
       const uint64_t datalen_seqlen = datalen;
-      memcpy(datap + datalen, & length, sizeof(unsigned int));
+      std::memcpy(datap + datalen, & length, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
 
@@ -545,7 +545,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
                           datap = static_cast<char *>(xrealloc(datap, dataalloc));
                         }
 
-                      memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+                      std::memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
                       datalen += sizeof(nt_buffer);
 
                       nt_bufferlen = 0;
@@ -583,7 +583,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
 
       /* fill in real length */
 
-      memcpy(datap + datalen_seqlen, & length, sizeof(unsigned int));
+      std::memcpy(datap + datalen_seqlen, & length, sizeof(unsigned int));
 
       if (length == 0)
         {
@@ -607,7 +607,7 @@ void db_read(const char * filename, struct Parameters const & parameters)
               datap = static_cast<char *>(xrealloc(datap, dataalloc));
             }
 
-          memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+          std::memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
           datalen += sizeof(nt_buffer);
 
           nt_buffer = 0;
