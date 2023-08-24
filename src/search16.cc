@@ -240,9 +240,6 @@ inline void dprofile_fill16(WORD * dprofile_word,
           v_store(dprofile_word + cdepth * channels * (i + 7) + channels * j, reg31);
         }
     }
-#if 0
-  dprofile_dump16(dprofile_word);
-#endif
 }
 
 inline void onestep_16(VECTORTYPE & H,

@@ -471,9 +471,6 @@ inline void dprofile_fill8(BYTE * dprofile,
       v_store(dprofile + 16 * j + 1536 + 384, reg6);
       v_store(dprofile + 16 * j + 1536 + 448, reg15);
     }
-#if 0
-  dprofile_dump8(dprofile);
-#endif
 }
 
 inline void onestep_8(VECTORTYPE & H,
@@ -697,62 +694,6 @@ inline auto backtrack_8(char * qseq,
   uint64_t maskleft    = 1ULL << (channel + offset1);
   uint64_t maskextup   = 1ULL << (channel + offset2);
   uint64_t maskextleft = 1ULL << (channel + offset3);
-
-#if 0
-
-  printf("Dumping backtracking array\n");
-
-  for(auto i = 0ULL; i < qlen; i++)
-    {
-      for(auto j = 0ULL; j < dlen; j++)
-        {
-          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
-                                  + 4 * i + (j & 3)) % dirbuffersize];
-          if (d & maskleft)
-            {
-              printf("<");
-            }
-          else if (!(d & maskup))
-            {
-              printf("^");
-            }
-          else
-            {
-              printf("\\");
-            }
-        }
-      printf("\n");
-    }
-
-  printf("Dumping gap extension array\n");
-
-  for(auto i = 0ULL; i < qlen; i++)
-    {
-      for(auto j = 0ULL; j < dlen; j++)
-        {
-          uint64_t d = dirbuffer[(offset + longestdbsequence * 4 * (j / 4)
-                                  + 4 * i + (j & 3)) % dirbuffersize];
-          if (!(d & maskextup))
-            {
-              if (!(d & maskextleft))
-                printf("+");
-              else
-                printf("^");
-            }
-          else if (!(d & maskextleft))
-            {
-              printf("<");
-            }
-          else
-            {
-              printf("\\");
-            }
-        }
-      printf("\n");
-    }
-
-#endif
-
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};

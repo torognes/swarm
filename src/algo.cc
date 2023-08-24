@@ -351,21 +351,6 @@ void algo_run(struct Parameters const & p)
 
           for(auto t = 0ULL; t < targetcount; t++)
             {
-#if 0
-              printf("seed: %" PRIu64
-                     " target: %" PRIu64
-                     " score: %" PRIu64
-                     " diffs: %" PRIu64
-                     " alignlen: %" PRIu64
-                     " bits: %" PRIu64 "\n",
-                     seedampliconid,
-                     targetampliconids[t],
-                     scores[t],
-                     diffs[t],
-                     alignlengths[t],
-                     bits);
-#endif
-
               const uint64_t diff = diffs[t];
 
               if (diff <= static_cast<uint64_t>(p.opt_differences))
