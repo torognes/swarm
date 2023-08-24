@@ -482,7 +482,7 @@ auto backtrack_16(char * qseq,
         = dirbuffer[(offset
                      + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
                      + static_cast<uint64_t>(4 * i + (static_cast<uint64_t>(j) & 3U)))
-                    % dirbuffersize];
+                    % dirbuffersize];  // refactoring: how to rename that variable?
 
       if ((operation == 'I') && ((d & maskextleft) == 0U))
         {
