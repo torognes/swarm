@@ -767,7 +767,7 @@ auto write_network_file(const unsigned int network_count,
                         struct Parameters const & p) -> void {
   progress_init("Dumping network:  ", network_count);
 
-  uint64_t n = 0;
+  uint64_t n_processed = 0;
   for(auto seed = 0U; seed < amplicons; seed++)
     {
       struct ampinfo_s * ap = ampinfo + seed;
@@ -780,16 +780,16 @@ auto write_network_file(const unsigned int network_count,
             sizeof(unsigned int),
             compare_amp);
 
-      for(auto i = 0U; i < link_count; i++)
+      for(auto link = 0U; link < link_count; link++)
         {
-          unsigned int neighbour = network[link_start + i];
+          unsigned int neighbour = network[link_start + link];
           fprint_id(network_file, seed, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(network_file, "\t");
           fprint_id(network_file, neighbour, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(network_file, "\n");
-          ++n;
+          ++n_processed;
         }
-      progress_update(n);
+      progress_update(n_processed);
     }
   progress_done();
 }
