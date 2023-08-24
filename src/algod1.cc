@@ -509,8 +509,8 @@ auto mark_light_var(struct bloomflex_s * bloom,
   unsigned int variant_count = 0;
 
   char * sequence = db_getsequence(seed);
-  unsigned int seqlen = db_getsequencelen(seed);
-  uint64_t hash = db_gethash(seed);
+  const unsigned int seqlen = db_getsequencelen(seed);
+  const uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
@@ -533,7 +533,7 @@ void mark_light_thread(int64_t t)
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
     {
-      unsigned int a = light_amplicon--;
+      const unsigned int a = light_amplicon--;
       if (swarminfo[ampinfo[a].swarmid].mass <
           static_cast<uint64_t>(opt_boundary))
         {
