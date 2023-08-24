@@ -697,7 +697,7 @@ void process_seed(unsigned int seed)
 
   for(auto offset = 0U; offset < link_count; offset++)
     {
-      unsigned int amp = network[link_start + offset];
+      const unsigned int amp = network[link_start + offset];
 
       if (ampinfo[amp].swarmid == no_swarm)
         {
@@ -772,8 +772,8 @@ auto write_network_file(const unsigned int network_count,
     {
       struct ampinfo_s * ap = ampinfo + seed;
 
-      unsigned int link_start = ap->link_start;
-      unsigned int link_count = ap->link_count;
+      const unsigned int link_start = ap->link_start;
+      const unsigned int link_count = ap->link_count;
 
       std::qsort(network + link_start,
             link_count,
