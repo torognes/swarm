@@ -203,7 +203,7 @@ inline auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t
   return (diffqgrams + 2 * qgramlength - 1)/(2 * qgramlength);  // mindiff
 }
 
-void qgram_worker(int64_t t)
+auto qgram_worker(int64_t t) -> void
 {
   struct thread_info_s * tip = ti + t;
 
