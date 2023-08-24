@@ -764,7 +764,7 @@ inline void add_amp_to_swarm(unsigned int amp)
 
 
 auto write_network_file(const unsigned int network_count,
-                        struct Parameters const & p) -> void {
+                        struct Parameters const & parameters) -> void {
   progress_init("Dumping network:  ", network_count);
 
   uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
@@ -783,9 +783,9 @@ auto write_network_file(const unsigned int network_count,
       for(auto link = 0U; link < link_count; link++)
         {
           const unsigned int neighbour = network[link_start + link];
-          fprint_id(network_file, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(network_file, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           fprintf(network_file, "\t");
-          fprint_id(network_file, neighbour, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           fprintf(network_file, "\n");
           ++n_processed;
         }
@@ -796,7 +796,7 @@ auto write_network_file(const unsigned int network_count,
 
 
 auto write_swarms_default_format(const unsigned int swarmcount,
-                                 struct Parameters const & p) -> void {
+                                 struct Parameters const & parameters) -> void {
   progress_init("Writing swarms:   ", swarmcount);
 
   for(auto i = 0U; i < swarmcount; i++) {
@@ -807,7 +807,7 @@ auto write_swarms_default_format(const unsigned int swarmcount,
           fputc(sepchar, outfile);
         }
         fprint_id(outfile, a,
-                  p.opt_usearch_abundance, p.opt_append_abundance);
+                  parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
       fputc('\n', outfile);
     }
@@ -819,11 +819,11 @@ auto write_swarms_default_format(const unsigned int swarmcount,
 
 
 auto write_swarms_mothur_format(const unsigned int swarmcount,
-                                struct Parameters const & p) -> void {
+                                struct Parameters const & parameters) -> void {
   progress_init("Writing swarms:   ", swarmcount);
 
   fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
-          p.opt_differences, swarmcount_adjusted);
+          parameters.opt_differences, swarmcount_adjusted);
 
   for(auto i = 0U; i < swarmcount; i++) {
     if (not swarminfo[i].attached) {
@@ -836,7 +836,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
           fputc(',', outfile);
         }
         fprint_id(outfile, a,
-                  p.opt_usearch_abundance, p.opt_append_abundance);
+                  parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
     }
     progress_update(i + 1);
@@ -849,12 +849,12 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
 
 
 auto write_swarms_uclust_format(const unsigned int swarmcount,
-                                struct Parameters const & p,
+                                struct Parameters const & parameters,
                                 unsigned char * dir,
                                 uint64_t * hearray) -> void {
   static constexpr unsigned int one_hundred {100};
   unsigned int cluster_no = 0;
-  score_matrix_read(p);
+  score_matrix_read(parameters);
   dir = new unsigned char[longestamplicon * longestamplicon];
   hearray = new uint64_t[2 * longestamplicon];
 
@@ -871,13 +871,13 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
           fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                   cluster_no,
                   swarminfo[swarmid].size);
-          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           fprintf(uclustfile, "\t*\n");
 
           fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   cluster_no,
                   db_getsequencelen(seed));
-          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           fprintf(uclustfile, "\t*\n");
 
           for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
@@ -908,9 +908,9 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                       percentid,
                       nwdiff > 0 ? nwalignment : "=");
 
-              fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+              fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
               fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+              fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
               fprintf(uclustfile, "\n");
 
               if (nwalignment != nullptr) {
@@ -933,7 +933,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
 
 auto write_representative_sequences(const unsigned int swarmcount,
-                                    struct Parameters const & p) -> void {
+                                    struct Parameters const & parameters) -> void {
   progress_init("Writing seeds:    ", swarmcount);
 
   auto * sorter = new unsigned int[swarmcount];
@@ -949,7 +949,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
         {
           const unsigned int seed = swarminfo[i].seed;
           fprintf(fp_seeds, ">");
-          fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, p.opt_usearch_abundance);
+          fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, parameters.opt_usearch_abundance);
           fprintf(fp_seeds, "\n");
           db_fprintseq(fp_seeds, seed);
         }
@@ -964,7 +964,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
 
 auto write_structure_file(const unsigned int swarmcount,
-                          struct Parameters const & p) -> void {
+                          struct Parameters const & parameters) -> void {
   unsigned int cluster_no {0};
 
   progress_init("Writing structure:", swarmcount);
@@ -983,9 +983,9 @@ auto write_structure_file(const unsigned int swarmcount,
               if (graft_parent != no_swarm)
                 {
                   fprint_id_noabundance(internal_structure_file,
-                                        graft_parent, p.opt_usearch_abundance);
+                                        graft_parent, parameters.opt_usearch_abundance);
                   fprintf(internal_structure_file, "\t");
-                  fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
+                  fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
                   fprintf(internal_structure_file,
                           "\t%d\t%u\t%u\n",
                           2,
@@ -996,9 +996,9 @@ auto write_structure_file(const unsigned int swarmcount,
               const uint64_t parent = ampinfo[a].parent;
               if (parent != no_swarm)
                 {
-                  fprint_id_noabundance(internal_structure_file, parent, p.opt_usearch_abundance);
+                  fprint_id_noabundance(internal_structure_file, parent, parameters.opt_usearch_abundance);
                   fprintf(internal_structure_file, "\t");
-                  fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
+                  fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
                   fprintf(internal_structure_file,
                           "\t%u\t%u\t%u\n",
                           1U,
@@ -1016,7 +1016,7 @@ auto write_structure_file(const unsigned int swarmcount,
 
 
 auto write_stats_file(const unsigned int swarmcount,
-                      struct Parameters const & p) -> void {
+                      struct Parameters const & parameters) -> void {
   progress_init("Writing stats:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
@@ -1024,7 +1024,7 @@ auto write_stats_file(const unsigned int swarmcount,
       if (not sp->attached)
         {
           fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
-          fprint_id_noabundance(statsfile, sp->seed, p.opt_usearch_abundance);
+          fprint_id_noabundance(statsfile, sp->seed, parameters.opt_usearch_abundance);
           fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                   db_getabundance(sp->seed),
                   sp->singletons, sp->maxgen, sp->maxgen);
@@ -1035,7 +1035,7 @@ auto write_stats_file(const unsigned int swarmcount,
 }
 
 
-void algo_d1_run(struct Parameters const & p)
+void algo_d1_run(struct Parameters const & parameters)
 {
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
@@ -1107,8 +1107,8 @@ void algo_d1_run(struct Parameters const & p)
 
 
   /* dump network to file */
-  if (not p.opt_network_file.empty()) {
-    write_network_file(network_count, p);
+  if (not parameters.opt_network_file.empty()) {
+    write_network_file(network_count, parameters);
   }
 
 
@@ -1233,7 +1233,7 @@ void algo_d1_run(struct Parameters const & p)
 
   /* fastidious */
 
-  if (p.opt_fastidious)
+  if (parameters.opt_fastidious)
     {
       fprintf(logfile, "\n");
       fprintf(logfile, "Results before fastidious processing:\n");
@@ -1285,9 +1285,9 @@ void algo_d1_run(struct Parameters const & p)
 
           static constexpr unsigned int microvariants {7};
           static constexpr double hash_functions_per_bit {4.0 / 10};
-          assert(p.opt_bloom_bits <= 64);  // larger than expected"
-          assert(p.opt_bloom_bits >= 2);  // smaller than expected"
-          auto bits = static_cast<unsigned int>(p.opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
+          assert(parameters.opt_bloom_bits <= 64);  // larger than expected"
+          assert(parameters.opt_bloom_bits >= 2);  // smaller than expected"
+          auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
 
           // int64_t k = int(bits * 0.693);    /* 11 */
           auto k =
@@ -1302,10 +1302,10 @@ void algo_d1_run(struct Parameters const & p)
           const uint64_t memtotal = arch_get_memtotal();
           const uint64_t memused = arch_get_memused();
 
-          if (p.opt_ceiling != 0)
+          if (parameters.opt_ceiling != 0)
             {
               const uint64_t memrest
-                = one_megabyte * static_cast<uint64_t>(p.opt_ceiling) - memused;
+                = one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling) - memused;
               const auto new_bits =
                 static_cast<unsigned int>(sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_clusters));
               if (new_bits < bits)
@@ -1416,31 +1416,31 @@ void algo_d1_run(struct Parameters const & p)
 
 
   /* dump swarms */
-  if (p.opt_mothur) {
-    write_swarms_mothur_format(swarmcount, p);
+  if (parameters.opt_mothur) {
+    write_swarms_mothur_format(swarmcount, parameters);
   }
   else {
-    write_swarms_default_format(swarmcount, p);
+    write_swarms_default_format(swarmcount, parameters);
   }
 
   /* dump seeds in fasta format with sum of abundances */
-  if (not p.opt_seeds.empty()) {
-    write_representative_sequences(swarmcount, p);
+  if (not parameters.opt_seeds.empty()) {
+    write_representative_sequences(swarmcount, parameters);
   }
 
   /* output internal structure */
-  if (not p.opt_internal_structure.empty()) {
-    write_structure_file(swarmcount, p);
+  if (not parameters.opt_internal_structure.empty()) {
+    write_structure_file(swarmcount, parameters);
   }
 
   /* output swarm in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, p, dir, hearray);
+    write_swarms_uclust_format(swarmcount, parameters, dir, hearray);
   }
 
   /* output statistics to file */
   if (statsfile != nullptr) {
-    write_stats_file(swarmcount, p);
+    write_stats_file(swarmcount, parameters);
   }
 
   fprintf(logfile, "\n");
