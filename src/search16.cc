@@ -467,7 +467,7 @@ auto backtrack_16(char * qseq,
   auto j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
   uint64_t matches {0};
-  char op {0};
+  char operation {0};  // Insertion, Deletion or Match
 
 #undef SHOWALIGNMENT
 #ifdef SHOWALIGNMENT
@@ -484,23 +484,23 @@ auto backtrack_16(char * qseq,
                      + static_cast<uint64_t>(4 * i + (j & 3U)))
                     % dirbuffersize];
 
-      if ((op == 'I') && ((d & maskextleft) == 0U))
+      if ((operation == 'I') && ((d & maskextleft) == 0U))
         {
           --j;
         }
-      else if ((op == 'D') && ((d & maskextup) == 0U))
+      else if ((operation == 'D') && ((d & maskextup) == 0U))
         {
           --i;
         }
       else if ((d & maskleft) != 0U)
         {
           --j;
-          op = 'I';
+          operation = 'I';
         }
       else if ((d & maskup) == 0U)
         {
           --i;
-          op = 'D';
+          operation = 'D';
         }
       else
         {
@@ -510,11 +510,11 @@ auto backtrack_16(char * qseq,
           }
           --i;
           --j;
-          op = 'M';
+          operation = 'M';
         }
 
 #ifdef SHOWALIGNMENT
-      printf("%c", op);
+      printf("%c", operation);
 #endif
     }
 
