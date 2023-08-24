@@ -200,8 +200,7 @@ inline auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t
 {
   const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
                                                   db_getqgramvector(b));
-  const uint64_t mindiff = (diffqgrams + 2 * qgramlength - 1)/(2 * qgramlength);
-  return mindiff;
+  return (diffqgrams + 2 * qgramlength - 1)/(2 * qgramlength);  // mindiff
 }
 
 void qgram_worker(int64_t t)
