@@ -182,7 +182,7 @@ auto args_long(char * str, const char * option) -> int64_t
 }
 
 
-auto args_show() -> void
+auto args_show() -> void  // refactoring: pass a ref to parameters as argument
 {
 #ifdef __x86_64__
   cpu_features_detect(p);
