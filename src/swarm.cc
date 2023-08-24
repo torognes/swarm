@@ -289,7 +289,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
     switch(c)
       {
-      case 'a':
+      case 'a':  // refactoring: replace with enum class?
         /* append-abundance */
         p.opt_append_abundance = args_long(optarg, "-a or --append-abundance");
         break;
