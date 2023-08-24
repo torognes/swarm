@@ -476,7 +476,7 @@ auto backtrack_16(char * qseq,
 
   while ((i >= 0) && (j >= 0))
     {
-      aligned++;
+      ++aligned;
 
       uint64_t d
         = dirbuffer[(offset
@@ -486,30 +486,30 @@ auto backtrack_16(char * qseq,
 
       if ((op == 'I') && ((d & maskextleft) == 0U))
         {
-          j--;
+          --j;
         }
       else if ((op == 'D') && ((d & maskextup) == 0U))
         {
-          i--;
+          --i;
         }
       else if ((d & maskleft) != 0U)
         {
-          j--;
+          --j;
           op = 'I';
         }
       else if ((d & maskup) == 0U)
         {
-          i--;
+          --i;
           op = 'D';
         }
       else
         {
           if (nt_extract(qseq, static_cast<uint64_t>(i)) ==
               nt_extract(dseq, static_cast<uint64_t>(j))) {
-            matches++;
+            ++matches;
           }
-          i--;
-          j--;
+          --i;
+          --j;
           op = 'M';
         }
 
