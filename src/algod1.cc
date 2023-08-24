@@ -767,7 +767,7 @@ auto write_network_file(const unsigned int network_count,
                         struct Parameters const & p) -> void {
   progress_init("Dumping network:  ", network_count);
 
-  uint64_t n_processed = 0;
+  uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
   for(auto seed = 0U; seed < amplicons; seed++)
     {
       struct ampinfo_s * ap = ampinfo + seed;
