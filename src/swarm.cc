@@ -472,7 +472,7 @@ void args_check(std::array<int, n_options> & used_options) {
           "(SSE3 instructions are only used when d > 1).");
   }
 
-  if (! p.opt_fastidious)
+  if (not p.opt_fastidious)
     {
       if (used_options[boundary_index] != 0) {
         fatal(error_prefix, "Option -b or --boundary specified without -f or --fastidious.");
