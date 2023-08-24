@@ -520,8 +520,8 @@ auto backtrack_16(char * qseq,
 
   while (i >= 0)
     {
-      aligned++;
-      i--;
+      ++aligned;
+      --i;
 #ifdef SHOWALIGNMENT
       printf("D");
 #endif
@@ -529,8 +529,8 @@ auto backtrack_16(char * qseq,
 
   while (j >= 0)
     {
-      aligned++;
-      j--;
+      ++aligned;
+      --j;
 #ifdef SHOWALIGNMENT
       printf("I");
 #endif
