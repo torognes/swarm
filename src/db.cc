@@ -28,7 +28,7 @@
 #include "zobrist.h"
 
 
-constexpr unsigned int memchunk {1U << 20};  // 1 megabyte
+constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
 constexpr long unsigned int n_chars {INT8_MAX + 1};  // 128 ascii chars
 constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
