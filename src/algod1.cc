@@ -192,7 +192,7 @@ inline void hash_insert(unsigned int amp)
     }
 
   if (duplicate) {
-    duplicates_found++;
+    ++duplicates_found;
   }
 
   hash_set_occupied(j);
@@ -239,7 +239,7 @@ void attach(unsigned int seed, unsigned int amp)
 void add_graft_candidate(unsigned int seed, unsigned int amp)
 {
   pthread_mutex_lock(&graft_mutex);
-  graft_candidates++;
+  ++graft_candidates;
   // if there is no heavy candidate to graft amp, or if seed is
   // earlier in the sorting order, then we change the attachment to
   // seed
@@ -286,7 +286,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   unsigned int pair_count = 0;
   for(auto i = 0U; i < amplicon_count; i++) {
     if (ampinfo[i].graft_cand != no_swarm) {
-      pair_count++;
+      ++pair_count;
     }
   }
 
@@ -303,7 +303,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
       {
         graft_array[j].parent = ampinfo[i].graft_cand;
         graft_array[j].child = i;  // so two children cannot have the same uint value
-        j++;
+        ++j;
       }
   }
 
@@ -325,7 +325,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
         {
           /* attach child to parent */
           attach(parent, child);
-          grafts++;
+          ++grafts;
         }
       progress_update(i+1);
     }
@@ -388,7 +388,7 @@ inline auto check_heavy_var_2(char * seq,
   for(auto i = 0U; i < variant_count; i++) {
     if (bloom_get(bloom_a, variant_list[i].hash) &&
         hash_check_attach(seq, seqlen, variant_list + i, seed)) {
-      matches++;
+      ++matches;
     }
   }
 
@@ -672,14 +672,14 @@ void process_seed(unsigned int seed)
   /* update swarm stats */
   struct ampinfo_s * bp = ampinfo + seed;
 
-  swarmsize++;
+  ++swarmsize;
   if (bp->generation > swarm_maxgen) {
     swarm_maxgen = bp->generation;
   }
   uint64_t abundance = db_getabundance(seed);
   abundance_sum += abundance;
   if (abundance == 1) {
-    singletons++;
+    ++singletons;
   }
   swarm_sumlen += db_getsequencelen(seed);
 
@@ -787,7 +787,7 @@ auto write_network_file(const unsigned int network_count,
           fprintf(network_file, "\t");
           fprint_id(network_file, neighbour, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(network_file, "\n");
-          n++;
+          ++n;
         }
       progress_update(n);
     }
@@ -1213,7 +1213,7 @@ void algo_d1_run(struct Parameters const & p)
             maxgen = swarm_maxgen;
           }
 
-          swarmcount++;
+          ++swarmcount;
         }
       progress_update(seed+1);
     }
@@ -1255,7 +1255,7 @@ void algo_d1_run(struct Parameters const & p)
             {
               amplicons_in_small_clusters += sp->size;
               nucleotides_in_small_clusters += sp->sumlen;
-              small_clusters++;
+              ++small_clusters;
             }
           progress_update(i+1);
         }
