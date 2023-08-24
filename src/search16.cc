@@ -711,7 +711,7 @@ void search16(WORD * * q_start,
 
                       char * dbseq = reinterpret_cast<char*>(d_address[c]);
                       const uint64_t dbseqlen = d_length[c];
-                      uint64_t z = (dbseqlen + 3) % 4;
+                      const uint64_t z = (dbseqlen + 3) % 4;
                       uint64_t score
                         = (reinterpret_cast<WORD*>(S))[z * channels + c];
                       scores[cand_id] = score;
@@ -720,7 +720,7 @@ void search16(WORD * * q_start,
 
                       if (score < UINT16_MAX)
                         {
-                          uint64_t offset = d_offset[c];
+                          const uint64_t offset = d_offset[c];
                           diff = backtrack_16(query.seq, dbseq, qlen, dbseqlen,
                                               dirbuffer,
                                               offset,
