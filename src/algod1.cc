@@ -683,21 +683,21 @@ void process_seed(unsigned int seed)
   }
   swarm_sumlen += db_getsequencelen(seed);
 
-  const unsigned int s = ampinfo[seed].link_start;
-  const unsigned int c = ampinfo[seed].link_count;
+  const unsigned int link_start = ampinfo[seed].link_start;
+  const unsigned int link_count = ampinfo[seed].link_count;
 
-  if (global_hits_count + c > global_hits_alloc)
+  if (global_hits_count + link_count > global_hits_alloc)
     {
-      while (global_hits_count + c > global_hits_alloc) {
+      while (global_hits_count + link_count > global_hits_alloc) {
         global_hits_alloc += 4 * one_kilobyte;
       }
       global_hits_data = static_cast<unsigned int *>
         (xrealloc(global_hits_data, global_hits_alloc * sizeof(unsigned int)));
     }
 
-  for(auto i = 0U; i < c; i++)
+  for(auto offset = 0U; offset < link_count; offset++)
     {
-      unsigned int amp = network[s + i];
+      unsigned int amp = network[link_start + offset];
 
       if (ampinfo[amp].swarmid == no_swarm)
         {
