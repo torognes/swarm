@@ -386,7 +386,7 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
 }
 
 
-void db_read(const char * filename, struct Parameters const & parameters)
+auto db_read(const char * filename, struct Parameters const & parameters) -> void
 {
   /* allocate space */
 

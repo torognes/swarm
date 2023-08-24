@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cstdint>
 
-void db_read(const char * filename, struct Parameters const & parameters);
+auto db_read(const char * filename, struct Parameters const & parameters) -> void;
 
 auto db_getsequencecount() -> unsigned int;
 
