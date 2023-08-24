@@ -801,7 +801,7 @@ auto write_swarms_default_format(const unsigned int swarmcount,
 
   for(auto i = 0U; i < swarmcount; i++) {
     if (not swarminfo[i].attached) {
-      unsigned int seed = swarminfo[i].seed;
+      const unsigned int seed = swarminfo[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
         if (a != seed) {
           fputc(sepchar, outfile);
@@ -827,7 +827,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
 
   for(auto i = 0U; i < swarmcount; i++) {
     if (not swarminfo[i].attached) {
-      unsigned int seed = swarminfo[i].seed;
+      const unsigned int seed = swarminfo[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
         if (a == seed) {
           fputc('\t', outfile);
@@ -864,7 +864,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
     {
       if (not swarminfo[swarmid].attached)
         {
-          unsigned int seed = swarminfo[swarmid].seed;
+          const unsigned int seed = swarminfo[swarmid].seed;
 
           struct ampinfo_s * bp = ampinfo + seed;
 
@@ -883,9 +883,9 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
           for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
             {
               char * dseq = db_getsequence(a);
-              int64_t dlen = db_getsequencelen(a);
+              const int64_t dlen = db_getsequencelen(a);
               char * qseq = db_getsequence(seed);
-              int64_t qlen = db_getsequencelen(seed);
+              const int64_t qlen = db_getsequencelen(seed);
 
               int64_t nwscore = 0;
               int64_t nwdiff = 0;
@@ -897,7 +897,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                  dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
-              double percentid
+              const double percentid
                 = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
                 / static_cast<double>(nwalignmentlength);
 
@@ -944,10 +944,10 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
   for(auto j = 0U; j < swarmcount; j++)
     {
-      unsigned int i = sorter[j];
+      const unsigned int i = sorter[j];
       if (not swarminfo[i].attached)
         {
-          unsigned int seed = swarminfo[i].seed;
+          const unsigned int seed = swarminfo[i].seed;
           fprintf(fp_seeds, ">");
           fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, p.opt_usearch_abundance);
           fprintf(fp_seeds, "\n");
@@ -973,13 +973,13 @@ auto write_structure_file(const unsigned int swarmcount,
     {
       if (not swarminfo[swarmid].attached)
         {
-          unsigned int seed = swarminfo[swarmid].seed;
+          const unsigned int seed = swarminfo[swarmid].seed;
 
           struct ampinfo_s * bp = ampinfo + seed;
 
           for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
             {
-              uint64_t graft_parent = ampinfo[a].graft_cand;
+              const uint64_t graft_parent = ampinfo[a].graft_cand;
               if (graft_parent != no_swarm)
                 {
                   fprint_id_noabundance(internal_structure_file,
@@ -993,7 +993,7 @@ auto write_structure_file(const unsigned int swarmcount,
                           ampinfo[graft_parent].generation + 1);
                 }
 
-              uint64_t parent = ampinfo[a].parent;
+              const uint64_t parent = ampinfo[a].parent;
               if (parent != no_swarm)
                 {
                   fprint_id_noabundance(internal_structure_file, parent, p.opt_usearch_abundance);
