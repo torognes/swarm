@@ -260,7 +260,7 @@ void qgram_diff_fast(uint64_t seed,
       for(auto t = 0ULL; t < thr; t++)
         {
           thread_info_s * tip = ti + t;
-          uint64_t chunk = (listrest + thrrest - 1) / thrrest;
+          const uint64_t chunk = (listrest + thrrest - 1) / thrrest;
 
           tip->seed = seed;
           tip->amplist = next_amplist;
