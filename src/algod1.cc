@@ -213,7 +213,7 @@ auto attach(unsigned int seed, unsigned int amp) -> void
   swarminfo_s * heavy_swarm = swarminfo + ampinfo[seed].swarmid;
   swarminfo_s * light_swarm = swarminfo + ampinfo[amp].swarmid;
 
-  // attach the seed of the light swarm to the tail of the heavy swarm
+  // attach the seed of the light swarm to the tail of the heavy swarm (refactoring: unclear)
   ampinfo[heavy_swarm->last].next = light_swarm->seed;
   heavy_swarm->last = light_swarm->last;
 
