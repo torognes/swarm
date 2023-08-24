@@ -104,7 +104,7 @@ auto write_structure_file(const uint64_t swarmcount,
           fprint_id_noabundance(internal_structure_file, seed, p.opt_usearch_abundance);
           fprintf(internal_structure_file, "\t");
           fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
-          fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i+1, 0);
+          fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i + 1, 0);
           a = nextseqtab[a];
         }
       progress_update(i);
@@ -154,7 +154,7 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
           a = nextseqtab[a];
         }
 
-      progress_update(swarmid+1);
+      progress_update(swarmid + 1);
     }
   progress_done();
 }
@@ -171,7 +171,7 @@ auto write_representative_sequences(const uint64_t swarmcount,
       fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, p.opt_usearch_abundance);
       fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, seed);
-      progress_update(i+1);
+      progress_update(i + 1);
     }
   progress_done();
 }
@@ -198,7 +198,7 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
           a = nextseqtab[a];
         }
 
-      progress_update(i+1);
+      progress_update(i + 1);
     }
     fputc('\n', outfile);
 
@@ -224,7 +224,7 @@ auto write_swarms_default_format(const uint64_t swarmcount,
           a = nextseqtab[a];
         }
       fputc('\n', outfile);
-      progress_update(i+1);
+      progress_update(i + 1);
     }
 
   progress_done();
