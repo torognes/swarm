@@ -40,7 +40,7 @@
 #include "util.h"
 #include "zobrist.h"
 
-constexpr unsigned int one_kilobyte {1U << 10};
+constexpr unsigned int one_kilobyte {1U << 10U};
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
 
 static uint64_t duplicates_found {0};  // several function calls
