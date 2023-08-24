@@ -231,7 +231,11 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
 /* functions in algo.cc */
 
 auto algo_run(struct Parameters const & parameters) -> void;
-auto algo_d1_run(struct Parameters const & parameters) -> void ;
+
+
+/* functions in algod1.cc */
+
+auto algo_d1_run(struct Parameters const & parameters) -> void;
 
 
 /* functions in derep.cc */
