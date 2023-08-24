@@ -21,5 +21,5 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-void score_matrix_read(struct Parameters const & p);
+void score_matrix_read(struct Parameters const & parameters);
 void score_matrix_free();
