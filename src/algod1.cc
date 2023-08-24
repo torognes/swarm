@@ -232,7 +232,7 @@ void attach(unsigned int seed, unsigned int amp)
     largest = hp->size;
   }
 
-  swarmcount_adjusted--;
+  --swarmcount_adjusted;
 }
 
 
