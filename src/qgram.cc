@@ -58,14 +58,14 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 
   while((i < qgramlength-1) && (i<seqlen))
   {
-    qgram = (qgram << 2) | nt_extract(reinterpret_cast<char *>(seq), i);
+    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), i);
     i++;
   }
 
   while(i < seqlen)
   {
-    qgram = (qgram << 2) | nt_extract(reinterpret_cast<char *>(seq), i);
-    qgramvector[(qgram >> 3) & (qgramvectorbytes - 1)] ^= (1 << (qgram & max_range));
+    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), i);
+    qgramvector[(qgram >> 3U) & (qgramvectorbytes - 1)] ^= (1U << (qgram & max_range));
     i++;
   }
 }
