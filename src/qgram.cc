@@ -207,8 +207,8 @@ void qgram_worker(int64_t t)
 {
   struct thread_info_s * tip = ti + t;
 
-  uint64_t seed = tip->seed;
-  uint64_t listlen = tip->listlen;
+  const uint64_t seed = tip->seed;
+  const uint64_t listlen = tip->listlen;
   uint64_t * amplist = tip->amplist;
   uint64_t * difflist = tip->difflist;
 
