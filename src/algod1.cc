@@ -179,7 +179,7 @@ inline auto check_amp_identical(unsigned int amp1,
 inline void hash_insert(unsigned int amp)
 {
   /* find the first empty bucket */
-  uint64_t hash = db_gethash(amp);
+  const uint64_t hash = db_gethash(amp);
   uint64_t j = hash_getindex(hash);
   bool duplicate {false};
   while (hash_is_occupied(j))
@@ -313,8 +313,8 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   /* attach in order */
   for(auto i = 0U; i < pair_count; i++)
     {
-      unsigned int parent = graft_array[i].parent;
-      unsigned int child  = graft_array[i].child;
+      const unsigned int parent = graft_array[i].parent;
+      const unsigned int child  = graft_array[i].child;
 
       if (swarminfo[ampinfo[child].swarmid].attached)
         {
@@ -358,7 +358,7 @@ auto hash_check_attach(char * seq,
 
           /* make absolutely sure sequences are identical */
           char * ampseq = db_getsequence(amp);
-          unsigned int ampseqlen = db_getsequencelen(amp);
+          const unsigned int ampseqlen = db_getsequencelen(amp);
           if (check_variant(seq, seqlen, var, ampseq, ampseqlen))
             {
               add_graft_candidate(seed, amp);
