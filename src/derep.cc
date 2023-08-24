@@ -283,7 +283,7 @@ void dereplicate(struct Parameters const & p)
             }
         }
 
-      const uint64_t ab = db_getabundance(i);
+      const uint64_t abundance = db_getabundance(i);
 
       if ((bp->mass) != 0U)
         {
@@ -302,9 +302,9 @@ void dereplicate(struct Parameters const & p)
 
       ++bp->size;
       bp->seqno_last = i;
-      bp->mass += ab;
+      bp->mass += abundance;
 
-      if (ab == 1) {
+      if (abundance == 1) {
         ++bp->singletons;
       }
 
