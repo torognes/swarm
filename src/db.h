@@ -65,12 +65,12 @@ void db_qgrams_done();
 auto db_fprintseq(std::FILE * fastaout_fp, unsigned int seqno) -> void;
 
 void fprint_id(std::FILE * stream,
-               uint64_t x,
+               uint64_t seqno,
                bool opt_usearch_abundance,
                int64_t opt_append_abundance);
 
 void fprint_id_noabundance(std::FILE * stream,
-                           uint64_t x,
+                           uint64_t seqno,
                            bool opt_usearch_abundance);
 
 void fprint_id_with_new_abundance(std::FILE * stream,
