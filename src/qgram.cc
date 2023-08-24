@@ -198,9 +198,9 @@ inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
 
 inline auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t
 {
-  uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
-                                            db_getqgramvector(b));
-  uint64_t mindiff = (diffqgrams + 2 * qgramlength - 1)/(2 * qgramlength);
+  const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
+                                                  db_getqgramvector(b));
+  const uint64_t mindiff = (diffqgrams + 2 * qgramlength - 1)/(2 * qgramlength);
   return mindiff;
 }
 
