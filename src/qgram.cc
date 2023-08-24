@@ -157,9 +157,7 @@ auto popcount_128(__m128i x) -> uint64_t
 
   /* return low 64 bits: return value is always in range 0 to 128 */
 
-  auto o = reinterpret_cast<uint64_t>(_mm_movepi64_pi64(n));
-
-  return o;
+  return reinterpret_cast<uint64_t>(_mm_movepi64_pi64(n));
 }
 
 auto compareqgramvectors_128(unsigned char * a, unsigned char * b) -> uint64_t
@@ -202,7 +200,7 @@ inline auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t
 {
   uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(a),
                                             db_getqgramvector(b));
-  uint64_t mindiff = (diffqgrams + 2*qgramlength - 1)/(2*qgramlength);
+  uint64_t mindiff = (diffqgrams + 2 * qgramlength - 1)/(2 * qgramlength);
   return mindiff;
 }
 
