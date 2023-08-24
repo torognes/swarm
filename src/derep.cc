@@ -231,7 +231,7 @@ auto write_swarms_default_format(const uint64_t swarmcount,
 }
 
 
-void dereplicate(struct Parameters const & parameters)
+auto dereplicate(struct Parameters const & parameters) -> void
 {
   const uint64_t dbsequencecount = db_getsequencecount();
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
