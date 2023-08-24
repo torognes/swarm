@@ -97,7 +97,7 @@ auto write_structure_file(const uint64_t swarmcount,
   for(uint64_t i = 0; i < swarmcount; i++)
     {
       struct bucket * sp = hashtable + i;
-      uint64_t seed = sp->seqno_first;
+      const uint64_t seed = sp->seqno_first;
       unsigned int a = nextseqtab[seed];
       while (a != 0U)
         {
@@ -123,7 +123,7 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
     {
       struct bucket * bp = hashtable + swarmid;
 
-      unsigned int seed = bp->seqno_first;
+      const unsigned int seed = bp->seqno_first;
 
       fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
               swarmid,
@@ -166,7 +166,7 @@ auto write_representative_sequences(const uint64_t swarmcount,
   progress_init("Writing seeds:    ", swarmcount);
   for(auto i = 0U; i < swarmcount; i++)
     {
-      unsigned int seed = hashtable[i].seqno_first;
+      const unsigned int seed = hashtable[i].seqno_first;
       fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, p.opt_usearch_abundance);
       fprintf(fp_seeds, "\n");
