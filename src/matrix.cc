@@ -30,7 +30,7 @@ unsigned short * score_matrix_16 {nullptr};
 int64_t * score_matrix_63 {nullptr};
 
 
-void score_matrix_read(struct Parameters const & p)
+void score_matrix_read(struct Parameters const & parameters)
 {
   static constexpr int n_cells {32};  // number of chars in sym_nt
   static constexpr long long int one_thousand {1000};
@@ -44,7 +44,7 @@ void score_matrix_read(struct Parameters const & p)
 
   for(auto a = 0; a < n_cells / 2; a++) {
     for(auto b = 0; b < n_cells / 2; b++) {
-      sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : p.penalty_mismatch;
+      sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : parameters.penalty_mismatch;
       // sc = (a==b) ? matchscore : mismatchscore;
       if (sc < lo) {
         lo = sc;
