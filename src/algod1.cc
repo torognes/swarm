@@ -469,15 +469,15 @@ void check_heavy_thread(int64_t t)
   while ((heavy_amplicon < amplicons) &&
          (heavy_progress < heavy_amplicon_count))
     {
-      const unsigned int a = heavy_amplicon++;
-      if (swarminfo[ampinfo[a].swarmid].mass >=
+      const unsigned int heavy_amplicon_id = heavy_amplicon++;
+      if (swarminfo[ampinfo[heavy_amplicon_id].swarmid].mass >=
           static_cast<uint64_t>(opt_boundary))
         {
           progress_update(++heavy_progress);
           pthread_mutex_unlock(&heavy_mutex);
           uint64_t m {0};
           uint64_t v {0};
-          check_heavy_var(bloom_f, buffer1, a, &m, &v,
+          check_heavy_var(bloom_f, buffer1, heavy_amplicon_id, &m, &v,
                           variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += v;
