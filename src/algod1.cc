@@ -428,8 +428,8 @@ void check_heavy_var(struct bloomflex_s * bloom,
   uint64_t matches = 0;
 
   char * sequence = db_getsequence(seed);
-  unsigned int seqlen = db_getsequencelen(seed);
-  uint64_t hash = db_gethash(seed);
+  const unsigned int seqlen = db_getsequencelen(seed);
+  const uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
   for(auto i = 0U; i < variant_count; i++)
@@ -469,7 +469,7 @@ void check_heavy_thread(int64_t t)
   while ((heavy_amplicon < amplicons) &&
          (heavy_progress < heavy_amplicon_count))
     {
-      unsigned int a = heavy_amplicon++;
+      const unsigned int a = heavy_amplicon++;
       if (swarminfo[ampinfo[a].swarmid].mass >=
           static_cast<uint64_t>(opt_boundary))
         {
