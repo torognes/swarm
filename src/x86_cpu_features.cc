@@ -50,7 +50,7 @@ void cpuid(unsigned int f1,
                         : "a" (f1), "c" (f2));
 }
 
-void cpu_features_detect(struct Parameters & p)
+void cpu_features_detect(struct Parameters & parameters)
 {
   static constexpr unsigned int post_pentium {7};  // new cpus: a & 0xff > 6
   static constexpr unsigned int bit_mmx {23};
@@ -75,54 +75,54 @@ void cpu_features_detect(struct Parameters & p)
   if (maxlevel >= 1)
   {
     cpuid(1, 0, a, b, c, d);
-    p.mmx_present    = (d >> bit_mmx) & 1U;
-    p.sse_present    = (d >> bit_sse) & 1U;
-    p.sse2_present   = (d >> bit_sse2) & 1U;
-    p.sse3_present   = (c >> bit_sse3) & 1U;
+    parameters.mmx_present    = (d >> bit_mmx) & 1U;
+    parameters.sse_present    = (d >> bit_sse) & 1U;
+    parameters.sse2_present   = (d >> bit_sse2) & 1U;
+    parameters.sse3_present   = (c >> bit_sse3) & 1U;
     ssse3_present  = (c >> bit_ssse3) & 1U;
     sse41_present  = (c >> bit_sse41) & 1U;
-    p.sse42_present  = (c >> bit_sse42) & 1U;
+    parameters.sse42_present  = (c >> bit_sse42) & 1U;
     popcnt_present = (c >> bit_popcnt) & 1U;
-    p.avx_present    = (c >> bit_avx) & 1U;
+    parameters.avx_present    = (c >> bit_avx) & 1U;
 
     if (maxlevel >= post_pentium)
     {
       cpuid(post_pentium, 0, a, b, c, d);
-      p.avx2_present   = (b >> bit_avx2) & 1U;
+      parameters.avx2_present   = (b >> bit_avx2) & 1U;
     }
   }
 }
 
-void cpu_features_test(struct Parameters & p) {
-  if (p.sse2_present == 0) {
+void cpu_features_test(struct Parameters & parameters) {
+  if (parameters.sse2_present == 0) {
     fatal(error_prefix, "This program requires a processor with SSE2 instructions.");
   }
 
-  if (p.opt_disable_sse3)
+  if (parameters.opt_disable_sse3)
     {
-      p.sse3_present = 0;
+      parameters.sse3_present = 0;
       ssse3_present = 0;
       sse41_present = 0;
-      p.sse42_present = 0;
+      parameters.sse42_present = 0;
       popcnt_present = 0;
-      p.avx_present = 0;
-      p.avx2_present = 0;
+      parameters.avx_present = 0;
+      parameters.avx2_present = 0;
     }
 }
 
-void cpu_features_show(struct Parameters const & p)
+void cpu_features_show(struct Parameters const & parameters)
 {
   fprintf(logfile, "CPU features:     ");
-  if (p.mmx_present != 0){
+  if (parameters.mmx_present != 0){
     fprintf(logfile, " mmx");
   }
-  if (p.sse_present != 0) {
+  if (parameters.sse_present != 0) {
     fprintf(logfile, " sse");
   }
-  if (p.sse2_present != 0) {
+  if (parameters.sse2_present != 0) {
     fprintf(logfile, " sse2");
   }
-  if (p.sse3_present != 0) {
+  if (parameters.sse3_present != 0) {
     fprintf(logfile, " sse3");
   }
   if (ssse3_present != 0) {
@@ -131,16 +131,16 @@ void cpu_features_show(struct Parameters const & p)
   if (sse41_present != 0) {
     fprintf(logfile, " sse4.1");
   }
-  if (p.sse42_present != 0) {
+  if (parameters.sse42_present != 0) {
     fprintf(logfile, " sse4.2");
   }
   if (popcnt_present != 0) {
     fprintf(logfile, " popcnt");
   }
-  if (p.avx_present != 0) {
+  if (parameters.avx_present != 0) {
     fprintf(logfile, " avx");
   }
-  if (p.avx2_present != 0) {
+  if (parameters.avx2_present != 0) {
     fprintf(logfile, " avx2");
   }
   fprintf(logfile, "\n");
