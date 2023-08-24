@@ -126,7 +126,7 @@ void cpu_features_show(struct Parameters const & parameters)
     fprintf(logfile, " sse3");
   }
   if (ssse3_present != 0) {
-    fprintf(logfile, " ssse3"); // Supplemental SSSE3, introduced in 2006
+    fprintf(logfile, " ssse3"); // Supplemental SSE3, introduced in 2006
   }
   if (sse41_present != 0) {
     fprintf(logfile, " sse4.1");
