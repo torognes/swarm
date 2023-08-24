@@ -782,7 +782,7 @@ auto write_network_file(const unsigned int network_count,
 
       for(auto link = 0U; link < link_count; link++)
         {
-          unsigned int neighbour = network[link_start + link];
+          const unsigned int neighbour = network[link_start + link];
           fprint_id(network_file, seed, p.opt_usearch_abundance, p.opt_append_abundance);
           fprintf(network_file, "\t");
           fprint_id(network_file, neighbour, p.opt_usearch_abundance, p.opt_append_abundance);
