@@ -161,14 +161,14 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
 
 
 auto write_representative_sequences(const uint64_t swarmcount,
-                                    struct Parameters const & p,
+                                    struct Parameters const & parameters,
                                     struct bucket * hashtable) -> void {
   progress_init("Writing seeds:    ", swarmcount);
   for(auto i = 0U; i < swarmcount; i++)
     {
       const unsigned int seed = hashtable[i].seqno_first;
       fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, p.opt_usearch_abundance);
+      fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, parameters.opt_usearch_abundance);
       fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, seed);
       progress_update(i + 1);
@@ -178,23 +178,23 @@ auto write_representative_sequences(const uint64_t swarmcount,
 
 
 auto write_swarms_mothur_format(const uint64_t swarmcount,
-                                struct Parameters const & p,
+                                struct Parameters const & parameters,
                                 struct bucket * hashtable,
                                 unsigned int * nextseqtab) -> void {
   progress_init("Writing swarms:   ", swarmcount);
-  fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, p.opt_differences, swarmcount);
+  fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, swarmcount);
 
   for(auto i = 0U; i < swarmcount; i++)
     {
       const unsigned int seed = hashtable[i].seqno_first;
       fputc('\t', outfile);
-      fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       unsigned int a = nextseqtab[seed];
 
       while (a != 0U)
         {
           fputc(',', outfile);
-          fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(outfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           a = nextseqtab[a];
         }
 
@@ -207,20 +207,20 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
 
 
 auto write_swarms_default_format(const uint64_t swarmcount,
-                                 struct Parameters const & p,
+                                 struct Parameters const & parameters,
                                  struct bucket * hashtable,
                                  unsigned int * nextseqtab) -> void {
   progress_init("Writing swarms:   ", swarmcount);
   for(auto i = 0U; i < swarmcount; i++)
     {
       const unsigned int seed = hashtable[i].seqno_first;
-      fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       unsigned int a = nextseqtab[seed];
 
       while (a != 0U)
         {
           fputc(sepchar, outfile);
-          fprint_id(outfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(outfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           a = nextseqtab[a];
         }
       fputc('\n', outfile);
@@ -231,7 +231,7 @@ auto write_swarms_default_format(const uint64_t swarmcount,
 }
 
 
-void dereplicate(struct Parameters const & p)
+void dereplicate(struct Parameters const & parameters)
 {
   const uint64_t dbsequencecount = db_getsequencecount();
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
@@ -326,31 +326,31 @@ void dereplicate(struct Parameters const & p)
 
 
   /* dump swarms */
-  if (p.opt_mothur) {
-    write_swarms_mothur_format(swarmcount, p, hashtable, nextseqtab);
+  if (parameters.opt_mothur) {
+    write_swarms_mothur_format(swarmcount, parameters, hashtable, nextseqtab);
   }
   else {
-    write_swarms_default_format(swarmcount, p, hashtable, nextseqtab);
+    write_swarms_default_format(swarmcount, parameters, hashtable, nextseqtab);
   }
 
   /* dump seeds in fasta format with sum of abundances */
-  if (not p.opt_seeds.empty()) {
-    write_representative_sequences(swarmcount, p, hashtable);
+  if (not parameters.opt_seeds.empty()) {
+    write_representative_sequences(swarmcount, parameters, hashtable);
   }
 
   /* output swarm in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, p, hashtable, nextseqtab);
+    write_swarms_uclust_format(swarmcount, parameters, hashtable, nextseqtab);
   }
 
   /* output internal structure to file */
-  if (not p.opt_internal_structure.empty()) {
-    write_structure_file(swarmcount, p, hashtable, nextseqtab);
+  if (not parameters.opt_internal_structure.empty()) {
+    write_structure_file(swarmcount, parameters, hashtable, nextseqtab);
   }
 
   /* output statistics to file */
   if (statsfile != nullptr) {
-    write_stats_file(swarmcount, p, hashtable);
+    write_stats_file(swarmcount, parameters, hashtable);
   }
 
   fprintf(logfile, "\n");
