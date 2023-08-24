@@ -210,26 +210,26 @@ void attach(unsigned int seed, unsigned int amp)
 {
   /* graft light swarm (amp) on heavy swarm (seed) */
 
-  swarminfo_s * hp = swarminfo + ampinfo[seed].swarmid;
-  swarminfo_s * lp = swarminfo + ampinfo[amp].swarmid;
+  swarminfo_s * heavy_swarm = swarminfo + ampinfo[seed].swarmid;
+  swarminfo_s * light_swarm = swarminfo + ampinfo[amp].swarmid;
 
   // attach the seed of the light swarm to the tail of the heavy swarm
-  ampinfo[hp->last].next = lp->seed;
-  hp->last = lp->last;
+  ampinfo[heavy_swarm->last].next = light_swarm->seed;
+  heavy_swarm->last = light_swarm->last;
 
   // Update swarm info
-  hp->size += lp->size;
-  hp->singletons += lp->singletons;
-  hp->mass += lp->mass;
-  hp->sumlen += lp->sumlen;
+  heavy_swarm->size += light_swarm->size;
+  heavy_swarm->singletons += light_swarm->singletons;
+  heavy_swarm->mass += light_swarm->mass;
+  heavy_swarm->sumlen += light_swarm->sumlen;
   /* maxgen is untouched */
 
   /* flag attachment to avoid doing it again */
-  lp->attached = true;
+  light_swarm->attached = true;
 
   // Update overall stats
-  if (hp->size > largest) {
-    largest = hp->size;
+  if (heavy_swarm->size > largest) {
+    largest = heavy_swarm->size;
   }
 
   --swarmcount_adjusted;
