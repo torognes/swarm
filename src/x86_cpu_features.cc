@@ -50,7 +50,7 @@ void cpuid(unsigned int f1,
                         : "a" (f1), "c" (f2));
 }
 
-void cpu_features_detect(struct Parameters & parameters)
+auto cpu_features_detect(struct Parameters & parameters) -> void
 {
   static constexpr unsigned int post_pentium {7};  // new cpus: a & 0xff > 6
   static constexpr unsigned int bit_mmx {23};
@@ -93,7 +93,7 @@ void cpu_features_detect(struct Parameters & parameters)
   }
 }
 
-void cpu_features_test(struct Parameters & parameters) {
+auto cpu_features_test(struct Parameters & parameters) -> void {
   if (parameters.sse2_present == 0) {
     fatal(error_prefix, "This program requires a processor with SSE2 instructions.");
   }
@@ -110,7 +110,7 @@ void cpu_features_test(struct Parameters & parameters) {
     }
 }
 
-void cpu_features_show(struct Parameters const & parameters)
+auto cpu_features_show(struct Parameters const & parameters) -> void
 {
   fprintf(logfile, "CPU features:     ");
   if (parameters.mmx_present != 0){

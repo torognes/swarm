@@ -21,6 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-void cpu_features_detect(struct Parameters & parameters);
-void cpu_features_test(struct Parameters & parameters);
-void cpu_features_show(struct Parameters const & parameters);
+auto cpu_features_detect(struct Parameters & parameters) -> void;
+auto cpu_features_test(struct Parameters & parameters) -> void;
+auto cpu_features_show(struct Parameters const & parameters) -> void;
