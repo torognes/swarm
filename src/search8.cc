@@ -694,8 +694,8 @@ inline auto backtrack_8(char * qseq,
   uint64_t maskleft    = 1ULL << (channel + offset1);
   uint64_t maskextup   = 1ULL << (channel + offset2);
   uint64_t maskextleft = 1ULL << (channel + offset3);
-  int64_t i = static_cast<int64_t>(qlen) - 1;
-  int64_t j = static_cast<int64_t>(dlen) - 1;
+  auto i = static_cast<int64_t>(qlen) - 1;
+  auto j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
   uint64_t matches {0};
   char op {0};
