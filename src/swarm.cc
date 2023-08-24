@@ -182,7 +182,7 @@ auto args_long(char * str, const char * option) -> int64_t
 }
 
 
-void args_show()
+auto args_show() -> void
 {
 #ifdef __x86_64__
   cpu_features_detect(p);
