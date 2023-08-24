@@ -270,7 +270,7 @@ void qgram_diff_fast(uint64_t seed,
           next_amplist += chunk;
           next_difflist += chunk;
           listrest -= chunk;
-          thrrest--;
+          --thrrest;
         }
 
       qgram_threads->run();
