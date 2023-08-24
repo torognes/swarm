@@ -34,7 +34,7 @@
 
 std::string progname;  // unused variable?
 
-struct Parameters p;
+struct Parameters parameters;
 std::string opt_log;
 
 int64_t opt_boundary;
@@ -186,44 +186,44 @@ auto args_long(char * str, const char * option) -> int64_t
 auto args_show() -> void  // refactoring: pass a ref to parameters as argument
 {
 #ifdef __x86_64__
-  cpu_features_detect(p);
-  cpu_features_test(p);
-  cpu_features_show(p);
+  cpu_features_detect(parameters);
+  cpu_features_test(parameters);
+  cpu_features_show(parameters);
 #endif
 
-  fprintf(logfile, "Database file:     %s\n", p.input_filename.c_str());
-  fprintf(logfile, "Output file:       %s\n", p.opt_output_file.c_str());
-  if (! p.opt_statistics_file.empty()) {
-    fprintf(logfile, "Statistics file:   %s\n", p.opt_statistics_file.c_str());
+  fprintf(logfile, "Database file:     %s\n", parameters.input_filename.c_str());
+  fprintf(logfile, "Output file:       %s\n", parameters.opt_output_file.c_str());
+  if (! parameters.opt_statistics_file.empty()) {
+    fprintf(logfile, "Statistics file:   %s\n", parameters.opt_statistics_file.c_str());
   }
-  if (! p.opt_uclust_file.empty()) {
-    fprintf(logfile, "Uclust file:       %s\n", p.opt_uclust_file.c_str());
+  if (! parameters.opt_uclust_file.empty()) {
+    fprintf(logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
   }
-  if (! p.opt_internal_structure.empty()) {
-    fprintf(logfile, "Int. struct. file  %s\n", p.opt_internal_structure.c_str());
+  if (! parameters.opt_internal_structure.empty()) {
+    fprintf(logfile, "Int. struct. file  %s\n", parameters.opt_internal_structure.c_str());
   }
-  if (! p.opt_network_file.empty()) {
-    fprintf(logfile, "Network file       %s\n", p.opt_network_file.c_str());
+  if (! parameters.opt_network_file.empty()) {
+    fprintf(logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
   }
-  fprintf(logfile, "Resolution (d):    %" PRId64 "\n", p.opt_differences);
+  fprintf(logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
   fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
 
-  if (p.opt_differences > 1)
+  if (parameters.opt_differences > 1)
     {
       fprintf(logfile,
               "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
-              p.opt_match_reward, p.opt_mismatch_penalty);
+              parameters.opt_match_reward, parameters.opt_mismatch_penalty);
       fprintf(logfile,
               "Gap penalties:     opening: %" PRId64 ", extension: %" PRId64 "\n",
-              p.opt_gap_opening_penalty, p.opt_gap_extension_penalty);
+              parameters.opt_gap_opening_penalty, parameters.opt_gap_extension_penalty);
       fprintf(logfile,
               "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
               "gap extension: %" PRId64 "\n",
-              p.penalty_mismatch, penalty_gapopen, penalty_gapextend);
+              parameters.penalty_mismatch, penalty_gapopen, penalty_gapextend);
     }
   fprintf(logfile, "Break clusters:        %s\n",
           opt_no_otu_breaking ? "No" : "Yes");
-  if (p.opt_fastidious) {
+  if (parameters.opt_fastidious) {
     fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
             opt_boundary);
   }
@@ -291,7 +291,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
       {
       case 'a':  // refactoring: replace with enum class?
         /* append-abundance */
-        p.opt_append_abundance = args_long(optarg, "-a or --append-abundance");
+        parameters.opt_append_abundance = args_long(optarg, "-a or --append-abundance");
         break;
 
       case 'b':
@@ -301,42 +301,42 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'c':
         /* ceiling */
-        p.opt_ceiling = args_long(optarg, "-c or --ceiling");
+        parameters.opt_ceiling = args_long(optarg, "-c or --ceiling");
         break;
 
       case 'd':
         /* differences (resolution) */
-        p.opt_differences = args_long(optarg, "-d or --differences");
+        parameters.opt_differences = args_long(optarg, "-d or --differences");
         break;
 
       case 'e':
         /* gap extension penalty */
-        p.opt_gap_extension_penalty = args_long(optarg, "-e or --gap-extension-penalty");
+        parameters.opt_gap_extension_penalty = args_long(optarg, "-e or --gap-extension-penalty");
         break;
 
       case 'f':
         /* fastidious */
-        p.opt_fastidious = true;
+        parameters.opt_fastidious = true;
         break;
 
       case 'g':
         /* gap-opening-penalty */
-        p.opt_gap_opening_penalty = args_long(optarg, "-g or --gap-opening-penalty");
+        parameters.opt_gap_opening_penalty = args_long(optarg, "-g or --gap-opening-penalty");
         break;
 
       case 'h':
         /* help */
-        p.opt_help = true;
+        parameters.opt_help = true;
         break;
 
       case 'i':
         /* internal-structure */
-        p.opt_internal_structure = optarg;
+        parameters.opt_internal_structure = optarg;
         break;
 
       case 'j':
         /* network-file */
-        p.opt_network_file = optarg;
+        parameters.opt_network_file = optarg;
         break;
 
       case 'l':
@@ -346,7 +346,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'm':
         /* match-reward */
-        p.opt_match_reward = args_long(optarg, "-m or --match-reward");
+        parameters.opt_match_reward = args_long(optarg, "-m or --match-reward");
         break;
 
       case 'n':
@@ -356,22 +356,22 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'o':
         /* output-file */
-        p.opt_output_file = optarg;
+        parameters.opt_output_file = optarg;
         break;
 
       case 'p':
         /* mismatch-penalty */
-        p.opt_mismatch_penalty = args_long(optarg, "-p or --mismatch-penalty");
+        parameters.opt_mismatch_penalty = args_long(optarg, "-p or --mismatch-penalty");
         break;
 
       case 'r':
         /* mothur */
-        p.opt_mothur = true;
+        parameters.opt_mothur = true;
         break;
 
       case 's':
         /* statistics-file */
-        p.opt_statistics_file = optarg;
+        parameters.opt_statistics_file = optarg;
         break;
 
       case 't':
@@ -381,32 +381,32 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
       case 'u':
         /* uclust-file */
-        p.opt_uclust_file = optarg;
+        parameters.opt_uclust_file = optarg;
         break;
 
       case 'v':
         /* version */
-        p.opt_version = true;
+        parameters.opt_version = true;
         break;
 
       case 'w':
         /* seeds */
-        p.opt_seeds = optarg;
+        parameters.opt_seeds = optarg;
         break;
 
       case 'x':
         /* disable-sse3 */
-        p.opt_disable_sse3 = true;
+        parameters.opt_disable_sse3 = true;
         break;
 
       case 'y':
         /* bloom-bits */
-        p.opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
+        parameters.opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
         break;
 
       case 'z':
         /* usearch-abundance */
-        p.opt_usearch_abundance = true;
+        parameters.opt_usearch_abundance = true;
         break;
 
       default:
@@ -418,18 +418,18 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 
   if (optind < argc) {  // external variable defined in unistd.h for
                         // use with the getopt function
-    p.input_filename = argv[optind];
+    parameters.input_filename = argv[optind];
   }
 
   // scoring system
-  p.penalty_mismatch = 2 * p.opt_match_reward + 2 * p.opt_mismatch_penalty;
-  penalty_gapopen = 2 * p.opt_gap_opening_penalty;
-  penalty_gapextend = p.opt_match_reward + 2 * p.opt_gap_extension_penalty;
+  parameters.penalty_mismatch = 2 * parameters.opt_match_reward + 2 * parameters.opt_mismatch_penalty;
+  penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
+  penalty_gapextend = parameters.opt_match_reward + 2 * parameters.opt_gap_extension_penalty;
 
-  const int64_t penalty_factor {gcd(gcd(p.penalty_mismatch, penalty_gapopen), penalty_gapextend)};
+  const int64_t penalty_factor {gcd(gcd(parameters.penalty_mismatch, penalty_gapopen), penalty_gapextend)};
 
   // clang: risk of DivideZero, but that would require gcd(0, 0) which is not possible
-  p.penalty_mismatch /= penalty_factor;
+  parameters.penalty_mismatch /= penalty_factor;
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
 }
@@ -457,22 +457,22 @@ void args_check(std::array<int, n_options> & used_options) {
             "-t or --threads, must be in the range 1 to ", max_threads, ".");
     }
 
-  if ((p.opt_differences < 0) || (p.opt_differences > UINT8_MAX)) {
+  if ((parameters.opt_differences < 0) || (parameters.opt_differences > UINT8_MAX)) {
     fatal(error_prefix, "Illegal number of differences specified with -d or --differences, "
           "must be in the range 0 to ", UINT8_MAX, ".");
   }
 
-  if (p.opt_fastidious && (p.opt_differences != 1)) {
+  if (parameters.opt_fastidious && (parameters.opt_differences != 1)) {
     fatal(error_prefix, "Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
   }
 
-  if (p.opt_disable_sse3 && (p.opt_differences < 2)) {
+  if (parameters.opt_disable_sse3 && (parameters.opt_differences < 2)) {
     fatal(error_prefix, "Option --disable-sse3 or -x has no effect when d < 2 "
           "(SSE3 instructions are only used when d > 1).");
   }
 
-  if (not p.opt_fastidious)
+  if (not parameters.opt_fastidious)
     {
       if (used_options[boundary_index] != 0) {
         fatal(error_prefix, "Option -b or --boundary specified without -f or --fastidious.");
@@ -485,7 +485,7 @@ void args_check(std::array<int, n_options> & used_options) {
       }
     }
 
-  if (p.opt_differences < 2)
+  if (parameters.opt_differences < 2)
     {
       if (used_options[match_reward_index] != 0) {
         fatal(error_prefix, "Option -m or --match-reward specified when d < 2.");
@@ -501,27 +501,27 @@ void args_check(std::array<int, n_options> & used_options) {
       }
     }
 
-  if (p.opt_gap_opening_penalty < 0) {
+  if (parameters.opt_gap_opening_penalty < 0) {
     fatal(error_prefix, "Illegal gap opening penalty specified with -g or "
           "--gap-opening-penalty, must not be negative.");
   }
 
-  if (p.opt_gap_extension_penalty < 0) {
+  if (parameters.opt_gap_extension_penalty < 0) {
     fatal(error_prefix, "Illegal gap extension penalty specified with -e or "
           "--gap-extension-penalty, must not be negative.");
   }
 
-  if ((p.opt_gap_opening_penalty + p.opt_gap_extension_penalty) < 1) {
+  if ((parameters.opt_gap_opening_penalty + parameters.opt_gap_extension_penalty) < 1) {
     fatal(error_prefix, "Illegal gap penalties specified, the sum of the gap open and "
           "the gap extension penalty must be at least 1.");
   }
 
-  if (p.opt_match_reward < 1) {
+  if (parameters.opt_match_reward < 1) {
     fatal(error_prefix, "Illegal match reward specified with -m or --match-reward, "
           "must be at least 1.");
   }
 
-  if (p.opt_mismatch_penalty < 1) {
+  if (parameters.opt_mismatch_penalty < 1) {
     fatal(error_prefix, "Illegal mismatch penalty specified with -p or --mismatch-penalty, "
           "must be at least 1.");
   }
@@ -531,44 +531,44 @@ void args_check(std::array<int, n_options> & used_options) {
           "must be at least 2.");
   }
 
-  if ((used_options[ceiling_index] != 0) && ((p.opt_ceiling < min_ceiling) ||
-                                             (p.opt_ceiling > max_ceiling))) {
+  if ((used_options[ceiling_index] != 0) && ((parameters.opt_ceiling < min_ceiling) ||
+                                             (parameters.opt_ceiling > max_ceiling))) {
     fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
 
-  if ((p.opt_bloom_bits < min_bits_per_entry) ||
-      (p.opt_bloom_bits > max_bits_per_entry)) {
+  if ((parameters.opt_bloom_bits < min_bits_per_entry) ||
+      (parameters.opt_bloom_bits > max_bits_per_entry)) {
     fatal(error_prefix, "Illegal number of Bloom filter bits specified with -y or "
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
-  if ((used_options[append_abundance_index] != 0) && (p.opt_append_abundance < 1)) {
+  if ((used_options[append_abundance_index] != 0) && (parameters.opt_append_abundance < 1)) {
     fatal(error_prefix, "Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
 
-  if ((! p.opt_network_file.empty()) && (p.opt_differences != 1)) {
+  if ((! parameters.opt_network_file.empty()) && (parameters.opt_differences != 1)) {
     fatal(error_prefix, "A network file can only written when d = 1.");
   }
 
-  if (p.opt_version) {
+  if (parameters.opt_version) {
     show(header_message);
     std::exit(EXIT_SUCCESS);
   }
 
-  if (p.opt_help) {
+  if (parameters.opt_help) {
     show(header_message);
     show(args_usage_message);
     std::exit(EXIT_SUCCESS);
   }
 
   // scoring system check
-  const int64_t diff_saturation_16 = (std::min((UINT16_MAX / p.penalty_mismatch),
+  const int64_t diff_saturation_16 = (std::min((UINT16_MAX / parameters.penalty_mismatch),
                                                (UINT16_MAX - penalty_gapopen)
                                                / penalty_gapextend));
 
-  if (p.opt_differences > diff_saturation_16) {
+  if (parameters.opt_differences > diff_saturation_16) {
     fatal(error_prefix, "Resolution (d) too high for the given scoring system.");
   }
 }
@@ -577,7 +577,7 @@ void args_check(std::array<int, n_options> & used_options) {
 void open_files()
 {
   // special case (always '-')??
-  outfile = fopen_output(p.opt_output_file.c_str());
+  outfile = fopen_output(parameters.opt_output_file.c_str());
   if (outfile == nullptr) {
     fatal(error_prefix, "Unable to open output file for writing.");
   }
@@ -592,41 +592,41 @@ void open_files()
       }
     }
 
-  if (! p.opt_seeds.empty())
+  if (! parameters.opt_seeds.empty())
     {
-      fp_seeds = fopen_output(p.opt_seeds.c_str());
+      fp_seeds = fopen_output(parameters.opt_seeds.c_str());
       if (fp_seeds == nullptr) {
         fatal(error_prefix, "Unable to open seeds file for writing.");
       }
     }
 
-  if (! p.opt_statistics_file.empty())
+  if (! parameters.opt_statistics_file.empty())
     {
-      statsfile = fopen_output(p.opt_statistics_file.c_str());
+      statsfile = fopen_output(parameters.opt_statistics_file.c_str());
       if (statsfile == nullptr) {
         fatal(error_prefix, "Unable to open statistics file for writing.");
       }
     }
 
-  if (! p.opt_uclust_file.empty())
+  if (! parameters.opt_uclust_file.empty())
     {
-      uclustfile = fopen_output(p.opt_uclust_file.c_str());
+      uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
       if (uclustfile == nullptr) {
         fatal(error_prefix, "Unable to open uclust file for writing.");
       }
     }
 
-  if (! p.opt_internal_structure.empty())
+  if (! parameters.opt_internal_structure.empty())
     {
-      internal_structure_file = fopen_output(p.opt_internal_structure.c_str());
+      internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
       if (internal_structure_file == nullptr) {
         fatal(error_prefix, "Unable to open internal structure file for writing.");
       }
     }
 
-  if (! p.opt_network_file.empty())
+  if (! parameters.opt_network_file.empty())
     {
-      network_file = fopen_output(p.opt_network_file.c_str());
+      network_file = fopen_output(parameters.opt_network_file.c_str());
       if (network_file == nullptr) {
         fatal(error_prefix, "Unable to open network file for writing.");
       }
@@ -657,21 +657,21 @@ auto main(int argc, char** argv) -> int
   args_show();
 
   // parse fasta input
-  db_read(p.input_filename.c_str(), p);
+  db_read(parameters.input_filename.c_str(), parameters);
 
   // clustering
-  switch (p.opt_differences)
+  switch (parameters.opt_differences)
     {
     case 0:
-      dereplicate(p);
+      dereplicate(parameters);
       break;
 
     case 1:
-      algo_d1_run(p);
+      algo_d1_run(parameters);
       break;
 
     default:
-      algo_run(p);
+      algo_run(parameters);
       break;
     }
 
