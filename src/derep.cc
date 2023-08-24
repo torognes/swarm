@@ -186,7 +186,7 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
 
   for(auto i = 0U; i < swarmcount; i++)
     {
-      unsigned int seed = hashtable[i].seqno_first;
+      const unsigned int seed = hashtable[i].seqno_first;
       fputc('\t', outfile);
       fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
       unsigned int a = nextseqtab[seed];
@@ -213,7 +213,7 @@ auto write_swarms_default_format(const uint64_t swarmcount,
   progress_init("Writing swarms:   ", swarmcount);
   for(auto i = 0U; i < swarmcount; i++)
     {
-      unsigned int seed = hashtable[i].seqno_first;
+      const unsigned int seed = hashtable[i].seqno_first;
       fprint_id(outfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
       unsigned int a = nextseqtab[seed];
 
@@ -250,7 +250,7 @@ void dereplicate(struct Parameters const & p)
 
   for(auto i = 0U; i < dbsequencecount; i++)
     {
-      unsigned int seqlen = db_getsequencelen(i);
+      const unsigned int seqlen = db_getsequencelen(i);
       char * seq = db_getsequence(i);
 
       /*
@@ -261,8 +261,8 @@ void dereplicate(struct Parameters const & p)
         collision when the number of sequences is about 5e9.
       */
 
-      uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq),
-                                   seqlen);
+      const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq),
+                                         seqlen);
 
       uint64_t j = hash & derep_hash_mask;
       struct bucket * bp = hashtable + j;
@@ -283,7 +283,7 @@ void dereplicate(struct Parameters const & p)
             }
         }
 
-      uint64_t ab = db_getabundance(i);
+      const uint64_t ab = db_getabundance(i);
 
       if ((bp->mass) != 0U)
         {
