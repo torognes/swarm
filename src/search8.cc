@@ -707,7 +707,7 @@ inline auto backtrack_8(char * qseq,
 
   while ((i >= 0) && (j >= 0))
     {
-      aligned++;
+      ++aligned;
 
       uint64_t d
         = dirbuffer[(offset
@@ -717,30 +717,30 @@ inline auto backtrack_8(char * qseq,
 
       if ((operation == 'I') && ((d & maskextleft) == 0U))
         {
-          j--;
+          --j;
         }
       else if ((operation == 'D') && ((d & maskextup) == 0U))
         {
-          i--;
+          --i;
         }
       else if ((d & maskleft) != 0U)
         {
-          j--;
+          --j;
           operation = 'I';
         }
       else if ((d & maskup) == 0U)
         {
-          i--;
+          --i;
           operation = 'D';
         }
       else
         {
           if (nt_extract(qseq, static_cast<uint64_t>(i)) ==
               nt_extract(dseq, static_cast<uint64_t>(j))) {
-            matches++;
+            ++matches;
           }
-          i--;
-          j--;
+          --i;
+          --j;
           operation = 'M';
         }
 
@@ -751,8 +751,8 @@ inline auto backtrack_8(char * qseq,
 
   while (i >= 0)
     {
-      aligned++;
-      i--;
+      ++aligned;
+      --i;
 #ifdef SHOWALIGNMENT
       printf("D");
 #endif
@@ -760,8 +760,8 @@ inline auto backtrack_8(char * qseq,
 
   while (j >= 0)
     {
-      aligned++;
-      j--;
+      ++aligned;
+      --j;
 #ifdef SHOWALIGNMENT
       printf("I");
 #endif
