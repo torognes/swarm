@@ -712,7 +712,7 @@ inline auto backtrack_8(char * qseq,
       uint64_t d
         = dirbuffer[(offset
                      + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
-                     + static_cast<uint64_t>(4 * i + (j & 3U)))
+                     + static_cast<uint64_t>(4 * i + (static_cast<uint64_t>(j) & 3U)))
                     % dirbuffersize];
 
       if ((op == 'I') && ((d & maskextleft) == 0U))
