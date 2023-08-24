@@ -438,7 +438,7 @@ void args_check(std::array<int, n_options> & used_options) {
   static constexpr unsigned int min_bits_per_entry {2};
   static constexpr unsigned int max_bits_per_entry {64};
   static constexpr unsigned int min_ceiling {8};
-  static constexpr unsigned int max_ceiling {1U << 30};  // 1,073,741,824 (MiB of RAM)
+  static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
   static constexpr unsigned int max_threads {256};
   // meaning of the used_options values
   static constexpr unsigned int append_abundance_index {0};
