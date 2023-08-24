@@ -236,7 +236,7 @@ void attach(unsigned int seed, unsigned int amp)
 }
 
 
-void add_graft_candidate(unsigned int seed, unsigned int amp)
+auto add_graft_candidate(unsigned int seed, unsigned int amp) -> void
 {
   pthread_mutex_lock(&graft_mutex);
   ++graft_candidates;
