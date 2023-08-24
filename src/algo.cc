@@ -190,7 +190,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 }
 
 
-void algo_run(struct Parameters const & parameters)
+auto algo_run(struct Parameters const & parameters) -> void
 {
   score_matrix_read(parameters);
   search_begin();

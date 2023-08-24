@@ -230,7 +230,7 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
 
 /* functions in algo.cc */
 
-void algo_run(struct Parameters const & parameters);
+auto algo_run(struct Parameters const & parameters) -> void;
 void algo_d1_run(struct Parameters const & parameters);
 
 
