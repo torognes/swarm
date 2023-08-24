@@ -703,14 +703,14 @@ void search16(WORD * * q_start,
 
                   M = v_xor(M, T);
 
-                  int64_t cand_id = seq_id[c];
+                  const int64_t cand_id = seq_id[c];
 
                   if (cand_id >= 0)
                     {
                       // save score
 
                       char * dbseq = reinterpret_cast<char*>(d_address[c]);
-                      uint64_t dbseqlen = d_length[c];
+                      const uint64_t dbseqlen = d_length[c];
                       uint64_t z = (dbseqlen+3) % 4;
                       uint64_t score
                         = (reinterpret_cast<WORD*>(S))[z * channels + c];
