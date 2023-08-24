@@ -274,8 +274,8 @@ void dereplicate(struct Parameters const & p)
                       db_getsequence(bp->seqno_first),
                       nt_bytelength(seqlen)) != 0)))
         {
-          bp++;
-          j++;
+          ++bp;
+          ++j;
           if (bp >= hashtable + hashtablesize) // wrap around the table if we reach the end
             {
               bp = hashtable;
@@ -293,19 +293,19 @@ void dereplicate(struct Parameters const & p)
       else
         {
           /* no identical sequences yet, start a new cluster */
-          swarmcount++;
+          ++swarmcount;
           bp->hash = hash;
           bp->seqno_first = i;
           bp->size = 0;
           bp->singletons = 0;
         }
 
-      bp->size++;
+      ++bp->size;
       bp->seqno_last = i;
       bp->mass += ab;
 
       if (ab == 1) {
-        bp->singletons++;
+        ++bp->singletons;
       }
 
       if (bp->mass > maxmass) {
