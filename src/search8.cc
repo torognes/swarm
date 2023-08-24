@@ -928,16 +928,16 @@ void search8(BYTE * * q_start,
 
                   M = v_xor(M, T);
 
-                  int64_t cand_id = seq_id[c];
+                  const int64_t cand_id = seq_id[c];
 
                   if (cand_id >= 0)
                     {
                       // save score
 
                       char * dbseq = reinterpret_cast<char*>(d_address[c]);
-                      uint64_t dbseqlen = d_length[c];
-                      uint64_t z = (dbseqlen + 3) % 4;
-                      uint64_t score
+                      const uint64_t dbseqlen = d_length[c];
+                      const uint64_t z = (dbseqlen + 3) % 4;
+                      const uint64_t score
                         = (reinterpret_cast<BYTE*>(S))[z * channels + c];
                       scores[cand_id] = score;
 
@@ -945,7 +945,7 @@ void search8(BYTE * * q_start,
 
                       if (score < UINT8_MAX)
                         {
-                          uint64_t offset = d_offset[c];
+                          const uint64_t offset = d_offset[c];
                           diff = backtrack_8(query.seq, dbseq, qlen, dbseqlen,
                                              dirbuffer,
                                              offset,
@@ -967,7 +967,7 @@ void search8(BYTE * * q_start,
                     {
                       // get next sequence
                       seq_id[c] = static_cast<int64_t>(next_id);
-                      uint64_t seqno = seqnos[next_id];
+                      const uint64_t seqno = seqnos[next_id];
                       char * address {nullptr};
                       unsigned int length {0};
 
