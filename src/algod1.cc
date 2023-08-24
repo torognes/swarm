@@ -206,7 +206,7 @@ inline void hash_insert(unsigned int amp)
 /******************** FASTIDIOUS START ********************/
 
 
-void attach(unsigned int seed, unsigned int amp)
+auto attach(unsigned int seed, unsigned int amp) -> void
 {
   /* graft light swarm (amp) on heavy swarm (seed) */
 
