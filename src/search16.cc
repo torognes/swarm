@@ -467,7 +467,7 @@ auto backtrack_16(char * qseq,
   auto j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
   uint64_t matches {0};
-  char operation {0};  // Insertion, Deletion or Match
+  char operation {0};  // Insertion, Deletion or Match  // refactoring to enum class?
 
 #undef SHOWALIGNMENT
 #ifdef SHOWALIGNMENT
