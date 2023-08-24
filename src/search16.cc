@@ -742,7 +742,7 @@ void search16(WORD * * q_start,
                     {
                       // get next sequence
                       seq_id[c] = static_cast<int64_t>(next_id);
-                      uint64_t seqno = seqnos[next_id];
+                      const uint64_t seqno = seqnos[next_id];
                       char * address {nullptr};
                       unsigned int length {0};
 
