@@ -71,14 +71,14 @@ auto derep_compare(const void * a, const void * b) -> int
 
 
 auto write_stats_file(const uint64_t swarmcount,
-                      struct Parameters const & p,
+                      struct Parameters const & parameters,
                       struct bucket * hashtable) -> void {
   progress_init("Writing stats:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
       struct bucket * sp = hashtable + i;
       fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
-      fprint_id_noabundance(statsfile, sp->seqno_first, p.opt_usearch_abundance);
+      fprint_id_noabundance(statsfile, sp->seqno_first, parameters.opt_usearch_abundance);
       fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
               db_getabundance(sp->seqno_first),
               sp->singletons, 0U, 0U);
