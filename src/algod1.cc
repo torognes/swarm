@@ -135,8 +135,8 @@ void attach(unsigned int seed, unsigned int amp);
 void add_graft_candidate(unsigned int seed, unsigned int amp);
 auto compare_grafts(const void * a, const void * b) -> int;
 auto attach_candidates(unsigned int amplicon_count) -> unsigned int;
-auto hash_check_attach(char * seq,
-                       unsigned int seqlen,
+auto hash_check_attach(char * seed_sequence,
+                       unsigned int seed_seqlen,
                        struct var_s * var,
                        unsigned int seed) -> bool;
 void check_heavy_var(struct bloomflex_s * bloom,
@@ -336,8 +336,8 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
 }
 
 
-auto hash_check_attach(char * seq,
-                       unsigned int seqlen,
+auto hash_check_attach(char * seed_sequence,
+                       unsigned int seed_seqlen,
                        struct var_s * var,
                        unsigned int seed) -> bool
 {
@@ -357,9 +357,9 @@ auto hash_check_attach(char * seq,
           const unsigned int amp = hash_get_data(j);
 
           /* make absolutely sure sequences are identical */
-          char * ampseq = db_getsequence(amp);
-          const unsigned int ampseqlen = db_getsequencelen(amp);
-          if (check_variant(seq, seqlen, var, ampseq, ampseqlen))
+          char * amp_sequence = db_getsequence(amp);
+          const unsigned int amp_seqlen = db_getsequencelen(amp);
+          if (check_variant(seed_sequence, seed_seqlen, var, amp_sequence, amp_seqlen))
             {
               add_graft_candidate(seed, amp);
               return true;
