@@ -458,10 +458,10 @@ auto backtrack_16(char * qseq,
   static constexpr unsigned int offset1 {offset0 + 16};
   static constexpr unsigned int offset2 {offset1 + 16};
   static constexpr unsigned int offset3 {offset2 + 16};
-  uint64_t maskup      = 3ULL << (2 * channel + offset0);
-  uint64_t maskleft    = 3ULL << (2 * channel + offset1);
-  uint64_t maskextup   = 3ULL << (2 * channel + offset2);
-  uint64_t maskextleft = 3ULL << (2 * channel + offset3);
+  const uint64_t maskup      = 3ULL << (2 * channel + offset0);
+  const uint64_t maskleft    = 3ULL << (2 * channel + offset1);
+  const uint64_t maskextup   = 3ULL << (2 * channel + offset2);
+  const uint64_t maskextleft = 3ULL << (2 * channel + offset3);
 
   auto i = static_cast<int64_t>(qlen) - 1;
   auto j = static_cast<int64_t>(dlen) - 1;
@@ -478,7 +478,7 @@ auto backtrack_16(char * qseq,
     {
       ++aligned;
 
-      uint64_t d
+      const uint64_t d
         = dirbuffer[(offset
                      + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
                      + static_cast<uint64_t>(4 * i + (j & 3U)))
