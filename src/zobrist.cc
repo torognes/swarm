@@ -70,13 +70,13 @@ void zobrist_init(const unsigned int n)
     for(auto j = 0U; j < byte_range; j++) {
       auto z = 0ULL;
       auto x = j;
-      z ^= zobrist_value(4 * i + 0, x & 3);
-      x >>= 2;
-      z ^= zobrist_value(4 * i + 1, x & 3);
-      x >>= 2;
-      z ^= zobrist_value(4 * i + 2, x & 3);
-      x >>= 2;
-      z ^= zobrist_value(4 * i + 3, x & 3);
+      z ^= zobrist_value(4 * i + 0, x & 3U);
+      x >>= 2U;
+      z ^= zobrist_value(4 * i + 1, x & 3U);
+      x >>= 2U;
+      z ^= zobrist_value(4 * i + 2, x & 3U);
+      x >>= 2U;
+      z ^= zobrist_value(4 * i + 3, x & 3U);
       zobrist_tab_byte_base[byte_range * i + j] = z;
     }
   }
@@ -124,8 +124,8 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
       uint64_t x = *qb++;
       while (pos < len)
         {
-          zobrist_hash ^= zobrist_value(pos, x & 3);
-          x >>= 2;
+          zobrist_hash ^= zobrist_value(pos, x & 3U);
+          x >>= 2U;
           pos++;
         }
     }
@@ -149,9 +149,9 @@ auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> u
         x = q[pos / nt_per_uint64];
       }
       else {
-        x >>= 2;
+        x >>= 2U;
       }
-      zobrist_hash ^= zobrist_value(pos - 1, x & 3);
+      zobrist_hash ^= zobrist_value(pos - 1, x & 3U);
     }
   return zobrist_hash;
 }
@@ -171,9 +171,9 @@ auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> u
         x = q[pos / nt_per_uint64];
       }
       else {
-        x >>= 2;
+        x >>= 2U;
       }
-      zobrist_hash ^= zobrist_value(pos + 1, x & 3);
+      zobrist_hash ^= zobrist_value(pos + 1, x & 3U);
     }
   return zobrist_hash;
 }
