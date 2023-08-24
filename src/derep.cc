@@ -89,7 +89,7 @@ auto write_stats_file(const uint64_t swarmcount,
 
 
 auto write_structure_file(const uint64_t swarmcount,
-                          struct Parameters const & p,
+                          struct Parameters const & parameters,
                           struct bucket * hashtable,
                           unsigned int * nextseqtab) -> void {
   progress_init("Writing structure:", swarmcount);
@@ -101,9 +101,9 @@ auto write_structure_file(const uint64_t swarmcount,
       unsigned int a = nextseqtab[seed];
       while (a != 0U)
         {
-          fprint_id_noabundance(internal_structure_file, seed, p.opt_usearch_abundance);
+          fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
           fprintf(internal_structure_file, "\t");
-          fprint_id_noabundance(internal_structure_file, a, p.opt_usearch_abundance);
+          fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
           fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i + 1, 0);
           a = nextseqtab[a];
         }
@@ -114,7 +114,7 @@ auto write_structure_file(const uint64_t swarmcount,
 
 
 auto write_swarms_uclust_format(const uint64_t swarmcount,
-                                struct Parameters const & p,
+                                struct Parameters const & parameters,
                                 struct bucket * hashtable,
                                 unsigned int * nextseqtab) -> void {
   progress_init("Writing UCLUST:   ", swarmcount);
@@ -128,13 +128,13 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
       fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
               swarmid,
               bp->size);
-      fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       fprintf(uclustfile, "\t*\n");
 
       fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
               swarmid,
               db_getsequencelen(seed));
-      fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       fprintf(uclustfile, "\t*\n");
 
       unsigned int a = nextseqtab[seed];
@@ -147,9 +147,9 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
                   db_getsequencelen(a),
                   100.0,
                   "=");
-          fprint_id(uclustfile, a, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           fprintf(uclustfile, "\t");
-          fprint_id(uclustfile, seed, p.opt_usearch_abundance, p.opt_append_abundance);
+          fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           fprintf(uclustfile, "\n");
           a = nextseqtab[a];
         }
