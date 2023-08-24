@@ -1261,8 +1261,8 @@ void algo_d1_run(struct Parameters const & p)
         }
       progress_done();
 
-      uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
-      uint64_t large_clusters = swarmcount - small_clusters;
+      const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
+      const uint64_t large_clusters = swarmcount - small_clusters;
 
       fprintf(logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
               large_clusters, amplicons_in_large_clusters);
@@ -1408,7 +1408,7 @@ void algo_d1_run(struct Parameters const & p)
 
           fprintf(logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
           fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
-          unsigned int grafts = attach_candidates(amplicons);
+          const unsigned int grafts = attach_candidates(amplicons);
           fprintf(logfile, "Made %u grafts\n", grafts);
           fprintf(logfile, "\n");
         }
