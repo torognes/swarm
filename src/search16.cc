@@ -712,7 +712,7 @@ void search16(WORD * * q_start,
                       char * dbseq = reinterpret_cast<char*>(d_address[c]);
                       const uint64_t dbseqlen = d_length[c];
                       const uint64_t z = (dbseqlen + 3) % 4;
-                      uint64_t score
+                      const uint64_t score
                         = (reinterpret_cast<WORD*>(S))[z * channels + c];
                       scores[cand_id] = score;
 
