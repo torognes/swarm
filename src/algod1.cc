@@ -581,10 +581,10 @@ inline void find_variant_matches(unsigned int seed,
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
                 char * seed_sequence = db_getsequence(seed);
-                unsigned int seed_seqlen = db_getsequencelen(seed);
+                const unsigned int seed_seqlen = db_getsequencelen(seed);
 
                 char * amp_sequence = db_getsequence(amp);
-                unsigned int amp_seqlen = db_getsequencelen(amp);
+                const unsigned int amp_seqlen = db_getsequencelen(amp);
 
                 if (check_variant(seed_sequence, seed_seqlen,
                                   var,
@@ -610,8 +610,8 @@ void check_variants(unsigned int seed,
   * hits_count = 0;
 
   char * sequence = db_getsequence(seed);
-  unsigned int seqlen = db_getsequencelen(seed);
-  uint64_t hash = db_gethash(seed);
+  const unsigned int seqlen = db_getsequencelen(seed);
+  const uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
@@ -633,7 +633,7 @@ void network_thread(int64_t t)
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
     {
-      unsigned int amp = network_amp++;
+      const unsigned int amp = network_amp++;
       progress_update(amp);
 
       pthread_mutex_unlock(&network_mutex);
@@ -676,15 +676,15 @@ void process_seed(unsigned int seed)
   if (bp->generation > swarm_maxgen) {
     swarm_maxgen = bp->generation;
   }
-  uint64_t abundance = db_getabundance(seed);
+  const uint64_t abundance = db_getabundance(seed);
   abundance_sum += abundance;
   if (abundance == 1) {
     ++singletons;
   }
   swarm_sumlen += db_getsequencelen(seed);
 
-  unsigned int s = ampinfo[seed].link_start;
-  unsigned int c = ampinfo[seed].link_count;
+  const unsigned int s = ampinfo[seed].link_start;
+  const unsigned int c = ampinfo[seed].link_count;
 
   if (global_hits_count + c > global_hits_alloc)
     {
