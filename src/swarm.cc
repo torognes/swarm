@@ -236,8 +236,8 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
 
 void show(const std::vector<std::string> & message)
 {
-  for (const auto & m : message) {
-    fprintf(logfile, "%s", m.c_str());
+  for (const auto & message_element : message) {
+    fprintf(logfile, "%s", message_element.c_str());
   }
 }
 
