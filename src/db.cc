@@ -31,6 +31,7 @@
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <string>
+#include <vector>
 
 
 constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte

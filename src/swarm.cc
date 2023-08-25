@@ -32,6 +32,7 @@
 #include <array>
 #include <cstdint>  // int64_t
 #include <string>
+#include <vector>
 
 
 /* OPTIONS */
