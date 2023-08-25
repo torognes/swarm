@@ -23,6 +23,8 @@
 
 #include "swarm.h"
 #include "utils/fatal.h"
+#include <cstdint>  // uint64_t
+
 
 static const char * progress_prompt;
 static uint64_t progress_next;
