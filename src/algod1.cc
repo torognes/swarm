@@ -808,12 +808,12 @@ auto write_swarms_default_format(const unsigned int swarmcount,
       const unsigned int seed = swarminfo[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
         if (a != seed) {
-          fputc(sepchar, outfile);
+          std::fputc(sepchar, outfile);
         }
         fprint_id(outfile, a,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
-      fputc('\n', outfile);
+      std::fputc('\n', outfile);
     }
     progress_update(i + 1);
   }
@@ -834,10 +834,10 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
       const unsigned int seed = swarminfo[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
         if (a == seed) {
-          fputc('\t', outfile);
+          std::fputc('\t', outfile);
         }
         else {
-          fputc(',', outfile);
+          std::fputc(',', outfile);
         }
         fprint_id(outfile, a,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
@@ -846,7 +846,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
     progress_update(i + 1);
   }
 
-  fputc('\n', outfile);
+  std::fputc('\n', outfile);
 
   progress_done();
 }

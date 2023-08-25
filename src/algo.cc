@@ -150,16 +150,16 @@ auto write_swarms_default_format(const uint64_t amplicons,
     {
       const int64_t id = amps[i].swarmid;
       if (id == previd) {
-        fputc(sep_amplicons, outfile);
+        std::fputc(sep_amplicons, outfile);
       }
       else {
-        fputc(sep_swarms, outfile);
+        std::fputc(sep_swarms, outfile);
       }
       fprint_id(outfile, amps[i].ampliconid,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       previd = id;
     }
-  fputc('\n', outfile);
+  std::fputc('\n', outfile);
 }
 
 
@@ -180,17 +180,17 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
     {
       const int64_t id = amps[i].swarmid;
       if (id == previd) {
-        fputc(sep_amplicons, outfile);
+        std::fputc(sep_amplicons, outfile);
       }
       else {
-        fputc(sep_swarms, outfile);
+        std::fputc(sep_swarms, outfile);
       }
       fprint_id(outfile, amps[i].ampliconid,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       previd = id;
     }
 
-  fputc('\n', outfile);
+  std::fputc('\n', outfile);
 }
 
 
