@@ -159,13 +159,13 @@ void nw(char * dseq,
           n = *hep;
           e = *(hep+1);
           h += score_matrix
-            [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1) << multiplier)
+            [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1U) << multiplier)
              +(nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
 
-          dir[index] |= (f < h ? maskup : 0);
+          dir[index] |= (f < h ? maskup : 0U);
           h = std::min(h, f);
           h = std::min(h, e);
-          dir[index] |= (e == h ? maskleft : 0);
+          dir[index] |= (e == h ? maskleft : 0U);
 
           *hep = h;
 
@@ -173,8 +173,8 @@ void nw(char * dseq,
           e += gapextend;
           f += gapextend;
 
-          dir[index] |= (f < h ? maskextup : 0);
-          dir[index] |= (e < h ? maskextleft : 0);
+          dir[index] |= (f < h ? maskextup : 0U);
+          dir[index] |= (e < h ? maskextleft : 0U);
           f = std::min(h,f);
           e = std::min(h,e);
 
