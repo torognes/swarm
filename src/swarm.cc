@@ -28,6 +28,7 @@
 #include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "util.h"
+#include <cstdint>  // int64_t
 
 
 /* OPTIONS */
