@@ -39,6 +39,7 @@
 #include "variants.h"
 #include "util.h"
 #include "zobrist.h"
+#include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 
 

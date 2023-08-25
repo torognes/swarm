@@ -26,6 +26,7 @@
 #include "search8.h"
 #include "search16.h"
 #include "threads.h"
+#include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 
 
