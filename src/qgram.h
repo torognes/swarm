@@ -25,7 +25,7 @@
 
 void findqgrams(unsigned char * seq, uint64_t seqlen,
                 unsigned char * qgramvector);
-auto qgram_diff(uint64_t a, uint64_t b) -> uint64_t;
+auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t;
 void qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
