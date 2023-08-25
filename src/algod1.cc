@@ -39,6 +39,8 @@
 #include "variants.h"
 #include "util.h"
 #include "zobrist.h"
+#include <cstdint>  // int64_t, uint64_t
+
 
 constexpr unsigned int one_kilobyte {1U << 10U};
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
