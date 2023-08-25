@@ -22,6 +22,8 @@
 */
 
 #include "swarm.h"
+#include <cstdint>  // uint64_t
+
 
 #ifdef __x86_64__
 #ifdef __POPCNT__
