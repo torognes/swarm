@@ -26,6 +26,7 @@
 #include "util.h"
 #include "utils/fatal.h"
 #include "zobrist.h"
+#include <cstdint>  // int64_t, uint64_t
 
 
 constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
