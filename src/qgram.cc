@@ -31,6 +31,7 @@
 
 #endif
 
+#include <cstdint>  // int64_t, uint64_t
 
 
 static ThreadRunner * qgram_threads = nullptr;
