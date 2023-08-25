@@ -28,6 +28,8 @@
 #include "nw.h"
 #include "scan.h"
 #include "util.h"
+#include <cstdint>  // int64_t, uint64_t
+
 
 static uint64_t count_comparisons_8;
 static uint64_t count_comparisons_16;
