@@ -31,11 +31,12 @@
   https://doi.org/10.1145/1498698.1594230
 */
 
-#include <cstdint>  // uint64_t
-#include <cstring>
 #include "bloompat.h"
 #include "pseudo_rng.h"
 #include <algorithm>  // std::max
+#include <cstdint>  // uint64_t
+#include <cstring>
+
 
 void bloom_patterns_generate(struct bloom_s * b)
 {
