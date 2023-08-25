@@ -31,6 +31,9 @@
 
 #endif
 
+#include <cstdint>  // int64_t, uint64_t
+
+
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
 using BYTE = unsigned char;
