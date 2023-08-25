@@ -31,6 +31,7 @@
 #include <algorithm>  // std::min()
 #include <array>
 #include <cstdint>  // int64_t
+#include <cstdio>  // fclose()
 #include <string>
 #include <vector>
 
