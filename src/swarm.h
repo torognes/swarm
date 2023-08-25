@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cinttypes>
+#include <cinttypes>  // macros PRIu64 and PRId64
 
 #ifndef PRIu64
 #ifdef _WIN32
