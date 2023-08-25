@@ -30,6 +30,7 @@
 #include "util.h"
 #include <algorithm>  // std::min()
 #include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // fputc()
 
 
 static uint64_t count_comparisons_8;

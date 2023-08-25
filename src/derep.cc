@@ -27,6 +27,7 @@
 #include "util.h"
 #include "utils/hashtable_size.h"
 #include "zobrist.h"
+#include <cstdio>  // fputc()
 
 
 struct bucket
