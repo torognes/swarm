@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "util.h"
+#include <cstdint>  // int64_t, uint64_t
 
 
 void pushop(const char newop, char ** cigarendp, char * op, int * count)
