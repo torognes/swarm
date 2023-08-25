@@ -26,6 +26,7 @@
 #include "search8.h"
 #include "search16.h"
 #include "threads.h"
+#include <cstdint>  // int64_t, uint64_t
 
 
 static pthread_mutex_t scan_mutex;
