@@ -35,7 +35,7 @@
 #include <cstring>
 #include "bloompat.h"
 #include "pseudo_rng.h"
-
+#include <algorithm>  // std::max
 
 void bloom_patterns_generate(struct bloom_s * b)
 {
