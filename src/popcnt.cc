@@ -37,16 +37,16 @@
   available starting with the Nahalem archtecture in 2008.
 */
 
-auto compareqgramvectors_popcnt(unsigned char * a, unsigned char * b) -> uint64_t
+auto compareqgramvectors_popcnt(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t
 {
   /* Count number of different bits */
   /* Uses the POPCNT instruction, requires CPU with this feature */
 
-  auto *ap = reinterpret_cast<uint64_t*>(a);
-  auto *bp = reinterpret_cast<uint64_t*>(b);
+  auto *ap = reinterpret_cast<uint64_t*>(qgram_a);
+  auto *bp = reinterpret_cast<uint64_t*>(qgram_b);
   uint64_t count {0};
 
-  while (reinterpret_cast<unsigned char*>(ap) < a + qgramvectorbytes) {
+  while (reinterpret_cast<unsigned char*>(ap) < qgram_a + qgramvectorbytes) {
     count += _mm_popcnt_u64(*ap++ ^ *bp++);
   }
 
