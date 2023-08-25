@@ -31,7 +31,7 @@
   https://doi.org/10.1145/1498698.1594230
 */
 
-#include <cstdint>
+#include <cstdint>  // uint64_t
 #include <cstring>
 #include "bloompat.h"
 #include "pseudo_rng.h"
