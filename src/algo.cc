@@ -28,6 +28,7 @@
 #include "nw.h"
 #include "scan.h"
 #include "util.h"
+#include <algorithm>  // std::min()
 #include <cstdint>  // int64_t, uint64_t
 
 
