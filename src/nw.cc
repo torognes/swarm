@@ -204,7 +204,7 @@ void nw(char * dseq,
 
   while ((i > 0) && (j > 0))
     {
-      const auto d = dir[qlen * (j - 1) + (i - 1)];
+      const auto d = dir[qlen * (j - 1) + (i - 1)];  // refactoring: how to rename?
 
       ++alength;
 
