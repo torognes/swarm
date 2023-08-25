@@ -24,6 +24,8 @@
 #include "swarm.h"
 #include "variants.h"
 #include "zobrist.h"
+#include <cstdint>  // uint64_t
+
 
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 {
