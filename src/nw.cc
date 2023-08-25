@@ -204,7 +204,7 @@ void nw(char * dseq,
 
   while ((i > 0) && (j > 0))
     {
-      const int d = dir[qlen * (j - 1) + (i - 1)];
+      const auto d = dir[qlen * (j - 1) + (i - 1)];
 
       ++alength;
 
