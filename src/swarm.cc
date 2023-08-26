@@ -24,12 +24,12 @@
 #include "swarm.h"
 #include "algo.h"
 #include "algod1.h"
-#include "x86_cpu_features.h"
 #include "db.h"
 #include "derep.h"
 #include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "util.h"
+#include "x86_cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>
 #include <cstdint>  // int64_t
