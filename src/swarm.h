@@ -52,7 +52,6 @@ constexpr char PRId64[] = "ld";
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>  // replace with <fstream> to improve portability
-#include <vector>
 
 #ifdef __APPLE__
 #include <sys/resource.h>
