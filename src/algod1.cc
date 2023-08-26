@@ -40,6 +40,7 @@
 #include "util.h"
 #include "zobrist.h"
 #include <cassert>  // assert()
+#include <climits>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()

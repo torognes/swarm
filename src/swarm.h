@@ -39,7 +39,6 @@ constexpr char PRId64[] = "ld";
 #endif
 #endif
 
-#include <climits>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -93,8 +92,6 @@ constexpr char PRId64[] = "ld";
 
 #error Unknown architecture
 #endif
-
-static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* constants */
 

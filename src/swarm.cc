@@ -32,12 +32,14 @@
 #include "x86_cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>
+#include <climits>
 #include <cstdint>  // int64_t
 #include <cstdio>  // fclose()
 #include <cstdlib>  // std::exit
 #include <string>
 #include <vector>
 
+static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* OPTIONS */
 
