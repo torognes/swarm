@@ -42,6 +42,7 @@
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc()
+#include <cstdlib>  // qsort()
 
 
 constexpr unsigned int one_kilobyte {1U << 10U};

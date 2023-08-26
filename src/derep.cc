@@ -28,6 +28,7 @@
 #include "zobrist.h"
 #include <cstdint>
 #include <cstdio>  // fputc()
+#include <cstdlib>  // qsort()
 
 
 struct bucket

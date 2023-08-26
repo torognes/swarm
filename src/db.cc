@@ -31,6 +31,7 @@
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fclose()
+#include <cstdlib>  // qsort()
 #include <string>
 #include <vector>
 

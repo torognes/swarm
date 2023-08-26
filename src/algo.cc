@@ -31,6 +31,7 @@
 #include <algorithm>  // std::min()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc()
+#include <cstdlib>  // qsort()
 
 
 static uint64_t count_comparisons_8;
