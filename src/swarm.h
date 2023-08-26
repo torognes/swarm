@@ -226,8 +226,3 @@ inline auto nt_bytelength(unsigned int len) -> unsigned int
   static constexpr unsigned int bytes_per_uint64 {8};  // times 8 to get the number of bytes
   return ((len + max_nt_per_uint64 - 1) >> drop_remainder) * bytes_per_uint64;
 }
-
-
-/* functions in algo.cc */
-
-auto algo_run(struct Parameters const & parameters) -> void;
