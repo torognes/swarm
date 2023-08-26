@@ -47,7 +47,6 @@ constexpr char PRId64[] = "ld";
 #include <cstring>
 #include <fcntl.h>
 #include <getopt.h>
-#include <iostream>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
