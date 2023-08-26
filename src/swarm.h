@@ -45,7 +45,6 @@ constexpr char PRId64[] = "ld";
 #include <climits>
 #include <cstdarg>
 #include <cstdio>
-#include <cstdlib>  // std::exit
 #include <cstring>
 #include <fcntl.h>
 #include <getopt.h>

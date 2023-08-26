@@ -34,6 +34,7 @@
 #include <array>
 #include <cstdint>  // int64_t
 #include <cstdio>  // fclose()
+#include <cstdlib>  // std::exit
 #include <string>
 #include <vector>
 
