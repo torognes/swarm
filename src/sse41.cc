@@ -41,8 +41,8 @@
   available starting with the Penryn architecture in 2008.
 */
 
-#include <cstdint>
-#include <smmintrin.h>
+#include <cstdint>  //uint64_t
+#include <smmintrin.h>  // _mm_min_epu16
 
 
 using VECTORTYPE = __m128i;
