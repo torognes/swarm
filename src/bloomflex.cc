@@ -58,7 +58,7 @@ auto bloomflex_patterns_generate(struct bloomflex_s * b) -> void
 }
 
 
-auto bloomflex_init(const uint64_t size, const unsigned int k) -> struct bloomflex_s *
+auto bloomflex_init(const uint64_t size, const unsigned int n_hash_functions) -> struct bloomflex_s *
 {
   /* Input size is in bytes for full bitmap */
 
@@ -71,7 +71,7 @@ auto bloomflex_init(const uint64_t size, const unsigned int k) -> struct bloomfl
   b->pattern_shift = multiplier;
   b->pattern_count = 1U << b->pattern_shift;
   b->pattern_mask = b->pattern_count - 1;
-  b->pattern_k = k;
+  b->pattern_k = n_hash_functions;
 
   b->patterns = static_cast<uint64_t *>(xmalloc(b->pattern_count * sizeof(uint64_t)));
   bloomflex_patterns_generate(b);
