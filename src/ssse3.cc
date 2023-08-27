@@ -41,7 +41,7 @@
   available starting with the Intel Core architecture in 2006.
 */
 
-#include <tmmintrin.h>
+#include <tmmintrin.h>  // _mm_shuffle_epi8
 
 #define CAST_m128i_ptr(x) (reinterpret_cast<__m128i*>(x))
 
