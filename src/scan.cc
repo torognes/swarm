@@ -186,11 +186,11 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 }
 
 
-void search_worker_core(const int64_t t)
+void search_worker_core(const int64_t thread_id)
 {
-  search_init(search_data + t);
-  while(search_getwork(& search_data[t].target_count, & search_data[t].target_index)) {
-    search_chunk(search_data + t, master_bits);
+  search_init(search_data + thread_id);
+  while(search_getwork(& search_data[thread_id].target_count, & search_data[thread_id].target_index)) {
+    search_chunk(search_data + thread_id, master_bits);
   }
 }
 
@@ -273,8 +273,8 @@ void search_begin()
 
   search_data = new struct Search_data[static_cast<uint64_t>(opt_threads)];
 
-  for(auto t = 0LL; t < opt_threads; t++) {
-    search_alloc(search_data + t);
+  for(auto thread_id = 0LL; thread_id < opt_threads; thread_id++) {
+    search_alloc(search_data + thread_id);
   }
 
   pthread_mutex_init(& scan_mutex, nullptr);
@@ -294,8 +294,8 @@ void search_end()
 
   pthread_mutex_destroy(& scan_mutex);
 
-  for(auto t = 0LL; t < opt_threads; t++) {
-    search_free(search_data + t);
+  for(auto thread_id = 0LL; thread_id < opt_threads; thread_id++) {
+    search_free(search_data + thread_id);
   }
   delete [] search_data;
   search_data = nullptr;
