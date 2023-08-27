@@ -63,11 +63,6 @@ constexpr char PRId64[] = "ld";
 #include <arm_neon.h>
 #elif defined __x86_64__
 
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
-
-
 #elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
