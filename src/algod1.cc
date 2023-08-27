@@ -792,9 +792,9 @@ auto write_network_file(const unsigned int network_count,
         {
           const unsigned int neighbour = network[link_start + link];
           fprint_id(network_file, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(network_file, "\t");
+          std::fprintf(network_file, "\t");
           fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(network_file, "\n");
+          std::fprintf(network_file, "\n");
           ++n_processed;
         }
       progress_update(n_processed);
@@ -830,7 +830,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
                                 struct Parameters const & parameters) -> void {
   progress_init("Writing swarms:   ", swarmcount);
 
-  fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
+  std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
           parameters.opt_differences, swarmcount_adjusted);
 
   for(auto i = 0U; i < swarmcount; i++) {
@@ -876,17 +876,17 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
           struct ampinfo_s * bp = ampinfo + seed;
 
-          fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+          std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                   cluster_no,
                   swarminfo[swarmid].size);
           fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(uclustfile, "\t*\n");
+          std::fprintf(uclustfile, "\t*\n");
 
-          fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+          std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   cluster_no,
                   db_getsequencelen(seed));
           fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(uclustfile, "\t*\n");
+          std::fprintf(uclustfile, "\t*\n");
 
           for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
             {
@@ -909,7 +909,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                 = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
                 / static_cast<double>(nwalignmentlength);
 
-              fprintf(uclustfile,
+              std::fprintf(uclustfile,
                       "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       cluster_no,
                       db_getsequencelen(a),
@@ -917,9 +917,9 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                       nwdiff > 0 ? nwalignment : "=");
 
               fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              fprintf(uclustfile, "\t");
+              std::fprintf(uclustfile, "\t");
               fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              fprintf(uclustfile, "\n");
+              std::fprintf(uclustfile, "\n");
 
               if (nwalignment != nullptr) {
                 xfree(nwalignment);
@@ -956,9 +956,9 @@ auto write_representative_sequences(const unsigned int swarmcount,
       if (not swarminfo[i].attached)
         {
           const unsigned int seed = swarminfo[i].seed;
-          fprintf(fp_seeds, ">");
+          std::fprintf(fp_seeds, ">");
           fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, parameters.opt_usearch_abundance);
-          fprintf(fp_seeds, "\n");
+          std::fprintf(fp_seeds, "\n");
           db_fprintseq(fp_seeds, seed);
         }
       progress_update(i + 1);
@@ -992,9 +992,9 @@ auto write_structure_file(const unsigned int swarmcount,
                 {
                   fprint_id_noabundance(internal_structure_file,
                                         graft_parent, parameters.opt_usearch_abundance);
-                  fprintf(internal_structure_file, "\t");
+                  std::fprintf(internal_structure_file, "\t");
                   fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
-                  fprintf(internal_structure_file,
+                  std::fprintf(internal_structure_file,
                           "\t%d\t%u\t%u\n",
                           2,
                           cluster_no + 1,
@@ -1005,9 +1005,9 @@ auto write_structure_file(const unsigned int swarmcount,
               if (parent != no_swarm)
                 {
                   fprint_id_noabundance(internal_structure_file, parent, parameters.opt_usearch_abundance);
-                  fprintf(internal_structure_file, "\t");
+                  std::fprintf(internal_structure_file, "\t");
                   fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
-                  fprintf(internal_structure_file,
+                  std::fprintf(internal_structure_file,
                           "\t%u\t%u\t%u\n",
                           1U,
                           cluster_no + 1,
@@ -1031,9 +1031,9 @@ auto write_stats_file(const unsigned int swarmcount,
       swarminfo_s * sp = swarminfo + i;
       if (not sp->attached)
         {
-          fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
+          std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
           fprint_id_noabundance(statsfile, sp->seed, parameters.opt_usearch_abundance);
-          fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+          std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                   db_getabundance(sp->seed),
                   sp->singletons, sp->maxgen, sp->maxgen);
         }
@@ -1243,11 +1243,11 @@ void algo_d1_run(struct Parameters const & parameters)
 
   if (parameters.opt_fastidious)
     {
-      fprintf(logfile, "\n");
-      fprintf(logfile, "Results before fastidious processing:\n");
-      fprintf(logfile, "Number of swarms:  %u\n", swarmcount);
-      fprintf(logfile, "Largest swarm:     %u\n", largest);
-      fprintf(logfile, "\n");
+      std::fprintf(logfile, "\n");
+      std::fprintf(logfile, "Results before fastidious processing:\n");
+      std::fprintf(logfile, "Number of swarms:  %u\n", swarmcount);
+      std::fprintf(logfile, "Largest swarm:     %u\n", largest);
+      std::fprintf(logfile, "\n");
 
       uint64_t small_clusters = 0;
       uint64_t amplicons_in_small_clusters = 0;
@@ -1272,16 +1272,16 @@ void algo_d1_run(struct Parameters const & parameters)
       const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
       const uint64_t large_clusters = swarmcount - small_clusters;
 
-      fprintf(logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
+      std::fprintf(logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
               large_clusters, amplicons_in_large_clusters);
-      fprintf(logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
+      std::fprintf(logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
               small_clusters, amplicons_in_small_clusters);
-      fprintf(logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
+      std::fprintf(logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
               nucleotides_in_small_clusters);
 
       if ((small_clusters == 0) || (large_clusters == 0))
         {
-          fprintf(logfile, "Only light or heavy swarms found - "
+          std::fprintf(logfile, "Only light or heavy swarms found - "
                   "no need for further analysis.\n");
         }
       else
@@ -1321,7 +1321,7 @@ void algo_d1_run(struct Parameters const & parameters)
                   if (new_bits < 2) {
                     fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
                   }
-                  fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
+                  std::fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
                   // k = int(bits * 0.693);
                   k = static_cast<unsigned int>(hash_functions_per_bit * bits);
@@ -1339,11 +1339,11 @@ void algo_d1_run(struct Parameters const & parameters)
 
           if (memused + m / sizeof(uint64_t) > memtotal)
             {
-              fprintf(logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
-              fprintf(logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
+              std::fprintf(logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
+              std::fprintf(logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
             }
 
-          fprintf(logfile,
+          std::fprintf(logfile,
                   "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
                   bits, m, k, static_cast<double>(m) / (sizeof(uint64_t) * one_megabyte));
 
@@ -1383,7 +1383,7 @@ void algo_d1_run(struct Parameters const & parameters)
 
           progress_done();
 
-          fprintf(logfile,
+          std::fprintf(logfile,
                   "Generated %" PRIu64 " variants from light swarms\n",
                   light_variants);
 
@@ -1414,11 +1414,11 @@ void algo_d1_run(struct Parameters const & parameters)
 
           pthread_mutex_destroy(&graft_mutex);
 
-          fprintf(logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
-          fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
+          std::fprintf(logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
+          std::fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
           const unsigned int grafts = attach_candidates(amplicons);
-          fprintf(logfile, "Made %u grafts\n", grafts);
-          fprintf(logfile, "\n");
+          std::fprintf(logfile, "Made %u grafts\n", grafts);
+          std::fprintf(logfile, "\n");
         }
     }
 
@@ -1451,10 +1451,10 @@ void algo_d1_run(struct Parameters const & parameters)
     write_stats_file(swarmcount, parameters);
   }
 
-  fprintf(logfile, "\n");
-  fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
-  fprintf(logfile, "Largest swarm:     %u\n", largest);
-  fprintf(logfile, "Max generations:   %u\n", maxgen);
+  std::fprintf(logfile, "\n");
+  std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
+  std::fprintf(logfile, "Largest swarm:     %u\n", largest);
+  std::fprintf(logfile, "Max generations:   %u\n", maxgen);
 
   bloom_exit(bloom_a);
   hash_free();
@@ -1467,11 +1467,11 @@ void algo_d1_run(struct Parameters const & parameters)
   ampinfo = nullptr;
 
 #ifdef HASHSTATS
-  fprintf(logfile, "Tries:      %12lu\n", tries);
-  fprintf(logfile, "Bloom m:    %12lu\n", bloom_matches);
-  fprintf(logfile, "Hits:       %12lu\n", hits);
-  fprintf(logfile, "Success:    %12lu\n", success);
-  fprintf(logfile, "Bingo:      %12lu\n", bingo);
-  fprintf(logfile, "Collisions: %12lu\n", collisions);
+  std::fprintf(logfile, "Tries:      %12lu\n", tries);
+  std::fprintf(logfile, "Bloom m:    %12lu\n", bloom_matches);
+  std::fprintf(logfile, "Hits:       %12lu\n", hits);
+  std::fprintf(logfile, "Success:    %12lu\n", success);
+  std::fprintf(logfile, "Bingo:      %12lu\n", bingo);
+  std::fprintf(logfile, "Collisions: %12lu\n", collisions);
 #endif
 }

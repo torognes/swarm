@@ -205,53 +205,53 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
   cpu_features_show(parameters);
 #endif
 
-  fprintf(logfile, "Database file:     %s\n", parameters.input_filename.c_str());
-  fprintf(logfile, "Output file:       %s\n", parameters.opt_output_file.c_str());
+  std::fprintf(logfile, "Database file:     %s\n", parameters.input_filename.c_str());
+  std::fprintf(logfile, "Output file:       %s\n", parameters.opt_output_file.c_str());
   if (! parameters.opt_statistics_file.empty()) {
-    fprintf(logfile, "Statistics file:   %s\n", parameters.opt_statistics_file.c_str());
+    std::fprintf(logfile, "Statistics file:   %s\n", parameters.opt_statistics_file.c_str());
   }
   if (! parameters.opt_uclust_file.empty()) {
-    fprintf(logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
+    std::fprintf(logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
   }
   if (! parameters.opt_internal_structure.empty()) {
-    fprintf(logfile, "Int. struct. file  %s\n", parameters.opt_internal_structure.c_str());
+    std::fprintf(logfile, "Int. struct. file  %s\n", parameters.opt_internal_structure.c_str());
   }
   if (! parameters.opt_network_file.empty()) {
-    fprintf(logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
+    std::fprintf(logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
   }
-  fprintf(logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
-  fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
+  std::fprintf(logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
+  std::fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
 
   if (parameters.opt_differences > 1)
     {
-      fprintf(logfile,
+      std::fprintf(logfile,
               "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
               parameters.opt_match_reward, parameters.opt_mismatch_penalty);
-      fprintf(logfile,
+      std::fprintf(logfile,
               "Gap penalties:     opening: %" PRId64 ", extension: %" PRId64 "\n",
               parameters.opt_gap_opening_penalty, parameters.opt_gap_extension_penalty);
-      fprintf(logfile,
+      std::fprintf(logfile,
               "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
               "gap extension: %" PRId64 "\n",
               parameters.penalty_mismatch, penalty_gapopen, penalty_gapextend);
     }
-  fprintf(logfile, "Break clusters:        %s\n",
+  std::fprintf(logfile, "Break clusters:        %s\n",
           opt_no_otu_breaking ? "No" : "Yes");
   if (parameters.opt_fastidious) {
-    fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
+    std::fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
             opt_boundary);
   }
   else {
-    fprintf(logfile, "Fastidious:        No\n");
+    std::fprintf(logfile, "Fastidious:        No\n");
   }
-  fprintf(logfile, "\n");
+  std::fprintf(logfile, "\n");
 }
 
 
 void show(const std::vector<std::string> & message)
 {
   for (const auto & message_element : message) {
-    fprintf(logfile, "%s", message_element.c_str());
+    std::fprintf(logfile, "%s", message_element.c_str());
   }
 }
 

@@ -125,9 +125,9 @@ auto write_representative_sequences(const uint64_t amplicons,
       const uint64_t swarm_mass = swarminfo[i].mass;
       const unsigned int swarm_seed = swarminfo[i].seed;
 
-      fprintf(fp_seeds, ">");
+      std::fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
-      fprintf(fp_seeds, "\n");
+      std::fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, swarm_seed);
       progress_update(i);
     }
@@ -171,7 +171,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
   static constexpr char sep_amplicons {','};
   static constexpr char sep_swarms {'\t'};
 
-  fprintf(outfile, "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
+  std::fprintf(outfile, "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
 
   fprint_id(outfile, amps[0].ampliconid,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
@@ -392,14 +392,14 @@ auto algo_run(struct Parameters const & parameters) -> void
                     {
                       fprint_id_noabundance(internal_structure_file,
                                             seedampliconid, parameters.opt_usearch_abundance);
-                      fprintf(internal_structure_file, "\t");
+                      std::fprintf(internal_structure_file, "\t");
                       fprint_id_noabundance(internal_structure_file,
                                             poolampliconid, parameters.opt_usearch_abundance);
-                      fprintf(internal_structure_file, "\t%" PRIu64, diff);
-                      fprintf(internal_structure_file,
+                      std::fprintf(internal_structure_file, "\t%" PRIu64, diff);
+                      std::fprintf(internal_structure_file,
                               "\t%u\t1",
                               swarmid);
-                      fprintf(internal_structure_file, "\n");
+                      std::fprintf(internal_structure_file, "\n");
                     }
 
                   abundance = db_getabundance(poolampliconid);
@@ -539,15 +539,15 @@ auto algo_run(struct Parameters const & parameters) -> void
                               fprint_id_noabundance(internal_structure_file,
                                                     subseedampliconid,
                                                     parameters.opt_usearch_abundance);
-                              fprintf(internal_structure_file, "\t");
+                              std::fprintf(internal_structure_file, "\t");
                               fprint_id_noabundance(internal_structure_file,
                                                     poolampliconid,
                                                     parameters.opt_usearch_abundance);
-                              fprintf(internal_structure_file, "\t%" PRIu64, diff);
-                              fprintf(internal_structure_file,
+                              std::fprintf(internal_structure_file, "\t%" PRIu64, diff);
+                              std::fprintf(internal_structure_file,
                                       "\t%u\t%" PRIu64,
                                       swarmid, subseedgeneration + 1);
-                              fprintf(internal_structure_file, "\n");
+                              std::fprintf(internal_structure_file, "\n");
                             }
 
                           abundance = db_getabundance(poolampliconid);
@@ -576,15 +576,15 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       if (uclustfile != nullptr)
         {
-          fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
+          std::fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid-1, swarmsize);
           fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(uclustfile, "\t*\n");
+          std::fprintf(uclustfile, "\t*\n");
 
-          fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+          std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid-1, db_getsequencelen(seedampliconid));
           fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(uclustfile, "\t*\n");
+          std::fprintf(uclustfile, "\t*\n");
           fflush(uclustfile);
 
           for(auto i = 1ULL; i < hitcount; i++)
@@ -610,14 +610,14 @@ auto algo_run(struct Parameters const & parameters) -> void
                 = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
                 / static_cast<double>(nwalignmentlength);
 
-              fprintf(uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+              std::fprintf(uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid-1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? nwalignment : "=");
 
               fprint_id(uclustfile, hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              fprintf(uclustfile, "\t");
+              std::fprintf(uclustfile, "\t");
               fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              fprintf(uclustfile, "\n");
+              std::fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
               if (nwalignment != nullptr) {
@@ -633,10 +633,10 @@ auto algo_run(struct Parameters const & parameters) -> void
         {
           abundance = db_getabundance(seedampliconid);
 
-          fprintf(statsfile, "%" PRIu64 "\t%" PRIu64 "\t",
+          std::fprintf(statsfile, "%" PRIu64 "\t%" PRIu64 "\t",
                   swarmsize, amplicons_copies);
           fprint_id_noabundance(statsfile, seedampliconid, parameters.opt_usearch_abundance);
-          fprintf(statsfile,
+          std::fprintf(statsfile,
                   "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                   abundance, singletons, maxgen, maxradius);
         }
@@ -695,32 +695,32 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   qgram_diff_done();
 
-  fprintf(logfile, "\n");
+  std::fprintf(logfile, "\n");
 
-  fprintf(logfile, "Number of swarms:  %u\n", swarmid);
+  std::fprintf(logfile, "Number of swarms:  %u\n", swarmid);
 
-  fprintf(logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
+  std::fprintf(logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
 
-  fprintf(logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
+  std::fprintf(logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
 
 #ifdef VERBOSE
-  fprintf(logfile, "\n");
+  std::fprintf(logfile, "\n");
 
-  fprintf(logfile, "Estimates:         %" PRIu64 "\n", estimates);
+  std::fprintf(logfile, "Estimates:         %" PRIu64 "\n", estimates);
 
-  fprintf(logfile, "Searches:          %" PRIu64 "\n", searches);
+  std::fprintf(logfile, "Searches:          %" PRIu64 "\n", searches);
 
-  fprintf(logfile, "\n");
+  std::fprintf(logfile, "\n");
 
-  fprintf(logfile, "Comparisons (8b):  %" PRIu64 " (%.2lf%%)\n",
+  std::fprintf(logfile, "Comparisons (8b):  %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_8, (200.0 * count_comparisons_8 /
                                 amplicons / (amplicons + 1)));
 
-  fprintf(logfile, "Comparisons (16b): %" PRIu64 " (%.2lf%%)\n",
+  std::fprintf(logfile, "Comparisons (16b): %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_16, (200.0 * count_comparisons_16 /
                                  amplicons / (amplicons + 1)));
 
-  fprintf(logfile, "Comparisons (tot): %" PRIu64 " (%.2lf%%)\n",
+  std::fprintf(logfile, "Comparisons (tot): %" PRIu64 " (%.2lf%%)\n",
           count_comparisons_8 + count_comparisons_16,
           (200.0 * (count_comparisons_8 + count_comparisons_16) /
            amplicons / (amplicons+1)));

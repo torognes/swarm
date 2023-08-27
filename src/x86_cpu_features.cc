@@ -115,38 +115,38 @@ auto cpu_features_test(struct Parameters & parameters) -> void {
 
 auto cpu_features_show(struct Parameters const & parameters) -> void
 {
-  fprintf(logfile, "CPU features:     ");
+  std::fprintf(logfile, "CPU features:     ");
   if (parameters.mmx_present != 0){
-    fprintf(logfile, " mmx");
+    std::fprintf(logfile, " mmx");
   }
   if (parameters.sse_present != 0) {
-    fprintf(logfile, " sse");
+    std::fprintf(logfile, " sse");
   }
   if (parameters.sse2_present != 0) {
-    fprintf(logfile, " sse2");
+    std::fprintf(logfile, " sse2");
   }
   if (parameters.sse3_present != 0) {
-    fprintf(logfile, " sse3");
+    std::fprintf(logfile, " sse3");
   }
   if (ssse3_present != 0) {
-    fprintf(logfile, " ssse3"); // Supplemental SSE3, introduced in 2006
+    std::fprintf(logfile, " ssse3"); // Supplemental SSE3, introduced in 2006
   }
   if (sse41_present != 0) {
-    fprintf(logfile, " sse4.1");
+    std::fprintf(logfile, " sse4.1");
   }
   if (parameters.sse42_present != 0) {
-    fprintf(logfile, " sse4.2");
+    std::fprintf(logfile, " sse4.2");
   }
   if (popcnt_present != 0) {
-    fprintf(logfile, " popcnt");
+    std::fprintf(logfile, " popcnt");
   }
   if (parameters.avx_present != 0) {
-    fprintf(logfile, " avx");
+    std::fprintf(logfile, " avx");
   }
   if (parameters.avx2_present != 0) {
-    fprintf(logfile, " avx2");
+    std::fprintf(logfile, " avx2");
   }
-  fprintf(logfile, "\n");
+  std::fprintf(logfile, "\n");
 }
 
 #endif

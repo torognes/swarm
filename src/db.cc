@@ -130,14 +130,14 @@ auto fprint_id(std::FILE * stream, uint64_t seqno, bool opt_usearch_abundance,
 
   if ((opt_append_abundance != 0) && (seqinfo->abundance_start == seqinfo->abundance_end)) {
     if (opt_usearch_abundance) {
-      fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, seqinfo->abundance);
+      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, seqinfo->abundance);
     }
     else {
-      fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, seqinfo->abundance);
+      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, seqinfo->abundance);
     }
   }
   else {
-    fprintf(stream, "%.*s", hdrlen, hdrstr);
+    std::fprintf(stream, "%.*s", hdrlen, hdrstr);
   }
 }
 
@@ -151,21 +151,21 @@ auto fprint_id_noabundance(std::FILE * stream, uint64_t seqno, bool opt_usearch_
   if (seqinfo->abundance_start < seqinfo->abundance_end)
     {
       /* print start of header */
-      fprintf(stream, "%.*s", seqinfo->abundance_start, hdrstr);
+      std::fprintf(stream, "%.*s", seqinfo->abundance_start, hdrstr);
 
       if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
           if ((seqinfo->abundance_start > 0) && (seqinfo->abundance_end < hdrlen)) {
-            fprintf(stream, ";");
+            std::fprintf(stream, ";");
           }
 
           /* print remaining part */
-          fprintf(stream, "%.*s", hdrlen - seqinfo->abundance_end, hdrstr + seqinfo->abundance_end);
+          std::fprintf(stream, "%.*s", hdrlen - seqinfo->abundance_end, hdrstr + seqinfo->abundance_end);
         }
     }
   else {
-    fprintf(stream, "%.*s", hdrlen, hdrstr);
+    std::fprintf(stream, "%.*s", hdrlen, hdrstr);
   }
 }
 
@@ -178,7 +178,7 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
   const seqinfo_t * seqinfo = seqindex + seqno;
 
   if (opt_usearch_abundance) {
-    fprintf(stream,
+    std::fprintf(stream,
             "%.*s%ssize=%" PRIu64 ";%.*s",
             seqinfo->abundance_start,
             seqinfo->header,
@@ -188,7 +188,7 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
             seqinfo->header + seqinfo->abundance_end);
   }
   else {
-    fprintf(stream,
+    std::fprintf(stream,
             "%.*s_%" PRIu64,
             seqinfo->abundance_start,
             seqinfo->header,
@@ -433,7 +433,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
   uint64_t filepos = 0;
 
   if (! is_regular) {
-    fprintf(logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
+    std::fprintf(logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
   }
 
   size_t linecap = linealloc;
@@ -856,9 +856,9 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
   seqhashtable = nullptr;
 
   // user report
-  fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
-  fprintf(logfile, " in %u sequences,", db_getsequencecount());
-  fprintf(logfile, " longest %u nt\n", db_getlongestsequence());
+  std::fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
+  std::fprintf(logfile, " in %u sequences,", db_getsequencecount());
+  std::fprintf(logfile, " longest %u nt\n", db_getlongestsequence());
 }
 
 
@@ -952,5 +952,5 @@ auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
   }
   buffer[len] = '\0';
 
-  fprintf(fastaout_fp, "%.*s\n", len, buffer.data());
+  std::fprintf(fastaout_fp, "%.*s\n", len, buffer.data());
 }

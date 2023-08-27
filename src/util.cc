@@ -43,10 +43,10 @@ auto progress_init(const char * prompt, const uint64_t size) -> void
     1 : size / progress_granularity;
   progress_next = 1;
   if (! opt_log.empty()) {
-    fprintf(logfile, "%s", prompt);
+    std::fprintf(logfile, "%s", prompt);
   }
   else {
-    fprintf(logfile, "%s %.0f%%", prompt, 0.0);
+    std::fprintf(logfile, "%s %.0f%%", prompt, 0.0);
   }
 }
 
@@ -54,7 +54,7 @@ auto progress_update(const uint64_t progress) -> void
 {
   if (opt_log.empty() && (progress >= progress_next))
     {
-      fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
+      std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
               100.0 * static_cast<double>(progress)
               / static_cast<double>(progress_size));
       progress_next = progress + progress_chunk;
@@ -65,10 +65,10 @@ auto progress_update(const uint64_t progress) -> void
 auto progress_done() -> void
 {
   if (! opt_log.empty()) {
-    fprintf(logfile, " %.0f%%\n", 100.0);
+    std::fprintf(logfile, " %.0f%%\n", 100.0);
   }
   else {
-    fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+    std::fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
   }
   fflush(logfile);
 }

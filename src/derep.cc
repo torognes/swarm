@@ -80,9 +80,9 @@ auto write_stats_file(const uint64_t swarmcount,
   for(auto i = 0ULL; i < swarmcount; i++)
     {
       struct bucket * sp = hashtable + i;
-      fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
+      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
       fprint_id_noabundance(statsfile, sp->seqno_first, parameters.opt_usearch_abundance);
-      fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+      std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
               db_getabundance(sp->seqno_first),
               sp->singletons, 0U, 0U);
       progress_update(i);
@@ -105,9 +105,9 @@ auto write_structure_file(const uint64_t swarmcount,
       while (a != 0U)
         {
           fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
-          fprintf(internal_structure_file, "\t");
+          std::fprintf(internal_structure_file, "\t");
           fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
-          fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i + 1, 0);
+          std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i + 1, 0);
           a = nextseqtab[a];
         }
       progress_update(i);
@@ -128,32 +128,32 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
 
       const unsigned int seed = bp->seqno_first;
 
-      fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+      std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
               swarmid,
               bp->size);
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      fprintf(uclustfile, "\t*\n");
+      std::fprintf(uclustfile, "\t*\n");
 
-      fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+      std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
               swarmid,
               db_getsequencelen(seed));
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      fprintf(uclustfile, "\t*\n");
+      std::fprintf(uclustfile, "\t*\n");
 
       unsigned int a = nextseqtab[seed];
 
       while (a != 0U)
         {
-          fprintf(uclustfile,
+          std::fprintf(uclustfile,
                   "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                   swarmid,
                   db_getsequencelen(a),
                   100.0,
                   "=");
           fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(uclustfile, "\t");
+          std::fprintf(uclustfile, "\t");
           fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          fprintf(uclustfile, "\n");
+          std::fprintf(uclustfile, "\n");
           a = nextseqtab[a];
         }
 
@@ -170,9 +170,9 @@ auto write_representative_sequences(const uint64_t swarmcount,
   for(auto i = 0U; i < swarmcount; i++)
     {
       const unsigned int seed = hashtable[i].seqno_first;
-      fprintf(fp_seeds, ">");
+      std::fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, parameters.opt_usearch_abundance);
-      fprintf(fp_seeds, "\n");
+      std::fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, seed);
       progress_update(i + 1);
     }
@@ -185,7 +185,7 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
                                 struct bucket * hashtable,
                                 unsigned int * nextseqtab) -> void {
   progress_init("Writing swarms:   ", swarmcount);
-  fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, swarmcount);
+  std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, swarmcount);
 
   for(auto i = 0U; i < swarmcount; i++)
     {
@@ -356,10 +356,10 @@ auto dereplicate(struct Parameters const & parameters) -> void
     write_stats_file(swarmcount, parameters, hashtable);
   }
 
-  fprintf(logfile, "\n");
-  fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount);
-  fprintf(logfile, "Largest swarm:     %u\n", maxsize);
-  fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
+  std::fprintf(logfile, "\n");
+  std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount);
+  std::fprintf(logfile, "Largest swarm:     %u\n", maxsize);
+  std::fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
 
   delete [] nextseqtab;
   nextseqtab = nullptr;
