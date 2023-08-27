@@ -33,6 +33,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fclose()
 #include <cstdlib>  // qsort()
+#include <cstring>  // memcpy, memcmp
 #include <string>
 #include <vector>
 
