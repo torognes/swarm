@@ -34,7 +34,7 @@
 #include <array>
 #include <climits>
 #include <cstdint>  // int64_t
-#include <cstdio>  // fclose()
+#include <cstdio>  // FILE, fclose, stderr
 #include <cstdlib>  // std::exit
 #include <getopt.h>  // getopt_long, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
