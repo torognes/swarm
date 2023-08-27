@@ -53,7 +53,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 
   static constexpr unsigned int max_range {7};
 
-  memset(qgramvector, 0, qgramvectorbytes);
+  std::memset(qgramvector, 0, qgramvectorbytes);
 
   uint64_t qgram {0};
   unsigned int i {0};

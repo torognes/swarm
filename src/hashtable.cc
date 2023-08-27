@@ -37,7 +37,7 @@ void hash_zap(const uint64_t hashtablesize)
 {
   static constexpr int padding {63};  // make sure our final value is >= 64 / 8
   static constexpr int convert_to_bytes {8};
-  memset(hash_occupied, 0, (hashtablesize + padding) / convert_to_bytes);
+  std::memset(hash_occupied, 0, (hashtablesize + padding) / convert_to_bytes);
 }
 
 

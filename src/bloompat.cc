@@ -61,7 +61,7 @@ void bloom_patterns_generate(struct bloom_s * b)
 
 void bloom_zap(struct bloom_s * b)
 {
-  memset(b->bitmap, UINT8_MAX, b->size);
+  std::memset(b->bitmap, UINT8_MAX, b->size);
 }
 
 

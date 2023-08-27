@@ -78,7 +78,7 @@ auto bloomflex_init(const uint64_t size, const unsigned int k) -> struct bloomfl
 
   // b->bitmap = new uint64_t[size / sizeof(uint64_t)];  fix for std::bad_alloc crash
   b->bitmap = static_cast<uint64_t *>(xmalloc(size));
-  memset(b->bitmap, UINT8_MAX, size);
+  std::memset(b->bitmap, UINT8_MAX, size);
 
   return b;
 }
