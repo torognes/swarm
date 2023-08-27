@@ -28,6 +28,8 @@
 #ifdef __x86_64__
 #ifdef __POPCNT__
 
+#include <popcntintrin.h>
+
 /*
   POPCNT specific code for x86-64
 

@@ -75,10 +75,6 @@ constexpr char PRId64[] = "ld";
 #include <smmintrin.h>  // could be removed?
 #endif
 
-#ifdef __POPCNT__
-#include <popcntintrin.h>
-#endif
-
 #elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
