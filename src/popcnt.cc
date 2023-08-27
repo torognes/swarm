@@ -21,14 +21,14 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
-#include <cstdint>  // uint64_t
-
 
 #ifdef __x86_64__
 #ifdef __POPCNT__
 
+#include "swarm.h"
 #include <popcntintrin.h>
+#include <cstdint>  // uint64_t
+
 
 /*
   POPCNT specific code for x86-64
