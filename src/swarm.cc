@@ -268,40 +268,40 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
   opt_threads = threads_default;
   opterr = 1;  // unused variable? get_opt option?
 
-  int c {0};
+  int option_character {0};
 
   while (true)
   {
     int option_index {0};
-    c = getopt_long(argc, argv, short_options, long_options, &option_index);
+    option_character = getopt_long(argc, argv, short_options, long_options, &option_index);
 
-    if (c == -1) {
+    if (option_character == -1) {
       break;
     }
 
     /* check if any option is specified more than once */
 
-    if ((c >= 'a') && (c <= 'z'))
+    if ((option_character >= 'a') && (option_character <= 'z'))
       {
-        auto optindex = static_cast<unsigned int>(c - 'a');  // c - 'a' cannot be negative
+        auto optindex = static_cast<unsigned int>(option_character - 'a');  // c - 'a' cannot be negative
         if (used_options[optindex] == 1)
           {
             int longoptindex {0};
             while (long_options[longoptindex].name != nullptr)
               {
-                if (long_options[longoptindex].val == c) {
+                if (long_options[longoptindex].val == option_character) {
                   break;
                 }
                 longoptindex++;
               }
-            fatal(error_prefix, "Option -", static_cast<char>(c),
+            fatal(error_prefix, "Option -", static_cast<char>(option_character),
                   " or --", long_options[longoptindex].name,
                   " specified more than once.");
           }
         used_options[optindex] = 1;
       }
 
-    switch(c)
+    switch(option_character)
       {
       case 'a':  // refactoring: replace with enum class?
         /* append-abundance */
