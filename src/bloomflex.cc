@@ -46,8 +46,7 @@ auto bloomflex_patterns_generate(struct bloomflex_s * b) -> void
       uint64_t pattern {0};
       for(auto j = 0U; j < b->pattern_k; j++)
         {
-          uint64_t onebit {0};
-          onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
+          uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
           while ((pattern & onebit) != 0U) {
             onebit = 1ULL << (rand_64() & max_range);
           }
