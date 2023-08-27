@@ -55,8 +55,8 @@ constexpr char PRId64[] = "ld";
 #include <windows.h>
 #include <psapi.h>
 #else
-#include <sys/resource.h>
-#include <sys/sysinfo.h>
+#include <sys/resource.h>  // Linux: getrusage, r_usage
+#include <sys/sysinfo.h>  // sysconf?
 #endif
 
 #ifdef __aarch64__
