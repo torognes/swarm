@@ -34,7 +34,7 @@ void score_matrix_read(struct Parameters const & parameters)
 {
   static constexpr int n_cells {32};  // number of chars in sym_nt
   static constexpr long long int one_thousand {1000};
-  long long int sc {0};
+  long long int score {0};
   long long int hi {-one_thousand};
   long long int lo {one_thousand};
 
@@ -44,23 +44,23 @@ void score_matrix_read(struct Parameters const & parameters)
 
   for(auto a = 0; a < n_cells / 2; a++) {
     for(auto b = 0; b < n_cells / 2; b++) {
-      sc = ((a == b) && (a > 0) && (b > 0)) ? 0 : parameters.penalty_mismatch;
-      // sc = (a==b) ? matchscore : mismatchscore;
-      if (sc < lo) {
-        lo = sc;
+      score = ((a == b) && (a > 0) && (b > 0)) ? 0 : parameters.penalty_mismatch;
+      // score = (a==b) ? matchscore : mismatchscore;
+      if (score < lo) {
+        lo = score;
       }
-      if (sc > hi) {
-        hi = sc;
+      if (score > hi) {
+        hi = score;
       }
-      score_matrix_63[(a * n_cells) + b] = sc;
+      score_matrix_63[(a * n_cells) + b] = score;
     }
   }
 
   for(auto a = 0; a < n_cells; a++) {
     for(auto b = 0; b < n_cells; b++) {
-      sc = score_matrix_63[(a * n_cells) + b];
-      score_matrix_8[(a * n_cells) + b] = static_cast<unsigned char>(sc);
-      score_matrix_16[(a * n_cells) + b] = static_cast<unsigned short>(sc);
+      score = score_matrix_63[(a * n_cells) + b];
+      score_matrix_8[(a * n_cells) + b] = static_cast<unsigned char>(score);
+      score_matrix_16[(a * n_cells) + b] = static_cast<unsigned short>(score);
     }
   }
 }
