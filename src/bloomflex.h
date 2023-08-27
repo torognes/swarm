@@ -34,7 +34,7 @@ struct bloomflex_s
   uint64_t * patterns;
 };
 
-auto bloomflex_init(uint64_t size, unsigned int k) -> struct bloomflex_s *;
+auto bloomflex_init(uint64_t size, unsigned int n_hash_functions) -> struct bloomflex_s *;
 
 void bloomflex_exit(struct bloomflex_s * b);
 
