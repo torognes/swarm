@@ -142,7 +142,7 @@ void nw(char * dseq,
   int64_t n {0};
   int64_t e {0};
 
-  memset(dir, 0, static_cast<size_t>(qlen * dlen));
+  std::memset(dir, 0, static_cast<size_t>(qlen * dlen));
 
   for(auto i = 0L; i < qlen; i++)
     {
@@ -285,7 +285,7 @@ void nw(char * dseq,
   /* move and reallocate cigar */
 
   auto cigaralloc = static_cast<size_t>(cigar + qlen + dlen - cigarend + 1);
-  memmove(cigar, cigarend, cigaralloc);
+  std::memmove(cigar, cigarend, cigaralloc);
   cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
 
   * nwscore = dist;
