@@ -38,6 +38,7 @@
 #include "threads.h"
 #include "variants.h"
 #include "util.h"
+#include "utils/nt_codec.h"
 #include "zobrist.h"
 #include <cassert>  // assert()
 #include <climits>

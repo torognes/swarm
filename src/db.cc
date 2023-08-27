@@ -25,6 +25,7 @@
 #include "qgram.h"
 #include "util.h"
 #include "utils/fatal.h"
+#include "utils/nt_codec.h"
 #include "zobrist.h"
 #include <algorithm>  // std::min()
 #include <array>

@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "util.h"
+#include "utils/nt_codec.h"
 #include <algorithm>  // std::min()
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t

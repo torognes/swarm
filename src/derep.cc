@@ -25,6 +25,7 @@
 #include "db.h"
 #include "util.h"
 #include "utils/hashtable_size.h"
+#include "utils/nt_codec.h"
 #include "zobrist.h"
 #include <cstdint>
 #include <cstdio>  // fputc()

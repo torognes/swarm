@@ -192,27 +192,3 @@ extern int64_t popcnt_present; // several function calls
 extern unsigned char * score_matrix_8;
 extern unsigned short * score_matrix_16;
 extern int64_t * score_matrix_63;
-
-
-/* inline functions */
-
-inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
-{
-  // Extract compressed nucleotide in sequence seq at position pos
-  static constexpr unsigned int max_nt_per_uint64 {32};  // 32 nt fit in 64 bits
-  static constexpr unsigned int drop_remainder {5};  // (len+31) % 32 (drop remainder)
-  static constexpr unsigned int max_range {3};
-  // outputs four possible values: 0, 1, 2 or 3
-  return (((reinterpret_cast<uint64_t*>(seq))[pos >> drop_remainder]) >> \
-          ((pos & (max_nt_per_uint64 - 1)) << 1U)) & max_range;
-}
-
-inline auto nt_bytelength(unsigned int len) -> unsigned int
-{
-  // Compute number of bytes used for compressed sequence of length len
-  // (minimum result is 8 bytes)
-  static constexpr unsigned int max_nt_per_uint64 {32};  // 32 nt fit in 64 bits
-  static constexpr unsigned int drop_remainder {5};  // (len + 31) % 32 (drop remainder)
-  static constexpr unsigned int bytes_per_uint64 {8};  // times 8 to get the number of bytes
-  return ((len + max_nt_per_uint64 - 1) >> drop_remainder) * bytes_per_uint64;
-}

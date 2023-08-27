@@ -30,6 +30,7 @@
 
 #endif
 
+#include "utils/nt_codec.h"
 #include <cstdint>  // int64_t, uint64_t
 
 

@@ -22,6 +22,7 @@
 */
 
 #include "swarm.h"
+#include "utils/nt_codec.h"
 #include "variants.h"
 #include "zobrist.h"
 #include <cstdint>  // uint64_t
