@@ -792,7 +792,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
             {
               if ((seqfound->seqhash == seqindex_p->seqhash) &&
                   (seqfound->seqlen == seqindex_p->seqlen) &&
-                  (memcmp(seqfound->seq,
+                  (std::memcmp(seqfound->seq,
                           seqindex_p->seq,
                           nt_bytelength(seqindex_p->seqlen)) == 0)) {
                 break;

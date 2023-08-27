@@ -273,7 +273,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
       while (((bp->mass) != 0U) &&
              ((bp->hash != hash) ||
               (seqlen != db_getsequencelen(bp->seqno_first)) ||
-              (memcmp(seq,
+              (std::memcmp(seq,
                       db_getsequence(bp->seqno_first),
                       nt_bytelength(seqlen)) != 0)))
         {
