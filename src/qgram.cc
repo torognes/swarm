@@ -31,7 +31,7 @@
 #include <emmintrin.h>  // SSE2 intrinsics
 #endif
 
-#include "popcnt.h"
+#include "popcnt.h"  // refactoring: fence with #ifdef __POPCNT__?
 
 #endif
 
