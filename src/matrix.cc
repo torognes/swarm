@@ -35,8 +35,8 @@ void score_matrix_read(struct Parameters const & parameters)
   static constexpr int n_cells {32};  // number of chars in sym_nt
   static constexpr long long int one_thousand {1000};
   long long int score {0};
-  long long int hi {-one_thousand};
-  long long int lo {one_thousand};
+  long long int highest_score {-one_thousand};
+  long long int lowest_score {one_thousand};
 
   score_matrix_8 = new unsigned char[n_cells * n_cells];
   score_matrix_16 = new unsigned short[n_cells * n_cells];
@@ -46,11 +46,11 @@ void score_matrix_read(struct Parameters const & parameters)
     for(auto b = 0; b < n_cells / 2; b++) {
       score = ((a == b) && (a > 0) && (b > 0)) ? 0 : parameters.penalty_mismatch;
       // score = (a==b) ? matchscore : mismatchscore;
-      if (score < lo) {
-        lo = score;
+      if (score < lowest_score) {
+        lowest_score = score;
       }
-      if (score > hi) {
-        hi = score;
+      if (score > highest_score) {
+        highest_score = score;
       }
       score_matrix_63[(a * n_cells) + b] = score;
     }
