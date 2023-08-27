@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "utils/fatal.h"
 #include <cstdint>  // int64_t
+#include <cstdio>  // fprintf
 
 
 // set to null if not x86-64
