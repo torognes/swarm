@@ -758,7 +758,7 @@ auto compare_mass(const void * a, const void * b) -> int
     status = +1;
   }
   else {
-    status = strcmp(db_getheader(x->seed), db_getheader(y->seed));
+    status = std::strcmp(db_getheader(x->seed), db_getheader(y->seed));
   }
   return status;
 }
