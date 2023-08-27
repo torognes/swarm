@@ -53,7 +53,7 @@ struct Search_data
   uint64_t target_index;
 };
 
-static struct Search_data * sd;
+static struct Search_data * search_data;
 static uint64_t master_next;
 static uint64_t master_length;
 static uint64_t remainingchunks;
@@ -188,9 +188,9 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 
 void search_worker_core(const int64_t t)
 {
-  search_init(sd + t);
-  while(search_getwork(& sd[t].target_count, & sd[t].target_index)) {
-    search_chunk(sd + t, master_bits);
+  search_init(search_data + t);
+  while(search_getwork(& search_data[t].target_count, & search_data[t].target_index)) {
+    search_chunk(search_data + t, master_bits);
   }
 }
 
@@ -271,10 +271,10 @@ void search_begin()
 {
   longestdbsequence = db_getlongestsequence();
 
-  sd = new struct Search_data[static_cast<uint64_t>(opt_threads)];
+  search_data = new struct Search_data[static_cast<uint64_t>(opt_threads)];
 
   for(auto t = 0LL; t < opt_threads; t++) {
-    search_alloc(sd + t);
+    search_alloc(search_data + t);
   }
 
   pthread_mutex_init(& scan_mutex, nullptr);
@@ -295,8 +295,8 @@ void search_end()
   pthread_mutex_destroy(& scan_mutex);
 
   for(auto t = 0LL; t < opt_threads; t++) {
-    search_free(sd + t);
+    search_free(search_data + t);
   }
-  delete [] sd;
-  sd = nullptr;
+  delete [] search_data;
+  search_data = nullptr;
 }
