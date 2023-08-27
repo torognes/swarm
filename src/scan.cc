@@ -37,7 +37,7 @@ static pthread_mutex_t scan_mutex;
 
 static ThreadRunner * search_threads = nullptr;
 
-struct search_data
+struct Search_data
 {
   BYTE ** qtable;
   WORD ** qtable_w;
@@ -53,7 +53,7 @@ struct search_data
   uint64_t target_index;
 };
 
-static struct search_data * sd;
+static struct Search_data * sd;
 static uint64_t master_next;
 static uint64_t master_length;
 static uint64_t remainingchunks;
@@ -68,7 +68,7 @@ queryinfo_t query;
 uint64_t longestdbsequence;
 
 
-void search_alloc(struct search_data * sdp)
+void search_alloc(struct Search_data * sdp)
 {
   static constexpr unsigned int one_kilobyte {1024};
   static constexpr unsigned int nt_per_uint64 {32};
@@ -82,7 +82,7 @@ void search_alloc(struct search_data * sdp)
   sdp->dir_array = new uint64_t[dirbuffersize] { };
 }
 
-void search_free(struct search_data * sdp)
+void search_free(struct Search_data * sdp)
 {
   delete [] sdp->qtable;
   sdp->qtable = nullptr;
@@ -98,7 +98,7 @@ void search_free(struct search_data * sdp)
   sdp->dir_array = nullptr;
 }
 
-void search_init(struct search_data * sdp)
+void search_init(struct Search_data * sdp)
 {
   static constexpr int byte_multiplier {64};
   static constexpr int word_multiplier {32};
@@ -114,7 +114,7 @@ void search_init(struct search_data * sdp)
   }
 }
 
-void search_chunk(struct search_data * sdp, const int64_t bits)
+void search_chunk(struct Search_data * sdp, const int64_t bits)
 {
   static constexpr unsigned int bit_mode_16 {16};
 
@@ -271,7 +271,7 @@ void search_begin()
 {
   longestdbsequence = db_getlongestsequence();
 
-  sd = new struct search_data[static_cast<uint64_t>(opt_threads)];
+  sd = new struct Search_data[static_cast<uint64_t>(opt_threads)];
 
   for(auto t = 0LL; t < opt_threads; t++) {
     search_alloc(sd + t);
