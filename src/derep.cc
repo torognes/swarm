@@ -30,6 +30,7 @@
 #include <cstdint>
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
+#include <cstring>  // memcmp
 
 
 struct bucket
