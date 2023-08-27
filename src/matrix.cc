@@ -35,8 +35,8 @@ void score_matrix_read(struct Parameters const & parameters)
   static constexpr int n_cells {32};  // number of chars in sym_nt
   static constexpr long long int one_thousand {1000};
   long long int score {0};
-  long long int highest_score {-one_thousand};
-  long long int lowest_score {one_thousand};
+  long long int highest_score {-one_thousand};  // refactoring: unused?
+  long long int lowest_score {one_thousand};  // refactoring: unused?
 
   score_matrix_8 = new unsigned char[n_cells * n_cells];
   score_matrix_16 = new unsigned short[n_cells * n_cells];
