@@ -67,13 +67,6 @@ constexpr char PRId64[] = "ld";
 #include <emmintrin.h>
 #endif
 
-#ifdef __SSSE3__
-#include <tmmintrin.h>  // could be removed?
-#endif
-
-#ifdef __SSE4_1__
-#include <smmintrin.h>  // could be removed?
-#endif
 
 #elif defined __PPC__
 
