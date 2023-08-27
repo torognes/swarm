@@ -43,8 +43,6 @@ constexpr char PRId64[] = "ld";
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
-#include <getopt.h>  // getopt_long, optarg, optind, opterr, struct
-                     // option (no_argument, required_argument)
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
