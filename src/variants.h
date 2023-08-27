@@ -24,13 +24,13 @@
 #include <cstdint>
 
 /* Variant information */
-enum class Variant : unsigned char { substitution, deletion, insertion };
+enum class Variant_type : unsigned char { substitution, deletion, insertion };
 
 struct var_s
 {
   uint64_t hash;
   unsigned int pos;
-  Variant type;
+  Variant_type type;
   unsigned char base;  // encoded nucleotide: 0, 1, 2, or 3
   unsigned short dummy; /* for alignment padding only */
 };

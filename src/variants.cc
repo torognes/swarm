@@ -83,13 +83,13 @@ void generate_variant_sequence(char * seed_sequence,
 
   switch (var->type)
     {
-    case Variant::substitution:
+    case Variant_type::substitution:
       std::memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
       nt_set(seq, var->pos, var->base);
       * seqlen = seed_seqlen;
       break;
 
-    case Variant::deletion:
+    case Variant_type::deletion:
       seq_copy(seq, 0,
                seed_sequence, 0,
                var->pos);
@@ -99,7 +99,7 @@ void generate_variant_sequence(char * seed_sequence,
       * seqlen = seed_seqlen - 1;
       break;
 
-    case Variant::insertion:
+    case Variant_type::insertion:
       seq_copy(seq, 0,
                seed_sequence, 0,
                var->pos);
@@ -126,7 +126,7 @@ auto check_variant(char * seed_sequence,
 
   switch (var->type)
     {
-    case Variant::substitution:
+    case Variant_type::substitution:
       equal = ((seed_seqlen == amp_seqlen) &&
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
@@ -137,7 +137,7 @@ auto check_variant(char * seed_sequence,
                               seed_seqlen - var->pos - 1)));
       break;
 
-    case Variant::deletion:
+    case Variant_type::deletion:
       equal = (((seed_seqlen - 1) == amp_seqlen) &&
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
@@ -147,7 +147,7 @@ auto check_variant(char * seed_sequence,
                               seed_seqlen - var->pos - 1)));
       break;
 
-    case Variant::insertion:
+    case Variant_type::insertion:
       equal = (((seed_seqlen + 1) == amp_seqlen) &&
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
@@ -163,7 +163,7 @@ auto check_variant(char * seed_sequence,
 }
 
 inline void add_variant(uint64_t hash,
-                        Variant type,
+                        Variant_type type,
                         unsigned int pos,
                         unsigned char base,
                         var_s * variant_list,
@@ -197,7 +197,7 @@ void generate_variants(char * sequence,
         }
 
         const uint64_t hash2 = hash1 ^ zobrist_value(offset, base);
-        add_variant(hash2, Variant::substitution, offset, base,
+        add_variant(hash2, Variant_type::substitution, offset, base,
                     variant_list, variant_count);
 
       }
@@ -206,7 +206,7 @@ void generate_variants(char * sequence,
   /* deletions */
 
   hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
-  add_variant(hash, Variant::deletion, 0, 0, variant_list, variant_count);
+  add_variant(hash, Variant_type::deletion, 0, 0, variant_list, variant_count);
   unsigned char previous_base = nt_extract(sequence, 0);
   for(auto offset = 1U; offset < seqlen; offset++)
     {
@@ -215,7 +215,7 @@ void generate_variants(char * sequence,
         continue;
       }
       hash ^= zobrist_value(offset - 1, previous_base) ^ zobrist_value(offset - 1, current_base);
-      add_variant(hash, Variant::deletion, offset, 0, variant_list, variant_count);
+      add_variant(hash, Variant_type::deletion, offset, 0, variant_list, variant_count);
       previous_base = current_base;
     }
 
@@ -226,7 +226,7 @@ void generate_variants(char * sequence,
   for(unsigned char base = 0; base < 4; base++)
     {
       const uint64_t hash1 = hash ^ zobrist_value(0, base);
-      add_variant(hash1, Variant::insertion, 0, base, variant_list, variant_count);
+      add_variant(hash1, Variant_type::insertion, 0, base, variant_list, variant_count);
     }
   // insert after each position in the sequence
   for(auto offset = 0U; offset < seqlen; offset++)
@@ -238,7 +238,7 @@ void generate_variants(char * sequence,
           continue;
         }
         const uint64_t hash1 = hash ^ zobrist_value(offset + 1, base);
-        add_variant(hash1, Variant::insertion, offset + 1, base,
+        add_variant(hash1, Variant_type::insertion, offset + 1, base,
                     variant_list, variant_count);
       }
     }
