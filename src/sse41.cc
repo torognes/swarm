@@ -23,6 +23,11 @@
 
 
 #ifdef __x86_64__
+
+#ifdef __SSE2__
+#include <emmintrin.h>  // SSE2 intrinsics
+#endif
+
 #ifdef __SSE4_1__
 
 /*
