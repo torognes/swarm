@@ -28,6 +28,7 @@
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // snprintf
+#include <cstring>  // memcpy, memmove, memset
 
 
 void pushop(const char newop, char ** cigarendp, char * op, int * count)

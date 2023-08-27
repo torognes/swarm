@@ -33,6 +33,7 @@
 
 #include "utils/nt_codec.h"
 #include <cstdint>  // int64_t, uint64_t
+#include <cstring>  // memset
 
 
 static ThreadRunner * qgram_threads = nullptr;
