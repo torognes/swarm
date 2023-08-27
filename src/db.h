@@ -21,8 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdio>
-#include <cstdint>
+#include <cstdio>  // std::FILE
+#include <cstdint>  // uint64_t
+
 
 auto db_read(const char * filename, struct Parameters const & parameters) -> void;
 
