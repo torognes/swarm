@@ -27,6 +27,10 @@
 
 #ifdef __x86_64__
 
+#ifdef __SSE2__
+#include <emmintrin.h>  // SSE2 intrinsics
+#endif
+
 #include "popcnt.h"
 
 #endif
