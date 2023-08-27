@@ -32,6 +32,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
+#include <cstring>  // strcmp
 
 
 static uint64_t count_comparisons_8;

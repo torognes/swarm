@@ -25,6 +25,7 @@
 #include "utils/fatal.h"
 #include <cstdint>  // uint64_t
 #include <cstdio>  // FILE
+#include <cstring>  // strcmp
 
 
 static const char * progress_prompt;
