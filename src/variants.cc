@@ -26,6 +26,7 @@
 #include "variants.h"
 #include "zobrist.h"
 #include <cstdint>  // uint64_t
+#include <cstring>  // std::memcpy
 
 
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
