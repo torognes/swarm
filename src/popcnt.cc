@@ -38,7 +38,7 @@
 
   This code requires the _mm_popcnt_u64 intrinsic implemented
   with the POPCNT instruction on the CPU. That instruction was
-  available starting with the Nahalem architecture in 2008.
+  available starting with the Nehalem architecture in 2008.
 */
 
 auto compareqgramvectors_popcnt(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t
