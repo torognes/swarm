@@ -98,7 +98,7 @@ auto arch_get_memtotal() -> uint64_t
 #else
 
   struct sysinfo si;
-  if (sysinfo(&si)) {
+  if (sysinfo(&si) != 0) {
     fatal(error_prefix, "Cannot determine amount of RAM.");
   }
   return si.totalram * si.mem_unit;
