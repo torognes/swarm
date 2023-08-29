@@ -33,6 +33,7 @@
 #include <psapi.h>
 #else
 #include <sys/resource.h>  // Linux: getrusage
+#include <bits/types/struct_rusage.h>  // rusage (since 2017)
 #include <sys/sysinfo.h>  // sysinfo
 #endif
 
