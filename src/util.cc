@@ -24,7 +24,7 @@
 #include "swarm.h"
 #include "utils/fatal.h"
 #include <cstdint>  // uint64_t
-#include <cstdio>  // FILE
+#include <cstdio>  // FILE, size_t
 #include <cstring>  // strcmp
 
 
@@ -32,7 +32,7 @@ static const char * progress_prompt;
 static uint64_t progress_next;
 static uint64_t progress_size;
 static uint64_t progress_chunk;
-constexpr size_t memalignment = 16;
+constexpr std::size_t memalignment = 16;
 
 
 auto progress_init(const char * prompt, const uint64_t size) -> void
@@ -75,7 +75,7 @@ auto progress_done() -> void
 }
 
 
-auto xmalloc(size_t size) -> void *
+auto xmalloc(std::size_t size) -> void *
 {
   if (size == 0) {
     size = 1;
@@ -95,7 +95,7 @@ auto xmalloc(size_t size) -> void *
 }
 
 
-auto xrealloc(void *ptr, size_t size) -> void *
+auto xrealloc(void *ptr, std::size_t size) -> void *
 {
   if (size == 0) {
     size = 1;
@@ -158,7 +158,7 @@ auto fopen_output(const char * filename) -> std::FILE *
   return output_stream;
 }
 
-auto xgetline(char ** linep, size_t * linecapp, std::FILE * stream) -> ssize_t
+auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssize_t
 {
 #ifndef _WIN32
 
@@ -177,8 +177,8 @@ auto xgetline(char ** linep, size_t * linecapp, std::FILE * stream) -> ssize_t
      which is important for correct counting of characters and file size.
   */
 
-  const size_t minsize = 2;
-  const size_t maxsize = SIZE_MAX / 2;
+  const std::size_t minsize = 2;
+  const std::size_t maxsize = SIZE_MAX / 2;
 
   /* Error if linep or linecapp pointers are null */
   if ((linep == nullptr) || (linecapp == nullptr))
@@ -198,7 +198,7 @@ auto xgetline(char ** linep, size_t * linecapp, std::FILE * stream) -> ssize_t
 
   char * p = *linep;            // pointer to where to put next char
   char * e = p + *linecapp - 1; // pointer to last byte in buffer
-  size_t len = 0;
+  std::size_t len = 0;
   *p = 0;
 
   while (1)
@@ -246,7 +246,7 @@ auto xgetline(char ** linep, size_t * linecapp, std::FILE * stream) -> ssize_t
           return -1;
         }
 
-      size_t newlinecap = minsize;
+      std::size_t newlinecap = minsize;
       while ((newlinecap <= *linecapp) && (newlinecap < maxsize))
         newlinecap *= 2;
 
