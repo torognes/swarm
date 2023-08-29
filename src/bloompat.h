@@ -36,28 +36,28 @@ struct bloom_s
   // std::array<uint64_t, bloom_pattern_count> patterns {{0}};
 };
 
-void bloom_zap(struct bloom_s * b);
+void bloom_zap(struct bloom_s * bloom_filter);
 
 auto bloom_init(uint64_t size) -> struct bloom_s *;
 
-void bloom_exit(struct bloom_s * b);
+void bloom_exit(struct bloom_s * bloom_filter);
 
-inline auto bloom_adr(struct bloom_s * b, uint64_t h) -> uint64_t *
+inline auto bloom_adr(struct bloom_s * bloom_filter, uint64_t h) -> uint64_t *
 {
-  return b->bitmap + ((h >> bloom_pattern_shift) & b->mask);
+  return bloom_filter->bitmap + ((h >> bloom_pattern_shift) & bloom_filter->mask);
 }
 
-inline auto bloom_pat(struct bloom_s * b, uint64_t h) -> uint64_t
+inline auto bloom_pat(struct bloom_s * bloom_filter, uint64_t h) -> uint64_t
 {
-  return b->patterns[h & bloom_pattern_mask];
+  return bloom_filter->patterns[h & bloom_pattern_mask];
 }
 
-inline void bloom_set(struct bloom_s * b, uint64_t h)
+inline void bloom_set(struct bloom_s * bloom_filter, uint64_t h)
 {
-  * bloom_adr(b, h) &= ~ bloom_pat(b, h);
+  * bloom_adr(bloom_filter, h) &= ~ bloom_pat(bloom_filter, h);
 }
 
-inline auto bloom_get(struct bloom_s * b, uint64_t h) -> bool
+inline auto bloom_get(struct bloom_s * bloom_filter, uint64_t h) -> bool
 {
-  return (* bloom_adr(b, h) & bloom_pat(b, h)) == 0U;
+  return (* bloom_adr(bloom_filter, h) & bloom_pat(bloom_filter, h)) == 0U;
 }

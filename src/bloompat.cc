@@ -38,7 +38,7 @@
 #include <cstring>
 
 
-void bloom_patterns_generate(struct bloom_s * b)
+void bloom_patterns_generate(struct bloom_s * bloom_filter)
 {
   static constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
   static constexpr unsigned int k {8};
@@ -53,14 +53,14 @@ void bloom_patterns_generate(struct bloom_s * b)
           }
           pattern |= onebit;
         }
-      b->patterns[i] = pattern;
+      bloom_filter->patterns[i] = pattern;
     }
 }
 
 
-void bloom_zap(struct bloom_s * b)
+void bloom_zap(struct bloom_s * bloom_filter)
 {
-  std::memset(b->bitmap, UINT8_MAX, b->size);
+  std::memset(bloom_filter->bitmap, UINT8_MAX, bloom_filter->size);
 }
 
 
@@ -71,26 +71,26 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
   static constexpr uint64_t bytes_per_uint64 {8};
   size = std::max(size, bytes_per_uint64);
 
-  auto * b = new struct bloom_s;
+  auto * bloom_filter = new struct bloom_s;
 
-  b->size = size;
+  bloom_filter->size = size;
 
-  b->mask = (size >> 3U) - 1;
+  bloom_filter->mask = (size >> 3U) - 1;
 
-  b->bitmap = new uint64_t[size];
+  bloom_filter->bitmap = new uint64_t[size];
 
-  bloom_zap(b);
+  bloom_zap(bloom_filter);
 
-  bloom_patterns_generate(b);
+  bloom_patterns_generate(bloom_filter);
 
-  return b;
+  return bloom_filter;
 }
 
 
-void bloom_exit(struct bloom_s * b)
+void bloom_exit(struct bloom_s * bloom_filter)
 {
-  delete [] b->bitmap;
-  b->bitmap = nullptr;
-  delete b;
-  b = nullptr;
+  delete [] bloom_filter->bitmap;
+  bloom_filter->bitmap = nullptr;
+  delete bloom_filter;
+  bloom_filter = nullptr;
 }
