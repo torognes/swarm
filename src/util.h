@@ -22,13 +22,13 @@
 */
 
 #include <cstdint>
-#include <cstdio>
+#include <cstdio>  // size_t
 
 
-auto xmalloc(size_t size) -> void *;
-auto xrealloc(void * ptr, size_t size) -> void *;
+auto xmalloc(std::size_t size) -> void *;
+auto xrealloc(void * ptr, std::size_t size) -> void *;
 auto xfree(void * ptr) -> void;
-auto xgetline(char ** linep, size_t * linecapp, FILE * stream) -> ssize_t;
+auto xgetline(char ** linep, std::size_t * linecapp, FILE * stream) -> ssize_t;
 auto progress_init(const char * prompt, uint64_t size) -> void;
 auto progress_update(uint64_t progress) -> void;
 auto progress_done() -> void;
