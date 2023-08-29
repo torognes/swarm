@@ -292,7 +292,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
                 if (long_options[longoptindex].val == option_character) {
                   break;
                 }
-                longoptindex++;
+                ++longoptindex;
               }
             fatal(error_prefix, "Option -", static_cast<char>(option_character),
                   " or --", long_options[longoptindex].name,
