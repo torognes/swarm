@@ -21,12 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdarg>  // refactoring: C-style variadic functions (unused?)
-#include <cstdio>
-#include <cstring>
-#include <fcntl.h>
+#include <cstdio>  // FILE
 #include <string>
-#include <unistd.h>  // replace with <fstream> to improve portability
 
 
 /* constants */
