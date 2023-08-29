@@ -47,15 +47,9 @@ constexpr unsigned int match_reward_default {5};
 constexpr unsigned int gap_opening_penalty_default {12};
 constexpr unsigned int gap_extension_penalty_default {4};
 constexpr unsigned int bloom_bits_default {16};
-constexpr unsigned int qgramlength {5};
-constexpr unsigned int qgramvectorbits {1U << (2 * qgramlength)};
-constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
 
 
 /* structures and data types */
-
-using qgramvector_t = unsigned char[qgramvectorbytes];
-extern qgramvector_t * qgrams;
 
 struct queryinfo
 {

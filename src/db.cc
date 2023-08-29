@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "qgram.h"
+#include "qgram_array.h"
 #include "util.h"
 #include "utils/fatal.h"
 #include "utils/nt_codec.h"
@@ -112,7 +113,6 @@ using seqinfo_t = struct seqinfo_s;
 extern seqinfo_t * seqindex;
 
 seqinfo_t * seqindex {nullptr};
-qgramvector_t * qgrams {nullptr};
 
 
 auto db_getnucleotidecount() -> uint64_t

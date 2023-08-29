@@ -25,6 +25,7 @@
 #ifdef __x86_64__
 #ifdef __POPCNT__
 
+#include "qgram_array.h"
 #include "swarm.h"
 #include <popcntintrin.h>
 #include <cstdint>  // uint64_t

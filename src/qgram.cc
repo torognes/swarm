@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "qgram_array.h"
 #include "swarm.h"
 #include "threads.h"
 #include "util.h"
@@ -40,6 +41,7 @@
 #include <cstring>  // memset
 
 
+qgramvector_t * qgrams {nullptr};
 static ThreadRunner * qgram_threads = nullptr;
 
 static struct thread_info_s
