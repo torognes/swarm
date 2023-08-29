@@ -36,6 +36,7 @@
 #include <cstring>  // memcpy, memcmp
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG
+#include <sys/types.h>  // ssize_t
 #include <vector>
 
 

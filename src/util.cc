@@ -26,6 +26,7 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>  // FILE, size_t
 #include <cstring>  // strcmp
+#include <sys/types.h>  // ssize_t
 
 
 static const char * progress_prompt;
