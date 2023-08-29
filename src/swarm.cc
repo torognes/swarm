@@ -562,7 +562,7 @@ void args_check(std::array<bool, n_options> & used_options) {
           "must be at least 1.");
   }
 
-  if ((! parameters.opt_network_file.empty()) && (parameters.opt_differences != 1)) {
+  if ((not parameters.opt_network_file.empty()) && (parameters.opt_differences != 1)) {
     fatal(error_prefix, "A network file can only written when d = 1.");
   }
 
@@ -598,7 +598,7 @@ void open_files()
 
   /* open files */
 
-  if (! opt_log.empty())
+  if (not opt_log.empty())
     {
       logfile = fopen_output(opt_log.c_str());
       if (logfile == nullptr) {
@@ -606,7 +606,7 @@ void open_files()
       }
     }
 
-  if (! parameters.opt_seeds.empty())
+  if (not parameters.opt_seeds.empty())
     {
       fp_seeds = fopen_output(parameters.opt_seeds.c_str());
       if (fp_seeds == nullptr) {
@@ -614,7 +614,7 @@ void open_files()
       }
     }
 
-  if (! parameters.opt_statistics_file.empty())
+  if (not parameters.opt_statistics_file.empty())
     {
       statsfile = fopen_output(parameters.opt_statistics_file.c_str());
       if (statsfile == nullptr) {
@@ -622,7 +622,7 @@ void open_files()
       }
     }
 
-  if (! parameters.opt_uclust_file.empty())
+  if (not parameters.opt_uclust_file.empty())
     {
       uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
       if (uclustfile == nullptr) {
@@ -630,7 +630,7 @@ void open_files()
       }
     }
 
-  if (! parameters.opt_internal_structure.empty())
+  if (not parameters.opt_internal_structure.empty())
     {
       internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
       if (internal_structure_file == nullptr) {
@@ -638,7 +638,7 @@ void open_files()
       }
     }
 
-  if (! parameters.opt_network_file.empty())
+  if (not parameters.opt_network_file.empty())
     {
       network_file = fopen_output(parameters.opt_network_file.c_str());
       if (network_file == nullptr) {
