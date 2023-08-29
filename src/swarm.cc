@@ -303,7 +303,7 @@ void args_init(int argc, char **argv, std::array<bool, n_options> & used_options
 
     switch(option_character)
       {
-      case 'a':  // refactoring: replace with enum class? enum type not implicitly convertible to int
+      case 'a':  // refactoring: replace with enum class? static_cast<Short_option>(option_character), but what about unexpected characters such as 'k' or 'q'?
         /* append-abundance */
         parameters.opt_append_abundance = args_long(optarg, "-a or --append-abundance");
         break;
