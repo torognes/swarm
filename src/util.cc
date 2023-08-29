@@ -24,9 +24,11 @@
 #include "swarm.h"
 #include "utils/fatal.h"
 #include <cstdint>  // uint64_t
-#include <cstdio>  // FILE, size_t
+#include <cstdio>  // fdopen, FILE, getline, size_t
+#include <cstdlib>  // free, posix_memalign, realloc
 #include <cstring>  // strcmp
 #include <sys/types.h>  // ssize_t
+#include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
 
 static const char * progress_prompt;
@@ -104,7 +106,7 @@ auto xrealloc(void *ptr, std::size_t size) -> void *
 #ifdef _WIN32
   void * t = _aligned_realloc(ptr, size, memalignment);
 #else
-  void * t = realloc(ptr, size);
+  void * t = std::realloc(ptr, size);
 #endif
   if (t == nullptr) {
     fatal(error_prefix, "Unable to allocate enough memory.");
@@ -119,7 +121,7 @@ auto xfree(void * ptr) -> void
 #ifdef _WIN32
       _aligned_free(ptr);
 #else
-      free(ptr);
+      std::free(ptr);
 #endif
     }
   else {
@@ -257,7 +259,7 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
           return -1;
         }
 
-      char * newlinep = (char *) realloc(*linep, newlinecap);
+      char * newlinep = (char *) std::realloc(*linep, newlinecap);
       if (newlinep == nullptr)
         {
           // Memory allocation error
