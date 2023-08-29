@@ -23,6 +23,7 @@
 
 #include <cstdint>
 
+
 void findqgrams(unsigned char * seq, uint64_t seqlen,
                 unsigned char * qgramvector);
 auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t;
