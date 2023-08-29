@@ -31,7 +31,7 @@
 #include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fclose(), size_t
+#include <cstdio>  // fileno, fclose(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
 #include <string>
