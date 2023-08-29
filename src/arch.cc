@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "utils/fatal.h"
 #include <cstdint>  // int64_t, uint64_t
+#include <cstdio> // size_t
 
 #ifdef __APPLE__
 #include <sys/resource.h>
@@ -79,7 +80,7 @@ auto arch_get_memtotal() -> uint64_t
 
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
-  size_t length = sizeof(ram);
+  std::size_t length = sizeof(ram);
   if(sysctl(mib, 2, &ram, &length, nullptr, 0) == -1) {
     fatal(error_prefix, "Cannot determine amount of RAM.");
   }
