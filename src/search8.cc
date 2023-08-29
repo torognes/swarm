@@ -38,6 +38,24 @@
 #include <cstdint>  // int64_t, uint64_t
 
 
+#ifdef __aarch64__
+#include <arm_neon.h>
+#elif defined __x86_64__
+
+#elif defined __PPC__
+
+#ifdef __LITTLE_ENDIAN__
+#include <altivec.h>
+#else
+#error Big endian ppc64 CPUs not supported
+#endif
+
+#else
+
+#error Unknown architecture
+#endif
+
+
 constexpr unsigned int channels {16};
 constexpr unsigned int cdepth {4};
 using BYTE = unsigned char;

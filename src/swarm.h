@@ -28,22 +28,6 @@
 #include <string>
 #include <unistd.h>  // replace with <fstream> to improve portability
 
-#ifdef __aarch64__
-#include <arm_neon.h>
-#elif defined __x86_64__
-
-#elif defined __PPC__
-
-#ifdef __LITTLE_ENDIAN__
-#include <altivec.h>
-#else
-#error Big endian ppc64 CPUs not supported
-#endif
-
-#else
-
-#error Unknown architecture
-#endif
 
 /* constants */
 
