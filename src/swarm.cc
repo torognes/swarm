@@ -170,15 +170,6 @@ const std::vector<std::string> args_usage_message
   };
 
 
-auto args_long(char * str, const char * option) -> int64_t;
-void args_show();
-void show(const std::vector<std::string> & message);
-void args_init(int argc, char **argv, std::array<bool, n_options> & used_options);
-void args_check(std::array<bool, n_options> & used_options);
-void open_files();
-void close_files();
-
-
 auto args_long(char * str, const char * option) -> int64_t
 {
   static constexpr int base_value {10};
