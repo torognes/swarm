@@ -41,12 +41,29 @@
 #include "utils/nt_codec.h"
 #include "zobrist.h"
 #include <cassert>  // assert()
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // std::memcmp
 #include <pthread.h>
+
+#ifndef PRIu64
+#ifdef _WIN32
+#define PRIu64 "I64u"
+#else
+constexpr char PRIu64[] = "lu";
+#endif
+#endif
+
+#ifndef PRId64
+#ifdef _WIN32
+#define PRId64 "I64d"
+#else
+constexpr char PRId64[] = "ld";
+#endif
+#endif
 
 
 constexpr unsigned int one_kilobyte {1U << 10U};

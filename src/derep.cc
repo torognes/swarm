@@ -27,10 +27,27 @@
 #include "utils/hashtable_size.h"
 #include "utils/nt_codec.h"
 #include "zobrist.h"
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcmp
+
+#ifndef PRIu64
+#ifdef _WIN32
+#define PRIu64 "I64u"
+#else
+constexpr char PRIu64[] = "lu";
+#endif
+#endif
+
+#ifndef PRId64
+#ifdef _WIN32
+#define PRId64 "I64d"
+#else
+constexpr char PRId64[] = "ld";
+#endif
+#endif
 
 
 struct bucket

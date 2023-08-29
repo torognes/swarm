@@ -32,6 +32,7 @@
 #include "x86_cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE, fclose, stderr  // refactoring: replace with <fstream>
@@ -41,6 +42,15 @@
 
 #include <string>
 #include <vector>
+
+#ifndef PRId64
+#ifdef _WIN32
+#define PRId64 "I64d"
+#else
+constexpr char PRId64[] = "ld";
+#endif
+#endif
+
 
 static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 

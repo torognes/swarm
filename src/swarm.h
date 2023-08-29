@@ -21,24 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cinttypes>  // macros PRIu64 and PRId64
-
-#ifndef PRIu64
-#ifdef _WIN32
-#define PRIu64 "I64u"
-#else
-constexpr char PRIu64[] = "lu";
-#endif
-#endif
-
-#ifndef PRId64
-#ifdef _WIN32
-#define PRId64 "I64d"
-#else
-constexpr char PRId64[] = "ld";
-#endif
-#endif
-
 #include <cstdarg>  // refactoring: C-style variadic functions (unused?)
 #include <cstdio>
 #include <cstring>

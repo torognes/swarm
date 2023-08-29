@@ -30,6 +30,7 @@
 #include <algorithm>  // std::min()
 #include <array>
 #include <cassert>  // assert()
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fileno, fclose(), size_t
 #include <cstdlib>  // qsort()
@@ -38,6 +39,14 @@
 #include <sys/stat.h>  // fstat, S_ISREG, stat
 #include <sys/types.h>  // ssize_t
 #include <vector>
+
+#ifndef PRIu64
+#ifdef _WIN32
+#define PRIu64 "I64u"
+#else
+constexpr char PRIu64[] = "lu";
+#endif
+#endif
 
 
 constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
