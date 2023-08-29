@@ -51,7 +51,7 @@ auto arch_get_memused() -> uint64_t
 
 #else
 
-  struct rusage r_usage;
+  struct rusage r_usage {};
   getrusage(RUSAGE_SELF, & r_usage);
 
 # ifdef __APPLE__
@@ -97,7 +97,7 @@ auto arch_get_memtotal() -> uint64_t
 
 #else
 
-  struct sysinfo si;
+  struct sysinfo si {};
   if (sysinfo(&si) != 0) {
     fatal(error_prefix, "Cannot determine amount of RAM.");
   }
