@@ -35,6 +35,7 @@
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
 #include <string>
+#include <sys/stat.h>  // fstat, S_ISREG
 #include <vector>
 
 
