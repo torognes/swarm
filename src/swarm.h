@@ -39,7 +39,7 @@ constexpr char PRId64[] = "ld";
 #endif
 #endif
 
-#include <cstdarg>  // refactoring: purpose?
+#include <cstdarg>  // refactoring: C-style variadic functions (unused?)
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
