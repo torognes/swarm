@@ -44,7 +44,6 @@ constexpr char PRId64[] = "ld";
 #include <cstring>
 #include <fcntl.h>
 #include <string>
-// #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>  // replace with <fstream> to improve portability
 
