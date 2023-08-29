@@ -207,16 +207,16 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
 
   std::fprintf(logfile, "Database file:     %s\n", parameters.input_filename.c_str());
   std::fprintf(logfile, "Output file:       %s\n", parameters.opt_output_file.c_str());
-  if (! parameters.opt_statistics_file.empty()) {
+  if (not parameters.opt_statistics_file.empty()) {
     std::fprintf(logfile, "Statistics file:   %s\n", parameters.opt_statistics_file.c_str());
   }
-  if (! parameters.opt_uclust_file.empty()) {
+  if (not parameters.opt_uclust_file.empty()) {
     std::fprintf(logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
   }
-  if (! parameters.opt_internal_structure.empty()) {
+  if (not parameters.opt_internal_structure.empty()) {
     std::fprintf(logfile, "Int. struct. file  %s\n", parameters.opt_internal_structure.c_str());
   }
-  if (! parameters.opt_network_file.empty()) {
+  if (not parameters.opt_network_file.empty()) {
     std::fprintf(logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
   }
   std::fprintf(logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
