@@ -70,7 +70,7 @@ std::FILE * fp_seeds {nullptr};
 std::FILE * network_file {nullptr};
 
 constexpr int n_options {26};
-std::array<int, n_options> used_options {{0}};  // set int values to zero by default
+std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
 char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
 
@@ -173,8 +173,8 @@ const std::vector<std::string> args_usage_message
 auto args_long(char * str, const char * option) -> int64_t;
 void args_show();
 void show(const std::vector<std::string> & message);
-void args_init(int argc, char **argv, std::array<int, n_options> & used_options);
-void args_check(std::array<int, n_options> & used_options);
+void args_init(int argc, char **argv, std::array<bool, n_options> & used_options);
+void args_check(std::array<bool, n_options> & used_options);
 void open_files();
 void close_files();
 
@@ -256,7 +256,7 @@ void show(const std::vector<std::string> & message)
 }
 
 
-void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
+void args_init(int argc, char **argv, std::array<bool, n_options> & used_options)
 {
   /* Set defaults */
   static constexpr unsigned int boundary_default {3};
@@ -284,7 +284,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
     if ((option_character >= 'a') && (option_character <= 'z'))
       {
         auto optindex = static_cast<unsigned int>(option_character - 'a');  // c - 'a' cannot be negative
-        if (used_options[optindex] == 1)
+        if (used_options[optindex])
           {
             int longoptindex {0};
             while (long_options[longoptindex].name != nullptr)
@@ -298,7 +298,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
                   " or --", long_options[longoptindex].name,
                   " specified more than once.");
           }
-        used_options[optindex] = 1;
+        used_options[optindex] = true;
       }
 
     switch(option_character)
@@ -449,7 +449,7 @@ void args_init(int argc, char **argv, std::array<int, n_options> & used_options)
 }
 
 
-void args_check(std::array<int, n_options> & used_options) {
+void args_check(std::array<bool, n_options> & used_options) {
   static constexpr unsigned int min_bits_per_entry {2};
   static constexpr unsigned int max_bits_per_entry {64};
   static constexpr unsigned int min_ceiling {8};
@@ -488,29 +488,29 @@ void args_check(std::array<int, n_options> & used_options) {
 
   if (not parameters.opt_fastidious)
     {
-      if (used_options[boundary_index] != 0) {
+      if (used_options[boundary_index]) {
         fatal(error_prefix, "Option -b or --boundary specified without -f or --fastidious.");
       }
-      if (used_options[ceiling_index] != 0) {
+      if (used_options[ceiling_index]) {
         fatal(error_prefix, "Option -c or --ceiling specified without -f or --fastidious.");
       }
-      if (used_options[bloom_bits_index] != 0) {
+      if (used_options[bloom_bits_index]) {
         fatal(error_prefix, "Option -y or --bloom-bits specified without -f or --fastidious.");
       }
     }
 
   if (parameters.opt_differences < 2)
     {
-      if (used_options[match_reward_index] != 0) {
+      if (used_options[match_reward_index]) {
         fatal(error_prefix, "Option -m or --match-reward specified when d < 2.");
       }
-      if (used_options[mismatch_penalty_index] != 0) {
+      if (used_options[mismatch_penalty_index]) {
         fatal(error_prefix, "Option -p or --mismatch-penalty specified when d < 2.");
       }
-      if (used_options[gap_opening_penalty_index] != 0) {
+      if (used_options[gap_opening_penalty_index]) {
         fatal(error_prefix, "Option -g or --gap-opening-penalty specified when d < 2.");
       }
-      if (used_options[gap_extension_penalty_index] != 0) {
+      if (used_options[gap_extension_penalty_index]) {
         fatal(error_prefix, "Option -e or --gap-extension-penalty specified when d < 2.");
       }
     }
@@ -545,8 +545,8 @@ void args_check(std::array<int, n_options> & used_options) {
           "must be at least 2.");
   }
 
-  if ((used_options[ceiling_index] != 0) && ((parameters.opt_ceiling < min_ceiling) ||
-                                             (parameters.opt_ceiling > max_ceiling))) {
+  if ((used_options[ceiling_index]) && ((parameters.opt_ceiling < min_ceiling) ||
+                                        (parameters.opt_ceiling > max_ceiling))) {
     fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
@@ -557,7 +557,7 @@ void args_check(std::array<int, n_options> & used_options) {
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
-  if ((used_options[append_abundance_index] != 0) && (parameters.opt_append_abundance < 1)) {
+  if ((used_options[append_abundance_index]) && (parameters.opt_append_abundance < 1)) {
     fatal(error_prefix, "Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
