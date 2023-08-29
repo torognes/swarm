@@ -43,7 +43,7 @@
 #include <cassert>  // assert()
 #include <climits>
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fputc()
+#include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // std::memcmp
 #include <pthread.h>
@@ -471,7 +471,7 @@ void check_heavy_thread(int64_t t)
   auto * variant_list = new struct var_s[i * longestamplicon + j];
   auto * variant_list2 = new struct var_s[i * (longestamplicon + 1) + j];
 
-  const size_t size =
+  const std::size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
   char * buffer1 {new char[size]};
   pthread_mutex_lock(&heavy_mutex);
