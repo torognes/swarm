@@ -25,6 +25,17 @@
 #include "utils/fatal.h"
 #include <cstdint>  // int64_t, uint64_t
 
+#ifdef __APPLE__
+#include <sys/resource.h>
+#include <sys/sysctl.h>
+#elif defined _WIN32
+#include <windows.h>
+#include <psapi.h>
+#else
+#include <sys/resource.h>  // Linux: getrusage
+#include <sys/sysinfo.h>  // sysinfo
+#endif
+
 
 auto arch_get_memused() -> uint64_t
 {
