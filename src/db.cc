@@ -31,7 +31,7 @@
 #include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fclose()
+#include <cstdio>  // fclose(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
 #include <string>
@@ -243,7 +243,7 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  const size_t n_digits = std::strspn(abundance_string + 1, digit_chars.c_str());
+  const std::size_t n_digits = std::strspn(abundance_string + 1, digit_chars.c_str());
 
   if (n_digits > max_digits) {
     return false;
@@ -438,7 +438,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
     std::fprintf(logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
   }
 
-  size_t linecap = linealloc;
+  std::size_t linecap = linealloc;
   char * line {new char[linecap]};
   ssize_t linelen = xgetline(& line, & linecap, input_fp);
   if (linelen < 0)
