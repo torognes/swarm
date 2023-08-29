@@ -71,10 +71,10 @@ auto arch_get_memtotal() -> uint64_t
 {
 #ifdef _WIN32
 
-  MEMORYSTATUSEX ms;
-  ms.dwLength = sizeof(MEMORYSTATUSEX);
-  GlobalMemoryStatusEx(&ms);
-  return ms.ullTotalPhys;
+  MEMORYSTATUSEX memory_status;
+  memory_status.dwLength = sizeof(MEMORYSTATUSEX);
+  GlobalMemoryStatusEx(&memory_status);
+  return memory_status.ullTotalPhys;
 
 #elif defined(__APPLE__)
 
