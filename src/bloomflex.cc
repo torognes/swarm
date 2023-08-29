@@ -38,13 +38,13 @@
 #include "util.h"
 
 
-auto bloomflex_patterns_generate(struct bloomflex_s * b) -> void
+auto bloomflex_patterns_generate(struct bloomflex_s * bloom_filter) -> void
 {
   static constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
-  for(auto i = 0U; i < b->pattern_count; i++)
+  for(auto i = 0U; i < bloom_filter->pattern_count; i++)
     {
       uint64_t pattern {0};
-      for(auto j = 0U; j < b->pattern_k; j++)
+      for(auto j = 0U; j < bloom_filter->pattern_k; j++)
         {
           uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
           while ((pattern & onebit) != 0U) {
@@ -52,7 +52,7 @@ auto bloomflex_patterns_generate(struct bloomflex_s * b) -> void
           }
           pattern |= onebit;
         }
-      b->patterns[i] = pattern;
+      bloom_filter->patterns[i] = pattern;
     }
 }
 
@@ -64,28 +64,28 @@ auto bloomflex_init(const uint64_t size, const unsigned int n_hash_functions) ->
   static constexpr unsigned int multiplier {16};  // multiply by 65,536
   static constexpr unsigned int divider {3};  // divide by 8
 
-  auto * b = static_cast<struct bloomflex_s *>(xmalloc(sizeof(struct bloomflex_s)));
-  b->size = size >> divider;  // divide by 8 to get number of uint64
+  auto * bloom_filter = static_cast<struct bloomflex_s *>(xmalloc(sizeof(struct bloomflex_s)));
+  bloom_filter->size = size >> divider;  // divide by 8 to get number of uint64
 
-  b->pattern_shift = multiplier;
-  b->pattern_count = 1U << b->pattern_shift;
-  b->pattern_mask = b->pattern_count - 1;
-  b->pattern_k = n_hash_functions;
+  bloom_filter->pattern_shift = multiplier;
+  bloom_filter->pattern_count = 1U << bloom_filter->pattern_shift;
+  bloom_filter->pattern_mask = bloom_filter->pattern_count - 1;
+  bloom_filter->pattern_k = n_hash_functions;
 
-  b->patterns = static_cast<uint64_t *>(xmalloc(b->pattern_count * sizeof(uint64_t)));
-  bloomflex_patterns_generate(b);
+  bloom_filter->patterns = static_cast<uint64_t *>(xmalloc(bloom_filter->pattern_count * sizeof(uint64_t)));
+  bloomflex_patterns_generate(bloom_filter);
 
   // b->bitmap = new uint64_t[size / sizeof(uint64_t)];  fix for std::bad_alloc crash
-  b->bitmap = static_cast<uint64_t *>(xmalloc(size));
-  std::memset(b->bitmap, UINT8_MAX, size);
+  bloom_filter->bitmap = static_cast<uint64_t *>(xmalloc(size));
+  std::memset(bloom_filter->bitmap, UINT8_MAX, size);
 
-  return b;
+  return bloom_filter;
 }
 
 
-auto bloomflex_exit(struct bloomflex_s * b) -> void
+auto bloomflex_exit(struct bloomflex_s * bloom_filter) -> void
 {
-  xfree(b->bitmap);
-  xfree(b->patterns);
-  xfree(b);
+  xfree(bloom_filter->bitmap);
+  xfree(bloom_filter->patterns);
+  xfree(bloom_filter);
 }

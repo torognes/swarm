@@ -36,24 +36,24 @@ struct bloomflex_s
 
 auto bloomflex_init(uint64_t size, unsigned int n_hash_functions) -> struct bloomflex_s *;
 
-void bloomflex_exit(struct bloomflex_s * b);
+void bloomflex_exit(struct bloomflex_s * bloom_filter);
 
-inline auto bloomflex_adr(struct bloomflex_s * b, uint64_t h) -> uint64_t *
+inline auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t h) -> uint64_t *
 {
-  return b->bitmap + ((h >> b->pattern_shift) % b->size);
+  return bloom_filter->bitmap + ((h >> bloom_filter->pattern_shift) % bloom_filter->size);
 }
 
-inline auto bloomflex_pat(struct bloomflex_s * b, uint64_t h) -> uint64_t
+inline auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t h) -> uint64_t
 {
-  return b->patterns[h & b->pattern_mask];
+  return bloom_filter->patterns[h & bloom_filter->pattern_mask];
 }
 
-inline void bloomflex_set(struct bloomflex_s * b, uint64_t h)
+inline void bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t h)
 {
-  * bloomflex_adr(b, h) &= ~ bloomflex_pat(b, h);
+  * bloomflex_adr(bloom_filter, h) &= ~ bloomflex_pat(bloom_filter, h);
 }
 
-inline auto bloomflex_get(struct bloomflex_s * b, uint64_t h) -> bool
+inline auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t h) -> bool
 {
-  return (* bloomflex_adr(b, h) & bloomflex_pat(b, h)) == 0U;
+  return (* bloomflex_adr(bloom_filter, h) & bloomflex_pat(bloom_filter, h)) == 0U;
 }
