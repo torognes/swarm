@@ -27,7 +27,7 @@
 #include <algorithm>  // std::min()
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // snprintf
+#include <cstdio>  // snprintf, size_t
 #include <cstring>  // memcpy, memmove, memset
 
 
@@ -47,7 +47,7 @@ void pushop(const char newop, char ** cigarendp, char * op, int * count)
       const int len = std::snprintf(buf, buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
-      std::memcpy(*cigarendp, buf, static_cast<size_t>(len));
+      std::memcpy(*cigarendp, buf, static_cast<std::size_t>(len));
     }
     *op = newop;
     *count = 1;
@@ -67,7 +67,7 @@ void finishop(char ** cigarendp, char * op, int * count)
       const int len = std::snprintf(buf, buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
-      std::memcpy(*cigarendp, buf, static_cast<size_t>(len));
+      std::memcpy(*cigarendp, buf, static_cast<std::size_t>(len));
     }
     *op = 0;
     *count = 0;
@@ -144,7 +144,7 @@ void nw(char * dseq,
   int64_t n {0};
   int64_t e {0};
 
-  std::memset(dir, 0, static_cast<size_t>(qlen * dlen));
+  std::memset(dir, 0, static_cast<std::size_t>(qlen * dlen));
 
   for(auto i = 0L; i < qlen; i++)
     {
@@ -286,7 +286,7 @@ void nw(char * dseq,
 
   /* move and reallocate cigar */
 
-  auto cigaralloc = static_cast<size_t>(cigar + qlen + dlen - cigarend + 1);
+  auto cigaralloc = static_cast<std::size_t>(cigar + qlen + dlen - cigarend + 1);
   std::memmove(cigar, cigarend, cigaralloc);
   cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
 
