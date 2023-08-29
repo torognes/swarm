@@ -48,17 +48,6 @@ constexpr char PRId64[] = "ld";
 #include <sys/types.h>
 #include <unistd.h>  // replace with <fstream> to improve portability
 
-// #ifdef __APPLE__
-// #include <sys/resource.h>
-// #include <sys/sysctl.h>
-// #elif defined _WIN32
-// #include <windows.h>
-// #include <psapi.h>
-// #else
-// #include <sys/resource.h>  // Linux: getrusage, r_usage
-// #include <sys/sysinfo.h>  // sysconf?
-// #endif
-
 #ifdef __aarch64__
 #include <arm_neon.h>
 #elif defined __x86_64__
