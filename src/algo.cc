@@ -524,7 +524,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                           while ((pos > seeded) &&
                                  (amps[pos-1].ampliconid > targetampliconid) &&
                                  (amps[pos-1].generation > subseedgeneration)) {
-                            pos--;
+                            --pos;
                           }
 
                           if (pos < i)

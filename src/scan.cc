@@ -176,7 +176,7 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
       * firstref = master_next;
 
       master_next += chunksize;
-      remainingchunks--;
+      --remainingchunks;
       status = true;
     }
 
