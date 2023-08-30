@@ -24,7 +24,6 @@
 #include "qgram_array.h"
 #include "swarm.h"
 #include "threads.h"
-#include "util.h"
 
 #ifdef __x86_64__
 
