@@ -44,7 +44,7 @@ void score_matrix_read(struct Parameters const & parameters)
 
   for(auto row = 0; row < n_cells / 2; row++) {
     for(auto column = 0; column < n_cells / 2; column++) {
-      score = ((row == column) && (row > 0) && (column > 0)) ? 0 : parameters.penalty_mismatch;
+      score = ((row == column) && (row != 0) && (column != 0)) ? 0 : parameters.penalty_mismatch;
       // score = (row == column) ? matchscore : mismatchscore;
       if (score < lowest_score) {
         lowest_score = score;
