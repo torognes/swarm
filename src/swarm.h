@@ -102,7 +102,7 @@ extern int64_t opt_threads;
 
 extern int64_t penalty_gapextend;
 extern int64_t penalty_gapopen;
-// extern int64_t penalty_mismatch;
+extern int64_t penalty_mismatch;
 
 extern std::FILE * outfile;
 extern std::FILE * statsfile;
@@ -115,7 +115,3 @@ extern std::FILE * network_file;
 extern int64_t ssse3_present; // several function calls
 extern int64_t sse41_present; // several function calls
 extern int64_t popcnt_present; // several function calls
-
-extern unsigned char * score_matrix_8;
-extern unsigned short * score_matrix_16;
-extern int64_t * score_matrix_63;

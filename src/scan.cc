@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include "matrix.h"
 #include "search8.h"
 #include "search16.h"
 #include "threads.h"
@@ -116,6 +117,9 @@ void search_init(struct Search_data * search_data)
 
 void search_chunk(struct Search_data * search_data, const int64_t bits)
 {
+  static auto score_matrix_8 {create_score_matrix<unsigned char>(penalty_mismatch)};
+  static auto score_matrix_16 {create_score_matrix<unsigned short>(penalty_mismatch)};
+
   static constexpr unsigned int bit_mode_16 {16};
 
   assert(search_data->target_count != 0);
@@ -126,7 +130,7 @@ void search_chunk(struct Search_data * search_data, const int64_t bits)
     search16(search_data->qtable_w,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
-             static_cast<WORD*>(score_matrix_16),
+             static_cast<WORD*>(score_matrix_16.data()),
              search_data->dprofile_w,
              reinterpret_cast<WORD*>(search_data->hearray),
              search_data->target_count,
@@ -143,7 +147,7 @@ void search_chunk(struct Search_data * search_data, const int64_t bits)
     search8(search_data->qtable,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
-            static_cast<BYTE*>(score_matrix_8),
+            static_cast<BYTE*>(score_matrix_8.data()),
             search_data->dprofile,
             search_data->hearray,
             search_data->target_count,

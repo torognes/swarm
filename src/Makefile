@@ -96,7 +96,7 @@ CXXFLAGS = $(COMMON) $(WARNINGS)
 PROG = swarm
 
 OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
-	hashtable.o matrix.o nw.o qgram.o scan.o search16.o search8.o \
+	hashtable.o nw.o qgram.o scan.o search16.o search8.o \
 	swarm.o util.o utils/fatal.o utils/hashtable_size.o variants.o \
 	x86_cpu_features.o zobrist.o $(EXTRAOBJ)
 

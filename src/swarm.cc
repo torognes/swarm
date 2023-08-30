@@ -65,6 +65,7 @@ int64_t opt_boundary;
 bool opt_no_otu_breaking {false};
 int64_t opt_threads;
 
+int64_t penalty_mismatch;
 int64_t penalty_gapextend;
 int64_t penalty_gapopen;
 
@@ -445,6 +446,7 @@ void args_init(int argc, char **argv, std::array<bool, n_options> & used_options
 
   // clang: risk of DivideZero, but that would require gcd(0, 0) which is not possible
   parameters.penalty_mismatch /= penalty_factor;
+  penalty_mismatch = parameters.penalty_mismatch;
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
 }

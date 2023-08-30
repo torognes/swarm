@@ -880,7 +880,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 uint64_t * hearray) -> void {
   static constexpr unsigned int one_hundred {100};
   unsigned int cluster_no = 0;
-  score_matrix_read(parameters);
+  auto score_matrix_63 {create_score_matrix<int64_t>(parameters.penalty_mismatch)};
   dir = new unsigned char[longestamplicon * longestamplicon];
   hearray = new uint64_t[2 * longestamplicon];
 
@@ -919,7 +919,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
               int64_t nwalignmentlength = 0;
 
               nw(dseq, dlen, qseq, qlen,
-                 score_matrix_63, penalty_gapopen, penalty_gapextend,
+                 score_matrix_63.data(), penalty_gapopen, penalty_gapextend,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                  dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
@@ -954,7 +954,6 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   dir = nullptr;
   delete [] hearray;
   hearray = nullptr;
-  score_matrix_free();
 }
 
 
