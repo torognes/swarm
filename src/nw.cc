@@ -24,11 +24,14 @@
 #include "util.h"
 #include "utils/nt_codec.h"
 #include <algorithm>  // std::min()
+#include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // snprintf, size_t
 #include <cstring>  // memcpy, memmove, memset
 
+
+constexpr auto n_cells {32ULL};  // number of chars in sym_nt
 
 void pushop(const char newop, char ** cigarendp, char * op, int * count)
 {
@@ -123,7 +126,7 @@ void nw(char * dseq,
         const int64_t dlen,
         char * qseq,
         const int64_t qlen,
-        int64_t * score_matrix,
+        const std::array<int64_t, n_cells * n_cells> & score_matrix,
         const int64_t gapopen,
         const int64_t gapextend,
         int64_t * nwscore,

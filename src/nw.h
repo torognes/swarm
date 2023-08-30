@@ -21,13 +21,17 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdint>
+#include <array>
+#include <cstdint>  // int64_t
+
+
+constexpr auto n_cells {32ULL};  // number of chars in sym_nt
 
 void nw(char * dseq,
         int64_t dlen,
         char * qseq,
         int64_t qlen,
-        int64_t * score_matrix,
+        const std::array<int64_t, n_cells * n_cells> & score_matrix,
         int64_t gapopen,
         int64_t gapextend,
         int64_t * nwscore,

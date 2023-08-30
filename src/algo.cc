@@ -215,7 +215,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 
 auto algo_run(struct Parameters const & parameters) -> void
 {
-  auto score_matrix_63 {create_score_matrix<int64_t>(parameters.penalty_mismatch)};
+  const auto score_matrix_63 {create_score_matrix<int64_t>(parameters.penalty_mismatch)};
 
   search_begin();
 
@@ -621,7 +621,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               int64_t nwalignmentlength {0};
 
               nw(dseq, dlen, qseq, qlen,
-                 score_matrix_63.data(), penalty_gapopen, penalty_gapextend,
+                 score_matrix_63, penalty_gapopen, penalty_gapextend,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
                  dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
