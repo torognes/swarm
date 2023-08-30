@@ -46,7 +46,7 @@ auto progress_init(const char * prompt, const uint64_t size) -> void
   progress_chunk = size < progress_granularity ?
     1 : size / progress_granularity;
   progress_next = 1;
-  if (! opt_log.empty()) {
+  if (not opt_log.empty()) {
     std::fprintf(logfile, "%s", prompt);
   }
   else {
@@ -68,7 +68,7 @@ auto progress_update(const uint64_t progress) -> void
 
 auto progress_done() -> void
 {
-  if (! opt_log.empty()) {
+  if (not opt_log.empty()) {
     std::fprintf(logfile, " %.0f%%\n", 100.0);
   }
   else {

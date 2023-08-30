@@ -406,7 +406,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                   const unsigned int poolampliconid = amps[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
-                  if (! parameters.opt_internal_structure.empty())
+                  if (not parameters.opt_internal_structure.empty())
                     {
                       fprint_id_noabundance(internal_structure_file,
                                             seedampliconid, parameters.opt_usearch_abundance);
@@ -552,7 +552,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                           const unsigned int poolampliconid = amps[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
 
-                          if (! parameters.opt_internal_structure.empty())
+                          if (not parameters.opt_internal_structure.empty())
                             {
                               fprint_id_noabundance(internal_structure_file,
                                                     subseedampliconid,

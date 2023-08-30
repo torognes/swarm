@@ -444,7 +444,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
   const uint64_t filesize = is_regular ? fstat_buffer.st_size : 0;
   uint64_t filepos = 0;
 
-  if (! is_regular) {
+  if (not is_regular) {
     std::fprintf(logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
   }
 
@@ -854,7 +854,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
             "and the first space or the end of the line, whichever comes first.");
     }
 
-  if (! presorted)
+  if (not presorted)
     {
       progress_init("Abundance sorting:", 1);
       std::qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
