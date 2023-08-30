@@ -761,7 +761,7 @@ void search16(WORD * * q_start,
 
                       diffs[cand_id] = diff;
 
-                      done++;
+                      ++done;
                     }
 
                   if (next_id < sequences)
@@ -779,7 +779,7 @@ void search16(WORD * * q_start,
 
                       d_pos[c] = 0;
                       d_offset[c] = static_cast<uint64_t>(dir - dirbuffer);
-                      next_id++;
+                      ++next_id;
 
                       (reinterpret_cast<WORD*>(&H0))[c] = 0;
                       (reinterpret_cast<WORD*>(&F0))[c] = 2 * gap_open_penalty + 2 * gap_extend_penalty;

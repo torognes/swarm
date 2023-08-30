@@ -126,7 +126,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
         {
           zobrist_hash ^= zobrist_value(pos, x & 3U);
           x >>= 2U;
-          pos++;
+          ++pos;
         }
     }
 

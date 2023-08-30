@@ -169,7 +169,7 @@ inline void add_variant(uint64_t hash,
                         unsigned int * variant_count)
 {
 #ifdef HASHSTATS
-  tries++;
+  ++tries;
 #endif
   var_s * variant = variant_list + (*variant_count)++;
   variant->hash = hash;
