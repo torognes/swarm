@@ -42,25 +42,25 @@ void score_matrix_read(struct Parameters const & parameters)
   score_matrix_16 = new unsigned short[n_cells * n_cells];
   score_matrix_63 = new int64_t[n_cells * n_cells];
 
-  for(auto a = 0; a < n_cells / 2; a++) {
-    for(auto b = 0; b < n_cells / 2; b++) {
-      score = ((a == b) && (a > 0) && (b > 0)) ? 0 : parameters.penalty_mismatch;
-      // score = (a==b) ? matchscore : mismatchscore;
+  for(auto row = 0; row < n_cells / 2; row++) {
+    for(auto column = 0; column < n_cells / 2; column++) {
+      score = ((row == column) && (row > 0) && (column > 0)) ? 0 : parameters.penalty_mismatch;
+      // score = (row == column) ? matchscore : mismatchscore;
       if (score < lowest_score) {
         lowest_score = score;
       }
       if (score > highest_score) {
         highest_score = score;
       }
-      score_matrix_63[(a * n_cells) + b] = score;
+      score_matrix_63[(row * n_cells) + column] = score;
     }
   }
 
-  for(auto a = 0; a < n_cells; a++) {
-    for(auto b = 0; b < n_cells; b++) {
-      score = score_matrix_63[(a * n_cells) + b];
-      score_matrix_8[(a * n_cells) + b] = static_cast<unsigned char>(score);
-      score_matrix_16[(a * n_cells) + b] = static_cast<unsigned short>(score);
+  for(auto row = 0; row < n_cells; row++) {
+    for(auto column = 0; column < n_cells; column++) {
+      score = score_matrix_63[(row * n_cells) + column];
+      score_matrix_8[(row * n_cells) + column] = static_cast<unsigned char>(score);
+      score_matrix_16[(row * n_cells) + column] = static_cast<unsigned short>(score);
     }
   }
 }
