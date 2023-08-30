@@ -165,7 +165,7 @@ void nw(char * dseq,
           e = *(hep+1);
           h += score_matrix
             [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1U) << multiplier)
-             +(nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
+             + (nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
 
           dir[index] |= (f < h ? maskup : 0U);
           h = std::min(h, f);
