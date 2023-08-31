@@ -83,7 +83,7 @@ std::FILE * network_file {nullptr};
 constexpr int n_options {26};
 std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
-char short_options[] = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
+const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
 
 static struct option long_options[] =
   {
@@ -275,7 +275,7 @@ void args_init(int argc, char **argv, std::array<bool, n_options> & used_options
   while (true)
   {
     int option_index {0};
-    option_character = getopt_long(argc, argv, short_options, long_options, &option_index);
+    option_character = getopt_long(argc, argv, short_options.c_str(), long_options, &option_index);
 
     if (option_character == -1) {
       break;
