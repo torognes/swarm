@@ -45,11 +45,11 @@ void pushop(const char newop, char ** cigarendp, char * op, int * count)
     *--*cigarendp = *op;
     if (*count > 1)
     {
-      char buf[buffer_length];
-      const int len = std::snprintf(buf, buffer_length, "%d", *count);
+      std::array<char, buffer_length> buf {{}};
+      const int len = std::snprintf(buf.data(), buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
-      std::memcpy(*cigarendp, buf, static_cast<std::size_t>(len));
+      std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
     *op = newop;
     *count = 1;
@@ -65,11 +65,11 @@ void finishop(char ** cigarendp, char * op, int * count)
     *--*cigarendp = *op;
     if (*count > 1)
     {
-      char buf[buffer_length];
-      const int len = std::snprintf(buf, buffer_length, "%d", *count);
+      std::array<char, buffer_length> buf {{}};
+      const int len = std::snprintf(buf.data(), buffer_length, "%d", *count);
       assert(len >= 0);
       *cigarendp -= len;
-      std::memcpy(*cigarendp, buf, static_cast<std::size_t>(len));
+      std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
     *op = 0;
     *count = 0;
