@@ -85,7 +85,7 @@ std::array<bool, n_options> used_options {{}};  // value initialization sets val
 
 const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
 
-static struct option long_options[] =
+const std::array<struct option, 25> long_options = {
   {
    {"append-abundance",      required_argument, nullptr, 'a' },
    {"boundary",              required_argument, nullptr, 'b' },
@@ -112,7 +112,8 @@ static struct option long_options[] =
    {"bloom-bits",            required_argument, nullptr, 'y' },
    {"usearch-abundance",     no_argument,       nullptr, 'z' },
    {nullptr,                 0,                 nullptr, 0 }
-  };
+  }
+};
 
 
 const std::vector<std::string> header_message
@@ -275,7 +276,7 @@ void args_init(int argc, char **argv, std::array<bool, n_options> & used_options
   while (true)
   {
     int option_index {0};
-    option_character = getopt_long(argc, argv, short_options.c_str(), long_options, &option_index);
+    option_character = getopt_long(argc, argv, short_options.c_str(), long_options.data(), &option_index);
 
     if (option_character == -1) {
       break;
