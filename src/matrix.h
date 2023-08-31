@@ -21,6 +21,7 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <algorithm>
 #include <array>
 #include <cstdint>  // int64_t
 #include <type_traits>
@@ -38,17 +39,19 @@ auto create_score_matrix(int64_t penalty_mismatch)
   const auto mismatchscore {static_cast<Integral>(penalty_mismatch)};
   std::array<Integral, n_cells * n_cells> score_matrix {{}};
 
-  // fill in the upper-left quarter of the matrix,
+  // fill in the upper-left quarter of the matrix with mismatchscore,
   // except the diagonal starting from cell (1, 1)
-  auto index {0U};  // refactoring: C++20 reduce the scope of 'index'
-  for (auto& element : score_matrix) {
+  auto index {0U};
+  auto choose_score = [&index, &mismatchscore](Integral &element) {
     const auto column {index % n_cells};
     const auto row {index / n_cells};
     element = ((row == column && row != 0 && column != 0)
                || (column >= n_cells / 2)
                || (row >= n_cells / 2)) ? matchscore : mismatchscore;
     ++index;
-  }
+  };
+  // refactoring: C++20 ranges::for_each
+  std::for_each(score_matrix.begin(), score_matrix.end(), choose_score);
 
   return score_matrix;
 }
