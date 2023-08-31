@@ -633,6 +633,7 @@ void search16(WORD * * q_start,
   hep = CAST_VECTOR_p(hearray);
   qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
+  // refactoring: initialize arrays
   for(auto c = 0U; c < channels; c++)
     {
       d_address[c] = nullptr;
