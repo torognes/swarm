@@ -96,7 +96,9 @@ static struct swarminfo_s
   unsigned int singletons; /* number of amplicons with abundance 1 */
   unsigned int maxgen; /* the generation of the amplicon farthest from seed */
   bool attached; /* this is a small swarm attached to a large (fastidious) */
-  char dummy[3]; /* alignment padding only */
+  char dummy_1 = '\0'; /* alignment padding only */
+  char dummy_2 = '\0'; /* alignment padding only */
+  char dummy_3 = '\0'; /* alignment padding only */
 } * swarminfo = nullptr;
 
 static struct graft_cand
