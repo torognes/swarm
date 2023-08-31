@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include <array>
 
 #ifdef __x86_64__
 
@@ -213,7 +214,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
 
   for(auto j = 0U; j < cdepth; j++)
     {
-      unsigned int d[channels];
+      std::array<unsigned int, channels> d {{}};
       for(auto z = 0U; z < channels; z++) {
         d[z] = (static_cast<unsigned int>(dseq[j * channels + z])) << multiplier;
       }
