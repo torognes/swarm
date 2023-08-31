@@ -88,14 +88,14 @@ static struct ampinfo_s
 
 static struct swarminfo_s
 {
-  uint64_t mass; /* the sum of abundances of amplicons in this swarm */
-  uint64_t sumlen; /* sum of length of amplicons in swarm */
-  unsigned int seed; /* amplicon id of the initial seed of this swarm */
-  unsigned int last; /* amplicon id of the last seed in this swarm */
-  unsigned int size; /* total number of amplicons in this swarm */
-  unsigned int singletons; /* number of amplicons with abundance 1 */
-  unsigned int maxgen; /* the generation of the amplicon farthest from seed */
-  bool attached; /* this is a small swarm attached to a large (fastidious) */
+  uint64_t mass {0}; /* the sum of abundances of amplicons in this swarm */
+  uint64_t sumlen {0}; /* sum of length of amplicons in swarm */
+  unsigned int seed {0}; /* amplicon id of the initial seed of this swarm */
+  unsigned int last {0}; /* amplicon id of the last seed in this swarm */
+  unsigned int size {0}; /* total number of amplicons in this swarm */
+  unsigned int singletons {0}; /* number of amplicons with abundance 1 */
+  unsigned int maxgen {0}; /* the generation of the amplicon farthest from seed */
+  bool attached {false}; /* this is a small swarm attached to a large (fastidious) */
   char dummy_1 = '\0'; /* alignment padding only */
   char dummy_2 = '\0'; /* alignment padding only */
   char dummy_3 = '\0'; /* alignment padding only */
