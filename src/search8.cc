@@ -829,10 +829,10 @@ void search8(BYTE * * q_start,
   VECTORTYPE *hep {nullptr};
   VECTORTYPE **qp {nullptr};
 
-  uint64_t d_pos[channels];
-  uint64_t d_offset[channels];
-  char * d_address[channels];
-  uint64_t d_length[channels];
+  std::array<uint64_t, channels> d_pos {{}};
+  std::array<uint64_t, channels> d_offset {{}};
+  std::array<char *, channels> d_address {{}};
+  std::array<uint64_t, channels> d_length {{}};
 
   VECTORTYPE dseqalloc[cdepth];
 
@@ -842,7 +842,7 @@ void search8(BYTE * * q_start,
 
   BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
 
-  int64_t seq_id[channels];
+  std::array<int64_t, channels> seq_id {{}};
   uint64_t next_id {0};
   uint64_t done {0};
 
