@@ -880,7 +880,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 uint64_t * hearray) -> void {
   static constexpr unsigned int one_hundred {100};
   unsigned int cluster_no = 0;
-  const auto score_matrix_63 {create_score_matrix<int64_t>(parameters.penalty_mismatch)};
+  const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
   dir = new unsigned char[longestamplicon * longestamplicon];
   hearray = new uint64_t[2 * longestamplicon];
 

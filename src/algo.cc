@@ -215,7 +215,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 
 auto algo_run(struct Parameters const & parameters) -> void
 {
-  const auto score_matrix_63 {create_score_matrix<int64_t>(parameters.penalty_mismatch)};
+  const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   search_begin();
 

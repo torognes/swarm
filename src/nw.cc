@@ -31,7 +31,7 @@
 #include <cstring>  // memcpy, memmove, memset
 
 
-constexpr auto n_cells {32ULL};  // number of chars in sym_nt
+constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
 void pushop(const char newop, char ** cigarendp, char * op, int * count)
 {

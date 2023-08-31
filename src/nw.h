@@ -26,7 +26,7 @@
 
 
 // refactor: 'n_cells' is already defined in 'matrix.h'
-constexpr auto n_cells_ {32ULL};  // number of chars in sym_nt
+constexpr auto n_cells_ = 32ULL;  // number of chars in sym_nt
 
 void nw(char * dseq,
         int64_t dlen,
