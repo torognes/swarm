@@ -48,7 +48,7 @@ private:
   {
     auto * tip = static_cast<struct thread_s *>(vp);
 
-    pthread_mutex_lock(&tip->workmutex);
+    pthread_mutex_lock(&tip->workmutex);  // refactoring: prefer mutex_lockguard (RAII)
 
     /* loop until signalled to quit */
     while (tip->work >= 0)
