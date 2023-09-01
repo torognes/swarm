@@ -50,7 +50,7 @@ auto arch_get_memused() -> uint64_t
 
 #else
 
-  struct rusage r_usage {};
+  struct rusage r_usage;  // refactoring: add initializer '{}' (warning with GCC < 5)
   getrusage(RUSAGE_SELF, & r_usage);
 
 # ifdef __APPLE__
@@ -96,7 +96,7 @@ auto arch_get_memtotal() -> uint64_t
 
 #else
 
-  struct sysinfo info {};
+  struct sysinfo info;  // refactoring: add initializer '{}' (warning with GCC < 5)
   if (sysinfo(&info) != 0) {
     fatal(error_prefix, "Cannot determine amount of RAM.");
   }
