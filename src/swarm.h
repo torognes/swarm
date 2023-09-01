@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // FILE
 #include <string>
 
