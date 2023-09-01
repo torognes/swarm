@@ -56,8 +56,6 @@ static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
 
 /* OPTIONS */
 
-std::string progname;  // unused variable?
-
 struct Parameters parameters;
 std::string opt_log;
 
@@ -264,8 +262,6 @@ void args_init(int argc, char **argv, std::array<bool, n_options> & used_options
   /* Set defaults */
   static constexpr unsigned int boundary_default {3};
   static constexpr unsigned int threads_default {1};
-
-  progname = argv[0];
 
   opt_boundary = boundary_default;
   opt_threads = threads_default;
