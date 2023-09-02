@@ -25,6 +25,10 @@
 #include "swarm.h"
 #include "threads.h"
 
+#ifdef __aarch64__
+#include <arm_neon.h>
+#endif
+
 #ifdef __x86_64__
 
 #ifdef __SSE2__
