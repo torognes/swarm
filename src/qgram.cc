@@ -29,6 +29,16 @@
 #include <arm_neon.h>
 #endif
 
+
+#ifdef __PPC__
+#ifdef __LITTLE_ENDIAN__
+#include <altivec.h>
+#else
+#error Big endian ppc64 CPUs not supported
+#endif
+#endif
+
+
 #ifdef __x86_64__
 
 #ifdef __SSE2__
