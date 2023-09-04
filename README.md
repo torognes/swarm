@@ -404,6 +404,7 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 
 swarm 3.1.x:
 - measure the effect of code modernization on run-time performances
+- double the maximal number of threads (256 to 512)
 
 swarm 3.1.y:
 - use more C++11 and STL features,
