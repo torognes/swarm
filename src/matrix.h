@@ -64,6 +64,18 @@ auto create_score_matrix(const int64_t penalty_mismatch)
 // create_score_matrix<int64_t>(penalty_mismatch)};         OK
 // create_score_matrix<signed char>(penalty_mismatch)};     compilation error
 
+// refactoring: C++20 constexpr template
+// static_assert(create_score_matrix<unsigned short>(4)[0] == 4);  // (0, 0)
+// static_assert(create_score_matrix<unsigned short>(4)[(n_cells / 2) - 1] == 4);  // (0, 15)
+// static_assert(create_score_matrix<unsigned short>(4)[(n_cells / 2)] == 0);  // (0, 16)
+// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + 0] == 4);  // (1, 0)
+// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + 1] == 0);  // (1, 1)
+// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + 2] == 4);  // (1, 2)
+// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + (n_cells / 2) - 1] == 4);  // (1, 15)
+// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + (n_cells / 2)] == 0);  // (1, 16)
+// static_assert(create_score_matrix<unsigned short>(4)[(((n_cells / 2) - 1) * n_cells) + (n_cells / 2) - 1] == 0);  // (15, 15)
+// static_assert(create_score_matrix<unsigned short>(4)[(n_cells * n_cells) - 1] == 0);  // last cell
+
 
 // expected score matrix (if mismatch score is 4, and type is unsigned short):
 //
