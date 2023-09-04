@@ -403,12 +403,12 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 > PATCH version when you make backwards compatible bug fixes.
 
 swarm 3.1.x:
-- measure the effect of code modernization on run-time performances
+- measure the effect of code modernization on run-time performances,
 - double the maximal number of threads (256 to 512)
 
 swarm 3.1.y:
 - use more C++11 and STL features,
-- eliminate 99% of clang-tidy's warnings,
+- eliminate 99% of clang-tidy's warnings
 
 swarm 3.1.z:
 - refactor to reduce cyclomatic complexity (simpler and shorter functions),
