@@ -488,7 +488,7 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + 16 * j + 1536 +   0, reg0);
+      v_store(dprofile + 16 * j + 1536 +   0, reg0);  // refactoring: 1536 = 6 * 256 bits?
       v_store(dprofile + 16 * j + 1536 +  64, reg3);
       v_store(dprofile + 16 * j + 1536 + 128, reg2);
       v_store(dprofile + 16 * j + 1536 + 192, reg7);
