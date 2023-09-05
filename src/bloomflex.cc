@@ -34,7 +34,7 @@
 #include "bloomflex.h"
 #include "pseudo_rng.h"
 #include "util.h"
-#include <cstdint>
+#include <cstdint>  // uint64_t
 #include <cstring>
 
 
