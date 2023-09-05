@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdint>
+#include <cstdint>  // uint64_t
 
 struct bloomflex_s
 {
