@@ -31,11 +31,11 @@
   https://doi.org/10.1145/1498698.1594230
 */
 
-#include <cstdint>
-#include <cstring>
 #include "bloomflex.h"
 #include "pseudo_rng.h"
 #include "util.h"
+#include <cstdint>
+#include <cstring>
 
 
 auto bloomflex_patterns_generate(struct bloomflex_s * bloom_filter) -> void
