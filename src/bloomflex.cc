@@ -35,7 +35,7 @@
 #include "pseudo_rng.h"
 #include "util.h"
 #include <cstdint>  // uint64_t
-#include <cstring>
+#include <cstring>  // memset
 
 
 auto bloomflex_patterns_generate(struct bloomflex_s * bloom_filter) -> void
