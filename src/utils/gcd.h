@@ -21,19 +21,21 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-
 #include <algorithm>
-// #include <cassert>
+#include <cmath>
+#include <type_traits>
 
 
 // Computes the greatest common divisor of two integers
 // refactoring C++17: replace with std::gcd()
-template <typename Number>
-auto gcd(Number num1, Number num2) -> Number {
+template <typename Integral>
+auto gcd(Integral num1, Integral num2) -> Integral {
+
+  static_assert(std::is_integral<Integral>::value, "Integral required.");
 
   // gcd(a, b) = gcd(|a|, |b|)
-  if (num1 < 0) { num1 = -num1; }
-  if (num2 < 0) { num2 = -num2; }
+  num1 = std::abs(num1);
+  num2 = std::abs(num2);
 
   // gcd(a, b) = gcd(b, a) and gcd(a, 0) = gcd(0, a) = a
   // This covers the case gcd(0, 0) = 0
@@ -49,12 +51,14 @@ auto gcd(Number num1, Number num2) -> Number {
   return num2;
 }
 
-// assert(gcd(0, 0) == 0);
-// assert(gcd(0, 5) == 5);
-// assert(gcd(5, 0) == 5);
-// assert(gcd(-5, 0) == 5);
-// assert(gcd(15, 9) == 3);
-// assert(gcd(13, 6) == 1);   // one prime
-// assert(gcd(6, 11) == 1);   // one prime
-// assert(gcd(13, 11) == 1);  // two primes
-// assert(gcd(100, 24) == 4);
+// refactoring C++20
+// static_assert(gcd(0, 0) == 0);
+// static_assert(gcd(0, 5) == 5);
+// static_assert(gcd(5, 0) == 5);
+// static_assert(gcd(5, 5) == 5);
+// static_assert(gcd(-5, 0) == 5);
+// static_assert(gcd(15, 9) == 3);
+// static_assert(gcd(13, 6) == 1);   // one prime
+// static_assert(gcd(6, 11) == 1);   // one prime
+// static_assert(gcd(13, 11) == 1);  // two primes
+// static_assert(gcd(100, 24) == 4);
