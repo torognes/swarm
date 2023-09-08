@@ -34,6 +34,7 @@ auto create_score_matrix(const std::int64_t penalty_mismatch)
   -> std::array<Integral, n_cells * n_cells> {
   static_assert(std::is_same<Integral, unsigned char>::value   \
                 || std::is_same<Integral, unsigned short>::value \
+                || std::is_same<Integral, std::uint16_t>::value \
                 || std::is_same<Integral, std::int64_t>::value,
                 "Invalid type! Only unsigned char, unsigned short and int64_t can be used.");
   static constexpr Integral matchscore {0};
