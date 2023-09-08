@@ -23,7 +23,7 @@
 
 #include <algorithm>
 #include <array>
-#include <cstdint>  // int64_t
+#include <cstdint>  // int64_t, uint16_t
 #include <type_traits>
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
