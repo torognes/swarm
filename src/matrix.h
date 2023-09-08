@@ -28,6 +28,7 @@
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
+// refactoring: C++20 use 'requires' to constrain accepted types
 template <typename Integral>
 auto create_score_matrix(const std::int64_t penalty_mismatch)
   -> std::array<Integral, n_cells * n_cells> {
