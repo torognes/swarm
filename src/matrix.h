@@ -28,6 +28,7 @@
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
+// note: there is no uchar8_t, only char8_t in C++20
 // refactoring: C++20 use 'requires' to constrain accepted types
 template <typename Integral>
 auto create_score_matrix(const std::int64_t penalty_mismatch)
