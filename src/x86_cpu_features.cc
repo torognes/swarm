@@ -61,33 +61,34 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   static constexpr unsigned int bit_avx {28};
   static constexpr unsigned int bit_avx2 {5};
 
-  unsigned int a {0};
-  unsigned int b {0};
-  unsigned int c {0};
-  unsigned int d {0};
+  // CPU registers:
+  unsigned int eax {0};
+  unsigned int ebx {0};
+  unsigned int ecx {0};
+  unsigned int edx {0};
 
-  cpuid(0, 0, a, b, c, d);
-  const unsigned int maxlevel = a & UINT8_MAX;
+  cpuid(0, 0, eax, ebx, ecx, edx);
+  const unsigned int maxlevel = eax & UINT8_MAX;
 
   if (maxlevel == 0) {
     return;
   }
 
-  cpuid(1, 0, a, b, c, d);
-  parameters.mmx_present    = (d >> bit_mmx) & 1U;
-  parameters.sse_present    = (d >> bit_sse) & 1U;
-  parameters.sse2_present   = (d >> bit_sse2) & 1U;
-  parameters.sse3_present   = (c >> bit_sse3) & 1U;
-  ssse3_present  = (c >> bit_ssse3) & 1U;
-  sse41_present  = (c >> bit_sse41) & 1U;
-  parameters.sse42_present  = (c >> bit_sse42) & 1U;
-  popcnt_present = (c >> bit_popcnt) & 1U;
-  parameters.avx_present    = (c >> bit_avx) & 1U;
+  cpuid(1, 0, eax, ebx, ecx, edx);
+  parameters.mmx_present    = (edx >> bit_mmx) & 1U;
+  parameters.sse_present    = (edx >> bit_sse) & 1U;
+  parameters.sse2_present   = (edx >> bit_sse2) & 1U;
+  parameters.sse3_present   = (ecx >> bit_sse3) & 1U;
+  ssse3_present  = (ecx >> bit_ssse3) & 1U;
+  sse41_present  = (ecx >> bit_sse41) & 1U;
+  parameters.sse42_present  = (ecx >> bit_sse42) & 1U;
+  popcnt_present = (ecx >> bit_popcnt) & 1U;
+  parameters.avx_present    = (ecx >> bit_avx) & 1U;
 
   if (maxlevel >= post_pentium)
     {
-      cpuid(post_pentium, 0, a, b, c, d);
-      parameters.avx2_present   = (b >> bit_avx2) & 1U;
+      cpuid(post_pentium, 0, eax, ebx, ecx, edx);
+      parameters.avx2_present   = (ebx >> bit_avx2) & 1U;
     }
 }
 
