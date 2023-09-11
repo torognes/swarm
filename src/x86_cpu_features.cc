@@ -49,7 +49,7 @@ void cpuid(unsigned int f1,
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
 {
-  static constexpr unsigned int post_pentium {7};  // new cpus: a & 0xff > 6
+  static constexpr unsigned int post_pentium {7};  // new cpus: eax & 0xff > 6
   static constexpr unsigned int bit_mmx {23};
   static constexpr unsigned int bit_sse {25};
   static constexpr unsigned int bit_sse2 {26};
