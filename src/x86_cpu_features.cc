@@ -39,13 +39,6 @@ void cpuid(unsigned int f1,
            unsigned int & a,
            unsigned int & b,
            unsigned int & c,
-           unsigned int & d);
-
-void cpuid(unsigned int f1,
-           unsigned int f2,
-           unsigned int & a,
-           unsigned int & b,
-           unsigned int & c,
            unsigned int & d)
 {
   __asm__ __volatile__ ("cpuid"
