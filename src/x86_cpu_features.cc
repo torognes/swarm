@@ -34,6 +34,7 @@ int64_t popcnt_present {0};
 
 #ifdef __x86_64__
 
+// refactoring: rewrite using header 'cpuid.h' (GCC, clang)
 void cpuid(unsigned int f1,
            unsigned int f2,
            unsigned int & a,
