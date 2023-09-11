@@ -25,6 +25,7 @@
 #include "db.h"
 #include <array>
 
+// refactoring: C++26 std::simd
 #ifdef __x86_64__
 
 #ifdef __SSE2__
