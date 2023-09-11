@@ -68,25 +68,26 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   cpuid(0, 0, a, b, c, d);
   const unsigned int maxlevel = a & UINT8_MAX;
 
-  if (maxlevel >= 1)
-  {
-    cpuid(1, 0, a, b, c, d);
-    parameters.mmx_present    = (d >> bit_mmx) & 1U;
-    parameters.sse_present    = (d >> bit_sse) & 1U;
-    parameters.sse2_present   = (d >> bit_sse2) & 1U;
-    parameters.sse3_present   = (c >> bit_sse3) & 1U;
-    ssse3_present  = (c >> bit_ssse3) & 1U;
-    sse41_present  = (c >> bit_sse41) & 1U;
-    parameters.sse42_present  = (c >> bit_sse42) & 1U;
-    popcnt_present = (c >> bit_popcnt) & 1U;
-    parameters.avx_present    = (c >> bit_avx) & 1U;
+  if (maxlevel == 0) {
+    return;
+  }
 
-    if (maxlevel >= post_pentium)
+  cpuid(1, 0, a, b, c, d);
+  parameters.mmx_present    = (d >> bit_mmx) & 1U;
+  parameters.sse_present    = (d >> bit_sse) & 1U;
+  parameters.sse2_present   = (d >> bit_sse2) & 1U;
+  parameters.sse3_present   = (c >> bit_sse3) & 1U;
+  ssse3_present  = (c >> bit_ssse3) & 1U;
+  sse41_present  = (c >> bit_sse41) & 1U;
+  parameters.sse42_present  = (c >> bit_sse42) & 1U;
+  popcnt_present = (c >> bit_popcnt) & 1U;
+  parameters.avx_present    = (c >> bit_avx) & 1U;
+
+  if (maxlevel >= post_pentium)
     {
       cpuid(post_pentium, 0, a, b, c, d);
       parameters.avx2_present   = (b >> bit_avx2) & 1U;
     }
-  }
 }
 
 auto cpu_features_test(struct Parameters & parameters) -> void {
