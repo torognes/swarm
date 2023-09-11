@@ -52,7 +52,7 @@ void zobrist_init(const unsigned int zobrist_len)
   for(auto i = 0U; i < 4 * zobrist_len; i++)
     {
       auto z = 0ULL;
-      z = rand_64();
+      z = rand_64();  // refactoring: comment states 31-bit random numbers?!
       z <<= multiplier;
       z ^= rand_64();
       z <<= multiplier;
