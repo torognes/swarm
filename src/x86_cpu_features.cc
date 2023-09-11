@@ -67,14 +67,14 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   unsigned int ecx {0};
   unsigned int edx {0};
 
-  cpuid(0, 0, eax, ebx, ecx, edx);
+  cpuid(0, 0, eax, ebx, ecx, edx);  // leaf 0
   const unsigned int maxlevel = eax & UINT8_MAX;
 
   if (maxlevel == 0) {
     return;
   }
 
-  cpuid(1, 0, eax, ebx, ecx, edx);
+  cpuid(1, 0, eax, ebx, ecx, edx);  // leaf 1
   parameters.mmx_present    = (edx >> bit_mmx) & 1U;
   parameters.sse_present    = (edx >> bit_sse) & 1U;
   parameters.sse2_present   = (edx >> bit_sse2) & 1U;
@@ -87,7 +87,7 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
 
   if (maxlevel >= post_pentium)
     {
-      cpuid(post_pentium, 0, eax, ebx, ecx, edx);
+      cpuid(post_pentium, 0, eax, ebx, ecx, edx);  // leaf 7
       parameters.avx2_present   = (ebx >> bit_avx2) & 1U;
     }
 }
