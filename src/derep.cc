@@ -289,8 +289,8 @@ auto dereplicate(struct Parameters const & parameters) -> void
       struct bucket * bp = hashtable + j;
 
       while (((bp->mass) != 0U) and
-             ((bp->hash != hash) ||
-              (seqlen != db_getsequencelen(bp->seqno_first)) ||
+             ((bp->hash != hash) or
+              (seqlen != db_getsequencelen(bp->seqno_first)) or
               (std::memcmp(seq,
                       db_getsequence(bp->seqno_first),
                       nt_bytelength(seqlen)) != 0)))
