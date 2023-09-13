@@ -56,7 +56,7 @@ auto progress_init(const char * prompt, const uint64_t size) -> void
 
 auto progress_update(const uint64_t progress) -> void
 {
-  if (opt_log.empty() && (progress >= progress_next))
+  if (opt_log.empty() and (progress >= progress_next))
     {
       std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
               100.0 * static_cast<double>(progress)
@@ -250,7 +250,7 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
         }
 
       std::size_t newlinecap = minsize;
-      while ((newlinecap <= *linecapp) && (newlinecap < maxsize))
+      while ((newlinecap <= *linecapp) and (newlinecap < maxsize))
         newlinecap *= 2;
 
       if (newlinecap > maxsize)
