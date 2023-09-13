@@ -164,7 +164,6 @@ auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
 
 auto write_representative_sequences(const uint64_t amplicons,
                                     struct Parameters const & parameters) -> void {
-
   auto seeds = collect_seeds(amplicons);
   sort_seeds(seeds);
   write_seeds(seeds, parameters.opt_usearch_abundance);
