@@ -34,9 +34,9 @@ template <typename Integral>
 auto create_score_matrix(const std::int64_t penalty_mismatch)
   -> std::array<Integral, n_cells * n_cells> {
   static_assert(std::is_same<Integral, unsigned char>::value \
-                || std::is_same<Integral, unsigned short int>::value \
-                || std::is_same<Integral, std::uint16_t>::value \
-                || std::is_same<Integral, std::int64_t>::value,
+                or std::is_same<Integral, unsigned short int>::value \
+                or std::is_same<Integral, std::uint16_t>::value \
+                or std::is_same<Integral, std::int64_t>::value,
                 "Invalid type! Only unsigned char, unsigned short and int64_t can be used.");
   static constexpr Integral matchscore {0};
   const auto mismatchscore = static_cast<Integral>(penalty_mismatch);
@@ -48,9 +48,9 @@ auto create_score_matrix(const std::int64_t penalty_mismatch)
   auto choose_score = [&index, &mismatchscore](Integral &element) {
     const auto column = index % n_cells;
     const auto row = index / n_cells;
-    element = ((row == column && row != 0 && column != 0)
-               || (column >= n_cells / 2)
-               || (row >= n_cells / 2)) ? matchscore : mismatchscore;
+    element = ((row == column and row != 0 and column != 0)
+               or (column >= n_cells / 2)
+               or (row >= n_cells / 2)) ? matchscore : mismatchscore;
     ++index;
   };
   // refactoring: C++20 ranges::for_each
