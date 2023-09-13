@@ -123,7 +123,7 @@ void search_chunk(struct Search_data * search_data, const int64_t bits)
   static constexpr unsigned int bit_mode_16 {16};
 
   assert(search_data->target_count != 0);
-  assert((bits == bit_mode_16) || (bits == bit_mode_16 / 2));
+  assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
  if (bits == bit_mode_16)
    {
@@ -210,7 +210,7 @@ auto adjust_thread_number(const int n_bits,
   assert(remaining_sequences != 0);
   assert(n_threads != 0);
   assert((n_threads - 1) <= (ULLONG_MAX / channels_8));
-  assert((n_bits == bit_mode_16) || (n_bits == bit_mode_16 / 2));
+  assert((n_bits == bit_mode_16) or (n_bits == bit_mode_16 / 2));
 
   while (remaining_sequences <= (n_threads - 1) * channels) {
     --n_threads;
