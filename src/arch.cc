@@ -89,7 +89,7 @@ auto arch_get_memtotal() -> uint64_t
 
   const int64_t phys_pages = sysconf(_SC_PHYS_PAGES);
   const int64_t pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) || (pagesize == -1)) {
+  if ((phys_pages == -1) or (pagesize == -1)) {
     fatal(error_prefix, "Cannot determine amount of RAM.");
   }
   return static_cast<uint64_t>(pagesize * phys_pages);
