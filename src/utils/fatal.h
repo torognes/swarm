@@ -23,14 +23,15 @@
 
 #include <iostream>
 
+
+static char const * const error_prefix {"\nError: "};  // refactoring C++17: move into template
+auto fatal() -> void;
+
+
 /* message and exit with an error (variadic template with compile-time recursion) */
 
 // refactoring C++17: use fold expression
 // refactoring C++20: use Printable concept
-
-static char const * const error_prefix {"\nError: "};  // refactoring C++17: move into template
-
-auto fatal() -> void;
 
 template <typename T, typename... Tail>
 auto fatal(T head, Tail... tail) -> void {
