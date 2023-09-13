@@ -34,8 +34,20 @@ auto fatal() -> void;
 // refactoring C++17: use fold expression
 // refactoring C++20: use Printable concept
 
+// general case: zero or n arguments
+template<typename... T>
+auto fatal(T... args) -> void;
+
+// consume arguments one-by-one
 template <typename T, typename... Tail>
 auto fatal(T head, Tail... tail) -> void {
     std::cerr << head;
     fatal(tail...);
 }
+
+// // specialization: zero argument  // triggers a multiple definitions error at link time
+// template<>
+// auto fatal() -> void {
+//     std::cerr << '\n';
+//     std::exit(EXIT_FAILURE);
+// }
