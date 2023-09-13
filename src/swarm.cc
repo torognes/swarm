@@ -465,13 +465,13 @@ void args_check(std::array<bool, n_options> & used_options) {
   static constexpr unsigned int mismatch_penalty_index {15};
   static constexpr unsigned int bloom_bits_index {24};
 
-  if ((opt_threads < 1) || (opt_threads > max_threads))
+  if ((opt_threads < 1) or (opt_threads > max_threads))
     {
       fatal(error_prefix, "Illegal number of threads specified with "
             "-t or --threads, must be in the range 1 to ", max_threads, ".");
     }
 
-  if ((parameters.opt_differences < 0) || (parameters.opt_differences > UINT8_MAX)) {
+  if ((parameters.opt_differences < 0) or (parameters.opt_differences > UINT8_MAX)) {
     fatal(error_prefix, "Illegal number of differences specified with -d or --differences, "
           "must be in the range 0 to ", UINT8_MAX, ".");
   }
