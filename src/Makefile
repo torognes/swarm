@@ -30,20 +30,7 @@ CLANG = clang
 
 # Run "make RELEASE=1" to compile for release
 ifdef RELEASE
-	COMMON += -DNDEBUG
-endif
-
-# Run "make PROFILE=1" to compile for profiling
-ifdef PROFILE
-	COMMON += -pg
-endif
-
-# Run "make COVERAGE=1" to compile for coverage tests
-ifdef COVERAGE
-	COMMON += -fprofile-arcs -ftest-coverage -O0
-	LIBS += -lgcov
-	LINKFLAGS += --coverage
-else
+	COMMON += -O3 -DNDEBUG
 	COMPILER_VERSION := $(shell $(CXX) --version)
 	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
 		COMMON += -flto=full
@@ -55,7 +42,23 @@ else
 			COMMON += -flto
 		endif
 	endif
-	COMMON += -O3
+endif
+
+# Run "make PROFILE=1" to compile for profiling
+ifdef PROFILE
+	COMMON += -pg
+endif
+
+# Run "make DEBUG=1" to compile for debugging
+ifdef DEBUG
+	COMMON += -Og -DDEBUG
+endif
+
+# Run "make COVERAGE=1" to compile for coverage tests
+ifdef COVERAGE
+	COMMON += -fprofile-arcs -ftest-coverage -O0
+	LIBS += -lgcov
+	LINKFLAGS += --coverage
 endif
 
 # Machine specific
