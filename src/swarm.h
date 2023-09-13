@@ -96,6 +96,13 @@ struct Parameters {
   std::string opt_output_file {dash_filename};
 };
 
+// Note: extern - static storage duration and external linkage
+//
+// Objects of static storage duration are zero-initialized before
+// main() is called (verified in gdb). However, it seems that the
+// linker requires these objects to be explicitly initialized in one
+// of the translation units.
+
 extern std::string opt_log;  // used by multithreaded functions
 extern int64_t opt_boundary;  // used by multithreaded functions
 extern bool opt_no_otu_breaking;  // three function calls
