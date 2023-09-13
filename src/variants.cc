@@ -66,8 +66,8 @@ inline auto seq_identical(char * seq_a,
 
   bool equal {true};
   for(auto i = 0U; i < length; i++) {
-    equal = equal && (nt_extract(seq_a, a_start + i) ==
-                      nt_extract(seq_b, b_start + i));
+    equal = equal and (nt_extract(seq_a, a_start + i) ==
+                       nt_extract(seq_b, b_start + i));
   }
   return equal;
 }
@@ -126,32 +126,32 @@ auto check_variant(char * seed_sequence,
   switch (var->type)
     {
     case Variant_type::substitution:
-      equal = ((seed_seqlen == amp_seqlen) &&
+      equal = ((seed_seqlen == amp_seqlen) and
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
-                              var->pos)) &&
-               (nt_extract(amp_sequence, var->pos) == var->base) &&
+                              var->pos)) and
+               (nt_extract(amp_sequence, var->pos) == var->base) and
                (seq_identical(seed_sequence, var->pos + 1,
                               amp_sequence,  var->pos + 1,
                               seed_seqlen - var->pos - 1)));
       break;
 
     case Variant_type::deletion:
-      equal = (((seed_seqlen - 1) == amp_seqlen) &&
+      equal = (((seed_seqlen - 1) == amp_seqlen) and
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
-                              var->pos)) &&
+                              var->pos)) and
                (seq_identical(seed_sequence, var->pos + 1,
                               amp_sequence,  var->pos,
                               seed_seqlen - var->pos - 1)));
       break;
 
     case Variant_type::insertion:
-      equal = (((seed_seqlen + 1) == amp_seqlen) &&
+      equal = (((seed_seqlen + 1) == amp_seqlen) and
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
-                              var->pos)) &&
-               (nt_extract(amp_sequence, var->pos) == var->base) &&
+                              var->pos)) and
+               (nt_extract(amp_sequence, var->pos) == var->base) and
                (seq_identical(seed_sequence, var->pos,
                               amp_sequence,  var->pos + 1,
                               seed_seqlen - var->pos)));
