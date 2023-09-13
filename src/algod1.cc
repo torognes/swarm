@@ -271,7 +271,7 @@ auto add_graft_candidate(unsigned int seed, unsigned int amp) -> void
   // if there is no heavy candidate to graft amp, or if seed is
   // earlier in the sorting order, then we change the attachment to
   // seed
-  if ((ampinfo[amp].graft_cand == no_swarm) || (ampinfo[amp].graft_cand > seed)) {
+  if ((ampinfo[amp].graft_cand == no_swarm) or (ampinfo[amp].graft_cand > seed)) {
     ampinfo[amp].graft_cand = seed;
   }
   pthread_mutex_unlock(&graft_mutex);
@@ -605,7 +605,7 @@ inline void find_variant_matches(unsigned int seed,
 
           /* avoid self */
           if (seed != amp) {
-            if ((opt_no_otu_breaking) ||
+            if ((opt_no_otu_breaking) or
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
                 char * seed_sequence = db_getsequence(seed);
@@ -1298,7 +1298,7 @@ void algo_d1_run(struct Parameters const & parameters)
       std::fprintf(logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
               nucleotides_in_small_clusters);
 
-      if ((small_clusters == 0) || (large_clusters == 0))
+      if ((small_clusters == 0) or (large_clusters == 0))
         {
           std::fprintf(logfile, "Only light or heavy swarms found - "
                   "no need for further analysis.\n");
