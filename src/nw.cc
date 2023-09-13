@@ -60,7 +60,7 @@ void finishop(char ** cigarendp, char * op, int * count)
 {
   static constexpr unsigned int buffer_length {25};
 
-  if ((op != nullptr) && (count != nullptr))
+  if ((op != nullptr) and (count != nullptr))
   {
     *--*cigarendp = *op;
     if (*count > 1)
@@ -210,19 +210,19 @@ void nw(char * dseq,
   int64_t i = qlen;
   int64_t j = dlen;
 
-  while ((i > 0) && (j > 0))
+  while ((i > 0) and (j > 0))
     {
       const auto d = dir[qlen * (j - 1) + (i - 1)];  // refactoring: how to rename?
 
       ++alength;
 
-      if ((op == 'I') && ((d & maskextleft) != 0))
+      if ((op == 'I') and ((d & maskextleft) != 0))
         {
           // score += gapextend;
           --j;
           pushop('I', &cigarend, &op, &count);
         }
-      else if ((op == 'D') && ((d & maskextup) != 0))
+      else if ((op == 'D') and ((d & maskextup) != 0))
         {
           // score += gapextend;
           --i;
