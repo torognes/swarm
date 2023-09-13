@@ -32,7 +32,7 @@
 */
 
 #include "bloompat.h"
-#include "pseudo_rng.h"
+#include "utils/pseudo_rng.h"
 #include <algorithm>  // std::max
 #include <cstdint>  // uint64_t
 #include <cstring>

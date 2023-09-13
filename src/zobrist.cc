@@ -22,7 +22,7 @@
 */
 
 #include <cstdint>
-#include "pseudo_rng.h"
+#include "utils/pseudo_rng.h"
 #include "zobrist.h"
 
 

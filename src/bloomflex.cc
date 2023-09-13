@@ -32,8 +32,8 @@
 */
 
 #include "bloomflex.h"
-#include "pseudo_rng.h"
 #include "util.h"
+#include "utils/pseudo_rng.h"
 #include <cstdint>  // uint64_t
 #include <cstring>  // memset
 
