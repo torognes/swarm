@@ -54,7 +54,7 @@ inline auto bloom_pat(struct bloom_s * bloom_filter, uint64_t h) -> uint64_t
 
 inline void bloom_set(struct bloom_s * bloom_filter, uint64_t h)
 {
-  * bloom_adr(bloom_filter, h) &= ~ bloom_pat(bloom_filter, h);
+  * bloom_adr(bloom_filter, h) &= compl bloom_pat(bloom_filter, h);
 }
 
 inline auto bloom_get(struct bloom_s * bloom_filter, uint64_t h) -> bool
