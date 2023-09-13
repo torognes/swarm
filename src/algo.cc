@@ -85,35 +85,11 @@ struct swarminfo_t
   int dummy {0}; /* alignment padding only */
 };
 
-auto compare_mass_seed(const void * a, const void * b) -> int;
 
-auto compare_mass_seed(const void * a, const void * b) -> int
-{
-  const auto * x = static_cast<const struct swarminfo_t *>(a);
-  const auto * y = static_cast<const struct swarminfo_t *>(b);
-
-  const auto mass_x = x->mass;
-  const auto mass_y = y->mass;
-
-  if (mass_x > mass_y) {
-    return -1;
-  }
-
-  if (mass_x < mass_y) {
-    return +1;
-  }
-
-  return std::strcmp(db_getheader(x->seed), db_getheader(y->seed));
-}
-
-
-auto write_representative_sequences(const uint64_t amplicons,
-                                    struct Parameters const & parameters) -> void {
-
-  uint64_t swarmcount {0};
-  progress_init("Sorting seeds:    ", amplicons);
-  std::vector<struct swarminfo_t> swarminfo_v(swarmed);  // swarmed == amplicons! Discard swarmed?
-  auto * swarminfo = swarminfo_v.data();
+auto collect_seeds(const uint64_t amplicons) -> std::vector<struct swarminfo_t> {
+  progress_init("Collecting seeds:    ", amplicons);
+  std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
+  auto swarmcount {0L};
   uint64_t mass {0};
   unsigned previd = amps[0].swarmid;
   unsigned seed = amps[0].ampliconid;
@@ -123,8 +99,8 @@ auto write_representative_sequences(const uint64_t amplicons,
       const unsigned int id = amps[i].swarmid;
       if (id != previd)
         {
-          swarminfo[swarmcount].seed = seed;  // update previous
-          swarminfo[swarmcount].mass = mass;
+          seeds[swarmcount].seed = seed;  // update previous
+          seeds[swarmcount].mass = mass;
           ++swarmcount;
           mass = 0;
           seed = amps[i].ampliconid;
@@ -133,31 +109,66 @@ auto write_representative_sequences(const uint64_t amplicons,
       previd = id;
       progress_update(i);
     }
-  swarminfo[swarmcount].seed = seed;
-  swarminfo[swarmcount].mass = mass;
+  seeds[swarmcount].seed = seed;
+  seeds[swarmcount].mass = mass;
   ++swarmcount;
 
   // free some memory
-  swarminfo_v.erase(std::next(swarminfo_v.begin(), swarmcount), swarminfo_v.end());
-  swarminfo_v.shrink_to_fit();
+  seeds.erase(std::next(seeds.begin(), swarmcount), seeds.end());
+  seeds.shrink_to_fit();
 
-  std::qsort(swarminfo, swarmcount, sizeof(swarminfo_t), compare_mass_seed);
+  return seeds;
+}
+
+
+auto sort_seeds(std::vector<struct swarminfo_t>& seeds)
+  -> void {
+  progress_init("Sorting seeds:    ", seeds.size());
+
+  auto compare_seeds = [](struct swarminfo_t& lhs, struct swarminfo_t& rhs) -> bool {
+    if (lhs.mass > rhs.mass) {
+      return true;
+    }
+    if (lhs.mass < rhs.mass) {
+      return false;
+    }
+    // sort labels
+    auto * const lhs_header = db_getheader(lhs.seed);
+    auto * const rhs_header = db_getheader(rhs.seed);
+    const auto results = std::strcmp(lhs_header, rhs_header);
+    return results == -1;
+  };
+
+  std::sort(seeds.begin(), seeds.end(), compare_seeds);
   progress_done();
+}
 
-  progress_init("Writing seeds:    ", swarmcount);
-  for(auto i = 0ULL; i < swarmcount; i++)
-    {
-      const uint64_t swarm_mass = swarminfo[i].mass;
-      const unsigned int swarm_seed = swarminfo[i].seed;
+
+auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
+                 struct Parameters const & parameters) -> void {
+  progress_init("Writing seeds:    ", seeds.size());
+  auto ticker {0ULL};
+  for(const auto& entry: seeds) {
+      const uint64_t swarm_mass = entry.mass;
+      const unsigned int swarm_seed = entry.seed;
 
       std::fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
       std::fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, swarm_seed);
-      progress_update(i);
-    }
-  swarminfo = nullptr;
+      progress_update(ticker);
+      ++ticker;
+  }
   progress_done();
+}
+
+
+auto write_representative_sequences(const uint64_t amplicons,
+                                    struct Parameters const & parameters) -> void {
+
+  auto seeds = collect_seeds(amplicons);
+  sort_seeds(seeds);
+  write_seeds(seeds, parameters);
 }
 
 
