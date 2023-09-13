@@ -26,6 +26,7 @@
 #include <cstdint>  // int64_t, uint16_t
 #include <type_traits>
 
+
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
 // note: there is no uchar8_t, only char8_t in C++20
