@@ -34,6 +34,7 @@
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
 #include <cstring>  // strcmp
+#include <vector>
 
 #ifndef PRIu64
 #ifdef _WIN32
@@ -79,9 +80,9 @@ static uint64_t seeded;
 
 struct swarminfo_t
 {
-  uint64_t mass;
-  unsigned int seed;
-  int dummy; /* alignment padding only */
+  uint64_t mass {0};
+  unsigned int seed {0};
+  int dummy {0}; /* alignment padding only */
 };
 
 auto compare_mass_seed(const void * a, const void * b) -> int;
@@ -111,7 +112,8 @@ auto write_representative_sequences(const uint64_t amplicons,
 
   uint64_t swarmcount {0};
   progress_init("Sorting seeds:    ", amplicons);
-  auto * swarminfo = new struct swarminfo_t[swarmed];
+  std::vector<struct swarminfo_t> swarminfo_v(swarmed);  // swarmed = amplicons! Discard swarmed?
+  auto * swarminfo = swarminfo_v.data();
   uint64_t mass {0};
   unsigned previd = amps[0].swarmid;
   unsigned seed = amps[0].ampliconid;
@@ -121,7 +123,7 @@ auto write_representative_sequences(const uint64_t amplicons,
       const unsigned int id = amps[i].swarmid;
       if (id != previd)
         {
-          swarminfo[swarmcount].seed = seed;
+          swarminfo[swarmcount].seed = seed;  // flush previous
           swarminfo[swarmcount].mass = mass;
           ++swarmcount;
           mass = 0;
@@ -149,7 +151,6 @@ auto write_representative_sequences(const uint64_t amplicons,
       db_fprintseq(fp_seeds, swarm_seed);
       progress_update(i);
     }
-  delete [] swarminfo;
   swarminfo = nullptr;
   progress_done();
 }
