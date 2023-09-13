@@ -280,7 +280,7 @@ void args_init(int argc, char **argv, std::array<bool, n_options> & used_options
 
     /* check if any option is specified more than once */
 
-    if ((option_character >= 'a') && (option_character <= 'z'))
+    if ((option_character >= 'a') and (option_character <= 'z'))
       {
         auto optindex = static_cast<unsigned int>(option_character - 'a');  // c - 'a' cannot be negative
         if (used_options[optindex])
@@ -476,12 +476,12 @@ void args_check(std::array<bool, n_options> & used_options) {
           "must be in the range 0 to ", UINT8_MAX, ".");
   }
 
-  if (parameters.opt_fastidious && (parameters.opt_differences != 1)) {
+  if (parameters.opt_fastidious and (parameters.opt_differences != 1)) {
     fatal(error_prefix, "Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
   }
 
-  if (parameters.opt_disable_sse3 && (parameters.opt_differences < 2)) {
+  if (parameters.opt_disable_sse3 and (parameters.opt_differences < 2)) {
     fatal(error_prefix, "Option --disable-sse3 or -x has no effect when d < 2 "
           "(SSE3 instructions are only used when d > 1).");
   }
@@ -545,24 +545,24 @@ void args_check(std::array<bool, n_options> & used_options) {
           "must be at least 2.");
   }
 
-  if ((used_options[ceiling_index]) && ((parameters.opt_ceiling < min_ceiling) ||
-                                        (parameters.opt_ceiling > max_ceiling))) {
+  if ((used_options[ceiling_index]) and ((parameters.opt_ceiling < min_ceiling) or
+                                         (parameters.opt_ceiling > max_ceiling))) {
     fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
 
-  if ((parameters.opt_bloom_bits < min_bits_per_entry) ||
+  if ((parameters.opt_bloom_bits < min_bits_per_entry) or
       (parameters.opt_bloom_bits > max_bits_per_entry)) {
     fatal(error_prefix, "Illegal number of Bloom filter bits specified with -y or "
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
-  if ((used_options[append_abundance_index]) && (parameters.opt_append_abundance < 1)) {
+  if ((used_options[append_abundance_index]) and (parameters.opt_append_abundance < 1)) {
     fatal(error_prefix, "Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
 
-  if ((not parameters.opt_network_file.empty()) && (parameters.opt_differences != 1)) {
+  if ((not parameters.opt_network_file.empty()) and (parameters.opt_differences != 1)) {
     fatal(error_prefix, "A network file can only written when d = 1.");
   }
 
