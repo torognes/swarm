@@ -144,7 +144,7 @@ auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
 
 
 auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
-                 struct Parameters const & parameters) -> void {
+                 bool const opt_usearch_abundance) -> void {
   progress_init("Writing seeds:    ", seeds.size());
   auto ticker {0ULL};
   for(const auto& entry: seeds) {
@@ -152,7 +152,7 @@ auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
       const unsigned int swarm_seed = entry.seed;
 
       std::fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
+      fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, opt_usearch_abundance);
       std::fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, swarm_seed);
       progress_update(ticker);
@@ -167,7 +167,7 @@ auto write_representative_sequences(const uint64_t amplicons,
 
   auto seeds = collect_seeds(amplicons);
   sort_seeds(seeds);
-  write_seeds(seeds, parameters);
+  write_seeds(seeds, parameters.opt_usearch_abundance);
 }
 
 
