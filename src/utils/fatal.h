@@ -30,6 +30,7 @@ auto fatal() -> void;
 
 /* message and exit with an error (variadic template with compile-time recursion) */
 
+// refactoring C++11: constrain with type traits?
 // refactoring C++17: use fold expression
 // refactoring C++20: use Printable concept
 
