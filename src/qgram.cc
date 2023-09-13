@@ -23,7 +23,7 @@
 
 #include "qgram_array.h"
 #include "swarm.h"
-#include "threads.h"
+#include "utils/threads.h"
 
 #ifdef __aarch64__
 #include <arm_neon.h>

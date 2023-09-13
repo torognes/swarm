@@ -23,7 +23,7 @@
 
 #include <cstdint>
 #include <pthread.h>  // refactoring: C++11 replace with std::thread
-#include "utils/fatal.h"
+#include "fatal.h"
 
 
 class ThreadRunner
