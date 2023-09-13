@@ -288,7 +288,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
       uint64_t j = hash & derep_hash_mask;
       struct bucket * bp = hashtable + j;
 
-      while (((bp->mass) != 0U) &&
+      while (((bp->mass) != 0U) and
              ((bp->hash != hash) ||
               (seqlen != db_getsequencelen(bp->seqno_first)) ||
               (std::memcmp(seq,
