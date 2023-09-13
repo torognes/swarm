@@ -21,8 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "qgram_array.h"
 #include "swarm.h"
+#include "utils/qgram_array.h"
 #include "utils/threads.h"
 
 #ifdef __aarch64__

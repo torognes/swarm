@@ -23,10 +23,10 @@
 
 #include "swarm.h"
 #include "qgram.h"
-#include "qgram_array.h"
 #include "util.h"
 #include "utils/fatal.h"
 #include "utils/nt_codec.h"
+#include "utils/qgram_array.h"
 #include "zobrist.h"
 #include <algorithm>  // std::min()
 #include <array>
