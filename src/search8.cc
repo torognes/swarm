@@ -732,7 +732,7 @@ inline auto backtrack_8(char * qseq,
   printf("alignment, reversed: ");
 #endif
 
-  while ((i >= 0) && (j >= 0))
+  while ((i >= 0) and (j >= 0))
     {
       ++aligned;
 
@@ -742,11 +742,11 @@ inline auto backtrack_8(char * qseq,
                      + static_cast<uint64_t>(4 * i + (static_cast<uint64_t>(j) & 3U)))
                     % dirbuffersize];  // refactoring: how to rename that variable?
 
-      if ((operation == 'I') && ((d & maskextleft) == 0U))
+      if ((operation == 'I') and ((d & maskextleft) == 0U))
         {
           --j;
         }
-      else if ((operation == 'D') && ((d & maskextup) == 0U))
+      else if ((operation == 'D') and ((d & maskextup) == 0U))
         {
           --i;
         }
