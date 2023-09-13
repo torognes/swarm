@@ -140,7 +140,7 @@ auto fprint_id(std::FILE * stream, uint64_t seqno, bool opt_usearch_abundance,
   const char * hdrstr = seqinfo->header;
   const int hdrlen = seqinfo->headerlen;
 
-  if ((opt_append_abundance != 0) && (seqinfo->abundance_start == seqinfo->abundance_end)) {
+  if ((opt_append_abundance != 0) and (seqinfo->abundance_start == seqinfo->abundance_end)) {
     if (opt_usearch_abundance) {
       std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, seqinfo->abundance);
     }
@@ -168,7 +168,7 @@ auto fprint_id_noabundance(std::FILE * stream, uint64_t seqno, bool opt_usearch_
       if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
-          if ((seqinfo->abundance_start > 0) && (seqinfo->abundance_end < hdrlen)) {
+          if ((seqinfo->abundance_start > 0) and (seqinfo->abundance_end < hdrlen)) {
             std::fprintf(stream, ";");
           }
 
@@ -304,7 +304,7 @@ auto find_usearch_abundance(const char * header,
       position = static_cast<uint64_t>(result - header);
 
       /* check for ';' in front */
-      if ((position > 0) && (header[position - 1] != ';'))
+      if ((position > 0) and (header[position - 1] != ';'))
         {
           position += alen + 1;
           continue;
@@ -320,7 +320,7 @@ auto find_usearch_abundance(const char * header,
         }
 
       /* check for ';' after */
-      if ((position + alen + n_digits < hlen) && (header[position + alen + n_digits] != ';'))
+      if ((position + alen + n_digits < hlen) and (header[position + alen + n_digits] != ';'))
         {
           position += alen + n_digits + 2;
           continue;
@@ -544,7 +544,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
       static constexpr int end_chars_range {126};
 
-      while ((line[0] != 0) && (line[0] != '>'))
+      while ((line[0] != 0) and (line[0] != '>'))
         {
           unsigned char character {0};
           char * line_ptr = line;
@@ -572,9 +572,9 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
                       nt_buffer = 0;
                     }
                 }
-              else if ((character != new_line) && (character != carriage_return))
+              else if ((character != new_line) and (character != carriage_return))
                 {
-                  if ((character >= start_chars_range) && (character <= end_chars_range)) {
+                  if ((character >= start_chars_range) and (character <= end_chars_range)) {
                     fatal(error_prefix, "Illegal character '", character,
                           "' in sequence on line ", lineno, ".");
                   }
@@ -699,14 +699,14 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       /* get amplicon abundance */
       find_abundance(seqindex_p, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
-      if ((seqindex_p->abundance_start == 0) &&
+      if ((seqindex_p->abundance_start == 0) and
           (seqindex_p->abundance_end == seqindex_p->headerlen)) {
         fatal(error_prefix, "Empty sequence identifier.");
       }
 
       /* check if the sequences are presorted by abundance and header */
 
-      if (presorted && (lastseq != nullptr))
+      if (presorted and (lastseq != nullptr))
         {
           if (lastseq->abundance < seqindex_p->abundance) {
             presorted = false;
@@ -768,7 +768,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
                   hit_id_len = hdrfound->headerlen - hdrfound->abundance_end;
                 }
 
-              if ((id_len == hit_id_len) &&
+              if ((id_len == hit_id_len) and
                   (std::strncmp(seqindex_p->header + id_start,
                                 hdrfound->header + hit_id_start,
                                 static_cast<uint64_t>(id_len)) == 0)) {
@@ -802,8 +802,8 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
           while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
             {
-              if ((seqfound->seqhash == seqindex_p->seqhash) &&
-                  (seqfound->seqlen == seqindex_p->seqlen) &&
+              if ((seqfound->seqhash == seqindex_p->seqhash) and
+                  (seqfound->seqlen == seqindex_p->seqlen) and
                   (std::memcmp(seqfound->seq,
                           seqindex_p->seq,
                           nt_bytelength(seqindex_p->seqlen)) == 0)) {
