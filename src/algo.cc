@@ -148,8 +148,8 @@ auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
   progress_init("Writing seeds:    ", seeds.size());
   auto ticker {0ULL};
   for(const auto& seed: seeds) {
-      const uint64_t swarm_mass = seed.mass;
-      const unsigned int swarm_seed = seed.seed;
+      const auto swarm_mass = seed.mass;
+      const auto swarm_seed = seed.seed;
 
       std::fprintf(fp_seeds, ">");
       fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, opt_usearch_abundance);
