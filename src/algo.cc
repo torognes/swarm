@@ -146,7 +146,7 @@ auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
 auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
                  bool const opt_usearch_abundance) -> void {
   progress_init("Writing seeds:    ", seeds.size());
-  auto ticker {0ULL};
+  auto ticker {0ULL};  // refactoring: C++20 move ticker to range-loop init-statement
   for(const auto& seed: seeds) {
       const auto swarm_mass = seed.mass;
       const auto swarm_seed = seed.seed;
