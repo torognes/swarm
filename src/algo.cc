@@ -112,7 +112,7 @@ auto write_representative_sequences(const uint64_t amplicons,
 
   uint64_t swarmcount {0};
   progress_init("Sorting seeds:    ", amplicons);
-  std::vector<struct swarminfo_t> swarminfo_v(swarmed);  // swarmed = amplicons! Discard swarmed?
+  std::vector<struct swarminfo_t> swarminfo_v(swarmed);  // swarmed == amplicons! Discard swarmed?
   auto * swarminfo = swarminfo_v.data();
   uint64_t mass {0};
   unsigned previd = amps[0].swarmid;
@@ -123,7 +123,7 @@ auto write_representative_sequences(const uint64_t amplicons,
       const unsigned int id = amps[i].swarmid;
       if (id != previd)
         {
-          swarminfo[swarmcount].seed = seed;  // flush previous
+          swarminfo[swarmcount].seed = seed;  // update previous
           swarminfo[swarmcount].mass = mass;
           ++swarmcount;
           mass = 0;
