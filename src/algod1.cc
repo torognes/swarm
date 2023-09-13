@@ -197,7 +197,7 @@ inline auto check_amp_identical(unsigned int amp1,
   const unsigned int amp1_seqlen = db_getsequencelen(amp1);
   const unsigned int amp2_seqlen = db_getsequencelen(amp2);
 
-  return ((amp1_seqlen == amp2_seqlen) &&
+  return ((amp1_seqlen == amp2_seqlen) and
           (std::memcmp(db_getsequence(amp1),
                   db_getsequence(amp2),
                   nt_bytelength(amp1_seqlen)) == 0));
@@ -212,7 +212,7 @@ inline void hash_insert(unsigned int amp)
   bool duplicate {false};
   while (hash_is_occupied(j))
     {
-      if (hash_compare_value(j, hash) &&
+      if (hash_compare_value(j, hash) and
           check_amp_identical(amp, hash_get_data(j))) {
         duplicate = true;
       }
@@ -414,7 +414,7 @@ inline auto check_heavy_var_2(char * seq,
   generate_variants(seq, seqlen, hash, variant_list, &variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
-    if (bloom_get(bloom_a, variant_list[i].hash) &&
+    if (bloom_get(bloom_a, variant_list[i].hash) and
         hash_check_attach(seq, seqlen, variant_list + i, seed)) {
       ++matches;
     }
@@ -494,7 +494,7 @@ void check_heavy_thread(int64_t t)
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
   char * buffer1 {new char[size]};
   pthread_mutex_lock(&heavy_mutex);
-  while ((heavy_amplicon < amplicons) &&
+  while ((heavy_amplicon < amplicons) and
          (heavy_progress < heavy_amplicon_count))
     {
       const unsigned int heavy_amplicon_id = heavy_amplicon++;
