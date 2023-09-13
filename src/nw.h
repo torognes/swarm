@@ -25,7 +25,7 @@
 #include <cstdint>  // int64_t
 
 
-// refactor: 'n_cells' is already defined in 'matrix.h'
+// refactor: 'n_cells' is already defined in 'score_matrix.h'
 constexpr auto n_cells_ = 32ULL;  // number of chars in sym_nt
 
 void nw(char * dseq,

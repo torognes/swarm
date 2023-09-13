@@ -24,10 +24,10 @@
 #include "swarm.h"
 #include "db.h"
 #include "qgram.h"
-#include "matrix.h"
 #include "nw.h"
 #include "scan.h"
 #include "util.h"
+#include "utils/score_matrix.h"
 #include <algorithm>  // std::min()
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t

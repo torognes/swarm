@@ -100,10 +100,10 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	swarm.o util.o utils/fatal.o utils/hashtable_size.o variants.o \
 	x86_cpu_features.o zobrist.o $(EXTRAOBJ)
 
-DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hashtable.h matrix.h \
+DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hashtable.h \
 	nw.h pseudo_rng.h qgram.h qgram_array.h scan.h search16.h search8.h swarm.h util.h \
-	utils/fatal.h utils/gcd.h utils/hashtable_size.h utils/nt_codec.h threads.h variants.h \
-	x86_cpu_features.h zobrist.h
+	utils/fatal.h utils/gcd.h utils/hashtable_size.h utils/nt_codec.h utils/score_matrix.h \
+	threads.h variants.h x86_cpu_features.h zobrist.h
 
 
 all : $(PROG)

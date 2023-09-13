@@ -23,11 +23,11 @@
 
 #include "swarm.h"
 #include "db.h"
-#include "matrix.h"
 #include "search8.h"
 #include "search16.h"
 #include "threads.h"
 #include "utils/nt_codec.h"
+#include "utils/score_matrix.h"
 #include <cassert>  // assert()
 #include <climits>
 #include <cstdint>  // int64_t, uint64_t

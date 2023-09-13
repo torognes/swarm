@@ -33,12 +33,12 @@
 #include "bloompat.h"
 #include "db.h"
 #include "hashtable.h"
-#include "matrix.h"
 #include "nw.h"
 #include "threads.h"
 #include "variants.h"
 #include "util.h"
 #include "utils/nt_codec.h"
+#include "utils/score_matrix.h"
 #include "zobrist.h"
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
