@@ -78,7 +78,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   uint64_t qgram {0};
   unsigned int i {0};
 
-  while((i < qgramlength-1) and (i<seqlen))
+  while((i < qgramlength - 1) and (i < seqlen))
   {
     qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), i);
     ++i;
