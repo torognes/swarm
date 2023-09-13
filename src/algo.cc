@@ -461,7 +461,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                 {
                   const uint64_t targetampliconid = amps[i].ampliconid;
                   if ((amps[i].diffestimate <=
-                       subseedradius + parameters.opt_differences) &&
+                       subseedradius + parameters.opt_differences) and
                       ((opt_no_otu_breaking) ||
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
@@ -522,8 +522,8 @@ auto algo_run(struct Parameters const & parameters) -> void
                           const uint64_t targetampliconid = amps[i].ampliconid;
                           uint64_t pos = swarmed;
 
-                          while ((pos > seeded) &&
-                                 (amps[pos-1].ampliconid > targetampliconid) &&
+                          while ((pos > seeded) and
+                                 (amps[pos-1].ampliconid > targetampliconid) and
                                  (amps[pos-1].generation > subseedgeneration)) {
                             --pos;
                           }
@@ -684,7 +684,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
 
   /* dump seeds in fasta format with sum of abundances */
-  if ((not parameters.opt_seeds.empty()) && (amplicons > 0)) {
+  if ((not parameters.opt_seeds.empty()) and (amplicons > 0)) {
     write_representative_sequences(amplicons, parameters);
   }
 
