@@ -34,6 +34,7 @@
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
 #include <cstring>  // strcmp
+#include <iterator> // next
 #include <vector>
 
 #ifndef PRIu64
