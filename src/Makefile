@@ -42,24 +42,36 @@ ifdef RELEASE
 			COMMON += -flto
 		endif
 	endif
-endif
 
 # Run "make PROFILE=1" to compile for profiling
-ifdef PROFILE
+else ifdef PROFILE
 	COMMON += -pg
-endif
 
 # Run "make DEBUG=1" to compile for debugging (GCC 10 or more recent)
-ifdef DEBUG
+else ifdef DEBUG
 	COMMON += -Og -DDEBUG -ggdb -fsanitize=undefined,address -fno-omit-frame-pointer \
 	          -fanalyzer -Werror
-endif
 
 # Run "make COVERAGE=1" to compile for coverage tests
-ifdef COVERAGE
+else ifdef COVERAGE
 	COMMON += -fprofile-arcs -ftest-coverage -O0
 	LIBS += -lgcov
 	LINKFLAGS += --coverage
+
+# default behaviour is to compile for release (max optimizations)
+else
+	COMMON += -O3 -DNDEBUG
+	COMPILER_VERSION := $(shell $(CXX) --version)
+	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
+		COMMON += -flto=full
+	else
+		GCCVERSIONGTEQ12 := $(shell expr `gcc -dumpversion | cut -f 1 -d "."` \>= 12)
+		ifeq "$(GCCVERSIONGTEQ12)" "1"
+			COMMON += -flto=auto
+		else
+			COMMON += -flto
+		endif
+	endif
 endif
 
 # Identify Machine
