@@ -28,22 +28,10 @@ LIBS = -lpthread
 WARNINGS = -Wall -Wextra
 CLANG = clang
 
+
 # Run "make RELEASE=1" to compile for release
 ifdef RELEASE
-	COMMON += -DNDEBUG
-endif
-
-# Run "make PROFILE=1" to compile for profiling
-ifdef PROFILE
-	COMMON += -pg
-endif
-
-# Run "make COVERAGE=1" to compile for coverage tests
-ifdef COVERAGE
-	COMMON += -fprofile-arcs -ftest-coverage -O0
-	LIBS += -lgcov
-	LINKFLAGS += --coverage
-else
+	COMMON += -O3 -DNDEBUG
 	COMPILER_VERSION := $(shell $(CXX) --version)
 	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
 		COMMON += -flto=full
@@ -55,10 +43,44 @@ else
 			COMMON += -flto
 		endif
 	endif
-	COMMON += -O3
+
+# Run "make PROFILE=1" to compile for profiling
+else ifdef PROFILE
+	COMMON += -pg
+
+# Run "make DEBUG=1" to compile for debugging (GCC 10 or more recent)
+else ifdef DEBUG
+	COMMON += -Og -DDEBUG -ggdb3 -fsanitize=undefined,address -fno-omit-frame-pointer -Werror
+	COMPILER_VERSION := $(shell $(CXX) --version)
+	ifneq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
+		COMMON += -fanalyzer
+	endif
+
+
+# Run "make COVERAGE=1" to compile for coverage tests
+else ifdef COVERAGE
+	COMMON += -fprofile-arcs -ftest-coverage -O0
+	LIBS += -lgcov
+	LINKFLAGS += --coverage
+
+# default behaviour is to compile for release (max optimizations)
+else
+	COMMON += -O3 -DNDEBUG
+	COMPILER_VERSION := $(shell $(CXX) --version)
+	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
+		COMMON += -flto=full
+	else
+		GCCVERSIONGTEQ12 := $(shell expr `gcc -dumpversion | cut -f 1 -d "."` \>= 12)
+		ifeq "$(GCCVERSIONGTEQ12)" "1"
+			COMMON += -flto=auto
+		else
+			COMMON += -flto
+		endif
+	endif
 endif
 
-# Machine specific
+
+# Identify Machine
 ifeq ($(CXX), aarch64-linux-gnu-g++)
 	MACHINE = aarch64
 else ifeq ($(CXX), powerpc64le-linux-gnu-g++)
@@ -67,6 +89,8 @@ else
 	MACHINE = $(shell uname -m)
 endif
 
+
+# Machine specific
 ifeq ($(MACHINE), x86_64)
 	COMMON += -march=x86-64 -mtune=generic -std=c++11
 	EXTRAOBJ += ssse3.o sse41.o popcnt.o
@@ -79,7 +103,8 @@ else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=gnu++11
 endif
 
-# OS specific
+
+# OS specific (Windows vs. others)
 ifeq ($(CXX), x86_64-w64-mingw32-g++)
 	LIBS += -lpsapi
 	LINKOPT += -static
@@ -88,6 +113,7 @@ else
 	WARNINGS += -pedantic
 	BIN = swarm
 endif
+
 
 LINKFLAGS = $(COMMON) $(LINKOPT)
 
