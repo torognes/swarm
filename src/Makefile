@@ -28,6 +28,7 @@ LIBS = -lpthread
 WARNINGS = -Wall -Wextra
 CLANG = clang
 
+
 # Run "make RELEASE=1" to compile for release
 ifdef RELEASE
 	COMMON += -O3 -DNDEBUG
@@ -74,6 +75,7 @@ else
 	endif
 endif
 
+
 # Identify Machine
 ifeq ($(CXX), aarch64-linux-gnu-g++)
 	MACHINE = aarch64
@@ -82,6 +84,7 @@ else ifeq ($(CXX), powerpc64le-linux-gnu-g++)
 else
 	MACHINE = $(shell uname -m)
 endif
+
 
 # Machine specific
 ifeq ($(MACHINE), x86_64)
@@ -96,6 +99,7 @@ else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=gnu++11
 endif
 
+
 # OS specific (Windows vs. others)
 ifeq ($(CXX), x86_64-w64-mingw32-g++)
 	LIBS += -lpsapi
@@ -105,6 +109,7 @@ else
 	WARNINGS += -pedantic
 	BIN = swarm
 endif
+
 
 LINKFLAGS = $(COMMON) $(LINKOPT)
 
