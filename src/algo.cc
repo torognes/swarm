@@ -126,13 +126,14 @@ auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
   progress_init("Sorting seeds:    ", seeds.size());
 
   auto compare_seeds = [](struct swarminfo_t& lhs, struct swarminfo_t& rhs) -> bool {
+    // sort by decreasing mass...
     if (lhs.mass > rhs.mass) {
       return true;
     }
     if (lhs.mass < rhs.mass) {
       return false;
     }
-    // sort labels
+    // ...then ties are sorted by label (alphabetical order)
     auto * const lhs_header = db_getheader(lhs.seed);
     auto * const rhs_header = db_getheader(rhs.seed);
     const auto results = std::strcmp(lhs_header, rhs_header);
