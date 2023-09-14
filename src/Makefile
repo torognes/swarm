@@ -58,7 +58,7 @@ else
 	COMMON += -O3
 endif
 
-# Machine specific
+# Identify Machine
 ifeq ($(CXX), aarch64-linux-gnu-g++)
 	MACHINE = aarch64
 else ifeq ($(CXX), powerpc64le-linux-gnu-g++)
@@ -67,6 +67,7 @@ else
 	MACHINE = $(shell uname -m)
 endif
 
+# Machine specific
 ifeq ($(MACHINE), x86_64)
 	COMMON += -march=x86-64 -mtune=generic -std=c++11
 	EXTRAOBJ += ssse3.o sse41.o popcnt.o
