@@ -84,7 +84,7 @@ else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=gnu++11
 endif
 
-# OS specific
+# OS specific (Windows vs. others)
 ifeq ($(CXX), x86_64-w64-mingw32-g++)
 	LIBS += -lpsapi
 	LINKOPT += -static
