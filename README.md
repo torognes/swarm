@@ -403,19 +403,11 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 > PATCH version when you make backwards compatible bug fixes.
 
 swarm 3.1.x:
-- fix: add checks to prevent silent overflow of short unsigned integers,
-- fix: compilation warnings with GCC 13 and clang 18,
-- fix: 952 clang-tidy warnings (from 3,669 warnings down to 2,717),
-- improve: performances by a few percents (thanks to code modernization),
-- improve: double the maximal number of threads (from 256 threads to 512),
-- improve: make `-DNDEBUG` the default compilation behavior
-
-swarm 3.1.y:
 - use more C++11 and STL features,
 - eliminate most of clang-tidy's warnings,
 - measure the effect of code modernization on run-time performances
 
-swarm 3.1.z:
+swarm 3.1.y:
 - refactor to reduce cyclomatic complexity (simpler and shorter functions),
 - reduce/eliminate linuxisms to improve portability
 
@@ -430,6 +422,16 @@ swarm 4.0.0:
 
 
 ## Version history ##
+
+### version 3.1.n ###
+
+**swarm** 3.1.n fixes a minor bug, eliminates warnings, and improves code:
+- fix: add checks to prevent silent overflow of short unsigned integers,
+- fix: compilation warnings with GCC 13 and clang 18,
+- fix: 952 clang-tidy warnings (from 3,669 warnings down to 2,717),
+- improve: code modernization for long-term maintenance,
+- improve: double the maximal number of threads (from 256 threads to 512),
+- improve: make `-DNDEBUG` the default compilation behavior.
 
 ### version 3.1.3 ###
 
