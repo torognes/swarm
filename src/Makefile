@@ -49,9 +49,10 @@ ifdef PROFILE
 	COMMON += -pg
 endif
 
-# Run "make DEBUG=1" to compile for debugging
+# Run "make DEBUG=1" to compile for debugging (GCC 10 or more recent)
 ifdef DEBUG
-	COMMON += -Og -DDEBUG -fsanitize=undefined,address -fno-omit-frame-pointer -fanalyzer -Werror
+	COMMON += -Og -DDEBUG -ggdb -fsanitize=undefined,address -fno-omit-frame-pointer \
+	          -fanalyzer -Werror
 endif
 
 # Run "make COVERAGE=1" to compile for coverage tests
