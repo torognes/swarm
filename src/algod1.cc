@@ -103,11 +103,11 @@ static struct swarminfo_s
   char dummy_3 = '\0'; /* alignment padding only */
 } * swarminfo = nullptr;
 
-static struct graft_cand
+struct graft_cand
 {
   unsigned int parent;
   unsigned int child;
-} * graft_array = nullptr;
+};
 
 /* Information about potential grafts */
 static int64_t graft_candidates {0};
@@ -317,7 +317,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   progress_init("Grafting light swarms on heavy swarms", pair_count);
 
   /* allocate memory */
-  graft_array = new struct graft_cand[pair_count];  // refactor to std::vector
+  std::vector<struct graft_cand> graft_array(pair_count);
 
   /* fill in */
   unsigned int j = 0;
@@ -331,7 +331,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   }
 
   /* sort */
-  std::qsort(graft_array, pair_count, sizeof(struct graft_cand), compare_grafts);
+  std::qsort(graft_array.data(), pair_count, sizeof(struct graft_cand), compare_grafts);
 
   /* attach in order */
   for(auto i = 0U; i < pair_count; i++)
@@ -353,8 +353,6 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
       progress_update(i+1);
     }
   progress_done();
-  delete [] graft_array;
-  graft_array = nullptr;
   return grafts;
 }
 
