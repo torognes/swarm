@@ -355,7 +355,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
           attach(parent, child);
           ++grafts;
         }
-      progress_update(i+1);
+      progress_update(i + 1);
     }
   progress_done();
   return grafts;
