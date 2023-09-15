@@ -436,7 +436,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
 {
   /*
     bloom is a bloom filter in which to check the variants
-    varseq is a buffer large enough to hold all sequences + 1 insertion
+    varseq is a buffer large enough to hold any sequence + 1 insertion
     seed is the original seed
     m is where to store number of matches
     v is where to store number of variants
