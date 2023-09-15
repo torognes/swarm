@@ -475,7 +475,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
 }
 
 
-void check_heavy_thread(int64_t t)
+auto check_heavy_thread(int64_t t) -> void
 {
   static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
   static constexpr unsigned int j {4};  //                               i * len + j
