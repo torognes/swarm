@@ -174,7 +174,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
                      unsigned int seed,
                      uint64_t * m,
                      uint64_t * v,
-                     struct var_s * variant_list,
+                     std::vector<struct var_s>& variant_list,
                      std::vector<struct var_s>& variant_list2);
 void check_heavy_thread(int64_t t);
 auto mark_light_var(struct bloomflex_s * bloom,
@@ -431,7 +431,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
                      unsigned int seed,
                      uint64_t * m,
                      uint64_t * v,
-                     struct var_s * variant_list,
+                     std::vector<struct var_s>& variant_list,
                      std::vector<struct var_s>& variant_list2)
 {
   /*
@@ -460,11 +460,11 @@ void check_heavy_var(struct bloomflex_s * bloom,
   char * sequence = db_getsequence(seed);
   const unsigned int seqlen = db_getsequencelen(seed);
   const uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash, variant_list, &variant_count);
+  generate_variants(sequence, seqlen, hash, variant_list.data(), &variant_count);
 
   for(auto i = 0U; i < variant_count; i++)
     {
-      struct var_s * var = variant_list + i;
+      struct var_s * var = variant_list.data() + i;
       if (bloomflex_get(bloom, var->hash))
         {
           unsigned int varlen = 0;
@@ -509,7 +509,7 @@ void check_heavy_thread(int64_t t)
           uint64_t number_of_variants {0};
           check_heavy_var(bloom_f, buffer1, heavy_amplicon_id,
                           &number_of_matches, &number_of_variants,
-                          variant_list.data(), variant_list2);
+                          variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += number_of_variants;
         }
