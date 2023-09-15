@@ -636,7 +636,7 @@ void check_variants(unsigned int seed,
 }
 
 
-void network_thread(int64_t t)
+auto network_thread(int64_t t) -> void
 {
   static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
   static constexpr unsigned int j {4};  //                               i * len + j
