@@ -313,7 +313,6 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
     }
   }
 
-  unsigned int grafts = 0;
   progress_init("Grafting light swarms on heavy swarms", pair_count);
 
   /* allocate memory */
@@ -334,6 +333,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   std::qsort(graft_array.data(), pair_count, sizeof(struct graft_cand), compare_grafts);
 
   /* attach in order */
+  unsigned int grafts = 0;
   for(auto i = 0U; i < pair_count; i++)
     {
       const unsigned int parent = graft_array[i].parent;
