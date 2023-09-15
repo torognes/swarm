@@ -431,8 +431,8 @@ auto check_heavy_var(struct bloomflex_s * bloom,
     bloom is a bloom filter in which to check the variants
     varseq is a buffer large enough to hold any sequence + 1 insertion
     seed is the original seed
-    m is where to store number of matches
-    v is where to store number of variants
+    number_of_matches is where to store number of matches
+    number_of_variants is where to store number of variants
     variant_list and variant_list2 are lists to hold the 1st and 2nd
     generation of microvariants
   */
