@@ -460,7 +460,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
   char * sequence = db_getsequence(seed);
   const unsigned int seqlen = db_getsequencelen(seed);
   const uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
+  generate_variants(sequence, seqlen, hash, variant_list, &variant_count);
 
   for(auto i = 0U; i < variant_count; i++)
     {
