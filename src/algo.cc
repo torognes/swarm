@@ -58,7 +58,6 @@ static uint64_t count_comparisons_8;
 static uint64_t count_comparisons_16;
 
 static uint64_t targetcount;
-static uint64_t * targetindices;
 static uint64_t * scores;
 static uint64_t * diffs;
 static uint64_t * alignlengths;
@@ -252,7 +251,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   amps = new struct ampliconinfo_s[amplicons];
   std::vector<uint64_t> targetampliconids(amplicons);
-  targetindices = new uint64_t[amplicons];
+  std::vector<uint64_t> targetindices(amplicons);
   scores = new uint64_t[amplicons];
   diffs = new uint64_t[amplicons];
   alignlengths = new uint64_t[amplicons];
@@ -700,8 +699,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   diffs = nullptr;
   delete [] scores;
   scores = nullptr;
-  delete [] targetindices;
-  targetindices = nullptr;
   delete [] amps;
   amps = nullptr;
 
