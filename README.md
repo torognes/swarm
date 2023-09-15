@@ -428,7 +428,7 @@ swarm 4.0.0:
 **swarm** 3.1.n fixes a minor bug, eliminates warnings, and improves code:
 - fix: add checks to prevent silent overflow of short unsigned integers,
 - fix: compilation warnings with GCC 13 and clang 18,
-- fix: 1,035 clang-tidy warnings (from 3,669 warnings down to 2,634),
+- fix: 1,040 clang-tidy warnings (from 3,669 warnings down to 2,629),
 - improve: code modernization for long-term maintenance,
 - improve: double the maximal number of threads (from 256 threads to 512),
 - improve: make `-DNDEBUG` the default compilation behavior.
