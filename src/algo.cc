@@ -60,7 +60,6 @@ static uint64_t count_comparisons_16;
 static uint64_t targetcount;
 static uint64_t * scores;
 static uint64_t * diffs;
-static uint64_t * alignlengths;
 static uint64_t * qgramamps;
 static uint64_t * qgramdiffs;
 static uint64_t * qgramindices;
@@ -254,7 +253,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   std::vector<uint64_t> targetindices(amplicons);
   scores = new uint64_t[amplicons];
   diffs = new uint64_t[amplicons];
-  alignlengths = new uint64_t[amplicons];
+  std::vector<uint64_t> alignlengths(amplicons);
   qgramamps = new uint64_t[amplicons];
   qgramdiffs = new uint64_t[amplicons];
   qgramindices = new uint64_t[amplicons];
@@ -369,7 +368,7 @@ auto algo_run(struct Parameters const & parameters) -> void
       if (targetcount > 0)
         {
           search_do(seedampliconid, targetcount, targetampliconids.data(),
-                    scores, diffs, alignlengths, bits);
+                    scores, diffs, alignlengths.data(), bits);
 
           if (bits == bit_mode_8) {
             count_comparisons_8 += targetcount;
@@ -492,7 +491,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               if (targetcount > 0)
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
-                            scores, diffs, alignlengths, bits);
+                            scores, diffs, alignlengths.data(), bits);
 
                   if (bits == bit_mode_8) {
                     count_comparisons_8 += targetcount;
@@ -693,8 +692,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgramamps = nullptr;
   delete [] qgramindices;
   qgramindices = nullptr;
-  delete [] alignlengths;
-  alignlengths = nullptr;
   delete [] diffs;
   diffs = nullptr;
   delete [] scores;
