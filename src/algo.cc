@@ -758,6 +758,6 @@ auto algo_run(struct Parameters const & parameters) -> void
            amplicons / (amplicons+1)));
 #endif
 
-    search_end();
+  search_end();
 }
 
