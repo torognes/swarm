@@ -489,8 +489,8 @@ void check_heavy_thread(int64_t t)
   static constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
   (void) t;
 
-  auto * variant_list = new struct var_s[i * longestamplicon + j];
-  auto * variant_list2 = new struct var_s[i * (longestamplicon + 1) + j];
+  std::vector<struct var_s> variant_list(i * longestamplicon + j);
+  std::vector<struct var_s> variant_list2(i * (longestamplicon + 1) + j);
 
   const std::size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
@@ -508,16 +508,12 @@ void check_heavy_thread(int64_t t)
           uint64_t m {0};
           uint64_t v {0};
           check_heavy_var(bloom_f, buffer1.data(), heavy_amplicon_id, &m, &v,
-                          variant_list, variant_list2);
+                          variant_list.data(), variant_list2.data());
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += v;
         }
     }
   pthread_mutex_unlock(&heavy_mutex);
-  delete [] variant_list2;
-  variant_list2 = nullptr;
-  delete [] variant_list;
-  variant_list = nullptr;
 }
 
 
