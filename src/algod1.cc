@@ -404,7 +404,7 @@ auto hash_check_attach(char * seed_sequence,
 inline auto check_heavy_var_2(char * seq,
                               unsigned int seqlen,
                               unsigned int seed,
-                              struct var_s * variant_list) -> uint64_t
+                              std::vector<struct var_s>& variant_list) -> uint64_t
 {
   /* Check second generation microvariants of the heavy swarm amplicons
      and see if any of them are identical to a light swarm amplicon. */
@@ -413,11 +413,11 @@ inline auto check_heavy_var_2(char * seq,
   unsigned int variant_count = 0;
 
   const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
-  generate_variants(seq, seqlen, hash, variant_list, &variant_count);
+  generate_variants(seq, seqlen, hash, variant_list.data(), &variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
     if (bloom_get(bloom_a, variant_list[i].hash) and
-        hash_check_attach(seq, seqlen, variant_list + i, seed)) {
+        hash_check_attach(seq, seqlen, variant_list.data() + i, seed)) {
       ++matches;
     }
   }
@@ -473,7 +473,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
           matches += check_heavy_var_2(varseq.data(),
                                        varlen,
                                        seed,
-                                       variant_list2.data());
+                                       variant_list2);
         }
     }
 
