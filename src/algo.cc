@@ -59,7 +59,6 @@ static uint64_t count_comparisons_16;
 
 static uint64_t targetcount;
 static uint64_t * targetindices;
-// static uint64_t * targetampliconids;
 static uint64_t * scores;
 static uint64_t * diffs;
 static uint64_t * alignlengths;
