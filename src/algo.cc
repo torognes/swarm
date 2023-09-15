@@ -239,10 +239,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
 
-#ifdef VERBOSE
-  uint64_t searches {0};
-  uint64_t estimates {0};
-#endif
 
   uint64_t largestswarm {0};
 
@@ -358,9 +354,6 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       qgram_diff_fast(seedampliconid, listlen, qgramamps, qgramdiffs);
 
-#ifdef VERBOSE
-      estimates += listlen;
-#endif
 
       for(auto i = 0ULL; i < listlen; i++)
         {
@@ -379,9 +372,6 @@ auto algo_run(struct Parameters const & parameters) -> void
         {
           search_do(seedampliconid, targetcount, targetampliconids.data(),
                     scores, diffs, alignlengths, bits);
-#ifdef VERBOSE
-          ++searches;
-#endif
 
           if (bits == bit_mode_8) {
             count_comparisons_8 += targetcount;
@@ -492,10 +482,6 @@ auto algo_run(struct Parameters const & parameters) -> void
               qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps,
                               qgramdiffs);
 
-#ifdef VERBOSE
-              estimates += subseedlistlen;
-#endif
-
               for(auto i = 0ULL; i < subseedlistlen; i++) {
                 if (qgramdiffs[i] <= static_cast<uint64_t>(parameters.opt_differences))
                   {
@@ -509,9 +495,6 @@ auto algo_run(struct Parameters const & parameters) -> void
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
                             scores, diffs, alignlengths, bits);
-#ifdef VERBOSE
-                  ++searches;
-#endif
 
                   if (bits == bit_mode_8) {
                     count_comparisons_8 += targetcount;
@@ -734,29 +717,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   std::fprintf(logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
 
   std::fprintf(logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
-
-#ifdef VERBOSE
-  std::fprintf(logfile, "\n");
-
-  std::fprintf(logfile, "Estimates:         %" PRIu64 "\n", estimates);
-
-  std::fprintf(logfile, "Searches:          %" PRIu64 "\n", searches);
-
-  std::fprintf(logfile, "\n");
-
-  std::fprintf(logfile, "Comparisons (8b):  %" PRIu64 " (%.2lf%%)\n",
-          count_comparisons_8, (200.0 * count_comparisons_8 /
-                                amplicons / (amplicons + 1)));
-
-  std::fprintf(logfile, "Comparisons (16b): %" PRIu64 " (%.2lf%%)\n",
-          count_comparisons_16, (200.0 * count_comparisons_16 /
-                                 amplicons / (amplicons + 1)));
-
-  std::fprintf(logfile, "Comparisons (tot): %" PRIu64 " (%.2lf%%)\n",
-          count_comparisons_8 + count_comparisons_16,
-          (200.0 * (count_comparisons_8 + count_comparisons_16) /
-           amplicons / (amplicons+1)));
-#endif
 
   search_end();
 }
