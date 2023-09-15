@@ -643,7 +643,7 @@ void network_thread(int64_t t)
 
   (void) t;
 
-  auto * hits_data = new unsigned int[i * longestamplicon + j + 1];
+  std::vector<unsigned int> hits_data(i * longestamplicon + j + 1);
   std::vector<struct var_s> variant_list(i * longestamplicon + j + 1);
 
   pthread_mutex_lock(&network_mutex);
@@ -655,7 +655,7 @@ void network_thread(int64_t t)
       pthread_mutex_unlock(&network_mutex);
 
       unsigned int hits_count = 0;
-      check_variants(amp, variant_list.data(), hits_data, & hits_count);
+      check_variants(amp, variant_list.data(), hits_data.data(), & hits_count);
       pthread_mutex_lock(&network_mutex);
 
       ampinfo[amp].link_start = network_count;
@@ -675,9 +675,6 @@ void network_thread(int64_t t)
       }
     }
   pthread_mutex_unlock(&network_mutex);
-
-  delete [] hits_data;
-  hits_data = nullptr;
 }
 
 
