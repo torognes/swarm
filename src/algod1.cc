@@ -169,13 +169,6 @@ auto hash_check_attach(char * seed_sequence,
                        unsigned int seed_seqlen,
                        struct var_s * var,
                        unsigned int seed) -> bool;
-void check_heavy_var(struct bloomflex_s * bloom,
-                     std::vector<char>& varseq,
-                     unsigned int seed,
-                     uint64_t * m,
-                     uint64_t * v,
-                     std::vector<struct var_s>& variant_list,
-                     std::vector<struct var_s>& variant_list2);
 void check_heavy_thread(int64_t t);
 auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
