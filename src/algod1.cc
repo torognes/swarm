@@ -469,7 +469,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
         {
           unsigned int varlen = 0;
           generate_variant_sequence(sequence, seqlen,
-                                    var, varseq, & varlen);
+                                    var, varseq, &varlen);
           matches += check_heavy_var_2(varseq,
                                        varlen,
                                        seed,
