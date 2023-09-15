@@ -422,8 +422,8 @@ inline auto check_heavy_var_2(char * seq,
 auto check_heavy_var(struct bloomflex_s * bloom,
                      std::vector<char>& varseq,
                      unsigned int seed,
-                     uint64_t * m,
-                     uint64_t * v,
+                     uint64_t * number_of_matches,
+                     uint64_t * number_of_variants,
                      std::vector<struct var_s>& variant_list,
                      std::vector<struct var_s>& variant_list2) -> void
 {
@@ -470,8 +470,8 @@ auto check_heavy_var(struct bloomflex_s * bloom,
         }
     }
 
-  *m = matches;
-  *v = variant_count;
+  *number_of_matches = matches;
+  *number_of_variants = variant_count;
 }
 
 
