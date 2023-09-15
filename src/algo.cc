@@ -59,7 +59,7 @@ static uint64_t count_comparisons_16;
 
 static uint64_t targetcount;
 static uint64_t * targetindices;
-static uint64_t * targetampliconids;
+// static uint64_t * targetampliconids;
 static uint64_t * scores;
 static uint64_t * diffs;
 static uint64_t * alignlengths;
@@ -256,7 +256,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgram_diff_init();
 
   amps = new struct ampliconinfo_s[amplicons];
-  targetampliconids = new uint64_t[amplicons];
+  std::vector<uint64_t> targetampliconids(amplicons);
   targetindices = new uint64_t[amplicons];
   scores = new uint64_t[amplicons];
   diffs = new uint64_t[amplicons];
@@ -377,7 +377,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       if (targetcount > 0)
         {
-          search_do(seedampliconid, targetcount, targetampliconids,
+          search_do(seedampliconid, targetcount, targetampliconids.data(),
                     scores, diffs, alignlengths, bits);
 #ifdef VERBOSE
           ++searches;
@@ -507,7 +507,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
               if (targetcount > 0)
                 {
-                  search_do(subseedampliconid, targetcount, targetampliconids,
+                  search_do(subseedampliconid, targetcount, targetampliconids.data(),
                             scores, diffs, alignlengths, bits);
 #ifdef VERBOSE
                   ++searches;
@@ -720,8 +720,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   scores = nullptr;
   delete [] targetindices;
   targetindices = nullptr;
-  delete [] targetampliconids;
-  targetampliconids = nullptr;
   delete [] amps;
   amps = nullptr;
 
