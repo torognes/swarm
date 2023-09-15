@@ -264,7 +264,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgramamps = new uint64_t[amplicons];
   qgramdiffs = new uint64_t[amplicons];
   qgramindices = new uint64_t[amplicons];
-  auto * hits = new uint64_t[amplicons];
+  std::vector<uint64_t> hits(amplicons);
 
   auto diff_saturation
     = static_cast<uint64_t>(std::min(UINT8_MAX / parameters.penalty_mismatch,
@@ -712,8 +712,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgramamps = nullptr;
   delete [] qgramindices;
   qgramindices = nullptr;
-  delete [] hits;
-  hits = nullptr;
   delete [] alignlengths;
   alignlengths = nullptr;
   delete [] diffs;
