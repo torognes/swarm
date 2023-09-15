@@ -48,6 +48,7 @@
 #include <cstdlib>  // qsort()
 #include <cstring>  // std::memcmp
 #include <pthread.h>
+#include <vector>
 
 
 #ifndef PRIu64
@@ -493,7 +494,7 @@ void check_heavy_thread(int64_t t)
 
   const std::size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
-  char * buffer1 {new char[size]};
+  std::vector<char> buffer1(size);
   pthread_mutex_lock(&heavy_mutex);
   while ((heavy_amplicon < amplicons) and
          (heavy_progress < heavy_amplicon_count))
@@ -506,15 +507,13 @@ void check_heavy_thread(int64_t t)
           pthread_mutex_unlock(&heavy_mutex);
           uint64_t m {0};
           uint64_t v {0};
-          check_heavy_var(bloom_f, buffer1, heavy_amplicon_id, &m, &v,
+          check_heavy_var(bloom_f, buffer1.data(), heavy_amplicon_id, &m, &v,
                           variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += v;
         }
     }
   pthread_mutex_unlock(&heavy_mutex);
-  delete [] buffer1;
-  buffer1 = nullptr;
   delete [] variant_list2;
   variant_list2 = nullptr;
   delete [] variant_list;
