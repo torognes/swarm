@@ -303,15 +303,20 @@ auto compare_grafts(const void * a, const void * b) -> int
 }
 
 
-auto attach_candidates(unsigned int amplicon_count) -> unsigned int
-{
-  /* count pairs */
-  unsigned int pair_count = 0;
+auto count_pairs(unsigned int const amplicon_count) -> unsigned int {
+  unsigned int counter = 0;
   for(auto i = 0U; i < amplicon_count; i++) {
     if (ampinfo[i].graft_cand != no_swarm) {
-      ++pair_count;
+      ++counter;
     }
   }
+  return counter;
+}
+
+
+auto attach_candidates(unsigned int amplicon_count) -> unsigned int
+{
+  unsigned int const pair_count = count_pairs(amplicon_count);
 
   progress_init("Grafting light swarms on heavy swarms", pair_count);
 
