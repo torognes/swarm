@@ -946,11 +946,11 @@ auto write_representative_sequences(const unsigned int swarmcount,
                                     struct Parameters const & parameters) -> void {
   progress_init("Writing seeds:    ", swarmcount);
 
-  auto * sorter = new unsigned int[swarmcount];
+  std::vector<unsigned int> sorter(swarmcount);
   for(auto i = 0U; i < swarmcount; i++) {
     sorter[i] = i;
   }
-  std::qsort(sorter, swarmcount, sizeof(unsigned int), compare_mass);
+  std::qsort(sorter.data(), swarmcount, sizeof(unsigned int), compare_mass);
 
   for(auto j = 0U; j < swarmcount; j++)
     {
@@ -965,9 +965,6 @@ auto write_representative_sequences(const unsigned int swarmcount,
         }
       progress_update(i + 1);
     }
-
-  delete [] sorter;
-  sorter = nullptr;
 
   progress_done();
 }
