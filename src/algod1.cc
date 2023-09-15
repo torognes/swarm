@@ -175,7 +175,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
                      uint64_t * m,
                      uint64_t * v,
                      struct var_s * variant_list,
-                     struct var_s * variant_list2);
+                     std::vector<struct var_s>& variant_list2);
 void check_heavy_thread(int64_t t);
 auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
@@ -432,7 +432,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
                      uint64_t * m,
                      uint64_t * v,
                      struct var_s * variant_list,
-                     struct var_s * variant_list2)
+                     std::vector<struct var_s>& variant_list2)
 {
   /*
     bloom is a bloom filter in which to check the variants
@@ -473,7 +473,7 @@ void check_heavy_var(struct bloomflex_s * bloom,
           matches += check_heavy_var_2(varseq.data(),
                                        varlen,
                                        seed,
-                                       variant_list2);
+                                       variant_list2.data());
         }
     }
 
@@ -509,7 +509,7 @@ void check_heavy_thread(int64_t t)
           uint64_t number_of_variants {0};
           check_heavy_var(bloom_f, buffer1, heavy_amplicon_id,
                           &number_of_matches, &number_of_variants,
-                          variant_list.data(), variant_list2.data());
+                          variant_list.data(), variant_list2);
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += number_of_variants;
         }
