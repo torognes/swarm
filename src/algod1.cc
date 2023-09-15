@@ -505,12 +505,13 @@ void check_heavy_thread(int64_t t)
         {
           progress_update(++heavy_progress);
           pthread_mutex_unlock(&heavy_mutex);
-          uint64_t m {0};
-          uint64_t v {0};
-          check_heavy_var(bloom_f, buffer1.data(), heavy_amplicon_id, &m, &v,
+          uint64_t number_of_matches {0};
+          uint64_t number_of_variants {0};
+          check_heavy_var(bloom_f, buffer1.data(), heavy_amplicon_id,
+                          &number_of_matches, &number_of_variants,
                           variant_list.data(), variant_list2.data());
           pthread_mutex_lock(&heavy_mutex);
-          heavy_variants += v;
+          heavy_variants += number_of_variants;
         }
     }
   pthread_mutex_unlock(&heavy_mutex);
