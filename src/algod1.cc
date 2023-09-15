@@ -419,13 +419,13 @@ inline auto check_heavy_var_2(char * seq,
 }
 
 
-void check_heavy_var(struct bloomflex_s * bloom,
+auto check_heavy_var(struct bloomflex_s * bloom,
                      std::vector<char>& varseq,
                      unsigned int seed,
                      uint64_t * m,
                      uint64_t * v,
                      std::vector<struct var_s>& variant_list,
-                     std::vector<struct var_s>& variant_list2)
+                     std::vector<struct var_s>& variant_list2) -> void
 {
   /*
     bloom is a bloom filter in which to check the variants
