@@ -341,7 +341,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
-          const unsigned int ampid = amps[swarmed+i].ampliconid;
+          const unsigned int ampid = amps[swarmed + i].ampliconid;
           if ((opt_no_otu_breaking) or (db_getabundance(ampid) <= abundance))
             {
               qgramamps[i] = ampid;
