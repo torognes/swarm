@@ -324,13 +324,13 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   std::vector<struct graft_cand> graft_array(pair_count);
 
   /* fill in */
-  unsigned int j = 0;
+  unsigned int ticker = 0;
   for(auto i = 0U; i < amplicon_count; i++) {
     if (ampinfo[i].graft_cand != no_swarm)
       {
-        graft_array[j].parent = ampinfo[i].graft_cand;
-        graft_array[j].child = i;  // so two children cannot have the same uint value
-        ++j;
+        graft_array[ticker].parent = ampinfo[i].graft_cand;
+        graft_array[ticker].child = i;  // so two children cannot have the same uint value
+        ++ticker;
       }
   }
 
