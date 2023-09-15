@@ -170,7 +170,7 @@ auto hash_check_attach(char * seed_sequence,
                        struct var_s * var,
                        unsigned int seed) -> bool;
 void check_heavy_var(struct bloomflex_s * bloom,
-                     char * varseq,
+                     std::vector<char>& varseq,
                      unsigned int seed,
                      uint64_t * m,
                      uint64_t * v,
@@ -427,7 +427,7 @@ inline auto check_heavy_var_2(char * seq,
 
 
 void check_heavy_var(struct bloomflex_s * bloom,
-                     char * varseq,
+                     std::vector<char>& varseq,
                      unsigned int seed,
                      uint64_t * m,
                      uint64_t * v,
@@ -469,8 +469,8 @@ void check_heavy_var(struct bloomflex_s * bloom,
         {
           unsigned int varlen = 0;
           generate_variant_sequence(sequence, seqlen,
-                                    var, varseq, &varlen);
-          matches += check_heavy_var_2(varseq,
+                                    var, varseq.data(), &varlen);
+          matches += check_heavy_var_2(varseq.data(),
                                        varlen,
                                        seed,
                                        variant_list2);
@@ -507,7 +507,7 @@ void check_heavy_thread(int64_t t)
           pthread_mutex_unlock(&heavy_mutex);
           uint64_t number_of_matches {0};
           uint64_t number_of_variants {0};
-          check_heavy_var(bloom_f, buffer1.data(), heavy_amplicon_id,
+          check_heavy_var(bloom_f, buffer1, heavy_amplicon_id,
                           &number_of_matches, &number_of_variants,
                           variant_list.data(), variant_list2.data());
           pthread_mutex_lock(&heavy_mutex);
