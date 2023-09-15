@@ -557,7 +557,8 @@ void mark_light_thread(int64_t t)
         {
           progress_update(++light_progress);
           pthread_mutex_unlock(&light_mutex);
-          const uint64_t variant_count = mark_light_var(bloom_f, light_amplicon_id, variant_list.data());
+          const uint64_t variant_count = mark_light_var(bloom_f, light_amplicon_id,
+                                                        variant_list.data());
           pthread_mutex_lock(&light_mutex);
           light_variants += variant_count;
         }
