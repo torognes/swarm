@@ -87,8 +87,8 @@ struct swarminfo_t
 auto collect_seeds(const uint64_t amplicons) -> std::vector<struct swarminfo_t> {
   progress_init("Collecting seeds:    ", amplicons);
   std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
-  auto swarmcount {0L};
-  uint64_t mass {0};
+  auto swarmcount = 0L;
+  uint64_t mass = 0;
   unsigned int previd = amps[0].swarmid;
   unsigned int seed = amps[0].ampliconid;
   mass += db_getabundance(seed);
@@ -122,7 +122,7 @@ auto collect_seeds(const uint64_t amplicons) -> std::vector<struct swarminfo_t> 
 auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
   progress_init("Sorting seeds:    ", seeds.size());
 
-  auto compare_seeds = [](struct swarminfo_t& lhs, struct swarminfo_t& rhs) -> bool {
+  auto compare_seeds = [](struct swarminfo_t const& lhs, struct swarminfo_t const& rhs) -> bool {
     // sort by decreasing mass...
     if (lhs.mass > rhs.mass) {
       return true;
@@ -145,7 +145,7 @@ auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
 auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
                  bool const opt_usearch_abundance) -> void {
   progress_init("Writing seeds:    ", seeds.size());
-  auto ticker {0ULL};  // refactoring: C++20 move ticker to range-loop init-statement
+  auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
   for(const auto& seed: seeds) {
       const auto swarm_mass = seed.mass;
       const auto swarm_seed = seed.seed;
