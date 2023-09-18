@@ -423,9 +423,10 @@ swarm 4.0.0:
 
 ## Version history ##
 
-### version 3.1.n ###
+### version 3.1.4 ###
 
-**swarm** 3.1.n fixes a minor bug, eliminates warnings, and improves code:
+**swarm** 3.1.4 fixes a minor bug, eliminates compilation warnings and
+static analysis warnings, and improves code:
 - fix: add checks to prevent silent overflow of short unsigned integers,
 - fix: compilation warnings with GCC 13 and clang 18,
 - fix: 1,040 clang-tidy warnings (from 3,669 warnings down to 2,629),
