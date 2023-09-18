@@ -412,7 +412,7 @@ swarm 3.1.y:
 - reduce/eliminate linuxisms to improve portability
 
 swarm 3.2.0:
-- swarm can be compiled on a BSD or a Windows system
+- swarm can be compiled natively on a BSD or a Windows system
 
 swarm 4.0.0:
 - drop compatibility with GCC 4 and GCC 5 (late-2024 GCC 8 will become
@@ -429,7 +429,7 @@ swarm 4.0.0:
 static analysis warnings, and improves code:
 - fix: add checks to prevent silent overflow of short unsigned integers,
 - fix: compilation warnings with GCC 13 and clang 18,
-- fix: 1,040 clang-tidy warnings (from 3,669 warnings down to 2,629),
+- fix: 1,040 clang-tidy warnings (from 3,669 warnings, down to 2,629),
 - improve: code modernization for long-term maintenance,
 - improve: double the maximal number of threads (from 256 threads to 512),
 - improve: make `-DNDEBUG` the default compilation behavior.
