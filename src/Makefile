@@ -46,7 +46,7 @@ ifdef RELEASE
 
 # Run "make PROFILE=1" to compile for profiling
 else ifdef PROFILE
-	COMMON += -pg
+	COMMON += -pg -O1
 
 # Run "make DEBUG=1" to compile for debugging (GCC 10 or more recent)
 else ifdef DEBUG
