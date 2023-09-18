@@ -585,6 +585,11 @@ void args_check(std::array<bool, n_options> & used_options) {
   if (parameters.opt_differences > diff_saturation_16) {
     fatal(error_prefix, "Resolution (d) too high for the given scoring system.");
   }
+
+  if (parameters.penalty_mismatch > UINT8_MAX) {
+    fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
+          "please use different parameter values.");
+  }
 }
 
 
