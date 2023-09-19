@@ -432,7 +432,9 @@ static analysis warnings, and improves code:
 - fix: 1,040 clang-tidy warnings (from 3,669 warnings, down to 2,629),
 - improve: code modernization for long-term maintenance,
 - improve: double the maximal number of threads (from 256 threads to 512),
-- improve: make `-DNDEBUG` the default compilation behavior.
+- improve: make `-DNDEBUG` the default compilation behavior,
+- performance: stable for all modes, except a 6 to 10% increase in memory footprint when d > 2
+
 
 ### version 3.1.3 ###
 
