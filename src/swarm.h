@@ -37,7 +37,7 @@
 // will be de-duplicated by the linker.
 // (source: https://www.youtube.com/watch?v=QVHwOOrSh3w)
 
-const std::string swarm_version {"3.1.3"};
+const std::string swarm_version {"3.1.4"};
 constexpr char sepchar {' '};
 constexpr char dash_filename {'-'};
 constexpr unsigned int opt_differences_default {1};
