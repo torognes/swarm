@@ -50,7 +50,7 @@ else ifdef PROFILE
 
 # Run "make DEBUG=1" to compile for debugging (GCC 10 or more recent)
 else ifdef DEBUG
-	COMMON += -Og -DDEBUG -ggdb3 -fsanitize=undefined,address -fno-omit-frame-pointer -Werror
+	COMMON += -Og -DDEBUG -ggdb3 -fsanitize=undefined,address -fno-omit-frame-pointer -Werror -Wunused -Wduplicated-cond -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -Wnull-dereference -Wlogical-op -Wduplicated-cond -Wcast-align -Wduplicated-branches -Wdouble-promotion -Wfloat-equal
 	COMPILER_VERSION := $(shell $(CXX) --version)
 	ifneq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
 		COMMON += -fanalyzer
