@@ -115,7 +115,7 @@ ifeq ($(CXX), x86_64-w64-mingw32-g++)
 	LINKOPT += -static
 	BIN = swarm.exe
 else
-	WARNINGS += -pedantic
+	WARNINGS += -Wpedantic
 	BIN = swarm
 endif
 
