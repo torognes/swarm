@@ -212,14 +212,14 @@ the abundance of A.
 .BI \-b\fP,\fB\ \-\-boundary\~ "positive integer"
 when using the option \-\-fastidious (\-f), define the minimum
 abundance of what should be considered a \fIlarge\fR cluster. By
-default, a cluster with an abundance of 3 or more is considered
-large. Conversely, a cluster is small if it has an abundance of 2 or
-less, meaning that it is composed of either one amplicon of abundance
-2, or two amplicons of abundance 1, or one amplicon of abundance
-1. Any positive value greater than 1 can be specified. Using higher
-boundary values can reduce the number of clusters (up to a point), and
-will reduce the taxonomical resolution of \fBswarm\fR results. It will
-also slightly increase computation time.
+default, a cluster with a total abundance of 3 or more is considered
+large. Conversely, a cluster is small if it has a total abundance of 2
+or less, meaning that it is composed of either one amplicon of
+abundance 2, or two amplicons of abundance 1, or one amplicon of
+abundance 1. Any positive value greater than 1 can be specified. Using
+higher boundary values can reduce the number of clusters (up to a
+point), and will reduce the taxonomical resolution of \fBswarm\fR
+results. It will also slightly increase computation time.
 .TP
 .BI \-c\fP,\fB\ \-\-ceiling\~ "positive integer"
 when using the option \-\-fastidious (\-f), define \fBswarm\fR's
