@@ -532,40 +532,22 @@ or minor bug releases are not mentioned):
 .RS
 .TP
 .BR v3.1.4\~ "released September 20, 2023"
-Version 3.1.4 fixes a minor bug, eliminates compilation warnings and
-static analysis warnings, and improves code:
-
-- fix: add checks to prevent silent overflow of short unsigned integers,
-
-- fix: compilation warnings with GCC 13 and clang 18,
-
-- fix: 1,040 clang-tidy warnings (from 3,669 warnings, down to 2,629),
-
-- improve: code modernization for long-term maintenance,
-
-- improve: double the maximal number of threads (from 256 threads to 512),
-
-- improve: make `-DNDEBUG` the default compilation behavior,
-performance: stable for all modes, except a 6 to 10% increase in memory footprint when d > 2.
+Version 3.1.4 fixes a minor bug. It eliminates compilation warnings
+with GCC 13 and clang 18, as well as 1,040 static analysis
+warnings. The maximal number of threads swarm can run is now 512,
+instead of 256. Compilation with runtime checks (`-DNDEBUG`) is now
+the default. When d > 1, overall memory allocations remain unchanged,
+but peak RSS memory increased by 6 to 10%, due to a change in the
+timming of memory deallocations. Peak RSS memory is expected to
+regress to its prior levels as refactoring continues.
 .TP
 .BR v3.1.3\~ "released December 5, 2022"
-Version 3.1.3 fixes a few minor bugs, removes warnings, and improves code and documentation:
-
-- fix: bug introduced in version 3.1.1, that caused swarm to allocate way too much memory when d > 1 (bug had no impact on clustering results),
-
-- fix: off-by-one error when allocating memory for a Bloom filter (bug had no impact on clustering results),
-
-- fix: compilation warning with GCC 12 (and more recent) when using link-time optimization,
-
-- fix: compilation warning with clang 13 (and more recent): unused set variable,
-
-- fix: five clang-tidy warnings (readability-braces-around-statements),
-
-- fix: minor code refactoring,
-
-- improve: more uniform vocabulary throughout swarm's documentation (code, help, manpage, README, companion scripts and wiki),
-
-- improve: code coverage of our test suite (swarm-tests).
+Version 3.1.3 fixes a regression introduced in version 3.1.1 (memory
+over-allocation when d > 1). It also fixes a minor off-by-one error
+when allocating memory for a Bloom filter, compilation warnings with
+GCC 12 and clang 13, as well as static analysis
+warnings. Documentation was improved, as well as our test suite
+(swarm-tests).
 .TP
 .BR v3.1.2\~ "released November 10, 2022"
 Fix a bug with fastidious mode introduced in version 3.1.1, that could
