@@ -27,7 +27,7 @@ MAN=man/swarm.1
 swarm : $(PROG)
 
 $(PROG) :
-	make -C src swarm
+	$(MAKE) -C src swarm
 
 install : $(PROG) $(MAN)
 	/usr/bin/install -c $(PROG) '/usr/local/bin'
@@ -35,4 +35,4 @@ install : $(PROG) $(MAN)
 	/usr/bin/install -c $(MAN) '/usr/local/share/man/man1'
 
 clean :
-	make -C src clean
+	$(MAKE) -C src clean
