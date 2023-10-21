@@ -57,9 +57,9 @@ else ifdef PROFILE
 else ifdef DEBUG
 	COMMON += -Og -DDEBUG -ggdb3 $(DEBUG_SANITIZER) $(DEBUG_WARNINGS)
 	COMPILER_VERSION := $(shell $(CXX) --version)
-	ifneq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
-		COMMON += -fanalyzer
-	endif
+	# ifneq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
+	# 	COMMON += -fanalyzer
+	# endif
 
 
 # Run "make COVERAGE=1" to compile for coverage tests
