@@ -90,6 +90,10 @@ ifeq ($(CXX), aarch64-linux-gnu-g++)
 	MACHINE = aarch64
 else ifeq ($(CXX), powerpc64le-linux-gnu-g++)
 	MACHINE = ppc64le
+else ifeq ($(CXX), x86_64-linux-gnu-g++)
+	MACHINE = x86_64
+else ifeq ($(CXX), x86_64-w64-mingw32-g++)
+	MACHINE = x86_64
 else
 	MACHINE = $(shell uname -m)
 endif
