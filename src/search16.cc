@@ -784,7 +784,7 @@ void search16(WORD * * q_start,
                       ++next_id;
 
                       (reinterpret_cast<WORD*>(&H0))[c] = 0;
-                      (reinterpret_cast<WORD*>(&F0))[c] = 2U * gap_open_penalty + 2U * gap_extend_penalty;
+                      (reinterpret_cast<WORD*>(&F0))[c] = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
                       for(auto j = 0U; j < cdepth; j++)
