@@ -32,7 +32,7 @@ constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 // note: there is no uchar8_t, only char8_t in C++20
 // refactoring: C++20 use 'requires' to constrain accepted types
 template <typename Integral>
-auto create_score_matrix(const std::int64_t penalty_mismatch)
+auto create_score_matrix(const std::int64_t mismatch_penalty)
   -> std::array<Integral, n_cells * n_cells> {
   static_assert(std::is_same<Integral, unsigned char>::value \
                 or std::is_same<Integral, unsigned short int>::value \
@@ -40,7 +40,7 @@ auto create_score_matrix(const std::int64_t penalty_mismatch)
                 or std::is_same<Integral, std::int64_t>::value,
                 "Invalid type! Only unsigned char, unsigned short and int64_t can be used.");
   static constexpr Integral matchscore {0};
-  const auto mismatchscore = static_cast<Integral>(penalty_mismatch);
+  const auto mismatchscore = static_cast<Integral>(mismatch_penalty);
   std::array<Integral, n_cells * n_cells> score_matrix {{}};
 
   // fill in the upper-left quarter of the matrix with mismatchscore,
@@ -63,10 +63,10 @@ auto create_score_matrix(const std::int64_t penalty_mismatch)
 
 // usage example:
 //
-// create_score_matrix<unsigned char>(penalty_mismatch)};   OK
-// create_score_matrix<unsigned short>(penalty_mismatch)};  OK
-// create_score_matrix<int64_t>(penalty_mismatch)};         OK
-// create_score_matrix<signed char>(penalty_mismatch)};     compilation error
+// create_score_matrix<unsigned char>(mismatch_penalty)};   OK
+// create_score_matrix<unsigned short>(mismatch_penalty)};  OK
+// create_score_matrix<int64_t>(mismatch_penalty)};         OK
+// create_score_matrix<signed char>(mismatch_penalty)};     compilation error
 
 // refactoring: C++20 constexpr template
 // static_assert(create_score_matrix<unsigned short>(4)[0] == 4);  // (0, 0)
