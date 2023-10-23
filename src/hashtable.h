@@ -21,7 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cassert>
 #include <cstdint>
+
 
 extern uint64_t hash_mask;
 extern unsigned char * hash_occupied;
@@ -46,6 +48,7 @@ inline void hash_set_occupied(uint64_t j)
 {
   static constexpr unsigned int divider {3};  // drop the first 3 bits
   static constexpr unsigned int max_range {7};  // j & max_range = values ranging from 0 to 7
+  assert((j & max_range) <= 7);
   hash_occupied[j >> divider] |= static_cast<unsigned char>((1U << (j & max_range)));
 }
 
