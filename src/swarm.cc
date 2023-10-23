@@ -285,7 +285,7 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
         auto optindex = static_cast<unsigned int>(option_character - 'a');  // c - 'a' cannot be negative
         if (used_options[optindex])
           {
-            int longoptindex {0};
+            auto longoptindex {0UL};
             while (long_options[longoptindex].name != nullptr)
               {
                 if (long_options[longoptindex].val == option_character) {
