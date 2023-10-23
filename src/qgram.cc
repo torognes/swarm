@@ -50,6 +50,7 @@
 #endif
 
 #include "utils/nt_codec.h"
+#include <cassert>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // memset
 
@@ -87,6 +88,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   while(i < seqlen)
   {
     qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), i);
+    assert((qgram & max_range) <= 7);
     qgramvector[(qgram >> 3U) & (qgramvectorbytes - 1)] ^= static_cast<unsigned char>(1U << (qgram & max_range));
     ++i;
   }
