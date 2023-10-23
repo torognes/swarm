@@ -548,7 +548,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
         {
           unsigned char character {0};
           char * line_ptr = line;
-          while((character = static_cast<signed char>(*line_ptr++)) != 0)
+          while((character = static_cast<unsigned char>(*line_ptr++)) != 0)
             {
               const auto mapped_char = map_nt[character];
               if (mapped_char != 0)
