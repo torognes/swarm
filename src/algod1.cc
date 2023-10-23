@@ -777,9 +777,10 @@ inline void add_amp_to_swarm(unsigned int amp)
 }
 
 
-auto write_network_file(const unsigned int network_count,
+auto write_network_file(const unsigned int number_of_networks,
                         struct Parameters const & parameters) -> void {
-  progress_init("Dumping network:  ", network_count);
+  // network = cluster with at leat two sequences (no singletons)
+  progress_init("Dumping network:  ", number_of_networks);
 
   uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
   for(auto seed = 0U; seed < amplicons; seed++)
