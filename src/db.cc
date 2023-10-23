@@ -456,7 +456,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       line[0] = 0;
       linelen = 0;
     }
-  filepos += linelen;
+  filepos += static_cast<unsigned long int>(linelen);
 
   unsigned int lineno {1};
 
@@ -515,7 +515,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
           line[0] = 0;
           linelen = 0;
         }
-      filepos += linelen;
+      filepos += static_cast<unsigned long int>(linelen);
 
       ++lineno;
 
@@ -596,7 +596,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
               line[0] = 0;
               linelen = 0;
             }
-          filepos += linelen;
+          filepos += static_cast<unsigned long int>(linelen);
 
           ++lineno;
         }
