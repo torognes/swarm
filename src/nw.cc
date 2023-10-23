@@ -199,7 +199,7 @@ void nw(char * dseq,
   int64_t alength {0};
   int64_t matches {0};
 
-  char * cigar = static_cast<char*>(xmalloc(qlen + dlen + 1));
+  char * cigar = static_cast<char*>(xmalloc(static_cast<unsigned long int>(qlen + dlen + 1)));
 
   char * cigarend {cigar + qlen + dlen + 1};
 
