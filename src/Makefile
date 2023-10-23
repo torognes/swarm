@@ -27,7 +27,7 @@ LINKOPT =
 LIBS = -lpthread
 WARNINGS = -Wall -Wextra
 CLANG = clang
-DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wdate-time -Wdouble-promotion \
+DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time -Wdouble-promotion \
 	-Wduplicated-branches -Wduplicated-cond -Wduplicated-cond -Wfloat-equal \
 	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
 	-Wold-style-cast -Woverloaded-virtual -Wshadow -Wuninitialized \
