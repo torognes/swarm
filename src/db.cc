@@ -782,7 +782,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       if (hdrfound != nullptr)
         {
           const std::string full_header {seqindex_p->header + id_start};
-          fatal(error_prefix, "Duplicated sequence identifier: ", full_header.substr(0, id_len));
+          fatal(error_prefix, "Duplicated sequence identifier: ", full_header.substr(0, static_cast<unsigned long int>(id_len)));
         }
 
       hdrhashtable[hdrhashindex] = seqindex_p;
