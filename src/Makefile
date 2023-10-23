@@ -32,7 +32,7 @@ DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wdate-time -Wdouble-promotion \
 	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
 	-Wold-style-cast -Woverloaded-virtual -Wuninitialized -Wunsafe-loop-optimizations \
 	-Wunused -Wunused-macros -Wvla
-DEBUG_SANITIZER = -fsanitize=undefined,address -fno-omit-frame-pointer
+DEBUG_SANITIZER = -fsanitize=undefined,address -fno-sanitize=alignment -fno-omit-frame-pointer
 
 # Run "make RELEASE=1" to compile for release
 ifdef RELEASE
