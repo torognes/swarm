@@ -27,10 +27,10 @@ LINKOPT =
 LIBS = -lpthread
 WARNINGS = -Wall -Wextra
 CLANG = clang
-DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time -Wdouble-promotion \
-	-Wduplicated-branches -Wduplicated-cond -Wduplicated-cond -Wfloat-equal \
+DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
+	-Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
 	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
-	-Wold-style-cast -Woverloaded-virtual -Wshadow -Wuninitialized \
+	-Wold-style-cast -Woverloaded-virtual -Wshadow -Wsign-conversion -Wuninitialized \
         -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wuseless-cast -Wvla
 DEBUG_SANITIZER = -fsanitize=undefined,address -fno-sanitize=alignment -fno-omit-frame-pointer
 
