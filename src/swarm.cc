@@ -79,9 +79,8 @@ std::FILE * fp_seeds {nullptr};
 std::FILE * network_file {nullptr};
 
 constexpr int n_options {26};
-std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
-const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
+std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
 
 const std::array<struct option, 25> long_options = {
   {
@@ -257,11 +256,12 @@ void show(const std::vector<std::string> & message)
 }
 
 
-void args_init(int argc, char **argv, std::array<bool, n_options> & used_options)
+auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 {
   /* Set defaults */
   static constexpr unsigned int boundary_default {3};
   static constexpr unsigned int threads_default {1};
+  std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
   opt_boundary = boundary_default;
   opt_threads = threads_default;
@@ -446,10 +446,12 @@ void args_init(int argc, char **argv, std::array<bool, n_options> & used_options
   penalty_mismatch = parameters.penalty_mismatch;
   penalty_gapopen /= penalty_factor;
   penalty_gapextend /= penalty_factor;
+
+  return used_options;
 }
 
 
-void args_check(std::array<bool, n_options> & used_options) {
+void args_check(const std::array<bool, n_options> & used_options) {
   static constexpr unsigned int min_bits_per_entry {2};
   static constexpr unsigned int max_bits_per_entry {64};
   static constexpr unsigned int min_ceiling {8};
@@ -669,7 +671,7 @@ auto close_files() -> void {
 auto main(int argc, char** argv) -> int
 {
   // initialization and checks
-  args_init(argc, argv, used_options);
+  const auto used_options = args_init(argc, argv);
   args_check(used_options);
   open_files();
   show(header_message);
