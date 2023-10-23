@@ -46,7 +46,7 @@ inline void hash_set_occupied(uint64_t j)
 {
   static constexpr unsigned int divider {3};  // drop the first 3 bits
   static constexpr unsigned int max_range {7};  // j & max_range = values ranging from 0 to 7
-  hash_occupied[j >> divider] |= (1U << (j & max_range));
+  hash_occupied[j >> divider] |= static_cast<unsigned char>((1U << (j & max_range)));
 }
 
 inline auto hash_is_occupied(uint64_t j) -> bool
