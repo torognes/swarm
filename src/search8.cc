@@ -1009,7 +1009,7 @@ void search8(BYTE * * q_start,
                       ++next_id;
 
                       (reinterpret_cast<BYTE*>(&H0))[c] = 0;
-                      (reinterpret_cast<BYTE*>(&F0))[c] = 2U * gap_open_penalty + 2U * gap_extend_penalty;
+                      (reinterpret_cast<BYTE*>(&F0))[c] = static_cast<BYTE>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
                       for(auto j = 0U; j < cdepth; j++)
