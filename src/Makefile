@@ -30,8 +30,8 @@ CLANG = clang
 DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wdate-time -Wdouble-promotion \
 	-Wduplicated-branches -Wduplicated-cond -Wduplicated-cond -Wfloat-equal \
 	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
-	-Wold-style-cast -Woverloaded-virtual -Wuninitialized -Wunsafe-loop-optimizations \
-	-Wunused -Wunused-macros -Wvla
+	-Wold-style-cast -Woverloaded-virtual -Wshadow -Wuninitialized \
+        -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla
 DEBUG_SANITIZER = -fsanitize=undefined,address -fno-sanitize=alignment -fno-omit-frame-pointer
 
 # Run "make RELEASE=1" to compile for release
