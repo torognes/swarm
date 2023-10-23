@@ -31,7 +31,7 @@ DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time -Wdouble-prom
 	-Wduplicated-branches -Wduplicated-cond -Wduplicated-cond -Wfloat-equal \
 	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
 	-Wold-style-cast -Woverloaded-virtual -Wshadow -Wuninitialized \
-        -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla
+        -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wuseless-cast -Wvla
 DEBUG_SANITIZER = -fsanitize=undefined,address -fno-sanitize=alignment -fno-omit-frame-pointer
 
 # Run "make RELEASE=1" to compile for release
