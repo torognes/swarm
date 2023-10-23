@@ -146,7 +146,7 @@ auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> u
   for(auto pos = 1U; pos < len; pos++)
     {
       if ((pos & (nt_per_uint64 - 1)) == 0) {
-        x = q[pos / nt_per_uint64];
+        x = q[pos / nt_per_uint64];  // UBSAN: misaligned address for type 'long unsigned int', which requires 8 byte alignment
       }
       else {
         x >>= 2U;
@@ -168,7 +168,7 @@ auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> u
   for(auto pos = 0U; pos < len; pos++)
     {
       if ((pos & (nt_per_uint64 - 1)) == 0) {
-        x = q[pos / nt_per_uint64];
+        x = q[pos / nt_per_uint64];  // UBSAN: misaligned address for type 'long unsigned int', which requires 8 byte alignment
       }
       else {
         x >>= 2U;

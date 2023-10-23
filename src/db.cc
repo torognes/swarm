@@ -681,7 +681,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
   for(auto i = 0ULL; i < sequences; i++)
     {
       /* get line number */
-      const unsigned int line_number = *(reinterpret_cast<unsigned int*>(pl));
+      const unsigned int line_number = *(reinterpret_cast<unsigned int*>(pl));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
       pl += sizeof(unsigned int);
 
       /* get header */
@@ -690,7 +690,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       pl += seqindex_p->headerlen + 1;
 
       /* and sequence */
-      const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(pl));
+      const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(pl));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
       seqindex_p->seqlen = seqlen;
       pl += sizeof(unsigned int);
       seqindex_p->seq = pl;

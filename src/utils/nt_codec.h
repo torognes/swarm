@@ -32,7 +32,7 @@ inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
   static constexpr unsigned int max_range {3};
   // outputs four possible values: 0, 1, 2 or 3
   return (((reinterpret_cast<uint64_t*>(seq))[pos >> drop_remainder]) >> \
-          ((pos & (max_nt_per_uint64 - 1)) << 1U)) & max_range;
+          ((pos & (max_nt_per_uint64 - 1)) << 1U)) & max_range;   // UBSAN: misaligned address for type 'uint64_t', which requires 8 byte alignment
 }
 
 inline auto nt_bytelength(unsigned int len) -> unsigned int
