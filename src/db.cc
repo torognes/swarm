@@ -441,7 +441,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       fatal(error_prefix, "Unable to fstat on input file (", filename, ").\n");
     }
   const bool is_regular = S_ISREG(fstat_buffer.st_mode);  // refactor: S_ISREG linuxisms
-  const uint64_t filesize = is_regular ? fstat_buffer.st_size : 0;
+  const uint64_t filesize = is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0;
   uint64_t filepos = 0;
 
   if (not is_regular) {
