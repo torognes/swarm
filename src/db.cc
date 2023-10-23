@@ -652,13 +652,13 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
   /* set up hash to check for unique headers */
 
-  const uint64_t hdrhashsize {2 * sequences};
+  const uint64_t hdrhashsize {2ULL * sequences};
 
   auto * * hdrhashtable = new seqinfo_t*[hdrhashsize] { };
 
   /* set up hash to check for unique sequences */
 
-  const uint64_t seqhashsize {2 * sequences};
+  const uint64_t seqhashsize {2ULL * sequences};
 
   seqinfo_t * * seqhashtable {nullptr};
 
