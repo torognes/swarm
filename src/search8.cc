@@ -962,7 +962,7 @@ void search8(BYTE * * q_start,
                     {
                       // save score
 
-                      char * dbseq = reinterpret_cast<char*>(d_address[c]);
+                      char * dbseq = d_address[c];
                       const uint64_t dbseqlen = d_length[c];
                       const uint64_t z = (dbseqlen + 3) % 4;
                       const uint64_t score
