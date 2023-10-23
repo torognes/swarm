@@ -87,7 +87,7 @@ struct swarminfo_t
 auto collect_seeds(const uint64_t amplicons) -> std::vector<struct swarminfo_t> {
   progress_init("Collecting seeds:    ", amplicons);
   std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
-  auto swarmcount = 0L;
+  auto swarmcount = 0UL;
   uint64_t mass = 0;
   unsigned int previd = amps[0].swarmid;
   unsigned int seed = amps[0].ampliconid;
@@ -112,7 +112,7 @@ auto collect_seeds(const uint64_t amplicons) -> std::vector<struct swarminfo_t> 
   ++swarmcount;
 
   // free some memory
-  seeds.erase(std::next(seeds.begin(), swarmcount), seeds.end());
+  seeds.erase(std::next(seeds.begin(), static_cast<long int>(swarmcount)), seeds.end());
   seeds.shrink_to_fit();
 
   return seeds;
