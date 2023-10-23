@@ -69,37 +69,37 @@ queryinfo_t query;
 uint64_t longestdbsequence;
 
 
-void search_alloc(struct Search_data * search_data)
+void search_alloc(struct Search_data * local_search_data)
 {
   static constexpr unsigned int one_kilobyte {1024};
   static constexpr unsigned int nt_per_uint64 {32};
 
   dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
-  search_data->qtable = new BYTE*[longestdbsequence];
-  search_data->qtable_w = new WORD*[longestdbsequence];
-  search_data->dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
-  search_data->dprofile_w = new WORD[1 * one_kilobyte];  // 4 * 2 * 8 * 32
-  search_data->hearray = new BYTE[longestdbsequence * nt_per_uint64] { };
-  search_data->dir_array = new uint64_t[dirbuffersize] { };
+  local_search_data->qtable = new BYTE*[longestdbsequence];
+  local_search_data->qtable_w = new WORD*[longestdbsequence];
+  local_search_data->dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
+  local_search_data->dprofile_w = new WORD[1 * one_kilobyte];  // 4 * 2 * 8 * 32
+  local_search_data->hearray = new BYTE[longestdbsequence * nt_per_uint64] { };
+  local_search_data->dir_array = new uint64_t[dirbuffersize] { };
 }
 
-void search_free(struct Search_data * search_data)
+void search_free(struct Search_data * local_search_data)
 {
-  delete [] search_data->qtable;
-  search_data->qtable = nullptr;
-  delete [] search_data->qtable_w;
-  search_data->qtable_w = nullptr;
-  delete [] search_data->dprofile;
-  search_data->dprofile = nullptr;
-  delete [] search_data->dprofile_w;
-  search_data->dprofile_w = nullptr;
-  delete [] search_data->hearray;
-  search_data->hearray = nullptr;
-  delete [] search_data->dir_array;
-  search_data->dir_array = nullptr;
+  delete [] local_search_data->qtable;
+  local_search_data->qtable = nullptr;
+  delete [] local_search_data->qtable_w;
+  local_search_data->qtable_w = nullptr;
+  delete [] local_search_data->dprofile;
+  local_search_data->dprofile = nullptr;
+  delete [] local_search_data->dprofile_w;
+  local_search_data->dprofile_w = nullptr;
+  delete [] local_search_data->hearray;
+  local_search_data->hearray = nullptr;
+  delete [] local_search_data->dir_array;
+  local_search_data->dir_array = nullptr;
 }
 
-void search_init(struct Search_data * search_data)
+void search_init(struct Search_data * local_search_data)
 {
   static constexpr int byte_multiplier {64};
   static constexpr int word_multiplier {32};
@@ -110,54 +110,54 @@ void search_init(struct Search_data * search_data)
     const int byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
     const int word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
 
-    search_data->qtable[i]   = search_data->dprofile   + byte_offset;
-    search_data->qtable_w[i] = search_data->dprofile_w + word_offset;
+    local_search_data->qtable[i]   = local_search_data->dprofile   + byte_offset;
+    local_search_data->qtable_w[i] = local_search_data->dprofile_w + word_offset;
   }
 }
 
-void search_chunk(struct Search_data * search_data, const int64_t bits)
+void search_chunk(struct Search_data * local_search_data, const int64_t bits)
 {
   static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
   static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
 
   static constexpr unsigned int bit_mode_16 {16};
 
-  assert(search_data->target_count != 0);
+  assert(local_search_data->target_count != 0);
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
  if (bits == bit_mode_16)
    {
-    search16(search_data->qtable_w,
+    search16(local_search_data->qtable_w,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
              static_cast<WORD*>(score_matrix_16.data()),
-             search_data->dprofile_w,
-             reinterpret_cast<WORD*>(search_data->hearray),
-             search_data->target_count,
-             master_targets + search_data->target_index,
-             master_scores + search_data->target_index,
-             master_diffs + search_data->target_index,
-             master_alignlengths + search_data->target_index,
+             local_search_data->dprofile_w,
+             reinterpret_cast<WORD*>(local_search_data->hearray),
+             local_search_data->target_count,
+             master_targets + local_search_data->target_index,
+             master_scores + local_search_data->target_index,
+             master_diffs + local_search_data->target_index,
+             master_alignlengths + local_search_data->target_index,
              static_cast<uint64_t>(query.len),
              dirbuffersize,
-             search_data->dir_array,
+             local_search_data->dir_array,
              longestdbsequence);
    }
  else {
-    search8(search_data->qtable,
+    search8(local_search_data->qtable,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
             static_cast<BYTE*>(score_matrix_8.data()),
-            search_data->dprofile,
-            search_data->hearray,
-            search_data->target_count,
-            master_targets + search_data->target_index,
-            master_scores + search_data->target_index,
-            master_diffs + search_data->target_index,
-            master_alignlengths + search_data->target_index,
+            local_search_data->dprofile,
+            local_search_data->hearray,
+            local_search_data->target_count,
+            master_targets + local_search_data->target_index,
+            master_scores + local_search_data->target_index,
+            master_diffs + local_search_data->target_index,
+            master_alignlengths + local_search_data->target_index,
             static_cast<uint64_t>(query.len),
             dirbuffersize,
-            search_data->dir_array,
+            local_search_data->dir_array,
             longestdbsequence);
  }
 }
