@@ -47,6 +47,7 @@
 #include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // std::memcmp
+#include <memory>  // unique pointer
 #include <pthread.h>
 #include <vector>
 
@@ -1404,11 +1405,11 @@ void algo_d1_run(struct Parameters const & parameters)
           heavy_progress = 0;
           heavy_amplicon_count = amplicons_in_large_clusters;
           heavy_amplicon = 0;
-          auto * heavy_tr
-            = new ThreadRunner(static_cast<int>(opt_threads),
-                               check_heavy_thread);
-          heavy_tr->run();
-          delete heavy_tr;
+          {
+            std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(static_cast<int>(opt_threads), check_heavy_thread));
+            heavy_tr->run();
+          }
+
           pthread_mutex_destroy(&heavy_mutex);
 
           progress_done();
