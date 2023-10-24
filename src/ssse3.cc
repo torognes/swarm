@@ -82,11 +82,11 @@ void dprofile_shuffle8(BYTE * dprofile,
   _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 2, t3);    \
   _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 3, t4)
 
-  profline8(0);
-  profline8(1);
-  profline8(2);
-  profline8(3);
-  profline8(4);
+  profline8(0LL);
+  profline8(1LL);
+  profline8(2LL);
+  profline8(3LL);
+  profline8(4LL);
 }
 
 
@@ -158,11 +158,11 @@ void dprofile_shuffle16(WORD * dprofile,
   _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 2, u3);    \
   _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 3, u4)
 
-  profline16(0);
-  profline16(1);
-  profline16(2);
-  profline16(3);
-  profline16(4);
+  profline16(0LL);
+  profline16(1LL);
+  profline16(2LL);
+  profline16(3LL);
+  profline16(4LL);
 }
 
 #else
