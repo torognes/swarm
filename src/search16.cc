@@ -212,14 +212,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
   VECTORTYPE reg30;
   VECTORTYPE reg31;
 
-  for(auto j = 0U; j < cdepth; j++)
+  for(auto j = 0ULL; j < cdepth; j++)
     {
       std::array<unsigned int, channels> d {{}};
       for(auto z = 0U; z < channels; z++) {
         d[z] = (static_cast<unsigned int>(dseq[j * channels + z])) << multiplier;
       }
 
-      for(auto i = 0U; i < channels; i += channels)
+      for(auto i = 0ULL; i < channels; i += channels)
         {
           reg0  = v_load(score_matrix_word + d[0] + i);
           reg1  = v_load(score_matrix_word + d[1] + i);
@@ -257,14 +257,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
           reg30 = v_merge_lo_64(reg21, reg23);
           reg31 = v_merge_hi_64(reg21, reg23);
 
-          v_store(dprofile_word + cdepth * channels * (i + 0) + channels * j, reg24);
-          v_store(dprofile_word + cdepth * channels * (i + 1) + channels * j, reg25);
-          v_store(dprofile_word + cdepth * channels * (i + 2) + channels * j, reg26);
-          v_store(dprofile_word + cdepth * channels * (i + 3) + channels * j, reg27);
-          v_store(dprofile_word + cdepth * channels * (i + 4) + channels * j, reg28);
-          v_store(dprofile_word + cdepth * channels * (i + 5) + channels * j, reg29);
-          v_store(dprofile_word + cdepth * channels * (i + 6) + channels * j, reg30);
-          v_store(dprofile_word + cdepth * channels * (i + 7) + channels * j, reg31);
+          v_store(dprofile_word + (i + 0) * cdepth * channels + channels * j, reg24);
+          v_store(dprofile_word + (i + 1) * cdepth * channels + channels * j, reg25);
+          v_store(dprofile_word + (i + 2) * cdepth * channels + channels * j, reg26);
+          v_store(dprofile_word + (i + 3) * cdepth * channels + channels * j, reg27);
+          v_store(dprofile_word + (i + 4) * cdepth * channels + channels * j, reg28);
+          v_store(dprofile_word + (i + 5) * cdepth * channels + channels * j, reg29);
+          v_store(dprofile_word + (i + 6) * cdepth * channels + channels * j, reg30);
+          v_store(dprofile_word + (i + 7) * cdepth * channels + channels * j, reg31);
         }
     }
 }
