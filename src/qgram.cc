@@ -224,7 +224,7 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
 {
   const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(seqno_a),
                                                   db_getqgramvector(seqno_b));
-  return (diffqgrams + 2U * qgramlength - 1) / (2U * qgramlength);  // mindiff
+  return (diffqgrams + 2ULL * qgramlength - 1) / (2ULL * qgramlength);  // mindiff
 }
 
 auto qgram_worker(int64_t t) -> void
