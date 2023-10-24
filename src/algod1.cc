@@ -1307,7 +1307,7 @@ void algo_d1_run(struct Parameters const & parameters)
             k = 1;
           }
 
-          uint64_t m = bits * microvariants * nucleotides_in_small_clusters;
+          uint64_t m = nucleotides_in_small_clusters * microvariants * bits;
           static constexpr unsigned int min_total_bloom_filter_length_in_bits {64};
 
           const uint64_t memtotal = arch_get_memtotal();
