@@ -739,8 +739,9 @@ inline auto backtrack_8(char * qseq,
       const uint64_t d
         = dirbuffer[(offset
                      + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
-                     + static_cast<uint64_t>(4 * i + (j & 3U)))
-                    % dirbuffersize];  // refactoring: how to rename that variable?
+                     + 4 * static_cast<uint64_t>(i)
+                     + (static_cast<uint64_t>(j) & 3U)
+                     ) % dirbuffersize];  // refactoring: how to rename that variable?
 
       if ((operation == 'I') and ((d & maskextleft) == 0U))
         {
