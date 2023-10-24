@@ -794,8 +794,8 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
       if (parameters.opt_differences > 1)
         {
-          /* Check for duplicated sequences using hash table, */
-          /* but only for d>1. Handled internally for d=1.    */
+          /* Check for duplicated sequences using hash table,  */
+          /* but only for d > 1. Handled internally for d = 1. */
 
           uint64_t seqhashindex = seqindex_p->seqhash % seqhashsize;
           seqinfo_t * seqfound {nullptr};
