@@ -1406,6 +1406,7 @@ void algo_d1_run(struct Parameters const & parameters)
           heavy_amplicon_count = amplicons_in_large_clusters;
           heavy_amplicon = 0;
           {
+            // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(static_cast<int>(opt_threads), check_heavy_thread));
             heavy_tr->run();
           }
