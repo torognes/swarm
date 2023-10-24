@@ -77,20 +77,20 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   std::memset(qgramvector, 0, qgramvectorbytes);
 
   uint64_t qgram {0};
-  unsigned int i {0};
+  unsigned int position {0};
 
-  while((i < qgramlength - 1) and (i < seqlen))
+  while((position < qgramlength - 1) and (position < seqlen))
   {
-    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), i);
-    ++i;
+    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), position);
+    ++position;
   }
 
-  while(i < seqlen)
+  while(position < seqlen)
   {
-    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), i);
+    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), position);
     assert((qgram & max_range) <= 7);
     qgramvector[(qgram >> 3U) & (qgramvectorbytes - 1)] ^= static_cast<unsigned char>(1U << (qgram & max_range));
-    ++i;
+    ++position;
   }
 }
 
