@@ -1332,7 +1332,7 @@ void algo_d1_run(struct Parameters const & parameters)
                     k = 1;
                   }
 
-                  m = bits * microvariants * nucleotides_in_small_clusters;
+                  m = nucleotides_in_small_clusters * microvariants * bits;
                 }
             }
 
