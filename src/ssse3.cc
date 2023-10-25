@@ -67,7 +67,7 @@ void dprofile_shuffle8(BYTE * dprofile,
   __m128i t4;
 
   auto profline8 = [&](const long long int j) {
-    t0 = _mm_load_si128(CAST_m128i_ptr(score_matrix) + 2 * j);
+    t0 = _mm_load_si128(CAST_m128i_ptr(score_matrix) + 2 * j);  // refactoring: const?
     t1 = _mm_shuffle_epi8(t0, m0);
     t2 = _mm_shuffle_epi8(t0, m1);
     t3 = _mm_shuffle_epi8(t0, m2);
