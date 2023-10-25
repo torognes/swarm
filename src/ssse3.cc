@@ -60,22 +60,14 @@ auto dprofile_shuffle8(BYTE * dprofile,
   const auto m1 = _mm_load_si128(dseq_m128i + 1);
   const auto m2 = _mm_load_si128(dseq_m128i + 2);
   const auto m3 = _mm_load_si128(dseq_m128i + 3);
-  __m128i t1;
-  __m128i t2;
-  __m128i t3;
-  __m128i t4;
 
   auto profline8 = [&](const long long int j) {
     const auto t0 = _mm_load_si128(score_matrix_m128i + 2 * j);
-    t1 = _mm_shuffle_epi8(t0, m0);
-    t2 = _mm_shuffle_epi8(t0, m1);
-    t3 = _mm_shuffle_epi8(t0, m2);
-    t4 = _mm_shuffle_epi8(t0, m3);
 
-    _mm_store_si128(dprofile_m128i + 4 * j + 0, t1);
-    _mm_store_si128(dprofile_m128i + 4 * j + 1, t2);
-    _mm_store_si128(dprofile_m128i + 4 * j + 2, t3);
-    _mm_store_si128(dprofile_m128i + 4 * j + 3, t4);
+    _mm_store_si128(dprofile_m128i + 4 * j + 0, _mm_shuffle_epi8(t0, m0));
+    _mm_store_si128(dprofile_m128i + 4 * j + 1, _mm_shuffle_epi8(t0, m1));
+    _mm_store_si128(dprofile_m128i + 4 * j + 2, _mm_shuffle_epi8(t0, m2));
+    _mm_store_si128(dprofile_m128i + 4 * j + 3, _mm_shuffle_epi8(t0, m3));
   };
 
   profline8(0);  // -/gap/no nucleotide (0)
