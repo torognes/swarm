@@ -49,9 +49,9 @@ using BYTE = unsigned char;
 
 /* 8-bit version with 16 channels */
 
-void dprofile_shuffle8(BYTE * dprofile,
+auto dprofile_shuffle8(BYTE * dprofile,
                        BYTE * score_matrix,
-                       BYTE * dseq_byte)
+                       BYTE * dseq_byte) -> void
 {
   auto dprofile_m128i = reinterpret_cast<__m128i *>(dprofile);
   auto score_matrix_m128i = reinterpret_cast<__m128i *>(score_matrix);
