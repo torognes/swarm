@@ -96,6 +96,7 @@ void dprofile_shuffle16(WORD * dprofile,
 {
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
   __m128i * dseq = CAST_m128i_ptr(dseq_byte);
+  __m128i * dprofile_m128i = CAST_m128i_ptr(dprofile);
 
   const __m128i zero = _mm_setzero_si128();
   const __m128i one = _mm_set1_epi16(1);
@@ -141,10 +142,10 @@ void dprofile_shuffle16(WORD * dprofile,
     u3 = _mm_shuffle_epi8(u0, m2);
     u4 = _mm_shuffle_epi8(u0, m3);
 
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 0, u1);
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 1, u2);
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 2, u3);
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 3, u4);
+    _mm_store_si128(dprofile_m128i + 4 * j + 0, u1);
+    _mm_store_si128(dprofile_m128i + 4 * j + 1, u2);
+    _mm_store_si128(dprofile_m128i + 4 * j + 2, u3);
+    _mm_store_si128(dprofile_m128i + 4 * j + 3, u4);
   };
 
   profline16(0);
