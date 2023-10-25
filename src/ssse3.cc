@@ -95,54 +95,43 @@ void dprofile_shuffle16(WORD * dprofile,
 {
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
   __m128i * dseq = CAST_m128i_ptr(dseq_byte);
-  __m128i m0;
-  __m128i m1;
-  __m128i m2;
-  __m128i m3;
-  __m128i t0;
-  __m128i t1;
-  __m128i t2;
-  __m128i t3;
-  __m128i t4;
-  __m128i t5;
+
+  __m128i zero = _mm_setzero_si128();
+  __m128i one = _mm_set1_epi16(1);
+
+  __m128i t0 = _mm_load_si128(dseq + 0);
+
+  __m128i m0 = _mm_unpacklo_epi8(t0, zero);
+  m0 = _mm_slli_epi16(m0, 1);
+  __m128i t1 = _mm_adds_epu16(m0, one);
+  t1 = _mm_slli_epi16(t1, channels);
+  m0 = _mm_or_si128(m0, t1);
+
+  __m128i m1 = _mm_unpackhi_epi8(t0, zero);
+  m1 = _mm_slli_epi16(m1, 1);
+  __m128i t2 = _mm_adds_epu16(m1, one);
+  t2 = _mm_slli_epi16(t2, channels);
+  m1 = _mm_or_si128(m1, t2);
+
+  __m128i t3 = _mm_load_si128(dseq + 1);
+
+  __m128i m2 = _mm_unpacklo_epi8(t3, zero);
+  m2 = _mm_slli_epi16(m2, 1);
+  __m128i t4 = _mm_adds_epu16(m2, one);
+  t4 = _mm_slli_epi16(t4, channels);
+  m2 = _mm_or_si128(m2, t4);
+
+  __m128i m3 = _mm_unpackhi_epi8(t3, zero);
+  m3 = _mm_slli_epi16(m3, 1);
+  __m128i t5 = _mm_adds_epu16(m3, one);
+  t5 = _mm_slli_epi16(t5, channels);
+  m3 = _mm_or_si128(m3, t5);
+
   __m128i u0;
   __m128i u1;
   __m128i u2;
   __m128i u3;
   __m128i u4;
-  __m128i one;
-  __m128i zero;
-
-  zero = _mm_setzero_si128();
-  one  = _mm_set1_epi16(1);
-
-  t0 = _mm_load_si128(dseq+0);
-
-  m0 = _mm_unpacklo_epi8(t0, zero);
-  m0 = _mm_slli_epi16(m0, 1);
-  t1 = _mm_adds_epu16(m0, one);
-  t1 = _mm_slli_epi16(t1, channels);
-  m0 = _mm_or_si128(m0, t1);
-
-  m1 = _mm_unpackhi_epi8(t0, zero);
-  m1 = _mm_slli_epi16(m1, 1);
-  t2 = _mm_adds_epu16(m1, one);
-  t2 = _mm_slli_epi16(t2, channels);
-  m1 = _mm_or_si128(m1, t2);
-
-  t3 = _mm_load_si128(dseq+1);
-
-  m2 = _mm_unpacklo_epi8(t3, zero);
-  m2 = _mm_slli_epi16(m2, 1);
-  t4 = _mm_adds_epu16(m2, one);
-  t4 = _mm_slli_epi16(t4, channels);
-  m2 = _mm_or_si128(m2, t4);
-
-  m3 = _mm_unpackhi_epi8(t3, zero);
-  m3 = _mm_slli_epi16(m3, 1);
-  t5 = _mm_adds_epu16(m3, one);
-  t5 = _mm_slli_epi16(t5, channels);
-  m3 = _mm_or_si128(m3, t5);
 
 #define profline16(j)                                   \
   u0 = _mm_load_si128(CAST_m128i_ptr(score_matrix) + 4 * (j));      \
