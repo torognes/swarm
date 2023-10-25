@@ -79,11 +79,11 @@ void dprofile_shuffle8(BYTE * dprofile,
     _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 3, t4);
   };
 
-  profline8(0LL);
-  profline8(1LL);
-  profline8(2LL);
-  profline8(3LL);
-  profline8(4LL);
+  profline8(0);
+  profline8(1);
+  profline8(2);
+  profline8(3);
+  profline8(4);
 }
 
 
