@@ -146,11 +146,11 @@ void dprofile_shuffle16(WORD * dprofile,
     _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 3, u4);
   };
 
-  profline16(0LL);
-  profline16(1LL);
-  profline16(2LL);
-  profline16(3LL);
-  profline16(4LL);
+  profline16(0);
+  profline16(1);
+  profline16(2);
+  profline16(3);
+  profline16(4);
 }
 
 #else
