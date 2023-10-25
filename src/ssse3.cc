@@ -79,11 +79,11 @@ void dprofile_shuffle8(BYTE * dprofile,
     _mm_store_si128(dprofile_m128i + 4 * j + 3, t4);
   };
 
-  profline8(0);
-  profline8(1);
-  profline8(2);
-  profline8(3);
-  profline8(4);
+  profline8(0);  // -/gap/no nucleotide (0)
+  profline8(1);  // A (1)
+  profline8(2);  // C (2)
+  profline8(3);  // G (3)
+  profline8(4);  // T (4)
 }
 
 
