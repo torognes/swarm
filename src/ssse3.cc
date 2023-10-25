@@ -62,12 +62,14 @@ auto dprofile_shuffle8(BYTE * dprofile,
   const auto m3 = _mm_load_si128(dseq_m128i + 3);
 
   auto profline8 = [&](const long long int nuc) {
-    const auto t0 = _mm_load_si128(score_matrix_m128i + 2 * nuc);
+    // row: 16 scores from the score matrix, matching the nucleotide 'nuc'
+    // five different nucleotides (0, 1, 2, 3, 4), so five possible rows
+    const auto row = _mm_load_si128(score_matrix_m128i + 2 * nuc);
 
-    _mm_store_si128(dprofile_m128i + 4 * nuc + 0, _mm_shuffle_epi8(t0, m0));
-    _mm_store_si128(dprofile_m128i + 4 * nuc + 1, _mm_shuffle_epi8(t0, m1));
-    _mm_store_si128(dprofile_m128i + 4 * nuc + 2, _mm_shuffle_epi8(t0, m2));
-    _mm_store_si128(dprofile_m128i + 4 * nuc + 3, _mm_shuffle_epi8(t0, m3));
+    _mm_store_si128(dprofile_m128i + 4 * nuc + 0, _mm_shuffle_epi8(row, m0));
+    _mm_store_si128(dprofile_m128i + 4 * nuc + 1, _mm_shuffle_epi8(row, m1));
+    _mm_store_si128(dprofile_m128i + 4 * nuc + 2, _mm_shuffle_epi8(row, m2));
+    _mm_store_si128(dprofile_m128i + 4 * nuc + 3, _mm_shuffle_epi8(row, m3));
   };
 
   profline8(0);  // -/gap/no nucleotide (0)
