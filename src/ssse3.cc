@@ -56,6 +56,7 @@ void dprofile_shuffle8(BYTE * dprofile,
                        BYTE * dseq_byte)
 {
   __m128i * dseq_m128i = CAST_m128i_ptr(dseq_byte);
+  __m128i * dprofile_m128i = CAST_m128i_ptr(dprofile);
   const __m128i m0 = _mm_load_si128(dseq_m128i + 0);
   const __m128i m1 = _mm_load_si128(dseq_m128i + 1);
   const __m128i m2 = _mm_load_si128(dseq_m128i + 2);
@@ -73,10 +74,10 @@ void dprofile_shuffle8(BYTE * dprofile,
     t3 = _mm_shuffle_epi8(t0, m2);
     t4 = _mm_shuffle_epi8(t0, m3);
 
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 0, t1);
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 1, t2);
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 2, t3);
-    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 3, t4);
+    _mm_store_si128(dprofile_m128i + 4 * j + 0, t1);
+    _mm_store_si128(dprofile_m128i + 4 * j + 1, t2);
+    _mm_store_si128(dprofile_m128i + 4 * j + 2, t3);
+    _mm_store_si128(dprofile_m128i + 4 * j + 3, t4);
   };
 
   profline8(0);
