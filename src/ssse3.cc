@@ -53,9 +53,9 @@ auto dprofile_shuffle8(BYTE * dprofile,
                        BYTE * score_matrix,
                        BYTE * dseq_byte) -> void
 {
-  auto dprofile_m128i = reinterpret_cast<__m128i *>(dprofile);
-  auto score_matrix_m128i = reinterpret_cast<__m128i *>(score_matrix);
-  auto dseq_m128i = reinterpret_cast<__m128i *>(dseq_byte);
+  auto * dprofile_m128i = reinterpret_cast<__m128i *>(dprofile);
+  auto * score_matrix_m128i = reinterpret_cast<__m128i *>(score_matrix);
+  auto * dseq_m128i = reinterpret_cast<__m128i *>(dseq_byte);
   const auto m0 = _mm_load_si128(dseq_m128i + 0);
   const auto m1 = _mm_load_si128(dseq_m128i + 1);
   const auto m2 = _mm_load_si128(dseq_m128i + 2);
@@ -85,9 +85,9 @@ void dprofile_shuffle16(WORD * dprofile,
                         BYTE * dseq_byte)
 {
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
-  auto dprofile_m128i = reinterpret_cast<__m128i *>(dprofile);
-  auto score_matrix_m128i = reinterpret_cast<__m128i *>(score_matrix);
-  auto dseq_m128i = reinterpret_cast<__m128i *>(dseq_byte);
+  auto * dprofile_m128i = reinterpret_cast<__m128i *>(dprofile);
+  auto * score_matrix_m128i = reinterpret_cast<__m128i *>(score_matrix);
+  auto * dseq_m128i = reinterpret_cast<__m128i *>(dseq_byte);
 
   const __m128i zero = _mm_setzero_si128();
   const __m128i one = _mm_set1_epi16(1);
