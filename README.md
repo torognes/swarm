@@ -423,6 +423,18 @@ swarm 4.0.0:
 
 ## Version history ##
 
+### version 3.1.x ###
+
+**swarm** 3.1.x improves code, and eliminates compilation warnings and
+static analysis warnings:
+- add: more compilation checks (`shadow`, `useless-cast`,
+  `conversion`, `sign-conversion`),
+- improve: documentation for output option `--network_file`,
+- improve: build target platform detection,
+- improve: code modernization for long-term maintenance,
+- fix: 45 warnings triggered by newly added compilation checks,
+- fix: x clang-tidy warnings (from 3,669 warnings, down to x)
+
 ### version 3.1.4 ###
 
 **swarm** 3.1.4 fixes a minor bug, eliminates compilation warnings and
@@ -433,8 +445,8 @@ static analysis warnings, and improves code:
 - improve: code modernization for long-term maintenance,
 - improve: double the maximal number of threads (from 256 threads to 512),
 - improve: make `-DNDEBUG` the default compilation behavior,
-- performance: stable for all modes, except a 6 to 10% increase in memory footprint when d > 2
-
+- performance: stable for all modes, except a 6 to 10% increase in
+  memory footprint when d > 2
 
 ### version 3.1.3 ###
 
