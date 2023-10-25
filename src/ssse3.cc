@@ -133,16 +133,18 @@ void dprofile_shuffle16(WORD * dprofile,
   __m128i u3;
   __m128i u4;
 
-#define profline16(j)                                   \
-  u0 = _mm_load_si128(CAST_m128i_ptr(score_matrix) + 4 * (j));      \
-  u1 = _mm_shuffle_epi8(u0, m0);                        \
-  u2 = _mm_shuffle_epi8(u0, m1);                        \
-  u3 = _mm_shuffle_epi8(u0, m2);                        \
-  u4 = _mm_shuffle_epi8(u0, m3);                        \
-  _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 0, u1);    \
-  _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 1, u2);    \
-  _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 2, u3);    \
-  _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * (j) + 3, u4)
+  auto profline16 = [&](const long long int j) {
+    u0 = _mm_load_si128(CAST_m128i_ptr(score_matrix) + 4 * j);  // refactoring: const?
+    u1 = _mm_shuffle_epi8(u0, m0);
+    u2 = _mm_shuffle_epi8(u0, m1);
+    u3 = _mm_shuffle_epi8(u0, m2);
+    u4 = _mm_shuffle_epi8(u0, m3);
+
+    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 0, u1);
+    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 1, u2);
+    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 2, u3);
+    _mm_store_si128(CAST_m128i_ptr(dprofile) + 4 * j + 3, u4);
+  };
 
   profline16(0LL);
   profline16(1LL);
