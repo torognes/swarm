@@ -60,14 +60,13 @@ auto dprofile_shuffle8(BYTE * dprofile,
   const auto m1 = _mm_load_si128(dseq_m128i + 1);
   const auto m2 = _mm_load_si128(dseq_m128i + 2);
   const auto m3 = _mm_load_si128(dseq_m128i + 3);
-  __m128i t0;
   __m128i t1;
   __m128i t2;
   __m128i t3;
   __m128i t4;
 
   auto profline8 = [&](const long long int j) {
-    t0 = _mm_load_si128(score_matrix_m128i + 2 * j);  // refactoring: const?
+    const auto t0 = _mm_load_si128(score_matrix_m128i + 2 * j);
     t1 = _mm_shuffle_epi8(t0, m0);
     t2 = _mm_shuffle_epi8(t0, m1);
     t3 = _mm_shuffle_epi8(t0, m2);
