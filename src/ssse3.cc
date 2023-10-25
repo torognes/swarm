@@ -55,11 +55,11 @@ auto dprofile_shuffle8(BYTE * dprofile,
 {
   auto * dprofile_m128i = reinterpret_cast<__m128i *>(dprofile);
   auto * score_matrix_m128i = reinterpret_cast<__m128i *>(score_matrix);
-  auto * dseq_m128i = reinterpret_cast<__m128i *>(dseq_byte);
-  const auto seq_chunk0 = _mm_load_si128(dseq_m128i + 0);  // 16 nucleotides
-  const auto seq_chunk1 = _mm_load_si128(dseq_m128i + 1);
-  const auto seq_chunk2 = _mm_load_si128(dseq_m128i + 2);
-  const auto seq_chunk3 = _mm_load_si128(dseq_m128i + 3);
+  auto * sequence_db = reinterpret_cast<__m128i *>(dseq_byte);
+  const auto seq_chunk0 = _mm_load_si128(sequence_db + 0);  // 16 nucleotides
+  const auto seq_chunk1 = _mm_load_si128(sequence_db + 1);
+  const auto seq_chunk2 = _mm_load_si128(sequence_db + 2);
+  const auto seq_chunk3 = _mm_load_si128(sequence_db + 3);
 
   auto profline8 = [&](const long long int nuc) {
     // scores: 16 scores from the score matrix, matching the
