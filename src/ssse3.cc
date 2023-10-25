@@ -94,6 +94,7 @@ void dprofile_shuffle16(WORD * dprofile,
                         BYTE * dseq_byte)
 {
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
+  __m128i * dseq = CAST_m128i_ptr(dseq_byte);
   __m128i m0;
   __m128i m1;
   __m128i m2;
@@ -111,7 +112,6 @@ void dprofile_shuffle16(WORD * dprofile,
   __m128i u4;
   __m128i one;
   __m128i zero;
-  __m128i * dseq = CAST_m128i_ptr(dseq_byte);
 
   zero = _mm_setzero_si128();
   one  = _mm_set1_epi16(1);
