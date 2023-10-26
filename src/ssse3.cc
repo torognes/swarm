@@ -142,11 +142,11 @@ void dprofile_shuffle16(WORD * dprofile,
     _mm_store_si128(dprofile_m128i + 4 * j + 3, u4);
   };
 
-  profline16(0);
-  profline16(1);
-  profline16(2);
-  profline16(3);
-  profline16(4);
+  profline16(0);  // -/gap/no nucleotide (0)
+  profline16(1);  // A (1)
+  profline16(2);  // C (2)
+  profline16(3);  // G (3)
+  profline16(4);  // T (4)
 }
 
 #else
