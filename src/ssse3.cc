@@ -123,18 +123,18 @@ void dprofile_shuffle16(WORD * dprofile,
   t5 = _mm_slli_epi16(t5, channels);
   m3 = _mm_or_si128(m3, t5);
 
-  __m128i u0;
+  __m128i scores;
   __m128i u1;
   __m128i u2;
   __m128i u3;
   __m128i u4;
 
   auto profline16 = [&](const long long int nuc) {
-    u0 = _mm_load_si128(score_db + 4 * nuc);  // refactoring: const?
-    u1 = _mm_shuffle_epi8(u0, m0);
-    u2 = _mm_shuffle_epi8(u0, m1);
-    u3 = _mm_shuffle_epi8(u0, m2);
-    u4 = _mm_shuffle_epi8(u0, m3);
+    scores = _mm_load_si128(score_db + 4 * nuc);  // refactoring: const?
+    u1 = _mm_shuffle_epi8(scores, m0);
+    u2 = _mm_shuffle_epi8(scores, m1);
+    u3 = _mm_shuffle_epi8(scores, m2);
+    u4 = _mm_shuffle_epi8(scores, m3);
 
     _mm_store_si128(profile_db + 4 * nuc + 0, u1);
     _mm_store_si128(profile_db + 4 * nuc + 1, u2);
