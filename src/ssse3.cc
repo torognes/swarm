@@ -83,9 +83,9 @@ auto dprofile_shuffle8(BYTE * dprofile,
 
 /* 16-bit version with 8 channels */
 
-void dprofile_shuffle16(WORD * dprofile,
+auto dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
-                        BYTE * dseq_byte)
+                        BYTE * dseq_byte) -> void
 {
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
   auto * profile_db = reinterpret_cast<__m128i *>(dprofile);
