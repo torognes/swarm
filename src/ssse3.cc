@@ -92,10 +92,10 @@ auto dprofile_shuffle16(WORD * dprofile,
   auto * score_db = reinterpret_cast<__m128i *>(score_matrix);
   auto * sequence_db = reinterpret_cast<__m128i *>(dseq_byte);
 
-  const __m128i zero = _mm_setzero_si128();
-  const __m128i one = _mm_set1_epi16(1);
+  const auto zero = _mm_setzero_si128();
+  const auto one = _mm_set1_epi16(1);
 
-  const __m128i t0 = _mm_load_si128(sequence_db + 0);
+  const auto t0 = _mm_load_si128(sequence_db + 0);
 
   __m128i m0 = _mm_unpacklo_epi8(t0, zero);
   m0 = _mm_slli_epi16(m0, 1);
@@ -109,7 +109,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   t2 = _mm_slli_epi16(t2, channels);
   m1 = _mm_or_si128(m1, t2);
 
-  const __m128i t3 = _mm_load_si128(sequence_db + 1);
+  const auto t3 = _mm_load_si128(sequence_db + 1);
 
   __m128i m2 = _mm_unpacklo_epi8(t3, zero);
   m2 = _mm_slli_epi16(m2, 1);
