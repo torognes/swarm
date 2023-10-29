@@ -89,7 +89,7 @@ void dprofile_shuffle16(WORD * dprofile,
 {
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
   auto * profile_db = reinterpret_cast<__m128i *>(dprofile);
-  auto * score_matrix_m128i = reinterpret_cast<__m128i *>(score_matrix);
+  auto * score_db = reinterpret_cast<__m128i *>(score_matrix);
   auto * dseq_m128i = reinterpret_cast<__m128i *>(dseq_byte);
 
   const __m128i zero = _mm_setzero_si128();
@@ -130,7 +130,7 @@ void dprofile_shuffle16(WORD * dprofile,
   __m128i u4;
 
   auto profline16 = [&](const long long int nuc) {
-    u0 = _mm_load_si128(score_matrix_m128i + 4 * nuc);  // refactoring: const?
+    u0 = _mm_load_si128(score_db + 4 * nuc);  // refactoring: const?
     u1 = _mm_shuffle_epi8(u0, m0);
     u2 = _mm_shuffle_epi8(u0, m1);
     u3 = _mm_shuffle_epi8(u0, m2);
