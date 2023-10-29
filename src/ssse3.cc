@@ -123,10 +123,8 @@ auto dprofile_shuffle16(WORD * dprofile,
   t5 = _mm_slli_epi16(t5, channels);
   m3 = _mm_or_si128(m3, t5);
 
-  __m128i scores;
-
   auto profline16 = [&](const long long int nuc) {
-    scores = _mm_load_si128(score_db + 4 * nuc);  // refactoring: const?
+    const auto scores = _mm_load_si128(score_db + 4 * nuc);
 
     _mm_store_si128(profile_db + 4 * nuc + 0, _mm_shuffle_epi8(scores, m0));
     _mm_store_si128(profile_db + 4 * nuc + 1, _mm_shuffle_epi8(scores, m1));
