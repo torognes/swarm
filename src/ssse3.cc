@@ -124,22 +124,14 @@ auto dprofile_shuffle16(WORD * dprofile,
   m3 = _mm_or_si128(m3, t5);
 
   __m128i scores;
-  __m128i u1;
-  __m128i u2;
-  __m128i u3;
-  __m128i u4;
 
   auto profline16 = [&](const long long int nuc) {
     scores = _mm_load_si128(score_db + 4 * nuc);  // refactoring: const?
-    u1 = _mm_shuffle_epi8(scores, m0);
-    u2 = _mm_shuffle_epi8(scores, m1);
-    u3 = _mm_shuffle_epi8(scores, m2);
-    u4 = _mm_shuffle_epi8(scores, m3);
 
-    _mm_store_si128(profile_db + 4 * nuc + 0, u1);
-    _mm_store_si128(profile_db + 4 * nuc + 1, u2);
-    _mm_store_si128(profile_db + 4 * nuc + 2, u3);
-    _mm_store_si128(profile_db + 4 * nuc + 3, u4);
+    _mm_store_si128(profile_db + 4 * nuc + 0, _mm_shuffle_epi8(scores, m0));
+    _mm_store_si128(profile_db + 4 * nuc + 1, _mm_shuffle_epi8(scores, m1));
+    _mm_store_si128(profile_db + 4 * nuc + 2, _mm_shuffle_epi8(scores, m2));
+    _mm_store_si128(profile_db + 4 * nuc + 3, _mm_shuffle_epi8(scores, m3));
   };
 
   profline16(0);  // -/gap/no nucleotide (0)
