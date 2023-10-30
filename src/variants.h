@@ -24,7 +24,7 @@
 #include <cstdint>
 
 /* Variant information */
-enum class Variant_type : unsigned char { substitution, deletion, insertion };
+enum struct Variant_type : unsigned char { substitution, deletion, insertion };
 
 struct var_s
 {
