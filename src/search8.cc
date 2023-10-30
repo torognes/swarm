@@ -725,7 +725,7 @@ inline auto backtrack_8(char * qseq,
   auto j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
   uint64_t matches {0};
-  char operation {0};  // Insertion, Deletion or Match  // refactoring to enum class?
+  char operation {0};  // Insertion, Deletion or Match  // refactoring to enum struct?
 
   while ((i >= 0) and (j >= 0))
     {
