@@ -32,6 +32,7 @@
 #include "x86_cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>
 #include <cstdint>  // int64_t
@@ -282,7 +283,8 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
     if ((option_character >= 'a') and (option_character <= 'z'))
       {
-        auto optindex = static_cast<unsigned int>(option_character - 'a');  // c - 'a' cannot be negative
+        assert(option_character - 'a' >= 0)
+        auto optindex = static_cast<unsigned int>(option_character - 'a');
         if (used_options[optindex])
           {
             auto longoptindex {0UL};
