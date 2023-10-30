@@ -280,16 +280,16 @@ inline void dprofile_fill8(BYTE * dprofile,
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
 
-      reg0  = v_load_64(score_matrix + 8 + d[0 ]);
-      reg1  = v_load_64(score_matrix + 8 + d[1 ]);
-      reg2  = v_load_64(score_matrix + 8 + d[2 ]);
-      reg3  = v_load_64(score_matrix + 8 + d[3 ]);
-      reg4  = v_load_64(score_matrix + 8 + d[4 ]);
-      reg5  = v_load_64(score_matrix + 8 + d[5 ]);
-      reg6  = v_load_64(score_matrix + 8 + d[6 ]);
-      reg7  = v_load_64(score_matrix + 8 + d[7 ]);
-      reg8  = v_load_64(score_matrix + 8 + d[8 ]);
-      reg9  = v_load_64(score_matrix + 8 + d[9 ]);
+      reg0  = v_load_64(score_matrix + 8 + d[ 0]);
+      reg1  = v_load_64(score_matrix + 8 + d[ 1]);
+      reg2  = v_load_64(score_matrix + 8 + d[ 2]);
+      reg3  = v_load_64(score_matrix + 8 + d[ 3]);
+      reg4  = v_load_64(score_matrix + 8 + d[ 4]);
+      reg5  = v_load_64(score_matrix + 8 + d[ 5]);
+      reg6  = v_load_64(score_matrix + 8 + d[ 6]);
+      reg7  = v_load_64(score_matrix + 8 + d[ 7]);
+      reg8  = v_load_64(score_matrix + 8 + d[ 8]);
+      reg9  = v_load_64(score_matrix + 8 + d[ 9]);
       reg10 = v_load_64(score_matrix + 8 + d[10]);
       reg11 = v_load_64(score_matrix + 8 + d[11]);
       reg12 = v_load_64(score_matrix + 8 + d[12]);
