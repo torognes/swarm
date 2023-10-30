@@ -355,11 +355,11 @@ inline void dprofile_fill8(BYTE * dprofile,
       v_store(dprofile + 16ULL * j + 512 + 448, reg15);
 
 
-      reg0  = v_load_64(score_matrix + 16 + d[0 ]);
-      reg2  = v_load_64(score_matrix + 16 + d[2 ]);
-      reg4  = v_load_64(score_matrix + 16 + d[4 ]);
-      reg6  = v_load_64(score_matrix + 16 + d[6 ]);
-      reg8  = v_load_64(score_matrix + 16 + d[8 ]);
+      reg0  = v_load_64(score_matrix + 16 + d[ 0]);
+      reg2  = v_load_64(score_matrix + 16 + d[ 2]);
+      reg4  = v_load_64(score_matrix + 16 + d[ 4]);
+      reg6  = v_load_64(score_matrix + 16 + d[ 6]);
+      reg8  = v_load_64(score_matrix + 16 + d[ 8]);
       reg10 = v_load_64(score_matrix + 16 + d[10]);
       reg12 = v_load_64(score_matrix + 16 + d[12]);
       reg14 = v_load_64(score_matrix + 16 + d[14]);
