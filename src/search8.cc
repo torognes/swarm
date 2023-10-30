@@ -701,6 +701,9 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 }
 
 
+// refactoring: could 'Unknown' be eliminated?
+enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
+
 inline auto backtrack_8(char * qseq,
                         char * dseq,
                         uint64_t qlen,
@@ -725,7 +728,7 @@ inline auto backtrack_8(char * qseq,
   auto j = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
   uint64_t matches {0};
-  char operation {0};  // Insertion, Deletion or Match  // refactoring to enum struct?
+  Alignment operation = Alignment::Unknown;  // Insertion, Deletion or Match
 
   while ((i >= 0) and (j >= 0))
     {
@@ -738,23 +741,23 @@ inline auto backtrack_8(char * qseq,
                      + (static_cast<uint64_t>(j) & 3U)
                      ) % dirbuffersize];  // refactoring: how to rename that variable?
 
-      if ((operation == 'I') and ((d & maskextleft) == 0U))
+      if ((operation == Alignment::Insertion) and ((d & maskextleft) == 0U))
         {
           --j;
         }
-      else if ((operation == 'D') and ((d & maskextup) == 0U))
+      else if ((operation == Alignment::Deletion) and ((d & maskextup) == 0U))
         {
           --i;
         }
       else if ((d & maskleft) != 0U)
         {
           --j;
-          operation = 'I';
+          operation = Alignment::Insertion;
         }
       else if ((d & maskup) == 0U)
         {
           --i;
-          operation = 'D';
+          operation = Alignment::Deletion;
         }
       else
         {
@@ -764,7 +767,7 @@ inline auto backtrack_8(char * qseq,
           }
           --i;
           --j;
-          operation = 'M';
+          operation = Alignment::Match;
         }
     }
 
