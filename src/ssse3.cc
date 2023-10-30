@@ -97,6 +97,16 @@ auto dprofile_shuffle16(WORD * dprofile,
 
   const auto t0 = _mm_load_si128(sequence_db + 0);
 
+  // refactoring: factorize into two lambda functions
+  // auto transform_seq_chunk_lo = [&](const __m128i& seq_chunk) {
+  //   auto tmp_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
+  //   tmp_chunk = _mm_slli_epi16(tmp_chunk, 1);
+  //   auto t1 = _mm_adds_epu16(tmp_chunk, one);
+  //   t1 = _mm_slli_epi16(t1, channels);
+  //   tmp_chunk = _mm_or_si128(tmp_chunk, t1);
+  //   return tmp_chunk;
+  // };
+
   __m128i m0 = _mm_unpacklo_epi8(t0, zero);
   m0 = _mm_slli_epi16(m0, 1);
   __m128i t1 = _mm_adds_epu16(m0, one);
