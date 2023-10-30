@@ -727,11 +727,6 @@ inline auto backtrack_8(char * qseq,
   uint64_t matches {0};
   char operation {0};  // Insertion, Deletion or Match  // refactoring to enum class?
 
-#undef SHOWALIGNMENT
-#ifdef SHOWALIGNMENT
-  printf("alignment, reversed: ");
-#endif
-
   while ((i >= 0) and (j >= 0))
     {
       ++aligned;
@@ -771,33 +766,19 @@ inline auto backtrack_8(char * qseq,
           --j;
           operation = 'M';
         }
-
-#ifdef SHOWALIGNMENT
-      printf("%c", operation);
-#endif
     }
 
   while (i >= 0)
     {
       ++aligned;
       --i;
-#ifdef SHOWALIGNMENT
-      printf("D");
-#endif
     }
 
   while (j >= 0)
     {
       ++aligned;
       --j;
-#ifdef SHOWALIGNMENT
-      printf("I");
-#endif
     }
-
-#ifdef SHOWALIGNMENT
-  printf("\n");
-#endif
 
   * alignmentlengthp = aligned;
   return aligned - matches;
