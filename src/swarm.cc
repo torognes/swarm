@@ -287,14 +287,17 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
         auto optindex = static_cast<unsigned int>(option_character - 'a');
         if (used_options[optindex])
           {
-            auto longoptindex {0UL};
-            while (long_options[longoptindex].name != nullptr)
-              {
-                if (long_options[longoptindex].val == option_character) {
-                  break;
-                }
-                ++longoptindex;
+            auto longoptindex = 0UL;
+            for (const auto& long_option: long_options) {
+              if (long_option.name == nullptr) {
+                break;
               }
+              if (long_option.val == option_character) {
+                break;
+              }
+              ++longoptindex;
+            }
+
             fatal(error_prefix, "Option -", static_cast<char>(option_character),
                   " or --", long_options[longoptindex].name,
                   " specified more than once.");
