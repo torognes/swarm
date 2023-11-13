@@ -108,18 +108,22 @@ cap swarm's memory consumption.
 
 ## Install ##
 
-Get the latest binaries for GNU/Linux, macOS or Windows from
-[the release page](https://github.com/torognes/swarm/releases "swarm
-tagged releases"). Get the source code from
+Get the latest binaries for GNU/Linux, macOS or Windows from [the
+release page](https://github.com/torognes/swarm/releases "swarm tagged
+releases"). Get the source code from
 [GitHub](https://github.com/torognes/swarm "swarm public repository")
-using the
-[ZIP button](https://github.com/torognes/swarm/archive/master.zip
-"swarm zipped folder") or git, and compile swarm:
+using the [ZIP
+button](https://github.com/torognes/swarm/archive/master.zip "swarm
+zipped folder") or `git clone`, and compile `swarm` with GCC (version
+4.8.5 or more recent) or with clang (version 9 or more recent):
 
 ```sh
 git clone https://github.com/torognes/swarm.git
 cd swarm/
 make
+
+# or, with clang
+make CC="clang-9" CXX="clang++-9"
 ```
 
 If you have administrator privileges, you can make **swarm**
