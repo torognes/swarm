@@ -2,28 +2,14 @@ language:
 - cpp
 
 arch:
-#- amd64
 - arm64
 - ppc64le
 
 os:
 - linux
-#- osx
-
-dist:
-- bionic
-
-osx_image:
-- xcode12.5
 
 compiler:
 - gcc
-#- clang
-
-addons:
-  apt:
-    packages:
-    - valgrind
 
 script:
 - make COVERAGE=1
