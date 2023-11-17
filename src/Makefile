@@ -25,7 +25,7 @@ COMMON = -g
 EXTRAOBJ =
 LINKOPT =
 LIBS = -lpthread
-WARNINGS = -Wall -Wextra
+WARNINGS = -Wall -Wextra -Wpedantic
 CLANG = clang
 DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
 	-Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
@@ -115,7 +115,6 @@ ifeq ($(CXX), x86_64-w64-mingw32-g++)
 	LINKOPT += -static
 	BIN = swarm.exe
 else
-	WARNINGS += -Wpedantic
 	BIN = swarm
 endif
 
