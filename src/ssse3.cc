@@ -96,6 +96,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   const auto zero = _mm_setzero_si128();
   const auto one = _mm_set1_epi16(1);
 
+  // refactoring: make lower_chunk and local_t const?
   auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
     lower_chunk = _mm_slli_epi16(lower_chunk, 1);
