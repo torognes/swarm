@@ -69,7 +69,7 @@ inline void onestep_16_sse41(VECTORTYPE & H,
   // };
 
   H = v_add(H, V);
-  VECTORTYPE W = H;
+  const VECTORTYPE W = H;
   H = v_min(H, F);
   *(DIR + 0) = v_mask_eq(W, H);
   H = v_min(H, E);
@@ -106,8 +106,8 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
 
   auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
-  VECTORTYPE Q = *Qm;
-  VECTORTYPE R = *Rm;
+  const VECTORTYPE Q = *Qm;
+  const VECTORTYPE R = *Rm;
 
   VECTORTYPE f0 = *F0;
   VECTORTYPE f1 = v_add(f0, R);
