@@ -95,44 +95,30 @@ auto dprofile_shuffle16(WORD * dprofile,
 
   const auto zero = _mm_setzero_si128();
   const auto one = _mm_set1_epi16(1);
+
+  auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
+    auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
+    lower_chunk = _mm_slli_epi16(lower_chunk, 1);
+    auto local_t = _mm_adds_epu16(lower_chunk, one);
+    local_t = _mm_slli_epi16(local_t, channels);
+    return _mm_or_si128(lower_chunk, local_t);
+  };
+
+  auto transform_higher_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
+    auto higher_chunk = _mm_unpackhi_epi8(seq_chunk, zero);
+    higher_chunk = _mm_slli_epi16(higher_chunk, 1);
+    auto local_t = _mm_adds_epu16(higher_chunk, one);
+    local_t = _mm_slli_epi16(local_t, channels);
+    return _mm_or_si128(higher_chunk, local_t);
+  };
+
   const auto t0 = _mm_load_si128(sequence_db + 0);
-
-  // refactoring: factorize into two lambda functions
-  // auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
-  //   auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
-  //   lower_chunk = _mm_slli_epi16(lower_chunk, 1);
-  //   auto local_t = _mm_adds_epu16(lower_chunk, one);
-  //   local_t = _mm_slli_epi16(local_t, channels);
-  //   return _mm_or_si128(lower_chunk, local_t);
-  // };
-  //
-  // const auto m0 = transform_lower_seq_chunk(t0);
-
-  __m128i m0 = _mm_unpacklo_epi8(t0, zero);
-  m0 = _mm_slli_epi16(m0, 1);
-  __m128i t1 = _mm_adds_epu16(m0, one);
-  t1 = _mm_slli_epi16(t1, channels);
-  m0 = _mm_or_si128(m0, t1);
-
-  __m128i m1 = _mm_unpackhi_epi8(t0, zero);
-  m1 = _mm_slli_epi16(m1, 1);
-  __m128i t2 = _mm_adds_epu16(m1, one);
-  t2 = _mm_slli_epi16(t2, channels);
-  m1 = _mm_or_si128(m1, t2);
+  const auto m0 = transform_lower_seq_chunk(t0);
+  const auto m1 = transform_higher_seq_chunk(t0);
 
   const auto t3 = _mm_load_si128(sequence_db + 1);
-
-  __m128i m2 = _mm_unpacklo_epi8(t3, zero);
-  m2 = _mm_slli_epi16(m2, 1);
-  __m128i t4 = _mm_adds_epu16(m2, one);
-  t4 = _mm_slli_epi16(t4, channels);
-  m2 = _mm_or_si128(m2, t4);
-
-  __m128i m3 = _mm_unpackhi_epi8(t3, zero);
-  m3 = _mm_slli_epi16(m3, 1);
-  __m128i t5 = _mm_adds_epu16(m3, one);
-  t5 = _mm_slli_epi16(t5, channels);
-  m3 = _mm_or_si128(m3, t5);
+  const auto m2 = transform_lower_seq_chunk(t3);
+  const auto m3 = transform_higher_seq_chunk(t3);
 
   auto profline16 = [&](const long long int nuc) {
     const auto scores = _mm_load_si128(score_db + 4 * nuc);
