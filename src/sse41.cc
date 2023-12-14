@@ -64,6 +64,11 @@ inline void onestep_16_sse41(VECTORTYPE & H,
 {
   VECTORTYPE W;
 
+  // refactoring: replace macro with lambda
+  //  auto v_min = [](const VECTORTYPE& lhs, const VECTORTYPE& rhs) -> VECTORTYPE {
+  //  return _mm_min_epu16(lhs, rhs);
+  // };
+
   H = v_add(H, V);
   W = H;
   H = v_min(H, F);
