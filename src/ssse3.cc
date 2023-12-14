@@ -45,6 +45,7 @@
 
 using WORD = unsigned short;
 using BYTE = unsigned char;
+// refactoring? using VECTORTYPE = __m128i; (same as sse41?)
 
 
 /* 8-bit version with 16 channels */
