@@ -98,7 +98,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   const auto t0 = _mm_load_si128(sequence_db + 0);
 
   // refactoring: factorize into two lambda functions
-  // auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) {
+  // auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
   //   auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
   //   lower_chunk = _mm_slli_epi16(lower_chunk, 1);
   //   auto local_t = _mm_adds_epu16(lower_chunk, one);
