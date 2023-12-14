@@ -140,9 +140,7 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE *x {nullptr};
-
-      x = qp[i + 0];
+      VECTORTYPE *x = qp[i + 0];
       h4 = hep[2 * i + 0];
       E  = hep[2 * i + 1];
       onestep_16_sse41(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
