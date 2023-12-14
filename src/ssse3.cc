@@ -95,7 +95,6 @@ auto dprofile_shuffle16(WORD * dprofile,
 
   const auto zero = _mm_setzero_si128();
   const auto one = _mm_set1_epi16(1);
-
   const auto t0 = _mm_load_si128(sequence_db + 0);
 
   // refactoring: factorize into two lambda functions
