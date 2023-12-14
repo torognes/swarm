@@ -53,6 +53,7 @@ using VECTORTYPE = __m128i;
 #define v_zero v_dup(0)
 #define v_mask_eq(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
 
+
 inline void onestep_16_sse41(VECTORTYPE & H,
                              VECTORTYPE & N,
                              VECTORTYPE & F,
@@ -82,6 +83,7 @@ inline void onestep_16_sse41(VECTORTYPE & H,
   E = v_min(H, E);
   *(DIR + 3) = v_mask_eq(H, E);
 }
+
 
 void align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   VECTORTYPE * hep,
