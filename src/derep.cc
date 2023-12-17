@@ -61,6 +61,7 @@ struct bucket
 };
 
 
+// refactoring: std::stable_sort uses input order (neneed to use seqno)
 auto derep_compare(const void * a, const void * b) -> int
 {
   const auto * x = static_cast<const struct bucket *>(a);
