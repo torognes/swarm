@@ -429,8 +429,8 @@ swarm 4.0.0:
 
 ### version 3.1.x ###
 
-**swarm** 3.1.x improves code, and eliminates compilation warnings and
-static analysis warnings:
+**swarm** 3.1.x improves code and documentation, and eliminates
+compilation warnings and static analysis warnings:
 - add: more compilation checks (`shadow`, `useless-cast`,
   `conversion`, `sign-conversion`),
 - improve: documentation for output option `--network_file`,
