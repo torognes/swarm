@@ -792,7 +792,7 @@ void search8(BYTE * * q_start,
   VECTORTYPE S[4];
 
   // make an array of size VECTORTYPE * channels, but interpret as
-  // array of BYTES
+  // an array of BYTES
   std::array<BYTE, channels * sizeof(VECTORTYPE) / sizeof(BYTE)> dseq {{}};
 
   uint64_t next_id {0};
