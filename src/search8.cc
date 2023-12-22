@@ -789,6 +789,8 @@ void search8(BYTE * * q_start,
   std::array<int64_t, channels> seq_id {{}};
   seq_id.fill(-1);
 
+  // refactoring fail: std::array -> warning: ignoring attributes on
+  // template argument ‘VECTORTYPE’ {aka ‘__m128i’}
   VECTORTYPE S[4];
 
   // make an array of size VECTORTYPE * channels, but interpret as
