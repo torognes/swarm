@@ -7,3 +7,4 @@ swarm
 *.gcno
 .gdb_history
 *.clang
+*.sh
