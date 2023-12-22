@@ -787,6 +787,7 @@ void search8(BYTE * * q_start,
   std::array<char *, channels> d_address {{}};
   std::array<uint64_t, channels> d_length {{}};
   std::array<int64_t, channels> seq_id {{}};
+  seq_id.fill(-1);
 
   VECTORTYPE dseqalloc[cdepth];
 
@@ -817,12 +818,6 @@ void search8(BYTE * * q_start,
 
   auto *hep = CAST_VECTOR_p(hearray);
   auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
-
-  // refactoring: initialize arrays
-  for(auto c = 0U; c < channels; c++)
-    {
-      seq_id[c] = -1;
-    }
 
   auto F0 = v_zero;
   auto H0 = v_zero;
