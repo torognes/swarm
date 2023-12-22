@@ -806,7 +806,7 @@ void search8(BYTE * * q_start,
                                0, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
-  auto T0 = T0_init;
+  const auto T0 = T0_init;
 
   auto Q = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup(static_cast<char>(gap_extend_penalty));
