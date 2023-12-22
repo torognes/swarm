@@ -825,8 +825,8 @@ void search8(BYTE * * q_start,
       seq_id[c] = -1;
     }
 
-  VECTORTYPE F0 = v_zero;
-  VECTORTYPE H0 = v_zero;
+  auto F0 = v_zero;
+  auto H0 = v_zero;
 
   bool easy {false};
 
