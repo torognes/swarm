@@ -789,11 +789,11 @@ void search8(BYTE * * q_start,
   std::array<int64_t, channels> seq_id {{}};
   seq_id.fill(-1);
 
-  VECTORTYPE dseqalloc[cdepth];
-
   VECTORTYPE S[4];
 
-  BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
+  // make an array of size VECTORTYPE * channels, but interpret as
+  // array of BYTES
+  std::array<BYTE, channels * sizeof(VECTORTYPE) / sizeof(BYTE)> dseq {{}};
 
   uint64_t next_id {0};
   uint64_t done {0};
@@ -852,12 +852,12 @@ void search8(BYTE * * q_start,
 #ifdef __x86_64__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle8(dprofile, score_matrix, dseq);
+              dprofile_shuffle8(dprofile, score_matrix, dseq.data());
             }
           else
 #endif
             {
-              dprofile_fill8(dprofile, score_matrix, dseq);
+              dprofile_fill8(dprofile, score_matrix, dseq.data());
             }
 
           align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
@@ -990,12 +990,12 @@ void search8(BYTE * * q_start,
 #ifdef __x86_64__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle8(dprofile, score_matrix, dseq);
+              dprofile_shuffle8(dprofile, score_matrix, dseq.data());
             }
           else
 #endif
             {
-              dprofile_fill8(dprofile, score_matrix, dseq);
+              dprofile_fill8(dprofile, score_matrix, dseq.data());
             }
 
           MQ = v_and(M, Q);
