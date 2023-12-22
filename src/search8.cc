@@ -685,10 +685,10 @@ inline auto backtrack_8(char * qseq,
                         uint64_t * alignmentlengthp,
                         const uint64_t longestdbsequence) -> uint64_t
 {
-  static constexpr unsigned int offset0 {0};
-  static constexpr unsigned int offset1 {offset0 + 16};
-  static constexpr unsigned int offset2 {offset1 + 16};
-  static constexpr unsigned int offset3 {offset2 + 16};
+  static constexpr auto offset0 {0U};
+  static constexpr auto offset1 {offset0 + 16};
+  static constexpr auto offset2 {offset1 + 16};
+  static constexpr auto offset3 {offset2 + 16};
   const uint64_t maskup      = 1ULL << (channel + offset0);
   const uint64_t maskleft    = 1ULL << (channel + offset1);
   const uint64_t maskextup   = 1ULL << (channel + offset2);
