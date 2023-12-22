@@ -806,15 +806,15 @@ void search8(BYTE * * q_start,
                                0, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
-  VECTORTYPE T0 = T0_init;
+  auto T0 = T0_init;
 
-  VECTORTYPE Q = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
-  VECTORTYPE R = v_dup(static_cast<char>(gap_extend_penalty));
+  auto Q = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
+  auto R = v_dup(static_cast<char>(gap_extend_penalty));
 
   done = 0;
 
-  VECTORTYPE *hep = CAST_VECTOR_p(hearray);
-  VECTORTYPE **qp = reinterpret_cast<VECTORTYPE**>(q_start);
+  auto *hep = CAST_VECTOR_p(hearray);
+  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   // refactoring: initialize arrays
   for(auto c = 0U; c < channels; c++)
