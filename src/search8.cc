@@ -821,9 +821,6 @@ void search8(BYTE * * q_start,
   // refactoring: initialize arrays
   for(auto c = 0U; c < channels; c++)
     {
-      d_address[c] = nullptr;
-      d_pos[c] = 0;
-      d_length[c] = 0;
       seq_id[c] = -1;
     }
 
