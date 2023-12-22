@@ -774,16 +774,11 @@ void search8(BYTE * * q_start,
              uint64_t * dirbuffer,
              const uint64_t longestdbsequence)
 {
-  VECTORTYPE Q;
-  VECTORTYPE R;
   VECTORTYPE T;
   VECTORTYPE M;
-  VECTORTYPE T0;
   VECTORTYPE MQ;
   VECTORTYPE MR;
   VECTORTYPE MQ0;
-  VECTORTYPE *hep {nullptr};
-  VECTORTYPE **qp {nullptr};
 
   std::array<uint64_t, channels> d_pos {{}};
   std::array<uint64_t, channels> d_offset {{}};
@@ -792,8 +787,6 @@ void search8(BYTE * * q_start,
 
   VECTORTYPE dseqalloc[cdepth];
 
-  VECTORTYPE H0;
-  VECTORTYPE F0;
   VECTORTYPE S[4];
 
   BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
@@ -813,15 +806,15 @@ void search8(BYTE * * q_start,
                                0, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
-  T0 = T0_init;
+  VECTORTYPE T0 = T0_init;
 
-  Q  = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
-  R  = v_dup(static_cast<char>(gap_extend_penalty));
+  VECTORTYPE Q = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
+  VECTORTYPE R = v_dup(static_cast<char>(gap_extend_penalty));
 
   done = 0;
 
-  hep = CAST_VECTOR_p(hearray);
-  qp = reinterpret_cast<VECTORTYPE**>(q_start);
+  VECTORTYPE *hep = CAST_VECTOR_p(hearray);
+  VECTORTYPE **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   // refactoring: initialize arrays
   for(auto c = 0U; c < channels; c++)
@@ -832,8 +825,8 @@ void search8(BYTE * * q_start,
       seq_id[c] = -1;
     }
 
-  F0 = v_zero;
-  H0 = v_zero;
+  VECTORTYPE F0 = v_zero;
+  VECTORTYPE H0 = v_zero;
 
   bool easy {false};
 
