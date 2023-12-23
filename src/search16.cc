@@ -529,7 +529,7 @@ inline auto backtrack_16(char * qseq,
 }
 
 
-void search16(WORD * * q_start,
+auto search16(WORD * * q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
               WORD * score_matrix,
@@ -543,7 +543,7 @@ void search16(WORD * * q_start,
               uint64_t qlen,
               uint64_t dirbuffersize,
               uint64_t * dirbuffer,
-              const uint64_t longestdbsequence)
+              const uint64_t longestdbsequence) -> void
 {
   VECTORTYPE T;
   VECTORTYPE M;

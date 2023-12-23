@@ -761,7 +761,7 @@ inline auto backtrack_8(char * qseq,
 }
 
 
-void search8(BYTE * * q_start,
+auto search8(BYTE * * q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE * score_matrix,
@@ -775,7 +775,7 @@ void search8(BYTE * * q_start,
              uint64_t qlen,
              uint64_t dirbuffersize,
              uint64_t * dirbuffer,
-             const uint64_t longestdbsequence)
+             const uint64_t longestdbsequence) -> void
 {
   VECTORTYPE T;
   VECTORTYPE M;
