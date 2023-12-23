@@ -538,6 +538,11 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            uint64_t * dir_long,
                            VECTORTYPE * H0)
 {
+  static constexpr auto j0 = 0U;
+  static constexpr auto j1 = j0 + 4;
+  static constexpr auto j2 = j1 + 4;
+  static constexpr auto j3 = j2 + 4;
+
   VECTORTYPE E;
   VECTORTYPE h4;
 
@@ -564,10 +569,6 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   for(auto i = 0ULL; i < ql; i++)
     {
       VECTORTYPE *x {nullptr};
-      static constexpr auto j0 = 0U;
-      static constexpr auto j1 = j0 + 4;
-      static constexpr auto j2 = j1 + 4;
-      static constexpr auto j3 = j2 + 4;
 
       x = qp[i + 0];
       h4 = hep[2 * i + 0];
