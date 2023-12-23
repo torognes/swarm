@@ -24,6 +24,8 @@
 #include "swarm.h"
 #include "db.h"
 #include <array>
+#include <cstdint>  // int64_t, uint64_t, uint8_t
+
 
 // refactoring: C++26 std::simd
 #ifdef __x86_64__
@@ -37,7 +39,6 @@
 #endif
 
 #include "utils/nt_codec.h"
-#include <cstdint>  // int64_t, uint64_t
 
 
 #ifdef __aarch64__
