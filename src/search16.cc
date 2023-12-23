@@ -526,6 +526,7 @@ inline auto backtrack_16(char * qseq,
   return aligned - matches;
 }
 
+
 void search16(WORD * * q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
