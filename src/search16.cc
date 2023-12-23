@@ -551,6 +551,8 @@ void search16(WORD * * q_start,
   VECTORTYPE MR;
   VECTORTYPE MQ0;
 
+  // by default, std::array is value-initialized (set to 0 for int,
+  // nullptr for pointers, etc)
   std::array<uint64_t, channels> d_pos {{}};
   std::array<uint64_t, channels> d_offset {{}};
   std::array<char *, channels> d_address {{}};
