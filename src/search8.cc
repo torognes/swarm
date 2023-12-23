@@ -67,7 +67,7 @@ using BYTE = unsigned char;
 
 #ifdef __aarch64__
 
-using VECTORTYPE = int8x16_t;
+using VECTORTYPE = uint8x16_t;
 
 #define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
@@ -801,7 +801,7 @@ void search8(BYTE * * q_start,
   uint64_t done {0};
 
 #ifdef __aarch64__
-  const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0,
+  const VECTORTYPE T0_init = { (uint8_t)(-1), 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0 };
 #elif defined __x86_64__
   const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
