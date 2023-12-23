@@ -568,9 +568,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE *x {nullptr};
-
-      x = qp[i + 0];
+      VECTORTYPE *x = qp[i + 0];
       h4 = hep[2 * i + 0];
       E  = hep[2 * i + 1];
       onestep_8(h0, h5, f0, x[0], dir + channels * i + offset0, E, Q, R);
@@ -636,11 +634,10 @@ void align_cells_masked_8(VECTORTYPE * Sm,
       static constexpr auto offset2 = offset1 + 4;
       static constexpr auto offset3 = offset2 + 4;
 
-      VECTORTYPE * x {nullptr};
+      VECTORTYPE * x = qp[i + 0];
 
       h4 = hep[2 * i + 0];
       E  = hep[2 * i + 1];
-      x = qp[i + 0];
 
       /* mask h4 and E */
       h4 = v_sub(h4, *Mm);
