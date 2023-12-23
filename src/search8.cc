@@ -538,10 +538,10 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            uint64_t * dir_long,
                            VECTORTYPE * H0)
 {
-  static constexpr auto j0 = 0U;
-  static constexpr auto j1 = j0 + 4;
-  static constexpr auto j2 = j1 + 4;
-  static constexpr auto j3 = j2 + 4;
+  static constexpr auto offset0 = 0U;
+  static constexpr auto offset1 = offset0 + 4;
+  static constexpr auto offset2 = offset1 + 4;
+  static constexpr auto offset3 = offset2 + 4;
 
   VECTORTYPE E;
   VECTORTYPE h4;
@@ -573,10 +573,10 @@ void align_cells_regular_8(VECTORTYPE * Sm,
       x = qp[i + 0];
       h4 = hep[2 * i + 0];
       E  = hep[2 * i + 1];
-      onestep_8(h0, h5, f0, x[0], dir + channels * i + j0, E, Q, R);
-      onestep_8(h1, h6, f1, x[1], dir + channels * i + j1, E, Q, R);
-      onestep_8(h2, h7, f2, x[2], dir + channels * i + j2, E, Q, R);
-      onestep_8(h3, h8, f3, x[3], dir + channels * i + j3, E, Q, R);
+      onestep_8(h0, h5, f0, x[0], dir + channels * i + offset0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + channels * i + offset1, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + channels * i + offset2, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + channels * i + offset3, E, Q, R);
       hep[2 * i + 0] = h8;
       hep[2 * i + 1] = E;
       h0 = h4;
@@ -631,10 +631,10 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      static constexpr auto j0 = 0U;
-      static constexpr auto j1 = j0 + 4;
-      static constexpr auto j2 = j1 + 4;
-      static constexpr auto j3 = j2 + 4;
+      static constexpr auto offset0 = 0U;
+      static constexpr auto offset1 = offset0 + 4;
+      static constexpr auto offset2 = offset1 + 4;
+      static constexpr auto offset3 = offset2 + 4;
 
       VECTORTYPE * x {nullptr};
 
@@ -654,10 +654,10 @@ void align_cells_masked_8(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add(*MQ,  *MR);
 
-      onestep_8(h0, h5, f0, x[0], dir + channels * i + j0, E, Q, R);
-      onestep_8(h1, h6, f1, x[1], dir + channels * i + j1, E, Q, R);
-      onestep_8(h2, h7, f2, x[2], dir + channels * i + j2, E, Q, R);
-      onestep_8(h3, h8, f3, x[3], dir + channels * i + j3, E, Q, R);
+      onestep_8(h0, h5, f0, x[0], dir + channels * i + offset0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + channels * i + offset1, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + channels * i + offset2, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + channels * i + offset3, E, Q, R);
       hep[2 * i + 0] = h8;
       hep[2 * i + 1] = E;
 
