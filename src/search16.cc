@@ -561,8 +561,6 @@ void search16(WORD * * q_start,
 
   VECTORTYPE dseqalloc[cdepth];
 
-  VECTORTYPE H0;
-  VECTORTYPE F0;
   VECTORTYPE S[4];
 
   BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
@@ -597,8 +595,8 @@ void search16(WORD * * q_start,
       seq_id[c] = -1;
     }
 
-  F0 = v_zero;
-  H0 = v_zero;
+  VECTORTYPE F0 = v_zero;
+  VECTORTYPE H0 = v_zero;
 
   bool easy {false};
 
