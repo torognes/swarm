@@ -604,6 +604,11 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0)
 {
+  static constexpr auto offset0 = 0U;
+  static constexpr auto offset1 = offset0 + 4;
+  static constexpr auto offset2 = offset1 + 4;
+  static constexpr auto offset3 = offset2 + 4;
+
   VECTORTYPE E;
   VECTORTYPE h4;
 
@@ -629,11 +634,6 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      static constexpr auto offset0 = 0U;
-      static constexpr auto offset1 = offset0 + 4;
-      static constexpr auto offset2 = offset1 + 4;
-      static constexpr auto offset3 = offset2 + 4;
-
       VECTORTYPE * x = qp[i + 0];
 
       h4 = hep[2 * i + 0];
