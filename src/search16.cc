@@ -463,63 +463,63 @@ auto backtrack_16(char * qseq,
   const uint64_t maskextup   = 3ULL << (2 * channel + offset2);
   const uint64_t maskextleft = 3ULL << (2 * channel + offset3);
 
-  auto i = static_cast<int64_t>(qlen) - 1;
-  auto j = static_cast<int64_t>(dlen) - 1;
+  auto column = static_cast<int64_t>(qlen) - 1;
+  auto row = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
   uint64_t matches {0};
   Alignment operation = Alignment::Unknown;  // Insertion, Deletion or Match
 
-  while ((i >= 0) and (j >= 0))
+  while ((column >= 0) and (row >= 0))
     {
       ++aligned;
 
       const uint64_t d
         = dirbuffer[(offset
-                     + longestdbsequence * 4 * static_cast<uint64_t>(j / 4)
-                     + 4 * static_cast<uint64_t>(i)
-                     + (static_cast<uint64_t>(j) & 3U)
+                     + longestdbsequence * 4 * static_cast<uint64_t>(row / 4)
+                     + 4 * static_cast<uint64_t>(column)
+                     + (static_cast<uint64_t>(row) & 3U)
                      ) % dirbuffersize];  // refactoring: how to rename that variable?
 
       if ((operation == Alignment::Insertion) and ((d & maskextleft) == 0U))
         {
-          --j;
+          --row;
         }
       else if ((operation == Alignment::Deletion) and ((d & maskextup) == 0U))
         {
-          --i;
+          --column;
         }
       else if ((d & maskleft) != 0U)
         {
-          --j;
+          --row;
           operation = Alignment::Insertion;
         }
       else if ((d & maskup) == 0U)
         {
-          --i;
+          --column;
           operation = Alignment::Deletion;
         }
       else
         {
-          if (nt_extract(qseq, static_cast<uint64_t>(i)) ==
-              nt_extract(dseq, static_cast<uint64_t>(j))) {
+          if (nt_extract(qseq, static_cast<uint64_t>(column)) ==
+              nt_extract(dseq, static_cast<uint64_t>(row))) {
             ++matches;
           }
-          --i;
-          --j;
+          --column;
+          --row;
           operation = Alignment::Match;
         }
     }
 
-  while (i >= 0)
+  while (column >= 0)
     {
       ++aligned;
-      --i;
+      --column;
     }
 
-  while (j >= 0)
+  while (row >= 0)
     {
       ++aligned;
-      --j;
+      --row;
     }
 
   * alignmentlengthp = aligned;
