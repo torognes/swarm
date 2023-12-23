@@ -443,16 +443,16 @@ void align_cells_masked_16(VECTORTYPE * Sm,
 // refactoring: could 'Unknown' be eliminated?
 enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
 
-auto backtrack_16(char * qseq,
-                  char * dseq,
-                  uint64_t qlen,
-                  uint64_t dlen,
-                  uint64_t * dirbuffer,
-                  uint64_t offset,
-                  uint64_t dirbuffersize,
-                  uint64_t channel,
-                  uint64_t * alignmentlengthp,
-                  const uint64_t longestdbsequence) -> uint64_t
+inline auto backtrack_16(char * qseq,
+                         char * dseq,
+                         uint64_t qlen,
+                         uint64_t dlen,
+                         uint64_t * dirbuffer,
+                         uint64_t offset,
+                         uint64_t dirbuffersize,
+                         uint64_t channel,
+                         uint64_t * alignmentlengthp,
+                         const uint64_t longestdbsequence) -> uint64_t
 {
   static constexpr auto offset0 {0U};
   static constexpr auto offset1 {offset0 + 16};
