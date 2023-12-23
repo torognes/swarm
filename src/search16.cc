@@ -377,42 +377,28 @@ void align_cells_masked_16(VECTORTYPE * Sm,
   static constexpr unsigned int offset2 {offset1 + 4};
   static constexpr unsigned int offset3 {offset2 + 4};
 
-  VECTORTYPE Q;
-  VECTORTYPE R;
   VECTORTYPE E;
-  VECTORTYPE h0;
-  VECTORTYPE h1;
-  VECTORTYPE h2;
-  VECTORTYPE h3;
   VECTORTYPE h4;
-  VECTORTYPE h5;
-  VECTORTYPE h6;
-  VECTORTYPE h7;
-  VECTORTYPE h8;
-  VECTORTYPE f0;
-  VECTORTYPE f1;
-  VECTORTYPE f2;
-  VECTORTYPE f3;
 
   auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
-  Q = *Qm;
-  R = *Rm;
+  VECTORTYPE Q = *Qm;
+  VECTORTYPE R = *Rm;
 
-  f0 = *F0;
-  f1 = v_add(f0, R);
-  f2 = v_add(f1, R);
-  f3 = v_add(f2, R);
+  VECTORTYPE f0 = *F0;
+  VECTORTYPE f1 = v_add(f0, R);
+  VECTORTYPE f2 = v_add(f1, R);
+  VECTORTYPE f3 = v_add(f2, R);
 
-  h0 = *H0;
-  h1 = v_sub(f0, Q);
-  h2 = v_add(h1, R);
-  h3 = v_add(h2, R);
+  VECTORTYPE h0 = *H0;
+  VECTORTYPE h1 = v_sub(f0, Q);
+  VECTORTYPE h2 = v_add(h1, R);
+  VECTORTYPE h3 = v_add(h2, R);
 
-  h5 = v_zero;
-  h6 = v_zero;
-  h7 = v_zero;
-  h8 = v_zero;
+  VECTORTYPE h5 = v_zero;
+  VECTORTYPE h6 = v_zero;
+  VECTORTYPE h7 = v_zero;
+  VECTORTYPE h8 = v_zero;
 
   for(auto i = 0ULL; i < ql; i++)
     {
