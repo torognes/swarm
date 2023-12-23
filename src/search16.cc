@@ -564,7 +564,7 @@ auto search16(WORD * * q_start,
 
   VECTORTYPE S[4];
 
-  BYTE * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
+  auto * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
 
   uint64_t next_id {0};
   uint64_t done {0};
