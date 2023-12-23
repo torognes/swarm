@@ -545,16 +545,11 @@ void search16(WORD * * q_start,
               uint64_t * dirbuffer,
               const uint64_t longestdbsequence)
 {
-  VECTORTYPE Q;
-  VECTORTYPE R;
   VECTORTYPE T;
   VECTORTYPE M;
-  VECTORTYPE T0;
   VECTORTYPE MQ;
   VECTORTYPE MR;
   VECTORTYPE MQ0;
-  VECTORTYPE *hep {nullptr};
-  VECTORTYPE **qp {nullptr};
 
   std::array<uint64_t, channels> d_pos {{}};
   std::array<uint64_t, channels> d_offset {{}};
@@ -581,15 +576,15 @@ void search16(WORD * * q_start,
   const VECTORTYPE T0_init = { (unsigned short)(-1), 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
-  T0 = T0_init;
+  VECTORTYPE T0 = T0_init;
 
-  Q  = v_dup(static_cast<short>(gap_open_penalty + gap_extend_penalty));
-  R  = v_dup(static_cast<short>(gap_extend_penalty));
+  VECTORTYPE Q = v_dup(static_cast<short>(gap_open_penalty + gap_extend_penalty));
+  VECTORTYPE R = v_dup(static_cast<short>(gap_extend_penalty));
 
   done = 0;
 
-  hep = CAST_VECTOR_p(hearray);
-  qp = reinterpret_cast<VECTORTYPE**>(q_start);
+  VECTORTYPE *hep = CAST_VECTOR_p(hearray);
+  VECTORTYPE **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   // refactoring: initialize arrays
   for(auto c = 0U; c < channels; c++)
