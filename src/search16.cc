@@ -382,8 +382,8 @@ void align_cells_masked_16(VECTORTYPE * Sm,
 
   auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
-  auto Q = *Qm;
-  auto R = *Rm;
+  const auto Q = *Qm;
+  const auto R = *Rm;
 
   auto f0 = *F0;
   auto f1 = v_add(f0, R);
