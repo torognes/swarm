@@ -278,10 +278,8 @@ inline void onestep_16(VECTORTYPE & H,
                        VECTORTYPE QR,
                        VECTORTYPE R)
 {
-  VECTORTYPE W;
-
   H = v_add(H, V);
-  W = H;
+  auto W = H;
   H = v_min(H, F);
   *(DIR+0) = v_mask_eq(W, H);
   H = v_min(H, E);
