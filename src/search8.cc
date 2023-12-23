@@ -25,7 +25,6 @@
 #include "db.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
-#include <limits>
 
 
 // refactoring: C++26 std::simd
@@ -44,12 +43,14 @@
 
 #ifdef __aarch64__
 #include <arm_neon.h>
+#include <limits>
 #elif defined __x86_64__
 
 #elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
 #include <altivec.h>
+#include <limits>
 #else
 #error Big endian ppc64 CPUs not supported
 #endif
