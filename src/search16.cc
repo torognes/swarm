@@ -577,7 +577,7 @@ auto search16(WORD * * q_start,
   const VECTORTYPE T0_init = { (unsigned short)(-1), 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
-  VECTORTYPE T0 = T0_init;
+  const VECTORTYPE T0 = T0_init;
 
   VECTORTYPE Q = v_dup(static_cast<short>(gap_open_penalty + gap_extend_penalty));
   VECTORTYPE R = v_dup(static_cast<short>(gap_extend_penalty));
