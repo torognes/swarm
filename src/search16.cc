@@ -316,23 +316,23 @@ void align_cells_regular_16(VECTORTYPE * Sm,
 
   auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
-  VECTORTYPE Q = *Qm;
-  VECTORTYPE R = *Rm;
+  auto Q = *Qm;
+  auto R = *Rm;
 
-  VECTORTYPE f0 = *F0;
-  VECTORTYPE f1 = v_add(f0, R);
-  VECTORTYPE f2 = v_add(f1, R);
-  VECTORTYPE f3 = v_add(f2, R);
+  auto f0 = *F0;
+  auto f1 = v_add(f0, R);
+  auto f2 = v_add(f1, R);
+  auto f3 = v_add(f2, R);
 
-  VECTORTYPE h0 = *H0;
-  VECTORTYPE h1 = v_sub(f0, Q);
-  VECTORTYPE h2 = v_add(h1, R);
-  VECTORTYPE h3 = v_add(h2, R);
+  auto h0 = *H0;
+  auto h1 = v_sub(f0, Q);
+  auto h2 = v_add(h1, R);
+  auto h3 = v_add(h2, R);
 
-  VECTORTYPE h5 = v_zero;
-  VECTORTYPE h6 = v_zero;
-  VECTORTYPE h7 = v_zero;
-  VECTORTYPE h8 = v_zero;
+  auto h5 = v_zero;
+  auto h6 = v_zero;
+  auto h7 = v_zero;
+  auto h8 = v_zero;
 
   for(auto i = 0ULL; i < ql; i++)
     {
