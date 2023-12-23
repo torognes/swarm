@@ -675,6 +675,8 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 // refactoring: could 'Unknown' be eliminated?
 enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
 
+// refactoring: backtrack_8() and backtrack_16() are almost identical
+// factorize in template backtrack<8>()
 inline auto backtrack_8(char * qseq,
                         char * dseq,
                         uint64_t qlen,
