@@ -107,15 +107,15 @@ using VECTORTYPE = __m128i;
 
 #define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
-auto cast_vector = [](WORD* vector) {
+auto cast_vector = [](WORD* vector) -> VECTORTYPE* {
   return reinterpret_cast<VECTORTYPE*>(vector);
 };
 
-auto v_load = [](WORD* vector) {
+auto v_load = [](WORD* vector) -> VECTORTYPE {
   return _mm_load_si128(cast_vector(vector));
 };
 
-auto v_store = [](WORD* vector, VECTORTYPE cpu_register) {
+auto v_store = [](WORD* vector, VECTORTYPE cpu_register) -> void {
   return _mm_store_si128(cast_vector(vector), cpu_register);
 };
 
