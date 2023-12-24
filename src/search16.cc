@@ -233,6 +233,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
 
       for(auto i = 0ULL; i < channels; i += channels)
         {
+          // refactoring: eliminate magic numbers
           reg0  = v_load(score_matrix_word + d[0] + i);
           reg1  = v_load(score_matrix_word + d[1] + i);
           reg2  = v_load(score_matrix_word + d[2] + i);
