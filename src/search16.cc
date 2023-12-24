@@ -576,7 +576,7 @@ auto search16(WORD * * q_start,
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   const VECTORTYPE T0_init = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
 #elif defined __x86_64__
-  const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
+  const auto T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 #elif defined __PPC__
   static constexpr auto unsigned_short_max = std::numeric_limits<unsigned short>::max();
   const VECTORTYPE T0_init = { unsigned_short_max, 0, 0, 0, 0, 0, 0, 0 };

@@ -808,7 +808,7 @@ auto search8(BYTE * * q_start,
   const VECTORTYPE T0_init = { uint8_max, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0 };
 #elif defined __x86_64__
-  const VECTORTYPE T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
+  const auto T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, -1);
 #elif defined __PPC__
   static constexpr auto uchar_max = std::numeric_limits<unsigned char>::max();
