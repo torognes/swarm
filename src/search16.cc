@@ -140,7 +140,7 @@ auto v_store = [](WORD* vector, VECTORTYPE cpu_register) -> void {
 
 using VECTORTYPE = vector unsigned short;
 
-#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
+#define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
 const vector unsigned char perm_merge_long_low =
   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
