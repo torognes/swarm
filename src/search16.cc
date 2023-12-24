@@ -119,13 +119,35 @@ auto v_store = [](WORD* vector, VECTORTYPE cpu_register) -> void {
   return _mm_store_si128(cast_vector(vector), cpu_register);
 };
 
-#define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
-#define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
-#define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
-#define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
-#define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
-#define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
-#define v_min(a, b) _mm_subs_epu16((a), _mm_subs_epu16((a), (b)))
+auto v_merge_lo_16 = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_unpacklo_epi16(lhs, rhs);
+};
+
+auto v_merge_hi_16 = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_unpackhi_epi16(lhs, rhs);
+};
+
+auto v_merge_lo_32 = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_unpacklo_epi32(lhs, rhs);
+};
+
+auto v_merge_hi_32 = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_unpackhi_epi32(lhs, rhs);
+};
+
+auto v_merge_lo_64 = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_unpacklo_epi64(lhs, rhs);
+};
+
+auto v_merge_hi_64 = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_unpackhi_epi64(lhs, rhs);
+};
+
+auto v_min = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_subs_epu16(lhs, _mm_subs_epu16(lhs, rhs));
+};
+
+// #define v_min(a, b) _mm_subs_epu16((a), _mm_subs_epu16((a), (b)))
 #define v_add(a, b) _mm_adds_epu16((a), (b))
 #define v_sub(a, b) _mm_subs_epu16((a), (b))
 #define v_dup(a) _mm_set1_epi16(a)
