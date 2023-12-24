@@ -45,7 +45,7 @@
 
 using WORD = unsigned short;
 using BYTE = unsigned char;
-// refactoring? using VECTORTYPE = __m128i; (same as sse41?)
+using VECTORTYPE = __m128i;
 
 
 /* 8-bit version with 16 channels */
@@ -54,9 +54,9 @@ auto dprofile_shuffle8(BYTE * dprofile,
                        BYTE * score_matrix,
                        BYTE * dseq_byte) -> void
 {
-  auto * profile_db = reinterpret_cast<__m128i *>(dprofile);    // output
-  auto * score_db = reinterpret_cast<__m128i *>(score_matrix);  // input
-  auto * sequence_db = reinterpret_cast<__m128i *>(dseq_byte);  // input
+  auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);    // output
+  auto * score_db = reinterpret_cast<VECTORTYPE *>(score_matrix);  // input
+  auto * sequence_db = reinterpret_cast<VECTORTYPE *>(dseq_byte);  // input
   const auto seq_chunk0 = _mm_load_si128(sequence_db + 0);  // 16 nucleotides
   const auto seq_chunk1 = _mm_load_si128(sequence_db + 1);  // next 16
   const auto seq_chunk2 = _mm_load_si128(sequence_db + 2);  // next 16
@@ -89,15 +89,15 @@ auto dprofile_shuffle16(WORD * dprofile,
                         BYTE * dseq_byte) -> void
 {
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
-  auto * profile_db = reinterpret_cast<__m128i *>(dprofile);
-  auto * score_db = reinterpret_cast<__m128i *>(score_matrix);
-  auto * sequence_db = reinterpret_cast<__m128i *>(dseq_byte);
+  auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);
+  auto * score_db = reinterpret_cast<VECTORTYPE *>(score_matrix);
+  auto * sequence_db = reinterpret_cast<VECTORTYPE *>(dseq_byte);
 
   const auto zero = _mm_setzero_si128();
   const auto one = _mm_set1_epi16(1);
 
   // refactoring: make lower_chunk and local_t const?
-  auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
+  auto transform_lower_seq_chunk = [&](const VECTORTYPE& seq_chunk) -> VECTORTYPE {
     auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
     lower_chunk = _mm_slli_epi16(lower_chunk, 1);
     auto local_t = _mm_adds_epu16(lower_chunk, one);
@@ -105,7 +105,7 @@ auto dprofile_shuffle16(WORD * dprofile,
     return _mm_or_si128(lower_chunk, local_t);
   };
 
-  auto transform_higher_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
+  auto transform_higher_seq_chunk = [&](const VECTORTYPE& seq_chunk) -> VECTORTYPE {
     auto higher_chunk = _mm_unpackhi_epi8(seq_chunk, zero);
     higher_chunk = _mm_slli_epi16(higher_chunk, 1);
     auto local_t = _mm_adds_epu16(higher_chunk, one);
