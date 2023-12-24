@@ -653,55 +653,55 @@ auto search16(WORD * * q_start,
 
           M = v_zero;
           T = T0;
-          for(auto c = 0U; c < channels; c++)
+          for(auto channel = 0U; channel < channels; channel++)
             {
-              if (d_pos[c] < d_length[c])
+              if (d_pos[channel] < d_length[channel])
                 {
                   // this channel has more sequence
 
                   for(auto j = 0U; j < cdepth; j++)
                     {
-                      if (d_pos[c] < d_length[c]) {
-                        dseq[channels * j + c]
-                          = 1 + nt_extract(d_address[c], d_pos[c]++);
+                      if (d_pos[channel] < d_length[channel]) {
+                        dseq[channels * j + channel]
+                          = 1 + nt_extract(d_address[channel], d_pos[channel]++);
                       }
                       else {
-                        dseq[channels*j+c] = 0;
+                        dseq[channels * j + channel] = 0;
                       }
                     }
-                  if (d_pos[c] == d_length[c]) {
+                  if (d_pos[channel] == d_length[channel]) {
                     easy = false;
                   }
                 }
               else
                 {
-                  // sequence in channel c ended
+                  // sequence in channel ended,
                   // change of sequence
 
                   M = v_xor(M, T);
 
-                  const int64_t cand_id = seq_id[c];
+                  const int64_t cand_id = seq_id[channel];
 
                   if (cand_id >= 0)
                     {
                       // save score
 
-                      char * dbseq = d_address[c];
-                      const uint64_t dbseqlen = d_length[c];
+                      char * dbseq = d_address[channel];
+                      const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
                       const uint64_t score
-                        = (reinterpret_cast<WORD*>(S))[z * channels + c];
+                        = (reinterpret_cast<WORD*>(S))[z * channels + channel];
                       scores[cand_id] = score;
 
                       uint64_t diff {0};
 
                       if (score < UINT16_MAX)
                         {
-                          const uint64_t offset = d_offset[c];
+                          const uint64_t offset = d_offset[channel];
                           diff = backtrack_16(query.seq, dbseq, qlen, dbseqlen,
                                               dirbuffer,
                                               offset,
-                                              dirbuffersize, c,
+                                              dirbuffersize, channel,
                                               alignmentlengths + cand_id,
                                               longestdbsequence);
                         }
@@ -718,46 +718,46 @@ auto search16(WORD * * q_start,
                   if (next_id < sequences)
                     {
                       // get next sequence
-                      seq_id[c] = static_cast<int64_t>(next_id);
+                      seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = seqnos[next_id];
                       char * address {nullptr};
                       unsigned int length {0};
 
                       db_getsequenceandlength(seqno, & address, & length);
 
-                      d_address[c] = address;
-                      d_length[c] = length;
+                      d_address[channel] = address;
+                      d_length[channel] = length;
 
-                      d_pos[c] = 0;
-                      d_offset[c] = static_cast<uint64_t>(dir - dirbuffer);
+                      d_pos[channel] = 0;
+                      d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer);
                       ++next_id;
 
-                      (reinterpret_cast<WORD*>(&H0))[c] = 0;
-                      (reinterpret_cast<WORD*>(&F0))[c] = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
+                      (reinterpret_cast<WORD*>(&H0))[channel] = 0;
+                      (reinterpret_cast<WORD*>(&F0))[channel] = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
                       for(auto j = 0U; j < cdepth; j++)
                         {
-                          if (d_pos[c] < d_length[c]) {
-                            dseq[channels * j + c] = 1 + nt_extract(d_address[c], d_pos[c]++);
+                          if (d_pos[channel] < d_length[channel]) {
+                            dseq[channels * j + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]++);
                           }
                           else {
-                            dseq[channels * j + c] = 0;
+                            dseq[channels * j + channel] = 0;
                           }
                         }
-                      if (d_pos[c] == d_length[c]) {
+                      if (d_pos[channel] == d_length[channel]) {
                         easy = false;
                       }
                     }
                   else
                     {
                       // no more sequences, empty channel
-                      seq_id[c] = -1;
-                      d_address[c] = nullptr;
-                      d_pos[c] = 0;
-                      d_length[c] = 0;
+                      seq_id[channel] = -1;
+                      d_address[channel] = nullptr;
+                      d_pos[channel] = 0;
+                      d_length[channel] = 0;
                       for(auto j = 0U; j < cdepth; j++) {
-                        dseq[channels * j + c] = 0;
+                        dseq[channels * j + channel] = 0;
                       }
                     }
                 }
