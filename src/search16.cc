@@ -107,8 +107,18 @@ using VECTORTYPE = __m128i;
 
 #define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
-#define v_load(a) _mm_load_si128(CAST_VECTOR_p(a))
-#define v_store(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
+auto cast_vector = [](WORD* vector) {
+  return reinterpret_cast<VECTORTYPE*>(vector);
+};
+
+auto v_load = [](WORD* vector) {
+  return _mm_load_si128(cast_vector(vector));
+};
+
+auto v_store = [](WORD* vector, VECTORTYPE cpu_register) {
+  return _mm_store_si128(cast_vector(vector), cpu_register);
+};
+
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
 #define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
