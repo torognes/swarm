@@ -582,18 +582,18 @@ auto search16(WORD * * q_start,
   const VECTORTYPE T0_init = { unsigned_short_max, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
-  const VECTORTYPE T0 = T0_init;
+  const auto T0 = T0_init;
 
-  VECTORTYPE Q = v_dup(static_cast<short>(gap_open_penalty + gap_extend_penalty));
-  VECTORTYPE R = v_dup(static_cast<short>(gap_extend_penalty));
+  auto Q = v_dup(static_cast<short>(gap_open_penalty + gap_extend_penalty));
+  auto R = v_dup(static_cast<short>(gap_extend_penalty));
 
   done = 0;
 
-  VECTORTYPE *hep = CAST_VECTOR_p(hearray);
-  VECTORTYPE **qp = reinterpret_cast<VECTORTYPE**>(q_start);
+  auto *hep = CAST_VECTOR_p(hearray);
+  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
-  VECTORTYPE F0 = v_zero;
-  VECTORTYPE H0 = v_zero;
+  auto F0 = v_zero;
+  auto H0 = v_zero;
 
   bool easy {false};
 
