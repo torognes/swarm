@@ -574,15 +574,13 @@ auto search16(WORD * * q_start,
 
 #ifdef __aarch64__
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
-  const VECTORTYPE T0_init = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
+  const VECTORTYPE T0 = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
 #elif defined __x86_64__
-  const auto T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
+  const auto T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 #elif defined __PPC__
   static constexpr auto unsigned_short_max = std::numeric_limits<unsigned short>::max();
-  const VECTORTYPE T0_init = { unsigned_short_max, 0, 0, 0, 0, 0, 0, 0 };
+  const VECTORTYPE T0 = { unsigned_short_max, 0, 0, 0, 0, 0, 0, 0 };
 #endif
-
-  const auto T0 = T0_init;
 
   auto Q = v_dup(static_cast<short>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup(static_cast<short>(gap_extend_penalty));

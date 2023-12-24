@@ -805,18 +805,16 @@ auto search8(BYTE * * q_start,
 
 #ifdef __aarch64__
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  const VECTORTYPE T0_init = { uint8_max, 0, 0, 0, 0, 0, 0, 0,
+  const VECTORTYPE T0 = { uint8_max, 0, 0, 0, 0, 0, 0, 0,
                                 0, 0, 0, 0, 0, 0, 0, 0 };
 #elif defined __x86_64__
-  const auto T0_init = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
+  const auto T0 = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, -1);
 #elif defined __PPC__
   static constexpr auto uchar_max = std::numeric_limits<unsigned char>::max();
-  const VECTORTYPE T0_init = { uchar_max, 0, 0, 0, 0, 0, 0, 0,
+  const VECTORTYPE T0 = { uchar_max, 0, 0, 0, 0, 0, 0, 0,
                                0, 0, 0, 0, 0, 0, 0, 0 };
 #endif
-
-  const auto T0 = T0_init;
 
   auto Q = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup(static_cast<char>(gap_extend_penalty));
