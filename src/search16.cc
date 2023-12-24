@@ -77,29 +77,29 @@ using VECTORTYPE = uint16x8_t;
 const uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
 
-#define v_load(a) vld1q_s16((const int16_t *)(a))
-#define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
-#define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
-#define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
-#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32 \
-          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32 \
-          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
-          (vget_low_s64(vreinterpretq_s64_s16(a)), \
-           vget_low_s64(vreinterpretq_s64_s16(b))))
-#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
-          (vget_high_s64(vreinterpretq_s64_s16(a)), \
-           vget_high_s64(vreinterpretq_s64_s16(b))))
+#define v_load(a) vld1q_u16((const uint16_t *)(a))
+#define v_store(a, b) vst1q_u16((uint16_t *)(a), (b))
+#define v_merge_lo_16(a, b) vzip1q_u16((a),(b))
+#define v_merge_hi_16(a, b) vzip2q_u16((a),(b))
+#define v_merge_lo_32(a, b) vreinterpretq_u16_u32(vzip1q_u32 \
+          (vreinterpretq_u32_u16(a), vreinterpretq_u32_u16(b)))
+#define v_merge_hi_32(a, b) vreinterpretq_u16_u32(vzip2q_u32 \
+          (vreinterpretq_u32_u16(a), vreinterpretq_u32_u16(b)))
+#define v_merge_lo_64(a, b) vreinterpretq_u16_u64(vcombine_u64 \
+          (vget_low_u64(vreinterpretq_u64_u16(a)), \
+           vget_low_u64(vreinterpretq_u64_u16(b))))
+#define v_merge_hi_64(a, b) vreinterpretq_u16_u64(vcombine_u64 \
+          (vget_high_u64(vreinterpretq_u64_u16(a)), \
+           vget_high_u64(vreinterpretq_u64_u16(b))))
 #define v_min(a, b) vminq_u16((a), (b))
 #define v_add(a, b) vqaddq_u16((a), (b))
 #define v_sub(a, b) vqsubq_u16((a), (b))
-#define v_dup(a) vdupq_n_s16(a)
+#define v_dup(a) vdupq_n_u16(a)
 #define v_zero v_dup(0)
 #define v_and(a, b) vandq_u16((a), (b))
 #define v_xor(a, b) veorq_u16((a), (b))
 #define v_shift_left(a) vextq_u16((v_zero), (a), 7)
-#define v_mask_eq(a, b) vaddvq_u16(vandq_u16((vceqq_s16((a), (b))), neon_mask))
+#define v_mask_eq(a, b) vaddvq_u16(vandq_u16((vceqq_u16((a), (b))), neon_mask))
 
 #elif defined __x86_64__
 
