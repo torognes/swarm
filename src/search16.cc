@@ -316,17 +316,17 @@ inline void onestep_16(VECTORTYPE & H,
   H = v_add(H, V);
   auto W = H;
   H = v_min(H, F);
-  *(DIR+0) = v_mask_eq(W, H);
+  *(DIR + 0) = v_mask_eq(W, H);
   H = v_min(H, E);
-  *(DIR+1) = v_mask_eq(H, E);
+  *(DIR + 1) = v_mask_eq(H, E);
   N = H;
   H = v_add(H, QR);
   F = v_add(F, R);
   E = v_add(E, R);
   F = v_min(H, F);
-  *(DIR+2) = v_mask_eq(H, F);
+  *(DIR + 2) = v_mask_eq(H, F);
   E = v_min(H, E);
-  *(DIR+3) = v_mask_eq(H, E);
+  *(DIR + 3) = v_mask_eq(H, E);
 }
 
 void align_cells_regular_16(VECTORTYPE * Sm,
