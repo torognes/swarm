@@ -25,6 +25,7 @@
 #include "db.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
+#include <limits>
 
 
 #ifdef __x86_64__
@@ -43,14 +44,12 @@
 
 #ifdef __aarch64__
 #include <arm_neon.h>
-#include <limits>
 #elif defined __x86_64__
 
 #elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
 #include <altivec.h>
-#include <limits>
 #else
 #error Big endian ppc64 CPUs not supported
 #endif
@@ -547,6 +546,7 @@ auto search16(WORD * * q_start,
               uint64_t * dirbuffer,
               const uint64_t longestdbsequence) -> void
 {
+  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   VECTORTYPE T;
   VECTORTYPE M;
   VECTORTYPE MQ;
@@ -574,7 +574,6 @@ auto search16(WORD * * q_start,
   uint64_t done {0};
 
 #ifdef __aarch64__
-  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   const VECTORTYPE T0 = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
 #elif defined __x86_64__
   const auto T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
@@ -695,7 +694,7 @@ auto search16(WORD * * q_start,
 
                       uint64_t diff {0};
 
-                      if (score < UINT16_MAX)
+                      if (score < uint16_max)
                         {
                           const uint64_t offset = d_offset[channel];
                           diff = backtrack_16(query.seq, dbseq, qlen, dbseqlen,
@@ -707,7 +706,7 @@ auto search16(WORD * * q_start,
                         }
                       else
                         {
-                          diff = UINT16_MAX;
+                          diff = uint16_max;
                         }
 
                       diffs[cand_id] = diff;
