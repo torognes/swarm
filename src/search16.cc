@@ -561,13 +561,13 @@ auto search16(WORD * * q_start,
   std::array<int64_t, channels> seq_id {{}};
   seq_id.fill(-1);
 
-  VECTORTYPE dseqalloc[cdepth];
-
   // refactoring fail: std::array -> warning: ignoring attributes on
   // template argument ‘VECTORTYPE’ {aka ‘__m128i’}
   VECTORTYPE S[4];
 
-  auto * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
+  // make an array of size VECTORTYPE * channels, but interpret as
+  // an array of BYTES
+  std::array<BYTE, channels * sizeof(VECTORTYPE) / sizeof(BYTE)> dseq {{}};
 
   uint64_t next_id {0};
   uint64_t done {0};
@@ -626,12 +626,12 @@ auto search16(WORD * * q_start,
 #ifdef __x86_64__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle16(dprofile, score_matrix, dseq);
+              dprofile_shuffle16(dprofile, score_matrix, dseq.data());
             }
           else
 #endif
             {
-              dprofile_fill16(dprofile, score_matrix, dseq);
+              dprofile_fill16(dprofile, score_matrix, dseq.data());
             }
 
 #ifdef __x86_64__
@@ -773,12 +773,12 @@ auto search16(WORD * * q_start,
 #ifdef __x86_64__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle16(dprofile, score_matrix, dseq);
+              dprofile_shuffle16(dprofile, score_matrix, dseq.data());
             }
           else
 #endif
             {
-              dprofile_fill16(dprofile, score_matrix, dseq);
+              dprofile_fill16(dprofile, score_matrix, dseq.data());
             }
 
           MQ = v_and(M, Q);
