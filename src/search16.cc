@@ -566,7 +566,7 @@ auto search16(WORD * * q_start,
   VECTORTYPE S[4];
 
   // make an array of size VECTORTYPE * channels, but interpret as
-  // an array of BYTES
+  // an array of BYTES (or WORDS?)
   std::array<BYTE, channels * sizeof(VECTORTYPE) / sizeof(BYTE)> dseq {{}};
 
   uint64_t next_id {0};
