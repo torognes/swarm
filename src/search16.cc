@@ -562,6 +562,8 @@ auto search16(WORD * * q_start,
 
   VECTORTYPE dseqalloc[cdepth];
 
+  // refactoring fail: std::array -> warning: ignoring attributes on
+  // template argument ‘VECTORTYPE’ {aka ‘__m128i’}
   VECTORTYPE S[4];
 
   auto * dseq = reinterpret_cast<BYTE*>(& dseqalloc);
