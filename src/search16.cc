@@ -25,6 +25,7 @@
 #include "db.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
+#include <limits>
 
 
 #ifdef __x86_64__
@@ -69,7 +70,7 @@ using WORD = unsigned short;
 
 #ifdef __aarch64__
 
-using VECTORTYPE = int16x8_t;
+using VECTORTYPE = uint16x8_t;
 
 #define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
@@ -572,11 +573,13 @@ auto search16(WORD * * q_start,
   uint64_t done {0};
 
 #ifdef __aarch64__
-  const VECTORTYPE T0_init = { -1, 0, 0, 0, 0, 0, 0, 0 };
+  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
+  const VECTORTYPE T0_init = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
 #elif defined __x86_64__
   const VECTORTYPE T0_init = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
 #elif defined __PPC__
-  const VECTORTYPE T0_init = { (unsigned short)(-1), 0, 0, 0, 0, 0, 0, 0 };
+  static constexpr auto unsigned_short_max = std::numeric_limits<unsigned short>::max();
+  const VECTORTYPE T0_init = { unsigned_short_max, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
   const VECTORTYPE T0 = T0_init;
