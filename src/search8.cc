@@ -837,19 +837,19 @@ auto search8(BYTE * * q_start,
         {
           // fill all channels
 
-          for(auto c = 0U; c < channels; c++)
+          for(auto channel = 0U; channel < channels; channel++)
             {
               for(auto j = 0U; j < cdepth; j++)
                 {
-                  if (d_pos[c] < d_length[c]) {
-                    dseq[channels * j + c]
-                      = 1 + nt_extract(d_address[c], d_pos[c]++);
+                  if (d_pos[channel] < d_length[channel]) {
+                    dseq[channels * j + channel]
+                      = 1 + nt_extract(d_address[channel], d_pos[channel]++);
                   }
                   else {
-                    dseq[channels * j + c] = 0;
+                    dseq[channels * j + channel] = 0;
                   }
                 }
-              if (d_pos[c] == d_length[c]) {
+              if (d_pos[channel] == d_length[channel]) {
                 easy = false;
               }
             }
