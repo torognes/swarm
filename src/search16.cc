@@ -436,11 +436,9 @@ void align_cells_masked_16(VECTORTYPE * Sm,
 
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE *x {nullptr};
-
       h4 = hep[2 * i + 0];
       E  = hep[2 * i + 1];
-      x = qp[i + 0];
+      VECTORTYPE *x = qp[i + 0];
 
       /* mask h4 and E */
       h4 = v_sub(h4, *Mm);
