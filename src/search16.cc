@@ -147,16 +147,46 @@ auto v_min = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
   return _mm_subs_epu16(lhs, _mm_subs_epu16(lhs, rhs));
 };
 
-// #define v_min(a, b) _mm_subs_epu16((a), _mm_subs_epu16((a), (b)))
-#define v_add(a, b) _mm_adds_epu16((a), (b))
-#define v_sub(a, b) _mm_subs_epu16((a), (b))
+auto v_add = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_adds_epu16(lhs, rhs);
+};
+
+auto v_sub = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_subs_epu16(lhs, rhs);
+};
+
+// auto v_dup = [](int16_t value) -> VECTORTYPE {
+//   // broadcast a 16-bit integer to all elements of destination
+//   return _mm_set1_epi16(value);
+// };
+
+// auto v_zero = []() -> VECTORTYPE {
+//   return v_dup(0);
+// };
+
 #define v_dup(a) _mm_set1_epi16(a)
 #define v_zero v_dup(0)
-#define v_and(a, b) _mm_and_si128((a), (b))
-#define v_xor(a, b) _mm_xor_si128((a), (b))
-#define v_shift_left(a) _mm_slli_si128((a), 2)
-#define v_mask_eq(a, b) static_cast<unsigned short> \
-  (_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
+
+auto v_and = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_and_si128(lhs, rhs);
+};
+
+auto v_xor = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_xor_si128(lhs, rhs);
+};
+
+auto v_shift_left = [](VECTORTYPE vector) -> VECTORTYPE {
+  // shift vector to the left by n bytes, pad with zeros
+  static constexpr auto n_bytes {2};
+  return _mm_slli_si128(vector, n_bytes);
+};
+
+auto v_mask_eq = [](VECTORTYPE lhs, VECTORTYPE rhs) -> WORD {
+  // - compare vectors of 16-bit integers for equality
+  // - create mask from the most significant bit of each 8-bit
+  //   element, return an int
+  return static_cast<WORD>(_mm_movemask_epi8(_mm_cmpeq_epi16(lhs, rhs)));
+};
 
 #elif defined __PPC__
 
