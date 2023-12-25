@@ -80,20 +80,20 @@ const uint8x16_t neon_mask =
 const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
 #define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
-#define v_store(a, b) vst1q_s8((int8_t *)(a), (b))
-#define v_merge_lo_8(a, b) vzip1q_s8((a),(b))
-#define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
-#define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
-#define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32 \
-          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_hi_32(a, b) vreinterpretq_s16_s32(vzip2q_s32 \
-          (vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
-#define v_merge_lo_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
-          (vget_low_s64(vreinterpretq_s64_s16(a)), \
-           vget_low_s64(vreinterpretq_s64_s16(b))))
-#define v_merge_hi_64(a, b) vreinterpretq_s16_s64(vcombine_s64 \
-          (vget_high_s64(vreinterpretq_s64_s16(a)), \
-           vget_high_s64(vreinterpretq_s64_s16(b))))
+#define v_store(a, b) vst1q_u8((uint8_t *)(a), (b))
+#define v_merge_lo_8(a, b) vzip1q_u8((a),(b))
+#define v_merge_lo_16(a, b) vzip1q_u16((a),(b))
+#define v_merge_hi_16(a, b) vzip2q_u16((a),(b))
+#define v_merge_lo_32(a, b) vreinterpretq_u16_u32(vzip1q_u32 \
+          (vreinterpretq_u32_u16(a), vreinterpretq_u32_u16(b)))
+#define v_merge_hi_32(a, b) vreinterpretq_u16_u32(vzip2q_u32 \
+          (vreinterpretq_u32_u16(a), vreinterpretq_u32_u16(b)))
+#define v_merge_lo_64(a, b) vreinterpretq_u16_u64(vcombine_u64 \
+          (vget_low_u64(vreinterpretq_u64_u16(a)), \
+           vget_low_u64(vreinterpretq_u64_u16(b))))
+#define v_merge_hi_64(a, b) vreinterpretq_u16_u64(vcombine_u64 \
+          (vget_high_u64(vreinterpretq_u64_u16(a)), \
+           vget_high_u64(vreinterpretq_u64_u16(b))))
 #define v_min(a, b) vminq_u8((a), (b))
 #define v_add(a, b) vqaddq_u8((a), (b))
 #define v_sub(a, b) vqsubq_u8((a), (b))
@@ -103,7 +103,7 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 #define v_xor(a, b) veorq_u8((a), (b))
 #define v_shift_left(a) vextq_u8((v_zero), (a), 15)
 #define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8 \
-          ((vceqq_s8((a), (b))), neon_mask)), neon_shift))
+          ((vceqq_u8((a), (b))), neon_mask)), neon_shift))
 
 #elif defined __x86_64__
 
