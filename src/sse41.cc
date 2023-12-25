@@ -46,6 +46,8 @@
 
 
 using VECTORTYPE = __m128i;
+using WORD = unsigned short;
+
 #define v_min(a, b) _mm_min_epu16((a), (b))
 #define v_add(a, b) _mm_adds_epu16((a), (b))
 #define v_sub(a, b) _mm_subs_epu16((a), (b))
