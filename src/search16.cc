@@ -244,6 +244,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             BYTE * dseq)
 {
   static constexpr auto multiplier {5U};
+  static constexpr auto pos0 {0U};
+  static constexpr auto pos1 {pos0 + 1};
+  static constexpr auto pos2 {pos1 + 1};
+  static constexpr auto pos3 {pos2 + 1};
+  static constexpr auto pos4 {pos3 + 1};
+  static constexpr auto pos5 {pos4 + 1};
+  static constexpr auto pos6 {pos5 + 1};
+  static constexpr auto pos7 {pos6 + 1};
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
@@ -287,14 +295,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
       for(auto i = 0ULL; i < channels; i += channels)
         {
           // refactoring: eliminate magic numbers
-          reg0  = v_load(score_matrix_word + d[0] + i);
-          reg1  = v_load(score_matrix_word + d[1] + i);
-          reg2  = v_load(score_matrix_word + d[2] + i);
-          reg3  = v_load(score_matrix_word + d[3] + i);
-          reg4  = v_load(score_matrix_word + d[4] + i);
-          reg5  = v_load(score_matrix_word + d[5] + i);
-          reg6  = v_load(score_matrix_word + d[6] + i);
-          reg7  = v_load(score_matrix_word + d[7] + i);
+          reg0  = v_load(score_matrix_word + d[pos0] + i);
+          reg1  = v_load(score_matrix_word + d[pos1] + i);
+          reg2  = v_load(score_matrix_word + d[pos2] + i);
+          reg3  = v_load(score_matrix_word + d[pos3] + i);
+          reg4  = v_load(score_matrix_word + d[pos4] + i);
+          reg5  = v_load(score_matrix_word + d[pos5] + i);
+          reg6  = v_load(score_matrix_word + d[pos6] + i);
+          reg7  = v_load(score_matrix_word + d[pos7] + i);
 
           reg8  = v_merge_lo_16(reg0,  reg1);
           reg9  = v_merge_hi_16(reg0,  reg1);
@@ -323,14 +331,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
           reg30 = v_merge_lo_64(reg21, reg23);
           reg31 = v_merge_hi_64(reg21, reg23);
 
-          v_store(dprofile_word + (i + 0) * cdepth * channels + channels * j, reg24);
-          v_store(dprofile_word + (i + 1) * cdepth * channels + channels * j, reg25);
-          v_store(dprofile_word + (i + 2) * cdepth * channels + channels * j, reg26);
-          v_store(dprofile_word + (i + 3) * cdepth * channels + channels * j, reg27);
-          v_store(dprofile_word + (i + 4) * cdepth * channels + channels * j, reg28);
-          v_store(dprofile_word + (i + 5) * cdepth * channels + channels * j, reg29);
-          v_store(dprofile_word + (i + 6) * cdepth * channels + channels * j, reg30);
-          v_store(dprofile_word + (i + 7) * cdepth * channels + channels * j, reg31);
+          v_store(dprofile_word + (i + pos0) * cdepth * channels + channels * j, reg24);
+          v_store(dprofile_word + (i + pos1) * cdepth * channels + channels * j, reg25);
+          v_store(dprofile_word + (i + pos2) * cdepth * channels + channels * j, reg26);
+          v_store(dprofile_word + (i + pos3) * cdepth * channels + channels * j, reg27);
+          v_store(dprofile_word + (i + pos4) * cdepth * channels + channels * j, reg28);
+          v_store(dprofile_word + (i + pos5) * cdepth * channels + channels * j, reg29);
+          v_store(dprofile_word + (i + pos6) * cdepth * channels + channels * j, reg30);
+          v_store(dprofile_word + (i + pos7) * cdepth * channels + channels * j, reg31);
         }
     }
 }
