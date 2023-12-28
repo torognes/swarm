@@ -132,18 +132,18 @@ uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 
 auto popcount_128(__m128i vector) -> uint64_t
 {
-  static constexpr unsigned char m1 {0x55};  // '0101 0101'
-  static constexpr unsigned char m2 {0x33};  // '0011 0011'
-  static constexpr unsigned char m4 {0x0f};  // '0000 1111'
+  static constexpr unsigned char char1 {0x55};  // '0101 0101'
+  static constexpr unsigned char char2 {0x33};  // '0011 0011'
+  static constexpr unsigned char char4 {0x0f};  // '0000 1111'
 
-  const auto mask1 = _mm_set_epi8(m1, m1, m1, m1, m1, m1, m1, m1,
-                                  m1, m1, m1, m1, m1, m1, m1, m1);
+  const auto mask1 = _mm_set_epi8(char1, char1, char1, char1, char1, char1, char1, char1,
+                                  char1, char1, char1, char1, char1, char1, char1, char1);
 
-  const auto mask2 = _mm_set_epi8(m2, m2, m2, m2, m2, m2, m2, m2,
-                                  m2, m2, m2, m2, m2, m2, m2, m2);
+  const auto mask2 = _mm_set_epi8(char2, char2, char2, char2, char2, char2, char2, char2,
+                                  char2, char2, char2, char2, char2, char2, char2, char2);
 
-  const auto mask4 = _mm_set_epi8(m4, m4, m4, m4, m4, m4, m4, m4,
-                                  m4, m4, m4, m4, m4, m4, m4, m4);
+  const auto mask4 = _mm_set_epi8(char4, char4, char4, char4, char4, char4, char4, char4,
+                                  char4, char4, char4, char4, char4, char4, char4, char4);
 
   const auto zero = _mm_setzero_si128();
 
