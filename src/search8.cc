@@ -190,6 +190,7 @@ inline void dprofile_fill8(BYTE * dprofile,
 {
   static constexpr auto multiplier {5U};
   static constexpr auto n_lanes {16ULL};  // refactoring: same as channels?
+
   static constexpr auto pos0 {0U};
   static constexpr auto pos1 {pos0 + 1};
   static constexpr auto pos2 {pos1 + 1};
