@@ -243,7 +243,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE * dseq)
 {
-  static constexpr unsigned int multiplier {5};
+  static constexpr auto multiplier {5U};
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
