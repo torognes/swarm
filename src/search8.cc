@@ -186,7 +186,7 @@ const vector unsigned char perm_bits =
 
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
-                           BYTE * dseq)
+                           BYTE const * dseq)
 {
   static constexpr auto multiplier {5U};
   static constexpr auto n_lanes {16ULL};  // refactoring: same as channels?
