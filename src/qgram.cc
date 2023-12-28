@@ -130,9 +130,6 @@ uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 
 #elif defined __x86_64__
 
-auto popcount_128(__m128i x) -> uint64_t;
-auto compareqgramvectors_128(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t;
-
 auto popcount_128(__m128i x) -> uint64_t
 {
   static constexpr unsigned char m1 {0x55};  // '0101 0101'
