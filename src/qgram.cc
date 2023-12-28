@@ -140,13 +140,13 @@ auto popcount_128(__m128i x) -> uint64_t
   static constexpr unsigned char m4 {0x0f};  // '0000 1111'
 
   const auto mask1 = _mm_set_epi8(m1, m1, m1, m1, m1, m1, m1, m1,
-                                     m1, m1, m1, m1, m1, m1, m1, m1);
+                                  m1, m1, m1, m1, m1, m1, m1, m1);
 
   const auto mask2 = _mm_set_epi8(m2, m2, m2, m2, m2, m2, m2, m2,
-                                     m2, m2, m2, m2, m2, m2, m2, m2);
+                                  m2, m2, m2, m2, m2, m2, m2, m2);
 
   const auto mask4 = _mm_set_epi8(m4, m4, m4, m4, m4, m4, m4, m4,
-                                     m4, m4, m4, m4, m4, m4, m4, m4);
+                                  m4, m4, m4, m4, m4, m4, m4, m4);
 
   const auto zero = _mm_setzero_si128();
 
