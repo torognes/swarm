@@ -135,6 +135,10 @@ auto popcount_128(__m128i input_vector) -> uint64_t
   static constexpr unsigned char char1 {0x55};  // '0101 0101'
   static constexpr unsigned char char2 {0x33};  // '0011 0011'
   static constexpr unsigned char char4 {0x0f};  // '0000 1111'
+  static constexpr auto shift_by_1 {1};
+  static constexpr auto shift_by_2 {2};
+  static constexpr auto shift_by_4 {4};
+  static constexpr auto shift_by_8 {8};
 
   const auto mask1 = _mm_set_epi8(char1, char1, char1, char1, char1, char1, char1, char1,
                                   char1, char1, char1, char1, char1, char1, char1, char1);
@@ -149,21 +153,21 @@ auto popcount_128(__m128i input_vector) -> uint64_t
 
   /* add together 2 bits: 0+1, 2+3, 3+4, ... 126+127 */
 
-  const auto vector_a = _mm_srli_epi64(input_vector, 1);
+  const auto vector_a = _mm_srli_epi64(input_vector, shift_by_1);
   const auto vector_b = _mm_and_si128(input_vector, mask1);
   const auto vector_c = _mm_and_si128(vector_a, mask1);
   const auto vector_d = _mm_add_epi64(vector_b, vector_c);
 
   /* add together 4 bits: (0+1)+(2+3), ... (124+125)+(126+127) */
 
-  const auto vector_e = _mm_srli_epi64(vector_d, 2);
+  const auto vector_e = _mm_srli_epi64(vector_d, shift_by_2);
   const auto vector_f = _mm_and_si128(vector_d, mask2);
   const auto vector_g = _mm_and_si128(vector_e, mask2);
   const auto vector_h = _mm_add_epi64(vector_f, vector_g);
 
   /* add together 8 bits: (0..3)+(4..7), ... (120..123)+(124..127) */
 
-  const auto vector_i = _mm_srli_epi64(vector_h, 4);
+  const auto vector_i = _mm_srli_epi64(vector_h, shift_by_4);
   const auto vector_j = _mm_add_epi64(vector_h, vector_i);
   const auto vector_k = _mm_and_si128(vector_j, mask4);
 
@@ -173,7 +177,7 @@ auto popcount_128(__m128i input_vector) -> uint64_t
 
   /* add together 64-bit values into final 128 bit value */
 
-  const auto vector_m = _mm_srli_si128(vector_l, 8);
+  const auto vector_m = _mm_srli_si128(vector_l, shift_by_8);
   const auto vector_n = _mm_add_epi64(vector_m, vector_l);
 
   /* return low 64 bits: return value is always in range 0 to 128 */
