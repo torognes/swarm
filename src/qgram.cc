@@ -181,6 +181,7 @@ auto popcount_128(__m128i x) -> uint64_t
   return reinterpret_cast<uint64_t>(_mm_movepi64_pi64(n));
 }
 
+
 auto compareqgramvectors_128(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t
 {
   /* Count number of different bits */
@@ -197,6 +198,7 @@ auto compareqgramvectors_128(unsigned char * qgram_a, unsigned char * qgram_b) -
 
   return count;
 }
+
 
 auto compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t
 {
