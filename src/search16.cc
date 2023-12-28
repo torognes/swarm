@@ -294,7 +294,6 @@ inline void dprofile_fill16(WORD * dprofile_word,
 
       for(auto i = 0ULL; i < channels; i += channels)
         {
-          // refactoring: eliminate magic numbers
           reg0  = v_load(score_matrix_word + d[pos0] + i);
           reg1  = v_load(score_matrix_word + d[pos1] + i);
           reg2  = v_load(score_matrix_word + d[pos2] + i);
