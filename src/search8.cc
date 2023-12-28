@@ -188,7 +188,7 @@ inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE * dseq)
 {
-  static constexpr unsigned int multiplier {5};
+  static constexpr auto multiplier {5U};
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
