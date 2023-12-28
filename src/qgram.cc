@@ -139,45 +139,45 @@ auto popcount_128(__m128i x) -> uint64_t
   static constexpr unsigned char m2 {0x33};  // '0011 0011'
   static constexpr unsigned char m4 {0x0f};  // '0000 1111'
 
-  const __m128i mask1 = _mm_set_epi8(m1, m1, m1, m1, m1, m1, m1, m1,
+  const auto mask1 = _mm_set_epi8(m1, m1, m1, m1, m1, m1, m1, m1,
                                      m1, m1, m1, m1, m1, m1, m1, m1);
 
-  const __m128i mask2 = _mm_set_epi8(m2, m2, m2, m2, m2, m2, m2, m2,
+  const auto mask2 = _mm_set_epi8(m2, m2, m2, m2, m2, m2, m2, m2,
                                      m2, m2, m2, m2, m2, m2, m2, m2);
 
-  const __m128i mask4 = _mm_set_epi8(m4, m4, m4, m4, m4, m4, m4, m4,
+  const auto mask4 = _mm_set_epi8(m4, m4, m4, m4, m4, m4, m4, m4,
                                      m4, m4, m4, m4, m4, m4, m4, m4);
 
-  const __m128i zero = _mm_setzero_si128();
+  const auto zero = _mm_setzero_si128();
 
   /* add together 2 bits: 0+1, 2+3, 3+4, ... 126+127 */
 
-  const __m128i a = _mm_srli_epi64(x, 1);
-  const __m128i b = _mm_and_si128(x, mask1);
-  const __m128i c = _mm_and_si128(a, mask1);
-  const __m128i d = _mm_add_epi64(b, c);
+  const auto a = _mm_srli_epi64(x, 1);
+  const auto b = _mm_and_si128(x, mask1);
+  const auto c = _mm_and_si128(a, mask1);
+  const auto d = _mm_add_epi64(b, c);
 
   /* add together 4 bits: (0+1)+(2+3), ... (124+125)+(126+127) */
 
-  const __m128i e = _mm_srli_epi64(d, 2);
-  const __m128i f = _mm_and_si128(d, mask2);
-  const __m128i g = _mm_and_si128(e, mask2);
-  const __m128i h = _mm_add_epi64(f, g);
+  const auto e = _mm_srli_epi64(d, 2);
+  const auto f = _mm_and_si128(d, mask2);
+  const auto g = _mm_and_si128(e, mask2);
+  const auto h = _mm_add_epi64(f, g);
 
   /* add together 8 bits: (0..3)+(4..7), ... (120..123)+(124..127) */
 
-  const __m128i i = _mm_srli_epi64(h, 4);
-  const __m128i j = _mm_add_epi64(h, i);
-  const __m128i k = _mm_and_si128(j, mask4);
+  const auto i = _mm_srli_epi64(h, 4);
+  const auto j = _mm_add_epi64(h, i);
+  const auto k = _mm_and_si128(j, mask4);
 
   /* add together 8 bytes: (0..63) and (64..127) */
 
-  const __m128i l = _mm_sad_epu8(k, zero);
+  const auto l = _mm_sad_epu8(k, zero);
 
   /* add together 64-bit values into final 128 bit value */
 
-  const __m128i m = _mm_srli_si128(l, 8);
-  const __m128i n = _mm_add_epi64(m, l);
+  const auto m = _mm_srli_si128(l, 8);
+  const auto n = _mm_add_epi64(m, l);
 
   /* return low 64 bits: return value is always in range 0 to 128 */
 
