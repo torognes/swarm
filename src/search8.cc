@@ -189,6 +189,7 @@ inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * dseq)
 {
   static constexpr auto multiplier {5U};
+  static constexpr auto n_lanes {16ULL};  // refactoring: same as channels?
   static constexpr auto pos0 {0U};
   static constexpr auto pos1 {pos0 + 1};
   static constexpr auto pos2 {pos1 + 1};
@@ -286,14 +287,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + 16ULL * j +   0, reg0);
-      v_store(dprofile + 16ULL * j +  64, reg3);
-      v_store(dprofile + 16ULL * j + 128, reg2);
-      v_store(dprofile + 16ULL * j + 192, reg7);
-      v_store(dprofile + 16ULL * j + 256, reg1);
-      v_store(dprofile + 16ULL * j + 320, reg11);
-      v_store(dprofile + 16ULL * j + 384, reg6);
-      v_store(dprofile + 16ULL * j + 448, reg15);
+      v_store(dprofile + n_lanes * j +   0, reg0);
+      v_store(dprofile + n_lanes * j +  64, reg3);
+      v_store(dprofile + n_lanes * j + 128, reg2);
+      v_store(dprofile + n_lanes * j + 192, reg7);
+      v_store(dprofile + n_lanes * j + 256, reg1);
+      v_store(dprofile + n_lanes * j + 320, reg11);
+      v_store(dprofile + n_lanes * j + 384, reg6);
+      v_store(dprofile + n_lanes * j + 448, reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -363,14 +364,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + 16ULL * j + 512 +   0, reg0);
-      v_store(dprofile + 16ULL * j + 512 +  64, reg3);
-      v_store(dprofile + 16ULL * j + 512 + 128, reg2);
-      v_store(dprofile + 16ULL * j + 512 + 192, reg7);
-      v_store(dprofile + 16ULL * j + 512 + 256, reg1);
-      v_store(dprofile + 16ULL * j + 512 + 320, reg11);
-      v_store(dprofile + 16ULL * j + 512 + 384, reg6);
-      v_store(dprofile + 16ULL * j + 512 + 448, reg15);
+      v_store(dprofile + n_lanes * j + 512 +   0, reg0);
+      v_store(dprofile + n_lanes * j + 512 +  64, reg3);
+      v_store(dprofile + n_lanes * j + 512 + 128, reg2);
+      v_store(dprofile + n_lanes * j + 512 + 192, reg7);
+      v_store(dprofile + n_lanes * j + 512 + 256, reg1);
+      v_store(dprofile + n_lanes * j + 512 + 320, reg11);
+      v_store(dprofile + n_lanes * j + 512 + 384, reg6);
+      v_store(dprofile + n_lanes * j + 512 + 448, reg15);
 
 
       reg0  = v_load_64(score_matrix + 16 + d[pos0]);
@@ -430,14 +431,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + 16ULL * j + 1024 +   0, reg0);
-      v_store(dprofile + 16ULL * j + 1024 +  64, reg3);
-      v_store(dprofile + 16ULL * j + 1024 + 128, reg2);
-      v_store(dprofile + 16ULL * j + 1024 + 192, reg7);
-      v_store(dprofile + 16ULL * j + 1024 + 256, reg1);
-      v_store(dprofile + 16ULL * j + 1024 + 320, reg11);
-      v_store(dprofile + 16ULL * j + 1024 + 384, reg6);
-      v_store(dprofile + 16ULL * j + 1024 + 448, reg15);
+      v_store(dprofile + n_lanes * j + 1024 +   0, reg0);
+      v_store(dprofile + n_lanes * j + 1024 +  64, reg3);
+      v_store(dprofile + n_lanes * j + 1024 + 128, reg2);
+      v_store(dprofile + n_lanes * j + 1024 + 192, reg7);
+      v_store(dprofile + n_lanes * j + 1024 + 256, reg1);
+      v_store(dprofile + n_lanes * j + 1024 + 320, reg11);
+      v_store(dprofile + n_lanes * j + 1024 + 384, reg6);
+      v_store(dprofile + n_lanes * j + 1024 + 448, reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -507,14 +508,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + 16ULL * j + 1536 +   0, reg0);  // refactoring: 1536 = 6 * 256 bits?
-      v_store(dprofile + 16ULL * j + 1536 +  64, reg3);
-      v_store(dprofile + 16ULL * j + 1536 + 128, reg2);
-      v_store(dprofile + 16ULL * j + 1536 + 192, reg7);
-      v_store(dprofile + 16ULL * j + 1536 + 256, reg1);
-      v_store(dprofile + 16ULL * j + 1536 + 320, reg11);
-      v_store(dprofile + 16ULL * j + 1536 + 384, reg6);
-      v_store(dprofile + 16ULL * j + 1536 + 448, reg15);
+      v_store(dprofile + n_lanes * j + 1536 +   0, reg0);  // refactoring: 1536 = 6 * 256 bits?
+      v_store(dprofile + n_lanes * j + 1536 +  64, reg3);
+      v_store(dprofile + n_lanes * j + 1536 + 128, reg2);
+      v_store(dprofile + n_lanes * j + 1536 + 192, reg7);
+      v_store(dprofile + n_lanes * j + 1536 + 256, reg1);
+      v_store(dprofile + n_lanes * j + 1536 + 320, reg11);
+      v_store(dprofile + n_lanes * j + 1536 + 384, reg6);
+      v_store(dprofile + n_lanes * j + 1536 + 448, reg15);
     }
 }
 
