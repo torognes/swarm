@@ -64,7 +64,7 @@
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
 using BYTE = unsigned char;
-using WORD = unsigned short;
+using WORD = unsigned short;  // refactoring: uint16_t?
 
 
 /* uses 8 unsigned 16-bit values */
