@@ -40,7 +40,7 @@
 
 #endif
 
-#include "utils/nt_codec.h"
+#include "utils/nt_codec.h"  // refactoring: move up?
 
 
 #ifdef __aarch64__
