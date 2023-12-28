@@ -130,7 +130,7 @@ uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 
 #elif defined __x86_64__
 
-auto popcount_128(__m128i x) -> uint64_t
+auto popcount_128(__m128i vector) -> uint64_t
 {
   static constexpr unsigned char m1 {0x55};  // '0101 0101'
   static constexpr unsigned char m2 {0x33};  // '0011 0011'
@@ -149,8 +149,8 @@ auto popcount_128(__m128i x) -> uint64_t
 
   /* add together 2 bits: 0+1, 2+3, 3+4, ... 126+127 */
 
-  const auto a = _mm_srli_epi64(x, 1);
-  const auto b = _mm_and_si128(x, mask1);
+  const auto a = _mm_srli_epi64(vector, 1);
+  const auto b = _mm_and_si128(vector, mask1);
   const auto c = _mm_and_si128(a, mask1);
   const auto d = _mm_add_epi64(b, c);
 
