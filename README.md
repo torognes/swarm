@@ -437,7 +437,7 @@ compilation warnings and static analysis warnings:
 - improve: build target platform detection,
 - improve: code modernization for long-term maintenance,
 - fix: 45 warnings triggered by newly added compilation checks,
-- fix: x clang-tidy warnings (from 3,669 warnings, down to x)
+- fix: x clang-tidy warnings (from 2,629 warnings, down to x)
 
 ### version 3.1.4 ###
 
