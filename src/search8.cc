@@ -191,6 +191,7 @@ const vector unsigned char perm_bits =
 #endif
 
 
+// refactoring: objdump shows this function is not inlined
 inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE const * dseq)
