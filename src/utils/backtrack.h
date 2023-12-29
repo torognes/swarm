@@ -55,6 +55,7 @@ auto backtrack(char * qseq,
   static constexpr auto offset1 {offset0 + 16};
   static constexpr auto offset2 {offset1 + 16};
   static constexpr auto offset3 {offset2 + 16};
+  // refactoring C++17: if constexpr
   const uint64_t maskup      = compute_mask<n_bits>(channel, offset0);
   const uint64_t maskleft    = compute_mask<n_bits>(channel, offset1);
   const uint64_t maskextup   = compute_mask<n_bits>(channel, offset2);
