@@ -178,7 +178,7 @@ auto v_xor = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
 
 auto v_shift_left = [](VECTORTYPE vector) -> VECTORTYPE {
   // shift vector to the left by n bytes, pad with zeros
-  static constexpr auto n_bytes {2};
+  static constexpr auto n_bytes = 2;
   return _mm_slli_si128(vector, n_bytes);
 };
 
@@ -243,15 +243,15 @@ inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
                             BYTE const * dseq)
 {
-  static constexpr auto multiplier {5U};
-  static constexpr auto pos0 {0U};
-  static constexpr auto pos1 {pos0 + 1};
-  static constexpr auto pos2 {pos1 + 1};
-  static constexpr auto pos3 {pos2 + 1};
-  static constexpr auto pos4 {pos3 + 1};
-  static constexpr auto pos5 {pos4 + 1};
-  static constexpr auto pos6 {pos5 + 1};
-  static constexpr auto pos7 {pos6 + 1};
+  static constexpr auto multiplier = 5U;
+  static constexpr auto pos0 = 0U;
+  static constexpr auto pos1 = pos0 + 1;
+  static constexpr auto pos2 = pos1 + 1;
+  static constexpr auto pos3 = pos2 + 1;
+  static constexpr auto pos4 = pos3 + 1;
+  static constexpr auto pos5 = pos4 + 1;
+  static constexpr auto pos6 = pos5 + 1;
+  static constexpr auto pos7 = pos6 + 1;
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
@@ -377,11 +377,11 @@ void align_cells_regular_16(VECTORTYPE * Sm,
                             uint64_t * dir_long,
                             VECTORTYPE * H0)
 {
-  static constexpr auto step {16U};
-  static constexpr auto offset0 {0U};
-  static constexpr auto offset1 {offset0 + 4};
-  static constexpr auto offset2 {offset1 + 4};
-  static constexpr auto offset3 {offset2 + 4};
+  static constexpr auto step = 16U;
+  static constexpr auto offset0 = 0U;
+  static constexpr auto offset1 = offset0 + 4;
+  static constexpr auto offset2 = offset1 + 4;
+  static constexpr auto offset3 = offset2 + 4;
 
   VECTORTYPE E;
   VECTORTYPE h4;
@@ -443,11 +443,11 @@ void align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * MR,
                            VECTORTYPE * MQ0)
 {
-  static constexpr auto step {16U};
-  static constexpr auto offset0 {0U};
-  static constexpr auto offset1 {offset0 + 4};
-  static constexpr auto offset2 {offset1 + 4};
-  static constexpr auto offset3 {offset2 + 4};
+  static constexpr auto step = 16U;
+  static constexpr auto offset0 = 0U;
+  static constexpr auto offset1 = offset0 + 4;
+  static constexpr auto offset2 = offset1 + 4;
+  static constexpr auto offset3 = offset2 + 4;
 
   VECTORTYPE E;
   VECTORTYPE h4;

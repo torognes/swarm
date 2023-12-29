@@ -195,41 +195,41 @@ inline void dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
                            BYTE const * dseq)
 {
-  static constexpr auto multiplier {5U};
-  static constexpr auto n_lanes {16ULL};  // refactoring: same as channels?
+  static constexpr auto multiplier = 5U;
+  static constexpr auto n_lanes = 16ULL;  // refactoring: same as channels?
 
-  static constexpr auto pos0 {0U};
-  static constexpr auto pos1 {pos0 + 1};
-  static constexpr auto pos2 {pos1 + 1};
-  static constexpr auto pos3 {pos2 + 1};
-  static constexpr auto pos4 {pos3 + 1};
-  static constexpr auto pos5 {pos4 + 1};
-  static constexpr auto pos6 {pos5 + 1};
-  static constexpr auto pos7 {pos6 + 1};
-  static constexpr auto pos8 {pos7 + 1};
-  static constexpr auto pos9 {pos8 + 1};
-  static constexpr auto pos10 {pos9 + 1};
-  static constexpr auto pos11 {pos10 + 1};
-  static constexpr auto pos12 {pos11 + 1};
-  static constexpr auto pos13 {pos12 + 1};
-  static constexpr auto pos14 {pos13 + 1};
-  static constexpr auto pos15 {pos14 + 1};
+  static constexpr auto pos0 = 0U;
+  static constexpr auto pos1 = pos0 + 1;
+  static constexpr auto pos2 = pos1 + 1;
+  static constexpr auto pos3 = pos2 + 1;
+  static constexpr auto pos4 = pos3 + 1;
+  static constexpr auto pos5 = pos4 + 1;
+  static constexpr auto pos6 = pos5 + 1;
+  static constexpr auto pos7 = pos6 + 1;
+  static constexpr auto pos8 = pos7 + 1;
+  static constexpr auto pos9 = pos8 + 1;
+  static constexpr auto pos10 = pos9 + 1;
+  static constexpr auto pos11 = pos10 + 1;
+  static constexpr auto pos12 = pos11 + 1;
+  static constexpr auto pos13 = pos12 + 1;
+  static constexpr auto pos14 = pos13 + 1;
+  static constexpr auto pos15 = pos14 + 1;
 
-  static constexpr auto line0 {64U * 0};  // as in 'cache line': 64 bytes
-  static constexpr auto line1 {64U * 1};
-  static constexpr auto line2 {64U * 2};
-  static constexpr auto line3 {64U * 3};
-  static constexpr auto line4 {64U * 4};
-  static constexpr auto line5 {64U * 5};
-  static constexpr auto line6 {64U * 6};
-  static constexpr auto line7 {64U * 7};
-  static constexpr auto line8 {64U * 8};
-  static constexpr auto line16 {64U * 16};  // 1,024
-  static constexpr auto line24 {64U * 24};  // 1,536
+  static constexpr auto line0 = 64U * 0;  // as in 'cache line': 64 bytes
+  static constexpr auto line1 = 64U * 1;
+  static constexpr auto line2 = 64U * 2;
+  static constexpr auto line3 = 64U * 3;
+  static constexpr auto line4 = 64U * 4;
+  static constexpr auto line5 = 64U * 5;
+  static constexpr auto line6 = 64U * 6;
+  static constexpr auto line7 = 64U * 7;
+  static constexpr auto line8 = 64U * 8;
+  static constexpr auto line16 = 64U * 16;  // 1,024
+  static constexpr auto line24 = 64U * 24;  // 1,536
 
-  static constexpr auto offset8 {8U};
-  static constexpr auto offset16 {16U};
-  static constexpr auto offset24 {24U};
+  static constexpr auto offset8 = 8U;
+  static constexpr auto offset16 = 16U;
+  static constexpr auto offset24 = 24U;
 
   VECTORTYPE reg0;
   VECTORTYPE reg1;

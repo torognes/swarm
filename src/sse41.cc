@@ -97,11 +97,11 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   uint64_t * dir_long,
                                   VECTORTYPE * H0)
 {
-  static constexpr auto step {16U};
-  static constexpr auto offset0 {0U};
-  static constexpr auto offset1 {offset0 + 4};
-  static constexpr auto offset2 {offset1 + 4};
-  static constexpr auto offset3 {offset2 + 4};
+  static constexpr auto step = 16U;
+  static constexpr auto offset0 = 0U;
+  static constexpr auto offset1 = offset0 + 4;
+  static constexpr auto offset2 = offset1 + 4;
+  static constexpr auto offset3 = offset2 + 4;
 
   VECTORTYPE E;
   VECTORTYPE h4;
@@ -164,11 +164,11 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * MR,
                                  VECTORTYPE * MQ0)
 {
-  static constexpr auto step {16U};
-  static constexpr auto offset0 {0U};
-  static constexpr auto offset1 {offset0 + 4};
-  static constexpr auto offset2 {offset1 + 4};
-  static constexpr auto offset3 {offset2 + 4};
+  static constexpr auto step = 16U;
+  static constexpr auto offset0 = 0U;
+  static constexpr auto offset1 = offset0 + 4;
+  static constexpr auto offset2 = offset1 + 4;
+  static constexpr auto offset3 = offset2 + 4;
 
   VECTORTYPE E;
   VECTORTYPE h4;

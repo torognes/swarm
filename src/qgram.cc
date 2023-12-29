@@ -135,10 +135,10 @@ auto popcount_128(__m128i input_vector) -> uint64_t
   static constexpr unsigned char char1 {0x55};  // '0101 0101'
   static constexpr unsigned char char2 {0x33};  // '0011 0011'
   static constexpr unsigned char char4 {0x0f};  // '0000 1111'
-  static constexpr auto shift_by_1 {1};
-  static constexpr auto shift_by_2 {2};
-  static constexpr auto shift_by_4 {4};
-  static constexpr auto shift_by_8 {8};
+  static constexpr auto shift_by_1 = 1;
+  static constexpr auto shift_by_2 = 2;
+  static constexpr auto shift_by_4 = 4;
+  static constexpr auto shift_by_8 = 8;
 
   const auto mask1 = _mm_set_epi8(char1, char1, char1, char1, char1, char1, char1, char1,
                                   char1, char1, char1, char1, char1, char1, char1, char1);

@@ -51,10 +51,10 @@ auto backtrack(char * qseq,
   static constexpr uint8_t bits8 {8};
   static constexpr uint8_t bits16 {16};
   static_assert(n_bits == bits8 || n_bits == bits16, "n_bits must be 8 or 16");
-  static constexpr auto offset0 {0U};
-  static constexpr auto offset1 {offset0 + 16};
-  static constexpr auto offset2 {offset1 + 16};
-  static constexpr auto offset3 {offset2 + 16};
+  static constexpr auto offset0 = 0U;
+  static constexpr auto offset1 = offset0 + 16;
+  static constexpr auto offset2 = offset1 + 16;
+  static constexpr auto offset3 = offset2 + 16;
   // refactoring C++17: if constexpr
   const uint64_t maskup      = compute_mask<n_bits>(channel, offset0);
   const uint64_t maskleft    = compute_mask<n_bits>(channel, offset1);
