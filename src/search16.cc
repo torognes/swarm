@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include "utils/backtrack.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <limits>
@@ -39,8 +40,6 @@
 #include "sse41.h"
 
 #endif
-
-#include "utils/nt_codec.h"  // refactoring: move up?
 
 
 #ifdef __aarch64__
@@ -63,6 +62,7 @@
 
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
+constexpr uint8_t n_bits {16};
 using BYTE = unsigned char;
 using WORD = unsigned short;  // refactoring: uint16_t?
 
@@ -510,95 +510,6 @@ void align_cells_masked_16(VECTORTYPE * Sm,
 }
 
 
-// refactoring: could 'Unknown' be eliminated?
-enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
-
-// refactoring: backtrack_8() and backtrack_16() are almost identical
-// factorize in template backtrack<16>()
-inline auto backtrack_16(char * qseq,
-                         char * dseq,
-                         uint64_t qlen,
-                         uint64_t dlen,
-                         uint64_t * dirbuffer,
-                         uint64_t offset,
-                         uint64_t dirbuffersize,
-                         uint64_t channel,
-                         uint64_t * alignmentlengthp,
-                         const uint64_t longestdbsequence) -> uint64_t
-{
-  static constexpr auto offset0 {0U};
-  static constexpr auto offset1 {offset0 + 16};
-  static constexpr auto offset2 {offset1 + 16};
-  static constexpr auto offset3 {offset2 + 16};
-  const uint64_t maskup      = 3ULL << (2 * channel + offset0);
-  const uint64_t maskleft    = 3ULL << (2 * channel + offset1);
-  const uint64_t maskextup   = 3ULL << (2 * channel + offset2);
-  const uint64_t maskextleft = 3ULL << (2 * channel + offset3);
-
-  auto column = static_cast<int64_t>(qlen) - 1;
-  auto row = static_cast<int64_t>(dlen) - 1;
-  uint64_t aligned {0};
-  uint64_t matches {0};
-  Alignment operation = Alignment::Unknown;  // Insertion, Deletion or Match
-
-  while ((column >= 0) and (row >= 0))
-    {
-      ++aligned;
-
-      const uint64_t d
-        = dirbuffer[(offset
-                     + longestdbsequence * 4 * static_cast<uint64_t>(row / 4)
-                     + 4 * static_cast<uint64_t>(column)
-                     + (static_cast<uint64_t>(row) & 3U)
-                     ) % dirbuffersize];  // refactoring: how to rename that variable?
-
-      if ((operation == Alignment::Insertion) and ((d & maskextleft) == 0U))
-        {
-          --row;
-        }
-      else if ((operation == Alignment::Deletion) and ((d & maskextup) == 0U))
-        {
-          --column;
-        }
-      else if ((d & maskleft) != 0U)
-        {
-          --row;
-          operation = Alignment::Insertion;
-        }
-      else if ((d & maskup) == 0U)
-        {
-          --column;
-          operation = Alignment::Deletion;
-        }
-      else
-        {
-          if (nt_extract(qseq, static_cast<uint64_t>(column)) ==
-              nt_extract(dseq, static_cast<uint64_t>(row))) {
-            ++matches;
-          }
-          --column;
-          --row;
-          operation = Alignment::Match;
-        }
-    }
-
-  while (column >= 0)
-    {
-      ++aligned;
-      --column;
-    }
-
-  while (row >= 0)
-    {
-      ++aligned;
-      --row;
-    }
-
-  * alignmentlengthp = aligned;
-  return aligned - matches;
-}
-
-
 auto search16(WORD * * q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
@@ -766,7 +677,7 @@ auto search16(WORD * * q_start,
                       if (score < uint16_max)
                         {
                           const uint64_t offset = d_offset[channel];
-                          diff = backtrack_16(query.seq, dbseq, qlen, dbseqlen,
+                          diff = backtrack<n_bits>(query.seq, dbseq, qlen, dbseqlen,
                                               dirbuffer,
                                               offset,
                                               dirbuffersize, channel,

@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include "utils/backtrack.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <limits>
@@ -38,8 +39,6 @@
 #include "ssse3.h"
 
 #endif
-
-#include "utils/nt_codec.h"
 
 
 #ifdef __aarch64__
@@ -62,7 +61,15 @@
 
 constexpr unsigned int channels {16};
 constexpr unsigned int cdepth {4};
+constexpr uint8_t n_bits {8};
 using BYTE = unsigned char;
+
+// backtrack.h: template specialization (8 bits)
+template <>
+auto compute_mask<n_bits>(uint64_t const channel,
+                     unsigned int const offset) -> uint64_t {
+  return (1ULL << (channel + offset));
+}
 
 
 /* uses 16 unsigned 8-bit values */
@@ -706,95 +713,6 @@ void align_cells_masked_8(VECTORTYPE * Sm,
 }
 
 
-// refactoring: could 'Unknown' be eliminated?
-enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
-
-// refactoring: backtrack_8() and backtrack_16() are almost identical
-// factorize in template backtrack<8>()
-inline auto backtrack_8(char * qseq,
-                        char * dseq,
-                        uint64_t qlen,
-                        uint64_t dlen,
-                        uint64_t * dirbuffer,
-                        uint64_t offset,
-                        uint64_t dirbuffersize,
-                        uint64_t channel,
-                        uint64_t * alignmentlengthp,
-                        const uint64_t longestdbsequence) -> uint64_t
-{
-  static constexpr auto offset0 {0U};
-  static constexpr auto offset1 {offset0 + 16};
-  static constexpr auto offset2 {offset1 + 16};
-  static constexpr auto offset3 {offset2 + 16};
-  const uint64_t maskup      = 1ULL << (channel + offset0);
-  const uint64_t maskleft    = 1ULL << (channel + offset1);
-  const uint64_t maskextup   = 1ULL << (channel + offset2);
-  const uint64_t maskextleft = 1ULL << (channel + offset3);
-
-  auto column = static_cast<int64_t>(qlen) - 1;
-  auto row = static_cast<int64_t>(dlen) - 1;
-  uint64_t aligned {0};
-  uint64_t matches {0};
-  Alignment operation = Alignment::Unknown;  // Insertion, Deletion or Match
-
-  while ((column >= 0) and (row >= 0))
-    {
-      ++aligned;
-
-      const uint64_t d
-        = dirbuffer[(offset
-                     + longestdbsequence * 4 * static_cast<uint64_t>(row / 4)
-                     + 4 * static_cast<uint64_t>(column)
-                     + (static_cast<uint64_t>(row) & 3U)
-                     ) % dirbuffersize];  // refactoring: how to rename that variable?
-
-      if ((operation == Alignment::Insertion) and ((d & maskextleft) == 0U))
-        {
-          --row;
-        }
-      else if ((operation == Alignment::Deletion) and ((d & maskextup) == 0U))
-        {
-          --column;
-        }
-      else if ((d & maskleft) != 0U)
-        {
-          --row;
-          operation = Alignment::Insertion;
-        }
-      else if ((d & maskup) == 0U)
-        {
-          --column;
-          operation = Alignment::Deletion;
-        }
-      else
-        {
-          if (nt_extract(qseq, static_cast<uint64_t>(column)) ==
-              nt_extract(dseq, static_cast<uint64_t>(row))) {
-            ++matches;
-          }
-          --column;
-          --row;
-          operation = Alignment::Match;
-        }
-    }
-
-  while (column >= 0)
-    {
-      ++aligned;
-      --column;
-    }
-
-  while (row >= 0)
-    {
-      ++aligned;
-      --row;
-    }
-
-  * alignmentlengthp = aligned;
-  return aligned - matches;
-}
-
-
 auto search8(BYTE * * q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
@@ -955,12 +873,12 @@ auto search8(BYTE * * q_start,
                       if (score < uint8_max)
                         {
                           const uint64_t offset = d_offset[channel];
-                          diff = backtrack_8(query.seq, dbseq, qlen, dbseqlen,
-                                             dirbuffer,
-                                             offset,
-                                             dirbuffersize, channel,
-                                             alignmentlengths + cand_id,
-                                             longestdbsequence);
+                          diff = backtrack<n_bits>(query.seq, dbseq, qlen, dbseqlen,
+                                                   dirbuffer,
+                                                   offset,
+                                                   dirbuffersize, channel,
+                                                   alignmentlengths + cand_id,
+                                                   longestdbsequence);
                         }
                       else
                         {

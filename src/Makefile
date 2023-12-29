@@ -132,7 +132,8 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 
 DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hashtable.h \
 	nw.h qgram.h scan.h search16.h search8.h swarm.h \
-	util.h utils/fatal.h utils/gcd.h utils/hashtable_size.h utils/nt_codec.h utils/pseudo_rng.h \
+	util.h utils/backtrack.h utils/fatal.h utils/gcd.h utils/hashtable_size.h \
+	utils/nt_codec.h utils/pseudo_rng.h \
 	utils/qgram_array.h utils/score_matrix.h utils/threads.h variants.h x86_cpu_features.h \
 	zobrist.h
 
