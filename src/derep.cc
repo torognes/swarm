@@ -259,6 +259,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
   const uint64_t derep_hash_mask = hashtablesize - 1;
 
+  // refactoring: std::vector?
   auto * hashtable = new struct bucket[hashtablesize];
 
   uint64_t swarmcount = 0;
