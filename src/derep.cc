@@ -287,8 +287,8 @@ auto dereplicate(struct Parameters const & parameters) -> void
       const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq),
                                          seqlen);
 
-      uint64_t j = hash & derep_hash_mask;
-      auto & clusterp = hashtable[j];
+      uint64_t nth_bucket = hash & derep_hash_mask;
+      auto & clusterp = hashtable[nth_bucket];
 
       while (((clusterp.mass) != 0U) and
              ((clusterp.hash != hash) or
@@ -297,12 +297,12 @@ auto dereplicate(struct Parameters const & parameters) -> void
                       db_getsequence(clusterp.seqno_first),
                       nt_bytelength(seqlen)) != 0)))
         {
-          ++j;
-          clusterp = hashtable[j];
-          if (j >= hashtable.size()) // wrap around the table if we reach the end
+          ++nth_bucket;
+          clusterp = hashtable[nth_bucket];
+          if (nth_bucket >= hashtable.size()) // wrap around the table if we reach the end
             {
-              j = 0;
-              clusterp = hashtable[j];
+              nth_bucket = 0;
+              clusterp = hashtable[nth_bucket];
             }
         }
 
