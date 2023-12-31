@@ -99,12 +99,12 @@ auto write_stats_file(struct Parameters const & parameters,
   progress_init("Writing stats:    ", hashtable.size());
   for(auto i = 0ULL; i < hashtable.size(); i++)
     {
-      auto * sp = hashtable.data() + i;
-      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
-      fprint_id_noabundance(statsfile, sp->seqno_first, parameters.opt_usearch_abundance);
+      auto * cluster = hashtable.data() + i;
+      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", cluster->size, cluster->mass);
+      fprint_id_noabundance(statsfile, cluster->seqno_first, parameters.opt_usearch_abundance);
       std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
-              db_getabundance(sp->seqno_first),
-              sp->singletons, 0U, 0U);
+              db_getabundance(cluster->seqno_first),
+              cluster->singletons, 0U, 0U);
       progress_update(i);
     }
   progress_done();
