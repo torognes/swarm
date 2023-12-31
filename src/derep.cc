@@ -137,7 +137,7 @@ auto write_structure_file(const uint64_t swarmcount,
 
 
 auto write_swarms_uclust_format(struct Parameters const & parameters,
-                                std::vector<struct bucket> & hashtable,
+                                std::vector<struct bucket> const & hashtable,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing UCLUST:   ", hashtable.size());
   auto counter = 0U;
