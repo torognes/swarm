@@ -183,11 +183,10 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
 }
 
 
-auto write_representative_sequences(const uint64_t swarmcount,
-                                    struct Parameters const & parameters,
+auto write_representative_sequences(struct Parameters const & parameters,
                                     std::vector<struct bucket> const & hashtable) -> void {
-  progress_init("Writing seeds:    ", swarmcount);
-  for(auto i = 0U; i < swarmcount; i++)
+  progress_init("Writing seeds:    ", hashtable.size());
+  for(auto i = 0U; i < hashtable.size(); i++)
     {
       const unsigned int seed = hashtable[i].seqno_first;
       std::fprintf(fp_seeds, ">");
@@ -368,7 +367,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   /* dump seeds in fasta format with sum of abundances */
   if (not parameters.opt_seeds.empty()) {
-    write_representative_sequences(swarmcount, parameters, hashtable);
+    write_representative_sequences(parameters, hashtable);
   }
 
   /* output swarm in uclust format */
