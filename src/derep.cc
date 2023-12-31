@@ -62,6 +62,14 @@ struct bucket
   unsigned int singletons = 0;
 };
 
+struct Stats
+{
+  int64_t swarmcount = 0;
+  uint64_t maxmass = 0;
+  unsigned int maxsize = 0U;
+};
+
+
 
 // refactoring: std::stable_sort uses input order (no need to use seqno)
 auto derep_compare(const void * a, const void * b) -> int
@@ -254,34 +262,15 @@ auto write_swarms_default_format(struct Parameters const & parameters,
 }
 
 
-// refactoring:
-// auto dereplicating(
-//                    std::vector<struct bucket> & hashtable,
-//                    std::vector<unsigned int> & nextseqtab,
-//                    uint64_t & maxmass,
-//                    uint64_t & maxsize
-// ) -> int64_t;  // swarmcount
-// deduce dbsequencecount from nextseqtab
-
-
-auto dereplicate(struct Parameters const & parameters) -> void
+auto dereplicating(std::vector<struct bucket> & hashtable,
+                   std::vector<unsigned int> & nextseqtab) -> struct Stats
 {
-  const uint64_t dbsequencecount = db_getsequencecount();
-  const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
-  const uint64_t derep_hash_mask = hashtablesize - 1;
+  progress_init("Dereplicating:    ", nextseqtab.size());
 
-  std::vector<struct bucket> hashtable(hashtablesize);
+  struct Stats stats;
+  const uint64_t derep_hash_mask = hashtable.size() - 1;
 
-  int64_t swarmcount = 0;
-  uint64_t maxmass = 0;
-  auto maxsize = 0U;
-
-  /* alloc and init table of links to other sequences in cluster */
-  std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
-
-  progress_init("Dereplicating:    ", dbsequencecount);
-
-  for(auto seqno = 0U; seqno < dbsequencecount; seqno++)
+  for(auto seqno = 0U; seqno < nextseqtab.size(); seqno++)
     {
       const unsigned int seqlen = db_getsequencelen(seqno);
       char * seq = db_getsequence(seqno);
@@ -328,7 +317,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
       else
         {
           /* no identical sequences yet, start a new cluster */
-          ++swarmcount;
+          ++stats.swarmcount;
           clusterp.hash = hash;
           clusterp.seqno_first = seqno;
           clusterp.size = 0;
@@ -343,24 +332,40 @@ auto dereplicate(struct Parameters const & parameters) -> void
         ++clusterp.singletons;
       }
 
-      if (clusterp.mass > maxmass) {
-        maxmass = clusterp.mass;
+      if (clusterp.mass > stats.maxmass) {
+        stats.maxmass = clusterp.mass;
       }
 
-      if (clusterp.size > maxsize) {
-        maxsize = clusterp.size;
+      if (clusterp.size > stats.maxsize) {
+        stats.maxsize = clusterp.size;
       }
 
       progress_update(seqno);
     }
   progress_done();
 
+  return stats;
+}
+
+
+auto dereplicate(struct Parameters const & parameters) -> void
+{
+  const uint64_t dbsequencecount = db_getsequencecount();
+  const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
+
+  std::vector<struct bucket> hashtable(hashtablesize);
+
+  /* alloc and init table of links to other sequences in cluster */
+  std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
+
+  const auto stats = dereplicating(hashtable, nextseqtab);
+
   // refactoring: make a sort_and_shrink function?
   progress_init("Sorting:          ", 1);
   std::qsort(hashtable.data(), hashtablesize, sizeof(bucket), derep_compare);
-  hashtable.erase(hashtable.begin() + swarmcount, hashtable.end());
+  hashtable.erase(hashtable.begin() + stats.swarmcount, hashtable.end());
   hashtable.shrink_to_fit();  // release unused memory
-  assert(hashtable.size() == static_cast<uint64_t>(swarmcount));
+  assert(hashtable.size() == static_cast<uint64_t>(stats.swarmcount));
   progress_done();
 
 
@@ -394,7 +399,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   std::fprintf(logfile, "\n");
   std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n",
-               static_cast<uint64_t>(swarmcount));
-  std::fprintf(logfile, "Largest swarm:     %u\n", maxsize);
-  std::fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
+               static_cast<uint64_t>(stats.swarmcount));
+  std::fprintf(logfile, "Largest swarm:     %u\n", stats.maxsize);
+  std::fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", stats.maxmass);
 }
