@@ -290,12 +290,14 @@ auto dereplicate(struct Parameters const & parameters) -> void
       uint64_t nth_bucket = hash & derep_hash_mask;
       auto & clusterp = hashtable[nth_bucket];
 
-      while (((clusterp.mass) != 0U) and
+      while ((clusterp.mass != 0U) and
              ((clusterp.hash != hash) or
               (seqlen != db_getsequencelen(clusterp.seqno_first)) or
               (std::memcmp(seq,
-                      db_getsequence(clusterp.seqno_first),
-                      nt_bytelength(seqlen)) != 0)))
+                           db_getsequence(clusterp.seqno_first),
+                           nt_bytelength(seqlen)) != 0)
+              )
+             )
         {
           ++nth_bucket;
           clusterp = hashtable[nth_bucket];
@@ -308,7 +310,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
       const uint64_t abundance = db_getabundance(seqno);
 
-      if ((clusterp.mass) != 0U)
+      if (clusterp.mass != 0U)
         {
           /* at least one identical sequence already */
           nextseqtab[clusterp.seqno_last] = seqno;
