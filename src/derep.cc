@@ -271,10 +271,10 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   progress_init("Dereplicating:    ", dbsequencecount);
 
-  for(auto i = 0U; i < dbsequencecount; i++)
+  for(auto seqno = 0U; seqno < dbsequencecount; seqno++)
     {
-      const unsigned int seqlen = db_getsequencelen(i);
-      char * seq = db_getsequence(i);
+      const unsigned int seqlen = db_getsequencelen(seqno);
+      char * seq = db_getsequence(seqno);
 
       /*
         Find free bucket or bucket for identical sequence.
@@ -306,25 +306,25 @@ auto dereplicate(struct Parameters const & parameters) -> void
             }
         }
 
-      const uint64_t abundance = db_getabundance(i);
+      const uint64_t abundance = db_getabundance(seqno);
 
       if ((clusterp.mass) != 0U)
         {
           /* at least one identical sequence already */
-          nextseqtab[clusterp.seqno_last] = i;
+          nextseqtab[clusterp.seqno_last] = seqno;
         }
       else
         {
           /* no identical sequences yet, start a new cluster */
           ++swarmcount;
           clusterp.hash = hash;
-          clusterp.seqno_first = i;
+          clusterp.seqno_first = seqno;
           clusterp.size = 0;
           clusterp.singletons = 0;
         }
 
       ++clusterp.size;
-      clusterp.seqno_last = i;
+      clusterp.seqno_last = seqno;
       clusterp.mass += abundance;
 
       if (abundance == 1) {
@@ -339,7 +339,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
         maxsize = clusterp.size;
       }
 
-      progress_update(i);
+      progress_update(seqno);
     }
   progress_done();
 
