@@ -95,7 +95,7 @@ auto derep_compare(const void * a, const void * b) -> int
 
 
 auto write_stats_file(struct Parameters const & parameters,
-                      std::vector<struct bucket> & hashtable) -> void {
+                      std::vector<struct bucket> const & hashtable) -> void {
   progress_init("Writing stats:    ", hashtable.size());
   auto counter = 0U;
   for(auto const & cluster: hashtable) {
