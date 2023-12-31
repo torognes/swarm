@@ -231,7 +231,7 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
 
 auto write_swarms_default_format(const uint64_t swarmcount,
                                  struct Parameters const & parameters,
-                                 struct bucket * hashtable,
+                                 std::vector<struct bucket> const & hashtable,
                                  unsigned int * nextseqtab) -> void {
   progress_init("Writing swarms:   ", swarmcount);
   for(auto i = 0U; i < swarmcount; i++)
@@ -353,7 +353,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
     write_swarms_mothur_format(swarmcount, parameters, hashtable.data(), nextseqtab.data());
   }
   else {
-    write_swarms_default_format(swarmcount, parameters, hashtable.data(), nextseqtab.data());
+    write_swarms_default_format(swarmcount, parameters, hashtable, nextseqtab.data());
   }
 
   /* dump seeds in fasta format with sum of abundances */
