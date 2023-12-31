@@ -354,10 +354,10 @@ auto dereplicate(struct Parameters const & parameters) -> void
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
 
   std::vector<struct bucket> hashtable(hashtablesize);
-
   /* alloc and init table of links to other sequences in cluster */
   std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
 
+  // dereplicate input sequences
   const auto stats = dereplicating(hashtable, nextseqtab);
 
   // refactoring: make a sort_and_shrink function?
