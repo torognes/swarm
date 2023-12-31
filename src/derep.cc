@@ -99,7 +99,7 @@ auto write_stats_file(struct Parameters const & parameters,
   progress_init("Writing stats:    ", hashtable.size());
   for(auto i = 0ULL; i < hashtable.size(); i++)
     {
-      struct bucket * sp = hashtable.data() + i;
+      auto * sp = hashtable.data() + i;
       std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
       fprint_id_noabundance(statsfile, sp->seqno_first, parameters.opt_usearch_abundance);
       std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
