@@ -27,6 +27,7 @@
 #include "utils/hashtable_size.h"
 #include "utils/nt_codec.h"
 #include "zobrist.h"
+#include <algorithm>  // sort
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>
@@ -70,35 +71,35 @@ struct Stats
 };
 
 
+auto sort_seeds(std::vector<struct bucket>& hashtable) -> void {
+  progress_init("Sorting:          ", 1);
 
-// refactoring: std::stable_sort uses input order (no need to use seqno)
-auto derep_compare(const void * a, const void * b) -> int
-{
-  const auto * x = static_cast<const struct bucket *>(a);
-  const auto * y = static_cast<const struct bucket *>(b);
-  int status {0};
-
-  /* highest abundance first, otherwise keep order */
-
-  if (x->mass < y->mass) {
-    status = +1;
-  }
-  else if (x->mass > y->mass) {
-    status = -1;
-  }
-  else {
-    if (x->seqno_first < y->seqno_first) {
-      status = -1;
+  auto compare_seeds = [](struct bucket const& lhs,
+                          struct bucket const& rhs) -> bool {
+    // sort by decreasing mass...
+    if (lhs.mass > rhs.mass) {
+      return true;
     }
-    else if (x->seqno_first > y->seqno_first) {
-      status = +1;
+    if (lhs.mass < rhs.mass) {
+      return false;
     }
-    else {
-      status = 0;
+    // ...then ties are sorted by input order
+    if (lhs.seqno_first < rhs.seqno_first) {
+      return true;
     }
-  }
+    return false;
+  };
 
-  return status;
+  std::sort(hashtable.begin(), hashtable.end(), compare_seeds);
+  progress_done();
+}
+
+
+auto release_unused_memory(std::vector<struct bucket>& hashtable,
+                           int64_t const swarmcount) -> void {
+  hashtable.erase(hashtable.begin() + swarmcount, hashtable.end());
+  hashtable.shrink_to_fit();
+  assert(hashtable.size() == static_cast<uint64_t>(swarmcount));
 }
 
 
@@ -360,14 +361,9 @@ auto dereplicate(struct Parameters const & parameters) -> void
   // dereplicate input sequences
   const auto stats = dereplicating(hashtable, nextseqtab);
 
-  // refactoring: make a sort_and_shrink function?
-  progress_init("Sorting:          ", 1);
-  std::qsort(hashtable.data(), hashtablesize, sizeof(bucket), derep_compare);
-  hashtable.erase(hashtable.begin() + stats.swarmcount, hashtable.end());
-  hashtable.shrink_to_fit();  // release unused memory
-  assert(hashtable.size() == static_cast<uint64_t>(stats.swarmcount));
-  progress_done();
-
+  // sort by decreasing abundance
+  sort_seeds(hashtable);
+  release_unused_memory(hashtable, stats.swarmcount);
 
   /* dump swarms */
   if (parameters.opt_mothur) {
