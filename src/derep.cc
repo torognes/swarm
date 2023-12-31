@@ -207,10 +207,9 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, hashtable.size());
   auto counter = 0U;
 
-  for(auto i = 0U; i < hashtable.size(); i++)
-    {
+    for(auto const & cluster: hashtable) {
       // print cluster seed
-      const unsigned int seed = hashtable[i].seqno_first;
+      const unsigned int seed = cluster.seqno_first;
       std::fputc('\t', outfile);
       fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
