@@ -262,8 +262,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   std::vector<struct bucket> hashtable(hashtablesize);
 
-  uint64_t swarmcount = 0;
-  int64_t tmp_swarmcount = 0;
+  int64_t swarmcount = 0;
   uint64_t maxmass = 0;
   auto maxsize = 0U;
 
@@ -318,7 +317,6 @@ auto dereplicate(struct Parameters const & parameters) -> void
         {
           /* no identical sequences yet, start a new cluster */
           ++swarmcount;
-          ++tmp_swarmcount;
           clusterp.hash = hash;
           clusterp.seqno_first = i;
           clusterp.size = 0;
@@ -347,9 +345,9 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   progress_init("Sorting:          ", 1);
   std::qsort(hashtable.data(), hashtablesize, sizeof(bucket), derep_compare);
-  hashtable.erase(hashtable.begin() + tmp_swarmcount, hashtable.end());
+  hashtable.erase(hashtable.begin() + swarmcount, hashtable.end());
   hashtable.shrink_to_fit();  // release unused memory
-  assert(hashtable.size() == swarmcount);
+  assert(hashtable.size() == static_cast<uint64_t>(swarmcount));
   progress_done();
 
 
