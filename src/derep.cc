@@ -142,9 +142,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
   progress_init("Writing UCLUST:   ", hashtable.size());
   auto counter = 0U;
 
-  for(auto swarmid = 0U; swarmid < hashtable.size(); swarmid++) {
-    auto & cluster = hashtable[swarmid];
-
+  for(auto const & cluster: hashtable) {
     const unsigned int seed = cluster.seqno_first;
 
     std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
