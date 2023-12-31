@@ -205,7 +205,7 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
                                 std::vector<struct bucket> const & hashtable,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing swarms:   ", hashtable.size());
-  std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, swarmcount);
+  std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, hashtable.size());
 
   for(auto i = 0U; i < swarmcount; i++)
     {
