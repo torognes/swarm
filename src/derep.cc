@@ -207,24 +207,24 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, hashtable.size());
   auto counter = 0U;
 
-    for(auto const & cluster: hashtable) {
-      // print cluster seed
-      const unsigned int seed = cluster.seqno_first;
-      std::fputc('\t', outfile);
-      fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+  for(auto const & cluster: hashtable) {
+    // print cluster seed
+    const unsigned int seed = cluster.seqno_first;
+    std::fputc('\t', outfile);
+    fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
-      // print other cluster members
-      unsigned int next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
-        {
-          std::fputc(',', outfile);
-          fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          next_identical = nextseqtab[next_identical];
-        }
+    // print other cluster members
+    unsigned int next_identical = nextseqtab[seed];
+    while (next_identical != 0U)
+      {
+        std::fputc(',', outfile);
+        fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        next_identical = nextseqtab[next_identical];
+      }
 
-      ++counter;
-      progress_update(counter);
-    }
+    ++counter;
+    progress_update(counter);
+  }
     std::fputc('\n', outfile);
 
   progress_done();
