@@ -94,11 +94,10 @@ auto derep_compare(const void * a, const void * b) -> int
 }
 
 
-auto write_stats_file(const uint64_t swarmcount,
-                      struct Parameters const & parameters,
+auto write_stats_file(struct Parameters const & parameters,
                       std::vector<struct bucket> & hashtable) -> void {
-  progress_init("Writing stats:    ", swarmcount);
-  for(auto i = 0ULL; i < swarmcount; i++)
+  progress_init("Writing stats:    ", hashtable.size());
+  for(auto i = 0ULL; i < hashtable.size(); i++)
     {
       struct bucket * sp = hashtable.data() + i;
       std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
@@ -383,7 +382,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   /* output statistics to file */
   if (statsfile != nullptr) {
-    write_stats_file(swarmcount, parameters, hashtable);
+    write_stats_file(parameters, hashtable);
   }
 
   std::fprintf(logfile, "\n");
