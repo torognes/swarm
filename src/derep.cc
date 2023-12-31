@@ -118,8 +118,8 @@ auto write_structure_file(struct Parameters const & parameters,
   auto counter = 0UL;
 
   for(auto const & cluster: hashtable) {
-    const uint64_t seed = cluster.seqno_first;
-    unsigned int next_identical = nextseqtab[seed];
+    const auto seed = cluster.seqno_first;
+    auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
         fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
@@ -142,7 +142,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
   auto counter = 0U;
 
   for(auto const & cluster: hashtable) {
-    const unsigned int seed = cluster.seqno_first;
+    const auto seed = cluster.seqno_first;
 
     std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                  counter,
@@ -156,7 +156,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
     fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     std::fprintf(uclustfile, "\t*\n");
 
-    unsigned int next_identical = nextseqtab[seed];
+    auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
         std::fprintf(uclustfile,
@@ -183,7 +183,7 @@ auto write_representative_sequences(struct Parameters const & parameters,
   progress_init("Writing seeds:    ", hashtable.size());
   auto counter = 0U;
   for(auto const & cluster: hashtable) {
-    const unsigned int seed = cluster.seqno_first;
+    const auto seed = cluster.seqno_first;
     std::fprintf(fp_seeds, ">");
     fprint_id_with_new_abundance(fp_seeds, seed, cluster.mass, parameters.opt_usearch_abundance);
     std::fprintf(fp_seeds, "\n");
@@ -204,12 +204,12 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
 
   for(auto const & cluster: hashtable) {
     // print cluster seed
-    const unsigned int seed = cluster.seqno_first;
+    const auto seed = cluster.seqno_first;
     std::fputc('\t', outfile);
     fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
     // print other cluster members
-    unsigned int next_identical = nextseqtab[seed];
+    auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
         std::fputc(',', outfile);
@@ -234,11 +234,11 @@ auto write_swarms_default_format(struct Parameters const & parameters,
 
   for(auto const & cluster: hashtable) {
     // print cluster seed
-    const unsigned int seed = cluster.seqno_first;
+    const auto seed = cluster.seqno_first;
     fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
     // print other cluster members
-    unsigned int next_identical = nextseqtab[seed];
+    auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
         std::fputc(sepchar, outfile);
@@ -265,7 +265,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
   uint64_t swarmcount = 0;
   int64_t tmp_swarmcount = 0;
   uint64_t maxmass = 0;
-  unsigned int maxsize = 0;
+  auto maxsize = 0U;
 
   /* alloc and init table of links to other sequences in cluster */
   std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
