@@ -98,17 +98,16 @@ auto write_stats_file(struct Parameters const & parameters,
                       std::vector<struct bucket> & hashtable) -> void {
   progress_init("Writing stats:    ", hashtable.size());
   auto counter = 0U;
-  for(auto i = 0ULL; i < hashtable.size(); i++)
-    {
-      auto * cluster = hashtable.data() + i;
-      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", cluster->size, cluster->mass);
-      fprint_id_noabundance(statsfile, cluster->seqno_first, parameters.opt_usearch_abundance);
-      std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
-              db_getabundance(cluster->seqno_first),
-              cluster->singletons, 0U, 0U);
-      ++counter;
-      progress_update(counter);
-    }
+  for(auto i = 0ULL; i < hashtable.size(); i++) {
+    auto * cluster = hashtable.data() + i;
+    std::fprintf(statsfile, "%u\t%" PRIu64 "\t", cluster->size, cluster->mass);
+    fprint_id_noabundance(statsfile, cluster->seqno_first, parameters.opt_usearch_abundance);
+    std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+                 db_getabundance(cluster->seqno_first),
+                 cluster->singletons, 0U, 0U);
+    ++counter;
+    progress_update(counter);
+  }
   progress_done();
 }
 
