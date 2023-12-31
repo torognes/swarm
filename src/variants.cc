@@ -26,6 +26,7 @@
 #include "zobrist.h"
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::memcpy
+#include <vector>
 
 
 inline void nt_set(char * seq, unsigned int pos, unsigned int base)
@@ -74,38 +75,38 @@ inline auto seq_identical(char * seq_a,
 
 void generate_variant_sequence(char * seed_sequence,
                                unsigned int seed_seqlen,
-                               struct var_s * var,
+                               struct var_s & var,
                                char * seq,
                                unsigned int * seqlen)
 {
   /* generate the actual sequence of a variant */
 
-  switch (var->type)
+  switch (var.type)
     {
     case Variant_type::substitution:
       std::memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
-      nt_set(seq, var->pos, var->base);
+      nt_set(seq, var.pos, var.base);
       * seqlen = seed_seqlen;
       break;
 
     case Variant_type::deletion:
       seq_copy(seq, 0,
                seed_sequence, 0,
-               var->pos);
-      seq_copy(seq, var->pos,
-               seed_sequence, var->pos + 1,
-               seed_seqlen - var->pos - 1);
+               var.pos);
+      seq_copy(seq, var.pos,
+               seed_sequence, var.pos + 1,
+               seed_seqlen - var.pos - 1);
       * seqlen = seed_seqlen - 1;
       break;
 
     case Variant_type::insertion:
       seq_copy(seq, 0,
                seed_sequence, 0,
-               var->pos);
-      nt_set(seq, var->pos, var->base);
-      seq_copy(seq, var->pos + 1,
-               seed_sequence, var->pos,
-               seed_seqlen - var->pos);
+               var.pos);
+      nt_set(seq, var.pos, var.base);
+      seq_copy(seq, var.pos + 1,
+               seed_sequence, var.pos,
+               seed_seqlen - var.pos);
       * seqlen = seed_seqlen + 1;
       break;
     }
@@ -114,7 +115,7 @@ void generate_variant_sequence(char * seed_sequence,
 
 auto check_variant(char * seed_sequence,
                    unsigned int seed_seqlen,
-                   var_s * var,
+                   struct var_s & var,
                    char * amp_sequence,
                    unsigned int amp_seqlen) -> bool
 {
@@ -123,38 +124,38 @@ auto check_variant(char * seed_sequence,
 
   bool equal {false};
 
-  switch (var->type)
+  switch (var.type)
     {
     case Variant_type::substitution:
       equal = ((seed_seqlen == amp_seqlen) and
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
-                              var->pos)) and
-               (nt_extract(amp_sequence, var->pos) == var->base) and
-               (seq_identical(seed_sequence, var->pos + 1,
-                              amp_sequence,  var->pos + 1,
-                              seed_seqlen - var->pos - 1)));
+                              var.pos)) and
+               (nt_extract(amp_sequence, var.pos) == var.base) and
+               (seq_identical(seed_sequence, var.pos + 1,
+                              amp_sequence,  var.pos + 1,
+                              seed_seqlen - var.pos - 1)));
       break;
 
     case Variant_type::deletion:
       equal = (((seed_seqlen - 1) == amp_seqlen) and
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
-                              var->pos)) and
-               (seq_identical(seed_sequence, var->pos + 1,
-                              amp_sequence,  var->pos,
-                              seed_seqlen - var->pos - 1)));
+                              var.pos)) and
+               (seq_identical(seed_sequence, var.pos + 1,
+                              amp_sequence,  var.pos,
+                              seed_seqlen - var.pos - 1)));
       break;
 
     case Variant_type::insertion:
       equal = (((seed_seqlen + 1) == amp_seqlen) and
                (seq_identical(seed_sequence, 0,
                               amp_sequence, 0,
-                              var->pos)) and
-               (nt_extract(amp_sequence, var->pos) == var->base) and
-               (seq_identical(seed_sequence, var->pos,
-                              amp_sequence,  var->pos + 1,
-                              seed_seqlen - var->pos)));
+                              var.pos)) and
+               (nt_extract(amp_sequence, var.pos) == var.base) and
+               (seq_identical(seed_sequence, var.pos,
+                              amp_sequence,  var.pos + 1,
+                              seed_seqlen - var.pos)));
       break;
     }
 
@@ -165,20 +166,20 @@ inline void add_variant(uint64_t hash,
                         Variant_type type,
                         unsigned int pos,
                         unsigned char base,
-                        var_s * variant_list,
+                        std::vector<struct var_s>& variant_list,
                         unsigned int * variant_count)
 {
-  var_s * variant = variant_list + (*variant_count)++;
-  variant->hash = hash;
-  variant->type = type;
-  variant->pos = pos;
-  variant->base = base;
+  var_s & variant = variant_list[(*variant_count)++];
+  variant.hash = hash;
+  variant.type = type;
+  variant.pos = pos;
+  variant.base = base;
 }
 
 void generate_variants(char * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
-                       var_s * variant_list,
+                       std::vector<struct var_s>& variant_list,
                        unsigned int * variant_count)
 {
   /* substitutions */

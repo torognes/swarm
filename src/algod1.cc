@@ -173,10 +173,10 @@ auto hash_check_attach(char * seed_sequence,
 void check_heavy_thread(int64_t t);
 auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
-                        struct var_s * variant_list) -> uint64_t;
+                        std::vector<struct var_s>& variant_list) -> uint64_t;
 void mark_light_thread(int64_t t);
 void check_variants(unsigned int seed,
-                    var_s * variant_list,
+                    std::vector<struct var_s>& variant_list,
                     unsigned int * hits_data,
                     unsigned int * hits_count);
 void network_thread(int64_t t);
@@ -365,13 +365,13 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
 
 auto hash_check_attach(char * seed_sequence,
                        unsigned int seed_seqlen,
-                       struct var_s * var,
+                       struct var_s & var,
                        unsigned int seed) -> bool
 {
   /* seed is the original large swarm seed */
 
   /* compute hash and corresponding hash table index */
-  const uint64_t hash = var->hash;
+  const uint64_t hash = var.hash;
   uint64_t j = hash_getindex(hash);
 
   /* find matching buckets */
@@ -410,11 +410,11 @@ inline auto check_heavy_var_2(char * seq,
   unsigned int variant_count = 0;
 
   const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
-  generate_variants(seq, seqlen, hash, variant_list.data(), &variant_count);
+  generate_variants(seq, seqlen, hash, variant_list, &variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
     if (bloom_get(bloom_a, variant_list[i].hash) and
-        hash_check_attach(seq, seqlen, variant_list.data() + i, seed)) {
+        hash_check_attach(seq, seqlen, variant_list[i], seed)) {
       ++matches;
     }
   }
@@ -457,12 +457,12 @@ auto check_heavy_var(struct bloomflex_s * bloom,
   char * sequence = db_getsequence(seed);
   const unsigned int seqlen = db_getsequencelen(seed);
   const uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash, variant_list.data(), &variant_count);
+  generate_variants(sequence, seqlen, hash, variant_list, &variant_count);
 
   for(auto i = 0U; i < variant_count; i++)
     {
-      struct var_s * var = variant_list.data() + i;
-      if (bloomflex_get(bloom, var->hash))
+      struct var_s & var = variant_list[i];
+      if (bloomflex_get(bloom, var.hash))
         {
           unsigned int varlen = 0;
           generate_variant_sequence(sequence, seqlen,
@@ -517,7 +517,7 @@ auto check_heavy_thread(int64_t t) -> void
 
 auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
-                        struct var_s * variant_list) -> uint64_t
+                        std::vector<struct var_s>& variant_list) -> uint64_t
 {
   /*
     add all microvariants of seed to Bloom filter
@@ -562,7 +562,7 @@ void mark_light_thread(int64_t t)
           progress_update(++light_progress);
           pthread_mutex_unlock(&light_mutex);
           const uint64_t variant_count = mark_light_var(bloom_f, light_amplicon_id,
-                                                        variant_list.data());
+                                                        variant_list);
           pthread_mutex_lock(&light_mutex);
           light_variants += variant_count;
         }
@@ -575,23 +575,23 @@ void mark_light_thread(int64_t t)
 
 
 inline void find_variant_matches(unsigned int seed,
-                                 var_s * var,
+                                 struct var_s & var,
                                  unsigned int * hits_data,
                                  unsigned int * hits_count)
 {
-  if (not bloom_get(bloom_a, var->hash)) {
+  if (not bloom_get(bloom_a, var.hash)) {
     return;
   }
 
   /* compute hash and corresponding hash table index */
 
-  uint64_t j = hash_getindex(var->hash);
+  uint64_t j = hash_getindex(var.hash);
 
   /* find matching buckets */
 
   while (hash_is_occupied(j))
     {
-      if (hash_compare_value(j, var->hash))
+      if (hash_compare_value(j, var.hash))
         {
           const unsigned int amp = hash_get_data(j);
 
@@ -622,7 +622,7 @@ inline void find_variant_matches(unsigned int seed,
 
 
 void check_variants(unsigned int seed,
-                    var_s * variant_list,
+                    std::vector<struct var_s> & variant_list,
                     unsigned int * hits_data,
                     unsigned int * hits_count)
 {
@@ -635,7 +635,7 @@ void check_variants(unsigned int seed,
   generate_variants(sequence, seqlen, hash, variant_list, & variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
-    find_variant_matches(seed, variant_list + i, hits_data, hits_count);
+    find_variant_matches(seed, variant_list[i], hits_data, hits_count);
   }
 }
 
@@ -659,7 +659,7 @@ auto network_thread(int64_t t) -> void
       pthread_mutex_unlock(&network_mutex);
 
       unsigned int hits_count = 0;
-      check_variants(amp, variant_list.data(), hits_data.data(), & hits_count);
+      check_variants(amp, variant_list, hits_data.data(), & hits_count);
       pthread_mutex_lock(&network_mutex);
 
       ampinfo[amp].link_start = network_count;

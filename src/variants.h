@@ -22,6 +22,8 @@
 */
 
 #include <cstdint>
+#include <vector>
+
 
 /* Variant information */
 enum struct Variant_type : unsigned char { substitution, deletion, insertion };
@@ -37,18 +39,18 @@ struct var_s
 
 void generate_variant_sequence(char * seed_sequence,
                                unsigned int seed_seqlen,
-                               struct var_s * var,
+                               struct var_s & var,
                                char * seq,
                                unsigned int * seqlen);
 
 auto check_variant(char * seed_sequence,
                    unsigned int seed_seqlen,
-                   struct var_s * var,
+                   struct var_s & var,
                    char * amp_sequence,
                    unsigned int amp_seqlen) -> bool;
 
 void generate_variants(char * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
-                       struct var_s * variant_list,
+                       std::vector<struct var_s>& variant_list,
                        unsigned int * variant_count);
