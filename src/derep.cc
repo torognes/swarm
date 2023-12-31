@@ -118,8 +118,8 @@ auto write_structure_file(struct Parameters const & parameters,
   auto counter = 0UL;
 
   for(uint64_t i = 0; i < hashtable.size(); i++) {
-    auto * cluster = hashtable.data() + counter;
-    const uint64_t seed = cluster->seqno_first;
+    auto & cluster = hashtable[counter];
+    const uint64_t seed = cluster.seqno_first;
     unsigned int next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
