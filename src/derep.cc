@@ -238,13 +238,13 @@ auto write_swarms_default_format(const uint64_t swarmcount,
     {
       const unsigned int seed = hashtable[i].seqno_first;
       fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      unsigned int a = nextseqtab[seed];
 
-      while (a != 0U)
+      unsigned int next_identical = nextseqtab[seed];
+      while (next_identical != 0U)
         {
           std::fputc(sepchar, outfile);
-          fprint_id(outfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          a = nextseqtab[a];
+          fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          next_identical = nextseqtab[next_identical];
         }
       std::fputc('\n', outfile);
       progress_update(i + 1);
