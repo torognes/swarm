@@ -185,7 +185,7 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
 
 auto write_representative_sequences(const uint64_t swarmcount,
                                     struct Parameters const & parameters,
-                                    struct bucket * hashtable) -> void {
+                                    std::vector<struct bucket> const & hashtable) -> void {
   progress_init("Writing seeds:    ", swarmcount);
   for(auto i = 0U; i < swarmcount; i++)
     {
