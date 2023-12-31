@@ -253,8 +253,9 @@ auto write_swarms_default_format(struct Parameters const & parameters,
   progress_done();
 }
 
+
 // refactoring:
-// auto dereplicating(struct Parameters const & parameters,
+// auto dereplicating(
 //                    std::vector<struct bucket> & hashtable,
 //                    std::vector<unsigned int> & nextseqtab,
 //                    uint64_t & maxmass,
@@ -354,6 +355,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
     }
   progress_done();
 
+  // refactoring: make a sort_and_shrink function?
   progress_init("Sorting:          ", 1);
   std::qsort(hashtable.data(), hashtablesize, sizeof(bucket), derep_compare);
   hashtable.erase(hashtable.begin() + swarmcount, hashtable.end());
