@@ -121,14 +121,14 @@ auto write_structure_file(const uint64_t swarmcount,
     {
       struct bucket * sp = hashtable + i;
       const uint64_t seed = sp->seqno_first;
-      unsigned int a = nextseqtab[seed];
-      while (a != 0U)
+      unsigned int next_identical = nextseqtab[seed];
+      while (next_identical != 0U)
         {
           fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
           std::fprintf(internal_structure_file, "\t");
-          fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
+          fprint_id_noabundance(internal_structure_file, next_identical, parameters.opt_usearch_abundance);
           std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i + 1, 0);
-          a = nextseqtab[a];
+          next_identical = nextseqtab[next_identical];
         }
       progress_update(i);
     }
@@ -160,21 +160,21 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
-      unsigned int a = nextseqtab[seed];
+      unsigned int next_identical = nextseqtab[seed];
 
-      while (a != 0U)
+      while (next_identical != 0U)
         {
           std::fprintf(uclustfile,
                   "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                   swarmid,
-                  db_getsequencelen(a),
+                  db_getsequencelen(next_identical),
                   100.0,
                   "=");
-          fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          fprint_id(uclustfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(uclustfile, "\t");
           fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(uclustfile, "\n");
-          a = nextseqtab[a];
+          next_identical = nextseqtab[next_identical];
         }
 
       progress_update(swarmid + 1);
@@ -212,13 +212,13 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
       const unsigned int seed = hashtable[i].seqno_first;
       std::fputc('\t', outfile);
       fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      unsigned int a = nextseqtab[seed];
+      unsigned int next_identical = nextseqtab[seed];
 
-      while (a != 0U)
+      while (next_identical != 0U)
         {
           std::fputc(',', outfile);
-          fprint_id(outfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          a = nextseqtab[a];
+          fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          next_identical = nextseqtab[next_identical];
         }
 
       progress_update(i + 1);
