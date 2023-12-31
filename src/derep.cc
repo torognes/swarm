@@ -205,6 +205,7 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing swarms:   ", hashtable.size());
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, hashtable.size());
+  auto counter = 0U;
 
   for(auto i = 0U; i < hashtable.size(); i++)
     {
@@ -220,7 +221,8 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
           next_identical = nextseqtab[next_identical];
         }
 
-      progress_update(i + 1);
+      ++counter;
+      progress_update(counter);
     }
     std::fputc('\n', outfile);
 
