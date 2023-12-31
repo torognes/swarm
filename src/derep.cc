@@ -149,13 +149,13 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
       const unsigned int seed = bp->seqno_first;
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
-              swarmid,
+              counter,
               bp->size);
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
       std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-              swarmid,
+              counter,
               db_getsequencelen(seed));
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
@@ -165,7 +165,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
         {
           std::fprintf(uclustfile,
                   "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                  swarmid,
+                  counter,
                   db_getsequencelen(next_identical),
                   100.0,
                   "=");
