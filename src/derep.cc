@@ -186,6 +186,7 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
 auto write_representative_sequences(struct Parameters const & parameters,
                                     std::vector<struct bucket> const & hashtable) -> void {
   progress_init("Writing seeds:    ", hashtable.size());
+  auto counter = 0U;
   for(auto i = 0U; i < hashtable.size(); i++)
     {
       const unsigned int seed = hashtable[i].seqno_first;
@@ -193,7 +194,8 @@ auto write_representative_sequences(struct Parameters const & parameters,
       fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, parameters.opt_usearch_abundance);
       std::fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, seed);
-      progress_update(i + 1);
+      ++counter;
+      progress_update(counter);
     }
   progress_done();
 }
