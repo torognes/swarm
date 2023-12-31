@@ -76,7 +76,7 @@ inline auto seq_identical(char * seq_a,
 void generate_variant_sequence(char * seed_sequence,
                                unsigned int seed_seqlen,
                                struct var_s & var,
-                               char * seq,
+                               std::vector<char>& seq,
                                unsigned int * seqlen)
 {
   /* generate the actual sequence of a variant */
@@ -84,27 +84,27 @@ void generate_variant_sequence(char * seed_sequence,
   switch (var.type)
     {
     case Variant_type::substitution:
-      std::memcpy(seq, seed_sequence, nt_bytelength(seed_seqlen));
-      nt_set(seq, var.pos, var.base);
+      std::memcpy(seq.data(), seed_sequence, nt_bytelength(seed_seqlen));
+      nt_set(seq.data(), var.pos, var.base);
       * seqlen = seed_seqlen;
       break;
 
     case Variant_type::deletion:
-      seq_copy(seq, 0,
+      seq_copy(seq.data(), 0,
                seed_sequence, 0,
                var.pos);
-      seq_copy(seq, var.pos,
+      seq_copy(seq.data(), var.pos,
                seed_sequence, var.pos + 1,
                seed_seqlen - var.pos - 1);
       * seqlen = seed_seqlen - 1;
       break;
 
     case Variant_type::insertion:
-      seq_copy(seq, 0,
+      seq_copy(seq.data(), 0,
                seed_sequence, 0,
                var.pos);
-      nt_set(seq, var.pos, var.base);
-      seq_copy(seq, var.pos + 1,
+      nt_set(seq.data(), var.pos, var.base);
+      seq_copy(seq.data(), var.pos + 1,
                seed_sequence, var.pos,
                seed_seqlen - var.pos);
       * seqlen = seed_seqlen + 1;
