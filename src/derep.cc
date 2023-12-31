@@ -253,6 +253,15 @@ auto write_swarms_default_format(struct Parameters const & parameters,
   progress_done();
 }
 
+// refactoring:
+// auto dereplicating(struct Parameters const & parameters,
+//                    std::vector<struct bucket> & hashtable,
+//                    std::vector<unsigned int> & nextseqtab,
+//                    uint64_t & maxmass,
+//                    uint64_t & maxsize
+// ) -> int64_t;  // swarmcount
+// deduce dbsequencecount from nextseqtab
+
 
 auto dereplicate(struct Parameters const & parameters) -> void
 {
