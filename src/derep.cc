@@ -96,11 +96,11 @@ auto derep_compare(const void * a, const void * b) -> int
 
 auto write_stats_file(const uint64_t swarmcount,
                       struct Parameters const & parameters,
-                      struct bucket * hashtable) -> void {
+                      std::vector<struct bucket> & hashtable) -> void {
   progress_init("Writing stats:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
-      struct bucket * sp = hashtable + i;
+      struct bucket * sp = hashtable.data() + i;
       std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
       fprint_id_noabundance(statsfile, sp->seqno_first, parameters.opt_usearch_abundance);
       std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
@@ -383,7 +383,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   /* output statistics to file */
   if (statsfile != nullptr) {
-    write_stats_file(swarmcount, parameters, hashtable.data());
+    write_stats_file(swarmcount, parameters, hashtable);
   }
 
   std::fprintf(logfile, "\n");
