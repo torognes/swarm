@@ -209,10 +209,12 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
 
   for(auto i = 0U; i < hashtable.size(); i++)
     {
+      // print cluster seed
       const unsigned int seed = hashtable[i].seqno_first;
       std::fputc('\t', outfile);
       fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
+      // print other cluster members
       unsigned int next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
