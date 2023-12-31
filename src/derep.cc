@@ -368,7 +368,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   /* dump seeds in fasta format with sum of abundances */
   if (not parameters.opt_seeds.empty()) {
-    write_representative_sequences(swarmcount, parameters, hashtable.data());
+    write_representative_sequences(swarmcount, parameters, hashtable);
   }
 
   /* output swarm in uclust format */
