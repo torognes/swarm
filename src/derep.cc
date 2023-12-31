@@ -27,6 +27,7 @@
 #include "utils/hashtable_size.h"
 #include "utils/nt_codec.h"
 #include "zobrist.h"
+#include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>
 #include <cstdio>  // fputc()
@@ -262,6 +263,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
   std::vector<struct bucket> hashtable(hashtablesize);
 
   uint64_t swarmcount = 0;
+  int64_t tmp_swarmcount = 0;
   uint64_t maxmass = 0;
   unsigned int maxsize = 0;
 
@@ -316,6 +318,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
         {
           /* no identical sequences yet, start a new cluster */
           ++swarmcount;
+          ++tmp_swarmcount;
           bp->hash = hash;
           bp->seqno_first = i;
           bp->size = 0;
@@ -344,6 +347,9 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   progress_init("Sorting:          ", 1);
   std::qsort(hashtable.data(), hashtablesize, sizeof(bucket), derep_compare);
+  hashtable.erase(hashtable.begin() + tmp_swarmcount, hashtable.end());
+  hashtable.shrink_to_fit();  // release unused memory
+  assert(hashtable.size() == swarmcount);
   progress_done();
 
 
