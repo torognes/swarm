@@ -187,11 +187,10 @@ auto write_representative_sequences(struct Parameters const & parameters,
                                     std::vector<struct bucket> const & hashtable) -> void {
   progress_init("Writing seeds:    ", hashtable.size());
   auto counter = 0U;
-  for(auto i = 0U; i < hashtable.size(); i++)
-    {
-      const unsigned int seed = hashtable[i].seqno_first;
+  for(auto const & cluster: hashtable) {
+      const unsigned int seed = cluster.seqno_first;
       std::fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, seed, hashtable[i].mass, parameters.opt_usearch_abundance);
+      fprint_id_with_new_abundance(fp_seeds, seed, cluster.mass, parameters.opt_usearch_abundance);
       std::fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, seed);
       ++counter;
