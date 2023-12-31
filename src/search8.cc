@@ -88,6 +88,7 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
 #define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
 #define v_store(a, b) vst1q_u8((uint8_t *)(a), (b))
+// same as in search16
 #define v_merge_lo_8(a, b) vzip1q_u8((a),(b))
 #define v_merge_lo_16(a, b) vzip1q_u16((a),(b))
 #define v_merge_hi_16(a, b) vzip2q_u16((a),(b))
@@ -101,6 +102,7 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 #define v_merge_hi_64(a, b) vreinterpretq_u16_u64(vcombine_u64 \
           (vget_high_u64(vreinterpretq_u64_u16(a)), \
            vget_high_u64(vreinterpretq_u64_u16(b))))
+// END
 #define v_min(a, b) vminq_u8((a), (b))
 #define v_add(a, b) vqaddq_u8((a), (b))
 #define v_sub(a, b) vqsubq_u8((a), (b))
