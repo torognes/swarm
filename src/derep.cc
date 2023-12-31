@@ -142,42 +142,41 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
   progress_init("Writing UCLUST:   ", hashtable.size());
   auto counter = 0U;
 
-  for(auto swarmid = 0U; swarmid < hashtable.size(); swarmid++)
-    {
-      auto & cluster = hashtable[swarmid];
+  for(auto swarmid = 0U; swarmid < hashtable.size(); swarmid++) {
+    auto & cluster = hashtable[swarmid];
 
-      const unsigned int seed = cluster.seqno_first;
+    const unsigned int seed = cluster.seqno_first;
 
-      std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
-              counter,
-              cluster.size);
-      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(uclustfile, "\t*\n");
+    std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+                 counter,
+                 cluster.size);
+    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(uclustfile, "\t*\n");
 
-      std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-              counter,
-              db_getsequencelen(seed));
-      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(uclustfile, "\t*\n");
+    std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+                 counter,
+                 db_getsequencelen(seed));
+    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(uclustfile, "\t*\n");
 
-      unsigned int next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
-        {
-          std::fprintf(uclustfile,
-                  "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                  counter,
-                  db_getsequencelen(next_identical),
-                  100.0,
-                  "=");
-          fprint_id(uclustfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\t");
-          fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\n");
-          next_identical = nextseqtab[next_identical];
-        }
-      ++counter;
-      progress_update(counter);
-    }
+    unsigned int next_identical = nextseqtab[seed];
+    while (next_identical != 0U)
+      {
+        std::fprintf(uclustfile,
+                     "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                     counter,
+                     db_getsequencelen(next_identical),
+                     100.0,
+                     "=");
+        fprint_id(uclustfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(uclustfile, "\t");
+        fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(uclustfile, "\n");
+        next_identical = nextseqtab[next_identical];
+      }
+    ++counter;
+    progress_update(counter);
+  }
   progress_done();
 }
 
