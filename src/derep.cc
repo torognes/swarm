@@ -112,13 +112,12 @@ auto write_stats_file(struct Parameters const & parameters,
 
 
 auto write_structure_file(struct Parameters const & parameters,
-                          std::vector<struct bucket> & hashtable,
+                          std::vector<struct bucket> const & hashtable,
                           std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing structure:", hashtable.size());
   auto counter = 0UL;
 
-  for(uint64_t i = 0; i < hashtable.size(); i++) {
-    auto & cluster = hashtable[counter];
+  for(auto const & cluster: hashtable) {
     const uint64_t seed = cluster.seqno_first;
     unsigned int next_identical = nextseqtab[seed];
     while (next_identical != 0U)
