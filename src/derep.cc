@@ -144,7 +144,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
 
   for(auto swarmid = 0U; swarmid < hashtable.size(); swarmid++)
     {
-      struct bucket * bp = hashtable.data() + swarmid;
+      auto * bp = hashtable.data() + swarmid;
 
       const unsigned int seed = bp->seqno_first;
 
