@@ -99,6 +99,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
 
   static constexpr unsigned int offset {64};
   static constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
+  // refactoring: why interpret first as uint64_t then as uint8_t??
   auto * query = reinterpret_cast<uint64_t *>(seq);
   uint64_t zobrist_hash = 0;
   unsigned int pos = 0;
