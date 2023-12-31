@@ -114,7 +114,7 @@ auto write_stats_file(struct Parameters const & parameters,
 auto write_structure_file(const uint64_t swarmcount,
                           struct Parameters const & parameters,
                           std::vector<struct bucket> & hashtable,
-                          unsigned int * nextseqtab) -> void {
+                          std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing structure:", swarmcount);
 
   for(uint64_t i = 0; i < swarmcount; i++)
@@ -374,7 +374,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   /* output internal structure to file */
   if (not parameters.opt_internal_structure.empty()) {
-    write_structure_file(swarmcount, parameters, hashtable, nextseqtab.data());
+    write_structure_file(swarmcount, parameters, hashtable, nextseqtab);
   }
 
   /* output statistics to file */
