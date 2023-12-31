@@ -32,6 +32,7 @@
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcmp
+#include <vector>
 
 #ifndef PRIu64
 #ifdef _WIN32
@@ -259,15 +260,14 @@ auto dereplicate(struct Parameters const & parameters) -> void
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
   const uint64_t derep_hash_mask = hashtablesize - 1;
 
-  // refactoring: std::vector?
-  auto * hashtable = new struct bucket[hashtablesize];
+  std::vector<struct bucket> hashtable(hashtablesize);
 
   uint64_t swarmcount = 0;
   uint64_t maxmass = 0;
   unsigned int maxsize = 0;
 
   /* alloc and init table of links to other sequences in cluster */
-  auto * nextseqtab = new unsigned int[dbsequencecount] { };
+  std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
 
   progress_init("Dereplicating:    ", dbsequencecount);
 
@@ -288,7 +288,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
                                          seqlen);
 
       uint64_t j = hash & derep_hash_mask;
-      struct bucket * bp = hashtable + j;
+      struct bucket * bp = hashtable.data() + j;
 
       while (((bp->mass) != 0U) and
              ((bp->hash != hash) or
@@ -299,9 +299,9 @@ auto dereplicate(struct Parameters const & parameters) -> void
         {
           ++bp;
           ++j;
-          if (bp >= hashtable + hashtablesize) // wrap around the table if we reach the end
+          if (bp >= hashtable.data() + hashtablesize) // wrap around the table if we reach the end
             {
-              bp = hashtable;
+              bp = hashtable.data();
               j = 0;
             }
         }
@@ -344,45 +344,40 @@ auto dereplicate(struct Parameters const & parameters) -> void
   progress_done();
 
   progress_init("Sorting:          ", 1);
-  std::qsort(hashtable, hashtablesize, sizeof(bucket), derep_compare);
+  std::qsort(hashtable.data(), hashtablesize, sizeof(bucket), derep_compare);
   progress_done();
 
 
   /* dump swarms */
   if (parameters.opt_mothur) {
-    write_swarms_mothur_format(swarmcount, parameters, hashtable, nextseqtab);
+    write_swarms_mothur_format(swarmcount, parameters, hashtable.data(), nextseqtab.data());
   }
   else {
-    write_swarms_default_format(swarmcount, parameters, hashtable, nextseqtab);
+    write_swarms_default_format(swarmcount, parameters, hashtable.data(), nextseqtab.data());
   }
 
   /* dump seeds in fasta format with sum of abundances */
   if (not parameters.opt_seeds.empty()) {
-    write_representative_sequences(swarmcount, parameters, hashtable);
+    write_representative_sequences(swarmcount, parameters, hashtable.data());
   }
 
   /* output swarm in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, parameters, hashtable, nextseqtab);
+    write_swarms_uclust_format(swarmcount, parameters, hashtable.data(), nextseqtab.data());
   }
 
   /* output internal structure to file */
   if (not parameters.opt_internal_structure.empty()) {
-    write_structure_file(swarmcount, parameters, hashtable, nextseqtab);
+    write_structure_file(swarmcount, parameters, hashtable.data(), nextseqtab.data());
   }
 
   /* output statistics to file */
   if (statsfile != nullptr) {
-    write_stats_file(swarmcount, parameters, hashtable);
+    write_stats_file(swarmcount, parameters, hashtable.data());
   }
 
   std::fprintf(logfile, "\n");
   std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount);
   std::fprintf(logfile, "Largest swarm:     %u\n", maxsize);
   std::fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
-
-  delete [] nextseqtab;
-  nextseqtab = nullptr;
-  delete [] hashtable;
-  hashtable = nullptr;
 }
