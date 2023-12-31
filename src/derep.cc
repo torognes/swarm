@@ -117,22 +117,21 @@ auto write_structure_file(struct Parameters const & parameters,
   progress_init("Writing structure:", hashtable.size());
   auto counter = 0UL;
 
-  for(uint64_t i = 0; i < hashtable.size(); i++)
-    {
-      auto * cluster = hashtable.data() + counter;
-      const uint64_t seed = cluster->seqno_first;
-      unsigned int next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
-        {
-          fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
-          std::fprintf(internal_structure_file, "\t");
-          fprint_id_noabundance(internal_structure_file, next_identical, parameters.opt_usearch_abundance);
-          std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
-          next_identical = nextseqtab[next_identical];
-        }
-      ++counter;
-      progress_update(counter);
-    }
+  for(uint64_t i = 0; i < hashtable.size(); i++) {
+    auto * cluster = hashtable.data() + counter;
+    const uint64_t seed = cluster->seqno_first;
+    unsigned int next_identical = nextseqtab[seed];
+    while (next_identical != 0U)
+      {
+        fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
+        std::fprintf(internal_structure_file, "\t");
+        fprint_id_noabundance(internal_structure_file, next_identical, parameters.opt_usearch_abundance);
+        std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
+        next_identical = nextseqtab[next_identical];
+      }
+    ++counter;
+    progress_update(counter);
+  }
   progress_done();
 }
 
