@@ -119,8 +119,8 @@ auto write_structure_file(const uint64_t swarmcount,
 
   for(uint64_t i = 0; i < swarmcount; i++)
     {
-      struct bucket * sp = hashtable.data() + i;
-      const uint64_t seed = sp->seqno_first;
+      struct bucket * cluster = hashtable.data() + i;
+      const uint64_t seed = cluster->seqno_first;
       unsigned int next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
