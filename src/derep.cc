@@ -116,11 +116,11 @@ auto write_structure_file(const uint64_t swarmcount,
                           std::vector<struct bucket> & hashtable,
                           std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing structure:", swarmcount);
-  auto counter = 0U;
+  auto counter = 0UL;
 
   for(uint64_t i = 0; i < swarmcount; i++)
     {
-      auto * cluster = hashtable.data() + i;
+      auto * cluster = hashtable.data() + counter;
       const uint64_t seed = cluster->seqno_first;
       unsigned int next_identical = nextseqtab[seed];
       while (next_identical != 0U)
@@ -128,7 +128,7 @@ auto write_structure_file(const uint64_t swarmcount,
           fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
           std::fprintf(internal_structure_file, "\t");
           fprint_id_noabundance(internal_structure_file, next_identical, parameters.opt_usearch_abundance);
-          std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i + 1, 0);
+          std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
           next_identical = nextseqtab[next_identical];
         }
       ++counter;
