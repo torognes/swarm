@@ -97,6 +97,7 @@ auto derep_compare(const void * a, const void * b) -> int
 auto write_stats_file(struct Parameters const & parameters,
                       std::vector<struct bucket> & hashtable) -> void {
   progress_init("Writing stats:    ", hashtable.size());
+  auto counter = 0U;
   for(auto i = 0ULL; i < hashtable.size(); i++)
     {
       auto * cluster = hashtable.data() + i;
@@ -105,7 +106,8 @@ auto write_stats_file(struct Parameters const & parameters,
       std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
               db_getabundance(cluster->seqno_first),
               cluster->singletons, 0U, 0U);
-      progress_update(i);
+      ++counter;
+      progress_update(counter);
     }
   progress_done();
 }
