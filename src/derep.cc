@@ -289,7 +289,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
                                          seqlen);
 
       uint64_t j = hash & derep_hash_mask;
-      struct bucket * clusterp = hashtable.data() + j;
+      auto * clusterp = hashtable.data() + j;
 
       while (((clusterp->mass) != 0U) and
              ((clusterp->hash != hash) or
