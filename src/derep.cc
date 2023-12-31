@@ -116,6 +116,7 @@ auto write_structure_file(const uint64_t swarmcount,
                           std::vector<struct bucket> & hashtable,
                           std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing structure:", swarmcount);
+  auto counter = 0U;
 
   for(uint64_t i = 0; i < swarmcount; i++)
     {
@@ -130,7 +131,8 @@ auto write_structure_file(const uint64_t swarmcount,
           std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, i + 1, 0);
           next_identical = nextseqtab[next_identical];
         }
-      progress_update(i);
+      ++counter;
+      progress_update(counter);
     }
   progress_done();
 }
