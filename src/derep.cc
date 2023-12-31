@@ -136,14 +136,13 @@ auto write_structure_file(const uint64_t swarmcount,
 }
 
 
-auto write_swarms_uclust_format(const uint64_t swarmcount,
-                                struct Parameters const & parameters,
+auto write_swarms_uclust_format(struct Parameters const & parameters,
                                 std::vector<struct bucket> & hashtable,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
-  progress_init("Writing UCLUST:   ", swarmcount);
+  progress_init("Writing UCLUST:   ", hashtable.size());
   auto counter = 0U;
 
-  for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
+  for(auto swarmid = 0U; swarmid < hashtable.size(); swarmid++)
     {
       struct bucket * bp = hashtable.data() + swarmid;
 
@@ -373,7 +372,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   /* output swarm in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, parameters, hashtable, nextseqtab);
+    write_swarms_uclust_format(parameters, hashtable, nextseqtab);
   }
 
   /* output internal structure to file */
