@@ -161,7 +161,6 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
       std::fprintf(uclustfile, "\t*\n");
 
       unsigned int next_identical = nextseqtab[seed];
-
       while (next_identical != 0U)
         {
           std::fprintf(uclustfile,
@@ -212,8 +211,8 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
       const unsigned int seed = hashtable[i].seqno_first;
       std::fputc('\t', outfile);
       fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      unsigned int next_identical = nextseqtab[seed];
 
+      unsigned int next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
           std::fputc(',', outfile);
