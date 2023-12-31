@@ -382,7 +382,8 @@ auto dereplicate(struct Parameters const & parameters) -> void
   }
 
   std::fprintf(logfile, "\n");
-  std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount);
+  std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n",
+               static_cast<uint64_t>(swarmcount));
   std::fprintf(logfile, "Largest swarm:     %u\n", maxsize);
   std::fprintf(logfile, "Heaviest swarm:    %" PRIu64 "\n", maxmass);
 }
