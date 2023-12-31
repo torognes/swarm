@@ -236,22 +236,22 @@ auto write_swarms_default_format(struct Parameters const & parameters,
   auto counter = 0U;
 
   for(auto const & cluster: hashtable) {
-      // print cluster seed
-      const unsigned int seed = cluster.seqno_first;
-      fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    // print cluster seed
+    const unsigned int seed = cluster.seqno_first;
+    fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
-      // print other cluster members
-      unsigned int next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
-        {
-          std::fputc(sepchar, outfile);
-          fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          next_identical = nextseqtab[next_identical];
-        }
-      std::fputc('\n', outfile);
-      ++counter;
-      progress_update(counter);
-    }
+    // print other cluster members
+    unsigned int next_identical = nextseqtab[seed];
+    while (next_identical != 0U)
+      {
+        std::fputc(sepchar, outfile);
+        fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        next_identical = nextseqtab[next_identical];
+      }
+    std::fputc('\n', outfile);
+    ++counter;
+    progress_update(counter);
+  }
 
   progress_done();
 }
