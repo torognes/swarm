@@ -144,13 +144,13 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
 
   for(auto swarmid = 0U; swarmid < hashtable.size(); swarmid++)
     {
-      auto * bp = hashtable.data() + swarmid;
+      auto * cluster = hashtable.data() + swarmid;
 
-      const unsigned int seed = bp->seqno_first;
+      const unsigned int seed = cluster->seqno_first;
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
               counter,
-              bp->size);
+              cluster->size);
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
