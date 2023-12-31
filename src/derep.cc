@@ -229,16 +229,18 @@ auto write_swarms_mothur_format(const uint64_t swarmcount,
 }
 
 
-auto write_swarms_default_format(const uint64_t swarmcount,
-                                 struct Parameters const & parameters,
+auto write_swarms_default_format(struct Parameters const & parameters,
                                  std::vector<struct bucket> const & hashtable,
                                  std::vector<unsigned int> const & nextseqtab) -> void {
-  progress_init("Writing swarms:   ", swarmcount);
-  for(auto i = 0U; i < swarmcount; i++)
-    {
-      const unsigned int seed = hashtable[i].seqno_first;
+  progress_init("Writing swarms:   ", hashtable.size());
+  auto counter = 0U;
+
+  for(auto const & cluster: hashtable) {
+      // print cluster seed
+      const unsigned int seed = cluster.seqno_first;
       fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
+      // print other cluster members
       unsigned int next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
@@ -247,7 +249,8 @@ auto write_swarms_default_format(const uint64_t swarmcount,
           next_identical = nextseqtab[next_identical];
         }
       std::fputc('\n', outfile);
-      progress_update(i + 1);
+      ++counter;
+      progress_update(counter);
     }
 
   progress_done();
@@ -358,7 +361,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
     write_swarms_mothur_format(swarmcount, parameters, hashtable.data(), nextseqtab.data());
   }
   else {
-    write_swarms_default_format(swarmcount, parameters, hashtable, nextseqtab);
+    write_swarms_default_format(parameters, hashtable, nextseqtab);
   }
 
   /* dump seeds in fasta format with sum of abundances */
