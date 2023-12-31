@@ -203,7 +203,7 @@ auto write_representative_sequences(const uint64_t swarmcount,
 auto write_swarms_mothur_format(const uint64_t swarmcount,
                                 struct Parameters const & parameters,
                                 std::vector<struct bucket> const & hashtable,
-                                unsigned int * nextseqtab) -> void {
+                                std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing swarms:   ", hashtable.size());
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, swarmcount);
 
@@ -358,7 +358,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
 
   /* dump swarms */
   if (parameters.opt_mothur) {
-    write_swarms_mothur_format(swarmcount, parameters, hashtable, nextseqtab.data());
+    write_swarms_mothur_format(swarmcount, parameters, hashtable, nextseqtab);
   }
   else {
     write_swarms_default_format(parameters, hashtable, nextseqtab);
