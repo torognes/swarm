@@ -141,6 +141,7 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
                                 std::vector<struct bucket> & hashtable,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing UCLUST:   ", swarmcount);
+  auto counter = 0U;
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
@@ -175,8 +176,8 @@ auto write_swarms_uclust_format(const uint64_t swarmcount,
           std::fprintf(uclustfile, "\n");
           next_identical = nextseqtab[next_identical];
         }
-
-      progress_update(swarmid + 1);
+      ++counter;
+      progress_update(counter);
     }
   progress_done();
 }
