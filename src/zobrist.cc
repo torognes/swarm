@@ -99,33 +99,33 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
 
   static constexpr unsigned int offset {64};
   static constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
-  auto * q = reinterpret_cast<uint64_t *>(seq);
+  auto * query = reinterpret_cast<uint64_t *>(seq);
   uint64_t zobrist_hash = 0;
   unsigned int pos = 0;
-  auto * qb = reinterpret_cast<unsigned char *>(q);
+  auto * query_in_bytes = reinterpret_cast<unsigned char *>(query);
 
   while (pos + nt_per_uint64 < len)
     {
       for(auto i = 0U; i < nt_per_uint64; i += 4) {
         // i = {0, 4, 8, 12, 16, 20, 24, 28}
-        zobrist_hash ^= zobrist_tab_byte_base[offset * (pos + i) + *qb++];
+        zobrist_hash ^= zobrist_tab_byte_base[offset * (pos + i) + *query_in_bytes++];
       }
       pos += nt_per_uint64;
     }
 
   while (pos + 4 < len)
     {
-      zobrist_hash ^= zobrist_tab_byte_base[offset * pos + *qb++];
+      zobrist_hash ^= zobrist_tab_byte_base[offset * pos + *query_in_bytes++];
       pos += 4;
     }
 
   if (pos < len)
     {
-      uint64_t x = *qb++;
+      uint64_t next_byte = *query_in_bytes++;
       while (pos < len)
         {
-          zobrist_hash ^= zobrist_value(pos, x & 3U);
-          x >>= 2U;
+          zobrist_hash ^= zobrist_value(pos, next_byte & 3U);
+          next_byte >>= 2U;
           ++pos;
         }
     }
