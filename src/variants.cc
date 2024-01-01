@@ -167,9 +167,9 @@ inline void add_variant(uint64_t hash,
                         unsigned int pos,
                         unsigned char base,
                         std::vector<struct var_s>& variant_list,
-                        unsigned int * variant_count)
+                        unsigned int & variant_count)
 {
-  var_s & variant = variant_list[(*variant_count)++];
+  var_s & variant = variant_list[variant_count++];
   variant.hash = hash;
   variant.type = type;
   variant.pos = pos;
@@ -180,7 +180,7 @@ void generate_variants(char * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
                        std::vector<struct var_s>& variant_list,
-                       unsigned int * variant_count)
+                       unsigned int & variant_count)
 {
   /* substitutions */
 
