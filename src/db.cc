@@ -653,8 +653,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
   /* set up hash to check for unique headers */
 
   const uint64_t hdrhashsize {2ULL * sequences};
-
-  auto * * hdrhashtable = new seqinfo_t*[hdrhashsize] { };
+  std::vector<seqinfo_t *> hdrhashtable(hdrhashsize);
 
   /* set up hash to check for unique sequences */
 
@@ -859,9 +858,6 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       std::qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
       progress_done();
     }
-
-  delete [] hdrhashtable;
-  hdrhashtable = nullptr;
 
   // user report
   std::fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
