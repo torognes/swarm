@@ -660,12 +660,11 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
   const uint64_t seqhashsize {2ULL * sequences};
 
-  seqinfo_t * * seqhashtable {nullptr};
+  std::vector<seqinfo_t *> seqhashtable;
 
-  if (parameters.opt_differences > 1)
-    {
-      seqhashtable = new seqinfo_t*[seqhashsize] { };
-    }
+  if (parameters.opt_differences > 1) {
+    seqhashtable.insert(seqhashtable.end(), seqhashsize, nullptr);
+  }
 
   /* create indices */
 
@@ -863,9 +862,6 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
   delete [] hdrhashtable;
   hdrhashtable = nullptr;
-
-  delete [] seqhashtable;
-  seqhashtable = nullptr;
 
   // user report
   std::fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
