@@ -634,6 +634,7 @@ void check_variants(unsigned int seed,
   const uint64_t hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, variant_count);
 
+  // refactoring: range-based for loop over variant_list? no need for variant_count!
   for(auto i = 0U; i < variant_count; i++) {
     find_variant_matches(seed, variant_list[i], hits_data, hits_count);
   }
