@@ -626,12 +626,12 @@ auto check_variants(unsigned int seed,
                     unsigned int * hits_data,
                     unsigned int * hits_count) -> void
 {
-  unsigned int variant_count = 0;
+  auto variant_count = 0U;
   * hits_count = 0;
 
   char * sequence = db_getsequence(seed);
-  const unsigned int seqlen = db_getsequencelen(seed);
-  const uint64_t hash = db_gethash(seed);
+  const auto seqlen = db_getsequencelen(seed);
+  const auto hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, variant_count);
 
   // refactoring: range-based for loop over variant_list truncated to variant_count?
