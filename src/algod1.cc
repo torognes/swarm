@@ -398,7 +398,7 @@ auto hash_check_attach(char * seed_sequence,
 }
 
 
-inline auto check_heavy_var_2(char * seq,
+inline auto check_heavy_var_2(std::vector<char>& seq,
                               unsigned int seqlen,
                               unsigned int seed,
                               std::vector<struct var_s>& variant_list) -> uint64_t
@@ -409,12 +409,12 @@ inline auto check_heavy_var_2(char * seq,
   uint64_t matches = 0;
   unsigned int variant_count = 0;
 
-  const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq), seqlen);
-  generate_variants(seq, seqlen, hash, variant_list, &variant_count);
+  const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq.data()), seqlen);
+  generate_variants(seq.data(), seqlen, hash, variant_list, &variant_count);
 
   for(auto i = 0U; i < variant_count; i++) {
     if (bloom_get(bloom_a, variant_list[i].hash) and
-        hash_check_attach(seq, seqlen, variant_list[i], seed)) {
+        hash_check_attach(seq.data(), seqlen, variant_list[i], seed)) {
       ++matches;
     }
   }
@@ -467,7 +467,7 @@ auto check_heavy_var(struct bloomflex_s * bloom,
           unsigned int varlen = 0;
           generate_variant_sequence(sequence, seqlen,
                                     var, varseq, &varlen);
-          matches += check_heavy_var_2(varseq.data(),
+          matches += check_heavy_var_2(varseq,
                                        varlen,
                                        seed,
                                        variant_list2);
