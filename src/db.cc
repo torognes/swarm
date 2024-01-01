@@ -667,6 +667,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
   /* create indices */
 
+  // refactoring: seqindex is global, hard to change its type
   seqindex = new seqinfo_t[sequences];
   seqinfo_t * seqindex_p {seqindex};
 
