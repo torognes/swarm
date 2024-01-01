@@ -621,10 +621,10 @@ inline void find_variant_matches(unsigned int seed,
 }
 
 
-void check_variants(unsigned int seed,
+auto check_variants(unsigned int seed,
                     std::vector<struct var_s> & variant_list,
                     unsigned int * hits_data,
-                    unsigned int * hits_count)
+                    unsigned int * hits_count) -> void
 {
   unsigned int variant_count = 0;
   * hits_count = 0;
