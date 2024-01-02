@@ -1090,6 +1090,7 @@ void algo_d1_run(struct Parameters const & parameters)
 
   progress_done();
 
+  // refactoring: reduce scope (only used in write_swarms_uclust_format)
   unsigned char * dir = nullptr;
   uint64_t * hearray = nullptr;
 
