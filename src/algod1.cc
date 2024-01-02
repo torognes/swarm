@@ -947,16 +947,16 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
   for(auto j = 0U; j < swarmcount; j++)
     {
-      const auto i = sorter[j];
-      if (not swarminfo[i].attached)
+      const auto index = sorter[j];
+      if (not swarminfo[index].attached)
         {
-          const auto seed = swarminfo[i].seed;
+          const auto seed = swarminfo[index].seed;
           std::fprintf(fp_seeds, ">");
-          fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, parameters.opt_usearch_abundance);
+          fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[index].mass, parameters.opt_usearch_abundance);
           std::fprintf(fp_seeds, "\n");
           db_fprintseq(fp_seeds, seed);
         }
-      progress_update(i + 1);
+      progress_update(index + 1);
     }
 
   progress_done();
