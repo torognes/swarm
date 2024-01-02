@@ -200,24 +200,24 @@ inline void hash_insert(unsigned int amp)
 {
   /* find the first empty bucket */
   const uint64_t hash = db_gethash(amp);
-  uint64_t j = hash_getindex(hash);
+  uint64_t index = hash_getindex(hash);
   bool duplicate {false};
-  while (hash_is_occupied(j))
+  while (hash_is_occupied(index))
     {
-      if (hash_compare_value(j, hash) and
-          check_amp_identical(amp, hash_get_data(j))) {
+      if (hash_compare_value(index, hash) and
+          check_amp_identical(amp, hash_get_data(index))) {
         duplicate = true;
       }
-      j = hash_getnextindex(j);
+      index = hash_getnextindex(index);
     }
 
   if (duplicate) {
     ++duplicates_found;
   }
 
-  hash_set_occupied(j);
-  hash_set_value(j, hash);
-  hash_set_data(j, amp);
+  hash_set_occupied(index);
+  hash_set_value(index, hash);
+  hash_set_data(index, amp);
 
   bloom_set(bloom_a, hash);
 }
