@@ -1021,14 +1021,14 @@ auto write_stats_file(const unsigned int swarmcount,
   for(auto i = 0ULL; i < swarmcount; i++)
     {
       swarminfo_s * sp = swarminfo + i;
-      if (not sp->attached)
-        {
-          std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
-          fprint_id_noabundance(statsfile, sp->seed, parameters.opt_usearch_abundance);
-          std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                  db_getabundance(sp->seed),
-                  sp->singletons, sp->maxgen, sp->maxgen);
-        }
+      if (sp->attached) {
+        continue;
+      }
+      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp->size, sp->mass);
+      fprint_id_noabundance(statsfile, sp->seed, parameters.opt_usearch_abundance);
+      std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+                   db_getabundance(sp->seed),
+                   sp->singletons, sp->maxgen, sp->maxgen);
       progress_update(i);
     }
   progress_done();
