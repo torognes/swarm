@@ -49,8 +49,8 @@ auto check_variant(char * seed_sequence,
                    char * amp_sequence,
                    unsigned int amp_seqlen) -> bool;
 
-void generate_variants(char * sequence,
+auto generate_variants(char * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
                        std::vector<struct var_s>& variant_list,
-                       unsigned int & variant_count);
+                       unsigned int & variant_count) -> void;
