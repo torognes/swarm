@@ -1062,11 +1062,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   for(auto k = 0U; k < amplicons; k++)
     {
       // refactoring: reference to ampinfo_v[k]; FAIL
-      struct ampinfo_s * bp = ampinfo + k;
-      bp->generation = 0;
-      bp->swarmid = no_swarm;
-      bp->next = no_swarm;
-      bp->graft_cand = no_swarm;
+      struct ampinfo_s & bp = ampinfo_v[k];
+      bp.generation = 0;
+      bp.swarmid = no_swarm;
+      bp.next = no_swarm;
+      bp.graft_cand = no_swarm;
       hash_insert(k);
       progress_update(k);
       if (duplicates_found != 0U) {
