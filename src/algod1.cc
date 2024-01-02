@@ -314,7 +314,7 @@ auto count_pairs(unsigned int const amplicon_count) -> unsigned int {
 
 auto attach_candidates(unsigned int amplicon_count) -> unsigned int
 {
-  unsigned int const pair_count = count_pairs(amplicon_count);
+  auto const pair_count = count_pairs(amplicon_count);
 
   progress_init("Grafting light swarms on heavy swarms", pair_count);
 
@@ -322,7 +322,7 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   std::vector<struct graft_cand> graft_array(pair_count);
 
   /* fill in */
-  unsigned int ticker = 0;  // refactoring: replace with a transform algorithm
+  auto ticker = 0U;  // refactoring: replace with a transform algorithm
   for(auto i = 0U; i < amplicon_count; i++) {
     if (ampinfo[i].graft_cand != no_swarm)
       {
@@ -336,11 +336,11 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   std::qsort(graft_array.data(), pair_count, sizeof(struct graft_cand), compare_grafts);
 
   /* attach in order */
-  unsigned int grafts = 0;
+  auto grafts = 0U;
   for(auto i = 0U; i < pair_count; i++)
     {
-      const unsigned int parent = graft_array[i].parent;
-      const unsigned int child  = graft_array[i].child;
+      const auto parent = graft_array[i].parent;
+      const auto child  = graft_array[i].child;
 
       if (swarminfo[ampinfo[child].swarmid].attached)
         {
