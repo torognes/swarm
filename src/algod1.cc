@@ -869,65 +869,66 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
-      if (not swarminfo[swarmid].attached)
+      if (swarminfo[swarmid].attached) {
+        continue;
+      }
+
+      const auto seed = swarminfo[swarmid].seed;
+
+      struct ampinfo_s * bp = ampinfo + seed;
+
+      std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+                   cluster_no,
+                   swarminfo[swarmid].size);
+      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      std::fprintf(uclustfile, "\t*\n");
+
+      std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+                   cluster_no,
+                   db_getsequencelen(seed));
+      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      std::fprintf(uclustfile, "\t*\n");
+
+      for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
         {
-          const auto seed = swarminfo[swarmid].seed;
+          auto * dseq = db_getsequence(a);
+          const auto dlen = db_getsequencelen(a);
+          auto * qseq = db_getsequence(seed);
+          const auto qlen = db_getsequencelen(seed);
 
-          struct ampinfo_s * bp = ampinfo + seed;
+          int64_t nwscore = 0;
+          int64_t nwdiff = 0;
+          char * nwalignment = nullptr;
+          int64_t nwalignmentlength = 0;
 
-          std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  cluster_no,
-                  swarminfo[swarmid].size);
+          nw(dseq, dlen, qseq, qlen,
+             score_matrix_63, penalty_gapopen, penalty_gapextend,
+             & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
+             dir.data(), reinterpret_cast<int64_t *>(hearray.data()), 0, 0);
+
+          const double percentid
+            = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
+            / static_cast<double>(nwalignmentlength);
+
+          std::fprintf(uclustfile,
+                       "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                       cluster_no,
+                       db_getsequencelen(a),
+                       percentid,
+                       nwdiff > 0 ? nwalignment : "=");
+
+          fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          std::fprintf(uclustfile, "\t");
           fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\t*\n");
+          std::fprintf(uclustfile, "\n");
 
-          std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  cluster_no,
-                  db_getsequencelen(seed));
-          fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\t*\n");
-
-          for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
-            {
-              auto * dseq = db_getsequence(a);
-              const auto dlen = db_getsequencelen(a);
-              auto * qseq = db_getsequence(seed);
-              const auto qlen = db_getsequencelen(seed);
-
-              int64_t nwscore = 0;
-              int64_t nwdiff = 0;
-              char * nwalignment = nullptr;
-              int64_t nwalignmentlength = 0;
-
-              nw(dseq, dlen, qseq, qlen,
-                 score_matrix_63, penalty_gapopen, penalty_gapextend,
-                 & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
-                 dir.data(), reinterpret_cast<int64_t *>(hearray.data()), 0, 0);
-
-              const double percentid
-                = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
-                / static_cast<double>(nwalignmentlength);
-
-              std::fprintf(uclustfile,
-                      "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                      cluster_no,
-                      db_getsequencelen(a),
-                      percentid,
-                      nwdiff > 0 ? nwalignment : "=");
-
-              fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(uclustfile, "\n");
-
-              if (nwalignment != nullptr) {
-                xfree(nwalignment);
-              }
-              nwalignment = nullptr;
-            }
-
-          ++cluster_no;
+          if (nwalignment != nullptr) {
+            xfree(nwalignment);
+          }
+          nwalignment = nullptr;
         }
+
+      ++cluster_no;
       progress_update(swarmid);
     }
   progress_done();
