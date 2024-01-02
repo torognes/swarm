@@ -1044,8 +1044,8 @@ void algo_d1_run(struct Parameters const & parameters)
   ampinfo = ampinfo_v.data();
 
   // max number of microvariants = 7 * len + 4
-  static constexpr unsigned int m_i {7};
-  static constexpr unsigned int m_j {4};
+  static constexpr auto m_i = 7U;
+  static constexpr auto m_j = 4U;
   global_hits_alloc = m_i * longestamplicon + m_j + 1;
   global_hits_data = static_cast<unsigned int *>
     (xmalloc(global_hits_alloc * sizeof(unsigned int)));
