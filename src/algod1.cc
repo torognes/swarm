@@ -71,6 +71,7 @@ constexpr char PRId64[] = "ld";
 
 constexpr unsigned int one_kilobyte {1U << 10U};
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
+constexpr unsigned int no_swarm {UINT_MAX};
 
 static uint64_t duplicates_found {0};  // several function calls
 
@@ -78,13 +79,13 @@ static uint64_t duplicates_found {0};  // several function calls
 
 struct ampinfo_s
 {
-  unsigned int swarmid;
-  unsigned int parent;
-  unsigned int generation;
-  unsigned int next;       /* amp id of next amplicon in swarm */
-  unsigned int graft_cand; /* amp id of potential grafting parent (fastid.) */
-  unsigned int link_start;
-  unsigned int link_count;
+  unsigned int swarmid {no_swarm};
+  unsigned int parent {0U};
+  unsigned int generation {0U};
+  unsigned int next {no_swarm};        /* amp id of next amplicon in swarm */
+  unsigned int graft_cand {no_swarm};  /* amp id of potential grafting parent (fastid.) */
+  unsigned int link_start {0U};
+  unsigned int link_count {0U};
 };
 
 static struct ampinfo_s * ampinfo = nullptr;
@@ -115,8 +116,6 @@ struct graft_cand
 /* Information about potential grafts */
 static int64_t graft_candidates {0};
 static pthread_mutex_t graft_mutex;
-
-constexpr unsigned int no_swarm {UINT_MAX};
 
 static unsigned int current_swarm_tail {0};
 
@@ -1062,6 +1061,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   progress_init("Hashing sequences:", amplicons);
   for(auto k = 0U; k < amplicons; k++)
     {
+      // refactoring: reference to ampinfo_v[k]; FAIL
       struct ampinfo_s * bp = ampinfo + k;
       bp->generation = 0;
       bp->swarmid = no_swarm;
