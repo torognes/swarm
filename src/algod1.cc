@@ -449,9 +449,9 @@ auto check_heavy_var(struct bloomflex_s * bloom,
 
   uint64_t matches = 0;
 
-  char * sequence = db_getsequence(seed);
-  const unsigned int seqlen = db_getsequencelen(seed);
-  const uint64_t hash = db_gethash(seed);
+  auto sequence = db_getsequence(seed);
+  const auto seqlen = db_getsequencelen(seed);
+  const auto hash = db_gethash(seed);
   const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
   for(auto i = 0U; i < variant_count; i++)
@@ -459,7 +459,7 @@ auto check_heavy_var(struct bloomflex_s * bloom,
       struct var_s & var = variant_list[i];
       if (bloomflex_get(bloom, var.hash))
         {
-          unsigned int varlen = 0;
+          auto varlen = 0U;
           generate_variant_sequence(sequence, seqlen,
                                     var, varseq, &varlen);
           matches += check_heavy_var_2(varseq,
