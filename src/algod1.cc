@@ -381,7 +381,7 @@ auto hash_check_attach(char * seed_sequence,
           const auto amp = hash_get_data(index);
 
           /* make absolutely sure sequences are identical */
-          auto amp_sequence = db_getsequence(amp);
+          auto *amp_sequence = db_getsequence(amp);
           const auto amp_seqlen = db_getsequencelen(amp);
           if (check_variant(seed_sequence, seed_seqlen, var, amp_sequence, amp_seqlen))
             {
@@ -449,7 +449,7 @@ auto check_heavy_var(struct bloomflex_s * bloom,
 
   uint64_t matches = 0;
 
-  auto sequence = db_getsequence(seed);
+  auto *sequence = db_getsequence(seed);
   const auto seqlen = db_getsequencelen(seed);
   const auto hash = db_gethash(seed);
   const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
@@ -523,7 +523,7 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
   hash_insert(seed);
 
-  auto sequence = db_getsequence(seed);
+  auto *sequence = db_getsequence(seed);
   const auto seqlen = db_getsequencelen(seed);
   const auto hash = db_gethash(seed);
   const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
@@ -593,10 +593,10 @@ inline auto find_variant_matches(unsigned int seed,
             if ((opt_no_otu_breaking) or
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
-                auto seed_sequence = db_getsequence(seed);
+                auto *seed_sequence = db_getsequence(seed);
                 const auto seed_seqlen = db_getsequencelen(seed);
 
-                auto amp_sequence = db_getsequence(amp);
+                auto *amp_sequence = db_getsequence(amp);
                 const auto amp_seqlen = db_getsequencelen(amp);
 
                 if (check_variant(seed_sequence, seed_seqlen,
@@ -621,7 +621,7 @@ auto check_variants(unsigned int seed,
 {
   * hits_count = 0;
 
-  auto sequence = db_getsequence(seed);
+  auto *sequence = db_getsequence(seed);
   const auto seqlen = db_getsequencelen(seed);
   const auto hash = db_gethash(seed);
   const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
