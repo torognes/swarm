@@ -965,7 +965,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
 auto write_structure_file(const unsigned int swarmcount,
                           struct Parameters const & parameters) -> void {
-  unsigned int cluster_no {0};
+  auto cluster_no = 0U;
 
   progress_init("Writing structure:", swarmcount);
 
@@ -973,13 +973,13 @@ auto write_structure_file(const unsigned int swarmcount,
     {
       if (not swarminfo[swarmid].attached)
         {
-          const unsigned int seed = swarminfo[swarmid].seed;
+          const auto seed = swarminfo[swarmid].seed;
 
           struct ampinfo_s * bp = ampinfo + seed;
 
           for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
             {
-              const uint64_t graft_parent = ampinfo[a].graft_cand;
+              const auto graft_parent = ampinfo[a].graft_cand;
               if (graft_parent != no_swarm)
                 {
                   fprint_id_noabundance(internal_structure_file,
@@ -993,7 +993,7 @@ auto write_structure_file(const unsigned int swarmcount,
                           ampinfo[graft_parent].generation + 1);
                 }
 
-              const uint64_t parent = ampinfo[a].parent;
+              const auto parent = ampinfo[a].parent;
               if (parent != no_swarm)
                 {
                   fprint_id_noabundance(internal_structure_file, parent, parameters.opt_usearch_abundance);
