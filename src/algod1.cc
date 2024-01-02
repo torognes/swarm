@@ -405,7 +405,7 @@ inline auto check_heavy_var_2(std::vector<char>& seq,
 
   uint64_t matches = 0;
 
-  const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq.data()), seqlen);
+  const auto hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq.data()), seqlen);
   const auto variant_count = generate_variants(seq.data(), seqlen, hash, variant_list);
 
   for(auto i = 0U; i < variant_count; i++) {
