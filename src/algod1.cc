@@ -186,8 +186,8 @@ inline auto check_amp_identical(unsigned int amp1,
 {
   /* amplicon are identical if they have the same length, and the
      exact same sequence */
-  const unsigned int amp1_seqlen = db_getsequencelen(amp1);
-  const unsigned int amp2_seqlen = db_getsequencelen(amp2);
+  const auto amp1_seqlen = db_getsequencelen(amp1);
+  const auto amp2_seqlen = db_getsequencelen(amp2);
 
   return ((amp1_seqlen == amp2_seqlen) and
           (std::memcmp(db_getsequence(amp1),
