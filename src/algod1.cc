@@ -403,10 +403,9 @@ inline auto check_heavy_var_2(std::vector<char>& seq,
      and see if any of them are identical to a light swarm amplicon. */
 
   uint64_t matches = 0;
-  unsigned int variant_count = 0;
 
   const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq.data()), seqlen);
-  generate_variants(seq.data(), seqlen, hash, variant_list, variant_count);
+  const auto variant_count = generate_variants(seq.data(), seqlen, hash, variant_list);
 
   for(auto i = 0U; i < variant_count; i++) {
     if (bloom_get(bloom_a, variant_list[i].hash) and
@@ -447,13 +446,12 @@ auto check_heavy_var(struct bloomflex_s * bloom,
     these against the light swarm amplicons.
   */
 
-  unsigned int variant_count = 0;
   uint64_t matches = 0;
 
   char * sequence = db_getsequence(seed);
   const unsigned int seqlen = db_getsequencelen(seed);
   const uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash, variant_list, variant_count);
+  const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
   for(auto i = 0U; i < variant_count; i++)
     {
@@ -524,12 +522,10 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
   hash_insert(seed);
 
-  unsigned int variant_count = 0;
-
   char * sequence = db_getsequence(seed);
   const unsigned int seqlen = db_getsequencelen(seed);
   const uint64_t hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash, variant_list, variant_count);
+  const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
   for(auto i = 0U; i < variant_count; i++) {
     bloomflex_set(bloom, variant_list[i].hash);
@@ -622,13 +618,12 @@ auto check_variants(unsigned int seed,
                     std::vector<unsigned int>& hits_data,
                     unsigned int * hits_count) -> void
 {
-  auto variant_count = 0U;
   * hits_count = 0;
 
   auto sequence = db_getsequence(seed);
   const auto seqlen = db_getsequencelen(seed);
   const auto hash = db_gethash(seed);
-  generate_variants(sequence, seqlen, hash, variant_list, variant_count);
+  const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
   // refactoring: range-based for loop over variant_list truncated to variant_count?
   for(auto i = 0U; i < variant_count; i++) {

@@ -179,9 +179,9 @@ inline void add_variant(uint64_t hash,
 auto generate_variants(char * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
-                       std::vector<struct var_s>& variant_list,
-                       unsigned int & variant_count) -> void
+                       std::vector<struct var_s>& variant_list) -> unsigned int
 {
+  auto variant_count = 0U;
   /* substitutions */
 
   for(auto offset = 0U; offset < seqlen; offset++)
@@ -239,4 +239,6 @@ auto generate_variants(char * sequence,
                     variant_list, variant_count);
       }
     }
+
+  return variant_count;
 }
