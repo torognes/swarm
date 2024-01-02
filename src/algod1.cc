@@ -635,8 +635,8 @@ auto check_variants(unsigned int seed,
 
 auto network_thread(int64_t t) -> void
 {
-  static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
-  static constexpr unsigned int j {4};  //                               i * len + j
+  static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
+  static constexpr auto j = 4U;  //                               i * len + j
 
   (void) t;
 
@@ -646,12 +646,12 @@ auto network_thread(int64_t t) -> void
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
     {
-      const unsigned int amp = network_amp++;
+      const auto amp = network_amp++;
       progress_update(amp);
 
       pthread_mutex_unlock(&network_mutex);
 
-      unsigned int hits_count = 0;
+      auto hits_count = 0U;
       check_variants(amp, variant_list, hits_data, & hits_count);
       pthread_mutex_lock(&network_mutex);
 
