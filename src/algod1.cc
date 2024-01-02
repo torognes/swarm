@@ -810,7 +810,7 @@ auto write_swarms_default_format(const unsigned int swarmcount,
 
   for(auto i = 0U; i < swarmcount; i++) {
     if (not swarminfo[i].attached) {
-      const unsigned int seed = swarminfo[i].seed;
+      const auto seed = swarminfo[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
         if (a != seed) {
           std::fputc(sepchar, outfile);
