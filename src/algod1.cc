@@ -572,7 +572,7 @@ void mark_light_thread(int64_t t)
 
 inline void find_variant_matches(unsigned int seed,
                                  struct var_s & var,
-                                 unsigned int * hits_data,
+                                 std::vector<unsigned int>& hits_data,
                                  unsigned int * hits_count)
 {
   if (not bloom_get(bloom_a, var.hash)) {
@@ -632,7 +632,7 @@ auto check_variants(unsigned int seed,
 
   // refactoring: range-based for loop over variant_list truncated to variant_count?
   for(auto i = 0U; i < variant_count; i++) {
-    find_variant_matches(seed, variant_list[i], hits_data.data(), hits_count);
+    find_variant_matches(seed, variant_list[i], hits_data, hits_count);
   }
 }
 
