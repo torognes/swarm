@@ -971,44 +971,44 @@ auto write_structure_file(const unsigned int swarmcount,
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
-      if (not swarminfo[swarmid].attached)
+      if (swarminfo[swarmid].attached) {
+        continue;
+      }
+      const auto seed = swarminfo[swarmid].seed;
+
+      struct ampinfo_s * bp = ampinfo + seed;
+
+      for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
         {
-          const auto seed = swarminfo[swarmid].seed;
-
-          struct ampinfo_s * bp = ampinfo + seed;
-
-          for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
+          const auto graft_parent = ampinfo[a].graft_cand;
+          if (graft_parent != no_swarm)
             {
-              const auto graft_parent = ampinfo[a].graft_cand;
-              if (graft_parent != no_swarm)
-                {
-                  fprint_id_noabundance(internal_structure_file,
-                                        graft_parent, parameters.opt_usearch_abundance);
-                  std::fprintf(internal_structure_file, "\t");
-                  fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
-                  std::fprintf(internal_structure_file,
-                          "\t%d\t%u\t%u\n",
-                          2,
-                          cluster_no + 1,
-                          ampinfo[graft_parent].generation + 1);
-                }
-
-              const auto parent = ampinfo[a].parent;
-              if (parent != no_swarm)
-                {
-                  fprint_id_noabundance(internal_structure_file, parent, parameters.opt_usearch_abundance);
-                  std::fprintf(internal_structure_file, "\t");
-                  fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
-                  std::fprintf(internal_structure_file,
-                          "\t%u\t%u\t%u\n",
-                          1U,
-                          cluster_no + 1,
-                          ampinfo[a].generation);
-                }
+              fprint_id_noabundance(internal_structure_file,
+                                    graft_parent, parameters.opt_usearch_abundance);
+              std::fprintf(internal_structure_file, "\t");
+              fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
+              std::fprintf(internal_structure_file,
+                           "\t%d\t%u\t%u\n",
+                           2,
+                           cluster_no + 1,
+                           ampinfo[graft_parent].generation + 1);
             }
 
-          ++cluster_no;
+          const auto parent = ampinfo[a].parent;
+          if (parent != no_swarm)
+            {
+              fprint_id_noabundance(internal_structure_file, parent, parameters.opt_usearch_abundance);
+              std::fprintf(internal_structure_file, "\t");
+              fprint_id_noabundance(internal_structure_file, a, parameters.opt_usearch_abundance);
+              std::fprintf(internal_structure_file,
+                           "\t%u\t%u\t%u\n",
+                           1U,
+                           cluster_no + 1,
+                           ampinfo[a].generation);
+            }
         }
+
+      ++cluster_no;
       progress_update(swarmid);
     }
   progress_done();
