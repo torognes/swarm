@@ -616,10 +616,9 @@ inline auto find_variant_matches(unsigned int seed,
 
 auto check_variants(unsigned int seed,
                     std::vector<struct var_s> & variant_list,
-                    std::vector<unsigned int>& hits_data,
-                    unsigned int & hits_count) -> void
+                    std::vector<unsigned int>& hits_data) -> unsigned int
 {
-  hits_count = 0;
+  auto hits_count = 0U;
 
   auto *sequence = db_getsequence(seed);
   const auto seqlen = db_getsequencelen(seed);
@@ -630,6 +629,8 @@ auto check_variants(unsigned int seed,
   for(auto i = 0U; i < variant_count; i++) {
     find_variant_matches(seed, variant_list[i], hits_data, hits_count);
   }
+
+  return hits_count;
 }
 
 
@@ -651,8 +652,7 @@ auto network_thread(int64_t t) -> void
 
       pthread_mutex_unlock(&network_mutex);
 
-      auto hits_count = 0U;
-      check_variants(amp, variant_list, hits_data, hits_count);
+      const auto hits_count = check_variants(amp, variant_list, hits_data);
       pthread_mutex_lock(&network_mutex);
 
       ampinfo[amp].link_start = network_count;
