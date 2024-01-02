@@ -369,16 +369,16 @@ auto hash_check_attach(char * seed_sequence,
 
   /* compute hash and corresponding hash table index */
   const uint64_t hash = var.hash;
-  uint64_t j = hash_getindex(hash);
+  uint64_t index = hash_getindex(hash);
 
   /* find matching buckets */
 
-  while (hash_is_occupied(j))
+  while (hash_is_occupied(index))
     {
-      if (hash_compare_value(j, hash))
+      if (hash_compare_value(index, hash))
         {
           /* check that mass is below threshold */
-          const unsigned int amp = hash_get_data(j);
+          const unsigned int amp = hash_get_data(index);
 
           /* make absolutely sure sequences are identical */
           char * amp_sequence = db_getsequence(amp);
@@ -389,7 +389,7 @@ auto hash_check_attach(char * seed_sequence,
               return true;
             }
         }
-      j = hash_getnextindex(j);
+      index = hash_getnextindex(index);
     }
   return false;
 }
