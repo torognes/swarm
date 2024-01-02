@@ -578,15 +578,15 @@ inline void find_variant_matches(unsigned int seed,
 
   /* compute hash and corresponding hash table index */
 
-  uint64_t j = hash_getindex(var.hash);
+  uint64_t index = hash_getindex(var.hash);
 
   /* find matching buckets */
 
-  while (hash_is_occupied(j))
+  while (hash_is_occupied(index))
     {
-      if (hash_compare_value(j, var.hash))
+      if (hash_compare_value(index, var.hash))
         {
-          const unsigned int amp = hash_get_data(j);
+          const unsigned int amp = hash_get_data(index);
 
           /* avoid self */
           if (seed != amp) {
@@ -609,7 +609,7 @@ inline void find_variant_matches(unsigned int seed,
               }
           }
         }
-      j = hash_getnextindex(j);
+      index = hash_getnextindex(index);
     }
 }
 
