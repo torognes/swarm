@@ -578,7 +578,7 @@ inline void find_variant_matches(unsigned int seed,
 
   /* compute hash and corresponding hash table index */
 
-  uint64_t index = hash_getindex(var.hash);
+  auto index = hash_getindex(var.hash);
 
   /* find matching buckets */
 
@@ -586,18 +586,18 @@ inline void find_variant_matches(unsigned int seed,
     {
       if (hash_compare_value(index, var.hash))
         {
-          const unsigned int amp = hash_get_data(index);
+          const auto amp = hash_get_data(index);
 
           /* avoid self */
           if (seed != amp) {
             if ((opt_no_otu_breaking) or
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
-                char * seed_sequence = db_getsequence(seed);
-                const unsigned int seed_seqlen = db_getsequencelen(seed);
+                auto seed_sequence = db_getsequence(seed);
+                const auto seed_seqlen = db_getsequencelen(seed);
 
-                char * amp_sequence = db_getsequence(amp);
-                const unsigned int amp_seqlen = db_getsequencelen(amp);
+                auto amp_sequence = db_getsequence(amp);
+                const auto amp_seqlen = db_getsequencelen(amp);
 
                 if (check_variant(seed_sequence, seed_seqlen,
                                   var,
