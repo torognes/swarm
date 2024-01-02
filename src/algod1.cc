@@ -301,7 +301,7 @@ auto compare_grafts(const void * a, const void * b) -> int
 
 
 auto count_pairs(unsigned int const amplicon_count) -> unsigned int {
-  unsigned int counter = 0;
+  auto counter = 0U;
   for(auto i = 0U; i < amplicon_count; i++) {
     if (ampinfo[i].graft_cand != no_swarm) {
       ++counter;
