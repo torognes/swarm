@@ -1227,7 +1227,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           ++swarmcount;
         }
-      progress_update(seed+1);
+      progress_update(seed + 1);
     }
   progress_done();
 
