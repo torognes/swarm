@@ -93,7 +93,7 @@ static struct ampinfo_s * ampinfo = nullptr;
 
 /* Information about each swarm (cluster) */
 
-static struct swarminfo_s
+struct swarminfo_s
 {
   uint64_t mass {0}; /* the sum of abundances of amplicons in this swarm */
   uint64_t sumlen {0}; /* sum of length of amplicons in swarm */
@@ -106,7 +106,9 @@ static struct swarminfo_s
   char dummy_1 = '\0'; /* alignment padding only */
   char dummy_2 = '\0'; /* alignment padding only */
   char dummy_3 = '\0'; /* alignment padding only */
-} * swarminfo = nullptr;
+};
+
+static struct swarminfo_s* swarminfo = nullptr;
 
 struct graft_cand
 {
