@@ -684,15 +684,15 @@ auto process_seed(unsigned int seed) -> void
   if (bp->generation > swarm_maxgen) {
     swarm_maxgen = bp->generation;
   }
-  const uint64_t abundance = db_getabundance(seed);
+  const auto abundance = db_getabundance(seed);
   abundance_sum += abundance;
   if (abundance == 1) {
     ++singletons;
   }
   swarm_sumlen += db_getsequencelen(seed);
 
-  const unsigned int link_start = ampinfo[seed].link_start;
-  const unsigned int link_count = ampinfo[seed].link_count;
+  const auto link_start = ampinfo[seed].link_start;
+  const auto link_count = ampinfo[seed].link_count;
 
   if (global_hits_count + link_count > global_hits_alloc)
     {
@@ -705,7 +705,7 @@ auto process_seed(unsigned int seed) -> void
 
   for(auto offset = 0U; offset < link_count; offset++)
     {
-      const unsigned int amp = network[link_start + offset];
+      const auto amp = network[link_start + offset];
 
       if (ampinfo[amp].swarmid == no_swarm)
         {
