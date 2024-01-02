@@ -368,8 +368,8 @@ auto hash_check_attach(char * seed_sequence,
   /* seed is the original large swarm seed */
 
   /* compute hash and corresponding hash table index */
-  const uint64_t hash = var.hash;
-  uint64_t index = hash_getindex(hash);
+  const auto hash = var.hash;
+  auto index = hash_getindex(hash);
 
   /* find matching buckets */
 
@@ -378,11 +378,11 @@ auto hash_check_attach(char * seed_sequence,
       if (hash_compare_value(index, hash))
         {
           /* check that mass is below threshold */
-          const unsigned int amp = hash_get_data(index);
+          const auto amp = hash_get_data(index);
 
           /* make absolutely sure sequences are identical */
-          char * amp_sequence = db_getsequence(amp);
-          const unsigned int amp_seqlen = db_getsequencelen(amp);
+          auto amp_sequence = db_getsequence(amp);
+          const auto amp_seqlen = db_getsequencelen(amp);
           if (check_variant(seed_sequence, seed_seqlen, var, amp_sequence, amp_seqlen))
             {
               add_graft_candidate(seed, amp);
