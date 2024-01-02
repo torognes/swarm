@@ -1269,7 +1269,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               nucleotides_in_small_clusters += sp->sumlen;
               ++small_clusters;
             }
-          progress_update(i+1);
+          progress_update(i + 1);
         }
       progress_done();
 
