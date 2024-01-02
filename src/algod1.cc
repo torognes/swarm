@@ -625,7 +625,7 @@ auto check_variants(unsigned int seed,
   auto variant_count = 0U;
   * hits_count = 0;
 
-  char * sequence = db_getsequence(seed);
+  auto sequence = db_getsequence(seed);
   const auto seqlen = db_getsequencelen(seed);
   const auto hash = db_gethash(seed);
   generate_variants(sequence, seqlen, hash, variant_list, variant_count);
