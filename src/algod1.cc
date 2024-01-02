@@ -861,8 +861,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 struct Parameters const & parameters,
                                 unsigned char * dir,
                                 uint64_t * hearray) -> void {
-  static constexpr unsigned int one_hundred {100};
-  unsigned int cluster_no = 0;
+  static constexpr auto one_hundred = 100U;
+  auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
   dir = new unsigned char[longestamplicon * longestamplicon];
   hearray = new uint64_t[2 * longestamplicon];
@@ -873,7 +873,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
     {
       if (not swarminfo[swarmid].attached)
         {
-          const unsigned int seed = swarminfo[swarmid].seed;
+          const auto seed = swarminfo[swarmid].seed;
 
           struct ampinfo_s * bp = ampinfo + seed;
 
@@ -891,10 +891,10 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
           for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
             {
-              char * dseq = db_getsequence(a);
-              const int64_t dlen = db_getsequencelen(a);
-              char * qseq = db_getsequence(seed);
-              const int64_t qlen = db_getsequencelen(seed);
+              auto * dseq = db_getsequence(a);
+              const auto dlen = db_getsequencelen(a);
+              auto * qseq = db_getsequence(seed);
+              const auto qlen = db_getsequencelen(seed);
 
               int64_t nwscore = 0;
               int64_t nwdiff = 0;
