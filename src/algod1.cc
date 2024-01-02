@@ -1159,7 +1159,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               while(subseed != no_swarm)
                 {
                   process_seed(subseed);
-                  subseed = ampinfo[subseed].next;
+                  subseed = ampinfo_v[subseed].next;
                 }
 
               /* sort all of this generation */
