@@ -567,10 +567,10 @@ void mark_light_thread(int64_t t)
 /******************** FASTIDIOUS END ********************/
 
 
-inline void find_variant_matches(unsigned int seed,
+inline auto find_variant_matches(unsigned int seed,
                                  struct var_s & var,
                                  std::vector<unsigned int>& hits_data,
-                                 unsigned int * hits_count)
+                                 unsigned int * hits_count) -> void
 {
   if (not bloom_get(bloom_a, var.hash)) {
     return;
