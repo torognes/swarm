@@ -196,7 +196,7 @@ inline auto check_amp_identical(unsigned int amp1,
 }
 
 
-inline void hash_insert(unsigned int amp)
+inline auto hash_insert(unsigned int amp) -> void
 {
   /* find the first empty bucket */
   const auto hash = db_gethash(amp);
