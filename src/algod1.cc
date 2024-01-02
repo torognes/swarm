@@ -787,7 +787,7 @@ auto write_network_file(const unsigned int number_of_networks,
   uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
   for(auto seed = 0U; seed < amplicons; seed++)
     {
-      struct ampinfo_s & ap = ampinfo_v[seed];
+      struct ampinfo_s const & ap = ampinfo_v[seed];
 
       const auto link_start = ap.link_start;
       const auto link_count = ap.link_count;
@@ -886,7 +886,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
       const auto seed = swarminfo[swarmid].seed;
 
-      struct ampinfo_s & bp = ampinfo_v[seed];
+      struct ampinfo_s const & bp = ampinfo_v[seed];
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
@@ -988,7 +988,7 @@ auto write_structure_file(const unsigned int swarmcount,
       }
       const auto seed = swarminfo[swarmid].seed;
 
-      struct ampinfo_s & bp = ampinfo_v[seed];
+      struct ampinfo_s const & bp = ampinfo_v[seed];
 
       for(auto a = bp.next; a != no_swarm; a = ampinfo_v[a].next)
         {
