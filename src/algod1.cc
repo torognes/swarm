@@ -300,6 +300,7 @@ auto compare_grafts(const void * a, const void * b) -> int
 }
 
 
+// refactoring: replace with std::count_if()
 auto count_pairs(unsigned int const amplicon_count) -> unsigned int {
   auto counter = 0U;
   for(auto i = 0U; i < amplicon_count; i++) {
