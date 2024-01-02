@@ -199,9 +199,9 @@ inline auto check_amp_identical(unsigned int amp1,
 inline void hash_insert(unsigned int amp)
 {
   /* find the first empty bucket */
-  const uint64_t hash = db_gethash(amp);
-  uint64_t index = hash_getindex(hash);
-  bool duplicate {false};
+  const auto hash = db_gethash(amp);
+  auto index = hash_getindex(hash);
+  auto duplicate = false;
   while (hash_is_occupied(index))
     {
       if (hash_compare_value(index, hash) and
