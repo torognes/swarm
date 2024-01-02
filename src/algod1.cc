@@ -523,9 +523,9 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
   hash_insert(seed);
 
-  char * sequence = db_getsequence(seed);
-  const unsigned int seqlen = db_getsequencelen(seed);
-  const uint64_t hash = db_gethash(seed);
+  auto sequence = db_getsequence(seed);
+  const auto seqlen = db_getsequencelen(seed);
+  const auto hash = db_gethash(seed);
   const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
   for(auto i = 0U; i < variant_count; i++) {
@@ -538,8 +538,8 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
 void mark_light_thread(int64_t t)
 {
-  static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
-  static constexpr unsigned int j {4};  //                               i * len + j
+  static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
+  static constexpr auto j = 4U;  //                               i * len + j
 
   (void) t;
 
@@ -548,13 +548,13 @@ void mark_light_thread(int64_t t)
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
     {
-      const unsigned int light_amplicon_id = light_amplicon--;
+      const auto light_amplicon_id = light_amplicon--;
       if (swarminfo[ampinfo[light_amplicon_id].swarmid].mass <
           static_cast<uint64_t>(opt_boundary))
         {
           progress_update(++light_progress);
           pthread_mutex_unlock(&light_mutex);
-          const uint64_t variant_count = mark_light_var(bloom_f, light_amplicon_id,
+          const auto variant_count = mark_light_var(bloom_f, light_amplicon_id,
                                                         variant_list);
           pthread_mutex_lock(&light_mutex);
           light_variants += variant_count;
