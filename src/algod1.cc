@@ -729,7 +729,7 @@ auto compare_amp(const void * a, const void * b) -> int
   */
   const auto * x = static_cast<const unsigned int*>(a);
   const auto * y = static_cast<const unsigned int*>(b);
-  int status {1};  // default is *x > *y
+  auto status = 1;  // default is *x > *y
 
   assert(*x != *y);  // '*x == *y' is not expected at that stage
 
