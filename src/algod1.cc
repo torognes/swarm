@@ -675,7 +675,7 @@ auto network_thread(int64_t t) -> void
 }
 
 
-void process_seed(unsigned int seed)
+auto process_seed(unsigned int seed) -> void
 {
   /* update swarm stats */
   struct ampinfo_s * bp = ampinfo + seed;
