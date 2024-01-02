@@ -1035,7 +1035,7 @@ auto write_stats_file(const unsigned int swarmcount,
 }
 
 
-void algo_d1_run(struct Parameters const & parameters)
+auto algo_d1_run(struct Parameters const & parameters) -> void
 {
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
