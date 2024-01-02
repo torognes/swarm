@@ -570,7 +570,7 @@ void mark_light_thread(int64_t t)
 inline auto find_variant_matches(unsigned int seed,
                                  struct var_s & var,
                                  std::vector<unsigned int>& hits_data,
-                                 unsigned int * hits_count) -> void
+                                 unsigned int & hits_count) -> void
 {
   if (not bloom_get(bloom_a, var.hash)) {
     return;
@@ -603,7 +603,7 @@ inline auto find_variant_matches(unsigned int seed,
                                   var,
                                   amp_sequence, amp_seqlen))
                   {
-                    hits_data[(*hits_count)++] = amp;
+                    hits_data[hits_count++] = amp;
                     break;
                   }
               }
@@ -617,9 +617,9 @@ inline auto find_variant_matches(unsigned int seed,
 auto check_variants(unsigned int seed,
                     std::vector<struct var_s> & variant_list,
                     std::vector<unsigned int>& hits_data,
-                    unsigned int * hits_count) -> void
+                    unsigned int & hits_count) -> void
 {
-  * hits_count = 0;
+  hits_count = 0;
 
   auto *sequence = db_getsequence(seed);
   const auto seqlen = db_getsequencelen(seed);
@@ -652,7 +652,7 @@ auto network_thread(int64_t t) -> void
       pthread_mutex_unlock(&network_mutex);
 
       auto hits_count = 0U;
-      check_variants(amp, variant_list, hits_data, & hits_count);
+      check_variants(amp, variant_list, hits_data, hits_count);
       pthread_mutex_lock(&network_mutex);
 
       ampinfo[amp].link_start = network_count;
