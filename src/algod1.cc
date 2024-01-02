@@ -763,7 +763,7 @@ auto compare_mass(const void * a, const void * b) -> int
 }
 
 
-inline auto add_amp_to_swarm(unsigned int amp) -> void
+inline auto add_amp_to_swarm(unsigned int const amp) -> void
 {
   /* add to swarm */
   ampinfo[current_swarm_tail].next = amp;
