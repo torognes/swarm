@@ -781,8 +781,8 @@ auto write_network_file(const unsigned int number_of_networks,
     {
       struct ampinfo_s * ap = ampinfo + seed;
 
-      const unsigned int link_start = ap->link_start;
-      const unsigned int link_count = ap->link_count;
+      const auto link_start = ap->link_start;
+      const auto link_count = ap->link_count;
 
       std::qsort(network + link_start,
             link_count,
@@ -791,7 +791,7 @@ auto write_network_file(const unsigned int number_of_networks,
 
       for(auto link = 0U; link < link_count; link++)
         {
-          const unsigned int neighbour = network[link_start + link];
+          const auto neighbour = network[link_start + link];
           fprint_id(network_file, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(network_file, "\t");
           fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
