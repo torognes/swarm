@@ -1108,7 +1108,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* for each non-swarmed amplicon look for subseeds ... */
 
-  unsigned int swarmcount = 0;
+  auto swarmcount = 0U;
   progress_init("Clustering:       ", amplicons);
 
   for(auto seed = 0U; seed < amplicons; seed++)
@@ -1150,7 +1150,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           }
 
           /* find later generation matches */
-          unsigned int subseed = ap.next;
+          auto subseed = ap.next;
           while(subseed != no_swarm)
             {
               /* process all subseeds of this generation */
