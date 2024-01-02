@@ -858,14 +858,12 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
 
 
 auto write_swarms_uclust_format(const unsigned int swarmcount,
-                                struct Parameters const & parameters,
-                                unsigned char * dir,
-                                uint64_t * hearray) -> void {
+                                struct Parameters const & parameters) -> void {
   static constexpr auto one_hundred = 100U;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-  dir = new unsigned char[longestamplicon * longestamplicon];
-  hearray = new uint64_t[2 * longestamplicon];
+  unsigned char * dir = new unsigned char[longestamplicon * longestamplicon];
+  uint64_t * hearray = new uint64_t[2 * longestamplicon];
 
   progress_init("Writing UCLUST:   ", swarmcount);
 
@@ -1089,10 +1087,6 @@ void algo_d1_run(struct Parameters const & parameters)
     }
 
   progress_done();
-
-  // refactoring: reduce scope (only used in write_swarms_uclust_format)
-  unsigned char * dir = nullptr;
-  uint64_t * hearray = nullptr;
 
   /* for all amplicons, generate list of matching amplicons */
 
@@ -1443,7 +1437,7 @@ void algo_d1_run(struct Parameters const & parameters)
 
   /* output swarms in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, parameters, dir, hearray);
+    write_swarms_uclust_format(swarmcount, parameters);
   }
 
   /* output statistics to file */
