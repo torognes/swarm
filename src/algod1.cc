@@ -1463,13 +1463,4 @@ void algo_d1_run(struct Parameters const & parameters)
   }
 
   ampinfo = nullptr;
-
-#ifdef HASHSTATS
-  std::fprintf(logfile, "Tries:      %12lu\n", tries);
-  std::fprintf(logfile, "Bloom m:    %12lu\n", bloom_matches);
-  std::fprintf(logfile, "Hits:       %12lu\n", hits);
-  std::fprintf(logfile, "Success:    %12lu\n", success);
-  std::fprintf(logfile, "Bingo:      %12lu\n", bingo);
-  std::fprintf(logfile, "Collisions: %12lu\n", collisions);
-#endif
 }
