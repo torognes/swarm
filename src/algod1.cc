@@ -746,9 +746,9 @@ auto compare_mass(const void * a, const void * b) -> int
   const swarminfo_s * x = swarminfo + *(static_cast<const unsigned int *>(a));
   const swarminfo_s * y = swarminfo + *(static_cast<const unsigned int *>(b));
 
-  const uint64_t m = x->mass;
-  const uint64_t n = y->mass;
-  int status {0};
+  const auto m = x->mass;
+  const auto n = y->mass;
+  auto status = 0;
 
   if (m > n) {
     status = -1;
