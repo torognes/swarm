@@ -1045,7 +1045,8 @@ void algo_d1_run(struct Parameters const & parameters)
   longestamplicon = db_getlongestsequence();
   amplicons = db_getsequencecount();
 
-  ampinfo = new struct ampinfo_s[amplicons];
+  std::vector<struct ampinfo_s> ampinfo_v(amplicons);
+  ampinfo = ampinfo_v.data();
 
   // max number of microvariants = 7 * len + 4
   static constexpr unsigned int m_i {7};
@@ -1461,7 +1462,6 @@ void algo_d1_run(struct Parameters const & parameters)
     xfree(swarminfo);
   }
 
-  delete [] ampinfo;
   ampinfo = nullptr;
 
 #ifdef HASHSTATS
