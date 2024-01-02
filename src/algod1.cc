@@ -163,10 +163,11 @@ static struct bloom_s * bloom_a {nullptr}; // Bloom filter for amplicons
 
 static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidious
 
-void attach(unsigned int seed, unsigned int amp);
+void attach(unsigned int seed, unsigned int amp, std::vector<struct ampinfo_s> & ampinfo_v);
 void add_graft_candidate(unsigned int seed, unsigned int amp);
 auto compare_grafts(const void * a, const void * b) -> int;
-auto attach_candidates(unsigned int amplicon_count) -> unsigned int;
+auto attach_candidates(unsigned int amplicon_count,
+                       std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int;
 auto hash_check_attach(char * seed_sequence,
                        unsigned int seed_seqlen,
                        struct var_s * var,
@@ -227,15 +228,16 @@ inline auto hash_insert(unsigned int amp) -> void
 /******************** FASTIDIOUS START ********************/
 
 
-auto attach(unsigned int seed, unsigned int amp) -> void
+auto attach(unsigned int seed, unsigned int amp,
+            std::vector<struct ampinfo_s> & ampinfo_v) -> void
 {
   /* graft light swarm (amp) on heavy swarm (seed) */
 
-  swarminfo_s * heavy_swarm = swarminfo + ampinfo[seed].swarmid;
-  swarminfo_s * light_swarm = swarminfo + ampinfo[amp].swarmid;
+  swarminfo_s * heavy_swarm = swarminfo + ampinfo_v[seed].swarmid;
+  swarminfo_s * light_swarm = swarminfo + ampinfo_v[amp].swarmid;
 
   // attach the seed of the light swarm to the tail of the heavy swarm (refactoring: unclear)
-  ampinfo[heavy_swarm->last].next = light_swarm->seed;
+  ampinfo_v[heavy_swarm->last].next = light_swarm->seed;
   heavy_swarm->last = light_swarm->last;
 
   // Update swarm info
@@ -302,10 +304,11 @@ auto compare_grafts(const void * a, const void * b) -> int
 
 
 // refactoring: replace with std::count_if()
-auto count_pairs(unsigned int const amplicon_count) -> unsigned int {
+auto count_pairs(unsigned int const amplicon_count,
+                 std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int {
   auto counter = 0U;
   for(auto i = 0U; i < amplicon_count; i++) {
-    if (ampinfo[i].graft_cand != no_swarm) {
+    if (ampinfo_v[i].graft_cand != no_swarm) {
       ++counter;
     }
   }
@@ -313,9 +316,10 @@ auto count_pairs(unsigned int const amplicon_count) -> unsigned int {
 }
 
 
-auto attach_candidates(unsigned int amplicon_count) -> unsigned int
+auto attach_candidates(unsigned int amplicon_count,
+                       std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int
 {
-  auto const pair_count = count_pairs(amplicon_count);
+  auto const pair_count = count_pairs(amplicon_count, ampinfo_v);
 
   progress_init("Grafting light swarms on heavy swarms", pair_count);
 
@@ -325,9 +329,9 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
   /* fill in */
   auto ticker = 0U;  // refactoring: replace with a transform algorithm
   for(auto i = 0U; i < amplicon_count; i++) {
-    if (ampinfo[i].graft_cand != no_swarm)
+    if (ampinfo_v[i].graft_cand != no_swarm)
       {
-        graft_array[ticker].parent = ampinfo[i].graft_cand;
+        graft_array[ticker].parent = ampinfo_v[i].graft_cand;
         graft_array[ticker].child = i;  // so two children cannot have the same uint value
         ++ticker;
       }
@@ -343,15 +347,15 @@ auto attach_candidates(unsigned int amplicon_count) -> unsigned int
       const auto parent = graft_array[i].parent;
       const auto child  = graft_array[i].child;
 
-      if (swarminfo[ampinfo[child].swarmid].attached)
+      if (swarminfo[ampinfo_v[child].swarmid].attached)
         {
           /* this light swarm is already attached */
-          ampinfo[child].graft_cand = no_swarm;
+          ampinfo_v[child].graft_cand = no_swarm;
         }
       else
         {
           /* attach child to parent */
-          attach(parent, child);
+          attach(parent, child, ampinfo_v);
           ++grafts;
         }
       progress_update(i + 1);
@@ -764,26 +768,28 @@ auto compare_mass(const void * a, const void * b) -> int
 }
 
 
-inline auto add_amp_to_swarm(unsigned int const amp) -> void
+inline auto add_amp_to_swarm(unsigned int const amp,
+                             std::vector<struct ampinfo_s> & ampinfo_v) -> void
 {
   /* add to swarm */
-  ampinfo[current_swarm_tail].next = amp;
+  ampinfo_v[current_swarm_tail].next = amp;
   current_swarm_tail = amp;
 }
 
 
 auto write_network_file(const unsigned int number_of_networks,
-                        struct Parameters const & parameters) -> void {
+                        struct Parameters const & parameters,
+                        std::vector<struct ampinfo_s> & ampinfo_v) -> void {
   // network = cluster with at leat two sequences (no singletons)
   progress_init("Dumping network:  ", number_of_networks);
 
   uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
   for(auto seed = 0U; seed < amplicons; seed++)
     {
-      struct ampinfo_s * ap = ampinfo + seed;
+      struct ampinfo_s & ap = ampinfo_v[seed];
 
-      const auto link_start = ap->link_start;
-      const auto link_count = ap->link_count;
+      const auto link_start = ap.link_start;
+      const auto link_count = ap.link_count;
 
       std::qsort(network + link_start,
             link_count,
@@ -806,13 +812,14 @@ auto write_network_file(const unsigned int number_of_networks,
 
 
 auto write_swarms_default_format(const unsigned int swarmcount,
-                                 struct Parameters const & parameters) -> void {
+                                 struct Parameters const & parameters,
+                                 std::vector<struct ampinfo_s> & ampinfo_v) -> void {
   progress_init("Writing swarms:   ", swarmcount);
 
   for(auto i = 0U; i < swarmcount; i++) {
     if (not swarminfo[i].attached) {
       const auto seed = swarminfo[i].seed;
-      for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
+      for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
         if (a != seed) {
           std::fputc(sepchar, outfile);
         }
@@ -829,7 +836,8 @@ auto write_swarms_default_format(const unsigned int swarmcount,
 
 
 auto write_swarms_mothur_format(const unsigned int swarmcount,
-                                struct Parameters const & parameters) -> void {
+                                struct Parameters const & parameters,
+                                std::vector<struct ampinfo_s> & ampinfo_v) -> void {
   progress_init("Writing swarms:   ", swarmcount);
 
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
@@ -838,7 +846,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
   for(auto i = 0U; i < swarmcount; i++) {
     if (not swarminfo[i].attached) {
       const auto seed = swarminfo[i].seed;
-      for(auto a = seed; a != no_swarm; a = ampinfo[a].next) {
+      for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
         if (a == seed) {
           std::fputc('\t', outfile);
         }
@@ -859,7 +867,8 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
 
 
 auto write_swarms_uclust_format(const unsigned int swarmcount,
-                                struct Parameters const & parameters) -> void {
+                                struct Parameters const & parameters,
+                                std::vector<struct ampinfo_s> & ampinfo_v) -> void {
   static constexpr auto one_hundred = 100U;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
@@ -876,7 +885,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
       const auto seed = swarminfo[swarmid].seed;
 
-      struct ampinfo_s * bp = ampinfo + seed;
+      struct ampinfo_s & bp = ampinfo_v[seed];
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
@@ -890,7 +899,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
-      for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
+      for(auto a = bp.next; a != no_swarm; a = ampinfo_v[a].next)
         {
           auto * dseq = db_getsequence(a);
           const auto dlen = db_getsequencelen(a);
@@ -965,7 +974,8 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
 
 auto write_structure_file(const unsigned int swarmcount,
-                          struct Parameters const & parameters) -> void {
+                          struct Parameters const & parameters,
+                          std::vector<struct ampinfo_s> & ampinfo_v) -> void {
   auto cluster_no = 0U;
 
   progress_init("Writing structure:", swarmcount);
@@ -977,11 +987,11 @@ auto write_structure_file(const unsigned int swarmcount,
       }
       const auto seed = swarminfo[swarmid].seed;
 
-      struct ampinfo_s * bp = ampinfo + seed;
+      struct ampinfo_s & bp = ampinfo_v[seed];
 
-      for(auto a = bp->next; a != no_swarm; a = ampinfo[a].next)
+      for(auto a = bp.next; a != no_swarm; a = ampinfo_v[a].next)
         {
-          const auto graft_parent = ampinfo[a].graft_cand;
+          const auto graft_parent = ampinfo_v[a].graft_cand;
           if (graft_parent != no_swarm)
             {
               fprint_id_noabundance(internal_structure_file,
@@ -992,10 +1002,10 @@ auto write_structure_file(const unsigned int swarmcount,
                            "\t%d\t%u\t%u\n",
                            2,
                            cluster_no + 1,
-                           ampinfo[graft_parent].generation + 1);
+                           ampinfo_v[graft_parent].generation + 1);
             }
 
-          const auto parent = ampinfo[a].parent;
+          const auto parent = ampinfo_v[a].parent;
           if (parent != no_swarm)
             {
               fprint_id_noabundance(internal_structure_file, parent, parameters.opt_usearch_abundance);
@@ -1005,7 +1015,7 @@ auto write_structure_file(const unsigned int swarmcount,
                            "\t%u\t%u\t%u\n",
                            1U,
                            cluster_no + 1,
-                           ampinfo[a].generation);
+                           ampinfo_v[a].generation);
             }
         }
 
@@ -1102,7 +1112,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* dump network to file */
   if (not parameters.opt_network_file.empty()) {
-    write_network_file(network_count, parameters);
+    write_network_file(network_count, parameters, ampinfo_v);
   }
 
 
@@ -1146,7 +1156,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           /* add subseeds on list to current swarm */
           for(auto i = 0U; i < global_hits_count; i++) {
-            add_amp_to_swarm(global_hits_data[i]);
+            add_amp_to_swarm(global_hits_data[i], ampinfo_v);
           }
 
           /* find later generation matches */
@@ -1168,7 +1178,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
               /* add them to the swarm */
               for(auto i = 0U; i < global_hits_count; i++) {
-                add_amp_to_swarm(global_hits_data[i]);
+                add_amp_to_swarm(global_hits_data[i], ampinfo_v);
               }
 
               /* start with most abundant amplicon of next generation */
@@ -1403,7 +1413,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           std::fprintf(logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
           std::fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
-          const unsigned int grafts = attach_candidates(amplicons);
+          const unsigned int grafts = attach_candidates(amplicons, ampinfo_v);
           std::fprintf(logfile, "Made %u grafts\n", grafts);
           std::fprintf(logfile, "\n");
         }
@@ -1412,10 +1422,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* dump swarms */
   if (parameters.opt_mothur) {
-    write_swarms_mothur_format(swarmcount, parameters);
+    write_swarms_mothur_format(swarmcount, parameters, ampinfo_v);
   }
   else {
-    write_swarms_default_format(swarmcount, parameters);
+    write_swarms_default_format(swarmcount, parameters, ampinfo_v);
   }
 
   /* dump seeds in fasta format with sum of abundances */
@@ -1425,12 +1435,12 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* output internal structure */
   if (not parameters.opt_internal_structure.empty()) {
-    write_structure_file(swarmcount, parameters);
+    write_structure_file(swarmcount, parameters, ampinfo_v);
   }
 
   /* output swarms in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, parameters);
+    write_swarms_uclust_format(swarmcount, parameters, ampinfo_v);
   }
 
   /* output statistics to file */
