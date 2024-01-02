@@ -461,7 +461,7 @@ auto check_heavy_var(struct bloomflex_s * bloom,
         {
           auto varlen = 0U;
           generate_variant_sequence(sequence, seqlen,
-                                    var, varseq, &varlen);
+                                    var, varseq, varlen);
           matches += check_heavy_var_2(varseq,
                                        varlen,
                                        seed,
