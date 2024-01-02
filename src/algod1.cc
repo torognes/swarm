@@ -862,6 +862,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   static constexpr auto one_hundred = 100U;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
+  // std::vector<unsigned char> dir(longestamplicon * longestamplicon);
+  // std::vector<uint64_t> hearray(2 * longestamplicon);
   unsigned char * dir = new unsigned char[longestamplicon * longestamplicon];
   uint64_t * hearray = new uint64_t[2 * longestamplicon];
 
