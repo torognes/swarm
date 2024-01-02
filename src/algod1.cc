@@ -1196,6 +1196,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           if (swarmcount >= swarminfo_alloc)
             {
               /* allocate memory for more swarms... */
+              // 1,024 times struct size, so 40,960 bytes
               swarminfo_alloc += one_kilobyte;
               swarminfo = static_cast<struct swarminfo_s *>
                 (xrealloc(swarminfo, swarminfo_alloc * sizeof(swarminfo_s)));
