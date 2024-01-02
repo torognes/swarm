@@ -422,8 +422,8 @@ inline auto check_heavy_var_2(std::vector<char>& seq,
 auto check_heavy_var(struct bloomflex_s * bloom,
                      std::vector<char>& varseq,
                      unsigned int seed,
-                     uint64_t * number_of_matches,
-                     uint64_t * number_of_variants,
+                     uint64_t & number_of_matches,
+                     uint64_t & number_of_variants,
                      std::vector<struct var_s>& variant_list,
                      std::vector<struct var_s>& variant_list2) -> void
 {
@@ -469,8 +469,8 @@ auto check_heavy_var(struct bloomflex_s * bloom,
         }
     }
 
-  *number_of_matches = matches;
-  *number_of_variants = variant_count;
+  number_of_matches = matches;
+  number_of_variants = variant_count;
 }
 
 
@@ -500,7 +500,7 @@ auto check_heavy_thread(int64_t t) -> void
           uint64_t number_of_matches {0};
           uint64_t number_of_variants {0};
           check_heavy_var(bloom_f, buffer1, heavy_amplicon_id,
-                          &number_of_matches, &number_of_variants,
+                          number_of_matches, number_of_variants,
                           variant_list, variant_list2);
           pthread_mutex_lock(&heavy_mutex);
           heavy_variants += number_of_variants;
