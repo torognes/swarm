@@ -177,7 +177,7 @@ auto mark_light_var(struct bloomflex_s * bloom,
 void mark_light_thread(int64_t t);
 void check_variants(unsigned int seed,
                     std::vector<struct var_s>& variant_list,
-                    unsigned int * hits_data,
+                    std::vector<unsigned int>& hits_data,
                     unsigned int * hits_count);
 void network_thread(int64_t t);
 void process_seed(unsigned int seed);
@@ -623,7 +623,7 @@ inline void find_variant_matches(unsigned int seed,
 
 auto check_variants(unsigned int seed,
                     std::vector<struct var_s> & variant_list,
-                    unsigned int * hits_data,
+                    std::vector<unsigned int>& hits_data,
                     unsigned int * hits_count) -> void
 {
   auto variant_count = 0U;
@@ -636,7 +636,7 @@ auto check_variants(unsigned int seed,
 
   // refactoring: range-based for loop over variant_list truncated to variant_count?
   for(auto i = 0U; i < variant_count; i++) {
-    find_variant_matches(seed, variant_list[i], hits_data, hits_count);
+    find_variant_matches(seed, variant_list[i], hits_data.data(), hits_count);
   }
 }
 
@@ -660,7 +660,7 @@ auto network_thread(int64_t t) -> void
       pthread_mutex_unlock(&network_mutex);
 
       unsigned int hits_count = 0;
-      check_variants(amp, variant_list, hits_data.data(), & hits_count);
+      check_variants(amp, variant_list, hits_data, & hits_count);
       pthread_mutex_lock(&network_mutex);
 
       ampinfo[amp].link_start = network_count;
