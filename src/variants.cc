@@ -73,11 +73,11 @@ inline auto seq_identical(char * seq_a,
   return equal;
 }
 
-void generate_variant_sequence(char * seed_sequence,
+auto generate_variant_sequence(char * seed_sequence,
                                unsigned int seed_seqlen,
                                struct var_s & var,
                                std::vector<char>& seq,
-                               unsigned int & seqlen)
+                               unsigned int & seqlen) -> void
 {
   /* generate the actual sequence of a variant */
 
