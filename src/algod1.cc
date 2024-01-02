@@ -175,10 +175,6 @@ auto mark_light_var(struct bloomflex_s * bloom,
                         unsigned int seed,
                         std::vector<struct var_s>& variant_list) -> uint64_t;
 void mark_light_thread(int64_t t);
-void check_variants(unsigned int seed,
-                    std::vector<struct var_s>& variant_list,
-                    std::vector<unsigned int>& hits_data,
-                    unsigned int * hits_count);
 void network_thread(int64_t t);
 void process_seed(unsigned int seed);
 auto compare_amp(const void * a, const void * b) -> int;
