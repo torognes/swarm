@@ -106,7 +106,7 @@ struct swarminfo_s
   char dummy_1 = '\0'; /* alignment padding only */
   char dummy_2 = '\0'; /* alignment padding only */
   char dummy_3 = '\0'; /* alignment padding only */
-};
+};  // total of 40 bytes (five 64-bit machine words)
 
 static struct swarminfo_s* swarminfo = nullptr;
 
