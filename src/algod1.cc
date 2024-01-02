@@ -947,10 +947,10 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
   for(auto j = 0U; j < swarmcount; j++)
     {
-      const unsigned int i = sorter[j];
+      const auto i = sorter[j];
       if (not swarminfo[i].attached)
         {
-          const unsigned int seed = swarminfo[i].seed;
+          const auto seed = swarminfo[i].seed;
           std::fprintf(fp_seeds, ">");
           fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[i].mass, parameters.opt_usearch_abundance);
           std::fprintf(fp_seeds, "\n");
