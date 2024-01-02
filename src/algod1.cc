@@ -88,6 +88,7 @@ struct ampinfo_s
   unsigned int link_count {0U};
 };
 
+// refactoring: can't be eliminated yet, because of the pthread barrier
 static struct ampinfo_s * ampinfo = nullptr;
 
 /* Information about each swarm (cluster) */
