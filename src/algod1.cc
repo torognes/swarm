@@ -1441,7 +1441,7 @@ void algo_d1_run(struct Parameters const & parameters)
     write_structure_file(swarmcount, parameters);
   }
 
-  /* output swarm in uclust format */
+  /* output swarms in uclust format */
   if (uclustfile != nullptr) {
     write_swarms_uclust_format(swarmcount, parameters, dir, hearray);
   }
