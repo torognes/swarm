@@ -76,7 +76,7 @@ static uint64_t duplicates_found {0};  // several function calls
 
 /* Information about each amplicon */
 
-static struct ampinfo_s
+struct ampinfo_s
 {
   unsigned int swarmid;
   unsigned int parent;
@@ -85,7 +85,9 @@ static struct ampinfo_s
   unsigned int graft_cand; /* amp id of potential grafting parent (fastid.) */
   unsigned int link_start;
   unsigned int link_count;
-} * ampinfo = nullptr;
+};
+
+static struct ampinfo_s * ampinfo = nullptr;
 
 /* Information about each swarm (cluster) */
 
