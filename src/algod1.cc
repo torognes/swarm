@@ -476,9 +476,9 @@ auto check_heavy_var(struct bloomflex_s * bloom,
 
 auto check_heavy_thread(int64_t t) -> void
 {
-  static constexpr unsigned int i {7};  // max number of microvariants = 7 * len + 4
-  static constexpr unsigned int j {4};  //                               i * len + j
-  static constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
+  static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
+  static constexpr auto j = 4U;  //                               i * len + j
+  static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
   (void) t;
 
   std::vector<struct var_s> variant_list(i * longestamplicon + j);
@@ -491,7 +491,7 @@ auto check_heavy_thread(int64_t t) -> void
   while ((heavy_amplicon < amplicons) and
          (heavy_progress < heavy_amplicon_count))
     {
-      const unsigned int heavy_amplicon_id = heavy_amplicon++;
+      const auto heavy_amplicon_id = heavy_amplicon++;
       if (swarminfo[ampinfo[heavy_amplicon_id].swarmid].mass >=
           static_cast<uint64_t>(opt_boundary))
         {
