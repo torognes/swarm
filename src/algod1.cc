@@ -1057,6 +1057,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   std::vector<struct ampinfo_s> ampinfo_v(amplicons);
   ampinfo = ampinfo_v.data();
 
+  std::vector<struct swarminfo_s> swarminfo_v(one_kilobyte);
+  swarminfo = swarminfo_v.data();
+  swarminfo_alloc += one_kilobyte;
+
   // max number of microvariants = 7 * len + 4
   static constexpr auto m_i = 7U;
   static constexpr auto m_j = 4U;
@@ -1197,9 +1201,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             {
               /* allocate memory for more swarms... */
               // 1,024 times struct size, so 40,960 bytes
+              swarminfo_v.resize(swarminfo_v.capacity() + one_kilobyte);
+              swarminfo = swarminfo_v.data();
               swarminfo_alloc += one_kilobyte;
-              swarminfo = static_cast<struct swarminfo_s *>
-                (xrealloc(swarminfo, swarminfo_alloc * sizeof(swarminfo_s)));
             }
 
           struct swarminfo_s * sp = swarminfo + swarmcount;
@@ -1460,9 +1464,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   bloom_exit(bloom_a);
   hash_free();
 
-  if (swarminfo != nullptr) {
-    xfree(swarminfo);
-  }
-
+  swarminfo = nullptr;
   ampinfo = nullptr;
 }
