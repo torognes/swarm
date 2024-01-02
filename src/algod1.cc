@@ -862,10 +862,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   static constexpr auto one_hundred = 100U;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-  // std::vector<unsigned char> dir(longestamplicon * longestamplicon);
-  // std::vector<uint64_t> hearray(2 * longestamplicon);
-  unsigned char * dir = new unsigned char[longestamplicon * longestamplicon];
-  uint64_t * hearray = new uint64_t[2 * longestamplicon];
+  std::vector<unsigned char> dir(longestamplicon * longestamplicon);
+  std::vector<uint64_t> hearray(2 * longestamplicon);
 
   progress_init("Writing UCLUST:   ", swarmcount);
 
@@ -904,7 +902,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
                  & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
-                 dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
+                 dir.data(), reinterpret_cast<int64_t *>(hearray.data()), 0, 0);
 
               const double percentid
                 = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
@@ -933,10 +931,6 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
       progress_update(swarmid);
     }
   progress_done();
-  delete [] dir;
-  dir = nullptr;
-  delete [] hearray;
-  hearray = nullptr;
 }
 
 
