@@ -1277,7 +1277,7 @@ void algo_d1_run(struct Parameters const & parameters)
       if ((small_clusters == 0) or (large_clusters == 0))
         {
           std::fprintf(logfile, "Only light or heavy swarms found - "
-                  "no need for further analysis.\n");
+                       "no need for further analysis.\n");
         }
       else
         {
