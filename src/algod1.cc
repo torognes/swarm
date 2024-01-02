@@ -1113,16 +1113,16 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   for(auto seed = 0U; seed < amplicons; seed++)
     {
-      struct ampinfo_s * ap = ampinfo + seed;
+      struct ampinfo_s & ap = ampinfo_v[seed];
 
-      if (ap->swarmid == no_swarm)
+      if (ap.swarmid == no_swarm)
         {
           /* start a new swarm with a new initial seed */
 
-          ap->swarmid = swarmcount;
-          ap->generation = 0;
-          ap->parent = no_swarm;
-          ap->next = no_swarm;
+          ap.swarmid = swarmcount;
+          ap.generation = 0;
+          ap.parent = no_swarm;
+          ap.next = no_swarm;
 
           /* link up this initial seed in the list of swarms */
           current_swarm_tail = seed;
@@ -1150,7 +1150,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           }
 
           /* find later generation matches */
-          unsigned int subseed = ap->next;
+          unsigned int subseed = ap.next;
           while(subseed != no_swarm)
             {
               /* process all subseeds of this generation */
