@@ -1253,6 +1253,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
       uint64_t amplicons_in_small_clusters = 0;
       uint64_t nucleotides_in_small_clusters = 0;
 
+      // refactoring: move to function that returns a struct cluster_stats
       progress_init("Counting amplicons in heavy and light swarms",
                     swarmcount);
 
