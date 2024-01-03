@@ -1206,16 +1206,16 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               swarminfo_alloc += one_kilobyte;
             }
 
-          struct swarminfo_s * sp = swarminfo + swarmcount;
+          struct swarminfo_s & sp = swarminfo_v[swarmcount];
 
-          sp->seed = seed;
-          sp->size = swarmsize;
-          sp->mass = abundance_sum;
-          sp->sumlen = swarm_sumlen;
-          sp->singletons = singletons;
-          sp->maxgen = swarm_maxgen;
-          sp->last = current_swarm_tail;
-          sp->attached = false;
+          sp.seed = seed;
+          sp.size = swarmsize;
+          sp.mass = abundance_sum;
+          sp.sumlen = swarm_sumlen;
+          sp.singletons = singletons;
+          sp.maxgen = swarm_maxgen;
+          sp.last = current_swarm_tail;
+          sp.attached = false;
 
           /* update overall stats */
           if (swarmsize > largest) {
