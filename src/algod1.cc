@@ -122,7 +122,7 @@ static pthread_mutex_t graft_mutex;
 
 static unsigned int current_swarm_tail {0};
 
-static uint64_t swarminfo_alloc {0};
+static uint64_t swarminfo_alloc {0};  // refactoring: global can eliminated
 
 /* overall statistics */
 static unsigned int maxgen {0};
