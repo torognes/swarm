@@ -869,7 +869,8 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
 
 auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 struct Parameters const & parameters,
-                                std::vector<struct ampinfo_s> & ampinfo_v) -> void {
+                                std::vector<struct ampinfo_s> & ampinfo_v,
+                                std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   static constexpr auto one_hundred = 100U;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
@@ -880,17 +881,17 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
-      if (swarminfo[swarmid].attached) {
+      if (swarminfo_v[swarmid].attached) {
         continue;
       }
 
-      const auto seed = swarminfo[swarmid].seed;
+      const auto seed = swarminfo_v[swarmid].seed;
 
       struct ampinfo_s const & bp = ampinfo_v[seed];
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
-                   swarminfo[swarmid].size);
+                   swarminfo_v[swarmid].size);
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
@@ -1449,7 +1450,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* output swarms in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, parameters, ampinfo_v);
+    write_swarms_uclust_format(swarmcount, parameters, ampinfo_v, swarminfo_v);
   }
 
   /* output statistics to file */
