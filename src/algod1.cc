@@ -976,17 +976,18 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
 auto write_structure_file(const unsigned int swarmcount,
                           struct Parameters const & parameters,
-                          std::vector<struct ampinfo_s> & ampinfo_v) -> void {
+                          std::vector<struct ampinfo_s> & ampinfo_v,
+                          std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   auto cluster_no = 0U;
 
   progress_init("Writing structure:", swarmcount);
 
   for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
     {
-      if (swarminfo[swarmid].attached) {
+      if (swarminfo_v[swarmid].attached) {
         continue;
       }
-      const auto seed = swarminfo[swarmid].seed;
+      const auto seed = swarminfo_v[swarmid].seed;
 
       struct ampinfo_s const & bp = ampinfo_v[seed];
 
@@ -1442,7 +1443,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* output internal structure */
   if (not parameters.opt_internal_structure.empty()) {
-    write_structure_file(swarmcount, parameters, ampinfo_v);
+    write_structure_file(swarmcount, parameters, ampinfo_v, swarminfo_v);
   }
 
   /* output swarms in uclust format */
