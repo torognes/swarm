@@ -122,8 +122,6 @@ static pthread_mutex_t graft_mutex;
 
 static unsigned int current_swarm_tail {0};
 
-static uint64_t swarminfo_alloc {0};  // refactoring: global can eliminated
-
 /* overall statistics */
 static unsigned int maxgen {0};
 static unsigned int largest {0};
@@ -1059,7 +1057,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   std::vector<struct swarminfo_s> swarminfo_v(one_kilobyte);
   swarminfo = swarminfo_v.data();
-  swarminfo_alloc += one_kilobyte;
 
   // max number of microvariants = 7 * len + 4
   static constexpr auto m_i = 7U;
@@ -1197,13 +1194,12 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               }
             }
 
-          if (swarmcount >= swarminfo_alloc)
+          if (swarmcount >= swarminfo_v.capacity())
             {
               /* allocate memory for more swarms... */
               // 1,024 times struct size, so 40,960 bytes
               swarminfo_v.resize(swarminfo_v.capacity() + one_kilobyte);
               swarminfo = swarminfo_v.data();
-              swarminfo_alloc += one_kilobyte;
             }
 
           struct swarminfo_s & sp = swarminfo_v[swarmcount];
