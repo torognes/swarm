@@ -1231,6 +1231,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     }
   progress_done();
 
+  // refactoring: swarminfo_v.resize(amplicons);
+
   if (global_hits_data != nullptr) {
     xfree(global_hits_data);
   }
