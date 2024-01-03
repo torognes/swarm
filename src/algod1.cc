@@ -1034,7 +1034,7 @@ auto write_stats_file(const unsigned int swarmcount,
   progress_init("Writing stats:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
-      swarminfo_s const & sp = swarminfo_v[i];
+      struct swarminfo_s const & sp = swarminfo_v[i];
       if (sp.attached) {
         continue;
       }
