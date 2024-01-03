@@ -1258,11 +1258,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
       for(auto i = 0ULL; i < swarmcount; i++)
         {
-          struct swarminfo_s * sp = swarminfo + i;
-          if (sp->mass < static_cast<uint64_t>(opt_boundary))
+          struct swarminfo_s & sp = swarminfo_v[i];
+          if (sp.mass < static_cast<uint64_t>(opt_boundary))
             {
-              amplicons_in_small_clusters += sp->size;
-              nucleotides_in_small_clusters += sp->sumlen;
+              amplicons_in_small_clusters += sp.size;
+              nucleotides_in_small_clusters += sp.sumlen;
               ++small_clusters;
             }
           progress_update(i + 1);
