@@ -947,7 +947,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
 
 auto write_representative_sequences(const unsigned int swarmcount,
-                                    struct Parameters const & parameters) -> void {
+                                    struct Parameters const & parameters,
+                                    std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   progress_init("Writing seeds:    ", swarmcount);
 
   std::vector<unsigned int> sorter(swarmcount);
@@ -959,12 +960,12 @@ auto write_representative_sequences(const unsigned int swarmcount,
   for(auto j = 0U; j < swarmcount; j++)
     {
       const auto index = sorter[j];
-      if (swarminfo[index].attached) {
+      if (swarminfo_v[index].attached) {
         continue;
       }
-      const auto seed = swarminfo[index].seed;
+      const auto seed = swarminfo_v[index].seed;
       std::fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, seed, swarminfo[index].mass, parameters.opt_usearch_abundance);
+      fprint_id_with_new_abundance(fp_seeds, seed, swarminfo_v[index].mass, parameters.opt_usearch_abundance);
       std::fprintf(fp_seeds, "\n");
       db_fprintseq(fp_seeds, seed);
       progress_update(index + 1);
@@ -1438,7 +1439,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* dump seeds in fasta format with sum of abundances */
   if (not parameters.opt_seeds.empty()) {
-    write_representative_sequences(swarmcount, parameters);
+    write_representative_sequences(swarmcount, parameters, swarminfo_v);
   }
 
   /* output internal structure */
