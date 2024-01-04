@@ -34,46 +34,46 @@
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
-auto pushop(const char newop, char ** cigarendp, char * op, int * count) -> void
+auto pushop(const char newop, char ** cigarendp, char * op, int & count) -> void
 {
   static constexpr unsigned int buffer_length {25};
 
   if (newop == *op) {
-    (*count)++;
+    ++count;
   }
   else
   {
     *--*cigarendp = *op;
-    if (*count > 1)
+    if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
-      const int len = std::snprintf(buf.data(), buffer_length, "%d", *count);
+      const int len = std::snprintf(buf.data(), buffer_length, "%d", count);
       assert(len >= 0);
       *cigarendp -= len;
       std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
     *op = newop;
-    *count = 1;
+    count = 1;
   }
 }
 
-auto finishop(char ** cigarendp, char * op, int * count) -> void
+auto finishop(char ** cigarendp, char * op, int & count) -> void
 {
   static constexpr unsigned int buffer_length {25};
 
-  if ((op != nullptr) and (count != nullptr))
+  if ((op != nullptr) and (count != 0))
   {
     *--*cigarendp = *op;
-    if (*count > 1)
+    if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
-      const int len = std::snprintf(buf.data(), buffer_length, "%d", *count);
+      const int len = std::snprintf(buf.data(), buffer_length, "%d", count);
       assert(len >= 0);
       *cigarendp -= len;
       std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
     *op = 0;
-    *count = 0;
+    count = 0;
   }
 }
 
@@ -218,22 +218,22 @@ auto nw(char * dseq,
       if ((op == 'I') and ((d & maskextleft) != 0))
         {
           --j;
-          pushop('I', &cigarend, &op, &count);
+          pushop('I', &cigarend, &op, count);
         }
       else if ((op == 'D') and ((d & maskextup) != 0))
         {
           --i;
-          pushop('D', &cigarend, &op, &count);
+          pushop('D', &cigarend, &op, count);
         }
       else if ((d & maskleft) != 0)
         {
           --j;
-          pushop('I', &cigarend, &op, &count);
+          pushop('I', &cigarend, &op, count);
         }
       else if ((d & maskup) != 0)
         {
           --i;
-          pushop('D', &cigarend, &op, &count);
+          pushop('D', &cigarend, &op, count);
         }
       else
         {
@@ -243,7 +243,7 @@ auto nw(char * dseq,
           }
           --i;
           --j;
-          pushop('M', &cigarend, &op, &count);
+          pushop('M', &cigarend, &op, count);
         }
     }
 
@@ -251,17 +251,17 @@ auto nw(char * dseq,
     {
       ++alength;
       --i;
-      pushop('D', &cigarend, &op, &count);
+      pushop('D', &cigarend, &op, count);
     }
 
   while(j > 0)
     {
       ++alength;
       --j;
-      pushop('I', &cigarend, &op, &count);
+      pushop('I', &cigarend, &op, count);
     }
 
-  finishop(&cigarend, &op, &count);
+  finishop(&cigarend, &op, count);
 
   /* move and reallocate cigar */
 
