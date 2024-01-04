@@ -819,17 +819,19 @@ auto write_swarms_default_format(const unsigned int swarmcount,
   progress_init("Writing swarms:   ", swarmcount);
 
   for(auto i = 0U; i < swarmcount; i++) {
-    if (not swarminfo_v[i].attached) {
-      const auto seed = swarminfo_v[i].seed;
-      for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
-        if (a != seed) {
-          std::fputc(sepchar, outfile);
-        }
-        fprint_id(outfile, a,
-                  parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      }
-      std::fputc('\n', outfile);
+    if (swarminfo_v[i].attached) {
+      continue;
     }
+
+    const auto seed = swarminfo_v[i].seed;
+    for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
+      if (a != seed) {
+        std::fputc(sepchar, outfile);
+      }
+      fprint_id(outfile, a,
+                parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    }
+    std::fputc('\n', outfile);
     progress_update(i + 1);
   }
 
