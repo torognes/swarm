@@ -146,8 +146,6 @@ void nw(char * dseq,
   uint64_t n {0};
   uint64_t e {0};
 
-  std::memset(dir.data(), 0, qlen * dlen);
-
   for(auto i = 0UL; i < qlen; i++)
     {
       hearray[2 * i]     = 1 * gapopen + (i + 1) * gapextend; // H (N)
@@ -300,6 +298,7 @@ void nw(char * dseq,
   nwdiff = alength - matches;
   nwalignmentlength = alength;
   * nwalignment = cigar;
+  std::fill(dir.begin(), dir.end(), '\0');  // reset the alignment matrix
 
   // assert(score == dist);
 
