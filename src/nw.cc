@@ -34,17 +34,17 @@
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
-auto pushop(const char newop, char * & cigarendp, char & op, int & count) -> void
+auto pushop(const char newop, char * & cigarendp, char & operation, int & count) -> void
 {
   static constexpr auto buffer_length = 25U;
 
-  if (newop == op) {
+  if (newop == operation) {
     ++count;
   }
   else
   {
     --cigarendp;
-    *cigarendp = op;  // write char op at position end - 1
+    *cigarendp = operation;  // write char operation at position end - 1
     if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
@@ -53,19 +53,19 @@ auto pushop(const char newop, char * & cigarendp, char & op, int & count) -> voi
       cigarendp -= len;
       std::memcpy(cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
-    op = newop;
+    operation = newop;
     count = 1;
   }
 }
 
-auto finishop(char * & cigarendp, char & op, int & count) -> void
+auto finishop(char * & cigarendp, char & operation, int & count) -> void
 {
   static constexpr auto buffer_length = 25U;
 
-  if ((op != '\0') and (count != 0))
+  if ((operation != '\0') and (count != 0))
   {
     --cigarendp;
-    *cigarendp = op;  // write char op at position end - 1
+    *cigarendp = operation;  // write char operation at position end - 1
     if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
@@ -74,7 +74,7 @@ auto finishop(char * & cigarendp, char & op, int & count) -> void
       cigarendp -= len;
       std::memcpy(cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
-    op = '\0';
+    operation = '\0';
     count = 0;
   }
 }
