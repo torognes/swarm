@@ -723,28 +723,6 @@ auto compare_amp(const void * a, const void * b) -> int
 }
 
 
-auto compare_mass(const void * a, const void * b) -> int
-{
-  const swarminfo_s * x = swarminfo + *(static_cast<const unsigned int *>(a));
-  const swarminfo_s * y = swarminfo + *(static_cast<const unsigned int *>(b));
-
-  const auto mass_x = x->mass;
-  const auto mass_y = y->mass;
-  auto status = 0;
-
-  if (mass_x > mass_y) {
-    status = -1;
-  }
-  else if (mass_x < mass_y) {
-    status = +1;
-  }
-  else {
-    status = std::strcmp(db_getheader(x->seed), db_getheader(y->seed));
-  }
-  return status;
-}
-
-
 inline auto add_amp_to_swarm(unsigned int const amp,
                              std::vector<struct ampinfo_s> & ampinfo_v) -> void
 {
@@ -938,7 +916,34 @@ auto write_representative_sequences(const unsigned int swarmcount,
   for(auto i = 0U; i < swarmcount; i++) {
     sorter[i] = i;
   }
-  std::qsort(sorter.data(), swarmcount, sizeof(unsigned int), compare_mass);
+
+  auto compare_mass = [&swarminfo_v](unsigned int const lhs,
+                                     unsigned int const rhs) -> bool
+  {
+    const swarminfo_s & swarm_x = swarminfo_v[lhs];
+    const swarminfo_s & swarm_y = swarminfo_v[rhs];
+
+    const auto mass_x = swarm_x.mass;
+    const auto mass_y = swarm_y.mass;
+
+    // sort seeds by decreasing mass
+    if (mass_x > mass_y) {
+      return true;
+    }
+    if (mass_x < mass_y) {
+      return false;
+    }
+    // ...then ties are sorted by headers (alphabetical order)
+    const auto status = std::strcmp(db_getheader(swarm_x.seed),
+                                    db_getheader(swarm_y.seed));
+    if (status < 0) {
+      return true;
+    }
+    // assert(status != 0); // all headers are unique
+    return false;
+  };
+
+  std::sort(sorter.begin(), sorter.end(), compare_mass);
 
   for(auto j = 0U; j < swarmcount; j++)
     {
