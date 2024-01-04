@@ -875,7 +875,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
           nw(dseq, dlen, qseq, qlen,
              score_matrix_63, penalty_gapopen, penalty_gapextend,
-             & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
+             nwscore, nwdiff, nwalignmentlength, & nwalignment,
              dir.data(), reinterpret_cast<int64_t *>(hearray.data()), 0, 0);
 
           const double percentid

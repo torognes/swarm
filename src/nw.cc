@@ -129,9 +129,9 @@ void nw(char * dseq,
         const std::array<int64_t, n_cells * n_cells> & score_matrix,
         const int64_t gapopen,
         const int64_t gapextend,
-        int64_t * nwscore,
-        int64_t * nwdiff,
-        int64_t * nwalignmentlength,
+        int64_t & nwscore,
+        int64_t & nwdiff,
+        int64_t & nwalignmentlength,
         char ** nwalignment,
         unsigned char * dir,
         int64_t * hearray,
@@ -296,9 +296,9 @@ void nw(char * dseq,
   std::memmove(cigar, cigarend, cigaralloc);
   cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
 
-  * nwscore = dist;
-  * nwdiff = alength - matches;
-  * nwalignmentlength = alength;
+  nwscore = dist;
+  nwdiff = alength - matches;
+  nwalignmentlength = alength;
   * nwalignment = cigar;
 
   // assert(score == dist);

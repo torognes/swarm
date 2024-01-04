@@ -619,7 +619,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
-                 & nwscore, & nwdiff, & nwalignmentlength, & nwalignment,
+                 nwscore, nwdiff, nwalignmentlength, & nwalignment,
                  dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
 
               const double percentid
