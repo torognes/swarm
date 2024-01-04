@@ -42,11 +42,12 @@
 #include "zobrist.h"
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>
+#include <climits>  // UINT_MAX
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // std::memcmp
+#include <limits>  // unsigned int max
 #include <memory>  // unique pointer
 #include <pthread.h>
 #include <vector>
@@ -71,7 +72,7 @@ constexpr char PRId64[] = "ld";
 
 constexpr unsigned int one_kilobyte {1U << 10U};
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
-constexpr unsigned int no_swarm {UINT_MAX};
+constexpr unsigned int no_swarm {std::numeric_limits<unsigned int>::max()};
 
 static uint64_t duplicates_found {0};  // several function calls
 
