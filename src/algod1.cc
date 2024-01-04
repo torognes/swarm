@@ -1094,6 +1094,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* for all amplicons, generate list of matching amplicons */
 
+  // refactoring: not possible because of the pthread barrier
+  // std::vector<unsigned int> network_v(network_alloc);
+  // network = network_v.data();
   network = static_cast<unsigned int*>
     (xmalloc(network_alloc * sizeof(unsigned int)));
 
