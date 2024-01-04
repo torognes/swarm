@@ -40,6 +40,7 @@
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
 #include "zobrist.h"
+#include <algorithm>  // std::sort()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // UINT_MAX
@@ -1155,8 +1156,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           process_seed(seed, ampinfo_v, global_hits_v, global_hits_count);
 
           /* sort hits */
-          std::qsort(global_hits_data, global_hits_count,
-                sizeof(unsigned int), compare_amp);
+          std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
 
           /* add subseeds on list to current swarm */
           for(auto i = 0U; i < global_hits_count; i++) {
