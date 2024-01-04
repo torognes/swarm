@@ -107,9 +107,9 @@ constexpr unsigned char maskextleft = 8;
   input
 
   dseq: pointer to start of database sequence
-  dend: pointer after database sequence
+  dlen: database sequence length
   qseq: pointer to start of query sequence
-  qend: pointer after database sequence
+  qlen: query sequence length
   score_matrix: 32x32 matrix of longs with scores for aligning two symbols
   gapopen: positive number indicating penalty for opening a gap of length zero
   gapextend: positive number indicating penalty for extending a gap
