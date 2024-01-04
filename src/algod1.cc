@@ -838,15 +838,16 @@ auto write_swarms_default_format(const unsigned int swarmcount,
 
 auto write_swarms_mothur_format(const unsigned int swarmcount,
                                 struct Parameters const & parameters,
-                                std::vector<struct ampinfo_s> & ampinfo_v) -> void {
+                                std::vector<struct ampinfo_s> & ampinfo_v,
+                                std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   progress_init("Writing swarms:   ", swarmcount);
 
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
           parameters.opt_differences, swarmcount_adjusted);
 
   for(auto i = 0U; i < swarmcount; i++) {
-    if (not swarminfo[i].attached) {
-      const auto seed = swarminfo[i].seed;
+    if (not swarminfo_v[i].attached) {
+      const auto seed = swarminfo_v[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
         if (a == seed) {
           std::fputc('\t', outfile);
@@ -1231,7 +1232,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     }
   progress_done();
 
-  // refactoring: swarminfo_v.resize(amplicons);
+  // refactoring: trim vectors (remove allocated unused elements) (FAIL)
+  // swarminfo_v.resize(swarmcount);
+  // swarminfo_v.shrink_to_fit();
 
   if (global_hits_data != nullptr) {
     xfree(global_hits_data);
@@ -1434,7 +1437,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* dump swarms */
   if (parameters.opt_mothur) {
-    write_swarms_mothur_format(swarmcount, parameters, ampinfo_v);
+    write_swarms_mothur_format(swarmcount, parameters, ampinfo_v, swarminfo_v);
   }
   else {
     write_swarms_default_format(swarmcount, parameters, ampinfo_v);
