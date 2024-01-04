@@ -666,14 +666,15 @@ auto network_thread(int64_t t) -> void
 
 
 auto process_seed(unsigned int seed,
+                  std::vector<struct ampinfo_s> & ampinfo_v,
                   std::vector<unsigned int> & global_hits_v) -> void
 {
   /* update swarm stats */
-  struct ampinfo_s * bp = ampinfo + seed;
+  struct ampinfo_s & bp = ampinfo_v[seed];
 
   ++swarmsize;
-  if (bp->generation > swarm_maxgen) {
-    swarm_maxgen = bp->generation;
+  if (bp.generation > swarm_maxgen) {
+    swarm_maxgen = bp.generation;
   }
   const auto abundance = db_getabundance(seed);
   abundance_sum += abundance;
@@ -682,8 +683,8 @@ auto process_seed(unsigned int seed,
   }
   swarm_sumlen += db_getsequencelen(seed);
 
-  const auto link_start = ampinfo[seed].link_start;
-  const auto link_count = ampinfo[seed].link_count;
+  const auto link_start = ampinfo_v[seed].link_start;
+  const auto link_count = ampinfo_v[seed].link_count;
 
   if (global_hits_count + link_count > global_hits_alloc)
     {
@@ -698,14 +699,14 @@ auto process_seed(unsigned int seed,
     {
       const auto amp = network[link_start + offset];
 
-      if (ampinfo[amp].swarmid == no_swarm)
+      if (ampinfo_v[amp].swarmid == no_swarm)
         {
           global_hits_v[global_hits_count++] = amp;
 
           /* update info */
-          ampinfo[amp].swarmid = ampinfo[seed].swarmid;
-          ampinfo[amp].generation = ampinfo[seed].generation + 1;
-          ampinfo[amp].parent = seed;
+          ampinfo_v[amp].swarmid = ampinfo_v[seed].swarmid;
+          ampinfo_v[amp].generation = ampinfo_v[seed].generation + 1;
+          ampinfo_v[amp].parent = seed;
         }
     }
 }
@@ -1147,7 +1148,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           global_hits_count = 0;
 
           /* find the first generation matches */
-          process_seed(seed, global_hits_v);
+          process_seed(seed, ampinfo_v, global_hits_v);
 
           /* sort hits */
           std::qsort(global_hits_data, global_hits_count,
@@ -1167,7 +1168,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
               while(subseed != no_swarm)
                 {
-                  process_seed(subseed, global_hits_v);
+                  process_seed(subseed, ampinfo_v, global_hits_v);
                   subseed = ampinfo_v[subseed].next;
                 }
 
