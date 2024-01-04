@@ -605,12 +605,12 @@ auto algo_run(struct Parameters const & parameters) -> void
 
           for(auto i = 1ULL; i < hitcount; i++)
             {
-              const uint64_t hit = hits[i];
+              const auto hit = hits[i];
 
               char * dseq = db_getsequence(hit);
-              const int64_t dlen = db_getsequencelen(hit);
+              const auto dlen = db_getsequencelen(hit);
               char * qseq = db_getsequence(seedampliconid);
-              const int64_t qlen = db_getsequencelen(seedampliconid);
+              const auto qlen = db_getsequencelen(seedampliconid);
 
               int64_t nwscore {0};
               int64_t nwdiff {0};
