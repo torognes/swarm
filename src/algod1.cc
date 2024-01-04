@@ -849,7 +849,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
           parameters.opt_differences, swarmcount_adjusted);
 
   for(auto i = 0U; i < swarmcount; i++) {
-    if (swarminfo_v[swarmid].attached) {
+    if (swarminfo_v[i].attached) {
       continue;
     }
 
