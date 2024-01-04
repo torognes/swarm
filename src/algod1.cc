@@ -740,12 +740,10 @@ auto write_network_file(const unsigned int number_of_networks,
 
   uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
   assert(ampinfo_v.size() == amplicons);
-  for(auto seed = 0U; seed < ampinfo_v.size(); seed++)
-    {
-      struct ampinfo_s const & ap = ampinfo_v[seed];
-
-      const auto link_start = ap.link_start;
-      const auto link_count = ap.link_count;
+  auto counter = 0ULL;
+  for(auto const& amplicon: ampinfo_v) {
+      const auto link_start = amplicon.link_start;
+      const auto link_count = amplicon.link_count;
 
       std::qsort(network + link_start,
             link_count,
@@ -755,13 +753,14 @@ auto write_network_file(const unsigned int number_of_networks,
       for(auto link = 0U; link < link_count; link++)
         {
           const auto neighbour = network[link_start + link];
-          fprint_id(network_file, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          fprint_id(network_file, counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(network_file, "\t");
           fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(network_file, "\n");
           ++n_processed;
         }
       progress_update(n_processed);
+      ++counter;
     }
   progress_done();
 }
