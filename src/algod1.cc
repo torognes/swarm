@@ -735,11 +735,12 @@ inline auto add_amp_to_swarm(unsigned int const amp,
 auto write_network_file(const unsigned int number_of_networks,
                         struct Parameters const & parameters,
                         std::vector<struct ampinfo_s> & ampinfo_v) -> void {
-  // network = cluster with at leat two sequences (no singletons)
+  // network = cluster with at least two sequences (no singletons)
   progress_init("Dumping network:  ", number_of_networks);
 
   uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
-  for(auto seed = 0U; seed < amplicons; seed++)
+  assert(ampinfo_v.size() == amplicons);
+  for(auto seed = 0U; seed < ampinfo_v.size(); seed++)
     {
       struct ampinfo_s const & ap = ampinfo_v[seed];
 
