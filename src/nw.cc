@@ -100,6 +100,8 @@ constexpr unsigned char maskextleft = 8;
   qseq: the reference/query/upper/vertical/from sequence
   dseq: the sample/database/lower/horizontal/to sequence
 
+  matrix of qlen columns and dlen rows
+
   typical costs:
   match: 0
   mismatch: 3
