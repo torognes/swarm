@@ -154,21 +154,21 @@ auto nw(char * dseq,
       hearray[2 * column + 1] = 2 * gapopen + (column + 2) * gapextend; // E
     }
 
-  for(auto j = 0UL; j < dlen; j++)
+  for(auto row = 0UL; row < dlen; row++)
     {
       auto * hep = hearray.data();
-      auto f = 2 * gapopen + (j + 2) * gapextend;
-      uint64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
+      auto f = 2 * gapopen + (row + 2) * gapextend;
+      uint64_t h = (row == 0) ? 0 : (gapopen + row * gapextend);
 
-      for(auto i = 0UL; i < qlen; i++)
+      for(auto column = 0UL; column < qlen; column++)
         {
-          const auto index = qlen * j + i;
+          const auto index = qlen * row + column;
 
           n = *hep;
           e = *(hep + 1);
           h += static_cast<uint64_t>(score_matrix
-                                     [((nt_extract(dseq, j) + 1U) << multiplier)
-                                      + (nt_extract(qseq, i) + 1)]);
+                                     [((nt_extract(dseq, row) + 1U) << multiplier)
+                                      + (nt_extract(qseq, column) + 1)]);
 
           dir[index] |= (f < h ? maskup : 0U);
           h = std::min(h, f);
