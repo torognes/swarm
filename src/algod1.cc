@@ -165,25 +165,6 @@ static struct bloom_s * bloom_a {nullptr}; // Bloom filter for amplicons
 
 static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidious
 
-void attach(unsigned int seed, unsigned int amp, std::vector<struct ampinfo_s> & ampinfo_v);
-void add_graft_candidate(unsigned int seed, unsigned int amp);
-auto compare_grafts(const void * a, const void * b) -> int;
-auto attach_candidates(unsigned int amplicon_count,
-                       std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int;
-auto hash_check_attach(char * seed_sequence,
-                       unsigned int seed_seqlen,
-                       struct var_s * var,
-                       unsigned int seed) -> bool;
-void check_heavy_thread(int64_t t);
-auto mark_light_var(struct bloomflex_s * bloom,
-                        unsigned int seed,
-                        std::vector<struct var_s>& variant_list) -> uint64_t;
-void mark_light_thread(int64_t t);
-void network_thread(int64_t t);
-void process_seed(unsigned int seed);
-auto compare_amp(const void * a, const void * b) -> int;
-auto compare_mass(const void * a, const void * b) -> int;
-
 
 inline auto check_amp_identical(unsigned int amp1,
                                 unsigned int amp2) -> bool
