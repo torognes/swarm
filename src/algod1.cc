@@ -256,36 +256,6 @@ auto add_graft_candidate(unsigned int seed, unsigned int amp) -> void
 }
 
 
-auto compare_grafts(const void * a, const void * b) -> int
-{
-  const auto * x = static_cast<const struct graft_cand *>(a);
-  const auto * y = static_cast<const struct graft_cand *>(b);
-  int status {0};
-
-  if (x->parent < y->parent) {
-    status = -1;
-  }
-  else if (x->parent > y->parent) {
-    status = +1;
-  }
-  else { // x->parent == y->parent
-    // assert(x->child != y->child); always true, children have different index values, by construction
-    // assert(x->child < y->child);  that seems to be always true in my tests, even on large datasets
-    if (x->child < y->child) {
-      status = -1;
-    }
-    else if (x->child > y->child) {  // unreachable?
-      status = +1;
-    }
-    else {
-      status = 0;  // unreachable, replace with above assertion
-    }
-  }
-
-  return status;
-}
-
-
 // refactoring: replace with std::count_if()
 auto count_pairs(unsigned int const amplicon_count,
                  std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int {
@@ -322,7 +292,25 @@ auto attach_candidates(unsigned int amplicon_count,
   }
 
   /* sort */
-  std::qsort(graft_array.data(), pair_count, sizeof(struct graft_cand), compare_grafts);
+  auto compare_grafts = [](struct graft_cand const& lhs,
+                           struct graft_cand const& rhs) -> bool {
+    // sort by parent index (lowest index first)
+    if (lhs.parent < rhs.parent) {
+      return true;
+    }
+    if (lhs.parent > rhs.parent) {
+      return false;
+    }
+    // ...then ties are sorted by child index (lowest index first)
+    // assert(lhs.child != rhs.child); // refactoring: should be true by construction! It is not, why?
+    // assert(lhs.child < rhs.child); // refactoring: same as above!
+    if (lhs.child < rhs.child) {
+      return true;
+    }
+    return false;
+  };
+
+  std::sort(graft_array.begin(), graft_array.end(), compare_grafts);
 
   /* attach in order */
   auto grafts = 0U;
