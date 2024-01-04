@@ -34,16 +34,16 @@
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
-auto pushop(const char newop, char ** cigarendp, char * op, int & count) -> void
+auto pushop(const char newop, char ** cigarendp, char & op, int & count) -> void
 {
   static constexpr unsigned int buffer_length {25};
 
-  if (newop == *op) {
+  if (newop == op) {
     ++count;
   }
   else
   {
-    *--*cigarendp = *op;
+    *--*cigarendp = op;
     if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
@@ -52,7 +52,7 @@ auto pushop(const char newop, char ** cigarendp, char * op, int & count) -> void
       *cigarendp -= len;
       std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
-    *op = newop;
+    op = newop;
     count = 1;
   }
 }
@@ -218,22 +218,22 @@ auto nw(char * dseq,
       if ((op == 'I') and ((d & maskextleft) != 0))
         {
           --j;
-          pushop('I', &cigarend, &op, count);
+          pushop('I', &cigarend, op, count);
         }
       else if ((op == 'D') and ((d & maskextup) != 0))
         {
           --i;
-          pushop('D', &cigarend, &op, count);
+          pushop('D', &cigarend, op, count);
         }
       else if ((d & maskleft) != 0)
         {
           --j;
-          pushop('I', &cigarend, &op, count);
+          pushop('I', &cigarend, op, count);
         }
       else if ((d & maskup) != 0)
         {
           --i;
-          pushop('D', &cigarend, &op, count);
+          pushop('D', &cigarend, op, count);
         }
       else
         {
@@ -243,7 +243,7 @@ auto nw(char * dseq,
           }
           --i;
           --j;
-          pushop('M', &cigarend, &op, count);
+          pushop('M', &cigarend, op, count);
         }
     }
 
@@ -251,14 +251,14 @@ auto nw(char * dseq,
     {
       ++alength;
       --i;
-      pushop('D', &cigarend, &op, count);
+      pushop('D', &cigarend, op, count);
     }
 
   while(j > 0)
     {
       ++alength;
       --j;
-      pushop('I', &cigarend, &op, count);
+      pushop('I', &cigarend, op, count);
     }
 
   finishop(&cigarend, &op, count);
