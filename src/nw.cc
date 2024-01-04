@@ -142,6 +142,7 @@ void nw(char * dseq,
   /* dir must point to at least qlen * dlen bytes of allocated memory
      hearray must point to at least 2 * qlen longs of allocated memory
      (8 * qlen bytes) */
+  assert(dir.size() >= qlen * dlen);
   static constexpr unsigned int multiplier {5};
 
   uint64_t n {0};
