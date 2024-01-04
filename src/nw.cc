@@ -273,7 +273,7 @@ auto nw(char * dseq,
   std::memmove(cigar, cigarend, cigaralloc);
   cigar = static_cast<char *>(xrealloc(cigar, cigaralloc));
 
-  nwscore = dist;
+  nwscore = dist;  // unused
   nwdiff = alength - matches;
   nwalignmentlength = alength;
   * nwalignment = cigar;
