@@ -33,6 +33,11 @@
 
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
+constexpr unsigned char maskup      = 1;
+constexpr unsigned char maskleft    = 2;
+constexpr unsigned char maskextup   = 4;
+constexpr unsigned char maskextleft = 8;
+
 
 auto pushop(const char newop, char * & cigarendp, char & operation, int & count) -> void
 {
@@ -80,10 +85,6 @@ auto finishop(char * & cigarendp, char & operation, int & count) -> void
   }
 }
 
-constexpr unsigned char maskup      = 1;
-constexpr unsigned char maskleft    = 2;
-constexpr unsigned char maskextup   = 4;
-constexpr unsigned char maskextleft = 8;
 
 /*
 
