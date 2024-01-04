@@ -148,10 +148,10 @@ auto nw(char * dseq,
   uint64_t n {0};
   uint64_t e {0};
 
-  for(auto i = 0UL; i < qlen; i++)
+  for(auto column = 0UL; column < qlen; column++)
     {
-      hearray[2 * i]     = 1 * gapopen + (i + 1) * gapextend; // H (N)
-      hearray[2 * i + 1] = 2 * gapopen + (i + 2) * gapextend; // E
+      hearray[2 * column]     = 1 * gapopen + (column + 1) * gapextend; // H (N)
+      hearray[2 * column + 1] = 2 * gapopen + (column + 2) * gapextend; // E
     }
 
   for(auto j = 0UL; j < dlen; j++)
