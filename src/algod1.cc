@@ -877,7 +877,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
              score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
              static_cast<unsigned long int>(penalty_gapextend),
              nwscore, nwdiff, nwalignmentlength, & nwalignment,
-             dir, hearray.data(), 0, 0);
+             dir, hearray, 0, 0);
 
           const double percentid
             = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)

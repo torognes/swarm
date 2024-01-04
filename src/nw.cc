@@ -135,7 +135,7 @@ void nw(char * dseq,
         uint64_t & nwalignmentlength,
         char ** nwalignment,
         std::vector<unsigned char> & dir,
-        uint64_t * hearray,
+        std::vector<uint64_t> & hearray,
         uint64_t queryno,
         uint64_t dbseqno)
 {
@@ -158,7 +158,7 @@ void nw(char * dseq,
 
   for(auto j = 0UL; j < dlen; j++)
     {
-      uint64_t * hep = hearray;
+      uint64_t * hep = hearray.data();
       uint64_t f = 2 * gapopen + (j + 2) * gapextend;
       uint64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
