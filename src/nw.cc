@@ -58,6 +58,7 @@ auto pushop(const char newop, char * & cigarendp, char & operation, int & count)
   }
 }
 
+
 auto finishop(char * & cigarendp, char & operation, int & count) -> void
 {
   static constexpr auto buffer_length = 25U;
