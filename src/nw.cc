@@ -165,7 +165,7 @@ void nw(char * dseq,
           const int64_t index = qlen * j + i;
 
           n = *hep;
-          e = *(hep+1);
+          e = *(hep + 1);
           h += score_matrix
             [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1U) << multiplier)
              + (nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
@@ -186,7 +186,7 @@ void nw(char * dseq,
           f = std::min(h,f);
           e = std::min(h,e);
 
-          *(hep+1) = e;
+          *(hep + 1) = e;
           h = n;
           hep += 2;
         }
