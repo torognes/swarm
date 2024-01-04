@@ -139,7 +139,7 @@ auto nw(char * dseq,
 {
   assert(dir.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
-  static constexpr unsigned int multiplier {5};
+  static constexpr auto multiplier = 5U;
 
   uint64_t n {0};
   uint64_t e {0};
@@ -152,13 +152,13 @@ auto nw(char * dseq,
 
   for(auto j = 0UL; j < dlen; j++)
     {
-      uint64_t * hep = hearray.data();
-      uint64_t f = 2 * gapopen + (j + 2) * gapextend;
+      auto * hep = hearray.data();
+      auto f = 2 * gapopen + (j + 2) * gapextend;
       uint64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
       for(auto i = 0UL; i < qlen; i++)
         {
-          const uint64_t index = qlen * j + i;
+          const auto index = qlen * j + i;
 
           n = *hep;
           e = *(hep + 1);
@@ -188,7 +188,7 @@ auto nw(char * dseq,
         }
     }
 
-  const uint64_t dist = hearray[2 * qlen - 2];
+  const auto dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
   // int64_t score {0}; // [[maybe_unused]]
@@ -202,12 +202,12 @@ auto nw(char * dseq,
 
   char * cigarend {cigar + qlen + dlen + 1};
 
-  char op {0};
-  int count {0};
+  auto op = '\0';
+  auto count = 0;
   *(--cigarend) = 0;
 
-  uint64_t i = qlen;
-  uint64_t j = dlen;
+  auto i = qlen;
+  auto j = dlen;
 
   while ((i > 0) and (j > 0))
     {
