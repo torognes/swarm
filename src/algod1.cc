@@ -318,7 +318,8 @@ auto count_pairs(unsigned int const amplicon_count,
 
 
 auto attach_candidates(unsigned int amplicon_count,
-                       std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int
+                       std::vector<struct ampinfo_s> & ampinfo_v,
+                       std::vector<struct swarminfo_s> & swarminfo_v) -> unsigned int
 {
   auto const pair_count = count_pairs(amplicon_count, ampinfo_v);
 
@@ -348,7 +349,7 @@ auto attach_candidates(unsigned int amplicon_count,
       const auto parent = graft_array[i].parent;
       const auto child  = graft_array[i].child;
 
-      if (swarminfo[ampinfo_v[child].swarmid].attached)
+      if (swarminfo_v[ampinfo_v[child].swarmid].attached)
         {
           /* this light swarm is already attached */
           ampinfo_v[child].graft_cand = no_swarm;
@@ -1433,7 +1434,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           std::fprintf(logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
           std::fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
-          const unsigned int grafts = attach_candidates(amplicons, ampinfo_v);
+          const unsigned int grafts = attach_candidates(amplicons, ampinfo_v, swarminfo_v);
           std::fprintf(logfile, "Made %u grafts\n", grafts);
           std::fprintf(logfile, "\n");
         }
