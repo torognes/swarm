@@ -662,7 +662,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
   std::vector<seqinfo_t *> seqhashtable;
 
   if (parameters.opt_differences > 1) {
-    seqhashtable.insert(seqhashtable.end(), seqhashsize, nullptr);
+    seqhashtable.resize(seqhashsize);
   }
 
   /* create indices */
