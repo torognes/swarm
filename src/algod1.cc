@@ -136,7 +136,6 @@ static unsigned int swarm_maxgen {0};
 static uint64_t swarm_sumlen {0};
 
 static unsigned int * global_hits_data {nullptr};
-static unsigned int global_hits_alloc {0};
 static unsigned int global_hits_count {0};
 
 static unsigned int longestamplicon {0};
@@ -685,6 +684,7 @@ auto process_seed(unsigned int seed,
 
   const auto link_start = ampinfo_v[seed].link_start;
   const auto link_count = ampinfo_v[seed].link_count;
+  auto global_hits_alloc = global_hits_v.size();
 
   if (global_hits_count + link_count > global_hits_alloc)
     {
@@ -1057,7 +1057,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   // max number of microvariants = 7 * len + 4
   static constexpr auto m_i = 7U;
   static constexpr auto m_j = 4U;
-  global_hits_alloc = m_i * longestamplicon + m_j + 1;
+  const auto global_hits_alloc = m_i * longestamplicon + m_j + 1;
   std::vector<unsigned int> global_hits_v(global_hits_alloc);
   global_hits_data = global_hits_v.data();
 
