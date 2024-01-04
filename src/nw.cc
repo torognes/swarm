@@ -158,7 +158,7 @@ void nw(char * dseq,
   for(auto j = 0UL; j < dlen; j++)
     {
       uint64_t * hep = hearray;
-      uint64_t f = 2 * gapopen + (j+2) * gapextend;
+      uint64_t f = 2 * gapopen + (j + 2) * gapextend;
       uint64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
       for(auto i = 0UL; i < qlen; i++)
@@ -184,8 +184,8 @@ void nw(char * dseq,
 
           dir[index] |= (f < h ? maskextup : 0U);
           dir[index] |= (e < h ? maskextleft : 0U);
-          f = std::min(h,f);
-          e = std::min(h,e);
+          f = std::min(h, f);
+          e = std::min(h, e);
 
           *(hep + 1) = e;
           h = n;
