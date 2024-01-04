@@ -665,7 +665,8 @@ auto network_thread(int64_t t) -> void
 }
 
 
-auto process_seed(unsigned int seed) -> void
+auto process_seed(unsigned int seed,
+                  std::vector<unsigned int> & global_hits_v) -> void
 {
   /* update swarm stats */
   struct ampinfo_s * bp = ampinfo + seed;
@@ -689,8 +690,8 @@ auto process_seed(unsigned int seed) -> void
       while (global_hits_count + link_count > global_hits_alloc) {
         global_hits_alloc += 4 * one_kilobyte;
       }
-      global_hits_data = static_cast<unsigned int *>
-        (xrealloc(global_hits_data, global_hits_alloc * sizeof(unsigned int)));
+      global_hits_v.resize(global_hits_alloc);
+      global_hits_data = global_hits_v.data();
     }
 
   for(auto offset = 0U; offset < link_count; offset++)
@@ -699,7 +700,7 @@ auto process_seed(unsigned int seed) -> void
 
       if (ampinfo[amp].swarmid == no_swarm)
         {
-          global_hits_data[global_hits_count++] = amp;
+          global_hits_v[global_hits_count++] = amp;
 
           /* update info */
           ampinfo[amp].swarmid = ampinfo[seed].swarmid;
@@ -1056,8 +1057,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   static constexpr auto m_i = 7U;
   static constexpr auto m_j = 4U;
   global_hits_alloc = m_i * longestamplicon + m_j + 1;
-  global_hits_data = static_cast<unsigned int *>
-    (xmalloc(global_hits_alloc * sizeof(unsigned int)));
+  std::vector<unsigned int> global_hits_v(global_hits_alloc);
+  global_hits_data = global_hits_v.data();
 
   /* compute hash for all amplicons and store them in a hash table */
 
@@ -1146,7 +1147,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           global_hits_count = 0;
 
           /* find the first generation matches */
-          process_seed(seed);
+          process_seed(seed, global_hits_v);
 
           /* sort hits */
           std::qsort(global_hits_data, global_hits_count,
@@ -1154,7 +1155,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           /* add subseeds on list to current swarm */
           for(auto i = 0U; i < global_hits_count; i++) {
-            add_amp_to_swarm(global_hits_data[i], ampinfo_v);
+            add_amp_to_swarm(global_hits_v[i], ampinfo_v);
           }
 
           /* find later generation matches */
@@ -1166,7 +1167,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
               while(subseed != no_swarm)
                 {
-                  process_seed(subseed);
+                  process_seed(subseed, global_hits_v);
                   subseed = ampinfo_v[subseed].next;
                 }
 
@@ -1176,12 +1177,12 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
               /* add them to the swarm */
               for(auto i = 0U; i < global_hits_count; i++) {
-                add_amp_to_swarm(global_hits_data[i], ampinfo_v);
+                add_amp_to_swarm(global_hits_v[i], ampinfo_v);
               }
 
               /* start with most abundant amplicon of next generation */
               if (global_hits_count != 0U) {
-                subseed = global_hits_data[0];
+                subseed = global_hits_v[0];
               }
               else {
                 subseed = no_swarm;
@@ -1225,9 +1226,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   // swarminfo_v.resize(swarmcount);
   // swarminfo_v.shrink_to_fit();
 
-  if (global_hits_data != nullptr) {
-    xfree(global_hits_data);
-  }
   global_hits_data = nullptr;
 
   if (network != nullptr) {
