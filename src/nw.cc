@@ -219,40 +219,26 @@ void nw(char * dseq,
 
       if ((op == 'I') and ((d & maskextleft) != 0))
         {
-          // score += gapextend;
           --j;
           pushop('I', &cigarend, &op, &count);
         }
       else if ((op == 'D') and ((d & maskextup) != 0))
         {
-          // score += gapextend;
           --i;
           pushop('D', &cigarend, &op, &count);
         }
       else if ((d & maskleft) != 0)
         {
-          // score += gapextend;
-          // if (op != 'I') {
-          //   score += gapopen;
-          // }
           --j;
           pushop('I', &cigarend, &op, &count);
         }
       else if ((d & maskup) != 0)
         {
-          // score += gapextend;
-          // if (op != 'D') {
-          //   score += gapopen;
-          // }
           --i;
           pushop('D', &cigarend, &op, &count);
         }
       else
         {
-          // score += score_matrix
-          //   [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << multiplier)
-          //    +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
-
           if (nt_extract(qseq, i - 1) ==
               nt_extract(dseq, j - 1)) {
             ++matches;
@@ -266,10 +252,6 @@ void nw(char * dseq,
   while(i > 0)
     {
       ++alength;
-      // score += gapextend;
-      // if (op != 'D') {
-      //   score += gapopen;
-      // }
       --i;
       pushop('D', &cigarend, &op, &count);
     }
@@ -277,10 +259,6 @@ void nw(char * dseq,
   while(j > 0)
     {
       ++alength;
-      // score += gapextend;
-      // if (op != 'I') {
-      //   score += gapopen;
-      // }
       --j;
       pushop('I', &cigarend, &op, &count);
     }
@@ -299,8 +277,6 @@ void nw(char * dseq,
   nwalignmentlength = alength;
   * nwalignment = cigar;
   std::fill(dir.begin(), dir.end(), '\0');  // reset the alignment matrix
-
-  // assert(score == dist);
 
   (void) queryno;
   (void) dbseqno;
