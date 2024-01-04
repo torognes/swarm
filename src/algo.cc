@@ -621,7 +621,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                  score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
                  static_cast<unsigned long int>(penalty_gapextend),
                  nwscore, nwdiff, nwalignmentlength, & nwalignment,
-                 dir, hearray, 0, 0);
+                 dir, hearray);
 
               const double percentid
                 = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)

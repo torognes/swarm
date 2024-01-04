@@ -41,6 +41,4 @@ auto nw(char * dseq,
         uint64_t & nwalignmentlength,
         char ** nwalignment,
         std::vector<unsigned char> & dir,
-        std::vector<uint64_t> & hearray,
-        uint64_t queryno,
-        uint64_t dbseqno) -> void;
+        std::vector<uint64_t> & hearray) -> void;

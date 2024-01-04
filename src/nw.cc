@@ -135,9 +135,7 @@ void nw(char * dseq,
         uint64_t & nwalignmentlength,
         char ** nwalignment,
         std::vector<unsigned char> & dir,
-        std::vector<uint64_t> & hearray,
-        uint64_t queryno,
-        uint64_t dbseqno)
+        std::vector<uint64_t> & hearray)
 {
   assert(dir.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
@@ -277,7 +275,4 @@ void nw(char * dseq,
   nwalignmentlength = alength;
   * nwalignment = cigar;
   std::fill(dir.begin(), dir.end(), '\0');  // reset the alignment matrix
-
-  (void) queryno;
-  (void) dbseqno;
 }
