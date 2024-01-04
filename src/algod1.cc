@@ -1177,8 +1177,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                 }
 
               /* sort all of this generation */
-              std::qsort(global_hits_data, global_hits_count,
-                    sizeof(unsigned int), compare_amp);
+              std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
 
               /* add them to the swarm */
               for(auto i = 0U; i < global_hits_count; i++) {
