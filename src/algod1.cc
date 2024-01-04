@@ -136,7 +136,6 @@ static unsigned int swarm_maxgen {0};
 static uint64_t swarm_sumlen {0};
 
 static unsigned int * global_hits_data {nullptr};
-static unsigned int global_hits_count {0};
 
 static unsigned int longestamplicon {0};
 
@@ -666,7 +665,8 @@ auto network_thread(int64_t t) -> void
 
 auto process_seed(unsigned int seed,
                   std::vector<struct ampinfo_s> & ampinfo_v,
-                  std::vector<unsigned int> & global_hits_v) -> void
+                  std::vector<unsigned int> & global_hits_v,
+                  unsigned int & global_hits_count) -> void
 {
   /* update swarm stats */
   struct ampinfo_s const & bp = ampinfo_v[seed];
@@ -701,7 +701,8 @@ auto process_seed(unsigned int seed,
 
       if (ampinfo_v[amp].swarmid == no_swarm)
         {
-          global_hits_v[global_hits_count++] = amp;
+          global_hits_v[global_hits_count] = amp;
+          ++global_hits_count;
 
           /* update info */
           ampinfo_v[amp].swarmid = ampinfo_v[seed].swarmid;
@@ -1145,10 +1146,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           swarm_sumlen = 0;
 
           /* init list */
-          global_hits_count = 0;
+          auto global_hits_count = 0U;
 
           /* find the first generation matches */
-          process_seed(seed, ampinfo_v, global_hits_v);
+          process_seed(seed, ampinfo_v, global_hits_v, global_hits_count);
 
           /* sort hits */
           std::qsort(global_hits_data, global_hits_count,
@@ -1168,7 +1169,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
               while(subseed != no_swarm)
                 {
-                  process_seed(subseed, ampinfo_v, global_hits_v);
+                  process_seed(subseed, ampinfo_v, global_hits_v, global_hits_count);
                   subseed = ampinfo_v[subseed].next;
                 }
 
