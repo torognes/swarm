@@ -846,18 +846,20 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
           parameters.opt_differences, swarmcount_adjusted);
 
   for(auto i = 0U; i < swarmcount; i++) {
-    if (not swarminfo_v[i].attached) {
-      const auto seed = swarminfo_v[i].seed;
-      for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
-        if (a == seed) {
-          std::fputc('\t', outfile);
-        }
-        else {
-          std::fputc(',', outfile);
-        }
-        fprint_id(outfile, a,
-                  parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    if (swarminfo_v[swarmid].attached) {
+      continue;
+    }
+
+    const auto seed = swarminfo_v[i].seed;
+    for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
+      if (a == seed) {
+        std::fputc('\t', outfile);
       }
+      else {
+        std::fputc(',', outfile);
+      }
+      fprint_id(outfile, a,
+                parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     }
     progress_update(i + 1);
   }
