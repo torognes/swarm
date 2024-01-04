@@ -670,7 +670,7 @@ auto process_seed(unsigned int seed,
                   std::vector<unsigned int> & global_hits_v) -> void
 {
   /* update swarm stats */
-  struct ampinfo_s & bp = ampinfo_v[seed];
+  struct ampinfo_s const & bp = ampinfo_v[seed];
 
   ++swarmsize;
   if (bp.generation > swarm_maxgen) {
