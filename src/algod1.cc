@@ -230,30 +230,31 @@ inline auto hash_insert(unsigned int amp) -> void
 
 
 auto attach(unsigned int seed, unsigned int amp,
-            std::vector<struct ampinfo_s> & ampinfo_v) -> void
+            std::vector<struct ampinfo_s> & ampinfo_v,
+            std::vector<struct swarminfo_s> & swarminfo_v) -> void
 {
   /* graft light swarm (amp) on heavy swarm (seed) */
 
-  swarminfo_s * heavy_swarm = swarminfo + ampinfo_v[seed].swarmid;
-  swarminfo_s * light_swarm = swarminfo + ampinfo_v[amp].swarmid;
+  swarminfo_s & heavy_swarm = swarminfo_v[ampinfo_v[seed].swarmid];
+  swarminfo_s & light_swarm = swarminfo_v[ampinfo_v[amp].swarmid];
 
   // attach the seed of the light swarm to the tail of the heavy swarm (refactoring: unclear)
-  ampinfo_v[heavy_swarm->last].next = light_swarm->seed;
-  heavy_swarm->last = light_swarm->last;
+  ampinfo_v[heavy_swarm.last].next = light_swarm.seed;
+  heavy_swarm.last = light_swarm.last;
 
   // Update swarm info
-  heavy_swarm->size += light_swarm->size;
-  heavy_swarm->singletons += light_swarm->singletons;
-  heavy_swarm->mass += light_swarm->mass;
-  heavy_swarm->sumlen += light_swarm->sumlen;
+  heavy_swarm.size += light_swarm.size;
+  heavy_swarm.singletons += light_swarm.singletons;
+  heavy_swarm.mass += light_swarm.mass;
+  heavy_swarm.sumlen += light_swarm.sumlen;
   /* maxgen is untouched */
 
   /* flag attachment to avoid doing it again */
-  light_swarm->attached = true;
+  light_swarm.attached = true;
 
   // Update overall stats
-  if (heavy_swarm->size > largest) {
-    largest = heavy_swarm->size;
+  if (heavy_swarm.size > largest) {
+    largest = heavy_swarm.size;
   }
 
   --swarmcount_adjusted;
@@ -357,7 +358,7 @@ auto attach_candidates(unsigned int amplicon_count,
       else
         {
           /* attach child to parent */
-          attach(parent, child, ampinfo_v);
+          attach(parent, child, ampinfo_v, swarminfo_v);
           ++grafts;
         }
       progress_update(i + 1);
