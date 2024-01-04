@@ -36,7 +36,7 @@ constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
 auto pushop(const char newop, char ** cigarendp, char & op, int & count) -> void
 {
-  static constexpr unsigned int buffer_length {25};
+  static constexpr auto buffer_length = 25U;
 
   if (newop == op) {
     ++count;
@@ -47,7 +47,7 @@ auto pushop(const char newop, char ** cigarendp, char & op, int & count) -> void
     if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
-      const int len = std::snprintf(buf.data(), buffer_length, "%d", count);
+      const auto len = std::snprintf(buf.data(), buffer_length, "%d", count);
       assert(len >= 0);
       *cigarendp -= len;
       std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
@@ -59,7 +59,7 @@ auto pushop(const char newop, char ** cigarendp, char & op, int & count) -> void
 
 auto finishop(char ** cigarendp, char * op, int & count) -> void
 {
-  static constexpr unsigned int buffer_length {25};
+  static constexpr auto buffer_length = 25U;
 
   if ((op != nullptr) and (count != 0))
   {
@@ -67,7 +67,7 @@ auto finishop(char ** cigarendp, char * op, int & count) -> void
     if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
-      const int len = std::snprintf(buf.data(), buffer_length, "%d", count);
+      const auto len = std::snprintf(buf.data(), buffer_length, "%d", count);
       assert(len >= 0);
       *cigarendp -= len;
       std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
