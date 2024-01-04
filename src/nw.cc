@@ -58,20 +58,21 @@ auto pushop(const char newop, char * & cigarendp, char & op, int & count) -> voi
   }
 }
 
-auto finishop(char ** cigarendp, char & op, int & count) -> void
+auto finishop(char * & cigarendp, char & op, int & count) -> void
 {
   static constexpr auto buffer_length = 25U;
 
   if ((op != '\0') and (count != 0))
   {
-    *--*cigarendp = op;
+    --cigarendp;
+    *cigarendp = op;  // write char op at position end - 1
     if (count > 1)
     {
       std::array<char, buffer_length> buf {{}};
       const auto len = std::snprintf(buf.data(), buffer_length, "%d", count);
       assert(len >= 0);
-      *cigarendp -= len;
-      std::memcpy(*cigarendp, buf.data(), static_cast<std::size_t>(len));
+      cigarendp -= len;
+      std::memcpy(cigarendp, buf.data(), static_cast<std::size_t>(len));
     }
     op = '\0';
     count = 0;
@@ -262,7 +263,7 @@ auto nw(char * dseq,
       pushop('I', cigarend, op, count);
     }
 
-  finishop(&cigarend, op, count);
+  finishop(cigarend, op, count);
 
   /* move and reallocate cigar */
 
