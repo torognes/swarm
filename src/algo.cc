@@ -620,7 +620,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
                  nwscore, nwdiff, nwalignmentlength, & nwalignment,
-                 dir.data(), reinterpret_cast<int64_t *>(hearray.data()), 0, 0);
+                 dir, reinterpret_cast<int64_t *>(hearray.data()), 0, 0);
 
               const double percentid
                 = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)

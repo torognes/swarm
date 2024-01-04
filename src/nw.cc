@@ -29,6 +29,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // snprintf, size_t
 #include <cstring>  // memcpy, memmove, memset
+#include <vector>
 
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
@@ -133,7 +134,7 @@ void nw(char * dseq,
         int64_t & nwdiff,
         int64_t & nwalignmentlength,
         char ** nwalignment,
-        unsigned char * dir,
+        std::vector<unsigned char> & dir,
         int64_t * hearray,
         uint64_t queryno,
         uint64_t dbseqno)
@@ -146,7 +147,7 @@ void nw(char * dseq,
   int64_t n {0};
   int64_t e {0};
 
-  std::memset(dir, 0, static_cast<std::size_t>(qlen * dlen));
+  std::memset(dir.data(), 0, static_cast<std::size_t>(qlen * dlen));
 
   for(auto i = 0L; i < qlen; i++)
     {

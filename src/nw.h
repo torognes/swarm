@@ -23,6 +23,7 @@
 
 #include <array>
 #include <cstdint>  // int64_t
+#include <vector>
 
 
 // refactor: 'n_cells' is already defined in 'score_matrix.h'
@@ -39,7 +40,7 @@ auto nw(char * dseq,
         int64_t & nwdiff,
         int64_t & nwalignmentlength,
         char ** nwalignment,
-        unsigned char * dir,
+        std::vector<unsigned char> & dir,
         int64_t * hearray,
         uint64_t queryno,
         uint64_t dbseqno) -> void;
