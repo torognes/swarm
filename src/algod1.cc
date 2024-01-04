@@ -814,12 +814,13 @@ auto write_network_file(const unsigned int number_of_networks,
 
 auto write_swarms_default_format(const unsigned int swarmcount,
                                  struct Parameters const & parameters,
-                                 std::vector<struct ampinfo_s> & ampinfo_v) -> void {
+                                 std::vector<struct ampinfo_s> & ampinfo_v,
+                                 std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   progress_init("Writing swarms:   ", swarmcount);
 
   for(auto i = 0U; i < swarmcount; i++) {
-    if (not swarminfo[i].attached) {
-      const auto seed = swarminfo[i].seed;
+    if (not swarminfo_v[i].attached) {
+      const auto seed = swarminfo_v[i].seed;
       for(auto a = seed; a != no_swarm; a = ampinfo_v[a].next) {
         if (a != seed) {
           std::fputc(sepchar, outfile);
@@ -1442,7 +1443,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     write_swarms_mothur_format(swarmcount, parameters, ampinfo_v, swarminfo_v);
   }
   else {
-    write_swarms_default_format(swarmcount, parameters, ampinfo_v);
+    write_swarms_default_format(swarmcount, parameters, ampinfo_v, swarminfo_v);
   }
 
   /* dump seeds in fasta format with sum of abundances */
