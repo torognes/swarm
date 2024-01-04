@@ -193,7 +193,6 @@ auto nw(char * dseq,
   const auto dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
-  // int64_t score {0}; // [[maybe_unused]]
   uint64_t alength {0};
   uint64_t matches {0};
 
