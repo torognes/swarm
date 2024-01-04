@@ -199,6 +199,9 @@ void nw(char * dseq,
   int64_t alength {0};
   int64_t matches {0};
 
+  // refactoring: complicated by the multiple memcpy and memmove
+  // std::vector<char> cigar_v(static_cast<unsigned long int>(qlen + dlen + 1));
+  // char * cigar = cigar_v.data();
   char * cigar = static_cast<char*>(xmalloc(static_cast<unsigned long int>(qlen + dlen + 1)));
 
   char * cigarend {cigar + qlen + dlen + 1};
@@ -289,6 +292,7 @@ void nw(char * dseq,
   /* move and reallocate cigar */
 
   auto cigaralloc = static_cast<std::size_t>(cigar + qlen + dlen - cigarend + 1);
+  // note: std::memmove( void* dest, const void* src, std::size_t count );
   std::memmove(cigar, cigarend, cigaralloc);
   cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
 
