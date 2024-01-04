@@ -34,7 +34,7 @@
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
-void pushop(const char newop, char ** cigarendp, char * op, int * count)
+auto pushop(const char newop, char ** cigarendp, char * op, int * count) -> void
 {
   static constexpr unsigned int buffer_length {25};
 
@@ -57,7 +57,7 @@ void pushop(const char newop, char ** cigarendp, char * op, int * count)
   }
 }
 
-void finishop(char ** cigarendp, char * op, int * count)
+auto finishop(char ** cigarendp, char * op, int * count) -> void
 {
   static constexpr unsigned int buffer_length {25};
 
@@ -123,7 +123,7 @@ constexpr unsigned char maskextleft = 8;
 
 */
 
-void nw(char * dseq,
+auto nw(char * dseq,
         const uint64_t dlen,
         char * qseq,
         const uint64_t qlen,
@@ -135,7 +135,7 @@ void nw(char * dseq,
         uint64_t & nwalignmentlength,
         char ** nwalignment,
         std::vector<unsigned char> & dir,
-        std::vector<uint64_t> & hearray)
+        std::vector<uint64_t> & hearray) -> void
 {
   assert(dir.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
