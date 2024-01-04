@@ -147,7 +147,7 @@ void nw(char * dseq,
   uint64_t n {0};
   uint64_t e {0};
 
-  std::memset(dir.data(), 0, static_cast<std::size_t>(qlen * dlen));
+  std::memset(dir.data(), 0, qlen * dlen);
 
   for(auto i = 0UL; i < qlen; i++)
     {
@@ -168,8 +168,8 @@ void nw(char * dseq,
           n = *hep;
           e = *(hep + 1);
           h += static_cast<uint64_t>(score_matrix
-                                     [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1U) << multiplier)
-                                      + (nt_extract(qseq, static_cast<uint64_t>(i)) + 1)]);
+                                     [((nt_extract(dseq, j) + 1U) << multiplier)
+                                      + (nt_extract(qseq, i) + 1)]);
 
           dir[index] |= (f < h ? maskup : 0U);
           h = std::min(h, f);
@@ -203,7 +203,7 @@ void nw(char * dseq,
   // refactoring: complicated by the multiple memcpy and memmove
   // std::vector<char> cigar_v(static_cast<unsigned long int>(qlen + dlen + 1));
   // char * cigar = cigar_v.data();
-  char * cigar = static_cast<char*>(xmalloc(static_cast<unsigned long int>(qlen + dlen + 1)));
+  char * cigar = static_cast<char*>(xmalloc(qlen + dlen + 1));
 
   char * cigarend {cigar + qlen + dlen + 1};
 
@@ -256,8 +256,8 @@ void nw(char * dseq,
           //   [((nt_extract(dseq, static_cast<uint64_t>(j - 1)) + 1) << multiplier)
           //    +(nt_extract(qseq, static_cast<uint64_t>(i - 1)) + 1)];
 
-          if (nt_extract(qseq, static_cast<uint64_t>(i - 1)) ==
-              nt_extract(dseq, static_cast<uint64_t>(j - 1))) {
+          if (nt_extract(qseq, i - 1) ==
+              nt_extract(dseq, j - 1)) {
             ++matches;
           }
           --i;
