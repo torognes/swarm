@@ -28,7 +28,7 @@
 // refactor: 'n_cells' is already defined in 'score_matrix.h'
 constexpr auto n_cells_ = 32ULL;  // number of chars in sym_nt
 
-void nw(char * dseq,
+auto nw(char * dseq,
         int64_t dlen,
         char * qseq,
         int64_t qlen,
@@ -42,4 +42,4 @@ void nw(char * dseq,
         unsigned char * dir,
         int64_t * hearray,
         uint64_t queryno,
-        uint64_t dbseqno);
+        uint64_t dbseqno) -> void;
