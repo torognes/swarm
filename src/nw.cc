@@ -124,18 +124,18 @@ constexpr unsigned char maskextleft = 8;
 */
 
 void nw(char * dseq,
-        const int64_t dlen,
+        const uint64_t dlen,
         char * qseq,
-        const int64_t qlen,
+        const uint64_t qlen,
         const std::array<int64_t, n_cells * n_cells> & score_matrix,
-        const int64_t gapopen,
-        const int64_t gapextend,
-        int64_t & nwscore,
-        int64_t & nwdiff,
-        int64_t & nwalignmentlength,
+        const uint64_t gapopen,
+        const uint64_t gapextend,
+        uint64_t & nwscore,
+        uint64_t & nwdiff,
+        uint64_t & nwalignmentlength,
         char ** nwalignment,
         std::vector<unsigned char> & dir,
-        int64_t * hearray,
+        uint64_t * hearray,
         uint64_t queryno,
         uint64_t dbseqno)
 {
@@ -144,32 +144,32 @@ void nw(char * dseq,
      (8 * qlen bytes) */
   static constexpr unsigned int multiplier {5};
 
-  int64_t n {0};
-  int64_t e {0};
+  uint64_t n {0};
+  uint64_t e {0};
 
   std::memset(dir.data(), 0, static_cast<std::size_t>(qlen * dlen));
 
-  for(auto i = 0L; i < qlen; i++)
+  for(auto i = 0UL; i < qlen; i++)
     {
       hearray[2 * i]     = 1 * gapopen + (i + 1) * gapextend; // H (N)
       hearray[2 * i + 1] = 2 * gapopen + (i + 2) * gapextend; // E
     }
 
-  for(auto j = 0L; j < dlen; j++)
+  for(auto j = 0UL; j < dlen; j++)
     {
-      int64_t * hep = hearray;
-      int64_t f = 2 * gapopen + (j+2) * gapextend;
-      int64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
+      uint64_t * hep = hearray;
+      uint64_t f = 2 * gapopen + (j+2) * gapextend;
+      uint64_t h = (j == 0) ? 0 : (gapopen + j * gapextend);
 
-      for(auto i = 0L; i < qlen; i++)
+      for(auto i = 0UL; i < qlen; i++)
         {
-          const int64_t index = qlen * j + i;
+          const uint64_t index = qlen * j + i;
 
           n = *hep;
           e = *(hep + 1);
-          h += score_matrix
-            [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1U) << multiplier)
-             + (nt_extract(qseq, static_cast<uint64_t>(i)) + 1)];
+          h += static_cast<uint64_t>(score_matrix
+                                     [((nt_extract(dseq, static_cast<uint64_t>(j)) + 1U) << multiplier)
+                                      + (nt_extract(qseq, static_cast<uint64_t>(i)) + 1)]);
 
           dir[index] |= (f < h ? maskup : 0U);
           h = std::min(h, f);
@@ -193,12 +193,12 @@ void nw(char * dseq,
         }
     }
 
-  const int64_t dist = hearray[2 * qlen - 2];
+  const uint64_t dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
   // int64_t score {0}; // [[maybe_unused]]
-  int64_t alength {0};
-  int64_t matches {0};
+  uint64_t alength {0};
+  uint64_t matches {0};
 
   // refactoring: complicated by the multiple memcpy and memmove
   // std::vector<char> cigar_v(static_cast<unsigned long int>(qlen + dlen + 1));
@@ -211,8 +211,8 @@ void nw(char * dseq,
   int count {0};
   *(--cigarend) = 0;
 
-  int64_t i = qlen;
-  int64_t j = dlen;
+  uint64_t i = qlen;
+  uint64_t j = dlen;
 
   while ((i > 0) and (j > 0))
     {
