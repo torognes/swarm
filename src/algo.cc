@@ -264,13 +264,13 @@ auto algo_run(struct Parameters const & parameters) -> void
                                      UINT8_MAX / (penalty_gapopen +
                                                   penalty_gapextend)));
 
-  unsigned char * dir {nullptr};
-  uint64_t * hearray {nullptr};
+  std::vector<unsigned char> dir;
+  std::vector<uint64_t> hearray;
 
   if (uclustfile != nullptr)
     {
-      dir = new unsigned char[longestamplicon * longestamplicon];
-      hearray = new uint64_t[2 * longestamplicon];
+      dir.resize(longestamplicon * longestamplicon);
+      hearray.resize(2 * longestamplicon);
     }
 
   /* set ampliconid for all */
@@ -620,7 +620,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, penalty_gapopen, penalty_gapextend,
                  nwscore, nwdiff, nwalignmentlength, & nwalignment,
-                 dir, reinterpret_cast<int64_t *>(hearray), 0, 0);
+                 dir.data(), reinterpret_cast<int64_t *>(hearray.data()), 0, 0);
 
               const double percentid
                 = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
@@ -659,15 +659,6 @@ auto algo_run(struct Parameters const & parameters) -> void
       progress_update(seeded);
     }
   progress_done();
-
-  if (uclustfile != nullptr)
-    {
-      delete [] dir;
-      dir = nullptr;
-      delete [] hearray;
-      hearray = nullptr;
-    }
-
 
   /* output swarms */
   if (amplicons > 0) {
