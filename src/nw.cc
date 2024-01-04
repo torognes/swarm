@@ -209,58 +209,58 @@ auto nw(char * dseq,
   auto count = 0;
   *(--cigarend) = '\0';
 
-  auto i = qlen;
-  auto j = dlen;
+  auto column = qlen;
+  auto row = dlen;
 
-  while ((i > 0) and (j > 0))
+  while ((column > 0) and (row > 0))
     {
-      const auto d = dir[qlen * (j - 1) + (i - 1)];  // refactoring: how to rename?
+      const auto d = dir[qlen * (row - 1) + (column - 1)];  // refactoring: how to rename?
 
       ++alength;
 
       if ((op == 'I') and ((d & maskextleft) != 0))
         {
-          --j;
+          --row;
           pushop('I', cigarend, op, count);
         }
       else if ((op == 'D') and ((d & maskextup) != 0))
         {
-          --i;
+          --column;
           pushop('D', cigarend, op, count);
         }
       else if ((d & maskleft) != 0)
         {
-          --j;
+          --row;
           pushop('I', cigarend, op, count);
         }
       else if ((d & maskup) != 0)
         {
-          --i;
+          --column;
           pushop('D', cigarend, op, count);
         }
       else
         {
-          if (nt_extract(qseq, i - 1) ==
-              nt_extract(dseq, j - 1)) {
+          if (nt_extract(qseq, column - 1) ==
+              nt_extract(dseq, row - 1)) {
             ++matches;
           }
-          --i;
-          --j;
+          --column;
+          --row;
           pushop('M', cigarend, op, count);
         }
     }
 
-  while(i > 0)
+  while(column > 0)
     {
       ++alength;
-      --i;
+      --column;
       pushop('D', cigarend, op, count);
     }
 
-  while(j > 0)
+  while(row > 0)
     {
       ++alength;
-      --j;
+      --row;
       pushop('I', cigarend, op, count);
     }
 
