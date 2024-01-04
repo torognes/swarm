@@ -268,7 +268,7 @@ void nw(char * dseq,
   auto cigaralloc = static_cast<std::size_t>(cigar + qlen + dlen - cigarend + 1);
   // note: std::memmove( void* dest, const void* src, std::size_t count );
   std::memmove(cigar, cigarend, cigaralloc);
-  cigar = static_cast<char*>(xrealloc(cigar, cigaralloc));
+  cigar = static_cast<char *>(xrealloc(cigar, cigaralloc));
 
   nwscore = dist;
   nwdiff = alength - matches;
