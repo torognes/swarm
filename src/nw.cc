@@ -98,7 +98,7 @@ constexpr unsigned char maskextleft = 8;
   3. up/delete/f (gap in database sequence (dseq))
 
   qseq: the reference/query/upper/vertical/from sequence
-  dseq: the sample/database/lower/horisontal/to sequence
+  dseq: the sample/database/lower/horizontal/to sequence
 
   typical costs:
   match: 0
