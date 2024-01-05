@@ -105,9 +105,6 @@ auto align(char * dseq,
   assert(dir.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
 
-  uint64_t n {0};
-  uint64_t left {0};
-
   // hearray: array of alignments and insertions (initialized here,
   // then modified through a pointer; can't be const)
   for(auto column = 0UL; column < qlen; column++)
@@ -115,6 +112,9 @@ auto align(char * dseq,
       hearray[2 * column]     = 1 * gapopen + (column + 1) * gapextend; // H (N)
       hearray[2 * column + 1] = 2 * gapopen + (column + 2) * gapextend; // E
     }
+
+  uint64_t n {0};
+  uint64_t left {0};
 
   for(auto row = 0UL; row < dlen; row++)
     {
