@@ -96,10 +96,10 @@ auto align(char * dseq,
   // 1. left/insert/e (gap in query sequence (qseq))
   // 2. align/diag/h (match/mismatch)
   // 3. up/delete/f (gap in database sequence (dseq))
+  static constexpr auto multiplier = 5U;
 
   assert(dir.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
-  static constexpr auto multiplier = 5U;
 
   uint64_t n {0};
   uint64_t e {0};
