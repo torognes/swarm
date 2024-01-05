@@ -33,10 +33,6 @@
 
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
-constexpr unsigned char maskup      = 1;
-constexpr unsigned char maskleft    = 2;
-constexpr unsigned char maskextup   = 4;
-constexpr unsigned char maskextleft = 8;
 
 
 auto pushop(const char newop, char * & cigarendp, char & operation, int & count) -> void
@@ -164,6 +160,11 @@ auto backtrack(char * dseq,
                std::vector<unsigned char> const & dir) -> void
 {
   /* backtrack: count differences and save alignment in cigar string */
+  static constexpr unsigned char maskup      = 1;
+  static constexpr unsigned char maskleft    = 2;
+  static constexpr unsigned char maskextup   = 4;
+  static constexpr unsigned char maskextleft = 8;
+
   uint64_t alength {0};
   uint64_t matches {0};
 
