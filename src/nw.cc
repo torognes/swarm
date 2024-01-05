@@ -96,6 +96,11 @@ auto align(char * dseq,
            std::vector<unsigned char> & dir,
            std::vector<uint64_t> & hearray) -> void
 {
+  // alignment priority when backtracking (from lower right corner):
+  // 1. left/insert/e (gap in query sequence (qseq))
+  // 2. align/diag/h (match/mismatch)
+  // 3. up/delete/f (gap in database sequence (dseq))
+
   assert(dir.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
   static constexpr auto multiplier = 5U;
