@@ -216,26 +216,26 @@ auto nw(char * dseq,
 
   while ((column > 0) and (row > 0))
     {
-      const auto d = dir[qlen * (row - 1) + (column - 1)];  // refactoring: how to rename?
+      const auto cell = dir[qlen * (row - 1) + (column - 1)];
 
       ++alength;
 
-      if ((op == 'I') and ((d & maskextleft) != 0))
+      if ((op == 'I') and ((cell & maskextleft) != 0))
         {
           --row;
           pushop('I', cigarend, op, count);
         }
-      else if ((op == 'D') and ((d & maskextup) != 0))
+      else if ((op == 'D') and ((cell & maskextup) != 0))
         {
           --column;
           pushop('D', cigarend, op, count);
         }
-      else if ((d & maskleft) != 0)
+      else if ((cell & maskleft) != 0)
         {
           --row;
           pushop('I', cigarend, op, count);
         }
-      else if ((d & maskup) != 0)
+      else if ((cell & maskup) != 0)
         {
           --column;
           pushop('D', cigarend, op, count);
