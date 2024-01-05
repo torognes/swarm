@@ -98,8 +98,8 @@ auto align(char * dseq,
 {
   // alignment priority when backtracking (from lower right corner):
   // 1. left/insert/e (gap in query sequence (qseq))
-  // 2. align/diag/h (match/mismatch)
-  // 3. top/delete/f (gap in database sequence (dseq))
+  // 2. diagonal/align/h (match/mismatch)
+  // 3. top (up)/delete/f (gap in database sequence (dseq))
   static constexpr auto multiplier = 5U;
 
   assert(dir.size() >= qlen * dlen);
