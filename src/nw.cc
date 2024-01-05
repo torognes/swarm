@@ -106,7 +106,7 @@ auto align(char * dseq,
   assert(hearray.size() >= 2 * qlen);
 
   uint64_t n {0};
-  uint64_t e {0};
+  uint64_t left {0};
 
   // hearray: array of alignments and insertions (initialized here,
   // then modified through a pointer; can't be const)
@@ -127,28 +127,28 @@ auto align(char * dseq,
           const auto index = qlen * row + column;
 
           n = hearray[he_index];
-          e = hearray[he_index + 1];
+          left = hearray[he_index + 1];
           h += static_cast<uint64_t>(score_matrix
                                      [((nt_extract(dseq, row) + 1U) << multiplier)
                                       + (nt_extract(qseq, column) + 1)]);
 
           dir[index] |= (f < h ? maskup : 0U);
           h = std::min(h, f);
-          h = std::min(h, e);
-          dir[index] |= (e == h ? maskleft : 0U);
+          h = std::min(h, left);
+          dir[index] |= (left == h ? maskleft : 0U);
 
           hearray[he_index] = h;
 
           h += gapopen + gapextend;
-          e += gapextend;
+          left += gapextend;
           f += gapextend;
 
           dir[index] |= (f < h ? maskextup : 0U);
-          dir[index] |= (e < h ? maskextleft : 0U);
+          dir[index] |= (left < h ? maskextleft : 0U);
           f = std::min(h, f);
-          e = std::min(h, e);
+          left = std::min(h, left);
 
-          hearray[he_index + 1] = e;
+          hearray[he_index + 1] = left;
           h = n;
           he_index += 2;
         }
