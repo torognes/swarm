@@ -207,7 +207,7 @@ auto nw(char * dseq,
 
   char * cigarend {cigar + qlen + dlen + 1};
 
-  auto op = '\0';
+  auto operation = '\0';
   auto count = 0;
   *(--cigarend) = '\0';
 
@@ -220,25 +220,25 @@ auto nw(char * dseq,
 
       ++alength;
 
-      if ((op == 'I') and ((cell & maskextleft) != 0))
+      if ((operation == 'I') and ((cell & maskextleft) != 0))
         {
           --row;
-          pushop('I', cigarend, op, count);
+          pushop('I', cigarend, operation, count);
         }
-      else if ((op == 'D') and ((cell & maskextup) != 0))
+      else if ((operation == 'D') and ((cell & maskextup) != 0))
         {
           --column;
-          pushop('D', cigarend, op, count);
+          pushop('D', cigarend, operation, count);
         }
       else if ((cell & maskleft) != 0)
         {
           --row;
-          pushop('I', cigarend, op, count);
+          pushop('I', cigarend, operation, count);
         }
       else if ((cell & maskup) != 0)
         {
           --column;
-          pushop('D', cigarend, op, count);
+          pushop('D', cigarend, operation, count);
         }
       else
         {
@@ -248,7 +248,7 @@ auto nw(char * dseq,
           }
           --column;
           --row;
-          pushop('M', cigarend, op, count);
+          pushop('M', cigarend, operation, count);
         }
     }
 
@@ -256,17 +256,17 @@ auto nw(char * dseq,
     {
       ++alength;
       --column;
-      pushop('D', cigarend, op, count);
+      pushop('D', cigarend, operation, count);
     }
 
   while(row > 0)
     {
       ++alength;
       --row;
-      pushop('I', cigarend, op, count);
+      pushop('I', cigarend, operation, count);
     }
 
-  finishop(cigarend, op, count);
+  finishop(cigarend, operation, count);
 
   /* move and reallocate cigar */
 
