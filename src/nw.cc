@@ -118,7 +118,7 @@ auto align(char * dseq,
 
   for(auto row = 0UL; row < dlen; row++)
     {
-      auto * hep = hearray.data();
+      auto he_index = 0UL;
       auto f = 2 * gapopen + (row + 2) * gapextend;
       uint64_t h = (row == 0) ? 0 : (gapopen + row * gapextend);
 
@@ -126,8 +126,8 @@ auto align(char * dseq,
         {
           const auto index = qlen * row + column;
 
-          n = *hep;
-          e = *(hep + 1);
+          n = hearray[he_index];
+          e = hearray[he_index + 1];
           h += static_cast<uint64_t>(score_matrix
                                      [((nt_extract(dseq, row) + 1U) << multiplier)
                                       + (nt_extract(qseq, column) + 1)]);
@@ -137,7 +137,7 @@ auto align(char * dseq,
           h = std::min(h, e);
           dir[index] |= (e == h ? maskleft : 0U);
 
-          *hep = h;
+          hearray[he_index] = h;
 
           h += gapopen + gapextend;
           e += gapextend;
@@ -148,9 +148,9 @@ auto align(char * dseq,
           f = std::min(h, f);
           e = std::min(h, e);
 
-          *(hep + 1) = e;
+          hearray[he_index + 1] = e;
           h = n;
-          hep += 2;
+          he_index += 2;
         }
     }
 }
