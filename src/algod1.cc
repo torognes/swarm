@@ -834,7 +834,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   static constexpr auto one_hundred = 100U;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-  std::vector<unsigned char> dir(longestamplicon * longestamplicon);
+  std::vector<unsigned char> directions(longestamplicon * longestamplicon);
   std::vector<uint64_t> hearray(2 * longestamplicon);
 
   progress_init("Writing UCLUST:   ", swarmcount);
@@ -876,7 +876,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
              score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
              static_cast<unsigned long int>(penalty_gapextend),
              nwdiff, nwalignmentlength, nwalignment,
-             dir, hearray);
+             directions, hearray);
 
           const double percentid
             = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)

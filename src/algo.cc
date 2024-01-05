@@ -264,12 +264,12 @@ auto algo_run(struct Parameters const & parameters) -> void
                                      UINT8_MAX / (penalty_gapopen +
                                                   penalty_gapextend)));
 
-  std::vector<unsigned char> dir;
+  std::vector<unsigned char> directions;
   std::vector<uint64_t> hearray;
 
   if (uclustfile != nullptr)
     {
-      dir.resize(longestamplicon * longestamplicon);
+      directions.resize(longestamplicon * longestamplicon);
       hearray.resize(2 * longestamplicon);
     }
 
@@ -620,7 +620,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                  score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
                  static_cast<unsigned long int>(penalty_gapextend),
                  nwdiff, nwalignmentlength, nwalignment,
-                 dir, hearray);
+                 directions, hearray);
 
               const double percentid
                 = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)

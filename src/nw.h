@@ -39,5 +39,5 @@ auto nw(char * dseq,
         uint64_t & nwdiff,
         uint64_t & nwalignmentlength,
         char * & nwalignment,
-        std::vector<unsigned char> & dir,
+        std::vector<unsigned char> & directions,
         std::vector<uint64_t> & hearray) -> void;

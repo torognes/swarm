@@ -93,7 +93,7 @@ auto align(char * dseq,
            const std::array<int64_t, n_cells * n_cells> & score_matrix,
            const uint64_t gapopen,
            const uint64_t gapextend,
-           std::vector<unsigned char> & dir,
+           std::vector<unsigned char> & directions,
            std::vector<uint64_t> & hearray) -> void
 {
   // alignment priority when backtracking (from lower right corner):
@@ -102,7 +102,7 @@ auto align(char * dseq,
   // 3. top (up)/delete/f (gap in database sequence (dseq))
   static constexpr auto multiplier = 5U;
 
-  assert(dir.size() >= qlen * dlen);
+  assert(directions.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
 
   // hearray: array of alignments and insertions (initialized here,
@@ -132,10 +132,10 @@ auto align(char * dseq,
                                             [((nt_extract(dseq, row) + 1U) << multiplier)
                                              + (nt_extract(qseq, column) + 1)]);
 
-          dir[index] |= (top < diagonal ? maskup : 0U);
+          directions[index] |= (top < diagonal ? maskup : 0U);
           diagonal = std::min(diagonal, top);
           diagonal = std::min(diagonal, left);
-          dir[index] |= (left == diagonal ? maskleft : 0U);
+          directions[index] |= (left == diagonal ? maskleft : 0U);
 
           hearray[he_index] = diagonal;
 
@@ -143,8 +143,8 @@ auto align(char * dseq,
           left += gapextend;
           top += gapextend;
 
-          dir[index] |= (top < diagonal ? maskextup : 0U);
-          dir[index] |= (left < diagonal ? maskextleft : 0U);
+          directions[index] |= (top < diagonal ? maskextup : 0U);
+          directions[index] |= (left < diagonal ? maskextleft : 0U);
           top = std::min(diagonal, top);
           left = std::min(diagonal, left);
 
@@ -163,7 +163,7 @@ auto backtrack(char * dseq,
                uint64_t & nwdiff,
                uint64_t & nwalignmentlength,
                char * & nwalignment,
-               std::vector<unsigned char> const & dir) -> void
+               std::vector<unsigned char> const & directions) -> void
 {
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -186,7 +186,7 @@ auto backtrack(char * dseq,
 
   while ((column > 0) and (row > 0))
     {
-      const auto cell = dir[qlen * (row - 1) + (column - 1)];
+      const auto cell = directions[qlen * (row - 1) + (column - 1)];
 
       ++alength;
 
@@ -304,14 +304,14 @@ auto nw(char * dseq,
         uint64_t & nwdiff,
         uint64_t & nwalignmentlength,
         char * & nwalignment,
-        std::vector<unsigned char> & dir,
+        std::vector<unsigned char> & directions,
         std::vector<uint64_t> & hearray) -> void
 {
   align(dseq, dlen, qseq, qlen, score_matrix,
-          gapopen, gapextend, dir, hearray);
+          gapopen, gapextend, directions, hearray);
 
   backtrack(dseq, dlen, qseq, qlen, nwdiff,
-            nwalignmentlength, nwalignment, dir);
+            nwalignmentlength, nwalignment, directions);
 
-  std::fill(dir.begin(), dir.end(), '\0');  // reset the alignment matrix
+  std::fill(directions.begin(), directions.end(), '\0');  // reset the alignment matrix
 }
