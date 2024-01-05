@@ -129,8 +129,8 @@ auto align(char * dseq,
           n = hearray[he_index];
           left = hearray[he_index + 1];
           diagonal += static_cast<uint64_t>(score_matrix
-                                     [((nt_extract(dseq, row) + 1U) << multiplier)
-                                      + (nt_extract(qseq, column) + 1)]);
+                                            [((nt_extract(dseq, row) + 1U) << multiplier)
+                                             + (nt_extract(qseq, column) + 1)]);
 
           dir[index] |= (f < diagonal ? maskup : 0U);
           diagonal = std::min(diagonal, f);
