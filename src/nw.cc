@@ -104,6 +104,8 @@ auto align(char * dseq,
   uint64_t n {0};
   uint64_t e {0};
 
+  // hearray: array of alignments and insertions (initialized here,
+  // then modified through a pointer; can't be const)
   for(auto column = 0UL; column < qlen; column++)
     {
       hearray[2 * column]     = 1 * gapopen + (column + 1) * gapextend; // H (N)
