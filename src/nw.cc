@@ -86,61 +86,15 @@ auto finishop(char * & cigarendp, char & operation, int & count) -> void
 }
 
 
-/*
-
-  Needleman/Wunsch/Sellers aligner
-
-  finds a global alignment with minimum cost
-  there should be positive costs/penalties for gaps and for mismatches
-  matches should have zero cost (0)
-
-  alignment priority when backtracking (from lower right corner):
-  1. left/insert/e (gap in query sequence (qseq))
-  2. align/diag/h (match/mismatch)
-  3. up/delete/f (gap in database sequence (dseq))
-
-  qseq: the reference/query/upper/vertical/from sequence
-  dseq: the sample/database/lower/horizontal/to sequence
-
-  matrix of qlen columns and dlen rows
-
-  typical costs:
-  match: 0
-  mismatch: 3
-  gapopen: 4
-  gapextend: 3
-
-  input
-
-  dseq: pointer to start of database sequence
-  dlen: database sequence length
-  qseq: pointer to start of query sequence
-  qlen: query sequence length
-  score_matrix: 32x32 matrix of longs with scores for aligning two symbols
-  gapopen: positive number indicating penalty for opening a gap of length zero
-  gapextend: positive number indicating penalty for extending a gap
-
-  output
-
-  nwscore: the global alignment score
-  nwdiff: number of non-identical nucleotides in one optimal global alignment
-  nwalignmentlength: the length of one optimal alignment
-  nwalignment: cigar string with one optimal alignment
-
-*/
-
-auto nw(char * dseq,
-        const uint64_t dlen,
-        char * qseq,
-        const uint64_t qlen,
-        const std::array<int64_t, n_cells * n_cells> & score_matrix,
-        const uint64_t gapopen,
-        const uint64_t gapextend,
-        uint64_t & nwdiff,
-        uint64_t & nwalignmentlength,
-        char ** nwalignment,
-        std::vector<unsigned char> & dir,
-        std::vector<uint64_t> & hearray) -> void
+auto align(char * dseq,
+           const uint64_t dlen,
+           char * qseq,
+           const uint64_t qlen,
+           const std::array<int64_t, n_cells * n_cells> & score_matrix,
+           const uint64_t gapopen,
+           const uint64_t gapextend,
+           std::vector<unsigned char> & dir,
+           std::vector<uint64_t> & hearray) -> void
 {
   assert(dir.size() >= qlen * dlen);
   assert(hearray.size() >= 2 * qlen);
@@ -192,8 +146,18 @@ auto nw(char * dseq,
           hep += 2;
         }
     }
+}
 
 
+auto backtrack(char * dseq,
+               const uint64_t dlen,
+               char * qseq,
+               const uint64_t qlen,
+               uint64_t & nwdiff,
+               uint64_t & nwalignmentlength,
+               char ** nwalignment,
+               std::vector<unsigned char> const & dir) -> void
+{
   /* backtrack: count differences and save alignment in cigar string */
   uint64_t alength {0};
   uint64_t matches {0};
@@ -276,5 +240,70 @@ auto nw(char * dseq,
   nwdiff = alength - matches;
   nwalignmentlength = alength;
   * nwalignment = cigar;
+}
+
+
+/*
+
+  Needleman/Wunsch/Sellers aligner
+
+  finds a global alignment with minimum cost
+  there should be positive costs/penalties for gaps and for mismatches
+  matches should have zero cost (0)
+
+  alignment priority when backtracking (from lower right corner):
+  1. left/insert/e (gap in query sequence (qseq))
+  2. align/diag/h (match/mismatch)
+  3. up/delete/f (gap in database sequence (dseq))
+
+  qseq: the reference/query/upper/vertical/from sequence
+  dseq: the sample/database/lower/horizontal/to sequence
+
+  matrix of qlen columns and dlen rows
+
+  typical costs:
+  match: 0
+  mismatch: 3
+  gapopen: 4
+  gapextend: 3
+
+  input
+
+  dseq: pointer to start of database sequence
+  dlen: database sequence length
+  qseq: pointer to start of query sequence
+  qlen: query sequence length
+  score_matrix: 32x32 matrix of longs with scores for aligning two symbols
+  gapopen: positive number indicating penalty for opening a gap of length zero
+  gapextend: positive number indicating penalty for extending a gap
+
+  output
+
+  nwscore: the global alignment score
+  nwdiff: number of non-identical nucleotides in one optimal global alignment
+  nwalignmentlength: the length of one optimal alignment
+  nwalignment: cigar string with one optimal alignment
+
+*/
+
+auto nw(char * dseq,
+        const uint64_t dlen,
+        char * qseq,
+        const uint64_t qlen,
+        const std::array<int64_t, n_cells * n_cells> & score_matrix,
+        const uint64_t gapopen,
+        const uint64_t gapextend,
+        uint64_t & nwdiff,
+        uint64_t & nwalignmentlength,
+        char ** nwalignment,
+        std::vector<unsigned char> & dir,
+        std::vector<uint64_t> & hearray) -> void
+{
+  align(dseq, dlen, qseq, qlen, score_matrix,
+          gapopen, gapextend, dir, hearray);
+
+  backtrack(dseq, dlen, qseq, qlen, nwdiff,
+            nwalignmentlength, nwalignment, dir);
+
   std::fill(dir.begin(), dir.end(), '\0');  // reset the alignment matrix
 }
