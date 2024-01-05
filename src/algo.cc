@@ -612,7 +612,6 @@ auto algo_run(struct Parameters const & parameters) -> void
               char * qseq = db_getsequence(seedampliconid);
               const auto qlen = db_getsequencelen(seedampliconid);
 
-              uint64_t nwscore {0};
               uint64_t nwdiff {0};
               char * nwalignment {nullptr};
               uint64_t nwalignmentlength {0};
@@ -620,7 +619,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
                  static_cast<unsigned long int>(penalty_gapextend),
-                 nwscore, nwdiff, nwalignmentlength, & nwalignment,
+                 nwdiff, nwalignmentlength, & nwalignment,
                  dir, hearray);
 
               const double percentid

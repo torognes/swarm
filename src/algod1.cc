@@ -868,7 +868,6 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
           auto * qseq = db_getsequence(seed);
           const auto qlen = db_getsequencelen(seed);
 
-          uint64_t nwscore = 0;
           uint64_t nwdiff = 0;
           char * nwalignment = nullptr;
           uint64_t nwalignmentlength = 0;
@@ -876,7 +875,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
           nw(dseq, dlen, qseq, qlen,
              score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
              static_cast<unsigned long int>(penalty_gapextend),
-             nwscore, nwdiff, nwalignmentlength, & nwalignment,
+             nwdiff, nwalignmentlength, & nwalignment,
              dir, hearray);
 
           const double percentid

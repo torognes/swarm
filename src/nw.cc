@@ -136,7 +136,6 @@ auto nw(char * dseq,
         const std::array<int64_t, n_cells * n_cells> & score_matrix,
         const uint64_t gapopen,
         const uint64_t gapextend,
-        uint64_t & nwscore,
         uint64_t & nwdiff,
         uint64_t & nwalignmentlength,
         char ** nwalignment,
@@ -194,7 +193,6 @@ auto nw(char * dseq,
         }
     }
 
-  const auto dist = hearray[2 * qlen - 2];
 
   /* backtrack: count differences and save alignment in cigar string */
   uint64_t alength {0};
@@ -275,7 +273,6 @@ auto nw(char * dseq,
   std::memmove(cigar, cigarend, cigaralloc);
   cigar = static_cast<char *>(xrealloc(cigar, cigaralloc));
 
-  nwscore = dist;  // unused
   nwdiff = alength - matches;
   nwalignmentlength = alength;
   * nwalignment = cigar;
