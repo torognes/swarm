@@ -155,7 +155,7 @@ auto backtrack(char * dseq,
                const uint64_t qlen,
                uint64_t & nwdiff,
                uint64_t & nwalignmentlength,
-               char ** nwalignment,
+               char * & nwalignment,
                std::vector<unsigned char> const & dir) -> void
 {
   /* backtrack: count differences and save alignment in cigar string */
@@ -239,7 +239,7 @@ auto backtrack(char * dseq,
 
   nwdiff = alength - matches;
   nwalignmentlength = alength;
-  * nwalignment = cigar;
+  nwalignment = cigar;
 }
 
 
@@ -295,7 +295,7 @@ auto nw(char * dseq,
         const uint64_t gapextend,
         uint64_t & nwdiff,
         uint64_t & nwalignmentlength,
-        char ** nwalignment,
+        char * & nwalignment,
         std::vector<unsigned char> & dir,
         std::vector<uint64_t> & hearray) -> void
 {

@@ -38,6 +38,6 @@ auto nw(char * dseq,
         uint64_t gapextend,
         uint64_t & nwdiff,
         uint64_t & nwalignmentlength,
-        char ** nwalignment,
+        char * & nwalignment,
         std::vector<unsigned char> & dir,
         std::vector<uint64_t> & hearray) -> void;
