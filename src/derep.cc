@@ -288,57 +288,58 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
                                          seqlen);
 
       uint64_t nth_bucket = hash & derep_hash_mask;
-      auto & clusterp = hashtable[nth_bucket];
+      auto * clusterp = hashtable.data() + nth_bucket;
 
-      while ((clusterp.mass != 0U) and
-             ((clusterp.hash != hash) or
-              (seqlen != db_getsequencelen(clusterp.seqno_first)) or
+      while ((clusterp->mass != 0U) and
+             ((clusterp->hash != hash) or
+              (seqlen != db_getsequencelen(clusterp->seqno_first)) or
               (std::memcmp(seq,
-                           db_getsequence(clusterp.seqno_first),
+                           db_getsequence(clusterp->seqno_first),
                            nt_bytelength(seqlen)) != 0)
               )
              )
         {
+          ++clusterp;
           ++nth_bucket;
-          clusterp = hashtable[nth_bucket];  // refactoring: bug?? now 'old_bucket == new_bucket', not what I want!
+          // clusterp = hashtable[nth_bucket];  // refactoring: bug?? now 'old_bucket == new_bucket', not what I want!
           if (nth_bucket >= hashtable.size()) // wrap around the table if we reach the end
             {
               nth_bucket = 0;
-              clusterp = hashtable[nth_bucket];
+              clusterp = hashtable.data();
             }
         }
 
       const uint64_t abundance = db_getabundance(seqno);
 
-      if (clusterp.mass != 0U)
+      if (clusterp->mass != 0U)
         {
           /* at least one identical sequence already */
-          nextseqtab[clusterp.seqno_last] = seqno;
+          nextseqtab[clusterp->seqno_last] = seqno;
         }
       else
         {
           /* no identical sequences yet, start a new cluster */
           ++stats.swarmcount;
-          clusterp.hash = hash;
-          clusterp.seqno_first = seqno;
-          clusterp.size = 0;
-          clusterp.singletons = 0;
+          clusterp->hash = hash;
+          clusterp->seqno_first = seqno;
+          clusterp->size = 0;
+          clusterp->singletons = 0;
         }
 
-      ++clusterp.size;
-      clusterp.seqno_last = seqno;
-      clusterp.mass += abundance;
+      ++clusterp->size;
+      clusterp->seqno_last = seqno;
+      clusterp->mass += abundance;
 
       if (abundance == 1) {
-        ++clusterp.singletons;
+        ++clusterp->singletons;
       }
 
-      if (clusterp.mass > stats.maxmass) {
-        stats.maxmass = clusterp.mass;
+      if (clusterp->mass > stats.maxmass) {
+        stats.maxmass = clusterp->mass;
       }
 
-      if (clusterp.size > stats.maxsize) {
-        stats.maxsize = clusterp.size;
+      if (clusterp->size > stats.maxsize) {
+        stats.maxsize = clusterp->size;
       }
 
       progress_update(seqno);
