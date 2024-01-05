@@ -120,7 +120,7 @@ auto align(char * dseq,
     {
       auto he_index = 0UL;
       auto f = 2 * gapopen + (row + 2) * gapextend;
-      uint64_t h = (row == 0) ? 0 : (gapopen + row * gapextend);
+      uint64_t diagonal = (row == 0) ? 0 : (gapopen + row * gapextend);
 
       for(auto column = 0UL; column < qlen; column++)
         {
@@ -128,28 +128,28 @@ auto align(char * dseq,
 
           n = hearray[he_index];
           left = hearray[he_index + 1];
-          h += static_cast<uint64_t>(score_matrix
+          diagonal += static_cast<uint64_t>(score_matrix
                                      [((nt_extract(dseq, row) + 1U) << multiplier)
                                       + (nt_extract(qseq, column) + 1)]);
 
-          dir[index] |= (f < h ? maskup : 0U);
-          h = std::min(h, f);
-          h = std::min(h, left);
-          dir[index] |= (left == h ? maskleft : 0U);
+          dir[index] |= (f < diagonal ? maskup : 0U);
+          diagonal = std::min(diagonal, f);
+          diagonal = std::min(diagonal, left);
+          dir[index] |= (left == diagonal ? maskleft : 0U);
 
-          hearray[he_index] = h;
+          hearray[he_index] = diagonal;
 
-          h += gapopen + gapextend;
+          diagonal += gapopen + gapextend;
           left += gapextend;
           f += gapextend;
 
-          dir[index] |= (f < h ? maskextup : 0U);
-          dir[index] |= (left < h ? maskextleft : 0U);
-          f = std::min(h, f);
-          left = std::min(h, left);
+          dir[index] |= (f < diagonal ? maskextup : 0U);
+          dir[index] |= (left < diagonal ? maskextleft : 0U);
+          f = std::min(diagonal, f);
+          left = std::min(diagonal, left);
 
           hearray[he_index + 1] = left;
-          h = n;
+          diagonal = n;
           he_index += 2;
         }
     }
