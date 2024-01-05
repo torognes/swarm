@@ -301,7 +301,6 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
         {
           ++clusterp;
           ++nth_bucket;
-          // clusterp = hashtable[nth_bucket];  // refactoring: bug?? now 'old_bucket == new_bucket', not what I want!
           if (nth_bucket >= hashtable.size()) // wrap around the table if we reach the end
             {
               nth_bucket = 0;
