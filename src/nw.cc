@@ -99,7 +99,7 @@ auto align(char * dseq,
   // alignment priority when backtracking (from lower right corner):
   // 1. left/insert/e (gap in query sequence (qseq))
   // 2. align/diag/h (match/mismatch)
-  // 3. up/delete/f (gap in database sequence (dseq))
+  // 3. top/delete/f (gap in database sequence (dseq))
   static constexpr auto multiplier = 5U;
 
   assert(dir.size() >= qlen * dlen);
@@ -119,7 +119,7 @@ auto align(char * dseq,
   for(auto row = 0UL; row < dlen; row++)
     {
       auto he_index = 0UL;
-      auto f = 2 * gapopen + (row + 2) * gapextend;
+      auto top = 2 * gapopen + (row + 2) * gapextend;
       uint64_t diagonal = (row == 0) ? 0 : (gapopen + row * gapextend);
 
       for(auto column = 0UL; column < qlen; column++)
@@ -132,8 +132,8 @@ auto align(char * dseq,
                                             [((nt_extract(dseq, row) + 1U) << multiplier)
                                              + (nt_extract(qseq, column) + 1)]);
 
-          dir[index] |= (f < diagonal ? maskup : 0U);
-          diagonal = std::min(diagonal, f);
+          dir[index] |= (top < diagonal ? maskup : 0U);
+          diagonal = std::min(diagonal, top);
           diagonal = std::min(diagonal, left);
           dir[index] |= (left == diagonal ? maskleft : 0U);
 
@@ -141,11 +141,11 @@ auto align(char * dseq,
 
           diagonal += gapopen + gapextend;
           left += gapextend;
-          f += gapextend;
+          top += gapextend;
 
-          dir[index] |= (f < diagonal ? maskextup : 0U);
+          dir[index] |= (top < diagonal ? maskextup : 0U);
           dir[index] |= (left < diagonal ? maskextleft : 0U);
-          f = std::min(diagonal, f);
+          top = std::min(diagonal, top);
           left = std::min(diagonal, left);
 
           hearray[he_index + 1] = left;
