@@ -869,7 +869,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
           const auto qlen = db_getsequencelen(seed);
 
           uint64_t nwdiff = 0;
-          char * nwalignment = nullptr;
+          char * nwalignment = nullptr;  // CIGAR string
           uint64_t nwalignmentlength = 0;
 
           nw(dseq, dlen, qseq, qlen,
