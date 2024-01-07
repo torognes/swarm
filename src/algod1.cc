@@ -36,11 +36,12 @@
 #include "nw.h"
 #include "variants.h"
 #include "util.h"
+#include "utils/cigar.h"
 #include "utils/nt_codec.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
 #include "zobrist.h"
-#include <algorithm>  // std::sort()
+#include <algorithm>  // std::sort(), std::reverse()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <climits>  // UINT_MAX
@@ -51,6 +52,7 @@
 #include <limits>  // unsigned int max
 #include <memory>  // unique pointer
 #include <pthread.h>
+#include <string>
 #include <vector>
 
 
@@ -836,6 +838,10 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
   std::vector<unsigned char> directions(longestamplicon * longestamplicon);
   std::vector<uint64_t> hearray(2 * longestamplicon);
+  std::vector<char> raw_alignment;
+  std::string cigar_string;
+  raw_alignment.reserve(2 * longestamplicon);
+  cigar_string.reserve(2 * longestamplicon);
 
   progress_init("Writing UCLUST:   ", swarmcount);
 
@@ -876,7 +882,11 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
              score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
              static_cast<unsigned long int>(penalty_gapextend),
              nwdiff, nwalignmentlength, nwalignment,
-             directions, hearray);
+             directions, hearray, raw_alignment);
+
+          // backtracking produces a reversed alignment (starting from the end)
+          std::reverse(raw_alignment.begin(), raw_alignment.end());
+          compress_alignment_to_cigar(raw_alignment, cigar_string);
 
           const double percentid
             = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
@@ -887,7 +897,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                        cluster_no,
                        db_getsequencelen(a),
                        percentid,
-                       nwdiff > 0 ? nwalignment : "=");
+                       nwdiff > 0 ? cigar_string.data() : "=");
 
           fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(uclustfile, "\t");
@@ -898,6 +908,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
             xfree(nwalignment);
           }
           nwalignment = nullptr;
+          raw_alignment.clear();
+          cigar_string.clear();
         }
 
       ++cluster_no;

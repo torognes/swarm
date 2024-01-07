@@ -163,7 +163,8 @@ auto backtrack(char * dseq,
                uint64_t & nwdiff,
                uint64_t & nwalignmentlength,
                char * & nwalignment,
-               std::vector<unsigned char> const & directions) -> void
+               std::vector<unsigned char> const & directions,
+               std::vector<char> & raw_alignment) -> void
 {
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -193,21 +194,25 @@ auto backtrack(char * dseq,
       if ((operation == 'I') and ((cell & maskextleft) != 0))
         {
           --row;
+          raw_alignment.emplace_back('I');
           pushop('I', cigarend, operation, count);
         }
       else if ((operation == 'D') and ((cell & maskextup) != 0))
         {
           --column;
+          raw_alignment.emplace_back('D');
           pushop('D', cigarend, operation, count);
         }
       else if ((cell & maskleft) != 0)
         {
           --row;
+          raw_alignment.emplace_back('I');
           pushop('I', cigarend, operation, count);
         }
       else if ((cell & maskup) != 0)
         {
           --column;
+          raw_alignment.emplace_back('D');
           pushop('D', cigarend, operation, count);
         }
       else
@@ -218,6 +223,7 @@ auto backtrack(char * dseq,
           }
           --column;
           --row;
+          raw_alignment.emplace_back('M');
           pushop('M', cigarend, operation, count);
         }
     }
@@ -226,6 +232,7 @@ auto backtrack(char * dseq,
     {
       ++alength;
       --column;
+      raw_alignment.emplace_back('D');
       pushop('D', cigarend, operation, count);
     }
 
@@ -233,6 +240,7 @@ auto backtrack(char * dseq,
     {
       ++alength;
       --row;
+      raw_alignment.emplace_back('I');
       pushop('I', cigarend, operation, count);
     }
 
@@ -305,13 +313,14 @@ auto nw(char * dseq,
         uint64_t & nwalignmentlength,
         char * & nwalignment,
         std::vector<unsigned char> & directions,
-        std::vector<uint64_t> & hearray) -> void
+        std::vector<uint64_t> & hearray,
+        std::vector<char> & raw_alignment) -> void
 {
   align(dseq, dlen, qseq, qlen, score_matrix,
           gapopen, gapextend, directions, hearray);
 
   backtrack(dseq, dlen, qseq, qlen, nwdiff,
-            nwalignmentlength, nwalignment, directions);
+            nwalignmentlength, nwalignment, directions, raw_alignment);
 
   std::fill(directions.begin(), directions.end(), '\0');  // reset the alignment matrix
 }
