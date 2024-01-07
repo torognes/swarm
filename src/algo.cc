@@ -619,22 +619,19 @@ auto algo_run(struct Parameters const & parameters) -> void
               const auto qlen = db_getsequencelen(seedampliconid);
 
               uint64_t nwdiff {0};
-              char * nwalignment {nullptr};
-              uint64_t nwalignmentlength {0};
 
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
                  static_cast<unsigned long int>(penalty_gapextend),
-                 nwdiff, nwalignmentlength, nwalignment,
-                 directions, hearray, raw_alignment);
+                 nwdiff, directions, hearray, raw_alignment);
 
               // backtracking produces a reversed alignment (starting from the end)
               std::reverse(raw_alignment.begin(), raw_alignment.end());
               compress_alignment_to_cigar(raw_alignment, cigar_string);
 
-              const double percentid
-                = 100.0 * static_cast<double>(nwalignmentlength - nwdiff)
-                / static_cast<double>(nwalignmentlength);
+              const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
+              const auto differences = static_cast<double>(nwdiff);
+              const double percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
               std::fprintf(uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid-1, db_getsequencelen(hit), percentid,
@@ -646,10 +643,6 @@ auto algo_run(struct Parameters const & parameters) -> void
               std::fprintf(uclustfile, "\n");
               fflush(uclustfile);
 
-              if (nwalignment != nullptr) {
-                xfree(nwalignment);
-              }
-              nwalignment = nullptr;
               raw_alignment.clear();
               cigar_string.clear();
             }

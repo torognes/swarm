@@ -833,7 +833,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
                                 struct Parameters const & parameters,
                                 std::vector<struct ampinfo_s> & ampinfo_v,
                                 std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-  static constexpr auto one_hundred = 100U;
+  static constexpr double one_hundred = 100.0;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
   std::vector<unsigned char> directions(longestamplicon * longestamplicon);
@@ -870,27 +870,24 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
       for(auto a = bp.next; a != no_swarm; a = ampinfo_v[a].next)
         {
           auto * dseq = db_getsequence(a);
-          const auto dlen = db_getsequencelen(a);
-          auto * qseq = db_getsequence(seed);
+          const auto dlen = db_getsequencelen(a);  // refactoring: as a struct Sequence{ptr, length}
+          auto * qseq = db_getsequence(seed);  // refactoring: can be moved outside of this loop!
           const auto qlen = db_getsequencelen(seed);
 
-          uint64_t nwdiff = 0;
-          char * nwalignment = nullptr;  // CIGAR string
-          uint64_t nwalignmentlength = 0;
+          uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
 
           nw(dseq, dlen, qseq, qlen,
              score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
              static_cast<unsigned long int>(penalty_gapextend),
-             nwdiff, nwalignmentlength, nwalignment,
-             directions, hearray, raw_alignment);
+             nwdiff, directions, hearray, raw_alignment);
 
           // backtracking produces a reversed alignment (starting from the end)
           std::reverse(raw_alignment.begin(), raw_alignment.end());
           compress_alignment_to_cigar(raw_alignment, cigar_string);
 
-          const double percentid
-            = one_hundred * static_cast<double>(nwalignmentlength - nwdiff)
-            / static_cast<double>(nwalignmentlength);
+          const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
+          const auto differences = static_cast<double>(nwdiff);
+          const double percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
 
           std::fprintf(uclustfile,
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
@@ -904,10 +901,6 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
           fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(uclustfile, "\n");
 
-          if (nwalignment != nullptr) {
-            xfree(nwalignment);
-          }
-          nwalignment = nullptr;
           raw_alignment.clear();
           cigar_string.clear();
         }

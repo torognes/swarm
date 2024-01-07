@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "util.h"
 #include "utils/nt_codec.h"
 #include <algorithm>  // std::min()
 #include <array>
@@ -37,53 +36,6 @@ constexpr unsigned char maskup      = 1;
 constexpr unsigned char maskleft    = 2;
 constexpr unsigned char maskextup   = 4;
 constexpr unsigned char maskextleft = 8;
-
-
-auto pushop(const char newop, char * & cigarendp, char & operation, int & count) -> void
-{
-  static constexpr auto buffer_length = 25U;
-
-  if (newop == operation) {
-    ++count;
-  }
-  else
-  {
-    --cigarendp;
-    *cigarendp = operation;  // write char operation at position end - 1
-    if (count > 1)
-    {
-      std::array<char, buffer_length> buf {{}};
-      const auto len = std::snprintf(buf.data(), buffer_length, "%d", count);
-      assert(len >= 0);
-      cigarendp -= len;
-      std::memcpy(cigarendp, buf.data(), static_cast<std::size_t>(len));
-    }
-    operation = newop;
-    count = 1;
-  }
-}
-
-
-auto finishop(char * & cigarendp, char & operation, int & count) -> void
-{
-  static constexpr auto buffer_length = 25U;
-
-  if ((operation != '\0') and (count != 0))
-  {
-    --cigarendp;
-    *cigarendp = operation;  // write char operation at position end - 1
-    if (count > 1)
-    {
-      std::array<char, buffer_length> buf {{}};
-      const auto len = std::snprintf(buf.data(), buffer_length, "%d", count);
-      assert(len >= 0);
-      cigarendp -= len;
-      std::memcpy(cigarendp, buf.data(), static_cast<std::size_t>(len));
-    }
-    operation = '\0';
-    count = 0;
-  }
-}
 
 
 auto align(char * dseq,
@@ -161,8 +113,6 @@ auto backtrack(char * dseq,
                char * qseq,
                const uint64_t qlen,
                uint64_t & nwdiff,
-               uint64_t & nwalignmentlength,
-               char * & nwalignment,
                std::vector<unsigned char> const & directions,
                std::vector<char> & raw_alignment) -> void
 {
@@ -171,16 +121,7 @@ auto backtrack(char * dseq,
   uint64_t alength {0};
   uint64_t matches {0};
 
-  // refactoring: complicated by the multiple memcpy and memmove
-  // std::vector<char> cigar_v(static_cast<unsigned long int>(qlen + dlen + 1));
-  // char * cigar = cigar_v.data();
-  char * cigar = static_cast<char*>(xmalloc(qlen + dlen + 1));
-
-  char * cigarend {cigar + qlen + dlen + 1};
-
   auto operation = '\0';
-  auto count = 0;
-  *(--cigarend) = '\0';
 
   auto column = qlen;
   auto row = dlen;
@@ -195,36 +136,35 @@ auto backtrack(char * dseq,
         {
           --row;
           raw_alignment.emplace_back('I');
-          pushop('I', cigarend, operation, count);
+          operation = 'I';
         }
       else if ((operation == 'D') and ((cell & maskextup) != 0))
         {
           --column;
           raw_alignment.emplace_back('D');
-          pushop('D', cigarend, operation, count);
+          operation = 'D';
         }
       else if ((cell & maskleft) != 0)
         {
           --row;
           raw_alignment.emplace_back('I');
-          pushop('I', cigarend, operation, count);
+          operation = 'I';
         }
       else if ((cell & maskup) != 0)
         {
           --column;
           raw_alignment.emplace_back('D');
-          pushop('D', cigarend, operation, count);
+          operation = 'D';
         }
       else
         {
-          if (nt_extract(qseq, column - 1) ==
-              nt_extract(dseq, row - 1)) {
+          if (nt_extract(qseq, column - 1) == nt_extract(dseq, row - 1)) {
             ++matches;
           }
           --column;
           --row;
           raw_alignment.emplace_back('M');
-          pushop('M', cigarend, operation, count);
+          operation = 'M';
         }
     }
 
@@ -233,7 +173,6 @@ auto backtrack(char * dseq,
       ++alength;
       --column;
       raw_alignment.emplace_back('D');
-      pushop('D', cigarend, operation, count);
     }
 
   while(row > 0)
@@ -241,21 +180,10 @@ auto backtrack(char * dseq,
       ++alength;
       --row;
       raw_alignment.emplace_back('I');
-      pushop('I', cigarend, operation, count);
     }
 
-  finishop(cigarend, operation, count);
-
-  /* move and reallocate cigar */
-
-  auto cigaralloc = static_cast<std::size_t>(cigar + qlen + dlen - cigarend + 1);
-  // note: std::memmove( void* dest, const void* src, std::size_t count );
-  std::memmove(cigar, cigarend, cigaralloc);
-  cigar = static_cast<char *>(xrealloc(cigar, cigaralloc));
-
   nwdiff = alength - matches;
-  nwalignmentlength = alength;
-  nwalignment = cigar;
+  assert(raw_alignment.size() == alength);
 }
 
 
@@ -310,8 +238,6 @@ auto nw(char * dseq,
         const uint64_t gapopen,
         const uint64_t gapextend,
         uint64_t & nwdiff,
-        uint64_t & nwalignmentlength,
-        char * & nwalignment,
         std::vector<unsigned char> & directions,
         std::vector<uint64_t> & hearray,
         std::vector<char> & raw_alignment) -> void
@@ -319,8 +245,7 @@ auto nw(char * dseq,
   align(dseq, dlen, qseq, qlen, score_matrix,
           gapopen, gapextend, directions, hearray);
 
-  backtrack(dseq, dlen, qseq, qlen, nwdiff,
-            nwalignmentlength, nwalignment, directions, raw_alignment);
+  backtrack(dseq, dlen, qseq, qlen, nwdiff, directions, raw_alignment);
 
   std::fill(directions.begin(), directions.end(), '\0');  // reset the alignment matrix
 }
