@@ -169,25 +169,26 @@ auto write_representative_sequences(const uint64_t amplicons,
 
 
 auto write_swarms_default_format(const uint64_t amplicons,
-                                 struct Parameters const & parameters) -> void {
+                                 struct Parameters const & parameters,
+                                 std::vector<struct ampliconinfo_s> & amps_v) -> void {
   /* native swarm output */
   static constexpr char sep_amplicons {sepchar};  /* usually a space */
   static constexpr char sep_swarms {'\n'};
 
-  fprint_id(outfile, amps[0].ampliconid,
+  fprint_id(outfile, amps_v[0].ampliconid,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-  int64_t previd = amps[0].swarmid;
+  int64_t previd = amps_v[0].swarmid;
 
   for(auto i = 1ULL; i < amplicons; i++)
     {
-      const int64_t id = amps[i].swarmid;
+      const int64_t id = amps_v[i].swarmid;
       if (id == previd) {
         std::fputc(sep_amplicons, outfile);
       }
       else {
         std::fputc(sep_swarms, outfile);
       }
-      fprint_id(outfile, amps[i].ampliconid,
+      fprint_id(outfile, amps_v[i].ampliconid,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       previd = id;
     }
@@ -669,7 +670,7 @@ auto algo_run(struct Parameters const & parameters) -> void
       write_swarms_mothur_format(amplicons, swarmid, parameters);
     }
     else {
-      write_swarms_default_format(amplicons, parameters);
+      write_swarms_default_format(amplicons, parameters, amps_v);
     }
   }
 
