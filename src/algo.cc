@@ -265,7 +265,8 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgramamps = qgramamps_v.data();
   std::vector<uint64_t> qgramdiffs_v(amplicons);
   qgramdiffs = qgramdiffs_v.data();
-  qgramindices = new uint64_t[amplicons];
+  std::vector<uint64_t> qgramindices_v(amplicons);
+  qgramindices = qgramindices_v.data();
   std::vector<uint64_t> hits(amplicons);
 
   auto diff_saturation
@@ -484,7 +485,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                         <= subseedabundance)))
                     {
                       qgramamps_v[subseedlistlen] = targetampliconid;
-                      qgramindices[subseedlistlen] = i;
+                      qgramindices_v[subseedlistlen] = i;
                       ++subseedlistlen;
                     }
                 }
@@ -495,7 +496,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               for(auto i = 0ULL; i < subseedlistlen; i++) {
                 if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences))
                   {
-                    targetindices[targetcount] = qgramindices[i];
+                    targetindices[targetcount] = qgramindices_v[i];
                     targetampliconids[targetcount] = qgramamps_v[i];
                     ++targetcount;
                   }
@@ -691,7 +692,6 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   qgramdiffs = nullptr;
   qgramamps = nullptr;
-  delete [] qgramindices;
   qgramindices = nullptr;
   diffs = nullptr;
   scores = nullptr;
