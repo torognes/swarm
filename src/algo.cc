@@ -402,7 +402,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                       const struct ampliconinfo_s temp = amps_v[i];
                       for(auto j = i; j > swarmed; j--)
                         {
-                          amps_v[j] = amps_v[j-1];
+                          amps_v[j] = amps_v[j - 1];
                         }
                       amps_v[swarmed] = temp;
                     }
@@ -539,7 +539,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                               const struct ampliconinfo_s temp = amps_v[i];
                               for(auto j = i; j > pos; j--)
                                 {
-                                  amps_v[j] = amps_v[j-1];
+                                  amps_v[j] = amps_v[j - 1];
                                 }
                               amps_v[pos] = temp;
                             }
