@@ -433,7 +433,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
     }
 
   /* get file size */
-
+  // refactoring: C++17 std::filesystem::file_size
   struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
 
   if (fstat(fileno(input_fp), &fstat_buffer) != 0)  // refactor: fstat and fileno linuxisms
