@@ -261,7 +261,8 @@ auto algo_run(struct Parameters const & parameters) -> void
   std::vector<uint64_t> diffs_v(amplicons);
   diffs = diffs_v.data();
   std::vector<uint64_t> alignlengths(amplicons);
-  qgramamps = new uint64_t[amplicons];
+  std::vector<uint64_t> qgramamps_v(amplicons);
+  qgramamps = qgramamps_v.data();
   qgramdiffs = new uint64_t[amplicons];
   qgramindices = new uint64_t[amplicons];
   std::vector<uint64_t> hits(amplicons);
@@ -355,17 +356,17 @@ auto algo_run(struct Parameters const & parameters) -> void
           const unsigned int ampid = amps_v[swarmed + i].ampliconid;
           if ((opt_no_otu_breaking) or (db_getabundance(ampid) <= abundance))
             {
-              qgramamps[i] = ampid;
+              qgramamps_v[i] = ampid;
               ++listlen;
             }
         }
 
-      qgram_diff_fast(seedampliconid, listlen, qgramamps, qgramdiffs);
+      qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs);
 
 
       for(auto i = 0ULL; i < listlen; i++)
         {
-          const uint64_t poolampliconid = qgramamps[i];
+          const uint64_t poolampliconid = qgramamps_v[i];
           const uint64_t diff = qgramdiffs[i];
           amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(parameters.opt_differences))
@@ -481,20 +482,20 @@ auto algo_run(struct Parameters const & parameters) -> void
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
                     {
-                      qgramamps[subseedlistlen] = targetampliconid;
+                      qgramamps_v[subseedlistlen] = targetampliconid;
                       qgramindices[subseedlistlen] = i;
                       ++subseedlistlen;
                     }
                 }
 
-              qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps,
+              qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps_v.data(),
                               qgramdiffs);
 
               for(auto i = 0ULL; i < subseedlistlen; i++) {
                 if (qgramdiffs[i] <= static_cast<uint64_t>(parameters.opt_differences))
                   {
                     targetindices[targetcount] = qgramindices[i];
-                    targetampliconids[targetcount] = qgramamps[i];
+                    targetampliconids[targetcount] = qgramamps_v[i];
                     ++targetcount;
                   }
               }
@@ -689,7 +690,6 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   delete [] qgramdiffs;
   qgramdiffs = nullptr;
-  delete [] qgramamps;
   qgramamps = nullptr;
   delete [] qgramindices;
   qgramindices = nullptr;
