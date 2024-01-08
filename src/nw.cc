@@ -118,7 +118,7 @@ auto backtrack(char * dseq,
 {
   /* backtrack: count differences and save alignment in cigar string */
 
-  uint64_t alength {0};
+  uint64_t alength {0};  // refactoring: eliminate variable
   uint64_t matches {0};
 
   auto operation = '\0';
