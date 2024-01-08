@@ -1227,7 +1227,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   progress_done();
 
   // refactoring: trim vectors (remove allocated unused elements) (FAIL)
-  // swarminfo_v.resize(swarmcount);
+  // swarminfo_v.resize(swarmcount);  // swarminfo_v acapacity can be twice too much
   // swarminfo_v.shrink_to_fit();
 
   global_hits_data = nullptr;
