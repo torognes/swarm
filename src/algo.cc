@@ -258,7 +258,8 @@ auto algo_run(struct Parameters const & parameters) -> void
   std::vector<uint64_t> targetindices(amplicons);
   std::vector<uint64_t> scores_v(amplicons);
   scores = scores_v.data();
-  diffs = new uint64_t[amplicons];
+  std::vector<uint64_t> diffs_v(amplicons);
+  diffs = diffs_v.data();
   std::vector<uint64_t> alignlengths(amplicons);
   qgramamps = new uint64_t[amplicons];
   qgramdiffs = new uint64_t[amplicons];
@@ -378,7 +379,7 @@ auto algo_run(struct Parameters const & parameters) -> void
       if (targetcount > 0)
         {
           search_do(seedampliconid, targetcount, targetampliconids.data(),
-                    scores_v.data(), diffs, alignlengths.data(), bits);
+                    scores_v.data(), diffs_v.data(), alignlengths.data(), bits);
 
           if (bits == bit_mode_8) {
             count_comparisons_8 += targetcount;
@@ -389,7 +390,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
           for(auto t = 0ULL; t < targetcount; t++)
             {
-              const uint64_t diff = diffs[t];
+              const uint64_t diff = diffs_v[t];
 
               if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                 {
@@ -501,7 +502,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               if (targetcount > 0)
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
-                            scores_v.data(), diffs, alignlengths.data(), bits);
+                            scores_v.data(), diffs_v.data(), alignlengths.data(), bits);
 
                   if (bits == bit_mode_8) {
                     count_comparisons_8 += targetcount;
@@ -512,7 +513,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
                   for(auto t = 0ULL; t < targetcount; t++)
                     {
-                      const uint64_t diff = diffs[t];
+                      const uint64_t diff = diffs_v[t];
 
                       if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                         {
@@ -692,7 +693,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgramamps = nullptr;
   delete [] qgramindices;
   qgramindices = nullptr;
-  delete [] diffs;
   diffs = nullptr;
   scores = nullptr;
   amps = nullptr;
