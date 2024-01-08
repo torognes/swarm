@@ -117,7 +117,7 @@ auto v_load = [](WORD* vector) -> VECTORTYPE {
 };
 
 auto v_store = [](WORD* vector, VECTORTYPE cpu_register) -> void {
-  return _mm_store_si128(cast_vector(vector), cpu_register);
+  _mm_store_si128(cast_vector(vector), cpu_register);
 };
 
 auto v_merge_lo_16 = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
