@@ -284,7 +284,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   /* set ampliconid for all */
   for(auto i = 0U; i < amplicons; i++) {
-    amps[i].ampliconid = i;
+    amps_v[i].ampliconid = i;
   }
 
   /* always search in 8 bit mode unless resolution is very high */
@@ -325,11 +325,11 @@ auto algo_run(struct Parameters const & parameters) -> void
       seedindex = seeded;
       ++seeded;
 
-      amps[seedindex].swarmid = swarmid;
-      amps[seedindex].generation = 0;
-      amps[seedindex].radius = 0;
+      amps_v[seedindex].swarmid = swarmid;
+      amps_v[seedindex].generation = 0;
+      amps_v[seedindex].radius = 0;
 
-      const uint64_t seedampliconid = amps[seedindex].ampliconid;
+      const uint64_t seedampliconid = amps_v[seedindex].ampliconid;
       hits[hitcount++] = seedampliconid;
 
       uint64_t abundance = db_getabundance(seedampliconid);
@@ -350,7 +350,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
-          const unsigned int ampid = amps[swarmed + i].ampliconid;
+          const unsigned int ampid = amps_v[swarmed + i].ampliconid;
           if ((opt_no_otu_breaking) or (db_getabundance(ampid) <= abundance))
             {
               qgramamps[i] = ampid;
@@ -365,7 +365,7 @@ auto algo_run(struct Parameters const & parameters) -> void
         {
           const uint64_t poolampliconid = qgramamps[i];
           const uint64_t diff = qgramdiffs[i];
-          amps[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
+          amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(parameters.opt_differences))
             {
               targetindices[targetcount] = swarmed + i;
@@ -399,25 +399,25 @@ auto algo_run(struct Parameters const & parameters) -> void
 
                   if (swarmed < i)
                     {
-                      const struct ampliconinfo_s temp = amps[i];
+                      const struct ampliconinfo_s temp = amps_v[i];
                       for(auto j = i; j > swarmed; j--)
                         {
-                          amps[j] = amps[j-1];
+                          amps_v[j] = amps_v[j-1];
                         }
-                      amps[swarmed] = temp;
+                      amps_v[swarmed] = temp;
                     }
 
-                  amps[swarmed].swarmid = swarmid;
-                  amps[swarmed].generation = 1;
+                  amps_v[swarmed].swarmid = swarmid;
+                  amps_v[swarmed].generation = 1;
                   if (maxgen < 1) {
                     maxgen = 1;
                   }
-                  amps[swarmed].radius = static_cast<unsigned int>(diff);
+                  amps_v[swarmed].radius = static_cast<unsigned int>(diff);
                   if (diff > maxradius) {
                     maxradius = diff;
                   }
 
-                  const unsigned int poolampliconid = amps[swarmed].ampliconid;
+                  const unsigned int poolampliconid = amps_v[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
                   if (not parameters.opt_internal_structure.empty())
@@ -460,9 +460,9 @@ auto algo_run(struct Parameters const & parameters) -> void
               uint64_t subseedabundance {0};
 
               subseedindex = seeded;
-              subseedampliconid = amps[subseedindex].ampliconid;
-              subseedradius = amps[subseedindex].radius;
-              subseedgeneration = amps[subseedindex].generation;
+              subseedampliconid = amps_v[subseedindex].ampliconid;
+              subseedradius = amps_v[subseedindex].radius;
+              subseedgeneration = amps_v[subseedindex].generation;
               subseedabundance = db_getabundance(subseedampliconid);
 
               ++seeded;
@@ -472,8 +472,8 @@ auto algo_run(struct Parameters const & parameters) -> void
               uint64_t subseedlistlen {0};
               for(auto i = swarmed; i < amplicons; i++)
                 {
-                  const uint64_t targetampliconid = amps[i].ampliconid;
-                  if ((amps[i].diffestimate <=
+                  const uint64_t targetampliconid = amps_v[i].ampliconid;
+                  if ((amps_v[i].diffestimate <=
                        subseedradius + parameters.opt_differences) and
                       ((opt_no_otu_breaking) or
                        (db_getabundance(targetampliconid)
@@ -525,38 +525,38 @@ auto algo_run(struct Parameters const & parameters) -> void
                              but unseeded part of the list, so that the
                              swarmed amplicons are ordered by id */
 
-                          const uint64_t targetampliconid = amps[i].ampliconid;
+                          const uint64_t targetampliconid = amps_v[i].ampliconid;
                           uint64_t pos = swarmed;
 
                           while ((pos > seeded) and
-                                 (amps[pos-1].ampliconid > targetampliconid) and
-                                 (amps[pos-1].generation > subseedgeneration)) {
+                                 (amps_v[pos-1].ampliconid > targetampliconid) and
+                                 (amps_v[pos-1].generation > subseedgeneration)) {
                             --pos;
                           }
 
                           if (pos < i)
                             {
-                              const struct ampliconinfo_s temp = amps[i];
+                              const struct ampliconinfo_s temp = amps_v[i];
                               for(auto j = i; j > pos; j--)
                                 {
-                                  amps[j] = amps[j-1];
+                                  amps_v[j] = amps_v[j-1];
                                 }
-                              amps[pos] = temp;
+                              amps_v[pos] = temp;
                             }
 
-                          amps[pos].swarmid = swarmid;
-                          amps[pos].generation
+                          amps_v[pos].swarmid = swarmid;
+                          amps_v[pos].generation
                             = static_cast<unsigned int>(subseedgeneration + 1);
-                          if (maxgen < amps[pos].generation) {
-                            maxgen = amps[pos].generation;
+                          if (maxgen < amps_v[pos].generation) {
+                            maxgen = amps_v[pos].generation;
                           }
-                          amps[pos].radius
+                          amps_v[pos].radius
                             = static_cast<unsigned int>(subseedradius + diff);
-                          if (amps[pos].radius > maxradius) {
-                            maxradius = amps[pos].radius;
+                          if (amps_v[pos].radius > maxradius) {
+                            maxradius = amps_v[pos].radius;
                           }
 
-                          const unsigned int poolampliconid = amps[pos].ampliconid;
+                          const unsigned int poolampliconid = amps_v[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
 
                           if (not parameters.opt_internal_structure.empty())
