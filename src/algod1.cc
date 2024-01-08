@@ -1196,7 +1196,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             {
               /* allocate memory for more swarms... */
               // note: capacity doubles, as usual
-              // 1,024 times struct size, so 40,960 bytes
+              // 1,024 times struct size (so at least 40,960 bytes reserved)
               swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
               swarminfo = swarminfo_v.data();
             }
@@ -1227,7 +1227,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   progress_done();
 
   // refactoring: trim vectors (remove allocated unused elements) (FAIL)
-  // swarminfo_v.resize(swarmcount);  // swarminfo_v acapacity can be twice too much
+  // swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
   // swarminfo_v.shrink_to_fit();
 
   global_hits_data = nullptr;
