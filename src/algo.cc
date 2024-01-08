@@ -252,7 +252,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   qgram_diff_init();
 
-  amps = new struct ampliconinfo_s[amplicons];
+  std::vector<struct ampliconinfo_s> amps_v(amplicons);
+  amps = amps_v.data();
   std::vector<uint64_t> targetampliconids(amplicons);
   std::vector<uint64_t> targetindices(amplicons);
   scores = new uint64_t[amplicons];
@@ -694,7 +695,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   diffs = nullptr;
   delete [] scores;
   scores = nullptr;
-  delete [] amps;
   amps = nullptr;
 
   db_qgrams_done();
