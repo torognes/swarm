@@ -804,6 +804,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
           parameters.opt_differences, swarmcount_adjusted);
 
+  // refactoring: assert(swarminfo_v.size() == swarmcount);
   for(auto i = 0U; i < swarmcount; i++) {
     if (swarminfo_v[i].attached) {
       continue;
