@@ -31,7 +31,7 @@ auto compress_alignment_to_cigar(std::vector<char> const & input,
     return;
   }
 
-  // run-length encoding algorithm
+  // run-length encoding (RLE) algorithm
   auto is_first = true;
   auto previous_char = '\0';
   auto count = 0UL;
