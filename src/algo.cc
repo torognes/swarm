@@ -256,7 +256,8 @@ auto algo_run(struct Parameters const & parameters) -> void
   amps = amps_v.data();
   std::vector<uint64_t> targetampliconids(amplicons);
   std::vector<uint64_t> targetindices(amplicons);
-  scores = new uint64_t[amplicons];
+  std::vector<uint64_t> scores_v(amplicons);
+  scores = scores_v.data();
   diffs = new uint64_t[amplicons];
   std::vector<uint64_t> alignlengths(amplicons);
   qgramamps = new uint64_t[amplicons];
@@ -377,7 +378,7 @@ auto algo_run(struct Parameters const & parameters) -> void
       if (targetcount > 0)
         {
           search_do(seedampliconid, targetcount, targetampliconids.data(),
-                    scores, diffs, alignlengths.data(), bits);
+                    scores_v.data(), diffs, alignlengths.data(), bits);
 
           if (bits == bit_mode_8) {
             count_comparisons_8 += targetcount;
@@ -500,7 +501,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               if (targetcount > 0)
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
-                            scores, diffs, alignlengths.data(), bits);
+                            scores_v.data(), diffs, alignlengths.data(), bits);
 
                   if (bits == bit_mode_8) {
                     count_comparisons_8 += targetcount;
@@ -693,7 +694,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgramindices = nullptr;
   delete [] diffs;
   diffs = nullptr;
-  delete [] scores;
   scores = nullptr;
   amps = nullptr;
 
