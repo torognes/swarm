@@ -60,11 +60,6 @@ static uint64_t count_comparisons_8;
 static uint64_t count_comparisons_16;
 
 static uint64_t targetcount;
-static uint64_t * scores;
-static uint64_t * diffs;
-static uint64_t * qgramamps;
-static uint64_t * qgramdiffs;
-static uint64_t * qgramindices;
 
 struct ampliconinfo_s
 {
@@ -257,16 +252,11 @@ auto algo_run(struct Parameters const & parameters) -> void
   std::vector<uint64_t> targetampliconids(amplicons);
   std::vector<uint64_t> targetindices(amplicons);
   std::vector<uint64_t> scores_v(amplicons);
-  scores = scores_v.data();
   std::vector<uint64_t> diffs_v(amplicons);
-  diffs = diffs_v.data();
   std::vector<uint64_t> alignlengths(amplicons);
   std::vector<uint64_t> qgramamps_v(amplicons);
-  qgramamps = qgramamps_v.data();
   std::vector<uint64_t> qgramdiffs_v(amplicons);
-  qgramdiffs = qgramdiffs_v.data();
   std::vector<uint64_t> qgramindices_v(amplicons);
-  qgramindices = qgramindices_v.data();
   std::vector<uint64_t> hits(amplicons);
 
   auto diff_saturation
@@ -689,12 +679,6 @@ auto algo_run(struct Parameters const & parameters) -> void
     write_representative_sequences(amplicons, parameters);
   }
 
-
-  qgramdiffs = nullptr;
-  qgramamps = nullptr;
-  qgramindices = nullptr;
-  diffs = nullptr;
-  scores = nullptr;
   amps = nullptr;
 
   db_qgrams_done();
