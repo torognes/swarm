@@ -1192,11 +1192,12 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               }
             }
 
-          if (swarmcount >= swarminfo_v.capacity())
+          if (swarmcount >= swarminfo_v.size())
             {
               /* allocate memory for more swarms... */
+              // note: capacity doubles, as usual
               // 1,024 times struct size, so 40,960 bytes
-              swarminfo_v.resize(swarminfo_v.capacity() + one_kilobyte);
+              swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
               swarminfo = swarminfo_v.data();
             }
 
