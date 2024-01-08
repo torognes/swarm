@@ -66,14 +66,16 @@ static uint64_t * qgramamps;
 static uint64_t * qgramdiffs;
 static uint64_t * qgramindices;
 
-static struct ampliconinfo_s
+struct ampliconinfo_s
 {
   unsigned ampliconid;
   unsigned diffestimate; /* lower bound estimate of dist from initial seed */
   unsigned swarmid;
   unsigned generation;
   unsigned radius; /* actual diff from initial seed */
-} * amps;
+};
+
+static struct ampliconinfo_s * amps = nullptr;
 
 static uint64_t swarmed;
 static uint64_t seeded;
