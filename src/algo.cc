@@ -70,8 +70,6 @@ struct ampliconinfo_s
   unsigned radius; /* actual diff from initial seed */
 };
 
-static struct ampliconinfo_s * amps = nullptr;
-
 static uint64_t swarmed;
 static uint64_t seeded;
 
@@ -252,7 +250,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   qgram_diff_init();
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
-  amps = amps_v.data();
   std::vector<uint64_t> targetampliconids(amplicons);
   std::vector<uint64_t> targetindices(amplicons);
   std::vector<uint64_t> scores_v(amplicons);
@@ -682,8 +679,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   if ((not parameters.opt_seeds.empty()) and (amplicons > 0)) {
     write_representative_sequences(amplicons, parameters, amps_v);
   }
-
-  amps = nullptr;
 
   db_qgrams_done();
 
