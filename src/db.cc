@@ -667,7 +667,9 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
   /* create indices */
 
-  // refactoring: seqindex is global, hard to change its type
+  // refactoring: seqindex is global, pointing to a vector = heap-use-after-free (FAIL)
+  // std::vector<seqinfo_t> seqindex_v(sequences);
+  // seqindex = seqindex_v.data();
   seqindex = new seqinfo_t[sequences];
   seqinfo_t * seqindex_p {seqindex};
 
