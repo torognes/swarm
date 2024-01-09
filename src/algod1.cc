@@ -1196,7 +1196,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             {
               /* allocate memory for more swarms... */
               // note: capacity doubles, as usual
-              // 1,024 times struct size (so at least 40,960 bytes reserved)
+              // 1,024 times struct size (so at least 40,960 new bytes reserved)
               swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
               swarminfo = swarminfo_v.data();
             }
