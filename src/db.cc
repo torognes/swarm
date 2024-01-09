@@ -449,7 +449,7 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
   }
 
   std::size_t linecap = linealloc;
-  char * line {new char[linecap]};  // refactoring: replacing with a std::vector fails, as getline might need to reallocate and will free() 'line', creating a double-free attempt at the end of the scope
+  auto * line = static_cast<char *>(xmalloc(linecap)); // char * line {new char[linecap]};  // refactoring: replacing with a std::vector fails, as getline might need to reallocate and will free() 'line', creating a double-free attempt at the end of the scope
   ssize_t linelen = xgetline(& line, & linecap, input_fp);
   if (linelen < 0)
     {
@@ -836,9 +836,12 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
 
   progress_done();
 
-  delete [] line;
-  line = nullptr;
-  linecap = 0;
+  if (line != nullptr)
+    {
+      xfree(line);
+      line = nullptr;
+      linecap = 0;
+    }
 
   if (missingabundance != 0)
     {
