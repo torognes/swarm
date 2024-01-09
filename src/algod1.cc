@@ -1122,7 +1122,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* for each non-swarmed amplicon look for subseeds ... */
 
-  auto swarmcount = 0U;
+  auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
   progress_init("Clustering:       ", amplicons);
 
   for(auto seed = 0U; seed < amplicons; seed++)
