@@ -78,6 +78,8 @@ auto compute_mask<n_bits>(uint64_t const channel,
 
 using VECTORTYPE = uint8x16_t;
 
+// #include "utils/intrinsics_to_functions_aarch64.h"
+
 #define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
 const uint8x16_t neon_mask =
@@ -87,7 +89,7 @@ const uint8x16_t neon_mask =
 const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
 #define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
-#define v_store(a, b) vst1q_u8((uint8_t *)(a), (b))
+#define v_store8(a, b) vst1q_u8((uint8_t *)(a), (b))
 // same as in search16
 #define v_merge_lo_8(a, b) vzip1q_u8((a),(b))
 #define v_merge_lo_16(a, b) vzip1q_u16((a),(b))
@@ -103,25 +105,27 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
           (vget_high_u64(vreinterpretq_u64_u16(a)), \
            vget_high_u64(vreinterpretq_u64_u16(b))))
 // END
-#define v_min(a, b) vminq_u8((a), (b))
-#define v_add(a, b) vqaddq_u8((a), (b))
-#define v_sub(a, b) vqsubq_u8((a), (b))
-#define v_dup(a) vdupq_n_u8(a)
-#define v_zero8() v_dup(0)
-#define v_and(a, b) vandq_u8((a), (b))
-#define v_xor(a, b) veorq_u8((a), (b))
-#define v_shift_left(a) vextq_u8((v_zero8()), (a), 15)
-#define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8 \
+#define v_min8(a, b) vminq_u8((a), (b))
+#define v_add8(a, b) vqaddq_u8((a), (b))
+#define v_sub8(a, b) vqsubq_u8((a), (b))
+#define v_dup8(a) vdupq_n_u8(a)
+#define v_zero8() v_dup8(0)
+#define v_and8(a, b) vandq_u8((a), (b))
+#define v_xor8(a, b) veorq_u8((a), (b))
+#define v_shift_left8(a) vextq_u8((v_zero8()), (a), 15)
+#define v_mask_eq8(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8 \
           ((vceqq_u8((a), (b))), neon_mask)), neon_shift))
 
 #elif defined __x86_64__
 
 using VECTORTYPE = __m128i;
 
+// #include "utils/intrinsics_to_functions_x86_64.h"
+
 #define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
 
 #define v_load_64(a) _mm_loadl_epi64(CAST_VECTOR_p(a))
-#define v_store(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
+#define v_store8(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
 #define v_merge_lo_8(a, b) _mm_unpacklo_epi8((a),(b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
@@ -129,19 +133,21 @@ using VECTORTYPE = __m128i;
 #define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
 #define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
 #define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
-#define v_min(a, b) _mm_min_epu8((a), (b))
-#define v_add(a, b) _mm_adds_epu8((a), (b))
-#define v_sub(a, b) _mm_subs_epu8((a), (b))
-#define v_dup(a) _mm_set1_epi8(a)
-#define v_zero8() v_dup(0)
-#define v_and(a, b) _mm_and_si128((a), (b))
-#define v_xor(a, b) _mm_xor_si128((a), (b))
-#define v_shift_left(a) _mm_slli_si128((a), 1)
-#define v_mask_eq(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi8((a), (b))))
+#define v_min8(a, b) _mm_min_epu8((a), (b))
+#define v_add8(a, b) _mm_adds_epu8((a), (b))
+#define v_sub8(a, b) _mm_subs_epu8((a), (b))
+#define v_dup8(a) _mm_set1_epi8(a)
+#define v_zero8() v_dup8(0)
+#define v_and8(a, b) _mm_and_si128((a), (b))
+#define v_xor8(a, b) _mm_xor_si128((a), (b))
+#define v_shift_left8(a) _mm_slli_si128((a), 1)
+#define v_mask_eq8(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi8((a), (b))))
 
 #elif defined __PPC__
 
 using VECTORTYPE = vector unsigned char;
+
+// #include "utils/intrinsics_to_functions_ppc.h"
 
 #define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
 
@@ -158,7 +164,7 @@ const vector unsigned char perm_bits =
    0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00};
 
 #define v_load_64(a) (VECTORTYPE)vec_splats(*((unsigned long long *)(a)))
-#define v_store(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE*)(a))
+#define v_store8(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE*)(a))
 #define v_merge_lo_8(a, b) vec_mergeh((a), (b))
 #define v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a),\
                                                    (vector short)(b))
@@ -174,15 +180,15 @@ const vector unsigned char perm_bits =
 #define v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), \
                                                  (vector long long)(b), \
                                                  perm_merge_long_high)
-#define v_min(a, b) vec_min((a), (b))
-#define v_add(a, b) vec_adds((a), (b))
-#define v_sub(a, b) vec_subs((a), (b))
-#define v_dup(a) vec_splats((unsigned char)(a));
+#define v_min8(a, b) vec_min((a), (b))
+#define v_add8(a, b) vec_adds((a), (b))
+#define v_sub8(a, b) vec_subs((a), (b))
+#define v_dup8(a) vec_splats((unsigned char)(a));
 #define v_zero8() vec_splat_u8(0)
-#define v_and(a, b) vec_and((a), (b))
-#define v_xor(a, b) vec_xor((a), (b))
-#define v_shift_left(a) vec_sld((a), v_zero8(), 1)
-#define v_mask_eq(a, b) ((vector unsigned short) \
+#define v_and8(a, b) vec_and((a), (b))
+#define v_xor8(a, b) vec_xor((a), (b))
+#define v_shift_left8(a) vec_sld((a), v_zero8(), 1)
+#define v_mask_eq8(a, b) ((vector unsigned short) \
                          vec_vbpermq((vector unsigned char)             \
                                      vec_cmpeq((a), (b)), perm_bits))[4]
 
@@ -315,14 +321,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + n_lanes * j + line0, reg0);
-      v_store(dprofile + n_lanes * j + line1, reg3);
-      v_store(dprofile + n_lanes * j + line2, reg2);
-      v_store(dprofile + n_lanes * j + line3, reg7);
-      v_store(dprofile + n_lanes * j + line4, reg1);
-      v_store(dprofile + n_lanes * j + line5, reg11);
-      v_store(dprofile + n_lanes * j + line6, reg6);
-      v_store(dprofile + n_lanes * j + line7, reg15);
+      v_store8(dprofile + n_lanes * j + line0, reg0);
+      v_store8(dprofile + n_lanes * j + line1, reg3);
+      v_store8(dprofile + n_lanes * j + line2, reg2);
+      v_store8(dprofile + n_lanes * j + line3, reg7);
+      v_store8(dprofile + n_lanes * j + line4, reg1);
+      v_store8(dprofile + n_lanes * j + line5, reg11);
+      v_store8(dprofile + n_lanes * j + line6, reg6);
+      v_store8(dprofile + n_lanes * j + line7, reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -392,14 +398,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + n_lanes * j + line8 + line0, reg0);
-      v_store(dprofile + n_lanes * j + line8 + line1, reg3);
-      v_store(dprofile + n_lanes * j + line8 + line2, reg2);
-      v_store(dprofile + n_lanes * j + line8 + line3, reg7);
-      v_store(dprofile + n_lanes * j + line8 + line4, reg1);
-      v_store(dprofile + n_lanes * j + line8 + line5, reg11);
-      v_store(dprofile + n_lanes * j + line8 + line6, reg6);
-      v_store(dprofile + n_lanes * j + line8 + line7, reg15);
+      v_store8(dprofile + n_lanes * j + line8 + line0, reg0);
+      v_store8(dprofile + n_lanes * j + line8 + line1, reg3);
+      v_store8(dprofile + n_lanes * j + line8 + line2, reg2);
+      v_store8(dprofile + n_lanes * j + line8 + line3, reg7);
+      v_store8(dprofile + n_lanes * j + line8 + line4, reg1);
+      v_store8(dprofile + n_lanes * j + line8 + line5, reg11);
+      v_store8(dprofile + n_lanes * j + line8 + line6, reg6);
+      v_store8(dprofile + n_lanes * j + line8 + line7, reg15);
 
 
       reg0  = v_load_64(score_matrix + offset16 + d[pos0]);
@@ -459,14 +465,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + n_lanes * j + line16 + line0, reg0);
-      v_store(dprofile + n_lanes * j + line16 + line1, reg3);
-      v_store(dprofile + n_lanes * j + line16 + line2, reg2);
-      v_store(dprofile + n_lanes * j + line16 + line3, reg7);
-      v_store(dprofile + n_lanes * j + line16 + line4, reg1);
-      v_store(dprofile + n_lanes * j + line16 + line5, reg11);
-      v_store(dprofile + n_lanes * j + line16 + line6, reg6);
-      v_store(dprofile + n_lanes * j + line16 + line7, reg15);
+      v_store8(dprofile + n_lanes * j + line16 + line0, reg0);
+      v_store8(dprofile + n_lanes * j + line16 + line1, reg3);
+      v_store8(dprofile + n_lanes * j + line16 + line2, reg2);
+      v_store8(dprofile + n_lanes * j + line16 + line3, reg7);
+      v_store8(dprofile + n_lanes * j + line16 + line4, reg1);
+      v_store8(dprofile + n_lanes * j + line16 + line5, reg11);
+      v_store8(dprofile + n_lanes * j + line16 + line6, reg6);
+      v_store8(dprofile + n_lanes * j + line16 + line7, reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -536,14 +542,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store(dprofile + n_lanes * j + line24 + line0, reg0);
-      v_store(dprofile + n_lanes * j + line24 + line1, reg3);
-      v_store(dprofile + n_lanes * j + line24 + line2, reg2);
-      v_store(dprofile + n_lanes * j + line24 + line3, reg7);
-      v_store(dprofile + n_lanes * j + line24 + line4, reg1);
-      v_store(dprofile + n_lanes * j + line24 + line5, reg11);
-      v_store(dprofile + n_lanes * j + line24 + line6, reg6);
-      v_store(dprofile + n_lanes * j + line24 + line7, reg15);
+      v_store8(dprofile + n_lanes * j + line24 + line0, reg0);
+      v_store8(dprofile + n_lanes * j + line24 + line1, reg3);
+      v_store8(dprofile + n_lanes * j + line24 + line2, reg2);
+      v_store8(dprofile + n_lanes * j + line24 + line3, reg7);
+      v_store8(dprofile + n_lanes * j + line24 + line4, reg1);
+      v_store8(dprofile + n_lanes * j + line24 + line5, reg11);
+      v_store8(dprofile + n_lanes * j + line24 + line6, reg6);
+      v_store8(dprofile + n_lanes * j + line24 + line7, reg15);
     }
 }
 
@@ -556,20 +562,20 @@ inline void onestep_8(VECTORTYPE & H,
                       VECTORTYPE QR,
                       VECTORTYPE R)
 {
-  H = v_add(H, V);
+  H = v_add8(H, V);
   const auto W = H;
-  H = v_min(H, F);
-  *((DIR) + 0) = v_mask_eq(W, H);
-  H = v_min(H, E);
-  *((DIR) + 1) = v_mask_eq(H, E);
+  H = v_min8(H, F);
+  *((DIR) + 0) = v_mask_eq8(W, H);
+  H = v_min8(H, E);
+  *((DIR) + 1) = v_mask_eq8(H, E);
   N = H;
-  H = v_add(H, QR);
-  F = v_add(F, R);
-  E = v_add(E, R);
-  F = v_min(H, F);
-  *((DIR) + 2) = v_mask_eq(H, F);
-  E = v_min(H, E);
-  *((DIR) + 3) = v_mask_eq(H, E);
+  H = v_add8(H, QR);
+  F = v_add8(F, R);
+  E = v_add8(E, R);
+  F = v_min8(H, F);
+  *((DIR) + 2) = v_mask_eq8(H, F);
+  E = v_min8(H, E);
+  *((DIR) + 3) = v_mask_eq8(H, E);
 }
 
 
@@ -597,14 +603,14 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   const auto R = *Rm;
 
   auto f0 = *F0;
-  auto f1 = v_add(f0, R);
-  auto f2 = v_add(f1, R);
-  auto f3 = v_add(f2, R);
+  auto f1 = v_add8(f0, R);
+  auto f2 = v_add8(f1, R);
+  auto f3 = v_add8(f2, R);
 
   auto h0 = *H0;
-  auto h1 = v_sub(f0, Q);
-  auto h2 = v_add(h1, R);
-  auto h3 = v_add(h2, R);
+  auto h1 = v_sub8(f0, Q);
+  auto h2 = v_add8(h1, R);
+  auto h3 = v_add8(h2, R);
 
   auto h5 = v_zero8();
   auto h6 = v_zero8();
@@ -663,14 +669,14 @@ void align_cells_masked_8(VECTORTYPE * Sm,
   const auto R = *Rm;
 
   auto f0 = *F0;
-  auto f1 = v_add(f0, R);
-  auto f2 = v_add(f1, R);
-  auto f3 = v_add(f2, R);
+  auto f1 = v_add8(f0, R);
+  auto f2 = v_add8(f1, R);
+  auto f3 = v_add8(f2, R);
 
   auto h0 = *H0;
-  auto h1 = v_sub(f0, Q);
-  auto h2 = v_add(h1, R);
-  auto h3 = v_add(h2, R);
+  auto h1 = v_sub8(f0, Q);
+  auto h2 = v_add8(h1, R);
+  auto h3 = v_add8(h2, R);
 
   auto h5 = v_zero8();
   auto h6 = v_zero8();
@@ -685,16 +691,16 @@ void align_cells_masked_8(VECTORTYPE * Sm,
       E  = hep[2 * i + 1];
 
       /* mask h4 and E */
-      h4 = v_sub(h4, *Mm);
-      E  = v_sub(E,  *Mm);
+      h4 = v_sub8(h4, *Mm);
+      E  = v_sub8(E,  *Mm);
 
       /* init h4 and E */
-      h4 = v_add(h4, *MQ);
-      E  = v_add(E,  *MQ);
-      E  = v_add(E,  *MQ0);
+      h4 = v_add8(h4, *MQ);
+      E  = v_add8(E,  *MQ);
+      E  = v_add8(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add(*MQ,  *MR);
+      *MQ = v_add8(*MQ,  *MR);
 
       onestep_8(h0, h5, f0, x[0], dir + channels * i + offset0, E, Q, R);
       onestep_8(h1, h6, f1, x[1], dir + channels * i + offset1, E, Q, R);
@@ -771,12 +777,12 @@ auto search8(BYTE * * q_start,
                                   0, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
-  auto Q = v_dup(static_cast<char>(gap_open_penalty + gap_extend_penalty));
-  auto R = v_dup(static_cast<char>(gap_extend_penalty));
+  auto Q = v_dup8(static_cast<char>(gap_open_penalty + gap_extend_penalty));
+  auto R = v_dup8(static_cast<char>(gap_extend_penalty));
 
   done = 0;
 
-  auto *hep = CAST_VECTOR_p(hearray);
+  auto *hep = reinterpret_cast<VECTORTYPE*>(hearray);
   auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   auto F0 = v_zero8();
@@ -856,7 +862,7 @@ auto search8(BYTE * * q_start,
                   // sequence in channel ended,
                   // change of sequence
 
-                  M = v_xor(M, T);
+                  M = v_xor8(M, T);
 
                   const int64_t cand_id = seq_id[channel];
 
@@ -940,7 +946,7 @@ auto search8(BYTE * * q_start,
                     }
                 }
 
-              T = v_shift_left(T);
+              T = v_shift_left8(T);
             }
 
           if (done == sequences) {
@@ -958,18 +964,18 @@ auto search8(BYTE * * q_start,
               dprofile_fill8(dprofile, score_matrix, dseq.data());
             }
 
-          MQ = v_and(M, Q);
-          MR = v_and(M, R);
+          MQ = v_and8(M, Q);
+          MR = v_and8(M, R);
           MQ0 = MQ;
 
           align_cells_masked_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
         }
 
-      F0 = v_add(F0, R);
-      F0 = v_add(F0, R);
-      F0 = v_add(F0, R);
-      H0 = v_sub(F0, Q);
-      F0 = v_add(F0, R);
+      F0 = v_add8(F0, R);
+      F0 = v_add8(F0, R);
+      F0 = v_add8(F0, R);
+      H0 = v_sub8(F0, Q);
+      F0 = v_add8(F0, R);
 
       dir += 4 * longestdbsequence;
       if (dir >= dirbuffer + dirbuffersize) {
