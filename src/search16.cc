@@ -96,10 +96,10 @@ const uint16x8_t neon_mask =
 #define v_add(a, b) vqaddq_u16((a), (b))
 #define v_sub(a, b) vqsubq_u16((a), (b))
 #define v_dup(a) vdupq_n_u16(a)
-#define v_zero v_dup(0)
+#define v_zero16() v_dup(0)
 #define v_and(a, b) vandq_u16((a), (b))
 #define v_xor(a, b) veorq_u16((a), (b))
-#define v_shift_left(a) vextq_u16((v_zero), (a), 7)
+#define v_shift_left(a) vextq_u16((v_zero16()), (a), 7)
 #define v_mask_eq(a, b) vaddvq_u16(vandq_u16((vceqq_u16((a), (b))), neon_mask))
 
 #elif defined __x86_64__
@@ -161,12 +161,12 @@ auto v_sub = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
 //   return _mm_set1_epi16(value);
 // };
 
-// auto v_zero = []() -> VECTORTYPE {
+// auto v_zero16() = []() -> VECTORTYPE {
 //   return v_dup(0);
 // };
 
 #define v_dup(a) _mm_set1_epi16(a)
-#define v_zero v_dup(0)
+#define v_zero16() v_dup(0)
 
 auto v_and = [](VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
   return _mm_and_si128(lhs, rhs);
@@ -225,10 +225,10 @@ const vector unsigned char perm_bits =
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
 #define v_dup(a) vec_splats((unsigned short)(a));
-#define v_zero vec_splat_u16(0)
+#define v_zero16() vec_splat_u16(0)
 #define v_and(a, b) vec_and((a), (b))
 #define v_xor(a, b) vec_xor((a), (b))
-#define v_shift_left(a) vec_sld((a), v_zero, 2)
+#define v_shift_left(a) vec_sld((a), v_zero16(), 2)
 #define v_mask_eq(a, b) ((vector unsigned short) \
   vec_vbpermq((vector unsigned char) vec_cmpeq((a), (b)), perm_bits))[4]
 
@@ -401,10 +401,10 @@ void align_cells_regular_16(VECTORTYPE * Sm,
   auto h2 = v_add(h1, R);
   auto h3 = v_add(h2, R);
 
-  auto h5 = v_zero;
-  auto h6 = v_zero;
-  auto h7 = v_zero;
-  auto h8 = v_zero;
+  auto h5 = v_zero16();
+  auto h6 = v_zero16();
+  auto h7 = v_zero16();
+  auto h8 = v_zero16();
 
   for(auto i = 0ULL; i < ql; i++)
     {
@@ -467,10 +467,10 @@ void align_cells_masked_16(VECTORTYPE * Sm,
   auto h2 = v_add(h1, R);
   auto h3 = v_add(h2, R);
 
-  auto h5 = v_zero;
-  auto h6 = v_zero;
-  auto h7 = v_zero;
-  auto h8 = v_zero;
+  auto h5 = v_zero16();
+  auto h6 = v_zero16();
+  auto h7 = v_zero16();
+  auto h8 = v_zero16();
 
   for(auto i = 0ULL; i < ql; i++)
     {
@@ -570,8 +570,8 @@ auto search16(WORD * * q_start,
   auto *hep = CAST_VECTOR_p(hearray);
   auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
-  auto F0 = v_zero;
-  auto H0 = v_zero;
+  auto F0 = v_zero16();
+  auto H0 = v_zero16();
 
   bool easy {false};
 
@@ -630,7 +630,7 @@ auto search16(WORD * * q_start,
 
           easy = true;
 
-          M = v_zero;
+          M = v_zero16();
           T = T0;
           for(auto channel = 0U; channel < channels; channel++)
             {

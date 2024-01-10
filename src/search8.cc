@@ -107,10 +107,10 @@ const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
 #define v_add(a, b) vqaddq_u8((a), (b))
 #define v_sub(a, b) vqsubq_u8((a), (b))
 #define v_dup(a) vdupq_n_u8(a)
-#define v_zero v_dup(0)
+#define v_zero8() v_dup(0)
 #define v_and(a, b) vandq_u8((a), (b))
 #define v_xor(a, b) veorq_u8((a), (b))
-#define v_shift_left(a) vextq_u8((v_zero), (a), 15)
+#define v_shift_left(a) vextq_u8((v_zero8()), (a), 15)
 #define v_mask_eq(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8 \
           ((vceqq_u8((a), (b))), neon_mask)), neon_shift))
 
@@ -133,7 +133,7 @@ using VECTORTYPE = __m128i;
 #define v_add(a, b) _mm_adds_epu8((a), (b))
 #define v_sub(a, b) _mm_subs_epu8((a), (b))
 #define v_dup(a) _mm_set1_epi8(a)
-#define v_zero v_dup(0)
+#define v_zero8() v_dup(0)
 #define v_and(a, b) _mm_and_si128((a), (b))
 #define v_xor(a, b) _mm_xor_si128((a), (b))
 #define v_shift_left(a) _mm_slli_si128((a), 1)
@@ -178,10 +178,10 @@ const vector unsigned char perm_bits =
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
 #define v_dup(a) vec_splats((unsigned char)(a));
-#define v_zero vec_splat_u8(0)
+#define v_zero8() vec_splat_u8(0)
 #define v_and(a, b) vec_and((a), (b))
 #define v_xor(a, b) vec_xor((a), (b))
-#define v_shift_left(a) vec_sld((a), v_zero, 1)
+#define v_shift_left(a) vec_sld((a), v_zero8(), 1)
 #define v_mask_eq(a, b) ((vector unsigned short) \
                          vec_vbpermq((vector unsigned char)             \
                                      vec_cmpeq((a), (b)), perm_bits))[4]
@@ -606,10 +606,10 @@ void align_cells_regular_8(VECTORTYPE * Sm,
   auto h2 = v_add(h1, R);
   auto h3 = v_add(h2, R);
 
-  auto h5 = v_zero;
-  auto h6 = v_zero;
-  auto h7 = v_zero;
-  auto h8 = v_zero;
+  auto h5 = v_zero8();
+  auto h6 = v_zero8();
+  auto h7 = v_zero8();
+  auto h8 = v_zero8();
 
   for(auto i = 0ULL; i < ql; i++)
     {
@@ -672,10 +672,10 @@ void align_cells_masked_8(VECTORTYPE * Sm,
   auto h2 = v_add(h1, R);
   auto h3 = v_add(h2, R);
 
-  auto h5 = v_zero;
-  auto h6 = v_zero;
-  auto h7 = v_zero;
-  auto h8 = v_zero;
+  auto h5 = v_zero8();
+  auto h6 = v_zero8();
+  auto h7 = v_zero8();
+  auto h8 = v_zero8();
 
   for(auto i = 0ULL; i < ql; i++)
     {
@@ -779,8 +779,8 @@ auto search8(BYTE * * q_start,
   auto *hep = CAST_VECTOR_p(hearray);
   auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
-  auto F0 = v_zero;
-  auto H0 = v_zero;
+  auto F0 = v_zero8();
+  auto H0 = v_zero8();
 
   bool easy {false};
 
@@ -829,7 +829,7 @@ auto search8(BYTE * * q_start,
 
           easy = true;
 
-          M = v_zero;
+          M = v_zero8();
           T = T0;
           for(auto channel = 0U; channel < channels; channel++)
             {
