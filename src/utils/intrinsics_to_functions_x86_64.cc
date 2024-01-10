@@ -37,7 +37,7 @@ auto cast_vector16(uint16_t* ptr) -> __m128i* {
   return reinterpret_cast<__m128i*>(ptr);
 }
 
-auto cast_vector8(uint16_t* ptr) -> __m128i* {
+auto cast_vector8(uint8_t* ptr) -> __m128i* {
   return reinterpret_cast<__m128i*>(ptr);
 }
 
@@ -46,15 +46,15 @@ auto v_load16(uint16_t* ptr) -> __m128i {
 }
 
 // only in search8
-auto v_load_64(__m128i const * ptr) -> __m128i {
-  return _mm_loadl_epi64(ptr);
+auto v_load_64(uint8_t const * ptr) -> __m128i {
+  return _mm_loadl_epi64(cast_vector8(ptr));
 }
 
 auto v_store16(uint16_t* ptr, __m128i cpu_register) -> void {
   _mm_store_si128(cast_vector16(ptr), cpu_register);
 }
 
-auto v_store8(uint16_t* ptr, __m128i cpu_register) -> void {
+auto v_store8(uint8_t* ptr, __m128i cpu_register) -> void {
   _mm_store_si128(cast_vector8(ptr), cpu_register);
 }
 
