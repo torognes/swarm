@@ -78,119 +78,22 @@ auto compute_mask<n_bits>(uint64_t const channel,
 
 using VECTORTYPE = uint8x16_t;
 
-// #include "utils/intrinsics_to_functions_aarch64.h"
+#include "utils/intrinsics_to_functions_aarch64.h"
 
-#define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
-
-const uint8x16_t neon_mask =
-  { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
-    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
-
-const uint16x8_t neon_shift = { 0, 0, 0, 0, 8, 8, 8, 8 };
-
-#define v_load_64(a) vld1q_dup_u64((const uint64_t *)(a))
-#define v_store8(a, b) vst1q_u8((uint8_t *)(a), (b))
-// same as in search16
-#define v_merge_lo_8(a, b) vzip1q_u8((a),(b))
-#define v_merge_lo_16(a, b) vzip1q_u16((a),(b))
-#define v_merge_hi_16(a, b) vzip2q_u16((a),(b))
-#define v_merge_lo_32(a, b) vreinterpretq_u16_u32(vzip1q_u32 \
-          (vreinterpretq_u32_u16(a), vreinterpretq_u32_u16(b)))
-#define v_merge_hi_32(a, b) vreinterpretq_u16_u32(vzip2q_u32 \
-          (vreinterpretq_u32_u16(a), vreinterpretq_u32_u16(b)))
-#define v_merge_lo_64(a, b) vreinterpretq_u16_u64(vcombine_u64 \
-          (vget_low_u64(vreinterpretq_u64_u16(a)), \
-           vget_low_u64(vreinterpretq_u64_u16(b))))
-#define v_merge_hi_64(a, b) vreinterpretq_u16_u64(vcombine_u64 \
-          (vget_high_u64(vreinterpretq_u64_u16(a)), \
-           vget_high_u64(vreinterpretq_u64_u16(b))))
-// END
-#define v_min8(a, b) vminq_u8((a), (b))
-#define v_add8(a, b) vqaddq_u8((a), (b))
-#define v_sub8(a, b) vqsubq_u8((a), (b))
-#define v_dup8(a) vdupq_n_u8(a)
-#define v_zero8() v_dup8(0)
-#define v_and8(a, b) vandq_u8((a), (b))
-#define v_xor8(a, b) veorq_u8((a), (b))
-#define v_shift_left8(a) vextq_u8((v_zero8()), (a), 15)
-#define v_mask_eq8(a, b) vaddvq_u16(vshlq_u16(vpaddlq_u8(vandq_u8 \
-          ((vceqq_u8((a), (b))), neon_mask)), neon_shift))
 
 #elif defined __x86_64__
 
 using VECTORTYPE = __m128i;
 
-// #include "utils/intrinsics_to_functions_x86_64.h"
+#include "utils/intrinsics_to_functions_x86_64.h"
 
-#define CAST_VECTOR_p(x) (reinterpret_cast<VECTORTYPE *>(x))
-
-#define v_load_64(a) _mm_loadl_epi64(CAST_VECTOR_p(a))
-#define v_store8(a, b) _mm_store_si128(CAST_VECTOR_p(a), (b))
-#define v_merge_lo_8(a, b) _mm_unpacklo_epi8((a),(b))
-#define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
-#define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
-#define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
-#define v_merge_hi_32(a, b) _mm_unpackhi_epi32((a),(b))
-#define v_merge_lo_64(a, b) _mm_unpacklo_epi64((a),(b))
-#define v_merge_hi_64(a, b) _mm_unpackhi_epi64((a),(b))
-#define v_min8(a, b) _mm_min_epu8((a), (b))
-#define v_add8(a, b) _mm_adds_epu8((a), (b))
-#define v_sub8(a, b) _mm_subs_epu8((a), (b))
-#define v_dup8(a) _mm_set1_epi8(a)
-#define v_zero8() v_dup8(0)
-#define v_and8(a, b) _mm_and_si128((a), (b))
-#define v_xor8(a, b) _mm_xor_si128((a), (b))
-#define v_shift_left8(a) _mm_slli_si128((a), 1)
-#define v_mask_eq8(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi8((a), (b))))
 
 #elif defined __PPC__
 
 using VECTORTYPE = vector unsigned char;
 
-// #include "utils/intrinsics_to_functions_ppc.h"
+#include "utils/intrinsics_to_functions_ppc.h"
 
-#define CAST_VECTOR_p(x) reinterpret_cast<VECTORTYPE *>(x)
-
-const vector unsigned char perm_merge_long_low =
-  {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
-
-const vector unsigned char perm_merge_long_high =
-  {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-   0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
-
-const vector unsigned char perm_bits =
-  {0x78, 0x70, 0x68, 0x60, 0x58, 0x50, 0x48, 0x40,
-   0x38, 0x30, 0x28, 0x20, 0x18, 0x10, 0x08, 0x00};
-
-#define v_load_64(a) (VECTORTYPE)vec_splats(*((unsigned long long *)(a)))
-#define v_store8(a, b) vec_st((VECTORTYPE)(b), 0, (VECTORTYPE*)(a))
-#define v_merge_lo_8(a, b) vec_mergeh((a), (b))
-#define v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a),\
-                                                   (vector short)(b))
-#define v_merge_hi_16(a, b) (VECTORTYPE)vec_mergel((vector short)(a),\
-                                                   (vector short)(b))
-#define v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), \
-                                                   (vector int)(b))
-#define v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), \
-                                                   (vector int)(b))
-#define v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), \
-                                                 (vector long long)(b), \
-                                                 perm_merge_long_low)
-#define v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), \
-                                                 (vector long long)(b), \
-                                                 perm_merge_long_high)
-#define v_min8(a, b) vec_min((a), (b))
-#define v_add8(a, b) vec_adds((a), (b))
-#define v_sub8(a, b) vec_subs((a), (b))
-#define v_dup8(a) vec_splats((unsigned char)(a));
-#define v_zero8() vec_splat_u8(0)
-#define v_and8(a, b) vec_and((a), (b))
-#define v_xor8(a, b) vec_xor((a), (b))
-#define v_shift_left8(a) vec_sld((a), v_zero8(), 1)
-#define v_mask_eq8(a, b) ((vector unsigned short) \
-                         vec_vbpermq((vector unsigned char)             \
-                                     vec_cmpeq((a), (b)), perm_bits))[4]
 
 #else
 
@@ -273,14 +176,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg12 = v_load_64(score_matrix + d[pos12]);
       reg14 = v_load_64(score_matrix + d[pos14]);
 
-      reg0  = v_merge_lo_8(reg0,  *CAST_VECTOR_p(score_matrix + d[pos1]));
-      reg2  = v_merge_lo_8(reg2,  *CAST_VECTOR_p(score_matrix + d[pos3]));
-      reg4  = v_merge_lo_8(reg4,  *CAST_VECTOR_p(score_matrix + d[pos5]));
-      reg6  = v_merge_lo_8(reg6,  *CAST_VECTOR_p(score_matrix + d[pos7]));
-      reg8  = v_merge_lo_8(reg8,  *CAST_VECTOR_p(score_matrix + d[pos9]));
-      reg10 = v_merge_lo_8(reg10, *CAST_VECTOR_p(score_matrix + d[pos11]));
-      reg12 = v_merge_lo_8(reg12, *CAST_VECTOR_p(score_matrix + d[pos13]));
-      reg14 = v_merge_lo_8(reg14, *CAST_VECTOR_p(score_matrix + d[pos15]));
+      reg0  = v_merge_lo_8(reg0,  *cast_vector8(score_matrix + d[pos1]));
+      reg2  = v_merge_lo_8(reg2,  *cast_vector8(score_matrix + d[pos3]));
+      reg4  = v_merge_lo_8(reg4,  *cast_vector8(score_matrix + d[pos5]));
+      reg6  = v_merge_lo_8(reg6,  *cast_vector8(score_matrix + d[pos7]));
+      reg8  = v_merge_lo_8(reg8,  *cast_vector8(score_matrix + d[pos9]));
+      reg10 = v_merge_lo_8(reg10, *cast_vector8(score_matrix + d[pos11]));
+      reg12 = v_merge_lo_8(reg12, *cast_vector8(score_matrix + d[pos13]));
+      reg14 = v_merge_lo_8(reg14, *cast_vector8(score_matrix + d[pos15]));
 
       reg1 = reg0;
       reg0 = v_merge_lo_16(reg0, reg2);
@@ -417,14 +320,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg12 = v_load_64(score_matrix + offset16 + d[pos12]);
       reg14 = v_load_64(score_matrix + offset16 + d[pos14]);
 
-      reg0  = v_merge_lo_8(reg0,  *CAST_VECTOR_p(score_matrix + offset16 + d[pos1]));
-      reg2  = v_merge_lo_8(reg2,  *CAST_VECTOR_p(score_matrix + offset16 + d[pos3]));
-      reg4  = v_merge_lo_8(reg4,  *CAST_VECTOR_p(score_matrix + offset16 + d[pos5]));
-      reg6  = v_merge_lo_8(reg6,  *CAST_VECTOR_p(score_matrix + offset16 + d[pos7]));
-      reg8  = v_merge_lo_8(reg8,  *CAST_VECTOR_p(score_matrix + offset16 + d[pos9]));
-      reg10 = v_merge_lo_8(reg10, *CAST_VECTOR_p(score_matrix + offset16 + d[pos11]));
-      reg12 = v_merge_lo_8(reg12, *CAST_VECTOR_p(score_matrix + offset16 + d[pos13]));
-      reg14 = v_merge_lo_8(reg14, *CAST_VECTOR_p(score_matrix + offset16 + d[pos15]));
+      reg0  = v_merge_lo_8(reg0,  *cast_vector8(score_matrix + offset16 + d[pos1]));
+      reg2  = v_merge_lo_8(reg2,  *cast_vector8(score_matrix + offset16 + d[pos3]));
+      reg4  = v_merge_lo_8(reg4,  *cast_vector8(score_matrix + offset16 + d[pos5]));
+      reg6  = v_merge_lo_8(reg6,  *cast_vector8(score_matrix + offset16 + d[pos7]));
+      reg8  = v_merge_lo_8(reg8,  *cast_vector8(score_matrix + offset16 + d[pos9]));
+      reg10 = v_merge_lo_8(reg10, *cast_vector8(score_matrix + offset16 + d[pos11]));
+      reg12 = v_merge_lo_8(reg12, *cast_vector8(score_matrix + offset16 + d[pos13]));
+      reg14 = v_merge_lo_8(reg14, *cast_vector8(score_matrix + offset16 + d[pos15]));
 
       reg1 = reg0;
       reg0 = v_merge_lo_16(reg0, reg2);
@@ -782,7 +685,7 @@ auto search8(BYTE * * q_start,
 
   done = 0;
 
-  auto *hep = reinterpret_cast<VECTORTYPE*>(hearray);
+  auto *hep = cast_vector8(hearray);
   auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   auto F0 = v_zero8();
