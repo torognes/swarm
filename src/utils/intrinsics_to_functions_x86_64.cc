@@ -46,7 +46,7 @@ auto v_load16(uint16_t* ptr) -> __m128i {
 }
 
 // only in search8
-auto v_load_64(uint8_t const * ptr) -> __m128i {
+auto v_load_64(uint8_t* ptr) -> __m128i {
   return _mm_loadl_epi64(cast_vector8(ptr));
 }
 
