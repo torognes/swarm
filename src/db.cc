@@ -36,9 +36,9 @@
 #include <cstdio>  // fileno, fclose(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
+#include <stdio.h>  // fdopen, ssize_t, getline
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
-#include <sys/types.h>  // ssize_t
 #include <vector>
 
 #ifndef PRIu64

@@ -42,6 +42,7 @@
                      // option (no_argument, required_argument)
 
 #include <string>
+// #include <unistd.h>  // getopt_long... FAIL
 #include <vector>
 
 #ifndef PRId64

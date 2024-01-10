@@ -31,7 +31,7 @@
 #include <cassert>  // assert()
 #include <climits>
 #include <cstdint>  // int64_t, uint64_t
-#include <pthread.h>
+#include <pthread.h>  // pthread_mutex_init
 
 
 static pthread_mutex_t scan_mutex;

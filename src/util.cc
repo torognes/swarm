@@ -24,10 +24,11 @@
 #include "swarm.h"
 #include "utils/fatal.h"
 #include <cstdint>  // uint64_t
-#include <cstdio>  // fdopen, FILE, getline, size_t
+#include <cstdio>  // FILE
 #include <cstdlib>  // free, posix_memalign, realloc
 #include <cstring>  // strcmp
-#include <sys/types.h>  // ssize_t
+#include <stdio.h>  // fdopen, ssize_t, getline
+#include <stdlib.h> // posix_memalign
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
 
