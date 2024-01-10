@@ -30,7 +30,7 @@
 
 auto cast_vector16(uint16_t* ptr) -> __m128i*;
 
-auto cast_vector8(uint16_t* ptr) -> __m128i*;
+auto cast_vector8(uint8_t* ptr) -> __m128i*;
 
 auto v_load16(uint16_t* ptr) -> __m128i;
 
@@ -38,7 +38,7 @@ auto v_load_64(__m128i const * ptr) -> __m128i;
 
 auto v_store16(uint16_t* ptr, __m128i cpu_register) -> void;
 
-auto v_store8(uint16_t* ptr, __m128i cpu_register) -> void;
+auto v_store8(uint8_t* ptr, __m128i cpu_register) -> void;
 
 auto v_merge_lo_8(__m128i lhs, __m128i rhs) -> __m128i;
 
