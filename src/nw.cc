@@ -52,6 +52,11 @@ auto align(char * dseq,
   // 1. left/insert/e (gap in query sequence (qseq))
   // 2. diagonal/align/h (match/mismatch)
   // 3. top (up)/delete/f (gap in database sequence (dseq))
+  //
+  // value in a cell depends on three neighbors:
+  // - cell on the 'left' (column - 1),
+  // - cell above ('top' or 'up') (row - 1),
+  // - 'diagonal' cell ('top' or 'up') (column - 1 and row - 1),
   static constexpr auto multiplier = 5U;
 
   assert(directions.size() >= qlen * dlen);
