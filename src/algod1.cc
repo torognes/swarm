@@ -680,7 +680,7 @@ auto process_seed(unsigned int seed,
   if (global_hits_count + link_count > global_hits_alloc)
     {
       while (global_hits_count + link_count > global_hits_alloc) {
-        global_hits_alloc += 4 * one_kilobyte;
+        global_hits_alloc += 4UL * one_kilobyte;
       }
       global_hits_v.resize(global_hits_alloc);
       global_hits_data = global_hits_v.data();
@@ -837,12 +837,12 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   static constexpr double one_hundred = 100.0;
   auto cluster_no = 0U;
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-  std::vector<unsigned char> directions(longestamplicon * longestamplicon);
-  std::vector<uint64_t> hearray(2 * longestamplicon);
+  std::vector<unsigned char> directions(1UL * longestamplicon * longestamplicon);
+  std::vector<uint64_t> hearray(2UL * longestamplicon);
   std::vector<char> raw_alignment;
   std::string cigar_string;
-  raw_alignment.reserve(2 * longestamplicon);
-  cigar_string.reserve(2 * longestamplicon);
+  raw_alignment.reserve(2UL * longestamplicon);
+  cigar_string.reserve(2UL * longestamplicon);
 
   progress_init("Writing UCLUST:   ", swarmcount);
 
