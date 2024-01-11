@@ -44,11 +44,16 @@
 #include <cstdint>  //uint64_t
 #include <smmintrin.h>  // _mm_min_epu16
 
-
 using VECTORTYPE = __m128i;
 using WORD = unsigned short;
 
-#define v_min(a, b) _mm_min_epu16((a), (b))
+// refactoring: v_min16 exists and is more complicated
+auto v_min(VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+  return _mm_min_epu16(lhs, rhs);
+}
+
+
+// #define v_min(a, b) _mm_min_epu16((a), (b))
 #define v_add16(a, b) _mm_adds_epu16((a), (b))
 #define v_sub16(a, b) _mm_subs_epu16((a), (b))
 #define v_dup16(a) _mm_set1_epi16(a)
