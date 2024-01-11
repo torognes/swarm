@@ -46,7 +46,6 @@
 
 using WORD = unsigned short;
 using BYTE = unsigned char;
-using VECTORTYPE = __m128i;
 
 auto v_shuffle(__m128i lhs, __m128i rhs) -> __m128i {
   return _mm_shuffle_epi8(lhs, rhs);
@@ -98,7 +97,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   const auto one = _mm_set1_epi16(1);
 
   // refactoring: make lower_chunk and local_t const?
-  auto transform_lower_seq_chunk = [&](const VECTORTYPE& seq_chunk) -> VECTORTYPE {
+  auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
     lower_chunk = _mm_slli_epi16(lower_chunk, 1);
     auto local_t = _mm_adds_epu16(lower_chunk, one);
@@ -106,7 +105,7 @@ auto dprofile_shuffle16(WORD * dprofile,
     return _mm_or_si128(lower_chunk, local_t);
   };
 
-  auto transform_higher_seq_chunk = [&](const VECTORTYPE& seq_chunk) -> VECTORTYPE {
+  auto transform_higher_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto higher_chunk = _mm_unpackhi_epi8(seq_chunk, zero);
     higher_chunk = _mm_slli_epi16(higher_chunk, 1);
     auto local_t = _mm_adds_epu16(higher_chunk, one);
