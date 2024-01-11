@@ -45,6 +45,11 @@ auto v_load16(uint16_t* ptr) -> __m128i {
   return _mm_load_si128(cast_vector16(ptr));
 }
 
+// only in ssse3
+auto v_load8(uint8_t* ptr) -> __m128i {
+  return _mm_load_si128(cast_vector8(ptr));
+}
+
 // only in search8
 auto v_load_64(uint8_t* ptr) -> __m128i {
   return _mm_loadl_epi64(cast_vector8(ptr));
