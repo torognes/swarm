@@ -48,6 +48,10 @@ using WORD = unsigned short;
 using BYTE = unsigned char;
 using VECTORTYPE = __m128i;
 
+auto v_shuffle(__m128i lhs, __m128i rhs) -> __m128i {
+  return _mm_shuffle_epi8(lhs, rhs);
+}
+
 
 /* 8-bit version with 16 channels */
 
