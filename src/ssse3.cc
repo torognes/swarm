@@ -90,8 +90,6 @@ auto dprofile_shuffle16(WORD * dprofile,
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
   auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);
-  auto * score_db = reinterpret_cast<VECTORTYPE *>(score_matrix);
-  auto * sequence_db = reinterpret_cast<VECTORTYPE *>(dseq_byte);
 
   const auto zero = _mm_setzero_si128();
   const auto one = _mm_set1_epi16(1);
@@ -113,16 +111,16 @@ auto dprofile_shuffle16(WORD * dprofile,
     return _mm_or_si128(higher_chunk, local_t);
   };
 
-  const auto t0 = _mm_load_si128(sequence_db + 0);
+  const auto t0 = v_load8(dseq_byte + 0);
   const auto m0 = transform_lower_seq_chunk(t0);
   const auto m1 = transform_higher_seq_chunk(t0);
 
-  const auto t3 = _mm_load_si128(sequence_db + 1);
+  const auto t3 = v_load8(dseq_byte + 1);
   const auto m2 = transform_lower_seq_chunk(t3);
   const auto m3 = transform_higher_seq_chunk(t3);
 
   auto profline16 = [&](const long long int nuc) {
-    const auto scores = _mm_load_si128(score_db + 4 * nuc);
+    const auto scores = v_load16(score_matrix + 4 * nuc);
 
     _mm_store_si128(profile_db + 4 * nuc + 0, _mm_shuffle_epi8(scores, m0));
     _mm_store_si128(profile_db + 4 * nuc + 1, _mm_shuffle_epi8(scores, m1));
