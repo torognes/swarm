@@ -89,6 +89,7 @@ auto dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
                         BYTE * dseq_byte) -> void
 {
+  // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
   auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);
   auto * score_db = reinterpret_cast<VECTORTYPE *>(score_matrix);
