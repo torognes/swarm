@@ -26,6 +26,7 @@
 
 #ifdef __SSE2__
 #include <emmintrin.h>  // SSE2 intrinsics
+#include "utils/intrinsics_to_functions_x86_64.h"
 #endif
 
 #ifdef __SSSE3__
@@ -56,18 +57,16 @@ auto dprofile_shuffle8(BYTE * dprofile,
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);    // output
-  auto * score_db = reinterpret_cast<VECTORTYPE *>(score_matrix);  // input
-  auto * sequence_db = reinterpret_cast<VECTORTYPE *>(dseq_byte);  // input
-  const auto seq_chunk0 = _mm_load_si128(sequence_db + 0);  // 16 nucleotides
-  const auto seq_chunk1 = _mm_load_si128(sequence_db + 1);  // next 16
-  const auto seq_chunk2 = _mm_load_si128(sequence_db + 2);  // next 16
-  const auto seq_chunk3 = _mm_load_si128(sequence_db + 3);  // final 16 (total of 64)
+  const auto seq_chunk0 = v_load8(dseq_byte + 0);  // 16 nucleotides
+  const auto seq_chunk1 = v_load8(dseq_byte + 1);  // next 16
+  const auto seq_chunk2 = v_load8(dseq_byte + 2);  // next 16
+  const auto seq_chunk3 = v_load8(dseq_byte + 3);  // final 16 (total of 64)
 
   auto profline8 = [&](const long long int nuc) {
     // scores: 16 scores from the score matrix, matching the
     // nucleotide 'nuc'; five different nucleotides (0, 1, 2, 3, 4),
     // so five possible rows of scores
-    const auto scores = _mm_load_si128(score_db + 2 * nuc);
+    const auto scores = v_load8(score_matrix + 2 * nuc);
 
     _mm_store_si128(profile_db + 4 * nuc + 0, _mm_shuffle_epi8(scores, seq_chunk0));
     _mm_store_si128(profile_db + 4 * nuc + 1, _mm_shuffle_epi8(scores, seq_chunk1));
