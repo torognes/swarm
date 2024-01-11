@@ -38,8 +38,8 @@
 #include <cstdint>
 #include <smmintrin.h>
 
-using VECTORTYPE = __m128i;
 
+using VECTORTYPE = __m128i;
 
 auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   VECTORTYPE * hep,
