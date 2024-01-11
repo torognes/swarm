@@ -26,6 +26,7 @@
 
 #ifdef __SSE2__
 #include <emmintrin.h>  // SSE2 intrinsics
+#include "utils/intrinsics_to_functions_x86_64.h"
 #endif
 
 #ifdef __SSE4_1__
@@ -51,14 +52,6 @@ using WORD = unsigned short;
 auto v_min(VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
   return _mm_min_epu16(lhs, rhs);
 }
-
-
-// #define v_min(a, b) _mm_min_epu16((a), (b))
-#define v_add16(a, b) _mm_adds_epu16((a), (b))
-#define v_sub16(a, b) _mm_subs_epu16((a), (b))
-#define v_dup16(a) _mm_set1_epi16(a)
-#define v_zero16() v_dup16(0)
-#define v_mask_eq16(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
 
 
 inline void onestep_16_sse41(VECTORTYPE & H,
