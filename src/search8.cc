@@ -203,14 +203,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store8(dprofile + n_lanes * j + line0, reg0);
-      v_store8(dprofile + n_lanes * j + line1, reg3);
-      v_store8(dprofile + n_lanes * j + line2, reg2);
-      v_store8(dprofile + n_lanes * j + line3, reg7);
-      v_store8(dprofile + n_lanes * j + line4, reg1);
-      v_store8(dprofile + n_lanes * j + line5, reg11);
-      v_store8(dprofile + n_lanes * j + line6, reg6);
-      v_store8(dprofile + n_lanes * j + line7, reg15);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line0), reg0);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line1), reg3);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line2), reg2);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line3), reg7);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line4), reg1);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line5), reg11);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line6), reg6);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line7), reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -280,14 +280,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store8(dprofile + n_lanes * j + line8 + line0, reg0);
-      v_store8(dprofile + n_lanes * j + line8 + line1, reg3);
-      v_store8(dprofile + n_lanes * j + line8 + line2, reg2);
-      v_store8(dprofile + n_lanes * j + line8 + line3, reg7);
-      v_store8(dprofile + n_lanes * j + line8 + line4, reg1);
-      v_store8(dprofile + n_lanes * j + line8 + line5, reg11);
-      v_store8(dprofile + n_lanes * j + line8 + line6, reg6);
-      v_store8(dprofile + n_lanes * j + line8 + line7, reg15);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line0), reg0);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line1), reg3);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line2), reg2);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line3), reg7);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line4), reg1);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line5), reg11);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line6), reg6);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line8 + line7), reg15);
 
 
       reg0  = v_load_64(score_matrix + offset16 + d[pos0]);
@@ -347,14 +347,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store8(dprofile + n_lanes * j + line16 + line0, reg0);
-      v_store8(dprofile + n_lanes * j + line16 + line1, reg3);
-      v_store8(dprofile + n_lanes * j + line16 + line2, reg2);
-      v_store8(dprofile + n_lanes * j + line16 + line3, reg7);
-      v_store8(dprofile + n_lanes * j + line16 + line4, reg1);
-      v_store8(dprofile + n_lanes * j + line16 + line5, reg11);
-      v_store8(dprofile + n_lanes * j + line16 + line6, reg6);
-      v_store8(dprofile + n_lanes * j + line16 + line7, reg15);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line0), reg0);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line1), reg3);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line2), reg2);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line3), reg7);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line4), reg1);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line5), reg11);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line6), reg6);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line16 + line7), reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
@@ -424,14 +424,14 @@ inline void dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store8(dprofile + n_lanes * j + line24 + line0, reg0);
-      v_store8(dprofile + n_lanes * j + line24 + line1, reg3);
-      v_store8(dprofile + n_lanes * j + line24 + line2, reg2);
-      v_store8(dprofile + n_lanes * j + line24 + line3, reg7);
-      v_store8(dprofile + n_lanes * j + line24 + line4, reg1);
-      v_store8(dprofile + n_lanes * j + line24 + line5, reg11);
-      v_store8(dprofile + n_lanes * j + line24 + line6, reg6);
-      v_store8(dprofile + n_lanes * j + line24 + line7, reg15);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line0), reg0);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line1), reg3);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line2), reg2);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line3), reg7);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line4), reg1);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line5), reg11);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line6), reg6);
+      v_store8(cast_vector8(dprofile + n_lanes * j + line24 + line7), reg15);
     }
 }
 
