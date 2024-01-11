@@ -30,32 +30,42 @@
 
 
 // refactoring: C++26 std::simd
-#ifdef __x86_64__
+#ifdef __aarch64__
+
+#include <arm_neon.h>
+#include "utils/intrinsics_to_functions_aarch64.h"
+using VECTORTYPE = uint8x16_t;
+
+#elif defined __x86_64__
 
 #ifdef __SSE2__
+
 #include <emmintrin.h>  // SSE2 intrinsics
+#include "utils/intrinsics_to_functions_x86_64.h"
+using VECTORTYPE = __m128i;
+
 #endif
 
 #include "ssse3.h"
 
-#endif
-
-
-#ifdef __aarch64__
-#include <arm_neon.h>
-#elif defined __x86_64__
-
 #elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
+
 #include <altivec.h>
+#include "utils/intrinsics_to_functions_ppc.h"
+using VECTORTYPE = vector unsigned char;
+
 #else
+
 #error Big endian ppc64 CPUs not supported
+
 #endif
 
 #else
 
 #error Unknown architecture
+
 #endif
 
 
@@ -70,37 +80,6 @@ auto compute_mask<n_bits>(uint64_t const channel,
                      unsigned int const offset) -> uint64_t {
   return (1ULL << (channel + offset));
 }
-
-
-/* uses 16 unsigned 8-bit values */
-
-#ifdef __aarch64__
-
-using VECTORTYPE = uint8x16_t;
-
-#include "utils/intrinsics_to_functions_aarch64.h"
-
-
-#elif defined __x86_64__
-
-using VECTORTYPE = __m128i;
-
-#include "utils/intrinsics_to_functions_x86_64.h"
-
-
-#elif defined __PPC__
-
-using VECTORTYPE = vector unsigned char;
-
-#include "utils/intrinsics_to_functions_ppc.h"
-
-
-#else
-
-#error Unknown Architecture
-
-#endif
-
 
 // refactoring: objdump shows this function is not inlined
 inline void dprofile_fill8(BYTE * dprofile,

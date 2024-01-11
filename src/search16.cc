@@ -29,34 +29,44 @@
 #include <limits>
 
 
-#ifdef __x86_64__
+// refactoring: C++26 std::simd
+#ifdef __aarch64__
+
+#include <arm_neon.h>
+#include "utils/intrinsics_to_functions_aarch64.h"
+using VECTORTYPE = uint16x8_t;
+
+#elif defined __x86_64__
 
 #ifdef __SSE2__
+
 #include <emmintrin.h>  // SSE2 intrinsics
-// #include "utils/search16_x86_64_intrinsics_to_lambdas.h"
+#include "utils/intrinsics_to_functions_x86_64.h"
+using VECTORTYPE = __m128i;
+
 #endif
 
 #include "ssse3.h"
 #include "sse41.h"
 
-#endif
-
-
-#ifdef __aarch64__
-#include <arm_neon.h>
-#elif defined __x86_64__
-
 #elif defined __PPC__
 
 #ifdef __LITTLE_ENDIAN__
+
 #include <altivec.h>
+#include "utils/intrinsics_to_functions_ppc.h"
+using VECTORTYPE = vector unsigned short;
+
 #else
+
 #error Big endian ppc64 CPUs not supported
+
 #endif
 
 #else
 
 #error Unknown architecture
+
 #endif
 
 
@@ -65,37 +75,6 @@ constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {16};
 using BYTE = unsigned char;
 using WORD = unsigned short;  // refactoring: uint16_t?
-
-
-/* uses 8 unsigned 16-bit values */
-
-#ifdef __aarch64__
-
-using VECTORTYPE = uint16x8_t;
-
-#include "utils/intrinsics_to_functions_aarch64.h"
-
-
-#elif defined __x86_64__
-
-using VECTORTYPE = __m128i;
-
-#include "utils/intrinsics_to_functions_x86_64.h"
-
-
-#elif defined __PPC__
-
-using VECTORTYPE = vector unsigned short;
-
-#include "utils/intrinsics_to_functions_ppc.h"
-
-
-#else
-
-#error Unknown Architecture
-
-#endif
-
 
 inline void dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
