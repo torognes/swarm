@@ -698,11 +698,13 @@ auto search8(BYTE * * q_start,
             }
 
 #ifdef __x86_64__
+#ifdef __SSE3__
           if (ssse3_present != 0)
             {
               dprofile_shuffle8(dprofile, score_matrix, dseq.data());
             }
           else
+#endif
 #endif
             {
               dprofile_fill8(dprofile, score_matrix, dseq.data());
@@ -836,11 +838,13 @@ auto search8(BYTE * * q_start,
           }
 
 #ifdef __x86_64__
+#ifdef __SSE3__
           if (ssse3_present != 0)
             {
               dprofile_shuffle8(dprofile, score_matrix, dseq.data());
             }
           else
+#endif
 #endif
             {
               dprofile_fill8(dprofile, score_matrix, dseq.data());
