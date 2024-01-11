@@ -44,7 +44,7 @@
 using VECTORTYPE = __m128i;
 
 
-void align_cells_regular_16_sse41(VECTORTYPE * Sm,
+auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   VECTORTYPE * hep,
                                   VECTORTYPE ** qp,
                                   VECTORTYPE * Qm,
@@ -52,9 +52,9 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   uint64_t ql,
                                   VECTORTYPE * F0,
                                   uint64_t * dir_long,
-                                  VECTORTYPE * H0);
+                                  VECTORTYPE * H0) -> void;
 
-void align_cells_masked_16_sse41(VECTORTYPE * Sm,
+auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * hep,
                                  VECTORTYPE ** qp,
                                  VECTORTYPE * Qm,
@@ -66,4 +66,4 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * Mm,
                                  VECTORTYPE * MQ,
                                  VECTORTYPE * MR,
-                                 VECTORTYPE * MQ0);
+                                 VECTORTYPE * MQ0) -> void;

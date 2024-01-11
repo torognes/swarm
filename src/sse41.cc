@@ -54,14 +54,14 @@ auto v_min(VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
 }
 
 
-inline void onestep_16_sse41(VECTORTYPE & H,
+inline auto onestep_16_sse41(VECTORTYPE & H,
                              VECTORTYPE & N,
                              VECTORTYPE & F,
                              VECTORTYPE V,
                              unsigned short * DIR,
                              VECTORTYPE & E,
                              VECTORTYPE QR,
-                             VECTORTYPE R)
+                             VECTORTYPE R) -> void
 {
   H = v_add16(H, V);
   const auto W = H;
@@ -80,7 +80,7 @@ inline void onestep_16_sse41(VECTORTYPE & H,
 }
 
 
-void align_cells_regular_16_sse41(VECTORTYPE * Sm,
+auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   VECTORTYPE * hep,
                                   VECTORTYPE ** qp,
                                   VECTORTYPE * Qm,
@@ -88,7 +88,7 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   uint64_t ql,
                                   VECTORTYPE * F0,
                                   uint64_t * dir_long,
-                                  VECTORTYPE * H0)
+                                  VECTORTYPE * H0) -> void
 {
   static constexpr auto step = 16U;
   static constexpr auto offset0 = 0U;
@@ -143,7 +143,7 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
 }
 
 
-void align_cells_masked_16_sse41(VECTORTYPE * Sm,
+auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * hep,
                                  VECTORTYPE ** qp,
                                  VECTORTYPE * Qm,
@@ -155,7 +155,7 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * Mm,
                                  VECTORTYPE * MQ,
                                  VECTORTYPE * MR,
-                                 VECTORTYPE * MQ0)
+                                 VECTORTYPE * MQ0) -> void
 {
   static constexpr auto step = 16U;
   static constexpr auto offset0 = 0U;
