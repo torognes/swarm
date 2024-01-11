@@ -56,7 +56,6 @@ auto dprofile_shuffle8(BYTE * dprofile,
                        BYTE * dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
-  auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);    // output
   const auto seq_chunk0 = v_load8(dseq_byte + 0);  // 16 nucleotides
   const auto seq_chunk1 = v_load8(dseq_byte + 1);  // next 16
   const auto seq_chunk2 = v_load8(dseq_byte + 2);  // next 16
@@ -68,10 +67,10 @@ auto dprofile_shuffle8(BYTE * dprofile,
     // so five possible rows of scores
     const auto scores = v_load8(score_matrix + 2 * nuc);
 
-    _mm_store_si128(profile_db + 4 * nuc + 0, _mm_shuffle_epi8(scores, seq_chunk0));
-    _mm_store_si128(profile_db + 4 * nuc + 1, _mm_shuffle_epi8(scores, seq_chunk1));
-    _mm_store_si128(profile_db + 4 * nuc + 2, _mm_shuffle_epi8(scores, seq_chunk2));
-    _mm_store_si128(profile_db + 4 * nuc + 3, _mm_shuffle_epi8(scores, seq_chunk3));
+    v_store8(dprofile + 4 * nuc + 0, _mm_shuffle_epi8(scores, seq_chunk0));
+    v_store8(dprofile + 4 * nuc + 1, _mm_shuffle_epi8(scores, seq_chunk1));
+    v_store8(dprofile + 4 * nuc + 2, _mm_shuffle_epi8(scores, seq_chunk2));
+    v_store8(dprofile + 4 * nuc + 3, _mm_shuffle_epi8(scores, seq_chunk3));
   };
 
   profline8(0);  // -/gap/no nucleotide (0)
