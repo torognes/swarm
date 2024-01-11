@@ -46,6 +46,8 @@ auto v_merge_lo_8(__m128i lhs, __m128i rhs) -> __m128i;
 
 auto v_merge_lo_16(__m128i lhs, __m128i rhs) -> __m128i;
 
+auto v_merge_hi_8(__m128i lhs, __m128i rhs) -> __m128i;
+
 auto v_merge_hi_16(__m128i lhs, __m128i rhs) -> __m128i;
 
 auto v_merge_lo_32(__m128i lhs, __m128i rhs) -> __m128i;

@@ -73,6 +73,12 @@ auto v_merge_lo_16(__m128i lhs, __m128i rhs) -> __m128i {
   return _mm_unpacklo_epi16(lhs, rhs);
 }
 
+// only in ssse3
+auto v_merge_hi_8(__m128i lhs, __m128i rhs) -> __m128i {
+  // unpack and interleave 8-bit integers from the high half of lhs and rhs
+  return _mm_unpackhi_epi8(lhs, rhs);
+}
+
 auto v_merge_hi_16(__m128i lhs, __m128i rhs) -> __m128i {
   return _mm_unpackhi_epi16(lhs, rhs);
 }
