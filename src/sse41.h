@@ -38,9 +38,6 @@
 #include <cstdint>
 #include <smmintrin.h>
 
-#endif
-#endif
-
 using VECTORTYPE = __m128i;
 
 
@@ -67,3 +64,6 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * MQ,
                                  VECTORTYPE * MR,
                                  VECTORTYPE * MQ0) -> void;
+
+#endif
+#endif
