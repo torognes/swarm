@@ -55,6 +55,11 @@ auto v_or(__m128i lhs, __m128i rhs) -> __m128i {
   return _mm_or_si128(lhs, rhs);
 }
 
+auto v_shift_left(__m128i vector, int n_bytes) -> __m128i {
+  // shift vector of shorts to the left by n bytes, pad with zeros
+  return _mm_slli_epi16(vector, n_bytes);
+}
+
 
 /* 8-bit version with 16 channels */
 
@@ -95,7 +100,7 @@ auto dprofile_shuffle16(WORD * dprofile,
                         BYTE * dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
-  static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
+  static constexpr int channels {8};  // does 8 represent the number of channels?
 
   const auto zero = _mm_setzero_si128();
   const auto one = _mm_set1_epi16(1);
@@ -103,17 +108,17 @@ auto dprofile_shuffle16(WORD * dprofile,
   // refactoring: make lower_chunk and local_t const?
   auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
-    lower_chunk = _mm_slli_epi16(lower_chunk, 1);
+    lower_chunk = v_shift_left(lower_chunk, 1);
     auto local_t = v_add16(lower_chunk, one);
-    local_t = _mm_slli_epi16(local_t, channels);
+    local_t = v_shift_left(local_t, channels);
     return v_or(lower_chunk, local_t);
   };
 
   auto transform_higher_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto higher_chunk = _mm_unpackhi_epi8(seq_chunk, zero);
-    higher_chunk = _mm_slli_epi16(higher_chunk, 1);
+    higher_chunk = v_shift_left(higher_chunk, 1);
     auto local_t = v_add16(higher_chunk, one);
-    local_t = _mm_slli_epi16(local_t, channels);
+    local_t = v_shift_left(local_t, channels);
     return v_or(higher_chunk, local_t);
   };
 
