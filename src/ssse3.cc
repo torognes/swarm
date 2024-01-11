@@ -103,7 +103,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   static constexpr int channels {8};  // does 8 represent the number of channels?
 
   const auto zero = _mm_setzero_si128();
-  const auto one = _mm_set1_epi16(1);
+  const auto one = v_dup16(1);
 
   // refactoring: make lower_chunk and local_t const?
   auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
