@@ -50,10 +50,10 @@ using WORD = unsigned short;
 
 #define v_min(a, b) _mm_min_epu16((a), (b))
 #define v_add16(a, b) _mm_adds_epu16((a), (b))
-#define v_sub(a, b) _mm_subs_epu16((a), (b))
-#define v_dup(a) _mm_set1_epi16(a)
-#define v_zero16() v_dup(0)
-#define v_mask_eq(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
+#define v_sub16(a, b) _mm_subs_epu16((a), (b))
+#define v_dup16(a) _mm_set1_epi16(a)
+#define v_zero16() v_dup16(0)
+#define v_mask_eq16(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
 
 
 inline void onestep_16_sse41(VECTORTYPE & H,
@@ -68,17 +68,17 @@ inline void onestep_16_sse41(VECTORTYPE & H,
   H = v_add16(H, V);
   const auto W = H;
   H = v_min(H, F);
-  *(DIR + 0) = v_mask_eq(W, H);
+  *(DIR + 0) = v_mask_eq16(W, H);
   H = v_min(H, E);
-  *(DIR + 1) = v_mask_eq(H, E);
+  *(DIR + 1) = v_mask_eq16(H, E);
   N = H;
   H = v_add16(H, QR);
   F = v_add16(F, R);
   E = v_add16(E, R);
   F = v_min(H, F);
-  *(DIR + 2) = v_mask_eq(H, F);
+  *(DIR + 2) = v_mask_eq16(H, F);
   E = v_min(H, E);
-  *(DIR + 3) = v_mask_eq(H, E);
+  *(DIR + 3) = v_mask_eq16(H, E);
 }
 
 
@@ -112,7 +112,7 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
   auto f3 = v_add16(f2, R);
 
   auto h0 = *H0;
-  auto h1 = v_sub(f0, Q);
+  auto h1 = v_sub16(f0, Q);
   auto h2 = v_add16(h1, R);
   auto h3 = v_add16(h2, R);
 
@@ -179,7 +179,7 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
   auto f3 = v_add16(f2, R);
 
   auto h0 = *H0;
-  auto h1 = v_sub(f0, Q);
+  auto h1 = v_sub16(f0, Q);
   auto h2 = v_add16(h1, R);
   auto h3 = v_add16(h2, R);
 
@@ -195,8 +195,8 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
       VECTORTYPE *x = qp[i + 0];
 
       /* mask h4 and E */
-      h4 = v_sub(h4, *Mm);
-      E  = v_sub(E,  *Mm);
+      h4 = v_sub16(h4, *Mm);
+      E  = v_sub16(E,  *Mm);
 
       /* init h4 and E */
       h4 = v_add16(h4, *MQ);
