@@ -52,7 +52,7 @@ using WORD = unsigned short;
 #define v_add(a, b) _mm_adds_epu16((a), (b))
 #define v_sub(a, b) _mm_subs_epu16((a), (b))
 #define v_dup(a) _mm_set1_epi16(a)
-#define v_zero v_dup(0)
+#define v_zero() v_dup(0)
 #define v_mask_eq(a, b) static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpeq_epi16((a), (b))))
 
 
@@ -116,10 +116,10 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
   auto h2 = v_add(h1, R);
   auto h3 = v_add(h2, R);
 
-  auto h5 = v_zero;
-  auto h6 = v_zero;
-  auto h7 = v_zero;
-  auto h8 = v_zero;
+  auto h5 = v_zero();
+  auto h6 = v_zero();
+  auto h7 = v_zero();
+  auto h8 = v_zero();
 
   for(auto i = 0ULL; i < ql; i++)
     {
@@ -183,10 +183,10 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
   auto h2 = v_add(h1, R);
   auto h3 = v_add(h2, R);
 
-  auto h5 = v_zero;
-  auto h6 = v_zero;
-  auto h7 = v_zero;
-  auto h8 = v_zero;
+  auto h5 = v_zero();
+  auto h6 = v_zero();
+  auto h7 = v_zero();
+  auto h8 = v_zero();
 
   for(auto i = 0ULL; i < ql; i++)
     {
