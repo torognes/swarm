@@ -54,6 +54,7 @@ auto dprofile_shuffle8(BYTE * dprofile,
                        BYTE * score_matrix,
                        BYTE * dseq_byte) -> void
 {
+  // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);    // output
   auto * score_db = reinterpret_cast<VECTORTYPE *>(score_matrix);  // input
   auto * sequence_db = reinterpret_cast<VECTORTYPE *>(dseq_byte);  // input
