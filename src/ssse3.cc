@@ -89,7 +89,6 @@ auto dprofile_shuffle16(WORD * dprofile,
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   static constexpr unsigned int channels {8};  // does 8 represent the number of channels?
-  auto * profile_db = reinterpret_cast<VECTORTYPE *>(dprofile);
 
   const auto zero = _mm_setzero_si128();
   const auto one = _mm_set1_epi16(1);
@@ -122,10 +121,10 @@ auto dprofile_shuffle16(WORD * dprofile,
   auto profline16 = [&](const long long int nuc) {
     const auto scores = v_load16(score_matrix + 4 * nuc);
 
-    _mm_store_si128(profile_db + 4 * nuc + 0, _mm_shuffle_epi8(scores, m0));
-    _mm_store_si128(profile_db + 4 * nuc + 1, _mm_shuffle_epi8(scores, m1));
-    _mm_store_si128(profile_db + 4 * nuc + 2, _mm_shuffle_epi8(scores, m2));
-    _mm_store_si128(profile_db + 4 * nuc + 3, _mm_shuffle_epi8(scores, m3));
+    v_store16(dprofile + 4 * nuc + 0, _mm_shuffle_epi8(scores, m0));
+    v_store16(dprofile + 4 * nuc + 1, _mm_shuffle_epi8(scores, m1));
+    v_store16(dprofile + 4 * nuc + 2, _mm_shuffle_epi8(scores, m2));
+    v_store16(dprofile + 4 * nuc + 3, _mm_shuffle_epi8(scores, m3));
   };
 
   profline16(0);  // -/gap/no nucleotide (0)
