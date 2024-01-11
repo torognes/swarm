@@ -47,7 +47,7 @@
 using WORD = unsigned short;
 using BYTE = unsigned char;
 
-auto v_shuffle(__m128i lhs, __m128i mask) -> __m128i {
+auto v_shuffle8(__m128i lhs, __m128i mask) -> __m128i {
   // shuffle vector of bytes according to control mask
   return _mm_shuffle_epi8(lhs, mask);
 }
@@ -80,10 +80,10 @@ auto dprofile_shuffle8(BYTE * dprofile,
     // so five possible rows of scores
     const auto scores = v_load8(score_matrix + 2 * nuc);
 
-    v_store8(dprofile + 4 * nuc + 0, v_shuffle(scores, seq_chunk0));
-    v_store8(dprofile + 4 * nuc + 1, v_shuffle(scores, seq_chunk1));
-    v_store8(dprofile + 4 * nuc + 2, v_shuffle(scores, seq_chunk2));
-    v_store8(dprofile + 4 * nuc + 3, v_shuffle(scores, seq_chunk3));
+    v_store8(dprofile + 4 * nuc + 0, v_shuffle8(scores, seq_chunk0));
+    v_store8(dprofile + 4 * nuc + 1, v_shuffle8(scores, seq_chunk1));
+    v_store8(dprofile + 4 * nuc + 2, v_shuffle8(scores, seq_chunk2));
+    v_store8(dprofile + 4 * nuc + 3, v_shuffle8(scores, seq_chunk3));
   };
 
   profline8(0);  // -/gap/no nucleotide (0)
@@ -134,10 +134,10 @@ auto dprofile_shuffle16(WORD * dprofile,
   auto profline16 = [&](const long long int nuc) {
     const auto scores = v_load16(score_matrix + 4 * nuc);
 
-    v_store16(dprofile + 4 * nuc + 0, v_shuffle(scores, m0));
-    v_store16(dprofile + 4 * nuc + 1, v_shuffle(scores, m1));
-    v_store16(dprofile + 4 * nuc + 2, v_shuffle(scores, m2));
-    v_store16(dprofile + 4 * nuc + 3, v_shuffle(scores, m3));
+    v_store16(dprofile + 4 * nuc + 0, v_shuffle8(scores, m0));
+    v_store16(dprofile + 4 * nuc + 1, v_shuffle8(scores, m1));
+    v_store16(dprofile + 4 * nuc + 2, v_shuffle8(scores, m2));
+    v_store16(dprofile + 4 * nuc + 3, v_shuffle8(scores, m3));
   };
 
   profline16(0);  // -/gap/no nucleotide (0)
