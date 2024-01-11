@@ -61,6 +61,12 @@ auto v_shift_left(__m128i vector, int n_bytes) -> __m128i {
   return _mm_slli_epi16(vector, n_bytes);
 }
 
+// refactoring: why not using that in vzero8 and vzero16?
+auto v_zero() -> __m128i {
+  // return vector with all elements set to zero
+  return _mm_setzero_si128();
+}
+
 
 /* 8-bit version with 16 channels */
 
@@ -103,7 +109,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   static constexpr int channels {8};  // does 8 represent the number of channels?
 
-  const auto zero = _mm_setzero_si128();
+  const auto zero = v_zero();
   const auto one = v_dup16(1);
 
   // refactoring: make lower_chunk and local_t const?
@@ -116,7 +122,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   };
 
   auto transform_higher_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
-    auto higher_chunk = _mm_unpackhi_epi8(seq_chunk, zero);
+    auto higher_chunk = v_merge_hi_8(seq_chunk, zero);
     higher_chunk = v_shift_left(higher_chunk, 1);
     auto local_t = v_add16(higher_chunk, one);
     local_t = v_shift_left(local_t, channels);
