@@ -49,7 +49,7 @@ using VECTORTYPE = __m128i;
 using WORD = unsigned short;
 
 #define v_min(a, b) _mm_min_epu16((a), (b))
-#define v_add(a, b) _mm_adds_epu16((a), (b))
+#define v_add16(a, b) _mm_adds_epu16((a), (b))
 #define v_sub(a, b) _mm_subs_epu16((a), (b))
 #define v_dup(a) _mm_set1_epi16(a)
 #define v_zero16() v_dup(0)
@@ -65,16 +65,16 @@ inline void onestep_16_sse41(VECTORTYPE & H,
                              VECTORTYPE QR,
                              VECTORTYPE R)
 {
-  H = v_add(H, V);
+  H = v_add16(H, V);
   const auto W = H;
   H = v_min(H, F);
   *(DIR + 0) = v_mask_eq(W, H);
   H = v_min(H, E);
   *(DIR + 1) = v_mask_eq(H, E);
   N = H;
-  H = v_add(H, QR);
-  F = v_add(F, R);
-  E = v_add(E, R);
+  H = v_add16(H, QR);
+  F = v_add16(F, R);
+  E = v_add16(E, R);
   F = v_min(H, F);
   *(DIR + 2) = v_mask_eq(H, F);
   E = v_min(H, E);
@@ -107,14 +107,14 @@ void align_cells_regular_16_sse41(VECTORTYPE * Sm,
   const auto R = *Rm;
 
   auto f0 = *F0;
-  auto f1 = v_add(f0, R);
-  auto f2 = v_add(f1, R);
-  auto f3 = v_add(f2, R);
+  auto f1 = v_add16(f0, R);
+  auto f2 = v_add16(f1, R);
+  auto f3 = v_add16(f2, R);
 
   auto h0 = *H0;
   auto h1 = v_sub(f0, Q);
-  auto h2 = v_add(h1, R);
-  auto h3 = v_add(h2, R);
+  auto h2 = v_add16(h1, R);
+  auto h3 = v_add16(h2, R);
 
   auto h5 = v_zero16();
   auto h6 = v_zero16();
@@ -174,14 +174,14 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
   const auto R = *Rm;
 
   auto f0 = *F0;
-  auto f1 = v_add(f0, R);
-  auto f2 = v_add(f1, R);
-  auto f3 = v_add(f2, R);
+  auto f1 = v_add16(f0, R);
+  auto f2 = v_add16(f1, R);
+  auto f3 = v_add16(f2, R);
 
   auto h0 = *H0;
   auto h1 = v_sub(f0, Q);
-  auto h2 = v_add(h1, R);
-  auto h3 = v_add(h2, R);
+  auto h2 = v_add16(h1, R);
+  auto h3 = v_add16(h2, R);
 
   auto h5 = v_zero16();
   auto h6 = v_zero16();
@@ -199,12 +199,12 @@ void align_cells_masked_16_sse41(VECTORTYPE * Sm,
       E  = v_sub(E,  *Mm);
 
       /* init h4 and E */
-      h4 = v_add(h4, *MQ);
-      E  = v_add(E,  *MQ);
-      E  = v_add(E,  *MQ0);
+      h4 = v_add16(h4, *MQ);
+      E  = v_add16(E,  *MQ);
+      E  = v_add16(E,  *MQ0);
 
       /* update MQ */
-      *MQ = v_add(*MQ,  *MR);
+      *MQ = v_add16(*MQ,  *MR);
 
 
       onestep_16_sse41(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
