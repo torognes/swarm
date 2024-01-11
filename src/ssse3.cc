@@ -51,6 +51,10 @@ auto v_shuffle(__m128i lhs, __m128i rhs) -> __m128i {
   return _mm_shuffle_epi8(lhs, rhs);
 }
 
+auto v_or(__m128i lhs, __m128i rhs) -> __m128i {
+  return _mm_or_si128(lhs, rhs);
+}
+
 
 /* 8-bit version with 16 channels */
 
@@ -100,17 +104,17 @@ auto dprofile_shuffle16(WORD * dprofile,
   auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto lower_chunk = _mm_unpacklo_epi8(seq_chunk, zero);
     lower_chunk = _mm_slli_epi16(lower_chunk, 1);
-    auto local_t = _mm_adds_epu16(lower_chunk, one);
+    auto local_t = v_add16(lower_chunk, one);
     local_t = _mm_slli_epi16(local_t, channels);
-    return _mm_or_si128(lower_chunk, local_t);
+    return v_or(lower_chunk, local_t);
   };
 
   auto transform_higher_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto higher_chunk = _mm_unpackhi_epi8(seq_chunk, zero);
     higher_chunk = _mm_slli_epi16(higher_chunk, 1);
-    auto local_t = _mm_adds_epu16(higher_chunk, one);
+    auto local_t = v_add16(higher_chunk, one);
     local_t = _mm_slli_epi16(local_t, channels);
-    return _mm_or_si128(higher_chunk, local_t);
+    return v_or(higher_chunk, local_t);
   };
 
   const auto t0 = v_load8(dseq_byte + 0);
