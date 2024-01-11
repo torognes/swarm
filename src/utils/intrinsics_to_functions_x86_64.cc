@@ -65,6 +65,7 @@ auto v_store8(uint8_t* ptr, __m128i cpu_register) -> void {
 
 // only in search8
 auto v_merge_lo_8(__m128i lhs, __m128i rhs) -> __m128i {
+  // unpack and interleave 8-bit integers from the low half of lhs and rhs
   return _mm_unpacklo_epi8(lhs, rhs);
 }
 
