@@ -47,8 +47,9 @@
 using WORD = unsigned short;
 using BYTE = unsigned char;
 
-auto v_shuffle(__m128i lhs, __m128i rhs) -> __m128i {
-  return _mm_shuffle_epi8(lhs, rhs);
+auto v_shuffle(__m128i lhs, __m128i mask) -> __m128i {
+  // shuffle vector of bytes according to control mask
+  return _mm_shuffle_epi8(lhs, mask);
 }
 
 auto v_or(__m128i lhs, __m128i rhs) -> __m128i {
