@@ -27,13 +27,13 @@
 using WORD = unsigned short;
 using BYTE = unsigned char;
 
-void dprofile_shuffle8(BYTE * dprofile,
+auto dprofile_shuffle8(BYTE * dprofile,
                        BYTE * score_matrix,
-                       BYTE * dseq_byte);
+                       BYTE * dseq_byte) -> void;
 
-void dprofile_shuffle16(WORD * dprofile,
+auto dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
-                        BYTE * dseq_byte);
+                        BYTE * dseq_byte) -> void;
 
 #endif
 #endif
