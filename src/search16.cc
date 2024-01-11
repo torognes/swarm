@@ -46,8 +46,17 @@ using VECTORTYPE = __m128i;
 
 #endif
 
+#ifdef __SSE3__
+
 #include "ssse3.h"
+
+#endif
+
+#ifdef __SSE4_1__
+
 #include "sse41.h"
+
+#endif
 
 #elif defined __PPC__
 
@@ -439,22 +448,26 @@ auto search16(WORD * * q_start,
             }
 
 #ifdef __x86_64__
+#ifdef __SSE3__
           if (ssse3_present != 0)
             {
               dprofile_shuffle16(dprofile, score_matrix, dseq.data());
             }
           else
 #endif
+#endif
             {
               dprofile_fill16(dprofile, score_matrix, dseq.data());
             }
 
 #ifdef __x86_64__
+#ifdef __SSE4_1__
           if (sse41_present != 0)
             {
               align_cells_regular_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
             }
           else
+#endif
 #endif
             {
               align_cells_regular_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
@@ -586,11 +599,13 @@ auto search16(WORD * * q_start,
           }
 
 #ifdef __x86_64__
+#ifdef __SSE3__
           if (ssse3_present != 0)
             {
               dprofile_shuffle16(dprofile, score_matrix, dseq.data());
             }
           else
+#endif
 #endif
             {
               dprofile_fill16(dprofile, score_matrix, dseq.data());
@@ -601,11 +616,13 @@ auto search16(WORD * * q_start,
           MQ0 = MQ;
 
 #ifdef __x86_64__
+#ifdef __SSE4_1__
           if (sse41_present != 0)
             {
               align_cells_masked_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
             }
           else
+#endif
 #endif
             {
               align_cells_masked_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
