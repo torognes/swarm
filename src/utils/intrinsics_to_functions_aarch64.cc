@@ -48,12 +48,28 @@ constexpr uint8x16_t neon_mask8 =
 constexpr uint16x8_t neon_shift16 = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
 
-auto cast_vector16(uint16_t * ptr) -> uint16x8_t* {
-  return reinterpret_cast<uint16x8_t*>(ptr);
+auto cast_vector16(uint16_t * ptr) -> uint16_t* {
+  // dummy function, needed to match x86-64 code
+  return ptr;
 }
 
-auto cast_vector8(uint8_t * ptr) -> uint8x16_t* {
+auto cast_vector8(uint8_t * ptr) -> uint8_t* {
+  // dummy function, needed to match x86-64 code
+  return ptr;
+}
+
+auto cast_vector8(uint8x16_t* ptr) -> uint8x16_t* {
+  // dummy function, needed to match x86-64 code
+  return ptr;
+}
+
+// only used in v_merge_lo8()
+auto cast_vector8_real(uint8_t * ptr) -> uint8x16_t* {
   return reinterpret_cast<uint8x16_t*>(ptr);
+}
+
+auto cast_vector64(uint8_t * ptr) -> uint64_t* {
+  return reinterpret_cast<uint64_t*>(ptr);
 }
 
 auto v_load16(uint16_t const * ptr) -> uint16x8_t {
@@ -61,8 +77,8 @@ auto v_load16(uint16_t const * ptr) -> uint16x8_t {
 }
 
 // only in search8
-auto v_load_64(uint64_t const * ptr) -> uint64x2_t {
-  return vld1q_dup_u64(ptr);
+auto v_load_64(uint8_t * ptr) -> uint64x2_t {
+  return vld1q_dup_u64(cast_vector64(ptr));
 }
 
 auto v_store16(uint16_t * ptr, uint16x8_t cpu_register) -> void {
@@ -71,6 +87,12 @@ auto v_store16(uint16_t * ptr, uint16x8_t cpu_register) -> void {
 
 auto v_store8(uint8_t * ptr, uint8x16_t cpu_register) -> void {
   vst1q_u8(ptr, cpu_register);
+}
+
+// only in search8
+auto v_merge_lo_8(uint8x16_t lhs, uint8_t rhs) -> uint8x16_t {
+  auto * rhs_ptr = &rhs;
+  return vzip1q_u8(lhs, *cast_vector8_real(rhs_ptr));
 }
 
 // only in search8

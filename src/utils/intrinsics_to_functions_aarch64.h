@@ -32,18 +32,23 @@
 #include <arm_neon.h>
 
 
-auto cast_vector16(uint16_t * ptr) -> uint16x8_t*;
+auto cast_vector16(uint16_t * ptr) -> uint16_t*;
 
-auto cast_vector8(uint8_t * ptr) -> uint8x16_t*;
+auto cast_vector8(uint8_t * ptr) -> uint8_t*;
+
+auto cast_vector8(uint8x16_t* ptr) -> uint8x16_t*;
 
 auto v_load16(uint16_t const * ptr) -> uint16x8_t;
 
 // only in search8
-auto v_load_64(uint64_t const * ptr) -> uint64x2_t;
+auto v_load_64(uint8_t * ptr) -> uint64x2_t;
 
 auto v_store16(uint16_t * ptr, uint16x8_t cpu_register) -> void;
 
 auto v_store8(uint8_t * ptr, uint8x16_t cpu_register) -> void;
+
+// only in search8
+auto v_merge_lo_8(uint8x16_t lhs, uint8_t rhs) -> uint8x16_t;
 
 // only in search8
 auto v_merge_lo_8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t;
