@@ -102,11 +102,11 @@ auto compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b) -> ui
 
 uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 {
-  uint8x16_t * ap = (uint8x16_t *) qgram_a;
-  uint8x16_t * bp = (uint8x16_t *) qgram_b;
+  uint8x16_t * ap = reinterpret_cast<uint8x16_t *>(qgram_a);
+  uint8x16_t * bp = reinterpret_cast<uint8x16_t *>(qgram_b);
   uint64_t count {0};
 
-  while ((unsigned char*)ap < qgram_a + qgramvectorbytes) {
+  while (reinterpret_cast<unsigned char*>(ap) < qgram_a + qgramvectorbytes) {
     count += vaddvq_u8(vcntq_u8(veorq_u8(*ap++, *bp++)));
   }
 
