@@ -77,7 +77,7 @@ auto v_sub16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t;
 
 auto v_sub8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t;
   
-auto v_dup16(uint16_t value) -> uint16x8_t;
+auto v_dup16(int16_t value) -> uint16x8_t;
 
 auto v_dup8(uint8_t value) -> uint8x16_t;
 
