@@ -168,9 +168,9 @@ auto v_sub8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t {
   return vqsubq_u8(lhs, rhs);
 }
   
-auto v_dup16(uint16_t value) -> uint16x8_t {
+auto v_dup16(int16_t value) -> uint16x8_t {
   // broadcast a uint16_t to all elements of destination
-  return vdupq_n_u16(value);
+  return vdupq_n_u16(static_cast<uint16_t>(value));
 }
 
 auto v_dup8(uint8_t value) -> uint8x16_t {
@@ -179,7 +179,7 @@ auto v_dup8(uint8_t value) -> uint8x16_t {
 }
 
 auto v_zero16() -> uint16x8_t {
-  static constexpr uint16_t zero = 0;
+  static constexpr int16_t zero = 0;
   return v_dup16(zero);
 }
 
