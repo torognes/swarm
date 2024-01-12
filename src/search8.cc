@@ -664,7 +664,8 @@ auto search8(BYTE * * q_start,
 
   done = 0;
 
-  auto *hep = cast_vector8(hearray);
+  // refactoring: can't remove reinterpret_cast, cast_vector8() is a nullop in Aarch64
+  auto *hep = reinterpret_cast<VECTORTYPE*>(hearray);
   auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
 
   auto F0 = v_zero8();
