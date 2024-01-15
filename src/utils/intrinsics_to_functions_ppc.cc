@@ -59,7 +59,12 @@ auto cast_vector16(uint16_t * ptr) -> v_u16_t* {
   return reinterpret_cast<v_u16_t*>(ptr);
 }
 
-auto cast_vector8(uint8_t * ptr) -> v_u8_t* {
+auto cast_vector8(uint8_t * ptr) -> uint8_t* {
+  return ptr;
+}
+
+// only used in v_merge_lo8()
+auto cast_vector8_real(uint8_t * ptr) -> v_u8_t* {
   return reinterpret_cast<v_u8_t*>(ptr);
 }
 
@@ -91,6 +96,11 @@ auto v_store8(uint8_t * ptr, v_u8_t cpu_register) -> void {
 }
 
 // only in search8
+auto v_merge_lo_8(v_u8_t lhs, uint8_t rhs) -> v_u8_t {
+  auto * rhs_ptr = &rhs;
+  return vec_mergeh(lhs, *cast_vector8_real(rhs_ptr));
+}
+
 auto v_merge_lo_8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   return vec_mergeh(lhs, rhs);
 }

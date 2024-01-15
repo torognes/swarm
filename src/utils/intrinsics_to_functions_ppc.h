@@ -44,7 +44,7 @@ using v_u8_t = vector unsigned char;
 
 auto cast_vector16(uint16_t * ptr) -> v_u16_t*;
 
-auto cast_vector8(uint8_t * ptr) -> v_u8_t*;
+auto cast_vector8(uint8_t * ptr) -> uint8_t*;
 
 auto v_load16(uint16_t const * ptr) -> v_u16_t;
 
@@ -53,6 +53,8 @@ auto v_load_64(uint8_t * ptr) -> v_u8_t;
 auto v_store16(uint16_t * ptr, v_u16_t cpu_register) -> void;
 
 auto v_store8(uint8_t * ptr, v_u8_t cpu_register) -> void;
+
+auto v_merge_lo_8(v_u8_t lhs, uint8_t rhs) -> v_u8_t;
 
 auto v_merge_lo_8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t;
 
