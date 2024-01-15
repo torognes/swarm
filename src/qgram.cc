@@ -129,6 +129,7 @@ uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 }
 
 #elif defined __x86_64__
+#ifdef __SSE2__
 
 auto v_add64(__m128i lhs, __m128i rhs) -> __m128i {
   // add 64-bit integers packed in lhs and rhs (SSE2)
@@ -217,6 +218,7 @@ auto compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b) -> ui
   return compareqgramvectors_128(qgram_a, qgram_b);
 }
 
+#endif
 #else
 
 #error Unknown architecture
