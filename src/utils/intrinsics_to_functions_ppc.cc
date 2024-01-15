@@ -64,7 +64,7 @@ auto cast_vector8(uint8_t * ptr) -> v_u8_t* {
 }
 
 auto v_load16(uint16_t const * ptr) -> v_u16_t {
-  return *cast_vector16(ptr);  // dereference
+  return vec_splats(*ptr);  // dereference
 }
 
 // only in search8
