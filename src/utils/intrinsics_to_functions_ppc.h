@@ -46,6 +46,8 @@ auto cast_vector16(uint16_t * ptr) -> v_u16_t*;
 
 auto cast_vector8(uint8_t * ptr) -> uint8_t*;
 
+auto cast_vector8(v_u8_t * ptr) -> v_u8_t*;
+
 auto v_load16(uint16_t const * ptr) -> v_u16_t;
 
 auto v_load_64(uint8_t * ptr) -> v_u8_t;

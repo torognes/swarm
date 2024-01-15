@@ -63,6 +63,10 @@ auto cast_vector8(uint8_t * ptr) -> uint8_t* {
   return ptr;
 }
 
+auto cast_vector8(v_u8_t * ptr) -> v_u8_t* {
+  return ptr;
+}
+
 // only used in v_merge_lo8()
 auto cast_vector8_real(uint8_t * ptr) -> v_u8_t* {
   return reinterpret_cast<v_u8_t*>(ptr);
