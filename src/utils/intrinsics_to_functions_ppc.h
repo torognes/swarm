@@ -48,7 +48,7 @@ auto cast_vector8(uint8_t * ptr) -> v_u8_t*;
 
 auto v_load16(uint16_t const * ptr) -> v_u16_t;
 
-auto v_load_64(uint64_t const * ptr) -> v_u64_t;
+auto v_load_64(uint8_t * ptr) -> v_u8_t;
 
 auto v_store16(uint16_t * ptr, v_u16_t cpu_register) -> void;
 

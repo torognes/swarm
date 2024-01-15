@@ -68,8 +68,8 @@ auto v_load16(uint16_t const * ptr) -> v_u16_t {
 }
 
 // only in search8
-auto v_load_64(uint64_t const * ptr) -> v_u64_t {
-  return vec_splats(*ptr);
+auto v_load_64(uint8_t * ptr) -> v_u8_t {
+  return reinterpret_cast<v_u8_t>(vec_splats(*reinterpret_cast<uint64_t*>(ptr)));
 }
 
 auto v_store16(uint16_t * ptr, v_u16_t cpu_register) -> void {
