@@ -461,11 +461,10 @@ auto db_read(const char * filename,
   progress_init("Reading sequences:", filesize);
 
   /* allocate space */
-  if (filesize > 0) {
-    data_v.resize(filesize);
-  } else {
-    data_v.resize(memchunk);
+  if (filesize > memchunk) {
+    data_v.reserve(filesize);
   }
+  data_v.resize(memchunk);
   datap = data_v.data();
 
   while(line[0] != 0)
