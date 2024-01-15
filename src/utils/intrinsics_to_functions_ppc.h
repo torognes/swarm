@@ -96,7 +96,7 @@ auto v_sub16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t;
 
 auto v_sub8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t;
 
-auto v_dup16(uint16_t value) -> v_u16_t;
+auto v_dup16(int16_t value) -> v_u16_t;
 
 auto v_dup8(uint8_t value) -> v_u8_t;
 

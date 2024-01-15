@@ -244,9 +244,9 @@ auto v_sub8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   return vec_subs(lhs, rhs);
 }
 
-auto v_dup16(uint16_t value) -> v_u16_t {
+auto v_dup16(int16_t value) -> v_u16_t {
   // broadcast a uint16_t to all elements of destination
-  return vec_splats(value);
+  return vec_splats(static_cast<uint16_t>(value));
 }
 
 auto v_dup8(uint8_t value) -> v_u8_t {
@@ -256,7 +256,7 @@ auto v_dup8(uint8_t value) -> v_u8_t {
 
 auto v_zero16() -> v_u16_t {
   // decision: was using vec_splat_u16, I use v_dup16()
-  static constexpr uint16_t zero = 0;
+  static constexpr int16_t zero = 0;
   return v_dup16(zero);
 }
 
