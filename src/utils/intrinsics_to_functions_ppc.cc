@@ -296,7 +296,7 @@ auto v_shift_left8(v_u8_t vector) -> v_u8_t {
   return vec_sld(vector, v_zero8(), 1);
 }
 
-auto v_mask_eq16(v_u8_t lhs, v_u8_t rhs) -> uint16_t {
+auto v_mask_eq16(v_u16_t lhs, v_u16_t rhs) -> uint16_t {
   // - compare vectors of integers for equality
   // - vec_cmpeq -> vector bool char
   // - permute (vec_bperm -> vector unsigned char)
