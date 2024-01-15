@@ -55,8 +55,8 @@ constexpr v_u8_t perm_bits =
 
 // source: power vector intrinsic programming reference (chapter 4)
 
-auto cast_vector16(uint16_t * ptr) -> v_u16_t* {
-  return reinterpret_cast<v_u16_t*>(ptr);
+auto cast_vector16(uint16_t * ptr) -> uint16_t* {
+  return ptr;
 }
 
 auto cast_vector8(uint8_t * ptr) -> uint8_t* {

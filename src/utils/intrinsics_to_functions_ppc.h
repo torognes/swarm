@@ -42,7 +42,7 @@ using v_u16_t = vector unsigned short;
 using v_u8_t = vector unsigned char;
 
 
-auto cast_vector16(uint16_t * ptr) -> v_u16_t*;
+auto cast_vector16(uint16_t * ptr) -> uint16_t*;
 
 auto cast_vector8(uint8_t * ptr) -> uint8_t*;
 
