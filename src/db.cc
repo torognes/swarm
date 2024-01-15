@@ -462,7 +462,8 @@ auto db_read(const char * filename,
 
   /* allocate space */
   if (filesize > memchunk) {
-    data_v.reserve(filesize);
+    // in RAM data cannot be smaller than 1/4 of the on-disk data
+    data_v.reserve(filesize / 4);
   }
   data_v.resize(memchunk);
   datap = data_v.data();
