@@ -684,7 +684,7 @@ auto main(int argc, char** argv) -> int
   args_show();
 
   // parse fasta input
-  std::vector<char> data_v;
+  std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *
   db_read(parameters.input_filename.c_str(), parameters, data_v);
 
   // clustering
