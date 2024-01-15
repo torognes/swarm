@@ -117,12 +117,12 @@ uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 
 uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 {
-  vector unsigned char * ap = (vector unsigned char *) qgram_a;
-  vector unsigned char * bp = (vector unsigned char *) qgram_b;
+  auto * ap = reinterpret_cast<vector unsigned char *>(qgram_a);
+  auto * bp = reinterpret_cast<vector unsigned char *>(qgram_b);
   vector unsigned long long count_vector = { 0, 0 };
 
-  while ((unsigned char *)ap < qgram_a + qgramvectorbytes) {
-    count_vector += vec_vpopcnt((vector unsigned long long)(vec_xor(*ap++, *bp++)));
+  while (reinterpret_cast<unsigned char *>(ap) < qgram_a + qgramvectorbytes) {
+    count_vector += vec_vpopcnt(reinterpret_cast<vector unsigned long long>(vec_xor(*ap++, *bp++)));
   }
 
   return count_vector[0] + count_vector[1];
