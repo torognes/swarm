@@ -23,9 +23,12 @@
 
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <vector>
 
 
-auto db_read(const char * filename, struct Parameters const & parameters) -> void;
+auto db_read(const char * filename,
+             struct Parameters const & parameters,
+             std::vector<char> & data_v) -> void;
 
 auto db_getsequencecount() -> unsigned int;
 

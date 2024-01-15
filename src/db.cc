@@ -407,12 +407,15 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
 }
 
 
-auto db_read(const char * filename, struct Parameters const & parameters) -> void
+auto db_read(const char * filename,
+             struct Parameters const & parameters,
+             std::vector<char> & data_v) -> void
 {
   /* allocate space */
 
   uint64_t dataalloc {memchunk};
-  datap = static_cast<char *>(xmalloc(dataalloc));
+  data_v.resize(memchunk);
+  datap = data_v.data();
   uint64_t datalen {0};
   uint64_t duplicates_found {0};
 
@@ -489,7 +492,8 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
           dataalloc += memchunk;
-          datap = static_cast<char *>(xrealloc(datap, dataalloc));
+          data_v.resize(data_v.size() + memchunk);
+          datap = data_v.data();
         }
       std::memcpy(datap + datalen, & lineno, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
@@ -500,7 +504,8 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       while (datalen + headerlen + 1 > dataalloc)
         {
           dataalloc += memchunk;
-          datap = static_cast<char *>(xrealloc(datap, dataalloc));
+          data_v.resize(data_v.size() + memchunk);
+          datap = data_v.data();
         }
       std::memcpy(datap + datalen, line + 1, headerlen);
       *(datap + datalen + headerlen) = 0;
@@ -527,7 +532,8 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
       while (datalen + sizeof(unsigned int) > dataalloc)
         {
           dataalloc += memchunk;
-          datap = static_cast<char *>(xrealloc(datap, dataalloc));
+          data_v.resize(data_v.size() + memchunk);
+          datap = data_v.data();
         }
       const uint64_t datalen_seqlen = datalen;
       std::memcpy(datap + datalen, & length, sizeof(unsigned int));
@@ -562,7 +568,8 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
                       while (datalen + sizeof(nt_buffer) > dataalloc)
                         {
                           dataalloc += memchunk;
-                          datap = static_cast<char *>(xrealloc(datap, dataalloc));
+                          data_v.resize(data_v.size() + memchunk);
+                          datap = data_v.data();
                         }
 
                       std::memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
@@ -624,7 +631,8 @@ auto db_read(const char * filename, struct Parameters const & parameters) -> voi
           while (datalen + sizeof(nt_buffer) > dataalloc)
             {
               dataalloc += memchunk;
-              datap = static_cast<char *>(xrealloc(datap, dataalloc));
+              data_v.resize(data_v.size() + memchunk);
+              datap = data_v.data();
             }
 
           std::memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
@@ -942,9 +950,8 @@ void db_free()
   zobrist_exit();
 
   if (datap != nullptr) {
-    xfree(datap);
+    datap = nullptr;
   }
-  datap = nullptr;
   delete [] seqindex;
   seqindex = nullptr;
 }

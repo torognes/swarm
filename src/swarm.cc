@@ -684,7 +684,8 @@ auto main(int argc, char** argv) -> int
   args_show();
 
   // parse fasta input
-  db_read(parameters.input_filename.c_str(), parameters);
+  std::vector<char> data_v;
+  db_read(parameters.input_filename.c_str(), parameters, data_v);
 
   // clustering
   switch (parameters.opt_differences)
