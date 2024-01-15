@@ -84,6 +84,7 @@ constexpr int n_options {26};
 
 std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
 
+// refactoring: add option -q (no-cluster-breaking)
 const std::array<struct option, 25> long_options = {
   {
    {"append-abundance",      required_argument, nullptr, 'a' },
