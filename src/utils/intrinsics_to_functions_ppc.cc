@@ -100,7 +100,12 @@ auto v_merge_lo_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 }
 
 auto v_merge_lo_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
-  return vec_mergeh(lhs, rhs);
+  // search8: v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a), (vector short)(b))
+  // refactoring: try without casting
+  return reinterpret_cast<v_u8_t>(
+             vec_mergeh(reinterpret_cast<v_u16_t>(lhs),
+                        reinterpret_cast<v_u16_t>(rhs))
+         );
 }
 
 auto v_merge_hi_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
@@ -110,9 +115,9 @@ auto v_merge_hi_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 auto v_merge_hi_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_hi_16(a, b) (VECTORTYPE)vec_mergel((vector short)(a), (vector short)(b))
   // refactoring: try without casting
-  return static_cast<v_u8_t>(
-             vec_mergel(static_cast<v_u16_t>(lhs),
-                        static_cast<v_u16_t>(rhs))
+  return reinterpret_cast<v_u8_t>(
+             vec_mergel(reinterpret_cast<v_u16_t>(lhs),
+                        reinterpret_cast<v_u16_t>(rhs))
          );
 }
 
@@ -120,9 +125,9 @@ auto v_merge_lo_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u16_t>(
-             vec_mergeh(static_cast<v_u32_t>(lhs),
-                        static_cast<v_u32_t>(rhs))
+  return reinterpret_cast<v_u16_t>(
+             vec_mergeh(reinterpret_cast<v_u32_t>(lhs),
+                        reinterpret_cast<v_u32_t>(rhs))
          );
 }
 
@@ -130,9 +135,9 @@ auto v_merge_lo_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u8_t>(
-             vec_mergeh(static_cast<v_u32_t>(lhs),
-                        static_cast<v_u32_t>(rhs))
+  return reinterpret_cast<v_u8_t>(
+             vec_mergeh(reinterpret_cast<v_u32_t>(lhs),
+                        reinterpret_cast<v_u32_t>(rhs))
          );
 }
 
@@ -140,9 +145,9 @@ auto v_merge_hi_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u16_t>(
-             vec_mergel(static_cast<v_u32_t>(lhs),
-                        static_cast<v_u32_t>(rhs))
+  return reinterpret_cast<v_u16_t>(
+             vec_mergel(reinterpret_cast<v_u32_t>(lhs),
+                        reinterpret_cast<v_u32_t>(rhs))
          );
 }
 
@@ -150,9 +155,9 @@ auto v_merge_hi_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u8_t>(
-             vec_mergel(static_cast<v_u32_t>(lhs),
-                        static_cast<v_u32_t>(rhs))
+  return reinterpret_cast<v_u8_t>(
+             vec_mergel(reinterpret_cast<v_u32_t>(lhs),
+                        reinterpret_cast<v_u32_t>(rhs))
          );
 }
 
@@ -160,9 +165,9 @@ auto v_merge_lo_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_low)
   // decision: was casting to signed long long; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u16_t>(
-             vec_perm(static_cast<v_u64_t>(lhs),
-                      static_cast<v_u64_t>(rhs),
+  return reinterpret_cast<v_u16_t>(
+             vec_perm(reinterpret_cast<v_u64_t>(lhs),
+                      reinterpret_cast<v_u64_t>(rhs),
                       perm_merge_long_low)
          );
 }
@@ -171,9 +176,9 @@ auto v_merge_lo_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_low)
   // decision: was casting to signed long long; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u8_t>(
-             vec_perm(static_cast<v_u64_t>(lhs),
-                      static_cast<v_u64_t>(rhs),
+  return reinterpret_cast<v_u8_t>(
+             vec_perm(reinterpret_cast<v_u64_t>(lhs),
+                      reinterpret_cast<v_u64_t>(rhs),
                       perm_merge_long_low)
          );
 }
@@ -183,9 +188,9 @@ auto v_merge_hi_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_high)
   // decision: was casting to signed long long; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u16_t>(
-             vec_perm(static_cast<v_u64_t>(lhs),
-                      static_cast<v_u64_t>(rhs),
+  return reinterpret_cast<v_u16_t>(
+             vec_perm(reinterpret_cast<v_u64_t>(lhs),
+                      reinterpret_cast<v_u64_t>(rhs),
                       perm_merge_long_high)
          );
 }
@@ -194,9 +199,9 @@ auto v_merge_hi_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_high)
   // decision: was casting to signed long long; I use unsigned
   // refactoring: try without casting
-  return static_cast<v_u8_t>(
-             vec_perm(static_cast<v_u64_t>(lhs),
-                      static_cast<v_u64_t>(rhs),
+  return reinterpret_cast<v_u8_t>(
+             vec_perm(reinterpret_cast<v_u64_t>(lhs),
+                      reinterpret_cast<v_u64_t>(rhs),
                       perm_merge_long_high)
          );
 }
@@ -286,9 +291,9 @@ auto v_mask_eq16(v_u8_t lhs, v_u8_t rhs) -> uint16_t {
   // refactoring: vec_vbpermq is vec_bperm in the
   // documentation. Modify?
   static constexpr auto fifth_item = 4U;
-  return static_cast<v_u16_t>(
+  return reinterpret_cast<v_u16_t>(
              vec_vbpermq(
-                 static_cast<v_u8_t>(
+                 reinterpret_cast<v_u8_t>(
                      vec_cmpeq(lhs, rhs)
                      ), perm_bits)
          )[fifth_item];
@@ -303,9 +308,9 @@ auto v_mask_eq8(v_u8_t lhs, v_u8_t rhs) -> uint16_t {
   // refactoring: vec_vbpermq is vec_bperm in the
   // documentation. Modify?
   static constexpr auto fifth_item = 4U;
-  return static_cast<v_u16_t>(
+  return reinterpret_cast<v_u16_t>(
              vec_vbpermq(
-                 static_cast<v_u8_t>(
+                 reinterpret_cast<v_u8_t>(
                      vec_cmpeq(lhs, rhs)
                      ), perm_bits)
          )[fifth_item];
