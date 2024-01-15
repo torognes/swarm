@@ -62,7 +62,7 @@ struct Parameters parameters;
 std::string opt_log;
 
 int64_t opt_boundary;
-bool opt_no_otu_breaking {false};
+bool opt_no_cluster_breaking {false};
 int64_t opt_threads;
 
 int64_t penalty_mismatch;
@@ -238,7 +238,7 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
               parameters.penalty_mismatch, penalty_gapopen, penalty_gapextend);
     }
   std::fprintf(logfile, "Break clusters:        %s\n",
-          opt_no_otu_breaking ? "No" : "Yes");
+          opt_no_cluster_breaking ? "No" : "Yes");
   if (parameters.opt_fastidious) {
     std::fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
             opt_boundary);
@@ -370,7 +370,7 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
       case 'n':
         /* no-otu-breaking */
-        opt_no_otu_breaking = true;
+        opt_no_cluster_breaking = true;
         break;
 
       case 'o':

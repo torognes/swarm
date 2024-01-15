@@ -569,7 +569,7 @@ inline auto find_variant_matches(unsigned int seed,
 
           /* avoid self */
           if (seed != amp) {
-            if ((opt_no_otu_breaking) or
+            if ((opt_no_cluster_breaking) or
                 (db_getabundance(seed) >= db_getabundance(amp)))
               {
                 auto *seed_sequence = db_getsequence(seed);

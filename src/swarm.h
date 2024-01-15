@@ -105,7 +105,7 @@ struct Parameters {
 
 extern std::string opt_log;  // used by multithreaded functions
 extern int64_t opt_boundary;  // used by multithreaded functions
-extern bool opt_no_otu_breaking;  // three function calls
+extern bool opt_no_cluster_breaking;  // three function calls
 extern int64_t opt_threads;
 
 extern int64_t penalty_gapextend;
