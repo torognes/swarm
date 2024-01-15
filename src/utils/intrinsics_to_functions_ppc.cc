@@ -100,12 +100,7 @@ auto v_merge_lo_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 }
 
 auto v_merge_lo_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
-  // search8: v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a), (vector short)(b))
-  // refactoring: try without casting
-  return reinterpret_cast<v_u8_t>(
-             vec_mergeh(reinterpret_cast<v_u16_t>(lhs),
-                        reinterpret_cast<v_u16_t>(rhs))
-         );
+  return vec_mergeh(lhs, rhs);
 }
 
 auto v_merge_hi_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
