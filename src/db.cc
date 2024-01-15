@@ -413,7 +413,6 @@ auto db_read(const char * filename,
 {
   /* allocate space */
 
-  uint64_t dataalloc {memchunk};
   data_v.resize(memchunk);
   datap = data_v.data();
   uint64_t datalen {0};
@@ -489,9 +488,8 @@ auto db_read(const char * filename,
 
       /* store the line number */
 
-      while (datalen + sizeof(unsigned int) > dataalloc)
+      while (datalen + sizeof(unsigned int) > data_v.size())
         {
-          dataalloc += memchunk;
           data_v.resize(data_v.size() + memchunk);
           datap = data_v.data();
         }
@@ -501,9 +499,8 @@ auto db_read(const char * filename,
 
       /* store the header */
 
-      while (datalen + headerlen + 1 > dataalloc)
+      while (datalen + headerlen + 1 > data_v.size())
         {
-          dataalloc += memchunk;
           data_v.resize(data_v.size() + memchunk);
           datap = data_v.data();
         }
@@ -529,9 +526,8 @@ auto db_read(const char * filename,
 
       unsigned int length {0};
 
-      while (datalen + sizeof(unsigned int) > dataalloc)
+      while (datalen + sizeof(unsigned int) > data_v.size())
         {
-          dataalloc += memchunk;
           data_v.resize(data_v.size() + memchunk);
           datap = data_v.data();
         }
@@ -565,9 +561,8 @@ auto db_read(const char * filename,
 
                   if (nt_bufferlen == nt_buffersize)
                     {
-                      while (datalen + sizeof(nt_buffer) > dataalloc)
+                      while (datalen + sizeof(nt_buffer) > data_v.size())
                         {
-                          dataalloc += memchunk;
                           data_v.resize(data_v.size() + memchunk);
                           datap = data_v.data();
                         }
@@ -628,9 +623,8 @@ auto db_read(const char * filename,
 
       if (nt_bufferlen > 0)
         {
-          while (datalen + sizeof(nt_buffer) > dataalloc)
+          while (datalen + sizeof(nt_buffer) > data_v.size())
             {
-              dataalloc += memchunk;
               data_v.resize(data_v.size() + memchunk);
               datap = data_v.data();
             }
