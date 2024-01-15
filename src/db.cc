@@ -411,10 +411,6 @@ auto db_read(const char * filename,
              struct Parameters const & parameters,
              std::vector<char> & data_v) -> void
 {
-  /* allocate space */
-
-  data_v.resize(memchunk);
-  datap = data_v.data();
   uint64_t datalen {0};
   uint64_t duplicates_found {0};
 
@@ -463,6 +459,14 @@ auto db_read(const char * filename,
   unsigned int lineno {1};
 
   progress_init("Reading sequences:", filesize);
+
+  /* allocate space */
+  if (filesize > 0) {
+    data_v.resize(filesize);
+  } else {
+    data_v.resize(memchunk);
+  }
+  datap = data_v.data();
 
   while(line[0] != 0)
     {
