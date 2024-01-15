@@ -369,7 +369,7 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
         break;
 
       case 'n':
-        /* no-otu-breaking */
+        /* no-cluster-breaking */
         opt_no_cluster_breaking = true;
         break;
 
