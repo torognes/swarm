@@ -89,7 +89,6 @@ static uint64_t nucleotides {0};
 static uint64_t headerchars {0};
 static unsigned int longest {0};
 static unsigned int longestheader {0};
-static char * datap {nullptr};
 static int missingabundance {0};
 static uint64_t missingabundance_lineno {0};
 static char * missingabundance_header {nullptr};
@@ -466,7 +465,6 @@ auto db_read(const char * filename,
     data_v.reserve(filesize / 4);
   }
   data_v.resize(memchunk);
-  datap = data_v.data();
 
   while(line[0] != 0)
     {
@@ -495,7 +493,6 @@ auto db_read(const char * filename,
       while (datalen + sizeof(unsigned int) > data_v.size())
         {
           data_v.resize(data_v.size() + memchunk);
-          datap = data_v.data();
         }
       std::memcpy(&data_v[datalen], & lineno, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
@@ -506,7 +503,6 @@ auto db_read(const char * filename,
       while (datalen + headerlen + 1 > data_v.size())
         {
           data_v.resize(data_v.size() + memchunk);
-          datap = data_v.data();
         }
       std::memcpy(&data_v[datalen], line + 1, headerlen);
       data_v[datalen + headerlen] = 0;
@@ -533,7 +529,6 @@ auto db_read(const char * filename,
       while (datalen + sizeof(unsigned int) > data_v.size())
         {
           data_v.resize(data_v.size() + memchunk);
-          datap = data_v.data();
         }
       const uint64_t datalen_seqlen = datalen;
       std::memcpy(&data_v[datalen], & length, sizeof(unsigned int));
@@ -568,7 +563,6 @@ auto db_read(const char * filename,
                       while (datalen + sizeof(nt_buffer) > data_v.size())
                         {
                           data_v.resize(data_v.size() + memchunk);
-                          datap = data_v.data();
                         }
 
                       std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
@@ -630,7 +624,6 @@ auto db_read(const char * filename,
           while (datalen + sizeof(nt_buffer) > data_v.size())
             {
               data_v.resize(data_v.size() + memchunk);
-              datap = data_v.data();
             }
 
           std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
@@ -946,10 +939,6 @@ auto db_getabundance(uint64_t seqno) -> uint64_t
 void db_free()
 {
   zobrist_exit();
-
-  if (datap != nullptr) {
-    datap = nullptr;
-  }
   delete [] seqindex;
   seqindex = nullptr;
 }
