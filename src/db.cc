@@ -509,7 +509,7 @@ auto db_read(const char * filename,
           datap = data_v.data();
         }
       std::memcpy(datap + datalen, line + 1, headerlen);
-      *(datap + datalen + headerlen) = 0;
+      data_v[datalen + headerlen] = 0;
       datalen += headerlen + 1;
 
 
