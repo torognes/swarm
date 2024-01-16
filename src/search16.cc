@@ -552,7 +552,7 @@ auto search16(WORD * * q_start,
                       char * address {nullptr};
                       unsigned int length {0};
 
-                      db_getsequenceandlength(seqno, & address, & length);
+                      db_getsequenceandlength(seqno, & address, length);
 
                       d_address[channel] = address;
                       d_length[channel] = length;
