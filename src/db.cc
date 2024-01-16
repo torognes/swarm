@@ -653,7 +653,6 @@ auto db_read(const char * filename,
 
   /* create indices */
 
-  // refactoring: seqindex is global, pointing to a vector
   seqindex_v.resize(sequences);
   seqindex = seqindex_v.data();
   seqinfo_t * seqindex_p {seqindex};
