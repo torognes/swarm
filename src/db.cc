@@ -609,7 +609,7 @@ auto db_read(const char * filename,
 
       /* fill in real length */
 
-      std::memcpy(datap + datalen_seqlen, & length, sizeof(unsigned int));
+      std::memcpy(&data_v[datalen_seqlen], & length, sizeof(unsigned int));
 
       if (length == 0)
         {
