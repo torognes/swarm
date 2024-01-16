@@ -508,7 +508,7 @@ auto db_read(const char * filename,
           data_v.resize(data_v.size() + memchunk);
           datap = data_v.data();
         }
-      std::memcpy(datap + datalen, line + 1, headerlen);
+      std::memcpy(&data_v[datalen], line + 1, headerlen);
       data_v[datalen + headerlen] = 0;
       datalen += headerlen + 1;
 
@@ -536,7 +536,7 @@ auto db_read(const char * filename,
           datap = data_v.data();
         }
       const uint64_t datalen_seqlen = datalen;
-      std::memcpy(datap + datalen, & length, sizeof(unsigned int));
+      std::memcpy(&data_v[datalen], & length, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
 
@@ -571,7 +571,7 @@ auto db_read(const char * filename,
                           datap = data_v.data();
                         }
 
-                      std::memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+                      std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
                       datalen += sizeof(nt_buffer);
 
                       nt_bufferlen = 0;
@@ -633,7 +633,7 @@ auto db_read(const char * filename,
               datap = data_v.data();
             }
 
-          std::memcpy(datap + datalen, & nt_buffer, sizeof(nt_buffer));
+          std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
           datalen += sizeof(nt_buffer);
 
           nt_buffer = 0;
