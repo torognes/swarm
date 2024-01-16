@@ -683,7 +683,7 @@ auto db_read(const char * filename,
 
   bool presorted {true};
 
-  char * pl {datap};  // refactoring: purpose and how to rename?
+  char * pl = data_v.data();  // refactoring: purpose and how to rename?
   progress_init("Indexing database:", sequences);
   for(auto i = 0ULL; i < sequences; i++)
     {
