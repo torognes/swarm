@@ -910,10 +910,10 @@ auto db_getsequence(uint64_t seqno) -> char *
 
 
 auto db_getsequenceandlength(uint64_t seqno,
-                             char ** address,
+                             char * & address,
                              unsigned int & length) -> void
 {
-  *address = seqindex[seqno].seq;
+  address = seqindex[seqno].seq;
   length = seqindex[seqno].seqlen;
 }
 

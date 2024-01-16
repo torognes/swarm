@@ -245,7 +245,7 @@ void search_do(uint64_t query_no,
 {
   unsigned int query_len = 0;
   query.qno = query_no;
-  db_getsequenceandlength(query_no, &query.seq, query_len);
+  db_getsequenceandlength(query_no, query.seq, query_len);
   query.len = query_len;
 
   master_next = 0;
