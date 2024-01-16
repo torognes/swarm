@@ -226,18 +226,18 @@ auto db_compare_abundance(const void * ptr_a, const void * ptr_b) -> int
 
 
 auto find_swarm_abundance(const char * header,
-                          int * start,
-                          int * end,
-                          int64_t * number) -> bool
+                          int & start,
+                          int & end,
+                          int64_t & number) -> bool
 {
   /*
     Identify the first occurence of the pattern (_)([0-9]+)$
     in the header string.
   */
 
-  * start = 0;
-  * end = 0;
-  * number = 0;
+  start = 0;
+  end = 0;
+  number = 0;
 
   static constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
   static const std::string digit_chars = "0123456789";
@@ -265,18 +265,18 @@ auto find_swarm_abundance(const char * header,
   const int64_t abundance_start = abundance_string - header;
   const int64_t abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
 
-  * start = static_cast<int>(abundance_start);
-  * end = static_cast<int>(abundance_end);
-  * number = std::atol(abundance_string + 1);
+  start = static_cast<int>(abundance_start);
+  end = static_cast<int>(abundance_end);
+  number = std::atol(abundance_string + 1);
 
   return true;
 }
 
 
 auto find_usearch_abundance(const char * header,
-                            int * start,
-                            int * end,
-                            int64_t * number) -> bool
+                            int & start,
+                            int & end,
+                            int64_t & number) -> bool
 {
   /*
     Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -327,13 +327,13 @@ auto find_usearch_abundance(const char * header,
 
       /* ok */
       if (position > 0) {
-        * start = static_cast<int>(position - 1);
+        start = static_cast<int>(position - 1);
       }
       else {
-        * start = 0;
+        start = 0;
       }
-      * end   = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
-      * number = std::atol(header + position + alen);
+      end   = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
+      number = std::atol(header + position + alen);
 
       return true;
     }
@@ -357,7 +357,7 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
     {
       /* (^|;)size=([0-9]+)(;|$) */
 
-      if (find_usearch_abundance(header, & start, & end, & number))
+      if (find_usearch_abundance(header, start, end, number))
         {
           if (number <= 0) {
             fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
@@ -370,7 +370,7 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
     {
       /* (_)([0-9]+)$ */
 
-      if (find_swarm_abundance(header, & start, & end, & number))
+      if (find_swarm_abundance(header, start, end, number))
         {
           if (number <= 0) {
             fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
