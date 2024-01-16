@@ -455,7 +455,7 @@ auto db_read(const char * filename,
     }
   filepos += static_cast<unsigned long int>(linelen);
 
-  unsigned int lineno {1};
+  auto lineno = 1U;
 
   progress_init("Reading sequences:", filesize);
 
@@ -524,7 +524,7 @@ auto db_read(const char * filename,
 
       /* store a dummy sequence length */
 
-      unsigned int length {0};
+      auto length = 0U;
 
       while (datalen + sizeof(unsigned int) > data_v.size())
         {
@@ -538,7 +538,7 @@ auto db_read(const char * filename,
       /* read and store sequence */
 
       uint64_t nt_buffer {0};
-      unsigned int nt_bufferlen {0};
+      auto nt_bufferlen = 0U;
       const unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
       static constexpr int new_line {10};
       static constexpr int carriage_return {13};
