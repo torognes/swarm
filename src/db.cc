@@ -655,7 +655,7 @@ auto db_read(const char * filename,
 
   seqindex_v.resize(sequences);
   seqindex = seqindex_v.data();
-  seqinfo_t * seqindex_p {seqindex};
+  seqinfo_t * seqindex_p = seqindex_v.data();
 
   seqinfo_t * lastseq {nullptr};
 
@@ -845,7 +845,7 @@ auto db_read(const char * filename,
   if (not presorted)
     {
       progress_init("Abundance sorting:", 1);
-      std::qsort(seqindex, sequences, sizeof(seqinfo_t), db_compare_abundance);
+      std::qsort(seqindex_v.data(), sequences, sizeof(seqinfo_t), db_compare_abundance);
       progress_done();
     }
 
