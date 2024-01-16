@@ -28,7 +28,8 @@
 
 auto db_read(const char * filename,
              struct Parameters const & parameters,
-             std::vector<char> & data_v) -> void;
+             std::vector<char> & data_v,
+             std::vector<struct seqinfo_s> & seqinfo_v) -> void;
 
 auto db_getsequencecount() -> unsigned int;
 

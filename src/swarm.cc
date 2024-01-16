@@ -28,6 +28,7 @@
 #include "derep.h"
 #include "utils/fatal.h"
 #include "utils/gcd.h"
+#include "utils/seqinfo.h"
 #include "util.h"
 #include "x86_cpu_features.h"
 #include <algorithm>  // std::min()
@@ -686,7 +687,8 @@ auto main(int argc, char** argv) -> int
 
   // parse fasta input
   std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *
-  db_read(parameters.input_filename.c_str(), parameters, data_v);
+  std::vector<struct seqinfo_s> seqindex_v;
+  db_read(parameters.input_filename.c_str(), parameters, data_v, seqindex_v);
 
   // clustering
   switch (parameters.opt_differences)

@@ -27,6 +27,7 @@
 #include "utils/fatal.h"
 #include "utils/nt_codec.h"
 #include "utils/qgram_array.h"
+#include "utils/seqinfo.h"
 #include "zobrist.h"
 #include <algorithm>  // std::min()
 #include <array>
@@ -92,21 +93,6 @@ static unsigned int longestheader {0};
 static int missingabundance {0};
 static uint64_t missingabundance_lineno {0};
 static char * missingabundance_header {nullptr};
-
-struct seqinfo_s
-{
-  char * header;
-  char * seq;
-  uint64_t abundance;
-  uint64_t hdrhash;
-  uint64_t seqhash;
-  int headerlen;
-  unsigned int seqlen;
-  unsigned int clusterid;
-  int abundance_start;
-  int abundance_end;
-  int dummy; /* alignment padding only */
-};
 
 using seqinfo_t = struct seqinfo_s;
 extern seqinfo_t * seqindex;
@@ -408,7 +394,8 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
 
 auto db_read(const char * filename,
              struct Parameters const & parameters,
-             std::vector<char> & data_v) -> void
+             std::vector<char> & data_v,
+             std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
   uint64_t datalen {0};
   uint64_t duplicates_found {0};
@@ -666,10 +653,9 @@ auto db_read(const char * filename,
 
   /* create indices */
 
-  // refactoring: seqindex is global, pointing to a vector = heap-use-after-free (FAIL)
-  // std::vector<seqinfo_t> seqindex_v(sequences);
-  // seqindex = seqindex_v.data();
-  seqindex = new seqinfo_t[sequences];
+  // refactoring: seqindex is global, pointing to a vector
+  seqindex_v.resize(sequences);
+  seqindex = seqindex_v.data();
   seqinfo_t * seqindex_p {seqindex};
 
   seqinfo_t * lastseq {nullptr};
@@ -939,7 +925,6 @@ auto db_getabundance(uint64_t seqno) -> uint64_t
 void db_free()
 {
   zobrist_exit();
-  delete [] seqindex;
   seqindex = nullptr;
 }
 
