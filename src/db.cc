@@ -497,7 +497,7 @@ auto db_read(const char * filename,
           data_v.resize(data_v.size() + memchunk);
           datap = data_v.data();
         }
-      std::memcpy(datap + datalen, & lineno, sizeof(unsigned int));
+      std::memcpy(&data_v[datalen], & lineno, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
 
