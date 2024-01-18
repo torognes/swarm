@@ -63,6 +63,7 @@ auto cast_vector8(uint8_t * ptr) -> uint8_t* {
   return ptr;
 }
 
+// refactoring: overload not covered by our tests. Not needed?
 auto cast_vector8(v_u8_t * ptr) -> v_u8_t* {
   return ptr;
 }
