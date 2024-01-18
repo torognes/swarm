@@ -31,7 +31,6 @@ auto compute_mask(uint64_t const channel,
   return (3ULL << (2 * channel + offset));
 }
 
-
 // refactoring: could 'Unknown' be eliminated?
 enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
 
