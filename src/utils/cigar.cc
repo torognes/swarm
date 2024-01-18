@@ -21,15 +21,14 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cassert>
 #include <string>
 #include <vector>
 
 
 auto compress_alignment_to_cigar(std::vector<char> const & input,
                                  std::string & destination) -> void {
-  if (input.empty()) {
-    return;
-  }
+  assert(not input.empty());
 
   // run-length encoding (RLE) algorithm
   auto is_first = true;
