@@ -663,7 +663,7 @@ auto db_read(const char * filename,
 
   char * pl = data_v.data();  // refactoring: purpose and how to rename?
   progress_init("Indexing database:", sequences);
-  for(auto i = 0ULL; i < sequences; i++)
+  for(auto i = 0ULL; i < sequences; i++)  // refactoring: range-based for loop
     {
       /* get line number */
       const unsigned int line_number = *(reinterpret_cast<unsigned int*>(pl));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
@@ -689,6 +689,7 @@ auto db_read(const char * filename,
         fatal(error_prefix, "Empty sequence identifier.");
       }
 
+      // refactoring: extract that check to a function, performed once index is populated
       /* check if the sequences are presorted by abundance and header */
 
       if (presorted and (lastseq != nullptr))
