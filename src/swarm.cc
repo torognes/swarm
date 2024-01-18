@@ -87,7 +87,7 @@ std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unus
 
 // refactoring: add option -q (no-cluster-breaking)
 const std::array<struct option, 25> long_options = {
-  {
+  { // struct option { name, has_arg, flag, val }
    {"append-abundance",      required_argument, nullptr, 'a' },
    {"boundary",              required_argument, nullptr, 'b' },
    {"ceiling",               required_argument, nullptr, 'c' },
