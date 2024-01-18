@@ -292,9 +292,7 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
           {
             auto longoptindex = 0UL;
             for (const auto& long_option: long_options) {
-              if (long_option.name == nullptr) {
-                break;
-              }
+              assert(long_option.name != nullptr);
               if (long_option.val == option_character) {
                 break;
               }
