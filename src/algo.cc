@@ -295,6 +295,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 #ifdef __aarch64__
   /* always use 16-bit version on aarch64 because it is faster */
   bits = bit_mode_16;
+  // refactoring: allow bit_mode_8 in DEBUG builds to check the
+  // correctness of that branch!
 #endif
 
   seeded = 0;
