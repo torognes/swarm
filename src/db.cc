@@ -228,6 +228,7 @@ auto find_swarm_abundance(const char * header,
   static constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
   static const std::string digit_chars = "0123456789";
 
+  assert(header != nullptr); // assert to prove impossible
   if (header == nullptr) {
     return false;  // refactoring: if header cannot be a nullptr, replace with assert
   }
@@ -282,6 +283,7 @@ auto find_usearch_abundance(const char * header,
       const char * result = std::strstr(header + position, attribute.c_str());
 
       /* no match */
+      assert(result != nullptr); // assert to prove impossible
       if (result == nullptr) {
         break;
       }
