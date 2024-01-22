@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdint>
+#include <cstdint> // uint64_t
 
 extern uint64_t * zobrist_tab_base;
 extern uint64_t * zobrist_tab_byte_base;
