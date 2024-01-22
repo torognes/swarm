@@ -293,12 +293,10 @@ auto algo_run(struct Parameters const & parameters) -> void
   }
 
 #ifdef __aarch64__
+#if !(DEBUG) || !(COVERAGE)
   /* always use 16-bit version on aarch64 because it is faster */
   bits = bit_mode_16;
-  // refactoring: allow bit_mode_8 in DEBUG and COVERAGE builds
-  // #if !(DEBUG=1) || !(COVERAGE=1)
-  //   bits = bit_mode_16;
-  // #endif
+#endif
 #endif
 
   seeded = 0;
