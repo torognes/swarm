@@ -46,7 +46,7 @@ void zobrist_init(const unsigned int zobrist_len)
   static constexpr unsigned int multiplier {16};
 
   /* allocate base table and fill with random 64 bit numbers */
-
+  // refactoring: replacing with vector is not trivial
   zobrist_tab_base = new uint64_t[4 * zobrist_len];
 
   for(auto i = 0U; i < 4 * zobrist_len; i++)
@@ -63,7 +63,7 @@ void zobrist_init(const unsigned int zobrist_len)
     }
 
   /* allocate byte table and combine into bytes for faster computations */
-
+  // refactoring: replacing with vector is not trivial
   zobrist_tab_byte_base = new uint64_t[byte_range * (zobrist_len / 4)];
 
   for(auto i = 0U; i < zobrist_len / 4; i++) {
