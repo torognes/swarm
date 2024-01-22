@@ -304,7 +304,7 @@ auto attach_candidates(unsigned int amplicon_count,
       return false;
     }
     // ...then ties are sorted by child index (lowest index first)
-    assert(lhs.child == rhs.child); // refactoring: child indices are always equal?
+    assert(lhs.child >= rhs.child); // refactoring: child indices are sorted by descending order?
     if (lhs.child < rhs.child) {
       return true;
     }
