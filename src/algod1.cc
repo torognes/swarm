@@ -304,8 +304,7 @@ auto attach_candidates(unsigned int amplicon_count,
       return false;
     }
     // ...then ties are sorted by child index (lowest index first)
-    // assert(lhs.child != rhs.child); // refactoring: should be true by construction! It is not, why?
-    assert(lhs.child >= rhs.child);
+    assert(lhs.child == rhs.child); // refactoring: child indices are always equal?
     if (lhs.child < rhs.child) {
       return true;
     }
