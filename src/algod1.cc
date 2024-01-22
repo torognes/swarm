@@ -305,7 +305,7 @@ auto attach_candidates(unsigned int amplicon_count,
     }
     // ...then ties are sorted by child index (lowest index first)
     // assert(lhs.child != rhs.child); // refactoring: should be true by construction! It is not, why?
-    // assert(lhs.child < rhs.child); // refactoring: same as above!
+    assert(lhs.child >= rhs.child);
     if (lhs.child < rhs.child) {
       return true;
     }
@@ -806,6 +806,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
 
   // refactoring: assert(swarminfo_v.size() == swarmcount);
   for(auto i = 0U; i < swarmcount; i++) {
+    assert(not swarminfo_v[i].attached);
     if (swarminfo_v[i].attached) {
       continue;
     }
@@ -1030,6 +1031,7 @@ auto write_stats_file(const unsigned int swarmcount,
   for(auto i = 0ULL; i < swarmcount; i++)
     {
       struct swarminfo_s const & sp = swarminfo_v[i];
+      assert(not sp.attached);
       if (sp.attached) {
         continue;
       }
