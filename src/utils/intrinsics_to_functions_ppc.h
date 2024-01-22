@@ -56,7 +56,7 @@ auto v_store16(uint16_t * ptr, v_u16_t cpu_register) -> void;
 
 auto v_store8(uint8_t * ptr, v_u8_t cpu_register) -> void;
 
-auto v_merge_lo_8(v_u8_t lhs, uint8_t rhs) -> v_u8_t;
+auto v_merge_lo_8(v_u8_t lhs, uint8_t& rhs) -> v_u8_t;
 
 auto v_merge_lo_8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t;
 

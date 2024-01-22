@@ -101,7 +101,7 @@ auto v_store8(uint8_t * ptr, v_u8_t cpu_register) -> void {
 }
 
 // only in search8
-auto v_merge_lo_8(v_u8_t lhs, uint8_t rhs) -> v_u8_t {
+auto v_merge_lo_8(v_u8_t lhs, uint8_t& rhs) -> v_u8_t {
   auto * rhs_ptr = &rhs;
   return vec_mergeh(lhs, *cast_vector8_real(rhs_ptr));
 }
