@@ -29,7 +29,7 @@
 #include "utils/qgram_array.h"
 #include "utils/seqinfo.h"
 #include "zobrist.h"
-#include <algorithm>  // std::min()
+#include <algorithm>  // std::min() std::sort()
 #include <array>
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -191,23 +191,6 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
             seqinfo->header,
             abundance);
   }
-}
-
-
-auto db_compare_abundance(const void * ptr_a, const void * ptr_b) -> int
-{
-  const auto * seqinfo_x = reinterpret_cast<const seqinfo_t *>(ptr_a);
-  const auto * seqinfo_y = reinterpret_cast<const seqinfo_t *>(ptr_b);
-
-  if (seqinfo_x->abundance > seqinfo_y->abundance) {
-    return -1;
-  }
-
-  if (seqinfo_x->abundance < seqinfo_y->abundance) {
-    return +1;
-  }
-
-  return std::strcmp(seqinfo_x->header, seqinfo_y->header);
 }
 
 
@@ -848,7 +831,24 @@ auto db_read(const char * filename,
   if (not presorted)
     {
       progress_init("Abundance sorting:", 1);
-      std::qsort(seqindex_v.data(), sequences, sizeof(seqinfo_t), db_compare_abundance);
+
+      auto db_compare_abundance = [](struct seqinfo_s const& lhs,
+                                     struct seqinfo_s const& rhs) -> bool
+      {
+        // sort by decreasing abundance
+        if (lhs.abundance > rhs.abundance) {
+          return true;
+        }
+
+        if (lhs.abundance < rhs.abundance) {
+          return false;
+        }
+
+        // ...then ties are sorted by header (lexicographical order)
+        return std::strcmp(lhs.header, rhs.header) < 0;
+      };
+
+      std::sort(seqindex_v.begin(), seqindex_v.end(), db_compare_abundance);
       progress_done();
     }
 
