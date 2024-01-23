@@ -293,8 +293,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   }
 
 #ifdef __aarch64__
-  // refactoring: does not seem to work, 'bit_mode_16' remains the default
-#if !(DEBUG) || !(COVERAGE)
+#if !defined(DEBUG) || !defined(COVERAGE)
   /* always use 16-bit version on aarch64 because it is faster */
   bits = bit_mode_16;
 #endif
