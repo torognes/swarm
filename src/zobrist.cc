@@ -32,9 +32,9 @@ uint64_t * zobrist_tab_base = nullptr;
 uint64_t * zobrist_tab_byte_base = nullptr;
 
 
-void zobrist_init(const unsigned int zobrist_len,
+auto zobrist_init(const unsigned int zobrist_len,
                   std::vector<uint64_t> & zobrist_tab_base_v,
-                  std::vector<uint64_t> & zobrist_tab_byte_base_v)
+                  std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void
 {
   /*
     Generate 4n random 64-bit numbers. They will represent the four
@@ -87,7 +87,7 @@ void zobrist_init(const unsigned int zobrist_len,
   }
 }
 
-void zobrist_exit()
+auto zobrist_exit() -> void
 {
   zobrist_tab_byte_base = nullptr;
   zobrist_tab_base = nullptr;

@@ -29,11 +29,11 @@
 extern uint64_t * zobrist_tab_base;
 extern uint64_t * zobrist_tab_byte_base;
 
-void zobrist_init(unsigned int n,
+auto zobrist_init(unsigned int n,
                   std::vector<uint64_t> & zobrist_tab_base_v,
-                  std::vector<uint64_t> & zobrist_tab_byte_base_v);
+                  std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void;
 
-void zobrist_exit();
+auto zobrist_exit() -> void;
 
 auto zobrist_hash(unsigned char * seq, unsigned int len) -> uint64_t;
 auto zobrist_hash_delete_first(unsigned char * seq, unsigned int len) -> uint64_t;
