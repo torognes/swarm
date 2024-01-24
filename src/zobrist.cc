@@ -74,13 +74,14 @@ void zobrist_init(const unsigned int zobrist_len,
     for(auto j = 0U; j < byte_range; j++) {
       auto z = 0ULL;
       auto x = j;
-      z ^= zobrist_value(4 * i + 0, x & 3U);
+      // rng value stored at: 4 *  position   +  offset (= 0, 1, or 2)
+      z ^= zobrist_tab_base_v[4 * (4 * i + 0) + (x & 3U)];
       x >>= 2U;
-      z ^= zobrist_value(4 * i + 1, x & 3U);
+      z ^= zobrist_tab_base_v[4 * (4 * i + 1) + (x & 3U)];
       x >>= 2U;
-      z ^= zobrist_value(4 * i + 2, x & 3U);
+      z ^= zobrist_tab_base_v[4 * (4 * i + 2) + (x & 3U)];
       x >>= 2U;
-      z ^= zobrist_value(4 * i + 3, x & 3U);
+      z ^= zobrist_tab_base_v[4 * (4 * i + 3) + (x & 3U)];
       zobrist_tab_byte_base_v[byte_range * i + j] = z;
     }
   }
