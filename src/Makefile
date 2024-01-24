@@ -55,7 +55,7 @@ else ifdef PROFILE
 
 # Run "make DEBUG=1" to compile for debugging (GCC 10 or more recent)
 else ifdef DEBUG
-	COMMON += -Og -DDEBUG -ggdb3 -D_GLIBCXX_DEBUG $(DEBUG_SANITIZER) $(DEBUG_WARNINGS)
+	COMMON += -O0 -DDEBUG -ggdb3 -D_GLIBCXX_DEBUG $(DEBUG_SANITIZER) $(DEBUG_WARNINGS)
 
 
 # Run "make COVERAGE=1" to compile for coverage tests
