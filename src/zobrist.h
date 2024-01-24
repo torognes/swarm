@@ -37,4 +37,10 @@ void zobrist_exit();
 auto zobrist_hash(unsigned char * seq, unsigned int len) -> uint64_t;
 auto zobrist_hash_delete_first(unsigned char * seq, unsigned int len) -> uint64_t;
 auto zobrist_hash_insert_first(unsigned char * seq, unsigned int len) -> uint64_t;
-auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t;
+
+inline auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
+{
+  // offset can be 0, 1 or 2 (remainder of uint64 % 3)
+  return zobrist_tab_base[4 * pos + offset];
+}
+
