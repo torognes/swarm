@@ -79,15 +79,15 @@ auto fill_rng_byte_table(const unsigned int zobrist_len,
   for(auto i = 0U; i < zobrist_len / 4; i++) {
     for(auto j = 0U; j < byte_range; j++) {
       auto rng_value = 0ULL;
-      auto x = j;
+      auto offset = j;
       // rng value stored at: 4 *  position   +  offset & 3U (= 0, 1, 2, or 3)
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 0) + (x & 3U)];
-      x >>= 2U;
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 1) + (x & 3U)];
-      x >>= 2U;
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 2) + (x & 3U)];
-      x >>= 2U;
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 3) + (x & 3U)];
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 0) + (offset & 3U)];
+      offset >>= 2U;
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 1) + (offset & 3U)];
+      offset >>= 2U;
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 2) + (offset & 3U)];
+      offset >>= 2U;
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 3) + (offset & 3U)];
       zobrist_tab_byte_base_v[byte_range * i + j] = rng_value;
     }
   }
