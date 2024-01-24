@@ -926,7 +926,6 @@ auto db_getabundance(uint64_t seqno) -> uint64_t
 
 void db_free()
 {
-  zobrist_exit();
   seqindex = nullptr;
 }
 

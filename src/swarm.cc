@@ -31,6 +31,7 @@
 #include "utils/seqinfo.h"
 #include "util.h"
 #include "x86_cpu_features.h"
+#include "zobrist.h"
 #include <algorithm>  // std::min()
 #include <array>
 #include <cassert>
@@ -709,6 +710,7 @@ auto main(int argc, char** argv) -> int
     }
 
   // clean up
+  zobrist_exit();
   db_free();
   close_files();
 }
