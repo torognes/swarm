@@ -380,7 +380,9 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
 auto db_read(const char * filename,
              struct Parameters const & parameters,
              std::vector<char> & data_v,
-             std::vector<struct seqinfo_s> & seqindex_v) -> void
+             std::vector<struct seqinfo_s> & seqindex_v,
+             std::vector<uint64_t> & zobrist_tab_base_v,
+             std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void
 {
   uint64_t datalen {0};
   uint64_t duplicates_found {0};
