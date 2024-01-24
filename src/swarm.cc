@@ -691,7 +691,10 @@ auto main(int argc, char** argv) -> int
   // parse fasta input
   std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *
   std::vector<struct seqinfo_s> seqindex_v;
-  db_read(parameters.input_filename.c_str(), parameters, data_v, seqindex_v);
+  db_read(parameters.input_filename.c_str(),
+          parameters,
+          data_v,
+          seqindex_v);
 
   // clustering
   switch (parameters.opt_differences)
