@@ -32,6 +32,13 @@ uint64_t * zobrist_tab_base = nullptr;
 uint64_t * zobrist_tab_byte_base = nullptr;
 
 
+inline auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
+{
+  // offset can be 0, 1 or 2 (remainder of uint64 % 3)
+  return zobrist_tab_base[4 * pos + offset];
+}
+
+
 void zobrist_init(const unsigned int zobrist_len,
                   std::vector<uint64_t> & zobrist_tab_base_v,
                   std::vector<uint64_t> & zobrist_tab_byte_base_v)
