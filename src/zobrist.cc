@@ -102,6 +102,7 @@ auto zobrist_init(const unsigned int zobrist_len,
   fill_rng_byte_table(zobrist_len, zobrist_tab_base_v, zobrist_tab_byte_base_v);
 }
 
+
 auto zobrist_exit() -> void
 {
   zobrist_tab_byte_base = nullptr;
@@ -174,6 +175,7 @@ auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> u
     }
   return zobrist_hash;
 }
+
 
 auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> uint64_t
 {
