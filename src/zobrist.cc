@@ -74,7 +74,7 @@ auto zobrist_init(const unsigned int zobrist_len,
     for(auto j = 0U; j < byte_range; j++) {
       auto rng_value = 0ULL;
       auto x = j;
-      // rng value stored at: 4 *  position   +  offset (= 0, 1, or 2)
+      // rng value stored at: 4 *  position   +  offset & 3U (= 0, 1, 2, or 3)
       rng_value ^= zobrist_tab_base_v[4 * (4 * i + 0) + (x & 3U)];
       x >>= 2U;
       rng_value ^= zobrist_tab_base_v[4 * (4 * i + 1) + (x & 3U)];
