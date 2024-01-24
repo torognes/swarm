@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <algorithm>  // std::for_each
 #include <cstdint>  // uint64_t
 #include <vector>
 #include "utils/pseudo_rng.h"
@@ -52,18 +53,18 @@ void zobrist_init(const unsigned int zobrist_len,
   zobrist_tab_base_v.resize(4 * zobrist_len);
   zobrist_tab_base = zobrist_tab_base_v.data();
 
-  for(auto i = 0U; i < 4 * zobrist_len; i++)
-    {
-      auto z = 0ULL;
-      z = rand_64();  // refactoring: comment states 31-bit random numbers?!
-      z <<= multiplier;
-      z ^= rand_64();
-      z <<= multiplier;
-      z ^= rand_64();
-      z <<= multiplier;
-      z ^= rand_64();
-      zobrist_tab_base_v[i] = z;
-    }
+  std::for_each(zobrist_tab_base_v.begin(),
+                zobrist_tab_base_v.end(),
+                [](uint64_t & z) {
+                  // refactoring: comment states 31-bit random numbers?!
+                  z = rand_64();
+                  z <<= multiplier;
+                  z ^= rand_64();
+                  z <<= multiplier;
+                  z ^= rand_64();
+                  z <<= multiplier;
+                  z ^= rand_64();
+                });
 
   /* allocate byte table and combine into bytes for faster computations */
   zobrist_tab_byte_base_v.resize(byte_range * (zobrist_len / 4));
