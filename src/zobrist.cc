@@ -55,15 +55,15 @@ auto zobrist_init(const unsigned int zobrist_len,
 
   std::for_each(zobrist_tab_base_v.begin(),
                 zobrist_tab_base_v.end(),
-                [](uint64_t & z) {
+                [](uint64_t & rng_value) {
                   // refactoring: comment states 31-bit random numbers?!
-                  z = rand_64();
-                  z <<= multiplier;
-                  z ^= rand_64();
-                  z <<= multiplier;
-                  z ^= rand_64();
-                  z <<= multiplier;
-                  z ^= rand_64();
+                  rng_value = rand_64();
+                  rng_value <<= multiplier;
+                  rng_value ^= rand_64();
+                  rng_value <<= multiplier;
+                  rng_value ^= rand_64();
+                  rng_value <<= multiplier;
+                  rng_value ^= rand_64();
                 });
 
   /* allocate byte table and combine into bytes for faster computations */
@@ -72,17 +72,17 @@ auto zobrist_init(const unsigned int zobrist_len,
 
   for(auto i = 0U; i < zobrist_len / 4; i++) {
     for(auto j = 0U; j < byte_range; j++) {
-      auto z = 0ULL;
+      auto rng_value = 0ULL;
       auto x = j;
       // rng value stored at: 4 *  position   +  offset (= 0, 1, or 2)
-      z ^= zobrist_tab_base_v[4 * (4 * i + 0) + (x & 3U)];
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 0) + (x & 3U)];
       x >>= 2U;
-      z ^= zobrist_tab_base_v[4 * (4 * i + 1) + (x & 3U)];
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 1) + (x & 3U)];
       x >>= 2U;
-      z ^= zobrist_tab_base_v[4 * (4 * i + 2) + (x & 3U)];
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 2) + (x & 3U)];
       x >>= 2U;
-      z ^= zobrist_tab_base_v[4 * (4 * i + 3) + (x & 3U)];
-      zobrist_tab_byte_base_v[byte_range * i + j] = z;
+      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 3) + (x & 3U)];
+      zobrist_tab_byte_base_v[byte_range * i + j] = rng_value;
     }
   }
 }
