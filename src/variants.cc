@@ -186,14 +186,14 @@ auto generate_variants(char * sequence,
 
   for(auto offset = 0U; offset < seqlen; offset++)
     {
-      const unsigned char current_base = nt_extract(sequence, offset);
-      const uint64_t hash1 = hash ^ zobrist_value(offset, current_base);
+      const auto current_base = nt_extract(sequence, offset);
+      const auto hash1 = hash ^ zobrist_value(offset, current_base);
       for(unsigned char base = 0; base < 4; base++) {
         if (base == current_base) {
           continue;
         }
 
-        const uint64_t hash2 = hash1 ^ zobrist_value(offset, base);
+        const auto hash2 = hash1 ^ zobrist_value(offset, base);
         add_variant(hash2, Variant_type::substitution, offset, base,
                     variant_list, variant_count);
 
@@ -204,10 +204,10 @@ auto generate_variants(char * sequence,
 
   hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
   add_variant(hash, Variant_type::deletion, 0, 0, variant_list, variant_count);
-  unsigned char previous_base = nt_extract(sequence, 0);
+  auto previous_base = nt_extract(sequence, 0);
   for(auto offset = 1U; offset < seqlen; offset++)
     {
-      const unsigned char current_base = nt_extract(sequence, offset);
+      const auto current_base = nt_extract(sequence, offset);
       if (current_base == previous_base) {
         continue;
       }
@@ -222,19 +222,19 @@ auto generate_variants(char * sequence,
   // insert before the first position in the sequence
   for(unsigned char base = 0; base < 4; base++)
     {
-      const uint64_t hash1 = hash ^ zobrist_value(0, base);
+      const auto hash1 = hash ^ zobrist_value(0, base);
       add_variant(hash1, Variant_type::insertion, 0, base, variant_list, variant_count);
     }
   // insert after each position in the sequence
   for(auto offset = 0U; offset < seqlen; offset++)
     {
-      const unsigned char current_base = nt_extract(sequence, offset);
+      const auto current_base = nt_extract(sequence, offset);
       hash ^= zobrist_value(offset, current_base) ^ zobrist_value(offset + 1, current_base);
       for(unsigned char base = 0; base < 4; base++) {
         if (base == current_base) {
           continue;
         }
-        const uint64_t hash1 = hash ^ zobrist_value(offset + 1, base);
+        const auto hash1 = hash ^ zobrist_value(offset + 1, base);
         add_variant(hash1, Variant_type::insertion, offset + 1, base,
                     variant_list, variant_count);
       }
