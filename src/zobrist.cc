@@ -49,8 +49,8 @@ void zobrist_init(const unsigned int zobrist_len,
   static constexpr unsigned int multiplier {16};
 
   /* allocate base table and fill with random 64 bit numbers */
-  // refactoring: replacing with vector is not trivial
-  zobrist_tab_base = new uint64_t[4 * zobrist_len];
+  zobrist_tab_base_v.resize(4 * zobrist_len);
+  zobrist_tab_base = zobrist_tab_base_v.data();
 
   for(auto i = 0U; i < 4 * zobrist_len; i++)
     {
@@ -62,12 +62,12 @@ void zobrist_init(const unsigned int zobrist_len,
       z ^= rand_64();
       z <<= multiplier;
       z ^= rand_64();
-      zobrist_tab_base[i] = z;
+      zobrist_tab_base_v[i] = z;
     }
 
   /* allocate byte table and combine into bytes for faster computations */
-  // refactoring: replacing with vector is not trivial
-  zobrist_tab_byte_base = new uint64_t[byte_range * (zobrist_len / 4)];
+  zobrist_tab_byte_base_v.resize(byte_range * (zobrist_len / 4));
+  zobrist_tab_byte_base = zobrist_tab_byte_base_v.data();
 
   for(auto i = 0U; i < zobrist_len / 4; i++) {
     for(auto j = 0U; j < byte_range; j++) {
@@ -80,16 +80,14 @@ void zobrist_init(const unsigned int zobrist_len,
       z ^= zobrist_value(4 * i + 2, x & 3U);
       x >>= 2U;
       z ^= zobrist_value(4 * i + 3, x & 3U);
-      zobrist_tab_byte_base[byte_range * i + j] = z;
+      zobrist_tab_byte_base_v[byte_range * i + j] = z;
     }
   }
 }
 
 void zobrist_exit()
 {
-  delete [] zobrist_tab_byte_base;
   zobrist_tab_byte_base = nullptr;
-  delete [] zobrist_tab_base;
   zobrist_tab_base = nullptr;
 }
 
