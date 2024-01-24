@@ -22,11 +22,15 @@
 */
 
 #include <cstdint> // uint64_t
+#include <vector>
+
 
 extern uint64_t * zobrist_tab_base;
 extern uint64_t * zobrist_tab_byte_base;
 
-void zobrist_init(unsigned int n);
+void zobrist_init(unsigned int n,
+                  std::vector<uint64_t> & zobrist_tab_base_v,
+                  std::vector<uint64_t> & zobrist_tab_byte_base_v);
 
 void zobrist_exit();
 

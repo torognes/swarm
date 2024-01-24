@@ -22,6 +22,7 @@
 */
 
 #include <cstdint>  // uint64_t
+#include <vector>
 #include "utils/pseudo_rng.h"
 #include "zobrist.h"
 
@@ -30,7 +31,9 @@ uint64_t * zobrist_tab_base = nullptr;
 uint64_t * zobrist_tab_byte_base = nullptr;
 
 
-void zobrist_init(const unsigned int zobrist_len)
+void zobrist_init(const unsigned int zobrist_len,
+                  std::vector<uint64_t> & zobrist_tab_base_v,
+                  std::vector<uint64_t> & zobrist_tab_byte_base_v)
 {
   /*
     Generate 4n random 64-bit numbers. They will represent the four
