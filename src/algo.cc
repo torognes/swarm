@@ -63,11 +63,11 @@ static uint64_t targetcount;
 
 struct ampliconinfo_s
 {
-  unsigned ampliconid;
-  unsigned diffestimate; /* lower bound estimate of dist from initial seed */
-  unsigned swarmid;
-  unsigned generation;
-  unsigned radius; /* actual diff from initial seed */
+  unsigned int ampliconid;
+  unsigned int diffestimate; /* lower bound estimate of dist from initial seed */
+  unsigned int swarmid;
+  unsigned int generation;
+  unsigned int radius; /* actual diff from initial seed */
 };
 
 static uint64_t swarmed;
