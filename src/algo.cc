@@ -244,7 +244,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   uint64_t maxgenerations {0};
 
   const auto amplicons = db_getsequencecount();
-  const auto longestamplicon = db_getlongestsequence();
+  const uint64_t longestamplicon = db_getlongestsequence();
 
   db_qgrams_init();
 

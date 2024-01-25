@@ -48,7 +48,7 @@ auto fill_rng_table(const unsigned int zobrist_len,
   static constexpr auto multiplier = 16U;
 
   /* allocate base table and fill with random 64 bit numbers */
-  zobrist_tab_base_v.resize(4 * zobrist_len);
+  zobrist_tab_base_v.resize(4ULL * zobrist_len);
   zobrist_tab_base = zobrist_tab_base_v.data();
 
   std::for_each(zobrist_tab_base_v.begin(),
@@ -73,7 +73,7 @@ auto fill_rng_byte_table(const unsigned int zobrist_len,
   static constexpr auto byte_range = 256U;
 
   /* allocate byte table and combine into bytes for faster computations */
-  zobrist_tab_byte_base_v.resize(byte_range * (zobrist_len / 4));
+  zobrist_tab_byte_base_v.resize(1ULL * byte_range * (zobrist_len / 4));
   zobrist_tab_byte_base = zobrist_tab_byte_base_v.data();
 
   for(auto i = 0U; i < zobrist_len / 4; i++) {
