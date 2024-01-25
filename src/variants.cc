@@ -169,7 +169,8 @@ inline void add_variant(uint64_t hash,
                         std::vector<struct var_s>& variant_list,
                         unsigned int & variant_count)
 {
-  var_s & variant = variant_list[variant_count++];
+  var_s & variant = variant_list[variant_count];
+  ++variant_count;
   variant.hash = hash;
   variant.type = type;
   variant.pos = pos;

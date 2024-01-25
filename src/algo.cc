@@ -329,7 +329,8 @@ auto algo_run(struct Parameters const & parameters) -> void
       amps_v[seedindex].radius = 0;
 
       const uint64_t seedampliconid = amps_v[seedindex].ampliconid;
-      hits[hitcount++] = seedampliconid;
+      hits[hitcount] = seedampliconid;
+      ++hitcount;
 
       auto abundance = db_getabundance(seedampliconid);
       amplicons_copies += abundance;
@@ -417,7 +418,8 @@ auto algo_run(struct Parameters const & parameters) -> void
                   }
 
                   const auto poolampliconid = amps_v[swarmed].ampliconid;
-                  hits[hitcount++] = poolampliconid;
+                  hits[hitcount] = poolampliconid;
+                  ++hitcount;
 
                   if (not parameters.opt_internal_structure.empty())
                     {
@@ -556,7 +558,8 @@ auto algo_run(struct Parameters const & parameters) -> void
                           }
 
                           const auto poolampliconid = amps_v[pos].ampliconid;
-                          hits[hitcount++] = poolampliconid;
+                          hits[hitcount] = poolampliconid;
+                          ++hitcount;
 
                           if (not parameters.opt_internal_structure.empty())
                             {

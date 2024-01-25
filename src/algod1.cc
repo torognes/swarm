@@ -581,7 +581,8 @@ inline auto find_variant_matches(unsigned int seed,
                                   var,
                                   amp_sequence, amp_seqlen))
                   {
-                    hits_data[hits_count++] = amp;
+                    hits_data[hits_count] = amp;
+                    ++hits_count;
                     break;
                   }
               }
@@ -646,7 +647,8 @@ auto network_thread(int64_t t) -> void
         }
 
       for(auto k = 0U; k < hits_count; k++) {
-        network[network_count++] = hits_data[k];
+        network[network_count] = hits_data[k];
+        ++network_count;
       }
     }
   pthread_mutex_unlock(&network_mutex);
