@@ -26,7 +26,7 @@
 #ifdef __POPCNT__
 
 #include <popcntintrin.h>
-#include "utils/qgram_array.h"
+#include "utils/qgram_array.h"  // qgramvectorbytes
 #include <cstdint>  // uint64_t
 
 
