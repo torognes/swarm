@@ -391,15 +391,15 @@ auto algo_run(struct Parameters const & parameters) -> void
 
               if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                 {
-                  const auto i = targetindices[t];
+                  const auto target = targetindices[t];
 
-                  /* move the target (i) to the position (swarmed)
+                  /* move the target to the position (swarmed)
                      of the first unswarmed amplicon in the pool */
 
-                  if (swarmed < i)
+                  if (swarmed < target)
                     {
-                      auto const temp = amps_v[i];  // refactoring: static?
-                      for(auto j = i; j > swarmed; j--)
+                      auto const temp = amps_v[target];  // refactoring: static?
+                      for(auto j = target; j > swarmed; j--)
                         {
                           amps_v[j] = amps_v[j - 1];
                         }
