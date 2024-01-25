@@ -714,9 +714,9 @@ auto db_read(const char * filename,
           id_len = seqindex_p->headerlen - seqindex_p->abundance_end;
         }
 
-      const uint64_t hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
-                                            (seqindex_p->header + id_start),
-                                            4 * static_cast<unsigned int>(id_len));
+      const auto hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
+                                        (seqindex_p->header + id_start),
+                                        4 * static_cast<unsigned int>(id_len));
 
       seqindex_p->hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
