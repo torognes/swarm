@@ -260,7 +260,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   std::vector<uint64_t> qgramindices_v(amplicons);
   std::vector<uint64_t> hits(amplicons);
 
-  auto diff_saturation
+  auto const diff_saturation
     = static_cast<uint64_t>(std::min(UINT8_MAX / parameters.penalty_mismatch,
                                      UINT8_MAX / (penalty_gapopen +
                                                   penalty_gapextend)));
