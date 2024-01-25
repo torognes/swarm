@@ -87,12 +87,12 @@ auto collect_seeds(const uint64_t amplicons,
   std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
   auto swarmcount = 0UL;
   uint64_t mass = 0;
-  unsigned int previd = amps_v[0].swarmid;
-  unsigned int seed = amps_v[0].ampliconid;
+  auto previd = amps_v[0].swarmid;
+  auto seed = amps_v[0].ampliconid;
   mass += db_getabundance(seed);
   for(auto i = 1ULL; i < amplicons; i++)
     {
-      const unsigned int id = amps_v[i].swarmid;
+      const auto id = amps_v[i].swarmid;
       if (id != previd)
         {
           seeds[swarmcount].seed = seed;  // update previous
