@@ -243,8 +243,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   uint64_t maxgenerations {0};
 
-  const uint64_t amplicons = db_getsequencecount();
-  const uint64_t longestamplicon = db_getlongestsequence();
+  const auto amplicons = db_getsequencecount();
+  const auto longestamplicon = db_getlongestsequence();
 
   db_qgrams_init();
 
@@ -331,7 +331,7 @@ auto algo_run(struct Parameters const & parameters) -> void
       const uint64_t seedampliconid = amps_v[seedindex].ampliconid;
       hits[hitcount++] = seedampliconid;
 
-      uint64_t abundance = db_getabundance(seedampliconid);
+      auto abundance = db_getabundance(seedampliconid);
       amplicons_copies += abundance;
       if (abundance == 1) {
         ++singletons;
@@ -349,7 +349,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
-          const unsigned int ampid = amps_v[swarmed + i].ampliconid;
+          const auto ampid = amps_v[swarmed + i].ampliconid;
           if ((opt_no_cluster_breaking) or (db_getabundance(ampid) <= abundance))
             {
               qgramamps_v[i] = ampid;
@@ -362,8 +362,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       for(auto i = 0ULL; i < listlen; i++)
         {
-          const uint64_t poolampliconid = qgramamps_v[i];
-          const uint64_t diff = qgramdiffs_v[i];
+          const auto poolampliconid = qgramamps_v[i];
+          const auto diff = qgramdiffs_v[i];
           amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(parameters.opt_differences))
             {
@@ -387,11 +387,11 @@ auto algo_run(struct Parameters const & parameters) -> void
 
           for(auto t = 0ULL; t < targetcount; t++)
             {
-              const uint64_t diff = diffs_v[t];
+              const auto diff = diffs_v[t];
 
               if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                 {
-                  const uint64_t i = targetindices[t];
+                  const auto i = targetindices[t];
 
                   /* move the target (i) to the position (swarmed)
                      of the first unswarmed amplicon in the pool */
