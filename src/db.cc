@@ -514,6 +514,7 @@ auto db_read(const char * filename,
       uint64_t nt_buffer {0};
       auto nt_bufferlen = 0U;
       const unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
+      static constexpr unsigned char null_char = '\0';
       static constexpr int new_line {10};
       static constexpr int carriage_return {13};
       static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
@@ -521,9 +522,9 @@ auto db_read(const char * filename,
 
       while ((line[0] != 0) and (line[0] != '>'))
         {
-          unsigned char character {0};
+          auto character = null_char;
           char * line_ptr = line;
-          while((character = static_cast<unsigned char>(*line_ptr++)) != 0)
+          while((character = static_cast<unsigned char>(*line_ptr++)) != null_char)
             {
               const auto mapped_char = map_nt[character];
               if (mapped_char != 0)
