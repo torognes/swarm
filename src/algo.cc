@@ -535,7 +535,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
                           if (pos < i)
                             {
-                              auto const temp = amps_v[i];
+                              auto const temp = amps_v[i];  // refactoring: static?
                               for(auto j = i; j > pos; j--)
                                 {
                                   amps_v[j] = amps_v[j - 1];
