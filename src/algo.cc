@@ -393,7 +393,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                 {
                   const auto target = targetindices[t];
 
-                  /* move the target to the position (swarmed)
+                  /* move the 'target' to the position ('swarmed')
                      of the first unswarmed amplicon in the pool */
 
                   if (swarmed < target)
