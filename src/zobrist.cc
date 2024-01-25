@@ -119,11 +119,9 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
   // refactoring: equivalent to a std::reduce() algorithm?
   static constexpr auto offset = 64U;
   static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
-  // refactoring: why interpret first as uint64_t then as uint8_t??
-  auto * query = reinterpret_cast<uint64_t *>(seq);
+  auto * query_in_bytes = seq;
   uint64_t zobrist_hash = 0;
   auto pos = 0U;
-  auto * query_in_bytes = reinterpret_cast<unsigned char *>(query);
 
   while (pos + nt_per_uint64 < len)
     {
