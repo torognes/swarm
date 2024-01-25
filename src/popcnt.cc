@@ -41,17 +41,17 @@
   available starting with the Nehalem architecture in 2008.
 */
 
-auto compareqgramvectors_popcnt(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t
+auto compareqgramvectors_popcnt(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 {
   /* Count number of different bits */
   /* Uses the POPCNT instruction, requires CPU with this feature */
 
-  auto * qgram_vector_a_ptr = reinterpret_cast<uint64_t *>(qgram_a);
-  auto * qgram_vector_b_ptr = reinterpret_cast<uint64_t *>(qgram_b);
+  auto * lhs_ptr = reinterpret_cast<uint64_t *>(lhs);
+  auto * rhs_ptr = reinterpret_cast<uint64_t *>(rhs);
   uint64_t count {0};
 
-  while (reinterpret_cast<unsigned char *>(qgram_vector_a_ptr) < qgram_a + qgramvectorbytes) {
-    count += static_cast<uint64_t>(_mm_popcnt_u64(*qgram_vector_a_ptr++ ^ *qgram_vector_b_ptr++));
+  while (reinterpret_cast<unsigned char *>(lhs_ptr) < lhs + qgramvectorbytes) {
+    count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr++ ^ *rhs_ptr++));
   }
 
   return count;
