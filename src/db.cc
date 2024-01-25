@@ -524,8 +524,9 @@ auto db_read(const char * filename,
         {
           auto character = null_char;
           auto * line_ptr = line;
-          while((character = static_cast<unsigned char>(*line_ptr++)) != null_char)
+          while((character = static_cast<unsigned char>(*line_ptr)) != null_char)
             {
+              ++line_ptr;
               const auto mapped_char = map_nt[character];
               if (mapped_char != 0)
                 {
