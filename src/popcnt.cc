@@ -46,12 +46,14 @@ auto compareqgramvectors_popcnt(unsigned char * lhs, unsigned char * rhs) -> uin
   /* Count number of different bits */
   /* Uses the POPCNT instruction, requires CPU with this feature */
 
+  auto * char_index = lhs;
   auto * lhs_ptr = reinterpret_cast<uint64_t *>(lhs);
   auto * rhs_ptr = reinterpret_cast<uint64_t *>(rhs);
   uint64_t count {0};
 
-  while (reinterpret_cast<unsigned char *>(lhs_ptr) < lhs + qgramvectorbytes) {
+  while (char_index < lhs + qgramvectorbytes) {
     count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr ^ *rhs_ptr));
+    char_index += sizeof(uint64_t);
     ++lhs_ptr;
     ++rhs_ptr;
   }
