@@ -51,7 +51,9 @@ auto compareqgramvectors_popcnt(unsigned char * lhs, unsigned char * rhs) -> uin
   uint64_t count {0};
 
   while (reinterpret_cast<unsigned char *>(lhs_ptr) < lhs + qgramvectorbytes) {
-    count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr++ ^ *rhs_ptr++));
+    count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr ^ *rhs_ptr));
+    ++lhs_ptr;
+    ++rhs_ptr;
   }
 
   return count;
