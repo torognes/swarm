@@ -120,7 +120,8 @@ auto collect_seeds(const uint64_t amplicons,
 auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
   progress_init("Sorting seeds:    ", seeds.size());
 
-  auto compare_seeds = [](struct swarminfo_t const& lhs, struct swarminfo_t const& rhs) -> bool {
+  auto compare_seeds = [](struct swarminfo_t const& lhs,
+                          struct swarminfo_t const& rhs) -> bool {
     // sort by decreasing mass...
     if (lhs.mass > rhs.mass) {
       return true;
