@@ -158,6 +158,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
 }
 
 
+// refactoring: factorize zobrist_hash_insert_first() and zobrist_hash_insert_first()?
 auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> uint64_t
 {
   /* compute the Zobrist hash function of sequence seq,
