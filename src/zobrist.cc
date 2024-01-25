@@ -144,7 +144,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
 
   if (pos < len)
     {
-      uint64_t next_byte = *query_in_bytes;
+      uint64_t next_byte = *query_in_bytes;  // refactoring: reinterpret_cast?
       ++query_in_bytes;
       while (pos < len)
         {
