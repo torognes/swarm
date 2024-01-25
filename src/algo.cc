@@ -514,17 +514,17 @@ auto algo_run(struct Parameters const & parameters) -> void
 
                       if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                         {
-                          const auto i = targetindices[t];
+                          const auto target = targetindices[t];
 
                           /* find correct position in list */
 
-                          /* move the target (i) to the position (swarmed)
+                          /* move the 'target' to the position (swarmed)
                              of the first unswarmed amplicon in the pool
                              then move the target further into the swarmed
                              but unseeded part of the list, so that the
                              swarmed amplicons are ordered by id */
 
-                          const uint64_t targetampliconid = amps_v[i].ampliconid;
+                          const uint64_t targetampliconid = amps_v[target].ampliconid;
                           auto pos = swarmed;
 
                           while ((pos > seeded) and
@@ -533,10 +533,10 @@ auto algo_run(struct Parameters const & parameters) -> void
                             --pos;
                           }
 
-                          if (pos < i)
+                          if (pos < target)
                             {
-                              auto const temp = amps_v[i];  // refactoring: static?
-                              for(auto j = i; j > pos; j--)
+                              auto const temp = amps_v[target];  // refactoring: static?
+                              for(auto j = target; j > pos; j--)
                                 {
                                   amps_v[j] = amps_v[j - 1];
                                 }
