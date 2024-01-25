@@ -163,7 +163,7 @@ auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> u
   /* compute the Zobrist hash function of sequence seq,
      but delete the first base */
 
-  static constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
+  static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
   auto * query = reinterpret_cast<uint64_t *>(seq);
   uint64_t offset = query[0];
   uint64_t zobrist_hash = 0;
