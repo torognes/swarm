@@ -284,9 +284,9 @@ auto algo_run(struct Parameters const & parameters) -> void
   }
 
   /* always search in 8 bit mode unless resolution is very high */
-  static constexpr int bit_mode_8 {8};
-  static constexpr int bit_mode_16 {16};
-  int bits {bit_mode_8};
+  static constexpr auto bit_mode_8 {8};
+  static constexpr auto bit_mode_16 {16};
+  auto bits {bit_mode_8};
 
   if (static_cast<uint64_t>(parameters.opt_differences) > diff_saturation) {
     bits = bit_mode_16;
@@ -302,7 +302,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   seeded = 0;
   swarmed = 0;
 
-  unsigned int swarmid {0};
+  auto swarmid = 0U;
 
   progress_init("Clustering:       ", amplicons);
   while (seeded < amplicons)
@@ -450,8 +450,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 
               /* process each subseed */
 
-              unsigned int subseedampliconid {0};
-              unsigned int subseedradius {0};
+              auto subseedampliconid = 0U;
+              auto subseedradius = 0U;
 
               uint64_t subseedindex {0};
               uint64_t subseedgeneration {0};
