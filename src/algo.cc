@@ -415,7 +415,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                     maxradius = diff;
                   }
 
-                  const unsigned int poolampliconid = amps_v[swarmed].ampliconid;
+                  const auto poolampliconid = amps_v[swarmed].ampliconid;
                   hits[hitcount++] = poolampliconid;
 
                   if (not parameters.opt_internal_structure.empty())
@@ -509,11 +509,11 @@ auto algo_run(struct Parameters const & parameters) -> void
 
                   for(auto t = 0ULL; t < targetcount; t++)
                     {
-                      const uint64_t diff = diffs_v[t];
+                      const auto diff = diffs_v[t];
 
                       if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                         {
-                          const uint64_t i = targetindices[t];
+                          const auto i = targetindices[t];
 
                           /* find correct position in list */
 
@@ -524,7 +524,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                              swarmed amplicons are ordered by id */
 
                           const uint64_t targetampliconid = amps_v[i].ampliconid;
-                          uint64_t pos = swarmed;
+                          auto pos = swarmed;
 
                           while ((pos > seeded) and
                                  (amps_v[pos-1].ampliconid > targetampliconid) and
@@ -554,7 +554,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                             maxradius = amps_v[pos].radius;
                           }
 
-                          const unsigned int poolampliconid = amps_v[pos].ampliconid;
+                          const auto poolampliconid = amps_v[pos].ampliconid;
                           hits[hitcount++] = poolampliconid;
 
                           if (not parameters.opt_internal_structure.empty())
@@ -614,9 +614,9 @@ auto algo_run(struct Parameters const & parameters) -> void
             {
               const auto hit = hits[i];
 
-              char * dseq = db_getsequence(hit);
+              auto * dseq = db_getsequence(hit);
               const auto dlen = db_getsequencelen(hit);
-              char * qseq = db_getsequence(seedampliconid);
+              auto * qseq = db_getsequence(seedampliconid);
               const auto qlen = db_getsequencelen(seedampliconid);
 
               uint64_t nwdiff {0};
