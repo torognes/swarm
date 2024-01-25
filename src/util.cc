@@ -231,13 +231,15 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
 
             case '\n':
               // Newline
-              *p++ = c;
+              *p = c;
+              ++p;
               *p = 0;
               return p - *linep;
 
             default:
               // Ordinary character, including NUL
-              *p++ = c;
+              *p = c;
+              ++p;
               break;
             }
         }
