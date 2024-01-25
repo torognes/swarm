@@ -25,7 +25,7 @@
 #ifdef __x86_64__
 #ifdef __POPCNT__
 
-#include <popcntintrin.h>
+#include <popcntintrin.h>  // refactoring: #include <immintrin.h>?
 #include "utils/qgram_array.h"  // qgramvectorbytes
 #include <cstdint>  // uint64_t
 
