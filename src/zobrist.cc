@@ -165,17 +165,17 @@ auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> u
 
   static constexpr unsigned int nt_per_uint64 {32};  // 32 nucleotides can fit in a uint64
   auto * query = reinterpret_cast<uint64_t *>(seq);
-  uint64_t x = query[0];
+  uint64_t offset = query[0];
   uint64_t zobrist_hash = 0;
   for(auto pos = 1U; pos < len; pos++)
     {
       if ((pos & (nt_per_uint64 - 1)) == 0) {
-        x = query[pos / nt_per_uint64];  // UBSAN: misaligned address for type 'long unsigned int', which requires 8 byte alignment
+        offset = query[pos / nt_per_uint64];  // UBSAN: misaligned address for type 'long unsigned int', which requires 8 byte alignment
       }
       else {
-        x >>= 2U;
+        offset >>= 2U;
       }
-      zobrist_hash ^= zobrist_value(pos - 1, x & 3U);
+      zobrist_hash ^= zobrist_value(pos - 1, offset & 3U);
     }
   return zobrist_hash;
 }
@@ -188,17 +188,17 @@ auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> u
 
   static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
   auto * query = reinterpret_cast<uint64_t *>(seq);
-  uint64_t x = 0;
+  uint64_t offset = 0;
   uint64_t zobrist_hash = 0;
   for(auto pos = 0U; pos < len; pos++)
     {
       if ((pos & (nt_per_uint64 - 1)) == 0) {
-        x = query[pos / nt_per_uint64];  // UBSAN: misaligned address for type 'long unsigned int', which requires 8 byte alignment // refactoring: static_cast<uint64_t>(pos / nt_per_uint64)?
+        offset = query[pos / nt_per_uint64];  // UBSAN: misaligned address for type 'long unsigned int', which requires 8 byte alignment // refactoring: static_cast<uint64_t>(pos / nt_per_uint64)?
       }
       else {
-        x >>= 2U;
+        offset >>= 2U;
       }
-      zobrist_hash ^= zobrist_value(pos + 1, x & 3U);
+      zobrist_hash ^= zobrist_value(pos + 1, offset & 3U);
     }
   return zobrist_hash;
 }
