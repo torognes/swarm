@@ -528,8 +528,8 @@ auto algo_run(struct Parameters const & parameters) -> void
                           auto pos = swarmed;
 
                           while ((pos > seeded) and
-                                 (amps_v[pos-1].ampliconid > targetampliconid) and
-                                 (amps_v[pos-1].generation > subseedgeneration)) {
+                                 (amps_v[pos - 1].ampliconid > targetampliconid) and
+                                 (amps_v[pos - 1].generation > subseedgeneration)) {
                             --pos;
                           }
 
