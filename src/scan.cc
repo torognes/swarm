@@ -60,7 +60,8 @@ void search_alloc(struct Search_data& local_search_data)
   static constexpr auto nt_per_uint64 = 32U;
 
   dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
-  local_search_data.qtable = new BYTE*[longestdbsequence];
+  local_search_data.qtable_v.resize(longestdbsequence);
+  local_search_data.qtable = local_search_data.qtable_v.data();
   local_search_data.qtable_w = new WORD*[longestdbsequence];
   local_search_data.dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
   local_search_data.dprofile_w = new WORD[1 * one_kilobyte];  // 4 * 2 * 8 * 32
@@ -70,7 +71,6 @@ void search_alloc(struct Search_data& local_search_data)
 
 void search_free(struct Search_data * local_search_data)
 {
-  delete [] local_search_data->qtable;
   local_search_data->qtable = nullptr;
   delete [] local_search_data->qtable_w;
   local_search_data->qtable_w = nullptr;

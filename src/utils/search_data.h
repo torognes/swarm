@@ -22,6 +22,7 @@
 */
 
 #include <cstdint>  // int64_t, uint64_t
+#include <vector>
 
 
 using BYTE = unsigned char;
@@ -29,6 +30,7 @@ using WORD = unsigned short;
 
 struct Search_data
 {
+  std::vector<BYTE *> qtable_v;
   BYTE ** qtable;
   WORD ** qtable_w;
 
