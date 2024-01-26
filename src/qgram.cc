@@ -58,13 +58,15 @@
 qgramvector_t * qgrams {nullptr};
 static ThreadRunner * qgram_threads = nullptr;
 
-static struct thread_info_s
+struct thread_info_s
 {
   uint64_t seed;
   uint64_t listlen;
   uint64_t * amplist;
   uint64_t * difflist;
-} * ti;
+};
+
+static struct thread_info_s * ti;
 
 
 void findqgrams(unsigned char * seq, uint64_t seqlen,
