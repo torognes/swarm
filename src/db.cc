@@ -863,6 +863,7 @@ auto db_read(const char * filename,
 }
 
 
+// refactoring: only used in algo.cc, extract to its own header file?
 void db_qgrams_init()
 {
   qgrams = new qgramvector_t[sequences];
