@@ -196,7 +196,7 @@ auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64
 {
   /* Count number of different bits */
   /* Uses SSE2 but not POPCNT instruction */
-  /* input MUST be 16-byte aligned */
+  assert(qgramvectorbytes % 16 == 0); // input MUST be 16-byte aligned
 
   auto * char_index = lhs;
   auto * lhs_ptr = reinterpret_cast<__m128i *>(lhs);
