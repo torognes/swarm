@@ -54,18 +54,18 @@ queryinfo_t query;
 uint64_t longestdbsequence;
 
 
-void search_alloc(struct Search_data * local_search_data)
+void search_alloc(struct Search_data& local_search_data)
 {
   static constexpr auto one_kilobyte = 1024U;
   static constexpr auto nt_per_uint64 = 32U;
 
   dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
-  local_search_data->qtable = new BYTE*[longestdbsequence];
-  local_search_data->qtable_w = new WORD*[longestdbsequence];
-  local_search_data->dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
-  local_search_data->dprofile_w = new WORD[1 * one_kilobyte];  // 4 * 2 * 8 * 32
-  local_search_data->hearray = new BYTE[longestdbsequence * nt_per_uint64] { };
-  local_search_data->dir_array = new uint64_t[dirbuffersize] { };
+  local_search_data.qtable = new BYTE*[longestdbsequence];
+  local_search_data.qtable_w = new WORD*[longestdbsequence];
+  local_search_data.dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
+  local_search_data.dprofile_w = new WORD[1 * one_kilobyte];  // 4 * 2 * 8 * 32
+  local_search_data.hearray = new BYTE[longestdbsequence * nt_per_uint64] { };
+  local_search_data.dir_array = new uint64_t[dirbuffersize] { };
 }
 
 void search_free(struct Search_data * local_search_data)
@@ -262,8 +262,8 @@ void search_begin(std::vector<struct Search_data>& search_data_v)
 
   search_data = search_data_v.data();
 
-  for(auto thread_id = 0ULL; thread_id < static_cast<uint64_t>(opt_threads); thread_id++) {
-    search_alloc(&search_data_v[thread_id]);
+  for(auto& thread_data: search_data_v) {
+    search_alloc(thread_data);
   }
 
   pthread_mutex_init(& scan_mutex, nullptr);
