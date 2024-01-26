@@ -238,9 +238,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
 
-
   uint64_t largestswarm {0};
-
   uint64_t maxgenerations {0};
 
   const auto amplicons = db_getsequencecount();
