@@ -71,8 +71,8 @@ uint64_t longestdbsequence;
 
 void search_alloc(struct Search_data * local_search_data)
 {
-  static constexpr unsigned int one_kilobyte {1024};
-  static constexpr unsigned int nt_per_uint64 {32};
+  static constexpr auto one_kilobyte = 1024U;
+  static constexpr auto nt_per_uint64 = 32U;
 
   dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
   local_search_data->qtable = new BYTE*[longestdbsequence];
