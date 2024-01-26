@@ -203,7 +203,9 @@ auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64
   uint64_t count {0};
 
   while (reinterpret_cast<unsigned char*>(lhs_ptr) < lhs + qgramvectorbytes) {
-    count += popcount_128(_mm_xor_si128(*lhs_ptr++, *rhs_ptr++));
+    count += popcount_128(_mm_xor_si128(*lhs_ptr, *rhs_ptr));
+    ++lhs_ptr;
+    ++rhs_ptr;
   }
 
   return count;
