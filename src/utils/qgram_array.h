@@ -22,8 +22,8 @@
 */
 
 constexpr unsigned int qgramlength {5};
-constexpr unsigned int qgramvectorbits {1U << (2 * qgramlength)};
-constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};
+constexpr unsigned int qgramvectorbits {1U << (2 * qgramlength)};  // 1,024
+constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};  // 128
 
 using qgramvector_t = unsigned char[qgramvectorbytes];
 extern qgramvector_t * qgrams;
