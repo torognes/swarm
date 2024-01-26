@@ -104,11 +104,12 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t;
 
 uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
 {
+  static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(uint8x16_t);  // 8
   auto * lhs_ptr = reinterpret_cast<uint8x16_t *>(lhs);
   auto * rhs_ptr = reinterpret_cast<uint8x16_t *>(rhs);
   uint64_t count {0};
 
-  while (reinterpret_cast<unsigned char*>(lhs_ptr) < lhs + qgramvectorbytes) {
+  for(auto i = 0ULL; i < n_vector_lengths; ++i) {
     count += vaddvq_u8(vcntq_u8(veorq_u8(*lhs_ptr, *rhs_ptr)));
     ++lhs_ptr;
     ++rhs_ptr;
@@ -121,11 +122,12 @@ uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
 
 uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
 {
+  static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(vector unsigned char);  // 8
   auto * lhs_ptr = reinterpret_cast<vector unsigned char *>(lhs);
   auto * rhs_ptr = reinterpret_cast<vector unsigned char *>(rhs);
   vector unsigned long long count_vector = { 0, 0 };
 
-  while (reinterpret_cast<unsigned char *>(lhs_ptr) < lhs + qgramvectorbytes) {
+  for(auto i = 0ULL; i < n_vector_lengths; ++i) {
     count_vector += vec_vpopcnt(reinterpret_cast<vector unsigned long long>(vec_xor(*lhs_ptr, *rhs_ptr)));
     ++lhs_ptr;
     ++rhs_ptr;
