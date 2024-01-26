@@ -120,7 +120,7 @@ void search_chunk(struct Search_data * local_search_data, const int64_t bits)
   static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
   static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
 
-  static constexpr unsigned int bit_mode_16 {16};
+  static constexpr auto bit_mode_16 = 16U;
 
   assert(local_search_data->target_count != 0);
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
