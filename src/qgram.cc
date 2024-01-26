@@ -198,12 +198,14 @@ auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64
   /* Uses SSE2 but not POPCNT instruction */
   /* input MUST be 16-byte aligned */
 
+  auto * char_index = lhs;
   auto * lhs_ptr = reinterpret_cast<__m128i *>(lhs);
   auto * rhs_ptr = reinterpret_cast<__m128i *>(rhs);
   uint64_t count {0};
 
-  while (reinterpret_cast<unsigned char*>(lhs_ptr) < lhs + qgramvectorbytes) {
+  while (char_index < lhs + qgramvectorbytes) {
     count += popcount_128(_mm_xor_si128(*lhs_ptr, *rhs_ptr));
+    char_index += sizeof(__m128i);
     ++lhs_ptr;
     ++rhs_ptr;
   }
