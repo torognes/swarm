@@ -28,6 +28,7 @@
 #include "scan.h"
 #include "util.h"
 #include "utils/cigar.h"
+#include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include <algorithm>  // std::min(), std::reverse()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -233,7 +234,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 {
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
-  search_begin();
+  std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(opt_threads));
+  search_begin(search_data_v);
 
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;

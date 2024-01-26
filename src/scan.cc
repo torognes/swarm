@@ -256,14 +256,14 @@ void search_do(uint64_t query_no,
   }
 }
 
-void search_begin()
+void search_begin(std::vector<struct Search_data>& search_data_v)
 {
   longestdbsequence = db_getlongestsequence();
 
-  search_data = new struct Search_data[static_cast<uint64_t>(opt_threads)];
+  search_data = search_data_v.data();
 
-  for(auto thread_id = 0LL; thread_id < opt_threads; thread_id++) {
-    search_alloc(search_data + thread_id);
+  for(auto thread_id = 0ULL; thread_id < static_cast<uint64_t>(opt_threads); thread_id++) {
+    search_alloc(&search_data_v[thread_id]);
   }
 
   pthread_mutex_init(& scan_mutex, nullptr);
@@ -286,6 +286,5 @@ void search_end()
   for(auto thread_id = 0LL; thread_id < opt_threads; thread_id++) {
     search_free(search_data + thread_id);
   }
-  delete [] search_data;
   search_data = nullptr;
 }

@@ -22,6 +22,7 @@
 */
 
 #include <cinttypes>
+#include <vector>
 
 void search_all(uint64_t query_no);
 void search_do(uint64_t query_no,
@@ -31,5 +32,5 @@ void search_do(uint64_t query_no,
                uint64_t * diffs,
                uint64_t * alignlengths,
                int bits);
-void search_begin();
+void search_begin(std::vector<struct Search_data>& search_data_v);
 void search_end();
