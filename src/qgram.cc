@@ -96,7 +96,7 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
 
 void qgram_work_diff(thread_info_s * tip);
 void qgram_worker(int64_t t);
-auto compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t;
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t;
 
 #ifdef __aarch64__
 
