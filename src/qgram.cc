@@ -109,7 +109,9 @@ uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
   uint64_t count {0};
 
   while (reinterpret_cast<unsigned char*>(lhs_ptr) < lhs + qgramvectorbytes) {
-    count += vaddvq_u8(vcntq_u8(veorq_u8(*lhs_ptr++, *rhs_ptr++)));
+    count += vaddvq_u8(vcntq_u8(veorq_u8(*lhs_ptr, *rhs_ptr)));
+    ++lhs_ptr;
+    ++rhs_ptr;
   }
 
   return count;
@@ -124,7 +126,9 @@ uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
   vector unsigned long long count_vector = { 0, 0 };
 
   while (reinterpret_cast<unsigned char *>(lhs_ptr) < lhs + qgramvectorbytes) {
-    count_vector += vec_vpopcnt(reinterpret_cast<vector unsigned long long>(vec_xor(*lhs_ptr++, *rhs_ptr++)));
+    count_vector += vec_vpopcnt(reinterpret_cast<vector unsigned long long>(vec_xor(*lhs_ptr, *rhs_ptr)));
+    ++lhs_ptr;
+    ++rhs_ptr;
   }
 
   return count_vector[0] + count_vector[1];
