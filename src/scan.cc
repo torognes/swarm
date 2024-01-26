@@ -26,6 +26,7 @@
 #include "search8.h"
 #include "search16.h"
 #include "utils/nt_codec.h"
+#include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
 #include <cassert>  // assert()
@@ -37,22 +38,6 @@
 static pthread_mutex_t scan_mutex;
 
 static ThreadRunner * search_threads = nullptr;
-
-struct Search_data
-{
-  BYTE ** qtable;
-  WORD ** qtable_w;
-
-  BYTE * dprofile;
-  WORD * dprofile_w;
-
-  BYTE * hearray;
-
-  uint64_t * dir_array;
-
-  uint64_t target_count;
-  uint64_t target_index;
-};
 
 static struct Search_data * search_data;
 static uint64_t master_next;
