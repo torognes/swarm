@@ -192,30 +192,30 @@ auto popcount_128(__m128i input_vector) -> uint64_t
 }
 
 
-auto compareqgramvectors_128(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t
+auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 {
   /* Count number of different bits */
   /* Uses SSE2 but not POPCNT instruction */
   /* input MUST be 16-byte aligned */
 
-  auto * ap = reinterpret_cast<__m128i *>(qgram_a);
-  auto * bp = reinterpret_cast<__m128i *>(qgram_b);
+  auto * lhs_ptr = reinterpret_cast<__m128i *>(lhs);
+  auto * rhs_ptr = reinterpret_cast<__m128i *>(rhs);
   uint64_t count {0};
 
-  while (reinterpret_cast<unsigned char*>(ap) < qgram_a + qgramvectorbytes) {
-    count += popcount_128(_mm_xor_si128(*ap++, *bp++));
+  while (reinterpret_cast<unsigned char*>(lhs_ptr) < lhs + qgramvectorbytes) {
+    count += popcount_128(_mm_xor_si128(*lhs_ptr++, *rhs_ptr++));
   }
 
   return count;
 }
 
 
-auto compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b) -> uint64_t
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 {
   if (popcnt_present != 0) {
-    return compareqgramvectors_popcnt(qgram_a, qgram_b);
+    return compareqgramvectors_popcnt(lhs, rhs);
   }
-  return compareqgramvectors_128(qgram_a, qgram_b);
+  return compareqgramvectors_128(lhs, rhs);
 }
 
 #endif
