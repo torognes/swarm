@@ -102,13 +102,13 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t;
 
 #ifdef __aarch64__
 
-uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
+uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
 {
-  auto * ap = reinterpret_cast<uint8x16_t *>(qgram_a);
-  auto * bp = reinterpret_cast<uint8x16_t *>(qgram_b);
+  auto * ap = reinterpret_cast<uint8x16_t *>(lhs);
+  auto * bp = reinterpret_cast<uint8x16_t *>(rhs);
   uint64_t count {0};
 
-  while (reinterpret_cast<unsigned char*>(ap) < qgram_a + qgramvectorbytes) {
+  while (reinterpret_cast<unsigned char*>(ap) < lhs + qgramvectorbytes) {
     count += vaddvq_u8(vcntq_u8(veorq_u8(*ap++, *bp++)));
   }
 
@@ -117,13 +117,13 @@ uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
 
 #elif defined __PPC__
 
-uint64_t compareqgramvectors(unsigned char * qgram_a, unsigned char * qgram_b)
+uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
 {
-  auto * ap = reinterpret_cast<vector unsigned char *>(qgram_a);
-  auto * bp = reinterpret_cast<vector unsigned char *>(qgram_b);
+  auto * ap = reinterpret_cast<vector unsigned char *>(lhs);
+  auto * bp = reinterpret_cast<vector unsigned char *>(rhs);
   vector unsigned long long count_vector = { 0, 0 };
 
-  while (reinterpret_cast<unsigned char *>(ap) < qgram_a + qgramvectorbytes) {
+  while (reinterpret_cast<unsigned char *>(ap) < lhs + qgramvectorbytes) {
     count_vector += vec_vpopcnt(reinterpret_cast<vector unsigned long long>(vec_xor(*ap++, *bp++)));
   }
 
