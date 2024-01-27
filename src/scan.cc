@@ -97,6 +97,7 @@ auto search_init(struct Search_data * local_search_data) -> void
     const int byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
     const int word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
 
+    // refactoring: difficult to work directly on vectors (thread barrier)
     local_search_data->qtable[i]   = local_search_data->dprofile   + byte_offset;
     local_search_data->qtable_w[i] = local_search_data->dprofile_w + word_offset;
   }
