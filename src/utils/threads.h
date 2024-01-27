@@ -97,15 +97,15 @@ public:
     thread_array = thread_array_v.data();
 
     /* init and create worker threads */
-    for(auto i = 0LL; i < thread_count; i++)
+    for(auto i = 0ULL; i < static_cast<uint64_t>(thread_count); i++)
       {
-        struct thread_s * tip = thread_array + i;
-        tip->t = static_cast<int64_t>(i);
-        tip->work = 0;
-        tip->fun = f;
-        pthread_mutex_init(&tip->workmutex, nullptr);
-        pthread_cond_init(&tip->workcond, nullptr);
-        if (pthread_create(&tip->pthread,
+        struct thread_s & tip = thread_array_v[i];
+        tip.t = static_cast<int64_t>(i);
+        tip.work = 0;
+        tip.fun = f;
+        pthread_mutex_init(&tip.workmutex, nullptr);
+        pthread_cond_init(&tip.workcond, nullptr);
+        if (pthread_create(&tip.pthread,
                            &attr,
                            worker,
                            static_cast<void*>(thread_array + i)) != 0) {
