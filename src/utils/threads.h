@@ -22,6 +22,7 @@
 */
 
 #include <cstdint>
+#include <vector>
 #include <pthread.h>  // refactoring: C++11 replace with std::thread
 #include "fatal.h"
 
@@ -43,6 +44,8 @@ private:
     pthread_cond_t workcond;
     int64_t work; /* 1: work available, 0: wait, -1: quit */
   } * thread_array;
+
+  std::vector<struct thread_s> thread_array_v;
 
   static auto worker(void * vp) -> void *
   {
@@ -88,7 +91,8 @@ public:
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
     /* allocate memory for thread data */
-    thread_array = new struct thread_s[static_cast<uint64_t>(thread_count)];
+    thread_array_v.resize(static_cast<uint64_t>(thread_count));
+    thread_array = thread_array_v.data();
 
     /* init and create worker threads */
     for(auto i = 0LL; i < thread_count; i++)
@@ -134,7 +138,6 @@ public:
         pthread_mutex_destroy(&tip->workmutex);
       }
 
-    delete [] thread_array;
     thread_array = nullptr;
     pthread_attr_destroy(&attr);
   }
