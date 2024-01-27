@@ -74,6 +74,7 @@ void search_alloc(struct Search_data& local_search_data)
   local_search_data.dir_array = local_search_data.dir_array_v.data();
 }
 
+
 void search_free(struct Search_data & local_search_data)
 {
   local_search_data.qtable = nullptr;
@@ -83,6 +84,7 @@ void search_free(struct Search_data & local_search_data)
   local_search_data.hearray = nullptr;
   local_search_data.dir_array = nullptr;
 }
+
 
 void search_init(struct Search_data * local_search_data)
 {
@@ -99,6 +101,7 @@ void search_init(struct Search_data * local_search_data)
     local_search_data->qtable_w[i] = local_search_data->dprofile_w + word_offset;
   }
 }
+
 
 void search_chunk(struct Search_data * local_search_data, const int64_t bits)
 {
@@ -146,6 +149,7 @@ void search_chunk(struct Search_data * local_search_data, const int64_t bits)
             longestdbsequence);
  }
 }
+
 
 auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 {
@@ -256,6 +260,7 @@ void search_do(uint64_t query_no,
   }
 }
 
+
 void search_begin(std::vector<struct Search_data>& search_data_v)
 {
   longestdbsequence = db_getlongestsequence();
@@ -273,6 +278,7 @@ void search_begin(std::vector<struct Search_data>& search_data_v)
   search_threads
     = new ThreadRunner(static_cast<int>(opt_threads), search_worker_core);
 }
+
 
 void search_end(std::vector<struct Search_data>& search_data_v)
 {
