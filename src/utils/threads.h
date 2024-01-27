@@ -121,24 +121,21 @@ public:
     /* destroy threads */
     /* finish and clean up worker threads */
 
-    for(auto i = 0LL; i < thread_count; i++)
-      {
-        struct thread_s * tip = thread_array + i;
-
+    for(auto& tip: thread_array_v) {
         /* tell worker to quit */
-        pthread_mutex_lock(&tip->workmutex);
-        tip->work = -1;
-        pthread_cond_signal(&tip->workcond);
-        pthread_mutex_unlock(&tip->workmutex);
+        pthread_mutex_lock(&tip.workmutex);
+        tip.work = -1;
+        pthread_cond_signal(&tip.workcond);
+        pthread_mutex_unlock(&tip.workmutex);
 
         /* wait for worker to quit */
-        if (pthread_join(tip->pthread, nullptr) != 0) {
+        if (pthread_join(tip.pthread, nullptr) != 0) {
           fatal(error_prefix, "Cannot join thread.");
         }
 
-        pthread_cond_destroy(&tip->workcond);
-        pthread_mutex_destroy(&tip->workmutex);
-      }
+        pthread_cond_destroy(&tip.workcond);
+        pthread_mutex_destroy(&tip.workmutex);
+    }
 
     thread_array = nullptr;
     pthread_attr_destroy(&attr);
@@ -147,24 +144,20 @@ public:
   void run()
   {
     /* wake up threads */
-    for(auto i = 0LL; i < thread_count; i++)
-      {
-        struct thread_s * tip = thread_array + i;
-        pthread_mutex_lock(&tip->workmutex);
-        tip->work = 1;
-        pthread_cond_signal(&tip->workcond);
-        pthread_mutex_unlock(&tip->workmutex);
-      }
+    for(auto& tip: thread_array_v) {
+        pthread_mutex_lock(&tip.workmutex);
+        tip.work = 1;
+        pthread_cond_signal(&tip.workcond);
+        pthread_mutex_unlock(&tip.workmutex);
+    }
 
     /* wait for threads to finish their work */
-    for(auto i = 0LL; i < thread_count; i++)
-      {
-        struct thread_s * tip = thread_array + i;
-        pthread_mutex_lock(&tip->workmutex);
-        while (tip->work > 0) {
-          pthread_cond_wait(&tip->workcond, &tip->workmutex);
+    for(auto& tip: thread_array_v) {
+        pthread_mutex_lock(&tip.workmutex);
+        while (tip.work > 0) {
+          pthread_cond_wait(&tip.workcond, &tip.workmutex);
         }
-        pthread_mutex_unlock(&tip->workmutex);
-      }
+        pthread_mutex_unlock(&tip.workmutex);
+    }
   }
 };
