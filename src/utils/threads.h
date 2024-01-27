@@ -37,8 +37,8 @@ private:
 
   struct thread_s
   {
-    int64_t t;
-    void (*fun)(int64_t t);
+    int64_t thread_id;
+    void (*fun)(int64_t thread_id);
     pthread_t pthread;
     pthread_mutex_t workmutex;
     pthread_cond_t workcond;
@@ -63,7 +63,7 @@ private:
 
         if (tip->work > 0)
           {
-            (*tip->fun)(tip->t);
+            (*tip->fun)(tip->thread_id);
             tip->work = 0;
             pthread_cond_signal(&tip->workcond);
           }
@@ -83,9 +83,9 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int t, void (*f)(int64_t t))
+  ThreadRunner(int n_threads, void (*f)(int64_t n_threads))
   {
-    thread_count = t;
+    thread_count = n_threads;
 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -96,7 +96,7 @@ public:
     /* init and create worker threads */
     auto counter = 0LL;
     for(auto& tip: thread_array) {
-        tip.t = counter;
+        tip.thread_id = counter;
         tip.work = 0;
         tip.fun = f;
         pthread_mutex_init(&tip.workmutex, nullptr);
