@@ -47,9 +47,9 @@ private:
 
   std::vector<struct thread_s> thread_array;
 
-  static auto worker(void * vp) -> void *
+  static auto worker(void * void_ptr) -> void *
   {
-    auto * tip = static_cast<struct thread_s *>(vp);
+    auto * tip = static_cast<struct thread_s *>(void_ptr);
 
     pthread_mutex_lock(&tip->workmutex);  // refactoring: prefer mutex_lockguard (RAII)
 
@@ -83,7 +83,7 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int n_threads, void (*f)(int64_t n_threads))
+  ThreadRunner(int n_threads, void (*function_ptr)(int64_t n_threads))
   {
     thread_count = n_threads;
 
@@ -98,7 +98,7 @@ public:
     for(auto& tip: thread_array) {
         tip.thread_id = counter;
         tip.work = 0;
-        tip.fun = f;
+        tip.fun = function_ptr;
         pthread_mutex_init(&tip.workmutex, nullptr);
         pthread_cond_init(&tip.workcond, nullptr);
         if (pthread_create(&tip.pthread,
