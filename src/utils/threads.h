@@ -43,7 +43,9 @@ private:
     pthread_mutex_t workmutex;
     pthread_cond_t workcond;
     int64_t work; /* 1: work available, 0: wait, -1: quit */
-  } * thread_array;
+  };
+
+  struct thread_s * thread_array;
 
   std::vector<struct thread_s> thread_array_v;
 
