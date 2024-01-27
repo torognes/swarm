@@ -32,13 +32,18 @@ struct Search_data
 {
   std::vector<BYTE *> qtable_v;
   BYTE ** qtable;
+  std::vector<WORD *> qtable_w_v;
   WORD ** qtable_w;
 
+  std::vector<BYTE> dprofile_v;
   BYTE * dprofile;
+  std::vector<WORD> dprofile_w_v;
   WORD * dprofile_w;
 
+  std::vector<BYTE> hearray_v;
   BYTE * hearray;
 
+  std::vector<uint64_t> dir_array_v;
   uint64_t * dir_array;
 
   uint64_t target_count;

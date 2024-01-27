@@ -62,25 +62,25 @@ void search_alloc(struct Search_data& local_search_data)
   dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
   local_search_data.qtable_v.resize(longestdbsequence);
   local_search_data.qtable = local_search_data.qtable_v.data();
-  local_search_data.qtable_w = new WORD*[longestdbsequence];
-  local_search_data.dprofile = new BYTE[2 * one_kilobyte];  // 4 * 16 * 32
-  local_search_data.dprofile_w = new WORD[1 * one_kilobyte];  // 4 * 2 * 8 * 32
-  local_search_data.hearray = new BYTE[longestdbsequence * nt_per_uint64] { };
-  local_search_data.dir_array = new uint64_t[dirbuffersize] { };
+  local_search_data.qtable_w_v.resize(longestdbsequence);
+  local_search_data.qtable_w = local_search_data.qtable_w_v.data();
+  local_search_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
+  local_search_data.dprofile = local_search_data.dprofile_v.data();
+  local_search_data.dprofile_w_v.resize(1 * one_kilobyte);  // 4 * 2 * 8 * 32
+  local_search_data.dprofile_w = local_search_data.dprofile_w_v.data();
+  local_search_data.hearray_v.resize(longestdbsequence * nt_per_uint64);
+  local_search_data.hearray = local_search_data.hearray_v.data();
+  local_search_data.dir_array_v.resize(dirbuffersize);
+  local_search_data.dir_array = local_search_data.dir_array_v.data();
 }
 
 void search_free(struct Search_data * local_search_data)
 {
   local_search_data->qtable = nullptr;
-  delete [] local_search_data->qtable_w;
   local_search_data->qtable_w = nullptr;
-  delete [] local_search_data->dprofile;
   local_search_data->dprofile = nullptr;
-  delete [] local_search_data->dprofile_w;
   local_search_data->dprofile_w = nullptr;
-  delete [] local_search_data->hearray;
   local_search_data->hearray = nullptr;
-  delete [] local_search_data->dir_array;
   local_search_data->dir_array = nullptr;
 }
 
