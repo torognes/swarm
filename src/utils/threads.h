@@ -142,7 +142,7 @@ public:
   ThreadRunner &operator=(const ThreadRunner&) = delete; // copy assignment constructor
   ThreadRunner &operator=(ThreadRunner&&) = delete; // move assignment constructor
 
-  void run()
+  auto run() -> void
   {
     /* wake up threads */
     for(auto& tip: thread_array) {
