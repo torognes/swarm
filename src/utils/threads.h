@@ -137,6 +137,11 @@ public:
     pthread_attr_destroy(&attr);
   }
 
+  ThreadRunner(const ThreadRunner&) = delete; // copy constructor
+  ThreadRunner(ThreadRunner&&) = delete; // move constructor
+  ThreadRunner &operator=(const ThreadRunner&) = delete; // copy assignment constructor
+  ThreadRunner &operator=(ThreadRunner&&) = delete; // move assignment constructor
+
   void run()
   {
     /* wake up threads */
