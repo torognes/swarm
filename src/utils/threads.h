@@ -139,8 +139,8 @@ public:
 
   ThreadRunner(const ThreadRunner&) = delete; // copy constructor
   ThreadRunner(ThreadRunner&&) = delete; // move constructor
-  ThreadRunner &operator=(const ThreadRunner&) = delete; // copy assignment constructor
-  ThreadRunner &operator=(ThreadRunner&&) = delete; // move assignment constructor
+  auto operator=(const ThreadRunner&) -> ThreadRunner& = delete; // copy assignment constructor
+  auto operator=(ThreadRunner&&) -> ThreadRunner& = delete; // move assignment constructor
 
   auto run() -> void
   {
