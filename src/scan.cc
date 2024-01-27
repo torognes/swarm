@@ -54,7 +54,7 @@ queryinfo_t query;
 uint64_t longestdbsequence;
 
 
-void search_alloc(struct Search_data& local_search_data)
+auto search_alloc(struct Search_data& local_search_data) -> void
 {
   static constexpr auto one_kilobyte = 1024U;
   static constexpr auto nt_per_uint64 = 32U;
@@ -75,7 +75,7 @@ void search_alloc(struct Search_data& local_search_data)
 }
 
 
-void search_free(struct Search_data & local_search_data)
+auto search_free(struct Search_data & local_search_data) -> void
 {
   local_search_data.qtable = nullptr;
   local_search_data.qtable_w = nullptr;
@@ -86,7 +86,7 @@ void search_free(struct Search_data & local_search_data)
 }
 
 
-void search_init(struct Search_data * local_search_data)
+auto search_init(struct Search_data * local_search_data) -> void
 {
   static constexpr int byte_multiplier {64};
   static constexpr int word_multiplier {32};
@@ -103,7 +103,7 @@ void search_init(struct Search_data * local_search_data)
 }
 
 
-void search_chunk(struct Search_data * local_search_data, const int64_t bits)
+auto search_chunk(struct Search_data * local_search_data, const int64_t bits) -> void
 {
   static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
   static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
@@ -179,7 +179,7 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 }
 
 
-void search_worker_core(const int64_t thread_id)
+auto search_worker_core(const int64_t thread_id) -> void
 {
   search_init(search_data + thread_id);
   while(search_getwork(& search_data[thread_id].target_count, & search_data[thread_id].target_index)) {
@@ -224,13 +224,13 @@ auto adjust_thread_number(const int n_bits,
 // static_assert(adjust_thread_number(16, 17,  1) == 1);
 
 
-void search_do(uint64_t query_no,
+auto search_do(uint64_t query_no,
                uint64_t listlength,
                uint64_t * targets,
                uint64_t * scores,
                uint64_t * diffs,
                uint64_t * alignlengths,
-               const int bits)
+               const int bits) -> void
 {
   unsigned int query_len = 0;
   query.qno = query_no;
@@ -261,7 +261,7 @@ void search_do(uint64_t query_no,
 }
 
 
-void search_begin(std::vector<struct Search_data>& search_data_v)
+auto search_begin(std::vector<struct Search_data>& search_data_v) -> void
 {
   longestdbsequence = db_getlongestsequence();
 
@@ -280,7 +280,7 @@ void search_begin(std::vector<struct Search_data>& search_data_v)
 }
 
 
-void search_end(std::vector<struct Search_data>& search_data_v)
+auto search_end(std::vector<struct Search_data>& search_data_v) -> void
 {
   /* finish and clean up worker threads */
 

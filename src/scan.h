@@ -24,13 +24,13 @@
 #include <cinttypes>
 #include <vector>
 
-void search_all(uint64_t query_no);
-void search_do(uint64_t query_no,
+auto search_all(uint64_t query_no) -> void;
+auto search_do(uint64_t query_no,
                uint64_t listlength,
                uint64_t * targets,
                uint64_t * scores,
                uint64_t * diffs,
                uint64_t * alignlengths,
-               int bits);
-void search_begin(std::vector<struct Search_data>& search_data_v);
-void search_end(std::vector<struct Search_data>& search_data_v);
+               int bits) -> void;
+auto search_begin(std::vector<struct Search_data>& search_data_v) -> void;
+auto search_end(std::vector<struct Search_data>& search_data_v) -> void;
