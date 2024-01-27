@@ -74,14 +74,14 @@ void search_alloc(struct Search_data& local_search_data)
   local_search_data.dir_array = local_search_data.dir_array_v.data();
 }
 
-void search_free(struct Search_data * local_search_data)
+void search_free(struct Search_data & local_search_data)
 {
-  local_search_data->qtable = nullptr;
-  local_search_data->qtable_w = nullptr;
-  local_search_data->dprofile = nullptr;
-  local_search_data->dprofile_w = nullptr;
-  local_search_data->hearray = nullptr;
-  local_search_data->dir_array = nullptr;
+  local_search_data.qtable = nullptr;
+  local_search_data.qtable_w = nullptr;
+  local_search_data.dprofile = nullptr;
+  local_search_data.dprofile_w = nullptr;
+  local_search_data.hearray = nullptr;
+  local_search_data.dir_array = nullptr;
 }
 
 void search_init(struct Search_data * local_search_data)
@@ -274,7 +274,7 @@ void search_begin(std::vector<struct Search_data>& search_data_v)
     = new ThreadRunner(static_cast<int>(opt_threads), search_worker_core);
 }
 
-void search_end()
+void search_end(std::vector<struct Search_data>& search_data_v)
 {
   /* finish and clean up worker threads */
 
@@ -283,8 +283,9 @@ void search_end()
 
   pthread_mutex_destroy(& scan_mutex);
 
-  for(auto thread_id = 0LL; thread_id < opt_threads; thread_id++) {
-    search_free(search_data + thread_id);
+  for(auto& thread_data: search_data_v) {
+    search_free(thread_data);
   }
+
   search_data = nullptr;
 }

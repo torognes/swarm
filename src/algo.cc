@@ -698,6 +698,6 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   std::fprintf(logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
 
-  search_end();
+  search_end(search_data_v);
 }
 

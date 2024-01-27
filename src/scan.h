@@ -33,4 +33,4 @@ void search_do(uint64_t query_no,
                uint64_t * alignlengths,
                int bits);
 void search_begin(std::vector<struct Search_data>& search_data_v);
-void search_end();
+void search_end(std::vector<struct Search_data>& search_data_v);
