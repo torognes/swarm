@@ -31,8 +31,6 @@ class ThreadRunner
 {
 private:
 
-  int64_t thread_count = 1;
-
   pthread_attr_t attr {};
 
   struct thread_s
@@ -83,9 +81,8 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int n_threads, void (*function_ptr)(int64_t n_threads))
+  ThreadRunner(int thread_count, void (*function_ptr)(int64_t n_threads))
   {
-    thread_count = n_threads;
 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
