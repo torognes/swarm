@@ -31,7 +31,7 @@ class ThreadRunner
 {
 private:
 
-  int64_t thread_count;
+  int64_t thread_count = 1;
 
   pthread_attr_t attr {};
 
