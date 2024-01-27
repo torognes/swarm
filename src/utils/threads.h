@@ -45,9 +45,7 @@ private:
     int64_t work; /* 1: work available, 0: wait, -1: quit */
   };
 
-  struct thread_s * thread_array;
-
-  std::vector<struct thread_s> thread_array_v;
+  std::vector<struct thread_s> thread_array;
 
   static auto worker(void * vp) -> void *
   {
@@ -93,12 +91,11 @@ public:
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
     /* allocate memory for thread data */
-    thread_array_v.resize(static_cast<uint64_t>(thread_count));
-    thread_array = thread_array_v.data();
+    thread_array.resize(static_cast<uint64_t>(thread_count));
 
     /* init and create worker threads */
     auto counter = 0LL;
-    for(auto& tip: thread_array_v) {
+    for(auto& tip: thread_array) {
         tip.t = counter;
         tip.work = 0;
         tip.fun = f;
@@ -121,7 +118,7 @@ public:
     /* destroy threads */
     /* finish and clean up worker threads */
 
-    for(auto& tip: thread_array_v) {
+    for(auto& tip: thread_array) {
         /* tell worker to quit */
         pthread_mutex_lock(&tip.workmutex);
         tip.work = -1;
@@ -137,14 +134,13 @@ public:
         pthread_mutex_destroy(&tip.workmutex);
     }
 
-    thread_array = nullptr;
     pthread_attr_destroy(&attr);
   }
 
   void run()
   {
     /* wake up threads */
-    for(auto& tip: thread_array_v) {
+    for(auto& tip: thread_array) {
         pthread_mutex_lock(&tip.workmutex);
         tip.work = 1;
         pthread_cond_signal(&tip.workcond);
@@ -152,7 +148,7 @@ public:
     }
 
     /* wait for threads to finish their work */
-    for(auto& tip: thread_array_v) {
+    for(auto& tip: thread_array) {
         pthread_mutex_lock(&tip.workmutex);
         while (tip.work > 0) {
           pthread_cond_wait(&tip.workcond, &tip.workmutex);
