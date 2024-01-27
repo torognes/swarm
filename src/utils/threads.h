@@ -97,10 +97,9 @@ public:
     thread_array = thread_array_v.data();
 
     /* init and create worker threads */
-    for(auto i = 0ULL; i < static_cast<uint64_t>(thread_count); i++)
-      {
-        struct thread_s & tip = thread_array_v[i];
-        tip.t = static_cast<int64_t>(i);
+    auto counter = 0LL;
+    for(auto& tip: thread_array_v) {
+        tip.t = counter;
         tip.work = 0;
         tip.fun = f;
         pthread_mutex_init(&tip.workmutex, nullptr);
@@ -108,9 +107,10 @@ public:
         if (pthread_create(&tip.pthread,
                            &attr,
                            worker,
-                           static_cast<void*>(thread_array + i)) != 0) {
+                           static_cast<void*>(&tip)) != 0) {
           fatal(error_prefix, "Cannot create thread.");
         }
+        ++counter;
       }
   }
 
