@@ -276,35 +276,33 @@ void qgram_diff_done()
 void qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
-                     uint64_t * difflist)
+                     uint64_t * difflist,
+                     std::vector<struct thread_info_s>& ti_v)
 {
   if (listlen <= UINT8_MAX)
     {
-      ti->seed = seed;
-      ti->amplist = amplist;
-      ti->difflist = difflist;
-      ti->listlen = listlen;
+      auto & tip = ti_v[0];
+      tip.seed = seed;
+      tip.listlen = listlen;
+      tip.amplist = amplist;
+      tip.difflist = difflist;
       qgram_worker(0);
     }
   else
     {
-      const auto thr = static_cast<uint64_t>(opt_threads);
-
       uint64_t * next_amplist = amplist;
       uint64_t * next_difflist = difflist;
       uint64_t listrest = listlen;
-      uint64_t thrrest = thr;
+      uint64_t thrrest = static_cast<uint64_t>(opt_threads);
 
       /* distribute work */
-      for(auto t = 0ULL; t < thr; t++)
-        {
-          thread_info_s * tip = ti + t;
+      for(auto & tip: ti_v) {
           const uint64_t chunk = (listrest + thrrest - 1) / thrrest;
 
-          tip->seed = seed;
-          tip->amplist = next_amplist;
-          tip->difflist = next_difflist;
-          tip->listlen = chunk;
+          tip.seed = seed;
+          tip.listlen = chunk;
+          tip.amplist = next_amplist;
+          tip.difflist = next_difflist;
 
           next_amplist += chunk;
           next_difflist += chunk;

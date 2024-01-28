@@ -31,6 +31,7 @@ auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t;
 void qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
-                     uint64_t * difflist);
+                     uint64_t * difflist,
+                     std::vector<struct thread_info_s>& ti_v);
 void qgram_diff_init(std::vector<struct thread_info_s>& ti_v);
 void qgram_diff_done();

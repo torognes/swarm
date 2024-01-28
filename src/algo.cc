@@ -360,7 +360,7 @@ auto algo_run(struct Parameters const & parameters) -> void
             }
         }
 
-      qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data());
+      qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), ti_v);
 
 
       for(auto i = 0ULL; i < listlen; i++)
@@ -489,7 +489,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                 }
 
               qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps_v.data(),
-                              qgramdiffs_v.data());
+                              qgramdiffs_v.data(), ti_v);
 
               for(auto i = 0ULL; i < subseedlistlen; i++) {
                 if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences))
