@@ -176,9 +176,9 @@ inline auto check_amp_identical(unsigned int amp1,
   const auto amp2_seqlen = db_getsequencelen(amp2);
 
   return ((amp1_seqlen == amp2_seqlen) and
-          (std::memcmp(db_getsequence(amp1),
-                  db_getsequence(amp2),
-                  nt_bytelength(amp1_seqlen)) == 0));
+          std::equal(db_getsequence(amp1),
+                     db_getsequence(amp1) + nt_bytelength(amp1_seqlen),
+                     db_getsequence(amp2)));
 }
 
 

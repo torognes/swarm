@@ -293,9 +293,8 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
       while ((clusterp->mass != 0U) and
              ((clusterp->hash != hash) or
               (seqlen != db_getsequencelen(clusterp->seqno_first)) or
-              (std::memcmp(seq,
-                           db_getsequence(clusterp->seqno_first),
-                           nt_bytelength(seqlen)) != 0)
+              not std::equal(seq, seq + nt_bytelength(seqlen),
+                             db_getsequence(clusterp->seqno_first))
               )
              )
         {

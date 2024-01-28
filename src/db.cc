@@ -779,9 +779,9 @@ auto db_read(const char * filename,
             {
               if ((seqfound->seqhash == seqindex_p->seqhash) and
                   (seqfound->seqlen == seqindex_p->seqlen) and
-                  (std::memcmp(seqfound->seq,
-                               seqindex_p->seq,
-                               nt_bytelength(seqindex_p->seqlen)) == 0)) {
+                  std::equal(seqfound->seq,
+                             seqfound->seq + nt_bytelength(seqindex_p->seqlen),
+                             seqindex_p->seq)) {
                 break;
               }
               seqhashindex = (seqhashindex + 1) % seqhashsize;
