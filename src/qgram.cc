@@ -230,6 +230,7 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 
 #endif
 
+
 inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
 {
   return reinterpret_cast<unsigned char*>(qgrams + seqno);
