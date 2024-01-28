@@ -45,7 +45,7 @@ inline auto hash_getnextindex(uint64_t j) -> uint64_t
   return (j + 1) & hash_mask;
 }
 
-inline void hash_set_occupied(uint64_t j)
+inline auto hash_set_occupied(uint64_t j) -> void
 {
   static constexpr unsigned int divider {3};  // drop the first 3 bits
   static constexpr unsigned int max_range {7};  // j & max_range = values ranging from 0 to 7
@@ -60,7 +60,7 @@ inline auto hash_is_occupied(uint64_t j) -> bool
   return (hash_occupied[j >> divider] & (1U << (j & max_range))) != 0;
 }
 
-inline void hash_set_value(uint64_t j, uint64_t hash)
+inline auto hash_set_value(uint64_t j, uint64_t hash) -> void
 {
   hash_values[j] = hash;
 }
@@ -75,7 +75,7 @@ inline auto hash_get_data(uint64_t j) -> unsigned int
   return hash_data[j];
 }
 
-inline void hash_set_data(uint64_t j, unsigned int x)
+inline auto hash_set_data(uint64_t j, unsigned int x) -> void
 {
   hash_data[j] = x;
 }
@@ -85,4 +85,4 @@ auto hash_alloc(uint64_t amplicons,
                 std::vector<uint64_t>& hash_values_v,
                 std::vector<unsigned int>& hash_data_v) -> uint64_t;
 
-void hash_free();
+auto hash_free() -> void;

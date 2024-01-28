@@ -58,7 +58,7 @@ auto hash_alloc(const uint64_t amplicons,
 }
 
 
-void hash_free()
+auto hash_free() -> void
 {
   hash_occupied = nullptr;
   hash_values = nullptr;
