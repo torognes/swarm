@@ -266,18 +266,18 @@ void qgram_diff_init(std::vector<struct thread_info_s>& ti_v)
     = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
 }
 
-void qgram_diff_done()
+auto qgram_diff_done() -> void
 {
   delete qgram_threads;
   qgram_threads = nullptr;
   ti = nullptr;
 }
 
-void qgram_diff_fast(uint64_t seed,
+auto qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
                      uint64_t * difflist,
-                     std::vector<struct thread_info_s>& ti_v)
+                     std::vector<struct thread_info_s>& ti_v) -> void
 {
   if (listlen <= UINT8_MAX)
     {
