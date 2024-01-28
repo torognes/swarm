@@ -50,7 +50,7 @@ auto hash_alloc(const uint64_t amplicons,
   static constexpr int padding {63};  // make sure our final value is >= 64 / 8
   static constexpr int convert_to_bytes {8};
 
-  const uint64_t hashtablesize {compute_hashtable_size(amplicons)};
+  const auto hashtablesize {compute_hashtable_size(amplicons)};
   hash_mask = hashtablesize - 1;
 
   hash_occupied_v.resize((hashtablesize + padding) / convert_to_bytes);
