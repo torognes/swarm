@@ -80,8 +80,6 @@ inline void hash_set_data(uint64_t j, unsigned int x)
   hash_data[j] = x;
 }
 
-void hash_zap(uint64_t hashtablesize);
-
 auto hash_alloc(uint64_t amplicons,
                 std::vector<unsigned char>& hash_occupied_v,
                 std::vector<uint64_t>& hash_values_v,

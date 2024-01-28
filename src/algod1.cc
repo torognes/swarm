@@ -1369,7 +1369,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           /* Empty the old hash and bloom filter
              before we reinsert only the light swarm amplicons */
 
-          hash_zap(hashtablesize);
+          std::fill(hash_occupied_v.begin(), hash_occupied_v.end(), 0U);
           bloom_zap(bloom_a);
 
           progress_init("Adding light swarm amplicons to Bloom filter",

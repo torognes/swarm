@@ -34,14 +34,6 @@ uint64_t * hash_values {nullptr};
 unsigned int * hash_data {nullptr};
 
 
-void hash_zap(const uint64_t hashtablesize)
-{
-  static constexpr int padding {63};  // make sure our final value is >= 64 / 8
-  static constexpr int convert_to_bytes {8};
-  std::memset(hash_occupied, 0, (hashtablesize + padding) / convert_to_bytes);
-}
-
-
 auto hash_alloc(const uint64_t amplicons,
                 std::vector<unsigned char>& hash_occupied_v,
                 std::vector<uint64_t>& hash_values_v,
