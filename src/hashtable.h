@@ -75,9 +75,9 @@ inline auto hash_get_data(uint64_t index) -> unsigned int
   return hash_data[index];
 }
 
-inline auto hash_set_data(uint64_t index, unsigned int x) -> void
+inline auto hash_set_data(uint64_t index, unsigned int amplicon_id) -> void
 {
-  hash_data[index] = x;
+  hash_data[index] = amplicon_id;
 }
 
 auto hash_alloc(uint64_t amplicons,
