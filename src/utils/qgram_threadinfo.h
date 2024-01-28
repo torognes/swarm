@@ -21,16 +21,13 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdint>
-#include <vector>
+#include <cstdint>  // uint64_t
 
 
-void findqgrams(unsigned char * seq, uint64_t seqlen,
-                unsigned char * qgramvector);
-auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t;
-void qgram_diff_fast(uint64_t seed,
-                     uint64_t listlen,
-                     uint64_t * amplist,
-                     uint64_t * difflist);
-void qgram_diff_init(std::vector<struct thread_info_s>& ti_v);
-void qgram_diff_done();
+struct thread_info_s
+{
+  uint64_t seed;
+  uint64_t listlen;
+  uint64_t * amplist;
+  uint64_t * difflist;
+};

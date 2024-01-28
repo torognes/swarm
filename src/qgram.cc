@@ -49,22 +49,16 @@
 
 #endif
 
+#include "utils/qgram_threadinfo.h"
 #include "utils/nt_codec.h"
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // memset
+#include <vector>
 
 
 qgramvector_t * qgrams {nullptr};
 static ThreadRunner * qgram_threads = nullptr;
-
-struct thread_info_s
-{
-  uint64_t seed;
-  uint64_t listlen;
-  uint64_t * amplist;
-  uint64_t * difflist;
-};
 
 static struct thread_info_s * ti;
 
@@ -262,10 +256,11 @@ auto qgram_worker(int64_t t) -> void
   }
 }
 
-void qgram_diff_init()
+void qgram_diff_init(std::vector<struct thread_info_s>& ti_v)
 {
   /* allocate memory for thread info */
-  ti = new struct thread_info_s[static_cast<uint64_t>(opt_threads)];
+  ti_v.resize(static_cast<uint64_t>(opt_threads));
+  ti = ti_v.data();
 
   qgram_threads
     = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
@@ -275,7 +270,6 @@ void qgram_diff_done()
 {
   delete qgram_threads;
   qgram_threads = nullptr;
-  delete [] ti;
   ti = nullptr;
 }
 
@@ -294,7 +288,7 @@ void qgram_diff_fast(uint64_t seed,
     }
   else
     {
-      auto thr = static_cast<uint64_t>(opt_threads);
+      const auto thr = static_cast<uint64_t>(opt_threads);
 
       uint64_t * next_amplist = amplist;
       uint64_t * next_difflist = difflist;

@@ -28,6 +28,7 @@
 #include "scan.h"
 #include "util.h"
 #include "utils/cigar.h"
+#include "utils/qgram_threadinfo.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include <algorithm>  // std::min(), std::reverse()
@@ -248,7 +249,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   db_qgrams_init();
 
-  qgram_diff_init();
+  std::vector<struct thread_info_s> ti_v;
+  qgram_diff_init(ti_v);
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   std::vector<uint64_t> targetampliconids(amplicons);
