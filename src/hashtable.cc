@@ -23,6 +23,7 @@
 
 #include <cstdint>
 #include <cstring>  // memset
+#include <vector>
 #include "hashtable.h"
 #include "utils/hashtable_size.h"
 
@@ -41,7 +42,10 @@ void hash_zap(const uint64_t hashtablesize)
 }
 
 
-auto hash_alloc(const uint64_t amplicons) -> uint64_t
+auto hash_alloc(const uint64_t amplicons,
+                std::vector<unsigned char>& hash_occupied_v,
+                std::vector<uint64_t>& hash_values_v,
+                std::vector<unsigned int>& hash_data_v) -> uint64_t
 {
   static constexpr int padding {63};  // make sure our final value is >= 64 / 8
   static constexpr int convert_to_bytes {8};
@@ -49,11 +53,14 @@ auto hash_alloc(const uint64_t amplicons) -> uint64_t
   const uint64_t hashtablesize {compute_hashtable_size(amplicons)};
   hash_mask = hashtablesize - 1;
 
-  hash_occupied = new unsigned char[(hashtablesize + padding) / convert_to_bytes] { };
+  hash_occupied_v.resize((hashtablesize + padding) / convert_to_bytes);
+  hash_occupied = hash_occupied_v.data();
 
-  hash_values = new uint64_t[hashtablesize] { };
+  hash_values_v.resize(hashtablesize);
+  hash_values = hash_values_v.data();
 
-  hash_data = new unsigned int[hashtablesize] { };
+  hash_data_v.resize(hashtablesize);
+  hash_data = hash_data_v.data();
 
   return hashtablesize;
 }
@@ -61,10 +68,7 @@ auto hash_alloc(const uint64_t amplicons) -> uint64_t
 
 void hash_free()
 {
-  delete [] hash_occupied;
   hash_occupied = nullptr;
-  delete [] hash_values;
   hash_values = nullptr;
-  delete [] hash_data;
   hash_data = nullptr;
 }

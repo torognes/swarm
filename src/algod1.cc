@@ -1066,8 +1066,13 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   global_hits_data = global_hits_v.data();
 
   /* compute hash for all amplicons and store them in a hash table */
-
-  const uint64_t hashtablesize {hash_alloc(amplicons)};
+  std::vector<unsigned char> hash_occupied_v;
+  std::vector<uint64_t> hash_values_v;
+  std::vector<unsigned int> hash_data_v;
+  const uint64_t hashtablesize {hash_alloc(amplicons,
+                                           hash_occupied_v,
+                                           hash_values_v,
+                                           hash_data_v)};
   bloom_a = bloom_init(hashtablesize);
 
   duplicates_found = 0;
