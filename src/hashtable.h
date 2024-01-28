@@ -60,24 +60,24 @@ inline auto hash_is_occupied(uint64_t j) -> bool
   return (hash_occupied[j >> divider] & (1U << (j & max_range))) != 0;
 }
 
-inline auto hash_set_value(uint64_t j, uint64_t hash) -> void
+inline auto hash_set_value(uint64_t index, uint64_t hash) -> void
 {
-  hash_values[j] = hash;
+  hash_values[index] = hash;
 }
 
-inline auto hash_compare_value(uint64_t j, uint64_t hash) -> bool
+inline auto hash_compare_value(uint64_t index, uint64_t hash) -> bool
 {
-  return (hash_values[j] == hash);
+  return (hash_values[index] == hash);
 }
 
-inline auto hash_get_data(uint64_t j) -> unsigned int
+inline auto hash_get_data(uint64_t index) -> unsigned int
 {
-  return hash_data[j];
+  return hash_data[index];
 }
 
-inline auto hash_set_data(uint64_t j, unsigned int x) -> void
+inline auto hash_set_data(uint64_t index, unsigned int x) -> void
 {
-  hash_data[j] = x;
+  hash_data[index] = x;
 }
 
 auto hash_alloc(uint64_t amplicons,
