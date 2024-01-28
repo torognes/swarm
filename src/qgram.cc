@@ -242,6 +242,7 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
   return (diffqgrams + 2ULL * qgramlength - 1) / (2ULL * qgramlength);  // mindiff
 }
 
+
 auto qgram_worker(int64_t t) -> void
 {
   struct thread_info_s * tip = ti + t;
@@ -256,6 +257,7 @@ auto qgram_worker(int64_t t) -> void
   }
 }
 
+
 void qgram_diff_init(std::vector<struct thread_info_s>& ti_v)
 {
   /* allocate memory for thread info */
@@ -266,12 +268,14 @@ void qgram_diff_init(std::vector<struct thread_info_s>& ti_v)
     = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
 }
 
+
 auto qgram_diff_done() -> void
 {
   delete qgram_threads;
   qgram_threads = nullptr;
   ti = nullptr;
 }
+
 
 auto qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
