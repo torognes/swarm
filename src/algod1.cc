@@ -1384,11 +1384,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           light_progress = 0;
           light_amplicon_count = amplicons_in_small_clusters;
           light_amplicon = amplicons - 1;
-          // refactoring: light_tr with unique ptr (see below for heavy_tr)
-          auto * tr = new ThreadRunner(static_cast<int>(opt_threads),
-                                       mark_light_thread);
-          tr->run();
-          delete tr;
+          {
+            // refactoring C++14: use std::make_unique
+            std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(static_cast<int>(opt_threads), mark_light_thread));
+            light_tr->run();
+          }
           pthread_mutex_destroy(&light_mutex);
 
           progress_done();
