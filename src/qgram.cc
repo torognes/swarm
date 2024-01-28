@@ -63,8 +63,8 @@ static ThreadRunner * qgram_threads = nullptr;
 static struct thread_info_s * ti;
 
 
-void findqgrams(unsigned char * seq, uint64_t seqlen,
-                unsigned char * qgramvector)
+auto findqgrams(unsigned char * seq, uint64_t seqlen,
+                unsigned char * qgramvector) -> void
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
@@ -90,8 +90,8 @@ void findqgrams(unsigned char * seq, uint64_t seqlen,
   }
 }
 
-void qgram_work_diff(thread_info_s * tip);
-void qgram_worker(int64_t t);
+auto qgram_work_diff(thread_info_s * tip) -> void;
+auto qgram_worker(int64_t t) -> void;
 auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t;
 
 #ifdef __aarch64__
@@ -258,7 +258,7 @@ auto qgram_worker(int64_t t) -> void
 }
 
 
-void qgram_diff_init(std::vector<struct thread_info_s>& ti_v)
+auto qgram_diff_init(std::vector<struct thread_info_s>& ti_v) -> void
 {
   /* allocate memory for thread info */
   ti_v.resize(static_cast<uint64_t>(opt_threads));
