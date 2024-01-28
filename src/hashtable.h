@@ -40,9 +40,9 @@ inline auto hash_getindex(uint64_t hash) -> uint64_t
   return hash & hash_mask;
 }
 
-inline auto hash_getnextindex(uint64_t j) -> uint64_t
+inline auto hash_getnextindex(uint64_t index) -> uint64_t
 {
-  return (j + 1) & hash_mask;
+  return (index + 1) & hash_mask;
 }
 
 inline auto hash_set_occupied(uint64_t j) -> void
