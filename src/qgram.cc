@@ -268,7 +268,7 @@ void qgram_diff_init()
   ti = new struct thread_info_s[static_cast<uint64_t>(opt_threads)];
 
   qgram_threads
-    = new ThreadRunner(static_cast<int> (opt_threads), qgram_worker);
+    = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
 }
 
 void qgram_diff_done()
