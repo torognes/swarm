@@ -668,7 +668,6 @@ auto db_read(const char * filename,
 
   seqindex_v.resize(sequences);
   seqindex = seqindex_v.data();
-  seqinfo_t * seqindex_p = seqindex_v.data();
 
   seqinfo_t * lastseq {nullptr};
 
@@ -720,7 +719,7 @@ auto db_read(const char * filename,
             }
         }
 
-      lastseq = seqindex_p;
+      lastseq = &a_sequence;
 
       /* check for duplicated identifiers using hash table */
 
@@ -786,7 +785,7 @@ auto db_read(const char * filename,
           fatal(error_prefix, "Duplicated sequence identifier: ", full_header.substr(0, static_cast<unsigned long int>(id_len)));
         }
 
-      hdrhashtable[hdrhashindex] = seqindex_p;
+      hdrhashtable[hdrhashindex] = &a_sequence;
 
       /* hash sequence */
       a_sequence.seqhash = zobrist_hash(reinterpret_cast<unsigned char*>
@@ -818,10 +817,9 @@ auto db_read(const char * filename,
               ++duplicates_found;
               break;
             }
-          seqhashtable[seqhashindex] = seqindex_p;
+          seqhashtable[seqhashindex] = &a_sequence;
         }
 
-      ++seqindex_p;
       progress_update(i);
     }
 
