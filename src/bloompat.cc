@@ -67,6 +67,7 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 {
   // Size is in bytes for full bitmap, must be power of 2,
   // at least 8
+  // assert(std::has_single_bit(size));  // C++20 refactoring: is power of 2?
   static constexpr uint64_t bytes_per_uint64 {8};
   size = std::max(size, bytes_per_uint64);
 
