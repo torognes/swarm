@@ -675,9 +675,8 @@ auto db_read(const char * filename,
 
   char * cursor = data_v.data();
   progress_init("Indexing database:", sequences);
-  for(auto i = 0ULL; i < sequences; i++)  // refactoring: range-based for loop
-    {
-      auto& a_sequence = seqindex_v[i];
+  auto counter = 0ULL;
+  for(auto& a_sequence: seqindex_v) {
 
       /* get line number */
       const unsigned int line_number = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
@@ -820,7 +819,8 @@ auto db_read(const char * filename,
           seqhashtable[seqhashindex] = &a_sequence;
         }
 
-      progress_update(i);
+      progress_update(counter);
+      ++counter;
     }
 
   if (duplicates_found != 0U)
