@@ -377,7 +377,7 @@ auto find_abundance(struct seqinfo_s & seqinfo, uint64_t lineno,
 }
 
 
-auto sort_index(std::vector<struct seqinfo_s> & seqindex_v) -> void {
+auto sort_index_if_need_be(std::vector<struct seqinfo_s> & seqindex_v) -> void {
       progress_init("Abundance sorting:", 1);
 
       auto compare_entries = [](struct seqinfo_s const& lhs,
@@ -396,7 +396,10 @@ auto sort_index(std::vector<struct seqinfo_s> & seqindex_v) -> void {
         return std::strcmp(lhs.header, rhs.header) < 0;
       };
 
-      std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
+      if (not std::is_sorted(seqindex_v.begin(), seqindex_v.end(),
+                             compare_entries)) {
+        std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
+      }
       progress_done();
 }
 
@@ -669,10 +672,6 @@ auto db_read(const char * filename,
   seqindex_v.resize(sequences);
   seqindex = seqindex_v.data();
 
-  seqinfo_t * lastseq {nullptr};
-
-  bool presorted {true};
-
   char * cursor = data_v.data();
   progress_init("Indexing database:", sequences);
   auto counter = 0ULL;
@@ -701,24 +700,6 @@ auto db_read(const char * filename,
           (a_sequence.abundance_end == a_sequence.headerlen)) {
         fatal(error_prefix, "Empty sequence identifier.");
       }
-
-      // refactoring: extract that check to a function, performed once index is populated
-      /* check if the sequences are presorted by abundance and header */
-
-      if (presorted and (lastseq != nullptr))
-        {
-          if (lastseq->abundance < a_sequence.abundance) {
-            presorted = false;
-          }
-          else if (lastseq->abundance == a_sequence.abundance)
-            {
-              if (std::strcmp(lastseq->header, a_sequence.header) > 0) {
-                presorted = false;
-              }
-            }
-        }
-
-      lastseq = &a_sequence;
 
       /* check for duplicated identifiers using hash table */
 
@@ -856,10 +837,7 @@ auto db_read(const char * filename,
             "and the first space or the end of the line, whichever comes first.");
     }
 
-  if (not presorted)
-    {
-      sort_index(seqindex_v);
-    }
+  sort_index_if_need_be(seqindex_v);
 
   // user report
   std::fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
