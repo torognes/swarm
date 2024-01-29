@@ -313,10 +313,10 @@ auto find_usearch_abundance(const char * header,
 }
 
 
-auto find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
+auto find_abundance(struct seqinfo_s & seqinfo, uint64_t lineno,
                     bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
 {
-  char * header = seqinfo->header;
+  char * header = seqinfo.header;
 
   /* read size/abundance annotation */
   int64_t abundance = 0;
@@ -353,7 +353,7 @@ auto find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
 
   if (abundance == 0)
     {
-      start = seqinfo->headerlen;
+      start = seqinfo.headerlen;
       end = start;
 
       if (opt_append_abundance != 0) {
@@ -371,9 +371,9 @@ auto find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
         }
     }
 
-  seqinfo->abundance = static_cast<uint64_t>(abundance);
-  seqinfo->abundance_start = start;
-  seqinfo->abundance_end = end;
+  seqinfo.abundance = static_cast<uint64_t>(abundance);
+  seqinfo.abundance_start = start;
+  seqinfo.abundance_end = end;
 }
 
 
@@ -697,7 +697,7 @@ auto db_read(const char * filename,
       cursor += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
-      find_abundance(seqindex_p, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      find_abundance(a_sequence, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       if ((a_sequence.abundance_start == 0) and
           (a_sequence.abundance_end == a_sequence.headerlen)) {
