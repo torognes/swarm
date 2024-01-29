@@ -377,6 +377,30 @@ void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
 }
 
 
+auto sort_index(std::vector<struct seqinfo_s> & seqindex_v) -> void {
+      progress_init("Abundance sorting:", 1);
+
+      auto db_compare_abundance = [](struct seqinfo_s const& lhs,
+                                     struct seqinfo_s const& rhs) -> bool
+      {
+        // sort by decreasing abundance
+        if (lhs.abundance > rhs.abundance) {
+          return true;
+        }
+
+        if (lhs.abundance < rhs.abundance) {
+          return false;
+        }
+
+        // ...then ties are sorted by header (lexicographical order)
+        return std::strcmp(lhs.header, rhs.header) < 0;
+      };
+
+      std::sort(seqindex_v.begin(), seqindex_v.end(), db_compare_abundance);
+      progress_done();
+}
+
+
 auto db_read(const char * filename,
              struct Parameters const & parameters,
              std::vector<char> & data_v,
@@ -834,26 +858,7 @@ auto db_read(const char * filename,
 
   if (not presorted)
     {
-      progress_init("Abundance sorting:", 1);
-
-      auto db_compare_abundance = [](struct seqinfo_s const& lhs,
-                                     struct seqinfo_s const& rhs) -> bool
-      {
-        // sort by decreasing abundance
-        if (lhs.abundance > rhs.abundance) {
-          return true;
-        }
-
-        if (lhs.abundance < rhs.abundance) {
-          return false;
-        }
-
-        // ...then ties are sorted by header (lexicographical order)
-        return std::strcmp(lhs.header, rhs.header) < 0;
-      };
-
-      std::sort(seqindex_v.begin(), seqindex_v.end(), db_compare_abundance);
-      progress_done();
+      sort_index(seqindex_v);
     }
 
   // user report
