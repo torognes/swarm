@@ -42,9 +42,9 @@ void bloom_patterns_generate(struct bloom_s * bloom_filter)
 {
   static constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
   static constexpr unsigned int k {8};
-  for(auto i = 0U; i < bloom_pattern_count; i++)  // range-loop '(unsigned long & i : b->patterns)' -> FAIL issue 123??
+  for(auto & pattern : bloom_filter->patterns)
     {
-      uint64_t pattern {0};
+      pattern = 0;
       for(auto j = 0U; j < k; j++)
         {
           uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
@@ -53,7 +53,6 @@ void bloom_patterns_generate(struct bloom_s * bloom_filter)
           }
           pattern |= onebit;
         }
-      bloom_filter->patterns[i] = pattern;
     }
 }
 
