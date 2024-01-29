@@ -774,6 +774,7 @@ auto db_read(const char * filename,
 
       if (parameters.opt_differences > 1)
         {
+          // refactoring: extract to a free function, perform once container is populated
           /* Check for duplicated sequences using hash table,  */
           /* but only for d > 1. Handled internally for d = 1. */
 
