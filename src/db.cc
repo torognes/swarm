@@ -678,27 +678,29 @@ auto db_read(const char * filename,
   progress_init("Indexing database:", sequences);
   for(auto i = 0ULL; i < sequences; i++)  // refactoring: range-based for loop
     {
+      auto& a_sequence = seqindex_v[i];
+
       /* get line number */
       const unsigned int line_number = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
       cursor += sizeof(unsigned int);
 
       /* get header */
-      seqindex_p->header = cursor;
-      seqindex_p->headerlen = static_cast<int>(std::strlen(seqindex_p->header));
-      cursor += seqindex_p->headerlen + 1;
+      a_sequence.header = cursor;
+      a_sequence.headerlen = static_cast<int>(std::strlen(a_sequence.header));
+      cursor += a_sequence.headerlen + 1;
 
       /* and sequence */
       const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
-      seqindex_p->seqlen = seqlen;
+      a_sequence.seqlen = seqlen;
       cursor += sizeof(unsigned int);
-      seqindex_p->seq = cursor;
+      a_sequence.seq = cursor;
       cursor += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
       find_abundance(seqindex_p, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
-      if ((seqindex_p->abundance_start == 0) and
-          (seqindex_p->abundance_end == seqindex_p->headerlen)) {
+      if ((a_sequence.abundance_start == 0) and
+          (a_sequence.abundance_end == a_sequence.headerlen)) {
         fatal(error_prefix, "Empty sequence identifier.");
       }
 
@@ -707,12 +709,12 @@ auto db_read(const char * filename,
 
       if (presorted and (lastseq != nullptr))
         {
-          if (lastseq->abundance < seqindex_p->abundance) {
+          if (lastseq->abundance < a_sequence.abundance) {
             presorted = false;
           }
-          else if (lastseq->abundance == seqindex_p->abundance)
+          else if (lastseq->abundance == a_sequence.abundance)
             {
-              if (std::strcmp(lastseq->header, seqindex_p->header) > 0) {
+              if (std::strcmp(lastseq->header, a_sequence.header) > 0) {
                 presorted = false;
               }
             }
@@ -727,24 +729,24 @@ auto db_read(const char * filename,
       int id_start {0};
       int id_len {0};
 
-      if (seqindex_p->abundance_start > 0)
+      if (a_sequence.abundance_start > 0)
         {
           /* id first, then abundance (e.g. >name;size=1 or >name_1) */
           id_start = 0;
-          id_len = seqindex_p->abundance_start;
+          id_len = a_sequence.abundance_start;
         }
       else
         {
           /* abundance first then id (e.g. >size=1;name) */
-          id_start = seqindex_p->abundance_end;
-          id_len = seqindex_p->headerlen - seqindex_p->abundance_end;
+          id_start = a_sequence.abundance_end;
+          id_len = a_sequence.headerlen - a_sequence.abundance_end;
         }
 
       const auto hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
-                                        (seqindex_p->header + id_start),
+                                        (a_sequence.header + id_start),
                                         4 * static_cast<unsigned int>(id_len));
 
-      seqindex_p->hdrhash = hdrhash;
+      a_sequence.hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
       seqinfo_t * hdrfound {nullptr};
@@ -768,7 +770,7 @@ auto db_read(const char * filename,
                 }
 
               if ((id_len == hit_id_len) and
-                  (std::strncmp(seqindex_p->header + id_start,
+                  (std::strncmp(a_sequence.header + id_start,
                                 hdrfound->header + hit_id_start,
                                 static_cast<uint64_t>(id_len)) == 0)) {
                 break;
@@ -780,32 +782,32 @@ auto db_read(const char * filename,
 
       if (hdrfound != nullptr)
         {
-          const std::string full_header {seqindex_p->header + id_start};
+          const std::string full_header {a_sequence.header + id_start};
           fatal(error_prefix, "Duplicated sequence identifier: ", full_header.substr(0, static_cast<unsigned long int>(id_len)));
         }
 
       hdrhashtable[hdrhashindex] = seqindex_p;
 
       /* hash sequence */
-      seqindex_p->seqhash = zobrist_hash(reinterpret_cast<unsigned char*>
-                                         (seqindex_p->seq),
-                                         seqindex_p->seqlen);
+      a_sequence.seqhash = zobrist_hash(reinterpret_cast<unsigned char*>
+                                         (a_sequence.seq),
+                                         a_sequence.seqlen);
 
       if (parameters.opt_differences > 1)
         {
           /* Check for duplicated sequences using hash table,  */
           /* but only for d > 1. Handled internally for d = 1. */
 
-          uint64_t seqhashindex = seqindex_p->seqhash % seqhashsize;
+          uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
           seqinfo_t * seqfound {nullptr};
 
           while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
             {
-              if ((seqfound->seqhash == seqindex_p->seqhash) and
-                  (seqfound->seqlen == seqindex_p->seqlen) and
+              if ((seqfound->seqhash == a_sequence.seqhash) and
+                  (seqfound->seqlen == a_sequence.seqlen) and
                   std::equal(seqfound->seq,
-                             seqfound->seq + nt_bytelength(seqindex_p->seqlen),
-                             seqindex_p->seq)) {
+                             seqfound->seq + nt_bytelength(a_sequence.seqlen),
+                             a_sequence.seq)) {
                 break;
               }
               seqhashindex = (seqhashindex + 1) % seqhashsize;
