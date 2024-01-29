@@ -702,6 +702,7 @@ auto db_read(const char * filename,
       }
 
       /* check for duplicated identifiers using hash table */
+      // refactoring: extract to a free function, perform for each new header
 
       /* find position and length of identifier in header */
 
