@@ -313,8 +313,8 @@ auto find_usearch_abundance(const char * header,
 }
 
 
-void find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
-                    bool opt_usearch_abundance, int64_t opt_append_abundance)
+auto find_abundance(struct seqinfo_s * seqinfo, uint64_t lineno,
+                    bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
 {
   char * header = seqinfo->header;
 
