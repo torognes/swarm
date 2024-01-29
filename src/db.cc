@@ -380,8 +380,8 @@ auto find_abundance(struct seqinfo_s & seqinfo, uint64_t lineno,
 auto sort_index(std::vector<struct seqinfo_s> & seqindex_v) -> void {
       progress_init("Abundance sorting:", 1);
 
-      auto db_compare_abundance = [](struct seqinfo_s const& lhs,
-                                     struct seqinfo_s const& rhs) -> bool
+      auto compare_entries = [](struct seqinfo_s const& lhs,
+                                struct seqinfo_s const& rhs) -> bool
       {
         // sort by decreasing abundance
         if (lhs.abundance > rhs.abundance) {
@@ -396,7 +396,7 @@ auto sort_index(std::vector<struct seqinfo_s> & seqindex_v) -> void {
         return std::strcmp(lhs.header, rhs.header) < 0;
       };
 
-      std::sort(seqindex_v.begin(), seqindex_v.end(), db_compare_abundance);
+      std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
       progress_done();
 }
 
