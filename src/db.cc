@@ -674,25 +674,25 @@ auto db_read(const char * filename,
 
   bool presorted {true};
 
-  char * pl = data_v.data();  // refactoring: purpose and how to rename?
+  char * cursor = data_v.data();  // refactoring: purpose and how to rename?
   progress_init("Indexing database:", sequences);
   for(auto i = 0ULL; i < sequences; i++)  // refactoring: range-based for loop
     {
       /* get line number */
-      const unsigned int line_number = *(reinterpret_cast<unsigned int*>(pl));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
-      pl += sizeof(unsigned int);
+      const unsigned int line_number = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
+      cursor += sizeof(unsigned int);
 
       /* get header */
-      seqindex_p->header = pl;
+      seqindex_p->header = cursor;
       seqindex_p->headerlen = static_cast<int>(std::strlen(seqindex_p->header));
-      pl += seqindex_p->headerlen + 1;
+      cursor += seqindex_p->headerlen + 1;
 
       /* and sequence */
-      const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(pl));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
+      const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
       seqindex_p->seqlen = seqlen;
-      pl += sizeof(unsigned int);
-      seqindex_p->seq = pl;
-      pl += nt_bytelength(seqlen);
+      cursor += sizeof(unsigned int);
+      seqindex_p->seq = cursor;
+      cursor += nt_bytelength(seqlen);
 
       /* get amplicon abundance */
       find_abundance(seqindex_p, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
