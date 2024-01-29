@@ -674,7 +674,7 @@ auto db_read(const char * filename,
 
   bool presorted {true};
 
-  char * cursor = data_v.data();  // refactoring: purpose and how to rename?
+  char * cursor = data_v.data();
   progress_init("Indexing database:", sequences);
   for(auto i = 0ULL; i < sequences; i++)  // refactoring: range-based for loop
     {
