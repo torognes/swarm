@@ -1114,10 +1114,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   pthread_mutex_init(&network_mutex, nullptr);
   network_amp = 0;
   progress_init("Building network: ", amplicons);
-  auto * network_tr = new ThreadRunner(static_cast<int>(opt_threads),
-                                       network_thread);
-  network_tr->run();
-  delete network_tr;
+  {
+    // refactoring C++14: use std::make_unique
+    std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(static_cast<int>(opt_threads), network_thread));
+    network_tr->run();
+  }
   pthread_mutex_destroy(&network_mutex);
 
   progress_done();
