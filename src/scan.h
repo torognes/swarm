@@ -21,8 +21,12 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "utils/threads.h"
 #include <cinttypes>
+#include <cstdint>  // int64_t
+#include <memory>  // unique pointer
 #include <vector>
+
 
 auto search_all(uint64_t query_no) -> void;
 auto search_do(uint64_t query_no,
@@ -31,6 +35,8 @@ auto search_do(uint64_t query_no,
                uint64_t * scores,
                uint64_t * diffs,
                uint64_t * alignlengths,
-               int bits) -> void;
+               int bits,
+               std::unique_ptr<ThreadRunner>& search_threads) -> void;
 auto search_begin(std::vector<struct Search_data>& search_data_v) -> void;
 auto search_end(std::vector<struct Search_data>& search_data_v) -> void;
+auto search_worker_core(int64_t thread_id) -> void;

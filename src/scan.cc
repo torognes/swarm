@@ -32,12 +32,12 @@
 #include <cassert>  // assert()
 #include <climits>
 #include <cstdint>  // int64_t, uint64_t
+#include <memory>  // unique pointer
 #include <pthread.h>  // pthread_mutex_init
+#include <vector>
 
 
 static pthread_mutex_t scan_mutex;
-
-static ThreadRunner * search_threads = nullptr;
 
 static struct Search_data * search_data;
 static uint64_t master_next;
@@ -233,7 +233,8 @@ auto search_do(uint64_t query_no,
                uint64_t * scores,
                uint64_t * diffs,
                uint64_t * alignlengths,
-               const int bits) -> void
+               const int bits,
+               std::unique_ptr<ThreadRunner>& search_threads) -> void
 {
   unsigned int query_len = 0;
   query.qno = query_no;
@@ -273,20 +274,12 @@ auto search_begin(std::vector<struct Search_data>& search_data_v) -> void
   allocate_per_thread_search_data(search_data_v);
 
   pthread_mutex_init(& scan_mutex, nullptr);
-
-  /* start threads */
-
-  search_threads
-    = new ThreadRunner(static_cast<int>(opt_threads), search_worker_core);
 }
 
 
 auto search_end(std::vector<struct Search_data>& search_data_v) -> void
 {
   /* finish and clean up worker threads */
-
-  delete search_threads;
-  search_threads = nullptr;
 
   pthread_mutex_destroy(& scan_mutex);
 

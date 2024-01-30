@@ -38,6 +38,7 @@
 #include <cstdlib>  // qsort()
 #include <cstring>  // strcmp
 #include <iterator> // next
+#include <memory>  // unique pointer
 #include <string>
 #include <vector>
 
@@ -237,6 +238,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(opt_threads));
   search_begin(search_data_v);
+  /* start threads */
+  std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(opt_threads), search_worker_core));
 
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
@@ -379,7 +382,7 @@ auto algo_run(struct Parameters const & parameters) -> void
       if (targetcount > 0)
         {
           search_do(seedampliconid, targetcount, targetampliconids.data(),
-                    scores_v.data(), diffs_v.data(), alignlengths.data(), bits);
+                    scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads);
 
           if (bits == bit_mode_8) {
             count_comparisons_8 += targetcount;
@@ -503,7 +506,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               if (targetcount > 0)
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
-                            scores_v.data(), diffs_v.data(), alignlengths.data(), bits);
+                            scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads);
 
                   if (bits == bit_mode_8) {
                     count_comparisons_8 += targetcount;
