@@ -41,11 +41,11 @@
 void bloom_patterns_generate(struct bloom_s * bloom_filter)
 {
   static constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
-  static constexpr unsigned int k {8};
+  static constexpr unsigned int n_loops {8};
   for(auto & pattern : bloom_filter->patterns)
     {
       pattern = 0;
-      for(auto j = 0U; j < k; j++)
+      for(auto j = 0U; j < n_loops; j++)
         {
           uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
           while ((pattern & onebit) != 0) {
