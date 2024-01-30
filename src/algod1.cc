@@ -527,7 +527,8 @@ void mark_light_thread(int64_t nth_thread)
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
     {
-      const auto light_amplicon_id = light_amplicon--;
+      const auto light_amplicon_id = light_amplicon;
+      --light_amplicon;
       if (swarminfo[ampinfo[light_amplicon_id].swarmid].mass <
           static_cast<uint64_t>(opt_boundary))
         {
