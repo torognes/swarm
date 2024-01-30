@@ -687,7 +687,8 @@ auto search8(BYTE * * q_start,
                 {
                   if (d_pos[channel] < d_length[channel]) {
                     dseq[channels * j + channel]
-                      = 1 + nt_extract(d_address[channel], d_pos[channel]++);
+                      = 1 + nt_extract(d_address[channel], d_pos[channel]);
+                    ++d_pos[channel];
                   }
                   else {
                     dseq[channels * j + channel] = 0;
@@ -732,7 +733,8 @@ auto search8(BYTE * * q_start,
                     {
                       if (d_pos[channel] < d_length[channel]) {
                         dseq[channels * j + channel]
-                          = 1 + nt_extract(d_address[channel], d_pos[channel]++);
+                          = 1 + nt_extract(d_address[channel], d_pos[channel]);
+                        ++d_pos[channel];
                       }
                       else {
                         dseq[channels * j + channel] = 0;
@@ -808,7 +810,8 @@ auto search8(BYTE * * q_start,
                       for(auto j = 0U; j < cdepth; j++)
                         {
                           if (d_pos[channel] < d_length[channel]) {
-                            dseq[channels * j + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]++);
+                            dseq[channels * j + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]);
+                            ++d_pos[channel];
                           }
                           else {
                             dseq[channels * j + channel] = 0;
