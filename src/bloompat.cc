@@ -39,11 +39,11 @@
 #include <limits>
 
 
-auto bloom_patterns_generate(struct bloom_s * bloom_filter) -> void
+auto bloom_patterns_generate(struct bloom_s & bloom_filter) -> void
 {
   static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
   static constexpr auto n_loops = 8U;
-  for(auto & pattern : bloom_filter->patterns)
+  for(auto & pattern : bloom_filter.patterns)
     {
       pattern = 0;
       for(auto i = 0U; i < n_loops; ++i)
@@ -58,15 +58,14 @@ auto bloom_patterns_generate(struct bloom_s * bloom_filter) -> void
 }
 
 
-auto bloom_zap(struct bloom_s * bloom_filter) -> void
+auto bloom_zap(struct bloom_s & bloom_filter) -> void
 {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  std::fill(bloom_filter->bitmap, bloom_filter->bitmap + bloom_filter->size,
-            uint8_max);
+  std::fill(bloom_filter.bitmap_v.begin(), bloom_filter.bitmap_v.end(), uint8_max);
 }
 
 
-auto bloom_init(uint64_t size) -> struct bloom_s *
+auto bloom_init(uint64_t size, struct bloom_s & bloom_filter) -> struct bloom_s *
 {
   // Size is in bytes for full bitmap, must be power of 2,
   // at least 8
@@ -74,26 +73,25 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
   static constexpr uint64_t bytes_per_uint64 {8};
   size = std::max(size, bytes_per_uint64);
 
-  auto * bloom_filter = new struct bloom_s;
+  auto * bloom_filter_ptr = &bloom_filter;
 
-  bloom_filter->size = size;
+  bloom_filter.size = size;
 
-  bloom_filter->mask = (size >> 3U) - 1;
+  bloom_filter.mask = (size >> 3U) - 1;
 
-  bloom_filter->bitmap_v.resize(size);
-  bloom_filter->bitmap = bloom_filter->bitmap_v.data();
+  bloom_filter.bitmap_v.resize(size);
+  bloom_filter.bitmap = bloom_filter.bitmap_v.data();
 
   bloom_zap(bloom_filter);
 
   bloom_patterns_generate(bloom_filter);
 
-  return bloom_filter;
+  return bloom_filter_ptr;
 }
 
 
 void bloom_exit(struct bloom_s * bloom_filter)
 {
   bloom_filter->bitmap = nullptr;
-  delete bloom_filter;
   bloom_filter = nullptr;
 }

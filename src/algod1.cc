@@ -1073,7 +1073,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                                        hash_occupied_v,
                                        hash_values_v,
                                        hash_data_v)};
-  bloom_a = bloom_init(hashtablesize);
+  struct bloom_s bloom_filter;
+  bloom_a = bloom_init(hashtablesize, bloom_filter);
 
   duplicates_found = 0;
 
@@ -1370,7 +1371,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
              before we reinsert only the light swarm amplicons */
 
           std::fill(hash_occupied_v.begin(), hash_occupied_v.end(), 0U);
-          bloom_zap(bloom_a);
+          bloom_zap(bloom_filter);
 
           progress_init("Adding light swarm amplicons to Bloom filter",
                         amplicons_in_small_clusters);
