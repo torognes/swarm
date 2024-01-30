@@ -36,11 +36,11 @@ struct bloom_s
   // std::array<uint64_t, bloom_pattern_count> patterns {{0}};
 };
 
-void bloom_zap(struct bloom_s * bloom_filter);
+auto bloom_zap(struct bloom_s * bloom_filter) -> void;
 
 auto bloom_init(uint64_t size) -> struct bloom_s *;
 
-void bloom_exit(struct bloom_s * bloom_filter);
+auto bloom_exit(struct bloom_s * bloom_filter) -> void;
 
 inline auto bloom_adr(struct bloom_s * bloom_filter, uint64_t h) -> uint64_t *
 {
@@ -52,7 +52,7 @@ inline auto bloom_pat(struct bloom_s * bloom_filter, uint64_t h) -> uint64_t
   return bloom_filter->patterns[h & bloom_pattern_mask];
 }
 
-inline void bloom_set(struct bloom_s * bloom_filter, uint64_t h)
+inline auto bloom_set(struct bloom_s * bloom_filter, uint64_t h) -> void
 {
   * bloom_adr(bloom_filter, h) &= compl bloom_pat(bloom_filter, h);
 }
