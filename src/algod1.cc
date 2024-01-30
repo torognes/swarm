@@ -1365,7 +1365,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           assert(m != 0);  // safeguard for future changes
           assert(m >= 64);
           const uint64_t n_bytes = ((m - 1) / n_bits_in_a_byte) + 1;
-          bloom_f = bloomflex_init(n_bytes, k);
+          struct bloomflex_s bloomflex_filter;
+          bloom_f = bloomflex_init(n_bytes, k, bloomflex_filter);
 
 
           /* Empty the old hash and bloom filter
@@ -1423,7 +1424,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           progress_done();
 
-          bloomflex_exit(bloom_f);
+          bloomflex_exit(bloomflex_filter);
 
           pthread_mutex_destroy(&graft_mutex);
 
