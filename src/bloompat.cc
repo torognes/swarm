@@ -45,7 +45,7 @@ void bloom_patterns_generate(struct bloom_s * bloom_filter)
   for(auto & pattern : bloom_filter->patterns)
     {
       pattern = 0;
-      for(auto j = 0U; j < n_loops; j++)
+      for(auto i = 0U; i < n_loops; ++i)
         {
           uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
           while ((pattern & onebit) != 0) {
