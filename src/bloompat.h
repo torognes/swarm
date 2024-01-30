@@ -23,6 +23,7 @@
 
 #include <array>
 #include <cstdint>  // uint64_t
+#include <vector>
 
 constexpr unsigned int bloom_pattern_shift {10};
 constexpr unsigned int bloom_pattern_count {1U << bloom_pattern_shift};
@@ -32,6 +33,7 @@ struct bloom_s
 {
   uint64_t size;
   uint64_t mask;
+  std::vector<uint64_t> bitmap_v;
   uint64_t * bitmap;
   std::array<uint64_t, bloom_pattern_count> patterns;
 };

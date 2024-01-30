@@ -80,7 +80,8 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 
   bloom_filter->mask = (size >> 3U) - 1;
 
-  bloom_filter->bitmap = new uint64_t[size];
+  bloom_filter->bitmap_v.resize(size);
+  bloom_filter->bitmap = bloom_filter->bitmap_v.data();
 
   bloom_zap(bloom_filter);
 
@@ -92,7 +93,6 @@ auto bloom_init(uint64_t size) -> struct bloom_s *
 
 void bloom_exit(struct bloom_s * bloom_filter)
 {
-  delete [] bloom_filter->bitmap;
   bloom_filter->bitmap = nullptr;
   delete bloom_filter;
   bloom_filter = nullptr;
