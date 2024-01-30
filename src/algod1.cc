@@ -474,7 +474,7 @@ auto check_heavy_thread(int64_t nth_thread) -> void
       if (swarminfo[ampinfo[heavy_amplicon_id].swarmid].mass >=
           static_cast<uint64_t>(opt_boundary))
         {
-          progress_update(++heavy_progress);
+          progress_update(++heavy_progress);  // refactoring: separate operations?
           pthread_mutex_unlock(&heavy_mutex);
           uint64_t number_of_matches {0};
           uint64_t number_of_variants {0};
