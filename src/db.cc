@@ -703,6 +703,8 @@ auto db_read(const char * filename,
 
       /* check for duplicated identifiers using hash table */
       // refactoring: extract to a free function, perform for each new header
+      // C++14 refactoring: std::set::find() heterogeneous lookup (see overloads 3 and 4,
+      // https://en.cppreference.com/w/cpp/container/set/find)
 
       /* find position and length of identifier in header */
 
