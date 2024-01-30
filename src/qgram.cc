@@ -96,7 +96,7 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t;
 
 #ifdef __aarch64__
 
-uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 {
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(uint8x16_t);  // 8
   auto * lhs_ptr = reinterpret_cast<uint8x16_t *>(lhs);
@@ -114,7 +114,7 @@ uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
 
 #elif defined __PPC__
 
-uint64_t compareqgramvectors(unsigned char * lhs, unsigned char * rhs)
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 {
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(vector unsigned char);  // 8
   auto * lhs_ptr = reinterpret_cast<vector unsigned char *>(lhs);
