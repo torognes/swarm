@@ -47,26 +47,26 @@ auto bloom_exit(struct bloom_s * bloom_filter) -> void;
 
 // --------------------------------------------------- used only in this header
 
-inline auto bloom_adr(struct bloom_s * bloom_filter, uint64_t h) -> uint64_t *
+inline auto bloom_adr(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t *
 {
-  return bloom_filter->bitmap + ((h >> bloom_pattern_shift) & bloom_filter->mask);
+  return bloom_filter->bitmap + ((hash >> bloom_pattern_shift) & bloom_filter->mask);
 }
 
-inline auto bloom_pat(struct bloom_s * bloom_filter, uint64_t h) -> uint64_t
+inline auto bloom_pat(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t
 {
-  return bloom_filter->patterns[h & bloom_pattern_mask];
+  return bloom_filter->patterns[hash & bloom_pattern_mask];
 }
 
 // ------------------------------------------------------------------------ end
 
 // used in algod1.cc
-inline auto bloom_set(struct bloom_s * bloom_filter, uint64_t h) -> void
+inline auto bloom_set(struct bloom_s * bloom_filter, uint64_t hash) -> void
 {
-  * bloom_adr(bloom_filter, h) &= compl bloom_pat(bloom_filter, h);
+  * bloom_adr(bloom_filter, hash) &= compl bloom_pat(bloom_filter, hash);
 }
 
 // used in algod1.cc
-inline auto bloom_get(struct bloom_s * bloom_filter, uint64_t h) -> bool
+inline auto bloom_get(struct bloom_s * bloom_filter, uint64_t hash) -> bool
 {
-  return (* bloom_adr(bloom_filter, h) & bloom_pat(bloom_filter, h)) == 0U;
+  return (* bloom_adr(bloom_filter, hash) & bloom_pat(bloom_filter, hash)) == 0U;
 }
