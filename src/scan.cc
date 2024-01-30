@@ -54,7 +54,7 @@ queryinfo_t query;
 uint64_t longestdbsequence;
 
 
-auto search_alloc(std::vector<struct Search_data>& search_data_v) -> void
+auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v) -> void
 {
   static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
@@ -270,7 +270,7 @@ auto search_begin(std::vector<struct Search_data>& search_data_v) -> void
 
   search_data = search_data_v.data();
 
-  search_alloc(search_data_v);
+  allocate_per_thread_search_data(search_data_v);
 
   pthread_mutex_init(& scan_mutex, nullptr);
 
