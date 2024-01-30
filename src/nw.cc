@@ -22,7 +22,7 @@
 */
 
 #include "utils/nt_codec.h"
-#include <algorithm>  // std::min()
+#include <algorithm>  // std::min(), std::fill()
 #include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
