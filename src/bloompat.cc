@@ -90,7 +90,7 @@ auto bloom_init(uint64_t size, struct bloom_s & bloom_filter) -> struct bloom_s 
 }
 
 
-void bloom_exit(struct bloom_s * bloom_filter)
+auto bloom_exit(struct bloom_s * bloom_filter) -> void
 {
   bloom_filter->bitmap = nullptr;
   bloom_filter = nullptr;
