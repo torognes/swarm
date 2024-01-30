@@ -531,7 +531,7 @@ void mark_light_thread(int64_t nth_thread)
       if (swarminfo[ampinfo[light_amplicon_id].swarmid].mass <
           static_cast<uint64_t>(opt_boundary))
         {
-          progress_update(++light_progress);
+          progress_update(++light_progress);  // refactoring: separate operations?
           pthread_mutex_unlock(&light_mutex);
           const auto variant_count = mark_light_var(bloom_f, light_amplicon_id,
                                                         variant_list);
