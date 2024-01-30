@@ -36,7 +36,7 @@ struct bloomflex_s
 
 auto bloomflex_init(uint64_t size, unsigned int n_hash_functions) -> struct bloomflex_s *;
 
-void bloomflex_exit(struct bloomflex_s * bloom_filter);
+auto bloomflex_exit(struct bloomflex_s * bloom_filter) -> void;
 
 inline auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t h) -> uint64_t *
 {
@@ -48,7 +48,7 @@ inline auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t h) -> uint
   return bloom_filter->patterns[h & bloom_filter->pattern_mask];
 }
 
-inline void bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t h)
+inline auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t h) -> void
 {
   * bloomflex_adr(bloom_filter, h) &= compl bloomflex_pat(bloom_filter, h);
 }
