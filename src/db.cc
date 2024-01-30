@@ -854,8 +854,8 @@ auto db_read(const char * filename,
 void db_qgrams_init()
 {
   // refactoring: qgrams is an array of arrays!
-  // - vector of std::array is not allowed
-  // - vector of vector is not contiguous (not an issue?)
+  // - vector of std::array is not allowed,
+  // - vector of vector is not contiguous!
   qgrams = new qgramvector_t[sequences];
 
   seqinfo_t * seqindex_p {seqindex};
