@@ -38,7 +38,7 @@
 #include <cstring>
 
 
-void bloom_patterns_generate(struct bloom_s * bloom_filter)
+auto bloom_patterns_generate(struct bloom_s * bloom_filter) -> void
 {
   static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
   static constexpr auto n_loops = 8U;
@@ -57,7 +57,7 @@ void bloom_patterns_generate(struct bloom_s * bloom_filter)
 }
 
 
-void bloom_zap(struct bloom_s * bloom_filter)
+auto bloom_zap(struct bloom_s * bloom_filter) -> void
 {
   std::memset(bloom_filter->bitmap, UINT8_MAX, bloom_filter->size);
 }
