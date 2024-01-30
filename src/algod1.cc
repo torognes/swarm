@@ -469,7 +469,8 @@ auto check_heavy_thread(int64_t nth_thread) -> void
   while ((heavy_amplicon < amplicons) and
          (heavy_progress < heavy_amplicon_count))
     {
-      const auto heavy_amplicon_id = heavy_amplicon++;
+      const auto heavy_amplicon_id = heavy_amplicon;
+      ++heavy_amplicon;
       if (swarminfo[ampinfo[heavy_amplicon_id].swarmid].mass >=
           static_cast<uint64_t>(opt_boundary))
         {
