@@ -22,8 +22,6 @@
 */
 
 #include "swarm.h"
-#include "utils/qgram_array.h"
-#include "utils/threads.h"
 
 #ifdef __aarch64__
 #include <arm_neon.h>
@@ -49,8 +47,10 @@
 
 #endif
 
+#include "utils/qgram_array.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/nt_codec.h"
+#include "utils/threads.h"
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // memset
