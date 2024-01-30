@@ -45,19 +45,19 @@ inline auto hash_getnextindex(uint64_t index) -> uint64_t
   return (index + 1) & hash_mask;
 }
 
-inline auto hash_set_occupied(uint64_t j) -> void
+inline auto hash_set_occupied(uint64_t index) -> void
 {
   static constexpr unsigned int divider {3};  // drop the first 3 bits
-  static constexpr unsigned int max_range {7};  // j & max_range = values ranging from 0 to 7
-  assert((j & max_range) <= 7);
-  hash_occupied[j >> divider] |= static_cast<unsigned char>((1U << (j & max_range)));
+  static constexpr unsigned int max_range {7};  // index & max_range = values ranging from 0 to 7
+  assert((index & max_range) <= 7);
+  hash_occupied[index >> divider] |= static_cast<unsigned char>((1U << (index & max_range)));
 }
 
-inline auto hash_is_occupied(uint64_t j) -> bool
+inline auto hash_is_occupied(uint64_t index) -> bool
 {
   static constexpr unsigned int divider {3};  // drop the first 3 bits
-  static constexpr unsigned int max_range {7};  // j & max_range = values ranging from 0 to 7
-  return (hash_occupied[j >> divider] & (1U << (j & max_range))) != 0;
+  static constexpr unsigned int max_range {7};  // index & max_range = values ranging from 0 to 7
+  return (hash_occupied[index >> divider] & (1U << (index & max_range))) != 0;
 }
 
 inline auto hash_set_value(uint64_t index, uint64_t hash) -> void
