@@ -22,6 +22,8 @@
 */
 
 #include <cstdint>  // uint64_t
+#include <vector>
+
 
 struct bloomflex_s
 {
@@ -30,30 +32,33 @@ struct bloomflex_s
   uint64_t pattern_count;
   uint64_t pattern_mask;
   uint64_t pattern_k;
+  std::vector<uint64_t> bitmap_v;
   uint64_t * bitmap;
+  std::vector<uint64_t> patterns_v;
   uint64_t * patterns;
 };
 
-auto bloomflex_init(uint64_t size, unsigned int n_hash_functions) -> struct bloomflex_s *;
+auto bloomflex_init(uint64_t size, unsigned int n_hash_functions,
+                    struct bloomflex_s& bloom_filter) -> struct bloomflex_s *;
 
 auto bloomflex_exit(struct bloomflex_s * bloom_filter) -> void;
 
-inline auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t h) -> uint64_t *
+inline auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t *
 {
-  return bloom_filter->bitmap + ((h >> bloom_filter->pattern_shift) % bloom_filter->size);
+  return bloom_filter->bitmap + ((hash >> bloom_filter->pattern_shift) % bloom_filter->size);
 }
 
-inline auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t h) -> uint64_t
+inline auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t
 {
-  return bloom_filter->patterns[h & bloom_filter->pattern_mask];
+  return bloom_filter->patterns[hash & bloom_filter->pattern_mask];
 }
 
-inline auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t h) -> void
+inline auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t hash) -> void
 {
-  * bloomflex_adr(bloom_filter, h) &= compl bloomflex_pat(bloom_filter, h);
+  * bloomflex_adr(bloom_filter, hash) &= compl bloomflex_pat(bloom_filter, hash);
 }
 
-inline auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t h) -> bool
+inline auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t hash) -> bool
 {
-  return (* bloomflex_adr(bloom_filter, h) & bloomflex_pat(bloom_filter, h)) == 0U;
+  return (* bloomflex_adr(bloom_filter, hash) & bloomflex_pat(bloom_filter, hash)) == 0U;
 }
