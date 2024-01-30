@@ -298,7 +298,7 @@ auto qgram_diff_fast(uint64_t seed,
       uint64_t * next_amplist = amplist;
       uint64_t * next_difflist = difflist;
       uint64_t listrest = listlen;
-      uint64_t thrrest = static_cast<uint64_t>(opt_threads);
+      auto thrrest = static_cast<uint64_t>(opt_threads);
 
       /* distribute work */
       for(auto & tip: ti_v) {
