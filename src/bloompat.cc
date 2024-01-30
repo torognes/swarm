@@ -40,8 +40,8 @@
 
 void bloom_patterns_generate(struct bloom_s * bloom_filter)
 {
-  static constexpr unsigned int max_range {63};  // i & max_range = cap values to 63 max
-  static constexpr unsigned int n_loops {8};
+  static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
+  static constexpr auto n_loops = 8U;
   for(auto & pattern : bloom_filter->patterns)
     {
       pattern = 0;
