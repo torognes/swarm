@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <array>
 #include <cstdint>  // uint64_t
 
 constexpr unsigned int bloom_pattern_shift {10};
@@ -32,8 +33,7 @@ struct bloom_s
   uint64_t size;
   uint64_t mask;
   uint64_t * bitmap;
-  uint64_t patterns[bloom_pattern_count];
-  // std::array<uint64_t, bloom_pattern_count> patterns {{0}};
+  std::array<uint64_t, bloom_pattern_count> patterns;
 };
 
 auto bloom_zap(struct bloom_s * bloom_filter) -> void;
