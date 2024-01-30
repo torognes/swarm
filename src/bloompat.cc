@@ -33,9 +33,10 @@
 
 #include "bloompat.h"
 #include "utils/pseudo_rng.h"
-#include <algorithm>  // std::max
-#include <cstdint>  // uint64_t
+#include <algorithm>  // std::max(), std::fill()
+#include <cstdint>  // uint64_t, uint8_t
 #include <cstring>
+#include <limits>
 
 
 auto bloom_patterns_generate(struct bloom_s * bloom_filter) -> void
@@ -59,7 +60,9 @@ auto bloom_patterns_generate(struct bloom_s * bloom_filter) -> void
 
 auto bloom_zap(struct bloom_s * bloom_filter) -> void
 {
-  std::memset(bloom_filter->bitmap, UINT8_MAX, bloom_filter->size);
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  std::fill(bloom_filter->bitmap, bloom_filter->bitmap + bloom_filter->size,
+            uint8_max);
 }
 
 
