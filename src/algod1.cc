@@ -606,7 +606,11 @@ auto check_variants(unsigned int seed,
   const auto hash = db_gethash(seed);
   const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
-  // refactoring: range-based for loop over variant_list truncated to variant_count?
+  // C++17 refactoring:
+  // std::for_each_n(variant_list.begin(), variant_count,
+  //                 [seed, &hits_data, &hits_count](auto& variant) {
+  //                   find_variant_matches(seed, variant, hits_data, hits_count);
+  //                 });
   for(auto i = 0U; i < variant_count; i++) {
     find_variant_matches(seed, variant_list[i], hits_data, hits_count);
   }
