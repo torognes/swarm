@@ -54,24 +54,26 @@ queryinfo_t query;
 uint64_t longestdbsequence;
 
 
-auto search_alloc(struct Search_data& local_search_data) -> void
+auto search_alloc(std::vector<struct Search_data>& search_data_v) -> void
 {
   static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
 
-  dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
-  local_search_data.qtable_v.resize(longestdbsequence);
-  local_search_data.qtable = local_search_data.qtable_v.data();
-  local_search_data.qtable_w_v.resize(longestdbsequence);
-  local_search_data.qtable_w = local_search_data.qtable_w_v.data();
-  local_search_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
-  local_search_data.dprofile = local_search_data.dprofile_v.data();
-  local_search_data.dprofile_w_v.resize(1 * one_kilobyte);  // 4 * 2 * 8 * 32
-  local_search_data.dprofile_w = local_search_data.dprofile_w_v.data();
-  local_search_data.hearray_v.resize(longestdbsequence * nt_per_uint64);
-  local_search_data.hearray = local_search_data.hearray_v.data();
-  local_search_data.dir_array_v.resize(dirbuffersize);
-  local_search_data.dir_array = local_search_data.dir_array_v.data();
+  for(auto& thread_data: search_data_v) {
+    dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
+    thread_data.qtable_v.resize(longestdbsequence);
+    thread_data.qtable = thread_data.qtable_v.data();
+    thread_data.qtable_w_v.resize(longestdbsequence);
+    thread_data.qtable_w = thread_data.qtable_w_v.data();
+    thread_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
+    thread_data.dprofile = thread_data.dprofile_v.data();
+    thread_data.dprofile_w_v.resize(1 * one_kilobyte);  // 4 * 2 * 8 * 32
+    thread_data.dprofile_w = thread_data.dprofile_w_v.data();
+    thread_data.hearray_v.resize(longestdbsequence * nt_per_uint64);
+    thread_data.hearray = thread_data.hearray_v.data();
+    thread_data.dir_array_v.resize(dirbuffersize);
+    thread_data.dir_array = thread_data.dir_array_v.data();
+  }
 }
 
 
@@ -268,9 +270,7 @@ auto search_begin(std::vector<struct Search_data>& search_data_v) -> void
 
   search_data = search_data_v.data();
 
-  for(auto& thread_data: search_data_v) {
-    search_alloc(thread_data);
-  }
+  search_alloc(search_data_v);
 
   pthread_mutex_init(& scan_mutex, nullptr);
 
