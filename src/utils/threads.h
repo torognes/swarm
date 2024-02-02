@@ -83,7 +83,7 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int thread_count, void (*function_ptr)(int64_t nth_threads))
+  ThreadRunner(int thread_count, void (*function_ptr)(int64_t nth_thread))
   {
 
     pthread_attr_init(&attr);
