@@ -283,6 +283,7 @@ auto attach_candidates(unsigned int amplicon_count,
   std::vector<struct graft_cand> graft_array(pair_count);
 
   /* fill in */
+  assert(ampinfo_v.size() == amplicon_count);
   auto ticker = 0U;  // refactoring: replace with a transform algorithm
   for(auto i = 0U; i < amplicon_count; i++) {
     if (ampinfo_v[i].graft_cand == no_swarm) { continue; }
