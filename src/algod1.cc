@@ -875,10 +875,10 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
-      for(auto a = seed_info.next; a != no_swarm; a = ampinfo_v[a].next)
+      for(auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
         {
-          auto * dseq = db_getsequence(a);
-          const auto dlen = db_getsequencelen(a);  // refactoring: as a struct Sequence{ptr, length}
+          auto * dseq = db_getsequence(amp_id);
+          const auto dlen = db_getsequencelen(amp_id);  // refactoring: as a struct Sequence{ptr, length}
           auto * qseq = db_getsequence(seed);  // refactoring: can be moved outside of this loop!
           const auto qlen = db_getsequencelen(seed);
 
@@ -900,11 +900,11 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
           std::fprintf(uclustfile,
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                        cluster_no,
-                       db_getsequencelen(a),
+                       db_getsequencelen(amp_id),
                        percentid,
                        nwdiff > 0 ? cigar_string.data() : "=");
 
-          fprint_id(uclustfile, a, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          fprint_id(uclustfile, amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(uclustfile, "\t");
           fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(uclustfile, "\n");
