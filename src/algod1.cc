@@ -667,11 +667,11 @@ auto process_seed(unsigned int const seed,
                   unsigned int & global_hits_count) -> void
 {
   /* update swarm stats */
-  struct ampinfo_s const & bp = ampinfo_v[seed];
+  struct ampinfo_s const & seed_info = ampinfo_v[seed];
 
   ++swarmsize;
-  if (bp.generation > swarm_maxgen) {
-    swarm_maxgen = bp.generation;
+  if (seed_info.generation > swarm_maxgen) {
+    swarm_maxgen = seed_info.generation;
   }
   const auto abundance = db_getabundance(seed);
   abundance_sum += abundance;
@@ -862,7 +862,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
       const auto seed = swarminfo_v[swarmid].seed;
 
-      struct ampinfo_s const & bp = ampinfo_v[seed];
+      struct ampinfo_s const & seed_info = ampinfo_v[seed];
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
@@ -876,7 +876,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
-      for(auto a = bp.next; a != no_swarm; a = ampinfo_v[a].next)
+      for(auto a = seed_info.next; a != no_swarm; a = ampinfo_v[a].next)
         {
           auto * dseq = db_getsequence(a);
           const auto dlen = db_getsequencelen(a);  // refactoring: as a struct Sequence{ptr, length}
@@ -992,9 +992,9 @@ auto write_structure_file(const unsigned int swarmcount,
       }
       const auto seed = swarminfo_v[swarmid].seed;
 
-      struct ampinfo_s const & bp = ampinfo_v[seed];
+      struct ampinfo_s const & seed_info = ampinfo_v[seed];
 
-      for(auto a = bp.next; a != no_swarm; a = ampinfo_v[a].next)
+      for(auto a = seed_info.next; a != no_swarm; a = ampinfo_v[a].next)
         {
           const auto graft_parent = ampinfo_v[a].graft_cand;
           if (graft_parent != no_swarm)
