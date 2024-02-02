@@ -838,8 +838,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
 }
 
 
-auto write_swarms_uclust_format(const unsigned int swarmcount,
-                                struct Parameters const & parameters,
+auto write_swarms_uclust_format(struct Parameters const & parameters,
                                 std::vector<struct ampinfo_s> & ampinfo_v,
                                 std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   static constexpr double one_hundred = 100.0;
@@ -852,21 +851,21 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
   raw_alignment.reserve(2UL * longestamplicon);
   cigar_string.reserve(2UL * longestamplicon);
 
-  progress_init("Writing UCLUST:   ", swarmcount);
+  progress_init("Writing UCLUST:   ", swarminfo_v.size());
 
-  for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
-    {
-      if (swarminfo_v[swarmid].attached) {
+  auto counter = 0U;
+  for (auto const & swarm_info : swarminfo_v) {
+      if (swarm_info.attached) {
         continue;
       }
 
-      const auto seed = swarminfo_v[swarmid].seed;
+      const auto seed = swarm_info.seed;
 
       auto const & seed_info = ampinfo_v[seed];
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
-                   swarminfo_v[swarmid].size);
+                   swarm_info.size);
       fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(uclustfile, "\t*\n");
 
@@ -915,7 +914,8 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
         }
 
       ++cluster_no;
-      progress_update(swarmid);
+      progress_update(counter);
+      ++counter;
     }
   progress_done();
 }
@@ -1463,7 +1463,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* output swarms in uclust format */
   if (uclustfile != nullptr) {
-    write_swarms_uclust_format(swarmcount, parameters, ampinfo_v, swarminfo_v);
+    write_swarms_uclust_format(parameters, ampinfo_v, swarminfo_v);
   }
 
   /* output statistics to file */
