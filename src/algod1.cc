@@ -454,13 +454,13 @@ auto check_heavy_var(struct bloomflex_s * bloom,
 
 auto check_heavy_thread(int64_t nth_thread) -> void
 {
-  static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
-  static constexpr auto j = 4U;  //                               i * len + j
+  static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
+  static constexpr auto offset = 4U;
   static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
   (void) nth_thread;  // refactoring: unused parameter, replace with function overload?
 
-  std::vector<struct var_s> variant_list(i * longestamplicon + j);
-  std::vector<struct var_s> variant_list2(i * (longestamplicon + 1) + j);
+  std::vector<struct var_s> variant_list(multiplier * longestamplicon + offset);
+  std::vector<struct var_s> variant_list2(multiplier * (longestamplicon + 1) + offset);
 
   const std::size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
@@ -517,12 +517,12 @@ auto mark_light_var(struct bloomflex_s * bloom,
 
 void mark_light_thread(int64_t nth_thread)
 {
-  static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
-  static constexpr auto j = 4U;  //                               i * len + j
+  static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
+  static constexpr auto offset = 4U;
 
   (void) nth_thread;  // refactoring: unused?
 
-  std::vector<struct var_s> variant_list(i * longestamplicon + j);
+  std::vector<struct var_s> variant_list(multiplier * longestamplicon + offset);
 
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
@@ -621,13 +621,13 @@ auto check_variants(unsigned int seed,
 
 auto network_thread(int64_t nth_thread) -> void
 {
-  static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
-  static constexpr auto j = 4U;  //                               i * len + j
+  static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
+  static constexpr auto offset = 4U;
 
   (void) nth_thread;  // refactoring: unused?
 
-  std::vector<unsigned int> hits_data(i * longestamplicon + j + 1);
-  std::vector<struct var_s> variant_list(i * longestamplicon + j + 1);
+  std::vector<unsigned int> hits_data(multiplier * longestamplicon + offset + 1);
+  std::vector<struct var_s> variant_list(multiplier * longestamplicon + offset + 1);
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
