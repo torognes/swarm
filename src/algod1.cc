@@ -661,7 +661,7 @@ auto network_thread(int64_t nth_thread) -> void
 }
 
 
-auto process_seed(unsigned int seed,
+auto process_seed(unsigned int const seed,
                   std::vector<struct ampinfo_s> & ampinfo_v,
                   std::vector<unsigned int> & global_hits_v,
                   unsigned int & global_hits_count) -> void
