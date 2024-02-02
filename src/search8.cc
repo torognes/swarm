@@ -141,7 +141,7 @@ inline void dprofile_fill8(BYTE * dprofile,
 
   for(auto j = 0U; j < cdepth; j++)
     {
-      std::array<unsigned int, channels> d {{}};
+      std::array<unsigned int, channels> d {{}};  // refactoring: name?
       for(auto i = 0U; i < channels; i++) {
         d[i] = (static_cast<unsigned int>(dseq[j * channels + i])) << multiplier;
       }

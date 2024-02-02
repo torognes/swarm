@@ -133,7 +133,7 @@ inline void dprofile_fill16(WORD * dprofile_word,
 
   for(auto j = 0ULL; j < cdepth; j++)
     {
-      std::array<unsigned int, channels> d {{}};
+      std::array<unsigned int, channels> d {{}};   // refactoring: name?
       for(auto z = 0U; z < channels; z++) {
         d[z] = (static_cast<unsigned int>(dseq[j * channels + z])) << multiplier;
       }
