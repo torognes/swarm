@@ -315,10 +315,10 @@ auto attach_candidates(unsigned int amplicon_count,
 
   /* attach in order */
   auto grafts = 0U;
-  for(auto i = 0U; i < pair_count; i++)
-    {
-      const auto parent = graft_array[i].parent;
-      const auto child  = graft_array[i].child;
+  auto counter = 1U;
+  for(auto const& graft_pair : graft_array) {
+      const auto parent = graft_pair.parent;
+      const auto child  = graft_pair.child;
 
       if (swarminfo_v[ampinfo_v[child].swarmid].attached)
         {
@@ -331,7 +331,8 @@ auto attach_candidates(unsigned int amplicon_count,
           attach(parent, child, ampinfo_v, swarminfo_v);
           ++grafts;
         }
-      progress_update(i + 1);
+      progress_update(counter);
+      ++counter;
     }
   progress_done();
   return grafts;
