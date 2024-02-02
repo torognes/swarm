@@ -90,13 +90,13 @@ auto collect_seeds(const uint64_t amplicons,
   std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
   auto swarmcount = 0UL;
   uint64_t mass = 0;
-  auto previd = amps_v[0].swarmid;
+  auto previous_id = amps_v[0].swarmid;
   auto seed = amps_v[0].ampliconid;
   mass += db_getabundance(seed);
   for(auto i = 1ULL; i < amplicons; i++)
     {
       const auto id = amps_v[i].swarmid;
-      if (id != previd)
+      if (id != previous_id)
         {
           seeds[swarmcount].seed = seed;  // update previous
           seeds[swarmcount].mass = mass;
@@ -105,7 +105,7 @@ auto collect_seeds(const uint64_t amplicons,
           seed = amps_v[i].ampliconid;
         }
       mass += db_getabundance(amps_v[i].ampliconid);
-      previd = id;
+      previous_id = id;
       progress_update(i);
     }
   seeds[swarmcount].seed = seed;
@@ -181,12 +181,12 @@ auto write_swarms_default_format(const uint64_t amplicons,
 
   fprint_id(outfile, amps_v[0].ampliconid,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-  int64_t previd = amps_v[0].swarmid;
+  int64_t previous_id = amps_v[0].swarmid;
 
   for(auto i = 1ULL; i < amplicons; i++)
     {
       const int64_t id = amps_v[i].swarmid;
-      if (id == previd) {
+      if (id == previous_id) {
         std::fputc(sep_amplicons, outfile);
       }
       else {
@@ -194,7 +194,7 @@ auto write_swarms_default_format(const uint64_t amplicons,
       }
       fprint_id(outfile, amps_v[i].ampliconid,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      previd = id;
+      previous_id = id;
     }
   std::fputc('\n', outfile);
 }
@@ -212,12 +212,12 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 
   fprint_id(outfile, amps_v[0].ampliconid,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-  int64_t previd = amps_v[0].swarmid;
+  int64_t previous_id = amps_v[0].swarmid;
 
   for(auto i = 1ULL; i < amplicons; i++)
     {
       const int64_t id = amps_v[i].swarmid;
-      if (id == previd) {
+      if (id == previous_id) {
         std::fputc(sep_amplicons, outfile);
       }
       else {
@@ -225,7 +225,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
       }
       fprint_id(outfile, amps_v[i].ampliconid,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      previd = id;
+      previous_id = id;
     }
 
   std::fputc('\n', outfile);
