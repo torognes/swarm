@@ -862,7 +862,7 @@ auto write_swarms_uclust_format(const unsigned int swarmcount,
 
       const auto seed = swarminfo_v[swarmid].seed;
 
-      struct ampinfo_s const & seed_info = ampinfo_v[seed];
+      auto const & seed_info = ampinfo_v[seed];
 
       std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
@@ -992,7 +992,7 @@ auto write_structure_file(const unsigned int swarmcount,
       }
       const auto seed = swarminfo_v[swarmid].seed;
 
-      struct ampinfo_s const & seed_info = ampinfo_v[seed];
+      auto const & seed_info = ampinfo_v[seed];
 
       for(auto a = seed_info.next; a != no_swarm; a = ampinfo_v[a].next)
         {
@@ -1143,7 +1143,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   for(auto seed = 0U; seed < amplicons; seed++)
     {
-      struct ampinfo_s & ap = ampinfo_v[seed];
+      auto & ap = ampinfo_v[seed];
 
       if (ap.swarmid == no_swarm)
         {
