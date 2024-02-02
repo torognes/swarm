@@ -75,7 +75,7 @@ auto backtrack(char * qseq,
     {
       ++aligned;
 
-      const uint64_t direction
+      const auto direction
         = dirbuffer[(offset
                      + longestdbsequence * 4 * static_cast<uint64_t>(row / 4)
                      + 4 * static_cast<uint64_t>(column)
