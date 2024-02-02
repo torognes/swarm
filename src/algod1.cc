@@ -1318,7 +1318,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             k = 1;
           }
 
-          uint64_t m = nucleotides_in_small_clusters * microvariants * bits;
+          uint64_t bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
 
           const uint64_t memtotal = arch_get_memtotal();
           const uint64_t memused = arch_get_memused();
@@ -1342,16 +1342,16 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                     k = 1;
                   }
 
-                  m = nucleotides_in_small_clusters * microvariants * bits;
+                  bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
                 }
             }
 
-          static constexpr auto min_total_bloom_filter_length_in_bits = 64U;
-          if (m < min_total_bloom_filter_length_in_bits) {  // refactor C++17: std::clamp()
-            m = min_total_bloom_filter_length_in_bits;  // at least 64 bits
+          static constexpr auto min_bloom_length_in_bits = 64U;
+          if (bloom_length_in_bits < min_bloom_length_in_bits) {  // refactor C++17: std::clamp()
+            bloom_length_in_bits = min_bloom_length_in_bits;  // at least 64 bits
           }
 
-          if (memused + m / sizeof(uint64_t) > memtotal)
+          if (memused + bloom_length_in_bits / sizeof(uint64_t) > memtotal)
             {
               std::fprintf(logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
               std::fprintf(logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
@@ -1359,15 +1359,15 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           std::fprintf(logfile,
                        "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                       bits, m, k, static_cast<double>(m) / (sizeof(uint64_t) * one_megabyte));
+                       bits, bloom_length_in_bits, k, static_cast<double>(bloom_length_in_bits) / (sizeof(uint64_t) * one_megabyte));
 
 
-          // m is in bits (divide by 8 to get bytes)
-          // m is guaranteed to be at least 64 (see code above)
+          // bloom_length is in bits (divide by 8 to get bytes)
+          // bloom_length is guaranteed to be at least 64 (see code above)
           static constexpr auto n_bits_in_a_byte = 8U;
-          assert(m != 0);  // safeguard for future changes
-          assert(m >= 64);
-          const uint64_t n_bytes = ((m - 1) / n_bits_in_a_byte) + 1;
+          assert(bloom_length_in_bits != 0);  // safeguard for future changes
+          assert(bloom_length_in_bits >= 64);
+          const uint64_t n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
           struct bloomflex_s bloomflex_filter;
           bloom_f = bloomflex_init(n_bytes, k, bloomflex_filter);
 
