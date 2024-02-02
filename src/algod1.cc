@@ -457,7 +457,7 @@ auto check_heavy_thread(int64_t nth_thread) -> void
   static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
   static constexpr auto j = 4U;  //                               i * len + j
   static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
-  (void) nth_thread;
+  (void) nth_thread;  // refactoring: unused?
 
   std::vector<struct var_s> variant_list(i * longestamplicon + j);
   std::vector<struct var_s> variant_list2(i * (longestamplicon + 1) + j);
