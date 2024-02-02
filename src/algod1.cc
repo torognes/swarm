@@ -1037,16 +1037,16 @@ auto write_stats_file(const unsigned int swarmcount,
   progress_init("Writing stats:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
-      struct swarminfo_s const & sp = swarminfo_v[i];
-      assert(not sp.attached);
-      if (sp.attached) {
+      struct swarminfo_s const & swarm_info = swarminfo_v[i];
+      assert(not swarm_info.attached);
+      if (swarm_info.attached) {
         continue;
       }
-      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", sp.size, sp.mass);
-      fprint_id_noabundance(statsfile, sp.seed, parameters.opt_usearch_abundance);
+      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", swarm_info.size, swarm_info.mass);
+      fprint_id_noabundance(statsfile, swarm_info.seed, parameters.opt_usearch_abundance);
       std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                   db_getabundance(sp.seed),
-                   sp.singletons, sp.maxgen, sp.maxgen);
+                   db_getabundance(swarm_info.seed),
+                   swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
       progress_update(i);
     }
   progress_done();
@@ -1217,16 +1217,16 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               swarminfo = swarminfo_v.data();
             }
 
-          struct swarminfo_s & sp = swarminfo_v[swarmcount];
+          struct swarminfo_s & swarm_info = swarminfo_v[swarmcount];
 
-          sp.seed = seed;
-          sp.size = swarmsize;
-          sp.mass = abundance_sum;
-          sp.sumlen = swarm_sumlen;
-          sp.singletons = singletons;
-          sp.maxgen = swarm_maxgen;
-          sp.last = current_swarm_tail;
-          sp.attached = false;
+          swarm_info.seed = seed;
+          swarm_info.size = swarmsize;
+          swarm_info.mass = abundance_sum;
+          swarm_info.sumlen = swarm_sumlen;
+          swarm_info.singletons = singletons;
+          swarm_info.maxgen = swarm_maxgen;
+          swarm_info.last = current_swarm_tail;
+          swarm_info.attached = false;
 
           /* update overall stats */
           if (swarmsize > largest) {
@@ -1275,11 +1275,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
       for(auto i = 0ULL; i < swarmcount; i++)
         {
-          struct swarminfo_s const & sp = swarminfo_v[i];
-          if (sp.mass < static_cast<uint64_t>(opt_boundary))
+          struct swarminfo_s const & swarm_info = swarminfo_v[i];
+          if (swarm_info.mass < static_cast<uint64_t>(opt_boundary))
             {
-              amplicons_in_small_clusters += sp.size;
-              nucleotides_in_small_clusters += sp.sumlen;
+              amplicons_in_small_clusters += swarm_info.size;
+              nucleotides_in_small_clusters += swarm_info.sumlen;
               ++small_clusters;
             }
           progress_update(i + 1);
