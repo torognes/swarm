@@ -32,6 +32,6 @@ void qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
                      uint64_t * difflist,
-                     std::vector<struct thread_info_s>& ti_v);
-void qgram_diff_init(std::vector<struct thread_info_s>& ti_v);
+                     std::vector<struct thread_info_s>& thread_info_v);
+void qgram_diff_init(std::vector<struct thread_info_s>& thread_info_v);
 void qgram_diff_done();

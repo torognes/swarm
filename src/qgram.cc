@@ -259,11 +259,11 @@ auto qgram_worker(int64_t const nth_thread) -> void
 }
 
 
-auto qgram_diff_init(std::vector<struct thread_info_s>& ti_v) -> void
+auto qgram_diff_init(std::vector<struct thread_info_s>& thread_info_v) -> void
 {
   /* allocate memory for thread info */
-  ti_v.resize(static_cast<uint64_t>(opt_threads));
-  thread_info_ptr = ti_v.data();
+  thread_info_v.resize(static_cast<uint64_t>(opt_threads));
+  thread_info_ptr = thread_info_v.data();
 
   qgram_threads
     = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
@@ -282,11 +282,11 @@ auto qgram_diff_fast(uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
                      uint64_t * difflist,
-                     std::vector<struct thread_info_s>& ti_v) -> void
+                     std::vector<struct thread_info_s>& thread_info_v) -> void
 {
   if (listlen <= UINT8_MAX)
     {
-      auto & tip = ti_v[0];
+      auto & tip = thread_info_v[0];
       tip.seed = seed;
       tip.listlen = listlen;
       tip.amplist = amplist;
@@ -301,7 +301,7 @@ auto qgram_diff_fast(uint64_t seed,
       auto thrrest = static_cast<uint64_t>(opt_threads);
 
       /* distribute work */
-      for(auto & tip: ti_v) {
+      for(auto & tip: thread_info_v) {
           const uint64_t chunk = (listrest + thrrest - 1) / thrrest;
 
           tip.seed = seed;
