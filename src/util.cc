@@ -55,6 +55,7 @@ auto progress_init(const char * prompt, const uint64_t size) -> void
   }
 }
 
+
 auto progress_update(const uint64_t progress) -> void
 {
   if (opt_log.empty() and (progress >= progress_next))
@@ -66,6 +67,7 @@ auto progress_update(const uint64_t progress) -> void
       fflush(logfile);
     }
 }
+
 
 auto progress_done() -> void
 {
@@ -115,6 +117,7 @@ auto xrealloc(void *ptr, std::size_t size) -> void *
   return memptr;
 }
 
+
 auto xfree(void * ptr) -> void
 {
   if (ptr != nullptr)
@@ -129,6 +132,7 @@ auto xfree(void * ptr) -> void
     fatal(error_prefix, "Trying to free a null pointer.");
   }
 }
+
 
 auto fopen_input(const char * filename) -> std::FILE *
 {
@@ -146,6 +150,7 @@ auto fopen_input(const char * filename) -> std::FILE *
   return input_stream;
 }
 
+
 auto fopen_output(const char * filename) -> std::FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */
@@ -161,6 +166,7 @@ auto fopen_output(const char * filename) -> std::FILE *
 
   return output_stream;
 }
+
 
 auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssize_t
 {
