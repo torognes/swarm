@@ -1037,7 +1037,7 @@ auto write_stats_file(const unsigned int swarmcount,
   progress_init("Writing stats:    ", swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
-      struct swarminfo_s const & swarm_info = swarminfo_v[i];
+      auto const & swarm_info = swarminfo_v[i];
       assert(not swarm_info.attached);
       if (swarm_info.attached) {
         continue;
@@ -1217,7 +1217,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               swarminfo = swarminfo_v.data();
             }
 
-          struct swarminfo_s & swarm_info = swarminfo_v[swarmcount];
+          auto & swarm_info = swarminfo_v[swarmcount];
 
           swarm_info.seed = seed;
           swarm_info.size = swarmsize;
@@ -1275,7 +1275,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
       for(auto i = 0ULL; i < swarmcount; i++)
         {
-          struct swarminfo_s const & swarm_info = swarminfo_v[i];
+          auto const & swarm_info = swarminfo_v[i];
           if (swarm_info.mass < static_cast<uint64_t>(opt_boundary))
             {
               amplicons_in_small_clusters += swarm_info.size;
