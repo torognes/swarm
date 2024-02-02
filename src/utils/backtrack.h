@@ -75,27 +75,27 @@ auto backtrack(char * qseq,
     {
       ++aligned;
 
-      const uint64_t d
+      const uint64_t direction
         = dirbuffer[(offset
                      + longestdbsequence * 4 * static_cast<uint64_t>(row / 4)
                      + 4 * static_cast<uint64_t>(column)
                      + (static_cast<uint64_t>(row) & 3U)
-                     ) % dirbuffersize];  // refactoring: how to rename that variable?
+                     ) % dirbuffersize];
 
-      if ((operation == Alignment::Insertion) and ((d & maskextleft) == 0U))
+      if ((operation == Alignment::Insertion) and ((direction & maskextleft) == 0U))
         {
           --row;
         }
-      else if ((operation == Alignment::Deletion) and ((d & maskextup) == 0U))
+      else if ((operation == Alignment::Deletion) and ((direction & maskextup) == 0U))
         {
           --column;
         }
-      else if ((d & maskleft) != 0U)
+      else if ((direction & maskleft) != 0U)
         {
           --row;
           operation = Alignment::Insertion;
         }
-      else if ((d & maskup) == 0U)
+      else if ((direction & maskup) == 0U)
         {
           --column;
           operation = Alignment::Deletion;
