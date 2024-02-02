@@ -60,7 +60,7 @@
 qgramvector_t * qgrams {nullptr};
 static ThreadRunner * qgram_threads = nullptr;
 
-static struct thread_info_s * ti;
+static struct thread_info_s * thread_info_ptr;
 
 
 auto findqgrams(unsigned char * seq, uint64_t seqlen,
@@ -246,7 +246,7 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
 
 auto qgram_worker(int64_t const nth_thread) -> void
 {
-  struct thread_info_s * tip = ti + nth_thread;
+  struct thread_info_s * tip = thread_info_ptr + nth_thread;
 
   const uint64_t seed = tip->seed;
   const uint64_t listlen = tip->listlen;
@@ -263,7 +263,7 @@ auto qgram_diff_init(std::vector<struct thread_info_s>& ti_v) -> void
 {
   /* allocate memory for thread info */
   ti_v.resize(static_cast<uint64_t>(opt_threads));
-  ti = ti_v.data();
+  thread_info_ptr = ti_v.data();
 
   qgram_threads
     = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
@@ -274,7 +274,7 @@ auto qgram_diff_done() -> void
 {
   delete qgram_threads;
   qgram_threads = nullptr;
-  ti = nullptr;
+  thread_info_ptr = nullptr;
 }
 
 
