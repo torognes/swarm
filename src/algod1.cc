@@ -754,6 +754,7 @@ auto write_network_file(const unsigned int number_of_networks,
       const auto link_start = amplicon.link_start;
       const auto link_count = amplicon.link_count;
 
+      // refactoring: std::vector<unsigned int> network_v(network + link_start, network + link_start + link_count);
       std::qsort(network + link_start,
             link_count,
             sizeof(unsigned int),
