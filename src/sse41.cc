@@ -190,7 +190,7 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
     {
       h4 = hep[2 * i + 0];
       E  = hep[2 * i + 1];
-      VECTORTYPE *x = qp[i + 0];
+      VECTORTYPE * x = qp[i + 0];
 
       /* mask h4 and E */
       h4 = v_sub16(h4, *Mm);
