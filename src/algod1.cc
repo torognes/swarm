@@ -1065,9 +1065,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   swarminfo = swarminfo_v.data();
 
   // max number of microvariants = 7 * len + 4
-  static constexpr auto m_i = 7U;
-  static constexpr auto m_j = 4U;
-  const auto global_hits_alloc = m_i * longestamplicon + m_j + 1;
+  static constexpr auto multiplier = 7U;
+  static constexpr auto offset = 4U;
+  const auto global_hits_alloc = multiplier * longestamplicon + offset + 1;
   std::vector<unsigned int> global_hits_v(global_hits_alloc);
   global_hits_data = global_hits_v.data();
 
