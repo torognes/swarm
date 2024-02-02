@@ -1031,14 +1031,12 @@ auto write_structure_file(const unsigned int swarmcount,
 }
 
 
-auto write_stats_file(const unsigned int swarmcount,
-                      struct Parameters const & parameters,
+auto write_stats_file(struct Parameters const & parameters,
                       std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-  progress_init("Writing stats:    ", swarmcount);
-  assert(swarminfo_v.size() == swarmcount);
-  for(auto i = 0ULL; i < swarmcount; i++)
-    {
-      auto const & swarm_info = swarminfo_v[i];
+  progress_init("Writing stats:    ", swarminfo_v.size());
+
+  auto counter = 0U;
+  for (auto const & swarm_info : swarminfo_v) {
       assert(not swarm_info.attached);
       if (swarm_info.attached) {
         continue;
@@ -1048,7 +1046,8 @@ auto write_stats_file(const unsigned int swarmcount,
       std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                    db_getabundance(swarm_info.seed),
                    swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
-      progress_update(i);
+      progress_update(counter);
+      ++counter;
     }
   progress_done();
 }
@@ -1469,7 +1468,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* output statistics to file */
   if (statsfile != nullptr) {
-    write_stats_file(swarmcount, parameters, swarminfo_v);
+    write_stats_file(parameters, swarminfo_v);
   }
 
   std::fprintf(logfile, "\n");
