@@ -252,8 +252,8 @@ auto algo_run(struct Parameters const & parameters) -> void
 
   db_qgrams_init();
 
-  std::vector<struct thread_info_s> ti_v;
-  qgram_diff_init(ti_v);
+  std::vector<struct thread_info_s> thread_info_v;
+  qgram_diff_init(thread_info_v);
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   std::vector<uint64_t> targetampliconids(amplicons);
@@ -363,7 +363,7 @@ auto algo_run(struct Parameters const & parameters) -> void
             }
         }
 
-      qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), ti_v);
+      qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
 
 
       for(auto i = 0ULL; i < listlen; i++)
@@ -492,7 +492,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                 }
 
               qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps_v.data(),
-                              qgramdiffs_v.data(), ti_v);
+                              qgramdiffs_v.data(), thread_info_v);
 
               for(auto i = 0ULL; i < subseedlistlen; i++) {
                 if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences))
