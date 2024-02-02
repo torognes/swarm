@@ -711,20 +711,20 @@ auto process_seed(unsigned int const seed,
 }
 
 
-auto compare_amp(const void * a, const void * b) -> int
+auto compare_amp(const void * void_lhs, const void * void_rhs) -> int
 {
   /*
     earlier steps in swarm check that all amplicon sequences are
     unique (strictly dereplicated input data), so distinct amplicons
     with the same sequence are not expected at this stage.
   */
-  const auto * x = static_cast<const unsigned int*>(a);
-  const auto * y = static_cast<const unsigned int*>(b);
-  auto status = 1;  // default is *x > *y
+  const auto * lhs = static_cast<const unsigned int*>(void_lhs);
+  const auto * rhs = static_cast<const unsigned int*>(void_rhs);
+  auto status = 1;  // default is *lhs > *rhs
 
-  assert(*x != *y);  // '*x == *y' is not expected at that stage
+  assert(*lhs != *rhs);  // '*lhs == *rhs' is not expected at that stage
 
-  if (*x < *y) {
+  if (*lhs < *rhs) {
     status = -1;
   }
 
