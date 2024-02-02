@@ -1035,6 +1035,7 @@ auto write_stats_file(const unsigned int swarmcount,
                       struct Parameters const & parameters,
                       std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   progress_init("Writing stats:    ", swarmcount);
+  assert(swarminfo_v.size() == swarmcount);
   for(auto i = 0ULL; i < swarmcount; i++)
     {
       auto const & swarm_info = swarminfo_v[i];
@@ -1242,10 +1243,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     }
   progress_done();
 
-  // refactoring: trim vectors (remove allocated unused elements) (FAIL)
-  // swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
-  // swarminfo_v.shrink_to_fit();
-
   global_hits_data = nullptr;
 
   if (network != nullptr) {
@@ -1442,6 +1439,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
         }
     }
 
+  // refactoring: trim vectors (remove allocated unused elements)
+  // could it be done before the fastidious phase?
+  swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
+  swarminfo_v.shrink_to_fit();
 
   /* dump swarms */
   if (parameters.opt_mothur) {
