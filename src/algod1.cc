@@ -1312,10 +1312,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
 
           // int64_t k = int(bits * 0.693);    /* 11 */
-          auto k =
+          auto n_hash_functions =
             static_cast<unsigned int>(hash_functions_per_bit * bits); /* 6 */
-          if (k < 1) {
-            k = 1;
+          if (n_hash_functions < 1) {
+            n_hash_functions = 1;
           }
 
           uint64_t bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
@@ -1337,9 +1337,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                   std::fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
                   // k = int(bits * 0.693);
-                  k = static_cast<unsigned int>(hash_functions_per_bit * bits);
-                  if (k < 1) {
-                    k = 1;
+                  n_hash_functions = static_cast<unsigned int>(hash_functions_per_bit * bits);
+                  if (n_hash_functions < 1) {
+                    n_hash_functions = 1;
                   }
 
                   bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
@@ -1359,7 +1359,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           std::fprintf(logfile,
                        "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                       bits, bloom_length_in_bits, k, static_cast<double>(bloom_length_in_bits) / (sizeof(uint64_t) * one_megabyte));
+                       bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (sizeof(uint64_t) * one_megabyte));
 
 
           // bloom_length is in bits (divide by 8 to get bytes)
@@ -1369,7 +1369,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           assert(bloom_length_in_bits >= 64);
           const uint64_t n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
           struct bloomflex_s bloomflex_filter;
-          bloom_f = bloomflex_init(n_bytes, k, bloomflex_filter);
+          bloom_f = bloomflex_init(n_bytes, n_hash_functions, bloomflex_filter);
 
 
           /* Empty the old hash and bloom filter
