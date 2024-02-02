@@ -514,12 +514,12 @@ auto mark_light_var(struct bloomflex_s * bloom,
 }
 
 
-void mark_light_thread(int64_t t)
+void mark_light_thread(int64_t nth_thread)
 {
   static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
   static constexpr auto j = 4U;  //                               i * len + j
 
-  (void) t;
+  (void) nth_thread;  // refactoring: unused?
 
   std::vector<struct var_s> variant_list(i * longestamplicon + j);
 
@@ -613,12 +613,12 @@ auto check_variants(unsigned int seed,
 }
 
 
-auto network_thread(int64_t t) -> void
+auto network_thread(int64_t nth_thread) -> void
 {
   static constexpr auto i = 7U;  // max number of microvariants = 7 * len + 4
   static constexpr auto j = 4U;  //                               i * len + j
 
-  (void) t;
+  (void) nth_thread;  // refactoring: unused?
 
   std::vector<unsigned int> hits_data(i * longestamplicon + j + 1);
   std::vector<struct var_s> variant_list(i * longestamplicon + j + 1);
