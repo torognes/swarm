@@ -68,8 +68,10 @@ private:
       }
 
     pthread_mutex_unlock(&tip->workmutex);
+
     return nullptr;
   }
+
 
 public:
 
@@ -108,6 +110,7 @@ public:
       }
   }
 
+
   ~ThreadRunner()
   {
     /* ask threads to quit */
@@ -139,8 +142,7 @@ public:
   auto operator=(const ThreadRunner&) -> ThreadRunner& = delete; // copy assignment constructor
   auto operator=(ThreadRunner&&) -> ThreadRunner& = delete; // move assignment constructor
 
-  auto run() -> void
-  {
+  auto run() -> void {
     /* wake up threads */
     for(auto& tip: thread_array) {
         pthread_mutex_lock(&tip.workmutex);
