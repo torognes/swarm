@@ -490,8 +490,8 @@ auto check_heavy_thread(int64_t nth_thread) -> void
 
 
 auto mark_light_var(struct bloomflex_s * bloom,
-                        unsigned int seed,
-                        std::vector<struct var_s>& variant_list) -> uint64_t
+                    unsigned int seed,
+                    std::vector<struct var_s>& variant_list) -> uint64_t
 {
   /*
     add all microvariants of seed to Bloom filter
@@ -535,7 +535,7 @@ void mark_light_thread(int64_t nth_thread)
           progress_update(++light_progress);  // refactoring: separate operations?
           pthread_mutex_unlock(&light_mutex);
           const auto variant_count = mark_light_var(bloom_f, light_amplicon_id,
-                                                        variant_list);
+                                                    variant_list);
           pthread_mutex_lock(&light_mutex);
           light_variants += variant_count;
         }
@@ -751,27 +751,27 @@ auto write_network_file(const unsigned int number_of_networks,
   assert(ampinfo_v.size() == amplicons);
   auto counter = 0ULL;
   for(auto const& amplicon: ampinfo_v) {
-      const auto link_start = amplicon.link_start;
-      const auto link_count = amplicon.link_count;
+    const auto link_start = amplicon.link_start;
+    const auto link_count = amplicon.link_count;
 
-      // refactoring: std::vector<unsigned int> network_v(network + link_start, network + link_start + link_count);
-      std::qsort(network + link_start,
-            link_count,
-            sizeof(unsigned int),
-            compare_amp);
+    // refactoring: std::vector<unsigned int> network_v(network + link_start, network + link_start + link_count);
+    std::qsort(network + link_start,
+               link_count,
+               sizeof(unsigned int),
+               compare_amp);
 
-      for(auto link = 0U; link < link_count; link++)
-        {
-          const auto neighbour = network[link_start + link];
-          fprint_id(network_file, counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(network_file, "\t");
-          fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(network_file, "\n");
-          ++n_processed;
-        }
-      progress_update(n_processed);
-      ++counter;
-    }
+    for(auto link = 0U; link < link_count; link++)
+      {
+        const auto neighbour = network[link_start + link];
+        fprint_id(network_file, counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(network_file, "\t");
+        fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(network_file, "\n");
+        ++n_processed;
+      }
+    progress_update(n_processed);
+    ++counter;
+  }
   progress_done();
 }
 
@@ -810,7 +810,7 @@ auto write_swarms_mothur_format(const unsigned int swarmcount,
   progress_init("Writing swarms:   ", swarmcount);
 
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
-          parameters.opt_differences, swarmcount_adjusted);
+               parameters.opt_differences, swarmcount_adjusted);
 
   // refactoring: assert(swarminfo_v.size() == swarmcount);
   for(auto i = 0U; i < swarmcount; i++) {
@@ -856,68 +856,68 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
 
   auto counter = 0U;
   for (auto const & swarm_info : swarminfo_v) {
-      if (swarm_info.attached) {
-        continue;
+    if (swarm_info.attached) {
+      continue;
+    }
+
+    const auto seed = swarm_info.seed;
+
+    auto const & seed_info = ampinfo_v[seed];
+
+    std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+                 cluster_no,
+                 swarm_info.size);
+    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(uclustfile, "\t*\n");
+
+    std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+                 cluster_no,
+                 db_getsequencelen(seed));
+    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(uclustfile, "\t*\n");
+
+    for(auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
+      {
+        auto * dseq = db_getsequence(amp_id);
+        const auto dlen = db_getsequencelen(amp_id);  // refactoring: as a struct Sequence{ptr, length}
+        auto * qseq = db_getsequence(seed);  // refactoring: can be moved outside of this loop!
+        const auto qlen = db_getsequencelen(seed);
+
+        uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
+
+        nw(dseq, dlen, qseq, qlen,
+           score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
+           static_cast<unsigned long int>(penalty_gapextend),
+           nwdiff, directions, hearray, raw_alignment);
+
+        // backtracking produces a reversed alignment (starting from the end)
+        std::reverse(raw_alignment.begin(), raw_alignment.end());
+        compress_alignment_to_cigar(raw_alignment, cigar_string);
+
+        const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
+        const auto differences = static_cast<double>(nwdiff);
+        const double percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
+
+        std::fprintf(uclustfile,
+                     "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                     cluster_no,
+                     db_getsequencelen(amp_id),
+                     percentid,
+                     nwdiff > 0 ? cigar_string.data() : "=");
+
+        fprint_id(uclustfile, amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(uclustfile, "\t");
+        fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(uclustfile, "\n");
+
+        raw_alignment.clear();
+        cigar_string.clear();
       }
 
-      const auto seed = swarm_info.seed;
-
-      auto const & seed_info = ampinfo_v[seed];
-
-      std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
-                   cluster_no,
-                   swarm_info.size);
-      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(uclustfile, "\t*\n");
-
-      std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                   cluster_no,
-                   db_getsequencelen(seed));
-      fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(uclustfile, "\t*\n");
-
-      for(auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
-        {
-          auto * dseq = db_getsequence(amp_id);
-          const auto dlen = db_getsequencelen(amp_id);  // refactoring: as a struct Sequence{ptr, length}
-          auto * qseq = db_getsequence(seed);  // refactoring: can be moved outside of this loop!
-          const auto qlen = db_getsequencelen(seed);
-
-          uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
-
-          nw(dseq, dlen, qseq, qlen,
-             score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
-             static_cast<unsigned long int>(penalty_gapextend),
-             nwdiff, directions, hearray, raw_alignment);
-
-          // backtracking produces a reversed alignment (starting from the end)
-          std::reverse(raw_alignment.begin(), raw_alignment.end());
-          compress_alignment_to_cigar(raw_alignment, cigar_string);
-
-          const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
-          const auto differences = static_cast<double>(nwdiff);
-          const double percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
-
-          std::fprintf(uclustfile,
-                       "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                       cluster_no,
-                       db_getsequencelen(amp_id),
-                       percentid,
-                       nwdiff > 0 ? cigar_string.data() : "=");
-
-          fprint_id(uclustfile, amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\t");
-          fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\n");
-
-          raw_alignment.clear();
-          cigar_string.clear();
-        }
-
-      ++cluster_no;
-      progress_update(counter);
-      ++counter;
-    }
+    ++cluster_no;
+    progress_update(counter);
+    ++counter;
+  }
   progress_done();
 }
 
@@ -1038,18 +1038,18 @@ auto write_stats_file(struct Parameters const & parameters,
 
   auto counter = 0U;
   for (auto const & swarm_info : swarminfo_v) {
-      assert(not swarm_info.attached);
-      if (swarm_info.attached) {
-        continue;
-      }
-      std::fprintf(statsfile, "%u\t%" PRIu64 "\t", swarm_info.size, swarm_info.mass);
-      fprint_id_noabundance(statsfile, swarm_info.seed, parameters.opt_usearch_abundance);
-      std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                   db_getabundance(swarm_info.seed),
-                   swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
-      progress_update(counter);
-      ++counter;
+    assert(not swarm_info.attached);
+    if (swarm_info.attached) {
+      continue;
     }
+    std::fprintf(statsfile, "%u\t%" PRIu64 "\t", swarm_info.size, swarm_info.mass);
+    fprint_id_noabundance(statsfile, swarm_info.seed, parameters.opt_usearch_abundance);
+    std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+                 db_getabundance(swarm_info.seed),
+                 swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
+    progress_update(counter);
+    ++counter;
+  }
   progress_done();
 }
 
@@ -1287,11 +1287,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
       const uint64_t large_clusters = swarmcount - small_clusters;
 
       std::fprintf(logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-              large_clusters, amplicons_in_large_clusters);
+                   large_clusters, amplicons_in_large_clusters);
       std::fprintf(logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-              small_clusters, amplicons_in_small_clusters);
+                   small_clusters, amplicons_in_small_clusters);
       std::fprintf(logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
-              nucleotides_in_small_clusters);
+                   nucleotides_in_small_clusters);
 
       if ((small_clusters == 0) or (large_clusters == 0))
         {
@@ -1358,8 +1358,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             }
 
           std::fprintf(logfile,
-                  "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                  bits, m, k, static_cast<double>(m) / (sizeof(uint64_t) * one_megabyte));
+                       "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
+                       bits, m, k, static_cast<double>(m) / (sizeof(uint64_t) * one_megabyte));
 
 
           // m is in bits (divide by 8 to get bytes)
@@ -1400,8 +1400,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           progress_done();
 
           std::fprintf(logfile,
-                  "Generated %" PRIu64 " variants from light swarms\n",
-                  light_variants);
+                       "Generated %" PRIu64 " variants from light swarms\n",
+                       light_variants);
 
           progress_init("Checking heavy swarm amplicons against Bloom filter",
                         amplicons_in_large_clusters);
