@@ -285,12 +285,10 @@ auto attach_candidates(unsigned int amplicon_count,
   /* fill in */
   auto ticker = 0U;  // refactoring: replace with a transform algorithm
   for(auto i = 0U; i < amplicon_count; i++) {
-    if (ampinfo_v[i].graft_cand != no_swarm)
-      {
-        graft_array[ticker].parent = ampinfo_v[i].graft_cand;
-        graft_array[ticker].child = i;  // so two children cannot have the same uint value
-        ++ticker;
-      }
+    if (ampinfo_v[i].graft_cand == no_swarm) { continue; }
+    graft_array[ticker].parent = ampinfo_v[i].graft_cand;
+    graft_array[ticker].child = i;  // so two children cannot have the same uint value
+    ++ticker;
   }
 
   /* sort */
