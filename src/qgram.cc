@@ -244,9 +244,9 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
 }
 
 
-auto qgram_worker(int64_t t) -> void
+auto qgram_worker(int64_t nth_threads) -> void
 {
-  struct thread_info_s * tip = ti + t;
+  struct thread_info_s * tip = ti + nth_threads;
 
   const uint64_t seed = tip->seed;
   const uint64_t listlen = tip->listlen;
