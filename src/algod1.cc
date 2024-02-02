@@ -667,7 +667,7 @@ auto process_seed(unsigned int const seed,
                   unsigned int & global_hits_count) -> void
 {
   /* update swarm stats */
-  struct ampinfo_s const & seed_info = ampinfo_v[seed];
+  auto const & seed_info = ampinfo_v[seed];
 
   ++swarmsize;
   if (seed_info.generation > swarm_maxgen) {
