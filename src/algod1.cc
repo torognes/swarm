@@ -1308,7 +1308,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           /* n: number of entries in the bloom filter */
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
-          static constexpr unsigned int microvariants {7};
+          static constexpr auto microvariants = 7U;
           static constexpr double hash_functions_per_bit {4.0 / 10};
           assert(parameters.opt_bloom_bits <= 64);  // larger than expected"
           assert(parameters.opt_bloom_bits >= 2);  // smaller than expected"
