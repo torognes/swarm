@@ -391,13 +391,13 @@ auto algo_run(struct Parameters const & parameters) -> void
             count_comparisons_16 += targetcount;
           }
 
-          for(auto t = 0ULL; t < targetcount; t++)
+          for(auto target_id = 0ULL; target_id < targetcount; target_id++)
             {
-              const auto diff = diffs_v[t];
+              const auto diff = diffs_v[target_id];
 
               if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                 {
-                  const auto target = targetindices[t];
+                  const auto target = targetindices[target_id];
 
                   /* move the 'target' to the position ('swarmed')
                      of the first unswarmed amplicon in the pool */
