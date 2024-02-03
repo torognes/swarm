@@ -157,6 +157,7 @@ static uint64_t light_amplicon_count {0};
 static unsigned int light_amplicon {0};
 
 static uint64_t network_alloc {one_megabyte};
+std::vector<unsigned int> network_v;
 static unsigned int * network {nullptr};
 static unsigned int network_count {0};
 static pthread_mutex_t network_mutex;
@@ -643,17 +644,14 @@ auto network_thread(int64_t nth_thread) -> void
       ampinfo[amp].link_start = network_count;
       ampinfo[amp].link_count = hits_count;
 
-      if (network_count + hits_count > network_alloc)
-        {
-          while (network_count + hits_count > network_alloc) {
-            network_alloc += one_megabyte;
-          }
-          network = static_cast<unsigned int*>
-            (xrealloc(network, network_alloc * sizeof(unsigned int)));
-        }
+      while (network_count + hits_count > network_v.size()) {
+        network_v.reserve(network_v.size() + one_megabyte);
+        network_v.resize(network_v.size() + one_megabyte);
+        network = network_v.data();
+      }
 
       for(auto k = 0U; k < hits_count; k++) {
-        network[network_count] = hits_data[k];
+        network_v[network_count] = hits_data[k];
         ++network_count;
       }
     }
@@ -754,15 +752,15 @@ auto write_network_file(const unsigned int number_of_networks,
     const auto link_start = amplicon.link_start;
     const auto link_count = amplicon.link_count;
 
-    // refactoring: std::vector<unsigned int> network_v(network + link_start, network + link_start + link_count);
     std::qsort(network + link_start,
                link_count,
                sizeof(unsigned int),
                compare_amp);
 
+    // refactoring: std::vector<unsigned int> network_v(network_v.begin() + link_start, network_v.begin() + link_start + link_count);
     for(auto link = 0U; link < link_count; link++)
       {
-        const auto neighbour = network[link_start + link];
+        const auto neighbour = network_v[link_start + link];
         fprint_id(network_file, counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         std::fprintf(network_file, "\t");
         fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
@@ -1109,12 +1107,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   progress_done();
 
   /* for all amplicons, generate list of matching amplicons */
-
-  // refactoring: not possible because of the pthread barrier
-  // std::vector<unsigned int> network_v(network_alloc);
-  // network = network_v.data();
-  network = static_cast<unsigned int*>
-    (xmalloc(network_alloc * sizeof(unsigned int)));
+  network_v.resize(network_alloc);
+  network = network_v.data();
 
   network_count = 0;
 
@@ -1245,10 +1239,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   global_hits_data = nullptr;
 
-  if (network != nullptr) {
-    xfree(network);
-  }
   network = nullptr;
+  network_v.clear();
+  network_v.shrink_to_fit();
 
   swarmcount_adjusted = swarmcount;
 
