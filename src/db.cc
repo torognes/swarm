@@ -34,10 +34,9 @@
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fileno, fclose(), size_t
+#include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
-#include <stdio.h>  // fdopen, ssize_t, getline
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
 #include <vector>
