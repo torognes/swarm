@@ -44,6 +44,7 @@ inline void nt_set(char * seq, unsigned int pos, unsigned int base)
   (reinterpret_cast<uint64_t *>(seq))[whichlong] = mutated_sequence;
 }
 
+
 inline void seq_copy(char * seq_a,
                      unsigned int a_start,
                      char * seq_b,
@@ -55,6 +56,7 @@ inline void seq_copy(char * seq_a,
     nt_set(seq_a, a_start + i, nt_extract(seq_b, b_start + i));
   }
 }
+
 
 inline auto seq_identical(char * seq_a,
                           unsigned int a_start,
@@ -72,6 +74,7 @@ inline auto seq_identical(char * seq_a,
   }
   return equal;
 }
+
 
 auto generate_variant_sequence(char * seed_sequence,
                                unsigned int seed_seqlen,
@@ -162,6 +165,7 @@ auto check_variant(char * seed_sequence,
   return equal;
 }
 
+
 inline void add_variant(uint64_t hash,
                         Variant_type type,
                         unsigned int pos,
@@ -176,6 +180,7 @@ inline void add_variant(uint64_t hash,
   variant.pos = pos;
   variant.base = base;
 }
+
 
 auto generate_variants(char * sequence,
                        unsigned int seqlen,
