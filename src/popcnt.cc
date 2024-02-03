@@ -28,7 +28,7 @@
 #include <popcntintrin.h>  // refactoring: #include <immintrin.h>?
 #include "utils/qgram_array.h"  // qgramvectorbytes
 #include <cstdint>  // uint64_t
-#include <iterator>
+#include <iterator>  // std::next
 
 
 /*
