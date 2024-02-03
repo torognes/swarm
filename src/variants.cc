@@ -29,7 +29,7 @@
 #include <vector>
 
 
-inline void nt_set(char * seq, unsigned int pos, unsigned int base)
+inline auto nt_set(char * seq, unsigned int pos, unsigned int base) -> void
 {
   // base = replacement nucleotide = encoded as 0, 1, 2, 3
   static constexpr unsigned int divider {5};
@@ -45,11 +45,11 @@ inline void nt_set(char * seq, unsigned int pos, unsigned int base)
 }
 
 
-inline void seq_copy(char * seq_a,
+inline auto seq_copy(char * seq_a,
                      unsigned int a_start,
                      char * seq_b,
                      unsigned int b_start,
-                     unsigned int length)
+                     unsigned int length) -> void
 {
   /* copy part of the compressed sequence b to a */
   for(auto i = 0U; i < length; i++) {
@@ -166,12 +166,12 @@ auto check_variant(char * seed_sequence,
 }
 
 
-inline void add_variant(uint64_t hash,
+inline auto add_variant(uint64_t hash,
                         Variant_type type,
                         unsigned int pos,
                         unsigned char base,
                         std::vector<struct var_s>& variant_list,
-                        unsigned int & variant_count)
+                        unsigned int & variant_count) -> void
 {
   var_s & variant = variant_list[variant_count];
   ++variant_count;
