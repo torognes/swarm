@@ -34,6 +34,7 @@
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcmp
+#include <iterator>  // std::next
 #include <vector>
 
 #ifndef PRIu64
@@ -288,7 +289,7 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
                                          seqlen);
 
       uint64_t nth_bucket = hash & derep_hash_mask;
-      auto * clusterp = hashtable.data() + nth_bucket;
+      auto * clusterp = &hashtable[nth_bucket];
 
       while ((clusterp->mass != 0U) and
              ((clusterp->hash != hash) or
@@ -298,7 +299,7 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
               )
              )
         {
-          ++clusterp;
+          clusterp = std::next(clusterp);
           ++nth_bucket;
           if (nth_bucket >= hashtable.size()) // wrap around the table if we reach the end
             {
