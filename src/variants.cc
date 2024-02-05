@@ -26,6 +26,7 @@
 #include "zobrist.h"
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::memcpy
+#include <iterator>  // std::next
 #include <vector>
 
 
@@ -38,10 +39,11 @@ inline auto nt_set(char * seq, unsigned int pos, unsigned int base) -> void
   const unsigned int whichlong = pos >> divider;
   const uint64_t shift = (pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
   const uint64_t mask = compl (two_bits << shift);
-  uint64_t mutated_sequence = (reinterpret_cast<uint64_t *>(seq))[whichlong];
+  auto * const sequence_position= std::next(reinterpret_cast<uint64_t *>(seq), whichlong);
+  uint64_t mutated_sequence = *sequence_position;
   mutated_sequence &= mask;
   mutated_sequence |= (static_cast<uint64_t>(base)) << shift;
-  (reinterpret_cast<uint64_t *>(seq))[whichlong] = mutated_sequence;
+  *sequence_position = mutated_sequence;
 }
 
 
