@@ -60,5 +60,5 @@ inline auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t hash) -> v
 
 inline auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t hash) -> bool
 {
-  return (* bloomflex_adr(bloom_filter, hash) & bloomflex_pat(bloom_filter, hash)) == 0U;
+  return (*bloomflex_adr(bloom_filter, hash) & bloomflex_pat(bloom_filter, hash)) == 0U;
 }
