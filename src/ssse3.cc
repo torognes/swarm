@@ -111,9 +111,9 @@ auto dprofile_shuffle16(WORD * dprofile,
                         BYTE * dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
-  auto * profile_db = cast_vector16(dprofile);
-  auto * score_db = cast_vector16(score_matrix);
-  auto * sequence_db = cast_vector8(dseq_byte);
+  auto * const profile_db = cast_vector16(dprofile);
+  auto * const score_db = cast_vector16(score_matrix);
+  auto * const sequence_db = cast_vector8(dseq_byte);
   static constexpr int channels {8};  // does 8 represent the number of channels?
 
   const auto zero = v_zero();
