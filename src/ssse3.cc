@@ -140,7 +140,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   const auto m0 = transform_lower_seq_chunk(t0);
   const auto m1 = transform_higher_seq_chunk(t0);
 
-  const auto t3 = v_load8(std::next(sequence_db + 1));
+  const auto t3 = v_load8(std::next(sequence_db, 1));
   const auto m2 = transform_lower_seq_chunk(t3);
   const auto m3 = transform_higher_seq_chunk(t3);
 
