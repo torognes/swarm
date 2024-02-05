@@ -30,7 +30,7 @@
 #include <vector>
 
 
-inline auto nt_set(char * seq, unsigned int pos, unsigned int base) -> void
+inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const base) -> void
 {
   // base = replacement nucleotide = encoded as 0, 1, 2, 3
   static constexpr unsigned int divider {5};
