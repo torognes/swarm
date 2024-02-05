@@ -66,7 +66,6 @@ inline auto seq_identical(char * seq_a,
 {
   /* compare parts of two compressed sequences a and b */
   /* return false if different, true if identical */
-
   for(auto i = 0U; i < length; i++) {
     if (nt_extract(seq_a, a_start + i) != nt_extract(seq_b, b_start + i)) {
       return false;
