@@ -33,14 +33,14 @@
 inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const base) -> void
 {
   // base = replacement nucleotide = encoded as 0, 1, 2, 3
-  static constexpr unsigned int divider {5};
-  static constexpr unsigned int max_range {31};
-  static constexpr unsigned long long int two_bits {3};  // '... 0011' in binary
-  const unsigned int whichlong = pos >> divider;
+  static constexpr auto divider = 5U;
+  static constexpr auto max_range = 31U;
+  static constexpr auto two_bits = 3ULL;  // '... 0011' in binary
+  const auto whichlong = pos >> divider;
   const uint64_t shift = (pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
   const uint64_t mask = compl (two_bits << shift);
   auto * const position_ptr = std::next(reinterpret_cast<uint64_t *>(seq), whichlong);
-  uint64_t mutated_position = *position_ptr;
+  auto mutated_position = *position_ptr;
   mutated_position &= mask;
   mutated_position |= (static_cast<uint64_t>(base)) << shift;
   *position_ptr = mutated_position;
