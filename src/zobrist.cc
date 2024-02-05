@@ -129,7 +129,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
       for(auto i = 0U; i < nt_per_uint64; i += 4) {
         // i = {0, 4, 8, 12, 16, 20, 24, 28}
         zobrist_hash ^= zobrist_tab_byte_base[offset * (pos + i) + *query_in_bytes];
-        ++query_in_bytes;
+        query_in_bytes = std::next(query_in_bytes);
       }
       pos += nt_per_uint64;
     }
@@ -137,14 +137,14 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
   while (pos + 4 < len)
     {
       zobrist_hash ^= zobrist_tab_byte_base[offset * pos + *query_in_bytes];
-      ++query_in_bytes;
+      query_in_bytes = std::next(query_in_bytes);
       pos += 4;
     }
 
   if (pos < len)
     {
       uint64_t next_byte = *query_in_bytes;  // refactoring: reinterpret_cast?
-      ++query_in_bytes;
+      query_in_bytes = std::next(query_in_bytes);
       while (pos < len)
         {
           zobrist_hash ^= zobrist_value(pos, next_byte & 3U);
