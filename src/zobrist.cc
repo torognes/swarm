@@ -21,11 +21,12 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <algorithm>  // std::for_each
-#include <cstdint>  // uint64_t
-#include <vector>
 #include "utils/pseudo_rng.h"
 #include "zobrist.h"
+#include <algorithm>  // std::for_each
+#include <cstdint>  // uint64_t
+#include <iterator>  // std::next
+#include <vector>
 
 
 uint64_t * zobrist_tab_base = nullptr;
