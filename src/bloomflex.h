@@ -27,15 +27,15 @@
 
 struct bloomflex_s
 {
-  uint64_t size; /* size in number of longs (8 bytes) */
-  uint64_t pattern_shift;
-  uint64_t pattern_count;
-  uint64_t pattern_mask;
-  uint64_t pattern_k;
+  uint64_t size = 0; /* size in number of longs (8 bytes) */
+  uint64_t pattern_shift = 0;
+  uint64_t pattern_count = 0;
+  uint64_t pattern_mask = 0;
+  uint64_t pattern_k = 0;
   std::vector<uint64_t> bitmap_v;
-  uint64_t * bitmap;
+  uint64_t * bitmap = nullptr;
   std::vector<uint64_t> patterns_v;
-  uint64_t * patterns;
+  uint64_t * patterns = nullptr;
 };
 
 auto bloomflex_init(uint64_t size, unsigned int n_hash_functions,
