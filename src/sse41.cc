@@ -58,7 +58,7 @@ inline auto onestep_16_sse41(VECTORTYPE & H,
                              VECTORTYPE & N,
                              VECTORTYPE & F,
                              VECTORTYPE V,
-                             unsigned short * DIR,
+                             WORD * DIR,
                              VECTORTYPE & E,
                              VECTORTYPE QR,
                              VECTORTYPE R) -> void
@@ -99,7 +99,7 @@ auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
   VECTORTYPE E;
   VECTORTYPE h4;
 
-  auto * const dir = reinterpret_cast<unsigned short *>(dir_long);
+  auto * const dir = reinterpret_cast<WORD *>(dir_long);
 
   const auto Q = *Qm;
   const auto R = *Rm;
@@ -166,7 +166,7 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
   VECTORTYPE E;
   VECTORTYPE h4;
 
-  auto * const dir = reinterpret_cast<unsigned short *>(dir_long);
+  auto * const dir = reinterpret_cast<WORD *>(dir_long);
 
   const auto Q = *Qm;
   const auto R = *Rm;
