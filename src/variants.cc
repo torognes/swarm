@@ -39,11 +39,9 @@ inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const 
   const auto whichlong = pos >> divider;
   const uint64_t shift = (pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
   const uint64_t mask = compl (two_bits << shift);
-  auto * const position_ptr = std::next(reinterpret_cast<uint64_t *>(seq), whichlong);
-  auto mutated_position = *position_ptr;
+  auto & mutated_position = *std::next(reinterpret_cast<uint64_t *>(seq), whichlong);
   mutated_position &= mask;
   mutated_position |= (static_cast<uint64_t>(base)) << shift;
-  *position_ptr = mutated_position;
 }
 
 
