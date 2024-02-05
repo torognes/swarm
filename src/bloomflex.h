@@ -55,7 +55,7 @@ inline auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t hash) -> u
 
 inline auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t hash) -> void
 {
-  * bloomflex_adr(bloom_filter, hash) &= compl bloomflex_pat(bloom_filter, hash);
+  *bloomflex_adr(bloom_filter, hash) &= compl bloomflex_pat(bloom_filter, hash);
 }
 
 inline auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t hash) -> bool
