@@ -774,13 +774,12 @@ auto write_network_file(const unsigned int number_of_networks,
 }
 
 
-auto write_swarms_default_format(const unsigned int swarmcount,
-                                 struct Parameters const & parameters,
+auto write_swarms_default_format(struct Parameters const & parameters,
                                  std::vector<struct ampinfo_s> & ampinfo_v,
                                  std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-  progress_init("Writing swarms:   ", swarmcount);
+  progress_init("Writing swarms:   ", swarminfo_v.size());
 
-  for(auto i = 0U; i < swarmcount; i++) {
+  for(auto i = 0U; i < swarminfo_v.size(); i++) {
     if (swarminfo_v[i].attached) {
       continue;
     }
@@ -801,17 +800,15 @@ auto write_swarms_default_format(const unsigned int swarmcount,
 }
 
 
-auto write_swarms_mothur_format(const unsigned int swarmcount,
-                                struct Parameters const & parameters,
+auto write_swarms_mothur_format(struct Parameters const & parameters,
                                 std::vector<struct ampinfo_s> & ampinfo_v,
                                 std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-  progress_init("Writing swarms:   ", swarmcount);
+  progress_init("Writing swarms:   ", swarminfo_v.size());
 
   std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
                parameters.opt_differences, swarmcount_adjusted);
 
-  // refactoring: assert(swarminfo_v.size() == swarmcount);
-  for(auto i = 0U; i < swarmcount; i++) {
+  for(auto i = 0U; i < swarminfo_v.size(); i++) {
     assert(not swarminfo_v[i].attached);
     if (swarminfo_v[i].attached) {
       continue;
@@ -920,13 +917,12 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
 }
 
 
-auto write_representative_sequences(const unsigned int swarmcount,
-                                    struct Parameters const & parameters,
+auto write_representative_sequences(struct Parameters const & parameters,
                                     std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-  progress_init("Writing seeds:    ", swarmcount);
+  progress_init("Writing seeds:    ", swarminfo_v.size());
 
-  std::vector<unsigned int> sorter(swarmcount);
-  for(auto i = 0U; i < swarmcount; i++) {
+  std::vector<unsigned int> sorter(swarminfo_v.size());
+  for(auto i = 0U; i < swarminfo_v.size(); i++) {
     sorter[i] = i;
   }
 
@@ -958,7 +954,7 @@ auto write_representative_sequences(const unsigned int swarmcount,
 
   std::sort(sorter.begin(), sorter.end(), compare_mass);
 
-  for(auto j = 0U; j < swarmcount; j++)
+  for(auto j = 0U; j < swarminfo_v.size(); j++)
     {
       const auto index = sorter[j];
       if (swarminfo_v[index].attached) {
@@ -976,15 +972,14 @@ auto write_representative_sequences(const unsigned int swarmcount,
 }
 
 
-auto write_structure_file(const unsigned int swarmcount,
-                          struct Parameters const & parameters,
+auto write_structure_file(struct Parameters const & parameters,
                           std::vector<struct ampinfo_s> & ampinfo_v,
                           std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   auto cluster_no = 0U;
 
-  progress_init("Writing structure:", swarmcount);
+  progress_init("Writing structure:", swarminfo_v.size());
 
-  for(auto swarmid = 0U; swarmid < swarmcount; swarmid++)
+  for(auto swarmid = 0U; swarmid < swarminfo_v.size(); swarmid++)
     {
       if (swarminfo_v[swarmid].attached) {
         continue;
@@ -1439,20 +1434,20 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* dump swarms */
   if (parameters.opt_mothur) {
-    write_swarms_mothur_format(swarmcount, parameters, ampinfo_v, swarminfo_v);
+    write_swarms_mothur_format(parameters, ampinfo_v, swarminfo_v);
   }
   else {
-    write_swarms_default_format(swarmcount, parameters, ampinfo_v, swarminfo_v);
+    write_swarms_default_format(parameters, ampinfo_v, swarminfo_v);
   }
 
   /* dump seeds in fasta format with sum of abundances */
   if (not parameters.opt_seeds.empty()) {
-    write_representative_sequences(swarmcount, parameters, swarminfo_v);
+    write_representative_sequences(parameters, swarminfo_v);
   }
 
   /* output internal structure */
   if (not parameters.opt_internal_structure.empty()) {
-    write_structure_file(swarmcount, parameters, ampinfo_v, swarminfo_v);
+    write_structure_file(parameters, ampinfo_v, swarminfo_v);
   }
 
   /* output swarms in uclust format */
