@@ -1456,12 +1456,12 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   }
 
   /* output swarms in uclust format */
-  if (uclustfile != nullptr) {
+  if (not parameters.opt_uclust_file.empty()) {
     write_swarms_uclust_format(parameters, ampinfo_v, swarminfo_v);
   }
 
   /* output statistics to file */
-  if (statsfile != nullptr) {
+  if (not parameters.opt_statistics_file.empty()) {
     write_stats_file(parameters, swarminfo_v);
   }
 
