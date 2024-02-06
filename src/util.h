@@ -27,6 +27,6 @@
 auto xmalloc(std::size_t size) -> void *;
 auto xrealloc(void * ptr, std::size_t size) -> void *;
 auto xfree(void * ptr) -> void;
-auto xgetline(char ** linep, std::size_t * linecapp, FILE * stream) -> ssize_t;
+auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssize_t;
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> std::FILE *;
