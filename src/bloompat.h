@@ -35,7 +35,7 @@ struct bloom_s
   uint64_t mask = 0;
   std::vector<uint64_t> bitmap_v;
   uint64_t * bitmap = nullptr;
-  std::array<uint64_t, bloom_pattern_count> patterns;
+  std::array<uint64_t, bloom_pattern_count> patterns {{}};
 };
 
 auto bloom_zap(struct bloom_s & bloom_filter) -> void;
