@@ -51,6 +51,7 @@
 #include <cstring>  // std::memcmp
 #include <limits>  // unsigned int max
 #include <memory>  // unique pointer
+#include <numeric>  // std::iota
 #include <pthread.h>
 #include <string>
 #include <vector>
@@ -922,9 +923,7 @@ auto write_representative_sequences(struct Parameters const & parameters,
   progress_init("Writing seeds:    ", swarminfo_v.size());
 
   std::vector<unsigned int> sorter(swarminfo_v.size());
-  for(auto i = 0U; i < swarminfo_v.size(); i++) {
-    sorter[i] = i;
-  }
+  std::iota(sorter.begin(), sorter.end(), 0);
 
   auto compare_mass = [&swarminfo_v](unsigned int const lhs,
                                      unsigned int const rhs) -> bool
