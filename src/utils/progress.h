@@ -24,6 +24,14 @@
 #include <cstdint>  // uint64_t
 
 
+// refactoring: use a struct to communicate and avoid global variables
+// struct Progress_status {
+//   const char * progress_prompt = nullptr;
+//   uint64_t progress_next = 0;
+//   uint64_t progress_size = 0;
+//   uint64_t progress_chunk = 0;
+// };
+
 auto progress_init(const char * prompt, uint64_t size) -> void;
 auto progress_update(uint64_t progress) -> void;
 auto progress_done() -> void;
