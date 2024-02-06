@@ -39,6 +39,7 @@
 #include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
+#include <iterator>  // std::next
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
 #include <vector>
@@ -860,7 +861,7 @@ void db_qgrams_init()
   // - std::vector<char> qgrams_v(unitSize * sequences, '\0');  // unitSize = qgramvectorbytes = 128
   qgrams = new qgramvector_t[sequences];
 
-  seqinfo_t * seqindex_p {seqindex};
+  auto * seqindex_p = seqindex;
   progress_init("Find qgram vects: ", sequences);
   for(auto i = 0U; i < sequences; i++)
     {
@@ -868,7 +869,7 @@ void db_qgrams_init()
       findqgrams(reinterpret_cast<unsigned char*>(seqindex_p->seq),
                  seqindex_p->seqlen,
                  qgrams[i]);
-      ++seqindex_p;
+      seqindex_p = std::next(seqindex_p);
       progress_update(i);
     }
   progress_done();
