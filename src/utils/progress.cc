@@ -54,8 +54,8 @@ auto progress_update(const uint64_t progress) -> void
   if (opt_log.empty() and (progress >= progress_next))
     {
       std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
-              100.0 * static_cast<double>(progress)
-              / static_cast<double>(progress_size));
+                   100.0 * static_cast<double>(progress)
+                   / static_cast<double>(progress_size));
       progress_next = progress + progress_chunk;
       std::fflush(logfile);
     }
