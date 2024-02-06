@@ -349,22 +349,10 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
 }
 
 
-auto dereplicate(struct Parameters const & parameters) -> void
-{
-  const uint64_t dbsequencecount = db_getsequencecount();
-  const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
-
-  std::vector<struct bucket> hashtable(hashtablesize);
-  /* alloc and init table of links to other sequences in cluster */
-  std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
-
-  // dereplicate input sequences
-  const auto stats = dereplicating(hashtable, nextseqtab);
-
-  // sort by decreasing abundance
-  sort_seeds(hashtable);
-  release_unused_memory(hashtable, stats.swarmcount);
-
+auto output_results(struct Parameters const & parameters,
+                    std::vector<struct bucket> & hashtable,
+                    std::vector<unsigned int> & nextseqtab) -> void {
+  // refactoring: can data structures be marked as const?
   /* dump swarms */
   if (parameters.opt_mothur) {
     write_swarms_mothur_format(parameters, hashtable, nextseqtab);
@@ -392,6 +380,26 @@ auto dereplicate(struct Parameters const & parameters) -> void
   if (not parameters.opt_statistics_file.empty()) {
     write_stats_file(parameters, hashtable);
   }
+}
+
+
+auto dereplicate(struct Parameters const & parameters) -> void
+{
+  const uint64_t dbsequencecount = db_getsequencecount();
+  const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
+
+  std::vector<struct bucket> hashtable(hashtablesize);
+  /* alloc and init table of links to other sequences in cluster */
+  std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
+
+  // dereplicate input sequences
+  const auto stats = dereplicating(hashtable, nextseqtab);
+
+  // sort by decreasing abundance
+  sort_seeds(hashtable);
+  release_unused_memory(hashtable, stats.swarmcount);
+
+  output_results(parameters, hashtable, nextseqtab);
 
   std::fprintf(logfile, "\n");
   std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n",
