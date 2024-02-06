@@ -31,10 +31,10 @@ constexpr unsigned int bloom_pattern_mask {bloom_pattern_count - 1};
 
 struct bloom_s
 {
-  uint64_t size;
-  uint64_t mask;
+  uint64_t size = 0;
+  uint64_t mask = 0;
   std::vector<uint64_t> bitmap_v;
-  uint64_t * bitmap;
+  uint64_t * bitmap = nullptr;
   std::array<uint64_t, bloom_pattern_count> patterns;
 };
 
