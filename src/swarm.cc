@@ -28,6 +28,7 @@
 #include "derep.h"
 #include "utils/fatal.h"
 #include "utils/gcd.h"
+#include "utils/input_output.h"
 #include "utils/seqinfo.h"
 #include "util.h"
 #include "x86_cpu_features.h"

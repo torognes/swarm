@@ -128,6 +128,7 @@ PROG = swarm
 OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	hashtable.o nw.o qgram.o scan.o search16.o search8.o \
 	swarm.o util.o utils/cigar.o utils/fatal.o utils/hashtable_size.o \
+	utils/input_output.o \
 	utils/intrinsics_to_functions_aarch64.o utils/intrinsics_to_functions_ppc.o utils/intrinsics_to_functions_x86_64.o \
 	utils/progress.o \
 	variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
@@ -135,6 +136,7 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hashtable.h \
 	nw.h qgram.h scan.h search16.h search8.h swarm.h \
 	util.h utils/backtrack.h utils/cigar.h utils/fatal.h utils/gcd.h utils/hashtable_size.h \
+	utils/input_output.h \
 	utils/intrinsics_to_functions_aarch64.h utils/intrinsics_to_functions_ppc.h utils/intrinsics_to_functions_x86_64.h \
 	utils/nt_codec.h utils/progress.h utils/pseudo_rng.h \
 	utils/qgram_array.h utils/qgram_threadinfo.h utils/search_data.h utils/score_matrix.h utils/threads.h variants.h x86_cpu_features.h \

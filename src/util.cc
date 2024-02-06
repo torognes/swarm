@@ -26,7 +26,6 @@
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // free, posix_memalign, realloc
 #include <cstring>  // strcmp
-#include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
 
 constexpr std::size_t memalignment = 16;
@@ -82,40 +81,6 @@ auto xfree(void * ptr) -> void
   else {
     fatal(error_prefix, "Trying to free a null pointer.");
   }
-}
-
-
-auto fopen_input(const char * filename) -> std::FILE *
-{
-  /* open the input stream given by filename, but use stdin if name is - */
-  std::FILE * input_stream = nullptr;
-
-  if (std::strcmp(filename, "-") == 0) {
-    const int file_descriptor = dup(STDIN_FILENO);
-    input_stream = file_descriptor > 0 ? fdopen(file_descriptor, "rb") : nullptr;
-  }
-  else {
-    input_stream = fopen(filename, "rb");  // refactoring: prefer std::fstream
-  }
-
-  return input_stream;
-}
-
-
-auto fopen_output(const char * filename) -> std::FILE *
-{
-  /* open the output stream given by filename, but use stdout if name is - */
-  std::FILE * output_stream {nullptr};
-
-  if (std::strcmp(filename, "-") == 0) {
-    const int file_descriptor = dup(STDOUT_FILENO);
-    output_stream = file_descriptor > 0 ? fdopen(file_descriptor, "w") : nullptr;
-  }
-  else {
-    output_stream = fopen(filename, "w");  // refactoring: prefer std::fstream
-  }
-
-  return output_stream;
 }
 
 

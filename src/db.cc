@@ -25,6 +25,7 @@
 #include "qgram.h"
 #include "util.h"
 #include "utils/fatal.h"
+#include "utils/input_output.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
 #include "utils/qgram_array.h"
