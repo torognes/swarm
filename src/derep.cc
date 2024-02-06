@@ -294,7 +294,7 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
       while ((clusterp->mass != 0U) and
              ((clusterp->hash != hash) or
               (seqlen != db_getsequencelen(clusterp->seqno_first)) or
-              not std::equal(seq, seq + nt_bytelength(seqlen),
+              not std::equal(seq, std::next(seq, nt_bytelength(seqlen)),
                              db_getsequence(clusterp->seqno_first))
               )
              )
