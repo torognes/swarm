@@ -26,6 +26,7 @@
 #include "util.h"
 #include "utils/fatal.h"
 #include "utils/nt_codec.h"
+#include "utils/progress.h"
 #include "utils/qgram_array.h"
 #include "utils/seqinfo.h"
 #include "zobrist.h"

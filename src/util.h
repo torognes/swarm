@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdint>
 #include <cstdio>  // size_t
 
 
@@ -29,8 +28,5 @@ auto xmalloc(std::size_t size) -> void *;
 auto xrealloc(void * ptr, std::size_t size) -> void *;
 auto xfree(void * ptr) -> void;
 auto xgetline(char ** linep, std::size_t * linecapp, FILE * stream) -> ssize_t;
-auto progress_init(const char * prompt, uint64_t size) -> void;
-auto progress_update(uint64_t progress) -> void;
-auto progress_done() -> void;
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> std::FILE *;

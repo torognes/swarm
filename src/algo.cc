@@ -29,6 +29,7 @@
 #include "util.h"
 #include "utils/cigar.h"
 #include "utils/qgram_threadinfo.h"
+#include "utils/progress.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include <algorithm>  // std::min(), std::reverse()

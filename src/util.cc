@@ -23,60 +23,13 @@
 
 #include "swarm.h"
 #include "utils/fatal.h"
-#include <cstdint>  // uint64_t
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // free, posix_memalign, realloc
 #include <cstring>  // strcmp
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
 
-static const char * progress_prompt;
-static uint64_t progress_next;
-static uint64_t progress_size;
-static uint64_t progress_chunk;
 constexpr std::size_t memalignment = 16;
-
-
-auto progress_init(const char * prompt, const uint64_t size) -> void
-{
-  static constexpr uint64_t progress_granularity {200};
-  progress_prompt = prompt;
-  progress_size = size;
-  progress_chunk = size < progress_granularity ?
-    1 : size / progress_granularity;
-  progress_next = 1;
-  if (not opt_log.empty()) {
-    std::fprintf(logfile, "%s", prompt);
-  }
-  else {
-    std::fprintf(logfile, "%s %.0f%%", prompt, 0.0);
-  }
-}
-
-
-auto progress_update(const uint64_t progress) -> void
-{
-  if (opt_log.empty() and (progress >= progress_next))
-    {
-      std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
-              100.0 * static_cast<double>(progress)
-              / static_cast<double>(progress_size));
-      progress_next = progress + progress_chunk;
-      fflush(logfile);
-    }
-}
-
-
-auto progress_done() -> void
-{
-  if (not opt_log.empty()) {
-    std::fprintf(logfile, " %.0f%%\n", 100.0);
-  }
-  else {
-    std::fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
-  }
-  fflush(logfile);
-}
 
 
 auto xmalloc(std::size_t size) -> void *
