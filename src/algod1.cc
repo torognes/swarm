@@ -925,8 +925,8 @@ auto write_representative_sequences(struct Parameters const & parameters,
   std::vector<unsigned int> sorter(swarminfo_v.size());
   std::iota(sorter.begin(), sorter.end(), 0);
 
-  auto compare_mass = [&swarminfo_v](unsigned int const lhs,
-                                     unsigned int const rhs) -> bool
+  auto compare_mass_and_headers = [&swarminfo_v](unsigned int const lhs,
+                                                 unsigned int const rhs) -> bool
   {
     const swarminfo_s & swarm_x = swarminfo_v[lhs];
     const swarminfo_s & swarm_y = swarminfo_v[rhs];
@@ -951,7 +951,7 @@ auto write_representative_sequences(struct Parameters const & parameters,
     return false;
   };
 
-  std::sort(sorter.begin(), sorter.end(), compare_mass);
+  std::sort(sorter.begin(), sorter.end(), compare_mass_and_headers);
 
   for(auto j = 0U; j < swarminfo_v.size(); j++)
     {
