@@ -1049,6 +1049,39 @@ auto write_stats_file(struct Parameters const & parameters,
 }
 
 
+auto output_results(struct Parameters const & parameters,
+                    std::vector<struct ampinfo_s> & ampinfo_v,
+                    std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+  /* dump swarms */
+  if (parameters.opt_mothur) {
+    write_swarms_mothur_format(parameters, ampinfo_v, swarminfo_v);
+  }
+  else {
+    write_swarms_default_format(parameters, ampinfo_v, swarminfo_v);
+  }
+
+  /* dump seeds in fasta format with sum of abundances */
+  if (not parameters.opt_seeds.empty()) {
+    write_representative_sequences(parameters, swarminfo_v);
+  }
+
+  /* output internal structure */
+  if (not parameters.opt_internal_structure.empty()) {
+    write_structure_file(parameters, ampinfo_v, swarminfo_v);
+  }
+
+  /* output swarms in uclust format */
+  if (not parameters.opt_uclust_file.empty()) {
+    write_swarms_uclust_format(parameters, ampinfo_v, swarminfo_v);
+  }
+
+  /* output statistics to file */
+  if (not parameters.opt_statistics_file.empty()) {
+    write_stats_file(parameters, swarminfo_v);
+  }
+}
+
+
 auto algo_d1_run(struct Parameters const & parameters) -> void
 {
   longestamplicon = db_getlongestsequence();
@@ -1434,33 +1467,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
   swarminfo_v.shrink_to_fit();
 
-  /* dump swarms */
-  if (parameters.opt_mothur) {
-    write_swarms_mothur_format(parameters, ampinfo_v, swarminfo_v);
-  }
-  else {
-    write_swarms_default_format(parameters, ampinfo_v, swarminfo_v);
-  }
-
-  /* dump seeds in fasta format with sum of abundances */
-  if (not parameters.opt_seeds.empty()) {
-    write_representative_sequences(parameters, swarminfo_v);
-  }
-
-  /* output internal structure */
-  if (not parameters.opt_internal_structure.empty()) {
-    write_structure_file(parameters, ampinfo_v, swarminfo_v);
-  }
-
-  /* output swarms in uclust format */
-  if (not parameters.opt_uclust_file.empty()) {
-    write_swarms_uclust_format(parameters, ampinfo_v, swarminfo_v);
-  }
-
-  /* output statistics to file */
-  if (not parameters.opt_statistics_file.empty()) {
-    write_stats_file(parameters, swarminfo_v);
-  }
+  output_results(parameters, ampinfo_v, swarminfo_v);
 
   std::fprintf(logfile, "\n");
   std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
