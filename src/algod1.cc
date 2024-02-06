@@ -953,19 +953,22 @@ auto write_representative_sequences(struct Parameters const & parameters,
 
   std::sort(sorter.begin(), sorter.end(), compare_mass_and_headers);
 
-  for(auto j = 0U; j < swarminfo_v.size(); j++)
-    {
-      const auto index = sorter[j];
-      if (swarminfo_v[index].attached) {
-        continue;
-      }
-      const auto seed = swarminfo_v[index].seed;
-      std::fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, seed, swarminfo_v[index].mass, parameters.opt_usearch_abundance);
-      std::fprintf(fp_seeds, "\n");
-      db_fprintseq(fp_seeds, seed);
-      progress_update(index + 1);
+  auto counter = 1U;
+  for (const auto index : sorter) {
+    const auto & a_swarm = swarminfo_v[index];
+    if (a_swarm.attached) {
+      continue;
     }
+    const auto seed = a_swarm.seed;
+    const auto mass = a_swarm.mass;
+    std::fprintf(fp_seeds, ">");
+    fprint_id_with_new_abundance(fp_seeds, seed, mass,
+                                 parameters.opt_usearch_abundance);
+    std::fprintf(fp_seeds, "\n");
+    db_fprintseq(fp_seeds, seed);
+    progress_update(counter);
+    ++counter;
+  }
 
   progress_done();
 }
