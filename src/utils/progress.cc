@@ -22,6 +22,7 @@
 */
 
 #include "../swarm.h"
+#include <cstdio>  // fflush, fprintf
 #include <cstdint>  // uint64_t
 
 
@@ -56,7 +57,7 @@ auto progress_update(const uint64_t progress) -> void
               100.0 * static_cast<double>(progress)
               / static_cast<double>(progress_size));
       progress_next = progress + progress_chunk;
-      fflush(logfile);
+      std::fflush(logfile);
     }
 }
 
@@ -69,5 +70,5 @@ auto progress_done() -> void
   else {
     std::fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
   }
-  fflush(logfile);
+  std::fflush(logfile);
 }

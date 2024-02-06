@@ -26,7 +26,6 @@
 #include "qgram.h"
 #include "nw.h"
 #include "scan.h"
-#include "util.h"
 #include "utils/cigar.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/progress.h"
@@ -35,7 +34,7 @@
 #include <algorithm>  // std::min(), std::reverse()
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fputc()
+#include <cstdio>  // fputc(), fflush
 #include <cstdlib>  // qsort()
 #include <cstring>  // strcmp
 #include <iterator> // next
@@ -618,7 +617,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                   swarmid-1, db_getsequencelen(seedampliconid));
           fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(uclustfile, "\t*\n");
-          fflush(uclustfile);
+          std::fflush(uclustfile);
 
           for(auto i = 1ULL; i < hitcount; i++)
             {
@@ -652,7 +651,7 @@ auto algo_run(struct Parameters const & parameters) -> void
               std::fprintf(uclustfile, "\t");
               fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
               std::fprintf(uclustfile, "\n");
-              fflush(uclustfile);
+              std::fflush(uclustfile);
 
               raw_alignment.clear();
               cigar_string.clear();

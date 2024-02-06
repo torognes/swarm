@@ -22,7 +22,7 @@
 */
 
 // #include "../swarm.h"
-#include <cstdio>  // FILE
+#include <cstdio>  // FILE, fdopen
 #include <cstring>  // strcmp
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 

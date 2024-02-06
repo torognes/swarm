@@ -23,7 +23,6 @@
 
 #include "swarm.h"
 #include "db.h"
-#include "util.h"
 #include "utils/hashtable_size.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
