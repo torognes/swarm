@@ -854,9 +854,10 @@ auto db_read(const char * filename,
 // refactoring: only used in algo.cc, extract to its own header file?
 void db_qgrams_init()
 {
-  // refactoring: qgrams is an array of arrays!
+  // refactoring: qgrams is an array of char arrays!
   // - vector of std::array is not allowed,
   // - vector of vector is not contiguous!
+  // - std::vector<char> qgrams_v(unitSize * sequences, '\0');  // unitSize = qgramvectorbytes = 128
   qgrams = new qgramvector_t[sequences];
 
   seqinfo_t * seqindex_p {seqindex};
