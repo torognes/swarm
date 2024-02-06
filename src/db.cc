@@ -874,7 +874,7 @@ void db_qgrams_init()
 }
 
 
-void db_qgrams_done()
+auto db_qgrams_done() -> void
 {
   delete [] qgrams;
   qgrams = nullptr;
@@ -920,7 +920,7 @@ auto db_getabundance(uint64_t seqno) -> uint64_t
 }
 
 
-void db_free()
+auto db_free() -> void
 {
   seqindex = nullptr;
 }
