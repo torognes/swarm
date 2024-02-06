@@ -31,21 +31,21 @@ using WORD = unsigned short;
 struct Search_data
 {
   std::vector<BYTE *> qtable_v;
-  BYTE ** qtable;
+  BYTE ** qtable = nullptr;
   std::vector<WORD *> qtable_w_v;
-  WORD ** qtable_w;
+  WORD ** qtable_w = nullptr;
 
   std::vector<BYTE> dprofile_v;
-  BYTE * dprofile;
+  BYTE * dprofile = nullptr;
   std::vector<WORD> dprofile_w_v;
-  WORD * dprofile_w;
+  WORD * dprofile_w = nullptr;
 
   std::vector<BYTE> hearray_v;
-  BYTE * hearray;
+  BYTE * hearray = nullptr;
 
   std::vector<uint64_t> dir_array_v;
-  uint64_t * dir_array;
+  uint64_t * dir_array = nullptr;
 
-  uint64_t target_count;
-  uint64_t target_index;
+  uint64_t target_count = 0;
+  uint64_t target_index = 0;
 };
