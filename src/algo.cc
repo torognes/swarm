@@ -30,6 +30,7 @@
 #include "utils/qgram_threadinfo.h"
 #include "utils/progress.h"
 #include "utils/search_data.h"
+#include "utils/seqinfo.h"
 #include "utils/score_matrix.h"
 #include <algorithm>  // std::min(), std::reverse()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -232,7 +233,8 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 }
 
 
-auto algo_run(struct Parameters const & parameters) -> void
+auto algo_run(struct Parameters const & parameters,
+              std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
@@ -250,7 +252,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   const auto amplicons = db_getsequencecount();
   const uint64_t longestamplicon = db_getlongestsequence();
 
-  db_qgrams_init();
+  db_qgrams_init(seqindex_v);
 
   std::vector<struct thread_info_s> thread_info_v;
   qgram_diff_init(thread_info_v);

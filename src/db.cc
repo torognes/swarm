@@ -39,7 +39,6 @@
 #include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
-#include <iterator>  // std::next
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
 #include <vector>
@@ -853,7 +852,7 @@ auto db_read(const char * filename,
 
 
 // refactoring: only used in algo.cc, extract to its own header file?
-void db_qgrams_init()
+void db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v)
 {
   // refactoring: qgrams is an array of char arrays!
   // - vector of std::array is not allowed,
@@ -863,17 +862,16 @@ void db_qgrams_init()
   // - std::vector<char> qgrams_v(unitSize * sequences, '\0');  // unitSize = qgramvectorbytes = 128
   qgrams = new qgramvector_t[sequences];
 
-  auto * seqindex_p = seqindex;
-  progress_init("Find qgram vects: ", sequences);
-  for(auto i = 0U; i < sequences; i++)
-    {
-      /* find qgrams */
-      findqgrams(reinterpret_cast<unsigned char*>(seqindex_p->seq),
-                 seqindex_p->seqlen,
-                 qgrams[i]);
-      seqindex_p = std::next(seqindex_p);
-      progress_update(i);
-    }
+  progress_init("Find qgram vects: ", seqindex_v.size());
+  auto counter = 0U;
+  for(auto const & seqindex_p : seqindex_v) {
+    /* find qgrams */
+    findqgrams(reinterpret_cast<unsigned char*>(seqindex_p.seq),
+               seqindex_p.seqlen,
+               qgrams[counter]);
+    progress_update(counter);
+    ++counter;
+  }
   progress_done();
 }
 

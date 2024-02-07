@@ -29,7 +29,7 @@
 auto db_read(const char * filename,
              struct Parameters const & parameters,
              std::vector<char> & data_v,
-             std::vector<struct seqinfo_s> & seqinfo_v,
+             std::vector<struct seqinfo_s> & seqindex_v,
              std::vector<uint64_t> & zobrist_tab_base_v,
              std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void;
 
@@ -65,7 +65,7 @@ void db_free();
 
 void db_putseq(int64_t seqno);
 
-void db_qgrams_init();
+void db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v);
 
 void db_qgrams_done();
 
