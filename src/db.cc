@@ -852,7 +852,7 @@ auto db_read(const char * filename,
 
 
 // refactoring: only used in algo.cc, extract to its own header file?
-void db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v)
+auto db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
   // refactoring: qgrams is an array of char arrays!
   // - vector of std::array is not allowed,

@@ -49,9 +49,9 @@ auto db_getsequencelen(uint64_t seqno) -> unsigned int;
 
 auto db_gethash(uint64_t seqno) -> uint64_t;
 
-void db_getsequenceandlength(uint64_t seqno,
+auto db_getsequenceandlength(uint64_t seqno,
                              char * & address,
-                             unsigned int & length);
+                             unsigned int & length) -> void;
 
 auto db_getheader(uint64_t seqno) -> char *;
 
@@ -59,15 +59,15 @@ auto db_getheaderlen(uint64_t seqno) -> unsigned int;
 
 auto db_getabundance(uint64_t seqno) -> uint64_t;
 
-void db_showall();
+auto db_showall() -> void;
 
-void db_free();
+auto db_free() -> void;
 
-void db_putseq(int64_t seqno);
+auto db_putseq(int64_t seqno) -> void;
 
-void db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v);
+auto db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v) -> void;
 
-void db_qgrams_done();
+auto db_qgrams_done() -> void;
 
 auto db_fprintseq(std::FILE * fastaout_fp, unsigned int seqno) -> void;
 
