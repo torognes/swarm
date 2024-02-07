@@ -860,6 +860,7 @@ auto db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v) -> void
   // - is contiguity really a requirement??
   // in the meantime:
   // - std::vector<char> qgrams_v(unitSize * sequences, '\0');  // unitSize = qgramvectorbytes = 128
+  // - or std::vector<std::vector<char>> qgrams_v(sequences, std::vector<char>(unitSize, '\0'));
   qgrams = new qgramvector_t[sequences];
 
   progress_init("Find qgram vects: ", seqindex_v.size());
