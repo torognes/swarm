@@ -858,6 +858,8 @@ void db_qgrams_init()
   // refactoring: qgrams is an array of char arrays!
   // - vector of std::array is not allowed,
   // - vector of vector is not contiguous!
+  // - is contiguity really a requirement??
+  // in the meantime:
   // - std::vector<char> qgrams_v(unitSize * sequences, '\0');  // unitSize = qgramvectorbytes = 128
   qgrams = new qgramvector_t[sequences];
 
