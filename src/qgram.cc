@@ -297,9 +297,9 @@ auto qgram_diff_fast(uint64_t seed,
     }
   else
     {
-      uint64_t * next_amplist = amplist;
-      uint64_t * next_difflist = difflist;
-      uint64_t listrest = listlen;
+      auto * next_amplist = amplist;
+      auto * next_difflist = difflist;
+      auto listrest = listlen;
       auto thrrest = static_cast<uint64_t>(opt_threads);
 
       /* distribute work */
