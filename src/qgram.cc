@@ -54,6 +54,7 @@
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // memset
+#include <iterator>  // std::next
 #include <vector>
 
 
@@ -247,7 +248,7 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
 
 auto qgram_worker(int64_t const nth_thread) -> void
 {
-  struct thread_info_s * tip = thread_info_ptr + nth_thread;
+  struct thread_info_s * tip = std::next(thread_info_ptr, nth_thread);
 
   const uint64_t seed = tip->seed;
   const uint64_t listlen = tip->listlen;
