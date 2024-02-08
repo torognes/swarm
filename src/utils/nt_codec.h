@@ -35,6 +35,7 @@ inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
           ((pos & (max_nt_per_uint64 - 1)) << 1U)) & max_range;   // UBSAN: misaligned address for type 'uint64_t', which requires 8 byte alignment
 }
 
+
 inline auto nt_bytelength(unsigned int len) -> unsigned int
 {
   // Compute number of bytes used for compressed sequence of length len

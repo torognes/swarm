@@ -236,6 +236,7 @@ inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
   return reinterpret_cast<unsigned char*>(qgrams + seqno);
 }
 
+
 inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
 {
   const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(seqno_a),
