@@ -85,9 +85,9 @@ constexpr uint8_t n_bits {16};
 using BYTE = unsigned char;
 using WORD = unsigned short;  // refactoring: uint16_t?
 
-inline void dprofile_fill16(WORD * dprofile_word,
+inline auto dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix_word,
-                            BYTE const * dseq)
+                            BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
   static constexpr auto pos0 = 0U;
@@ -188,14 +188,14 @@ inline void dprofile_fill16(WORD * dprofile_word,
     }
 }
 
-inline void onestep_16(VECTORTYPE & H,
+inline auto onestep_16(VECTORTYPE & H,
                        VECTORTYPE & N,
                        VECTORTYPE & F,
                        VECTORTYPE V,
                        WORD * DIR,
                        VECTORTYPE & E,
                        VECTORTYPE QR,
-                       VECTORTYPE R)
+                       VECTORTYPE R) -> void
 {
   H = v_add16(H, V);
   auto W = H;
@@ -213,7 +213,8 @@ inline void onestep_16(VECTORTYPE & H,
   *(DIR + 3) = v_mask_eq16(H, E);
 }
 
-void align_cells_regular_16(VECTORTYPE * Sm,
+
+auto align_cells_regular_16(VECTORTYPE * Sm,
                             VECTORTYPE * hep,
                             VECTORTYPE ** qp,
                             VECTORTYPE * Qm,
@@ -221,7 +222,7 @@ void align_cells_regular_16(VECTORTYPE * Sm,
                             uint64_t ql,
                             VECTORTYPE * F0,
                             uint64_t * dir_long,
-                            VECTORTYPE * H0)
+                            VECTORTYPE * H0) -> void
 {
   static constexpr auto step = 16U;
   static constexpr auto offset0 = 0U;
@@ -275,7 +276,8 @@ void align_cells_regular_16(VECTORTYPE * Sm,
   Sm[3] = h8;
 }
 
-void align_cells_masked_16(VECTORTYPE * Sm,
+
+auto align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
                            VECTORTYPE ** qp,
                            VECTORTYPE * Qm,
@@ -287,7 +289,7 @@ void align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * Mm,
                            VECTORTYPE * MQ,
                            VECTORTYPE * MR,
-                           VECTORTYPE * MQ0)
+                           VECTORTYPE * MQ0) -> void
 {
   static constexpr auto step = 16U;
   static constexpr auto offset0 = 0U;

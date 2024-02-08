@@ -517,7 +517,7 @@ auto mark_light_var(struct bloomflex_s * bloom,
 }
 
 
-void mark_light_thread(int64_t nth_thread)
+auto mark_light_thread(int64_t nth_thread) -> void
 {
   static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
   static constexpr auto offset = 4U;

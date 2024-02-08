@@ -35,12 +35,12 @@ int64_t popcnt_present {0};
 #ifdef __x86_64__
 
 // refactoring: rewrite using header 'cpuid.h' (GCC, clang)
-void cpuid(unsigned int f1,
+auto cpuid(unsigned int f1,
            unsigned int f2,
            unsigned int & a,
            unsigned int & b,
            unsigned int & c,
-           unsigned int & d)
+           unsigned int & d) -> void
 {
   __asm__ __volatile__ ("cpuid"
                         : "=a" (a), "=b" (b), "=c" (c), "=d" (d)

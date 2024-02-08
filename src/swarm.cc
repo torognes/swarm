@@ -253,7 +253,7 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
 }
 
 
-void show(const std::vector<std::string> & message)
+auto show(const std::vector<std::string> & message) -> void
 {
   for (const auto & message_element : message) {
     std::fprintf(logfile, "%s", message_element.c_str());
@@ -462,7 +462,7 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 }
 
 
-void args_check(const std::array<bool, n_options> & used_options) {
+auto args_check(const std::array<bool, n_options> & used_options) -> void {
   static constexpr unsigned int min_bits_per_entry {2};
   static constexpr unsigned int max_bits_per_entry {64};
   static constexpr unsigned int min_ceiling {8};
@@ -606,7 +606,7 @@ void args_check(const std::array<bool, n_options> & used_options) {
 }
 
 
-void open_files()
+auto open_files() -> void
 {
   // special case (always '-')??
   outfile = fopen_output(parameters.opt_output_file.c_str());

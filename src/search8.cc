@@ -82,9 +82,9 @@ auto compute_mask<n_bits>(uint64_t const channel,
 }
 
 // refactoring: objdump shows this function is not inlined
-inline void dprofile_fill8(BYTE * dprofile,
+inline auto dprofile_fill8(BYTE * dprofile,
                            BYTE * score_matrix,
-                           BYTE const * dseq)
+                           BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
   static constexpr auto n_lanes = 16ULL;  // refactoring: same as channels?
@@ -435,14 +435,15 @@ inline void dprofile_fill8(BYTE * dprofile,
     }
 }
 
-inline void onestep_8(VECTORTYPE & H,
+
+inline auto onestep_8(VECTORTYPE & H,
                       VECTORTYPE & N,
                       VECTORTYPE & F,
                       VECTORTYPE V,
                       unsigned short * DIR,
                       VECTORTYPE & E,
                       VECTORTYPE QR,
-                      VECTORTYPE R)
+                      VECTORTYPE R) -> void
 {
   H = v_add8(H, V);
   const auto W = H;
@@ -461,7 +462,7 @@ inline void onestep_8(VECTORTYPE & H,
 }
 
 
-void align_cells_regular_8(VECTORTYPE * Sm,
+auto align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
                            VECTORTYPE ** qp,
                            VECTORTYPE * Qm,
@@ -469,7 +470,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
                            uint64_t ql,
                            VECTORTYPE * F0,
                            uint64_t * dir_long,
-                           VECTORTYPE * H0)
+                           VECTORTYPE * H0) -> void
 {
   static constexpr auto offset0 = 0U;
   static constexpr auto offset1 = offset0 + 4;
@@ -523,7 +524,7 @@ void align_cells_regular_8(VECTORTYPE * Sm,
 }
 
 
-void align_cells_masked_8(VECTORTYPE * Sm,
+auto align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * hep,
                           VECTORTYPE ** qp,
                           VECTORTYPE * Qm,
@@ -535,7 +536,7 @@ void align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * Mm,
                           VECTORTYPE * MQ,
                           VECTORTYPE * MR,
-                          VECTORTYPE * MQ0)
+                          VECTORTYPE * MQ0) -> void
 {
   static constexpr auto offset0 = 0U;
   static constexpr auto offset1 = offset0 + 4;
