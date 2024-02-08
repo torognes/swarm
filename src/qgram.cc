@@ -248,12 +248,12 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
 
 auto qgram_worker(int64_t const nth_thread) -> void
 {
-  auto * tip = std::next(thread_info_ptr, nth_thread);
+  auto const & tip = *std::next(thread_info_ptr, nth_thread);
 
-  const auto seed = tip->seed;
-  const auto listlen = tip->listlen;
-  auto * amplist = tip->amplist;
-  auto * difflist = tip->difflist;
+  const auto seed = tip.seed;
+  const auto listlen = tip.listlen;
+  auto * amplist = tip.amplist;
+  auto * difflist = tip.difflist;
 
   for(auto i = 0ULL; i < listlen; i++) {
     difflist[i] = qgram_diff(seed, amplist[i]);
