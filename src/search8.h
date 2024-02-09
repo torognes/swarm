@@ -39,5 +39,4 @@ auto search8(std::vector<BYTE *> & q_start,
              uint64_t * diffs,
              uint64_t * alignmentlengths,
              uint64_t qlen,
-             std::vector<uint64_t> & dirbuffer,
-             uint64_t longestdbsequence) -> void;
+             std::vector<uint64_t> & dirbuffer) -> void;

@@ -618,8 +618,7 @@ auto search8(std::vector<BYTE *> & q_start,
              uint64_t * diffs,
              uint64_t * alignmentlengths,
              uint64_t qlen,
-             std::vector<uint64_t> & dirbuffer,
-             const uint64_t longestdbsequence) -> void
+             std::vector<uint64_t> & dirbuffer) -> void
 {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   VECTORTYPE T;
@@ -775,7 +774,7 @@ auto search8(std::vector<BYTE *> & q_start,
                                                    offset,
                                                    channel,
                                                    alignmentlengths + cand_id,
-                                                   longestdbsequence);
+                                                   q_start.size());
                         }
                       else
                         {
@@ -868,7 +867,7 @@ auto search8(std::vector<BYTE *> & q_start,
       H0 = v_sub8(F0, Q);
       F0 = v_add8(F0, R);
 
-      dir += 4 * longestdbsequence;
+      dir += 4 * q_start.size();
       if (dir >= dirbuffer.data() + dirbuffer.size()) {
         dir -= dirbuffer.size();
       }
