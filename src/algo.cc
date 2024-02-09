@@ -707,6 +707,6 @@ auto algo_run(struct Parameters const & parameters,
 
   std::fprintf(logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
 
-  search_end(search_data_v);
+  search_end();
 }
 

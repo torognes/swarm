@@ -38,5 +38,5 @@ auto search_do(uint64_t query_no,
                int bits,
                std::unique_ptr<ThreadRunner>& search_threads) -> void;
 auto search_begin(std::vector<struct Search_data>& search_data_v) -> void;
-auto search_end(std::vector<struct Search_data>& search_data_v) -> void;
+auto search_end() -> void;
 auto search_worker_core(int64_t thread_id) -> void;

@@ -64,29 +64,12 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
   for(auto& thread_data: search_data_v) {
     dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
     thread_data.qtable_v.resize(longestdbsequence);
-    thread_data.qtable = thread_data.qtable_v.data();
     thread_data.qtable_w_v.resize(longestdbsequence);
-    thread_data.qtable_w = thread_data.qtable_w_v.data();
     thread_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
-    thread_data.dprofile = thread_data.dprofile_v.data();
     thread_data.dprofile_w_v.resize(1 * one_kilobyte);  // 4 * 2 * 8 * 32
-    thread_data.dprofile_w = thread_data.dprofile_w_v.data();
     thread_data.hearray_v.resize(longestdbsequence * nt_per_uint64);
-    thread_data.hearray = thread_data.hearray_v.data();
     thread_data.dir_array_v.resize(dirbuffersize);
-    thread_data.dir_array = thread_data.dir_array_v.data();
   }
-}
-
-
-auto search_free(struct Search_data & thread_data) -> void
-{
-  thread_data.qtable = nullptr;
-  thread_data.qtable_w = nullptr;
-  thread_data.dprofile = nullptr;
-  thread_data.dprofile_w = nullptr;
-  thread_data.hearray = nullptr;
-  thread_data.dir_array = nullptr;
 }
 
 
@@ -277,15 +260,10 @@ auto search_begin(std::vector<struct Search_data>& search_data_v) -> void
 }
 
 
-auto search_end(std::vector<struct Search_data>& search_data_v) -> void
+auto search_end() -> void
 {
   /* finish and clean up worker threads */
 
   pthread_mutex_destroy(& scan_mutex);
-
-  for(auto& thread_data: search_data_v) {
-    search_free(thread_data);
-  }
-
   search_data = nullptr;
 }
