@@ -618,7 +618,7 @@ auto search8(BYTE * * q_start,
              uint64_t * alignmentlengths,
              uint64_t qlen,
              uint64_t dirbuffersize,
-             uint64_t * dirbuffer,
+             std::vector<uint64_t> & dirbuffer,
              const uint64_t longestdbsequence) -> void
 {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
@@ -674,7 +674,7 @@ auto search8(BYTE * * q_start,
 
   bool easy {false};
 
-  uint64_t * dir = dirbuffer;
+  uint64_t * dir = dirbuffer.data();
 
   while(true)
     {
@@ -771,7 +771,7 @@ auto search8(BYTE * * q_start,
                         {
                           const uint64_t offset = d_offset[channel];
                           diff = backtrack<n_bits>(query.seq, dbseq, qlen, dbseqlen,
-                                                   dirbuffer,
+                                                   dirbuffer.data(),
                                                    offset,
                                                    dirbuffersize, channel,
                                                    alignmentlengths + cand_id,
@@ -801,7 +801,7 @@ auto search8(BYTE * * q_start,
                       d_length[channel] = length;
 
                       d_pos[channel] = 0;
-                      d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer);
+                      d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer.data());
                       ++next_id;
 
                       (reinterpret_cast<BYTE*>(&H0))[channel] = 0;
@@ -869,7 +869,7 @@ auto search8(BYTE * * q_start,
       F0 = v_add8(F0, R);
 
       dir += 4 * longestdbsequence;
-      if (dir >= dirbuffer + dirbuffersize) {
+      if (dir >= dirbuffer.data() + dirbuffersize) {
         dir -= dirbuffersize;
       }
     }

@@ -22,6 +22,8 @@
 */
 
 #include <cstdint>
+#include <vector>
+
 
 using BYTE = unsigned char;
 
@@ -38,5 +40,5 @@ auto search8(BYTE * * q_start,
              uint64_t * alignmentlengths,
              uint64_t qlen,
              uint64_t dirbuffersize,
-             uint64_t * dirbuffer,
+             std::vector<uint64_t> & dirbuffer,
              uint64_t longestdbsequence) -> void;
