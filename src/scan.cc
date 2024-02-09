@@ -156,10 +156,10 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
 }
 
 
-auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
+auto search_getwork(uint64_t & countref, uint64_t & firstref) -> bool
 {
-  // * countref = how many sequences to search
-  // * firstref = index into master_targets/scores/diffs where thread should start
+  // countref = how many sequences to search
+  // firstref = index into master_targets/scores/diffs where thread should start
 
   bool status {false};
 
@@ -170,8 +170,8 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
       const uint64_t chunksize =
         ((master_length - master_next + remainingchunks - 1) / remainingchunks);
 
-      * countref = chunksize;
-      * firstref = master_next;
+      countref = chunksize;
+      firstref = master_next;
 
       master_next += chunksize;
       --remainingchunks;
@@ -187,7 +187,7 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 auto search_worker_core(const int64_t thread_id) -> void {
   auto & thread_data = *std::next(search_data, thread_id);
   search_init(thread_data);
-  while(search_getwork(& thread_data.target_count, & thread_data.target_index)) {
+  while(search_getwork(thread_data.target_count, thread_data.target_index)) {
     search_chunk(thread_data, master_bits);
   }
 }
