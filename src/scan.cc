@@ -172,9 +172,9 @@ auto search_worker_core(const int64_t thread_id) -> void {
 auto adjust_thread_number(const int n_bits,
                           const uint64_t remaining_sequences,
                           uint64_t n_threads) -> uint64_t {
-  static constexpr unsigned int channels_8 {8};
-  static constexpr unsigned int channels_16 {16};
-  static constexpr unsigned int bit_mode_16 {16};  // refactoring: should be an enum class
+  static constexpr auto channels_8 = 8U;
+  static constexpr auto channels_16 = 16U;
+  static constexpr auto bit_mode_16 = 16U;  // refactoring: should be an enum class
   const auto channels = (n_bits == bit_mode_16) ? channels_8 : channels_16;
 
   assert(remaining_sequences != 0);
