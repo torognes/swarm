@@ -108,49 +108,49 @@ auto search_init(struct Search_data & local_search_data) -> void
 }
 
 
-auto search_chunk(struct Search_data * local_search_data, const int64_t bits) -> void
+auto search_chunk(struct Search_data & local_search_data, const int64_t bits) -> void
 {
   static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
   static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
 
   static constexpr auto bit_mode_16 = 16U;
 
-  assert(local_search_data->target_count != 0);
+  assert(local_search_data.target_count != 0);
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
  if (bits == bit_mode_16)
    {
-    search16(local_search_data->qtable_w,
+    search16(local_search_data.qtable_w,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
              score_matrix_16.data(),
-             local_search_data->dprofile_w,
-             reinterpret_cast<WORD*>(local_search_data->hearray),
-             local_search_data->target_count,
-             master_targets + local_search_data->target_index,
-             master_scores + local_search_data->target_index,
-             master_diffs + local_search_data->target_index,
-             master_alignlengths + local_search_data->target_index,
+             local_search_data.dprofile_w,
+             reinterpret_cast<WORD*>(local_search_data.hearray),
+             local_search_data.target_count,
+             master_targets + local_search_data.target_index,
+             master_scores + local_search_data.target_index,
+             master_diffs + local_search_data.target_index,
+             master_alignlengths + local_search_data.target_index,
              static_cast<uint64_t>(query.len),
              dirbuffersize,
-             local_search_data->dir_array,
+             local_search_data.dir_array,
              longestdbsequence);
    }
  else {
-    search8(local_search_data->qtable,
+    search8(local_search_data.qtable,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
             score_matrix_8.data(),
-            local_search_data->dprofile,
-            local_search_data->hearray,
-            local_search_data->target_count,
-            master_targets + local_search_data->target_index,
-            master_scores + local_search_data->target_index,
-            master_diffs + local_search_data->target_index,
-            master_alignlengths + local_search_data->target_index,
+            local_search_data.dprofile,
+            local_search_data.hearray,
+            local_search_data.target_count,
+            master_targets + local_search_data.target_index,
+            master_scores + local_search_data.target_index,
+            master_diffs + local_search_data.target_index,
+            master_alignlengths + local_search_data.target_index,
             static_cast<uint64_t>(query.len),
             dirbuffersize,
-            local_search_data->dir_array,
+            local_search_data.dir_array,
             longestdbsequence);
  }
 }
@@ -185,8 +185,8 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 
 
 auto search_worker_core(const int64_t thread_id) -> void {
-  auto * thread_data = std::next(search_data, thread_id);
-  search_init(*thread_data);
+  auto & thread_data = *std::next(search_data, thread_id);
+  search_init(thread_data);
   while(search_getwork(& search_data[thread_id].target_count, & search_data[thread_id].target_index)) {
     search_chunk(thread_data, master_bits);
   }
