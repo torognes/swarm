@@ -52,10 +52,10 @@ static uint64_t * master_alignlengths;
 static int master_bits;
 
 queryinfo_t query;
-uint64_t longestdbsequence;
 
 
-auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v) -> void
+auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v,
+                                     const uint64_t longestdbsequence) -> void
 {
   static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
@@ -245,11 +245,9 @@ auto search_do(uint64_t query_no,
 
 auto search_begin(std::vector<struct Search_data>& search_data_v) -> void
 {
-  longestdbsequence = db_getlongestsequence();
-
   search_data = search_data_v.data();
 
-  allocate_per_thread_search_data(search_data_v);
+  allocate_per_thread_search_data(search_data_v, db_getlongestsequence());
 
   pthread_mutex_init(& scan_mutex, nullptr);
 }
