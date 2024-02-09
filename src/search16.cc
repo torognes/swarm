@@ -26,6 +26,7 @@
 #include "utils/backtrack.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
+#include <iterator> // std::next, std::distance
 #include <limits>
 #include <vector>
 
@@ -639,9 +640,10 @@ auto search16(std::vector<WORD *> & q_start,
       H0 = v_sub16(F0, Q);
       F0 = v_add16(F0, R);
 
-      dir += 4 * q_start.size();
-      if (dir >= dirbuffer.data() + dirbuffer.size()) {
-        dir -= dirbuffer.size();
+      dir = std::next(dir, 4 * std::distance(q_start.begin(), q_start.end()));
+      auto const distance = std::distance(dirbuffer.begin(), dirbuffer.end());
+      if (dir >= std::next(dirbuffer.data(), distance)) {
+        dir = std::prev(dir, distance);
       }
     }
 }
