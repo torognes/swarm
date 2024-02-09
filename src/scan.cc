@@ -243,7 +243,7 @@ auto search_do(uint64_t query_no,
 }
 
 
-auto search_begin(std::vector<struct Search_data>& search_data_v) -> void
+auto search_begin(std::vector<struct Search_data> & search_data_v) -> void
 {
   search_data = search_data_v.data();
 
