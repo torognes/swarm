@@ -535,7 +535,7 @@ auto search16(std::vector<WORD *> & q_start,
                                                    dirbuffer,
                                                    offset,
                                                    channel,
-                                                   alignmentlengths + cand_id,
+                                                   std::next(alignmentlengths, cand_id),
                                                    q_start.size());
                         }
                       else
