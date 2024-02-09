@@ -79,18 +79,18 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 }
 
 
-auto search_free(struct Search_data & local_search_data) -> void
+auto search_free(struct Search_data & thread_data) -> void
 {
-  local_search_data.qtable = nullptr;
-  local_search_data.qtable_w = nullptr;
-  local_search_data.dprofile = nullptr;
-  local_search_data.dprofile_w = nullptr;
-  local_search_data.hearray = nullptr;
-  local_search_data.dir_array = nullptr;
+  thread_data.qtable = nullptr;
+  thread_data.qtable_w = nullptr;
+  thread_data.dprofile = nullptr;
+  thread_data.dprofile_w = nullptr;
+  thread_data.hearray = nullptr;
+  thread_data.dir_array = nullptr;
 }
 
 
-auto search_init(struct Search_data & local_search_data) -> void
+auto search_init(struct Search_data & thread_data) -> void
 {
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
@@ -102,55 +102,55 @@ auto search_init(struct Search_data & local_search_data) -> void
     const auto word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
-    local_search_data.qtable_v[i]   = &local_search_data.dprofile_v[byte_offset];
-    local_search_data.qtable_w_v[i] = &local_search_data.dprofile_w_v[word_offset];
+    thread_data.qtable_v[i]   = &thread_data.dprofile_v[byte_offset];
+    thread_data.qtable_w_v[i] = &thread_data.dprofile_w_v[word_offset];
   }
 }
 
 
-auto search_chunk(struct Search_data & local_search_data, const int64_t bits) -> void
+auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
 {
   static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
   static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
   static constexpr auto bit_mode_16 = 16U;
-  auto const target_index = static_cast<long int>(local_search_data.target_index);
+  auto const target_index = static_cast<long int>(thread_data.target_index);
 
-  assert(local_search_data.target_count != 0);
+  assert(thread_data.target_count != 0);
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
  if (bits == bit_mode_16)
    {
-    search16(local_search_data.qtable_w,
+    search16(thread_data.qtable_w,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
              score_matrix_16.data(),
-             local_search_data.dprofile_w,
-             reinterpret_cast<WORD*>(local_search_data.hearray),
-             local_search_data.target_count,
+             thread_data.dprofile_w,
+             reinterpret_cast<WORD*>(thread_data.hearray),
+             thread_data.target_count,
              std::next(master_targets, target_index),
              std::next(master_scores, target_index),
              std::next(master_diffs, target_index),
              std::next(master_alignlengths, target_index),
              static_cast<uint64_t>(query.len),
              dirbuffersize,
-             local_search_data.dir_array,
+             thread_data.dir_array,
              longestdbsequence);
    }
  else {
-    search8(local_search_data.qtable,
+    search8(thread_data.qtable,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
             score_matrix_8.data(),
-            local_search_data.dprofile,
-            local_search_data.hearray,
-            local_search_data.target_count,
+            thread_data.dprofile,
+            thread_data.hearray,
+            thread_data.target_count,
             std::next(master_targets, target_index),
             std::next(master_scores, target_index),
             std::next(master_diffs, target_index),
             std::next(master_alignlengths, target_index),
             static_cast<uint64_t>(query.len),
             dirbuffersize,
-            local_search_data.dir_array,
+            thread_data.dir_array,
             longestdbsequence);
  }
 }
