@@ -187,7 +187,7 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 auto search_worker_core(const int64_t thread_id) -> void {
   auto & thread_data = *std::next(search_data, thread_id);
   search_init(thread_data);
-  while(search_getwork(& search_data[thread_id].target_count, & search_data[thread_id].target_index)) {
+  while(search_getwork(& thread_data.target_count, & thread_data.target_index)) {
     search_chunk(thread_data, master_bits);
   }
 }
