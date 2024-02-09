@@ -31,6 +31,7 @@
 #include "utils/threads.h"
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
+#include <iterator>
 #include <limits>
 #include <memory>  // unique pointer
 #include <pthread.h>  // pthread_mutex_init
@@ -89,7 +90,7 @@ auto search_free(struct Search_data & local_search_data) -> void
 }
 
 
-auto search_init(struct Search_data * local_search_data) -> void
+auto search_init(struct Search_data & local_search_data) -> void
 {
   static constexpr int byte_multiplier {64};
   static constexpr int word_multiplier {32};
@@ -101,8 +102,8 @@ auto search_init(struct Search_data * local_search_data) -> void
     const int word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
-    local_search_data->qtable[i]   = local_search_data->dprofile   + byte_offset;
-    local_search_data->qtable_w[i] = local_search_data->dprofile_w + word_offset;
+    local_search_data.qtable[i]   = local_search_data.dprofile   + byte_offset;
+    local_search_data.qtable_w[i] = local_search_data.dprofile_w + word_offset;
   }
 }
 
@@ -185,7 +186,7 @@ auto search_getwork(uint64_t * countref, uint64_t * firstref) -> bool
 
 auto search_worker_core(const int64_t thread_id) -> void
 {
-  search_init(search_data + thread_id);
+  search_init(*std::next(search_data, thread_id));
   while(search_getwork(& search_data[thread_id].target_count, & search_data[thread_id].target_index)) {
     search_chunk(search_data + thread_id, master_bits);
   }
