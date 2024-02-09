@@ -249,7 +249,7 @@ auto search_begin(std::vector<struct Search_data> & search_data_v) -> void
 
   allocate_per_thread_search_data(search_data_v, db_getlongestsequence());
 
-  pthread_mutex_init(& scan_mutex, nullptr);
+  pthread_mutex_init(&scan_mutex, nullptr);
 }
 
 
@@ -257,6 +257,6 @@ auto search_end() -> void
 {
   /* finish and clean up worker threads */
 
-  pthread_mutex_destroy(& scan_mutex);
+  pthread_mutex_destroy(&scan_mutex);
   search_data = nullptr;
 }
