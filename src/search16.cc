@@ -86,7 +86,7 @@ using BYTE = unsigned char;
 using WORD = unsigned short;  // refactoring: uint16_t?
 
 inline auto dprofile_fill16(WORD * dprofile_word,
-                            WORD * score_matrix_word,
+                            WORD * score_matrix,
                             BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
@@ -140,14 +140,14 @@ inline auto dprofile_fill16(WORD * dprofile_word,
 
       for(auto i = 0ULL; i < channels; i += channels)
         {
-          reg0  = v_load16(cast_vector16(score_matrix_word + d[pos0] + i));
-          reg1  = v_load16(cast_vector16(score_matrix_word + d[pos1] + i));
-          reg2  = v_load16(cast_vector16(score_matrix_word + d[pos2] + i));
-          reg3  = v_load16(cast_vector16(score_matrix_word + d[pos3] + i));
-          reg4  = v_load16(cast_vector16(score_matrix_word + d[pos4] + i));
-          reg5  = v_load16(cast_vector16(score_matrix_word + d[pos5] + i));
-          reg6  = v_load16(cast_vector16(score_matrix_word + d[pos6] + i));
-          reg7  = v_load16(cast_vector16(score_matrix_word + d[pos7] + i));
+          reg0  = v_load16(cast_vector16(score_matrix + d[pos0] + i));
+          reg1  = v_load16(cast_vector16(score_matrix + d[pos1] + i));
+          reg2  = v_load16(cast_vector16(score_matrix + d[pos2] + i));
+          reg3  = v_load16(cast_vector16(score_matrix + d[pos3] + i));
+          reg4  = v_load16(cast_vector16(score_matrix + d[pos4] + i));
+          reg5  = v_load16(cast_vector16(score_matrix + d[pos5] + i));
+          reg6  = v_load16(cast_vector16(score_matrix + d[pos6] + i));
+          reg7  = v_load16(cast_vector16(score_matrix + d[pos7] + i));
 
           reg8  = v_merge_lo_16(reg0,  reg1);
           reg9  = v_merge_hi_16(reg0,  reg1);
