@@ -50,7 +50,6 @@ static uint64_t * master_scores;
 static uint64_t * master_diffs;
 static uint64_t * master_alignlengths;
 static int master_bits;
-static uint64_t dirbuffersize;
 
 queryinfo_t query;
 uint64_t longestdbsequence;
@@ -60,7 +59,7 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 {
   static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
-  dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
+  const uint64_t dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
 
   for(auto& thread_data: search_data_v) {
     thread_data.qtable_v.resize(longestdbsequence);
