@@ -114,6 +114,7 @@ auto search_chunk(struct Search_data & local_search_data, const int64_t bits) ->
   static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
 
   static constexpr auto bit_mode_16 = 16U;
+  auto const target_index = static_cast<long int>(local_search_data.target_index);
 
   assert(local_search_data.target_count != 0);
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
@@ -127,10 +128,10 @@ auto search_chunk(struct Search_data & local_search_data, const int64_t bits) ->
              local_search_data.dprofile_w,
              reinterpret_cast<WORD*>(local_search_data.hearray),
              local_search_data.target_count,
-             master_targets + local_search_data.target_index,
-             master_scores + local_search_data.target_index,
-             master_diffs + local_search_data.target_index,
-             master_alignlengths + local_search_data.target_index,
+             std::next(master_targets, target_index),
+             std::next(master_scores, target_index),
+             std::next(master_diffs, target_index),
+             std::next(master_alignlengths, target_index),
              static_cast<uint64_t>(query.len),
              dirbuffersize,
              local_search_data.dir_array,
@@ -144,10 +145,10 @@ auto search_chunk(struct Search_data & local_search_data, const int64_t bits) ->
             local_search_data.dprofile,
             local_search_data.hearray,
             local_search_data.target_count,
-            master_targets + local_search_data.target_index,
-            master_scores + local_search_data.target_index,
-            master_diffs + local_search_data.target_index,
-            master_alignlengths + local_search_data.target_index,
+            std::next(master_targets, target_index),
+            std::next(master_scores, target_index),
+            std::next(master_diffs, target_index),
+            std::next(master_alignlengths, target_index),
             static_cast<uint64_t>(query.len),
             dirbuffersize,
             local_search_data.dir_array,
