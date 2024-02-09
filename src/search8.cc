@@ -26,6 +26,7 @@
 #include "utils/backtrack.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
+#include <iterator> // std::next, std::distance
 #include <limits>
 #include <vector>
 
@@ -773,7 +774,7 @@ auto search8(std::vector<BYTE *> & q_start,
                                                    dirbuffer,
                                                    offset,
                                                    channel,
-                                                   alignmentlengths + cand_id,
+                                                   std::next(alignmentlengths, cand_id),
                                                    q_start.size());
                         }
                       else
