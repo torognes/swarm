@@ -534,7 +534,7 @@ auto search16(WORD * * q_start,
                           diff = backtrack<n_bits>(query.seq, dbseq, qlen, dbseqlen,
                                                    dirbuffer,
                                                    offset,
-                                                   dirbuffer.size(), channel,
+                                                   channel,
                                                    alignmentlengths + cand_id,
                                                    longestdbsequence);
                         }

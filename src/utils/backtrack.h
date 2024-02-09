@@ -49,7 +49,6 @@ auto backtrack(char * qseq,
                uint64_t dlen,
                std::vector<uint64_t> & dirbuffer,
                uint64_t offset,
-               uint64_t dirbuffersize,
                uint64_t channel,
                uint64_t * alignmentlengthp,
                const uint64_t longestdbsequence) -> uint64_t
@@ -82,7 +81,7 @@ auto backtrack(char * qseq,
                      + longestdbsequence * 4 * static_cast<uint64_t>(row / 4)
                      + 4 * static_cast<uint64_t>(column)
                      + (static_cast<uint64_t>(row) & 3U)
-                     ) % dirbuffersize];
+                     ) % dirbuffer.size()];
 
       if ((operation == Alignment::Insertion) and ((direction & maskextleft) == 0U))
         {
