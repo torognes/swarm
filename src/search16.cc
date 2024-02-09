@@ -415,8 +415,8 @@ auto search16(std::vector<WORD *> & q_start,
 
   done = 0;
 
-  auto *hep = reinterpret_cast<VECTORTYPE *>(hearray);
-  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start.data());
+  auto * hep = reinterpret_cast<VECTORTYPE *>(hearray);
+  auto * * qp = reinterpret_cast<VECTORTYPE * *>(q_start.data());
 
   auto F0 = v_zero16();
   auto H0 = v_zero16();
