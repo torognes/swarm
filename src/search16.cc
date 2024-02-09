@@ -359,7 +359,7 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
 }
 
 
-auto search16(WORD * * q_start,
+auto search16(std::vector<WORD *> & q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
               WORD * score_matrix,
@@ -416,7 +416,7 @@ auto search16(WORD * * q_start,
   done = 0;
 
   auto *hep = reinterpret_cast<VECTORTYPE *>(hearray);
-  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
+  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start.data());
 
   auto F0 = v_zero16();
   auto H0 = v_zero16();

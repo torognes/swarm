@@ -101,7 +101,7 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
   if (bits == bit_mode_16) {
-    search16(thread_data.qtable_w_v.data(),
+    search16(thread_data.qtable_w_v,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
              score_matrix_16.data(),
