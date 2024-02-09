@@ -370,7 +370,6 @@ auto search16(WORD * * q_start,
               uint64_t * diffs,
               uint64_t * alignmentlengths,
               uint64_t qlen,
-              uint64_t dirbuffersize,
               std::vector<uint64_t> & dirbuffer,
               const uint64_t longestdbsequence) -> void
 {
@@ -534,7 +533,7 @@ auto search16(WORD * * q_start,
                           diff = backtrack<n_bits>(query.seq, dbseq, qlen, dbseqlen,
                                                    dirbuffer.data(),
                                                    offset,
-                                                   dirbuffersize, channel,
+                                                   dirbuffer.size(), channel,
                                                    alignmentlengths + cand_id,
                                                    longestdbsequence);
                         }
@@ -641,8 +640,8 @@ auto search16(WORD * * q_start,
       F0 = v_add16(F0, R);
 
       dir += 4 * longestdbsequence;
-      if (dir >= dirbuffer.data() + dirbuffersize) {
-        dir -= dirbuffersize;
+      if (dir >= dirbuffer.data() + dirbuffer.size()) {
+        dir -= dirbuffer.size();
       }
     }
 }

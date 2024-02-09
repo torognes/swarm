@@ -114,7 +114,6 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
              std::next(master_diffs, target_index),
              std::next(master_alignlengths, target_index),
              static_cast<uint64_t>(query.len),
-             dirbuffersize,
              thread_data.dir_array_v,
              longestdbsequence);
   } else {
