@@ -610,7 +610,7 @@ auto search8(std::vector<BYTE *> & q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE * score_matrix,
-             BYTE * dprofile,
+             std::vector<BYTE> & dprofile,
              BYTE * hearray,
              uint64_t sequences,
              uint64_t * seqnos,
@@ -703,13 +703,13 @@ auto search8(std::vector<BYTE *> & q_start,
 #ifdef __SSE3__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle8(dprofile, score_matrix, dseq.data());
+              dprofile_shuffle8(dprofile.data(), score_matrix, dseq.data());
             }
           else
 #endif
 #endif
             {
-              dprofile_fill8(dprofile, score_matrix, dseq.data());
+              dprofile_fill8(dprofile.data(), score_matrix, dseq.data());
             }
 
           align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
@@ -845,13 +845,13 @@ auto search8(std::vector<BYTE *> & q_start,
 #ifdef __SSE3__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle8(dprofile, score_matrix, dseq.data());
+              dprofile_shuffle8(dprofile.data(), score_matrix, dseq.data());
             }
           else
 #endif
 #endif
             {
-              dprofile_fill8(dprofile, score_matrix, dseq.data());
+              dprofile_fill8(dprofile.data(), score_matrix, dseq.data());
             }
 
           MQ = v_and8(M, Q);

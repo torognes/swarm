@@ -363,7 +363,7 @@ auto search16(std::vector<WORD *> & q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
               WORD * score_matrix,
-              WORD * dprofile,
+              std::vector<WORD> & dprofile,
               WORD * hearray,
               uint64_t sequences,
               uint64_t * seqnos,
@@ -453,13 +453,13 @@ auto search16(std::vector<WORD *> & q_start,
 #ifdef __SSE3__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle16(dprofile, score_matrix, dseq.data());
+              dprofile_shuffle16(dprofile.data(), score_matrix, dseq.data());
             }
           else
 #endif
 #endif
             {
-              dprofile_fill16(dprofile, score_matrix, dseq.data());
+              dprofile_fill16(dprofile.data(), score_matrix, dseq.data());
             }
 
 #ifdef __x86_64__
@@ -606,13 +606,13 @@ auto search16(std::vector<WORD *> & q_start,
 #ifdef __SSE3__
           if (ssse3_present != 0)
             {
-              dprofile_shuffle16(dprofile, score_matrix, dseq.data());
+              dprofile_shuffle16(dprofile.data(), score_matrix, dseq.data());
             }
           else
 #endif
 #endif
             {
-              dprofile_fill16(dprofile, score_matrix, dseq.data());
+              dprofile_fill16(dprofile.data(), score_matrix, dseq.data());
             }
 
           MQ = v_and16(M, Q);
