@@ -27,7 +27,7 @@
 
 using BYTE = unsigned char;
 
-auto search8(BYTE * * q_start,
+auto search8(std::vector<BYTE *> & q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE * score_matrix,

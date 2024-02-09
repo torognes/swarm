@@ -116,7 +116,7 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
              thread_data.dir_array_v,
              longestdbsequence);
   } else {
-    search8(thread_data.qtable_v.data(),
+    search8(thread_data.qtable_v,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
             score_matrix_8.data(),

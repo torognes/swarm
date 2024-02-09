@@ -606,7 +606,7 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
 }
 
 
-auto search8(BYTE * * q_start,
+auto search8(std::vector<BYTE *> & q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE * score_matrix,
@@ -667,7 +667,7 @@ auto search8(BYTE * * q_start,
 
   // refactoring: can't remove reinterpret_cast, cast_vector8() is a nullop in Aarch64
   auto *hep = reinterpret_cast<VECTORTYPE*>(hearray);
-  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start);
+  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start.data());
 
   auto F0 = v_zero8();
   auto H0 = v_zero8();
