@@ -371,8 +371,7 @@ auto search16(std::vector<WORD *> & q_start,
               uint64_t * diffs,
               uint64_t * alignmentlengths,
               uint64_t qlen,
-              std::vector<uint64_t> & dirbuffer,
-              const uint64_t longestdbsequence) -> void
+              std::vector<uint64_t> & dirbuffer) -> void
 {
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   VECTORTYPE T;
@@ -536,7 +535,7 @@ auto search16(std::vector<WORD *> & q_start,
                                                    offset,
                                                    channel,
                                                    alignmentlengths + cand_id,
-                                                   longestdbsequence);
+                                                   q_start.size());
                         }
                       else
                         {
@@ -640,7 +639,7 @@ auto search16(std::vector<WORD *> & q_start,
       H0 = v_sub16(F0, Q);
       F0 = v_add16(F0, R);
 
-      dir += 4 * longestdbsequence;
+      dir += 4 * q_start.size();
       if (dir >= dirbuffer.data() + dirbuffer.size()) {
         dir -= dirbuffer.size();
       }
