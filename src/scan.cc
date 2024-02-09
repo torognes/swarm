@@ -92,18 +92,18 @@ auto search_free(struct Search_data & local_search_data) -> void
 
 auto search_init(struct Search_data & local_search_data) -> void
 {
-  static constexpr int byte_multiplier {64};
-  static constexpr int word_multiplier {32};
+  static constexpr auto byte_multiplier = 64U;
+  static constexpr auto word_multiplier = 32U;
 
   for(auto i = 0U; i < query.len; i++)
   {
-    const int nt_value {nt_extract(query.seq, i) + 1};   // 1,  2,   3, or   4
-    const int byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
-    const int word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
+    const auto nt_value {nt_extract(query.seq, i) + 1U};  // 1,  2,   3, or   4
+    const auto byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
+    const auto word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
-    local_search_data.qtable[i]   = local_search_data.dprofile   + byte_offset;
-    local_search_data.qtable_w[i] = local_search_data.dprofile_w + word_offset;
+    local_search_data.qtable_v[i]   = &local_search_data.dprofile_v[byte_offset];
+    local_search_data.qtable_w_v[i] = &local_search_data.dprofile_w_v[word_offset];
   }
 }
 
