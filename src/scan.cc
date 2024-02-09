@@ -118,8 +118,7 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
   assert(thread_data.target_count != 0);
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
- if (bits == bit_mode_16)
-   {
+  if (bits == bit_mode_16) {
     search16(thread_data.qtable_w,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
@@ -135,9 +134,8 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
              dirbuffersize,
              thread_data.dir_array,
              longestdbsequence);
-   }
- else {
-    search8(thread_data.qtable,
+  } else {
+    search8(thread_data.qtable_v,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
             score_matrix_8.data(),
@@ -152,7 +150,7 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
             dirbuffersize,
             thread_data.dir_array,
             longestdbsequence);
- }
+  }
 }
 
 
