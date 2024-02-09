@@ -532,7 +532,7 @@ auto search16(WORD * * q_start,
                         {
                           const uint64_t offset = d_offset[channel];
                           diff = backtrack<n_bits>(query.seq, dbseq, qlen, dbseqlen,
-                                                   dirbuffer.data(),
+                                                   dirbuffer,
                                                    offset,
                                                    dirbuffer.size(), channel,
                                                    alignmentlengths + cand_id,

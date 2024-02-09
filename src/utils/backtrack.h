@@ -23,6 +23,8 @@
 
 #include "nt_codec.h"
 #include <cstdint>  // uint64_t
+#include <vector>
+
 
 // default template (16 bits)
 template <uint8_t n_bits>
@@ -45,7 +47,7 @@ auto backtrack(char * qseq,
                char * dseq,
                uint64_t qlen,
                uint64_t dlen,
-               uint64_t * dirbuffer,
+               std::vector<uint64_t> & dirbuffer,
                uint64_t offset,
                uint64_t dirbuffersize,
                uint64_t channel,
