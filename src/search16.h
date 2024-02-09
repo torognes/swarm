@@ -22,6 +22,8 @@
 */
 
 #include <cstdint>
+#include <vector>
+
 
 using WORD = unsigned short;
 
@@ -38,5 +40,5 @@ auto search16(WORD * * q_start,
               uint64_t * alignmentlengths,
               uint64_t qlen,
               uint64_t dirbuffersize,
-              uint64_t * dirbuffer,
+              std::vector<uint64_t> & dirbuffer,
               uint64_t longestdbsequence) -> void;
