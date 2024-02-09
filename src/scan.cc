@@ -205,8 +205,8 @@ auto adjust_thread_number(const int n_bits,
 // static_assert(adjust_thread_number(16, 17,  1) == 1);
 
 
-auto search_do(uint64_t query_no,
-               uint64_t listlength,
+auto search_do(const uint64_t query_no,
+               const uint64_t listlength,
                uint64_t * targets,
                uint64_t * scores,
                uint64_t * diffs,
