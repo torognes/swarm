@@ -119,12 +119,12 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
   if (bits == bit_mode_16) {
-    search16(thread_data.qtable_w,
+    search16(thread_data.qtable_w_v.data(),
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
              score_matrix_16.data(),
-             thread_data.dprofile_w,
-             reinterpret_cast<WORD*>(thread_data.hearray),
+             thread_data.dprofile_w_v.data(),
+             reinterpret_cast<WORD *>(thread_data.hearray_v.data()),
              thread_data.target_count,
              std::next(master_targets, target_index),
              std::next(master_scores, target_index),
@@ -132,15 +132,15 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
              std::next(master_alignlengths, target_index),
              static_cast<uint64_t>(query.len),
              dirbuffersize,
-             thread_data.dir_array,
+             thread_data.dir_array_v.data(),
              longestdbsequence);
   } else {
-    search8(thread_data.qtable_v,
+    search8(thread_data.qtable_v.data(),
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
             score_matrix_8.data(),
-            thread_data.dprofile,
-            thread_data.hearray,
+            thread_data.dprofile_v.data(),
+            thread_data.hearray_v.data(),
             thread_data.target_count,
             std::next(master_targets, target_index),
             std::next(master_scores, target_index),
@@ -148,7 +148,7 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
             std::next(master_alignlengths, target_index),
             static_cast<uint64_t>(query.len),
             dirbuffersize,
-            thread_data.dir_array,
+            thread_data.dir_array_v.data(),
             longestdbsequence);
   }
 }
