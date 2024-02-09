@@ -27,6 +27,7 @@
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <limits>
+#include <vector>
 
 
 // refactoring: C++26 std::simd
