@@ -30,13 +30,14 @@
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
 #include <cassert>  // assert()
-#include <climits>
 #include <cstdint>  // int64_t, uint64_t
+#include <limits>
 #include <memory>  // unique pointer
 #include <pthread.h>  // pthread_mutex_init
 #include <vector>
 
 
+constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 static pthread_mutex_t scan_mutex;
 
 static struct Search_data * search_data;
@@ -201,7 +202,7 @@ auto adjust_thread_number(const int n_bits,
 
   assert(remaining_sequences != 0);
   assert(n_threads != 0);
-  assert((n_threads - 1) <= (ULLONG_MAX / channels_8));
+  assert((n_threads - 1) <= (ullong_max / channels_8));
   assert((n_bits == bit_mode_16) or (n_bits == bit_mode_16 / 2));
 
   while (remaining_sequences <= (n_threads - 1) * channels) {

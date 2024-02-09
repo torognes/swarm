@@ -55,12 +55,12 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // memset
 #include <iterator>  // std::next
+#include <limits>
 #include <vector>
 
 
 qgramvector_t * qgrams {nullptr};
 static ThreadRunner * qgram_threads = nullptr;
-
 static struct thread_info_s * thread_info_ptr;
 
 
@@ -286,7 +286,8 @@ auto qgram_diff_fast(uint64_t seed,
                      uint64_t * difflist,
                      std::vector<struct thread_info_s>& thread_info_v) -> void
 {
-  if (listlen <= UINT8_MAX)
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  if (listlen <= uint8_max)
     {
       auto & tip = thread_info_v[0];
       tip.seed = seed;

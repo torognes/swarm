@@ -36,13 +36,12 @@
 #include <array>
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE, fclose, stderr  // refactoring: replace with <fstream>
 #include <cstdlib>  // std::exit
 #include <getopt.h>  // getopt_long, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
-
+#include <limits>
 #include <string>
 // #include <unistd.h>  // getopt_long... FAIL
 #include <vector>
@@ -56,7 +55,9 @@ constexpr char PRId64[] = "ld";
 #endif
 
 
-static_assert(INT_MAX > INT16_MAX, "Your compiler uses very short integers.");
+constexpr auto int_max = std::numeric_limits<int>::max();
+constexpr auto int16_max = std::numeric_limits<int16_t>::max();
+static_assert(int_max > int16_max, "Your compiler uses very short integers.");
 
 /* OPTIONS */
 
@@ -463,6 +464,8 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
 
 auto args_check(const std::array<bool, n_options> & used_options) -> void {
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   static constexpr unsigned int min_bits_per_entry {2};
   static constexpr unsigned int max_bits_per_entry {64};
   static constexpr unsigned int min_ceiling {8};
@@ -484,9 +487,9 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
             "-t or --threads, must be in the range 1 to ", max_threads, ".");
     }
 
-  if ((parameters.opt_differences < 0) or (parameters.opt_differences > UINT8_MAX)) {
+  if ((parameters.opt_differences < 0) or (parameters.opt_differences > uint8_max)) {
     fatal(error_prefix, "Illegal number of differences specified with -d or --differences, "
-          "must be in the range 0 to ", UINT8_MAX, ".");
+          "must be in the range 0 to ", uint8_max, ".");
   }
 
   if (parameters.opt_fastidious and (parameters.opt_differences != 1)) {
@@ -591,15 +594,15 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
   }
 
   // scoring system check
-  const int64_t diff_saturation_16 = (std::min((UINT16_MAX / parameters.penalty_mismatch),
-                                               (UINT16_MAX - penalty_gapopen)
+  const int64_t diff_saturation_16 = (std::min((uint16_max / parameters.penalty_mismatch),
+                                               (uint16_max - penalty_gapopen)
                                                / penalty_gapextend));
 
   if (parameters.opt_differences > diff_saturation_16) {
     fatal(error_prefix, "Resolution (d) too high for the given scoring system.");
   }
 
-  if (parameters.penalty_mismatch > UINT8_MAX) {
+  if (parameters.penalty_mismatch > uint8_max) {
     fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
           "please use different parameter values.");
   }

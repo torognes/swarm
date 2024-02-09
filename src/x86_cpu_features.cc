@@ -25,6 +25,7 @@
 #include "utils/fatal.h"
 #include <cstdint>  // int64_t
 #include <cstdio>  // fprintf
+#include <limits>
 
 
 // set to null if not x86-64
@@ -49,6 +50,7 @@ auto cpuid(unsigned int f1,
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
 {
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   static constexpr unsigned int post_pentium {7};  // new cpus: eax & 0xff > 6
   static constexpr unsigned int bit_mmx {23};
   static constexpr unsigned int bit_sse {25};
@@ -68,7 +70,7 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   unsigned int edx {0};
 
   cpuid(0, 0, eax, ebx, ecx, edx);  // leaf 0
-  const unsigned int maxlevel = eax & UINT8_MAX;
+  const unsigned int maxlevel = eax & uint8_max;
 
   if (maxlevel == 0) {
     return;

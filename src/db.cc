@@ -39,6 +39,7 @@
 #include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
+#include <limits>
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
 #include <vector>
@@ -54,7 +55,8 @@ constexpr char PRIu64[] = "lu";
 
 constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
-constexpr long unsigned int n_chars {INT8_MAX + 1};  // 128 ascii chars
+constexpr auto int8_max = std::numeric_limits<int8_t>::max();
+constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
 // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
 // 2^32 (512 x max_sequence_length) and cannot be addressed with

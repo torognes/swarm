@@ -39,6 +39,7 @@
 #include <cstdlib>  // qsort()
 #include <cstring>  // strcmp
 #include <iterator> // next
+#include <limits>
 #include <memory>  // unique pointer
 #include <string>
 #include <vector>
@@ -236,6 +237,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 auto algo_run(struct Parameters const & parameters,
               std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(opt_threads));
@@ -269,8 +271,8 @@ auto algo_run(struct Parameters const & parameters,
   std::vector<uint64_t> hits(amplicons);
 
   auto const diff_saturation
-    = static_cast<uint64_t>(std::min(UINT8_MAX / parameters.penalty_mismatch,
-                                     UINT8_MAX / (penalty_gapopen +
+    = static_cast<uint64_t>(std::min(uint8_max / parameters.penalty_mismatch,
+                                     uint8_max / (penalty_gapopen +
                                                   penalty_gapextend)));
 
   std::vector<unsigned char> directions;

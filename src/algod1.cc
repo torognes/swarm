@@ -44,7 +44,6 @@
 #include <algorithm>  // std::sort(), std::reverse()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <climits>  // UINT_MAX
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
@@ -1332,7 +1331,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           static constexpr double hash_functions_per_bit {4.0 / 10};
           assert(parameters.opt_bloom_bits <= 64);  // larger than expected"
           assert(parameters.opt_bloom_bits >= 2);  // smaller than expected"
-          auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);  // safe if opt_bloom_bits < UINT_MAX
+          auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);  // safe if opt_bloom_bits < uint_max
 
           // int64_t k = int(bits * 0.693);    /* 11 */
           auto n_hash_functions =
