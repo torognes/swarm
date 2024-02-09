@@ -60,9 +60,9 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 {
   static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
+  dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
 
   for(auto& thread_data: search_data_v) {
-    dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
     thread_data.qtable_v.resize(longestdbsequence);
     thread_data.qtable_w_v.resize(longestdbsequence);
     thread_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
