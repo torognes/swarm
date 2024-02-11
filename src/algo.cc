@@ -418,13 +418,9 @@ auto algo_run(struct Parameters const & parameters,
 
                   amps_v[swarmed].swarmid = swarmid;
                   amps_v[swarmed].generation = 1;
-                  if (maxgen < 1) {
-                    maxgen = 1;
-                  }
+                  maxgen = std::max<uint64_t>(maxgen, 1);
                   amps_v[swarmed].radius = static_cast<unsigned int>(diff);
-                  if (diff > maxradius) {
-                    maxradius = diff;
-                  }
+                  maxradius = std::max(diff, maxradius);
 
                   const auto poolampliconid = amps_v[swarmed].ampliconid;
                   hits[hitcount] = poolampliconid;
@@ -555,16 +551,12 @@ auto algo_run(struct Parameters const & parameters,
                             }
 
                           amps_v[pos].swarmid = swarmid;
-                          amps_v[pos].generation
-                            = static_cast<unsigned int>(subseedgeneration + 1);
-                          if (maxgen < amps_v[pos].generation) {
-                            maxgen = amps_v[pos].generation;
-                          }
-                          amps_v[pos].radius
-                            = static_cast<unsigned int>(subseedradius + diff);
-                          if (amps_v[pos].radius > maxradius) {
-                            maxradius = amps_v[pos].radius;
-                          }
+                          amps_v[pos].generation =
+                              static_cast<unsigned int>(subseedgeneration + 1);
+                          maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
+                          amps_v[pos].radius =
+                              static_cast<unsigned int>(subseedradius + diff);
+                          maxradius = std::max<uint64_t>(amps_v[pos].radius, maxradius);
 
                           const auto poolampliconid = amps_v[pos].ampliconid;
                           hits[hitcount] = poolampliconid;
@@ -601,14 +593,8 @@ auto algo_run(struct Parameters const & parameters,
             }
         }
 
-      if (swarmsize > largestswarm) {
-        largestswarm = swarmsize;
-      }
-
-      if (maxgen > maxgenerations) {
-        maxgenerations = maxgen;
-      }
-
+      largestswarm = std::max(swarmsize, largestswarm);
+      maxgenerations = std::max(maxgen, maxgenerations);
 
       if (uclustfile != nullptr)
         {

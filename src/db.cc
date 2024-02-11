@@ -483,10 +483,7 @@ auto db_read(const char * filename,
         (std::strcspn(line + 1, " \r\n"));
 
       headerchars += headerlen;
-
-      if (headerlen > longestheader) {
-        longestheader = headerlen;
-      }
+      longestheader = std::max(headerlen, longestheader);
 
       if (longestheader > max_header_length) {
         fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
@@ -617,10 +614,7 @@ auto db_read(const char * filename,
         }
 
       nucleotides += length;
-
-      if (length > longest) {
-        longest = length;
-      }
+      longest = std::max(length, longest);
 
 
       /* save remaining padded 64-bit value with nt's, if any */

@@ -333,13 +333,8 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
         ++clusterp->singletons;
       }
 
-      if (clusterp->mass > stats.maxmass) {
-        stats.maxmass = clusterp->mass;
-      }
-
-      if (clusterp->size > stats.maxsize) {
-        stats.maxsize = clusterp->size;
-      }
+      stats.maxmass = std::max(clusterp->mass, stats.maxmass);
+      stats.maxsize = std::max(clusterp->size, stats.maxsize);
 
       progress_update(seqno);
     }
