@@ -31,7 +31,7 @@
 #include "utils/qgram_array.h"
 #include "utils/seqinfo.h"
 #include "zobrist.h"
-#include <algorithm>  // std::min() std::sort()
+#include <algorithm>  // std::max() std::min() std::sort()
 #include <array>
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
