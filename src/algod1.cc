@@ -257,7 +257,7 @@ auto add_graft_candidate(unsigned int seed, unsigned int amp) -> void
 }
 
 
-// refactoring: replace with std::count_if()
+// C++17 refactoring: replace with std::count_if()
 auto count_pairs(unsigned int const amplicon_count,
                  std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int {
   auto counter = 0U;
