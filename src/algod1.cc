@@ -738,7 +738,7 @@ inline auto add_amp_to_swarm(unsigned int const amp,
 auto write_network_file(const unsigned int number_of_networks,
                         struct Parameters const & parameters,
                         std::vector<struct ampinfo_s> & ampinfo_v) -> void {
-  // network = cluster with at least two sequences (no singletons)
+  // a network is a cluster with at least two sequences (no singletons)
   progress_init("Dumping network:  ", number_of_networks);
 
   uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
@@ -748,6 +748,7 @@ auto write_network_file(const unsigned int number_of_networks,
     const auto link_start = amplicon.link_start;
     const auto link_count = amplicon.link_count;
 
+    // refactoring: add network tests before replacing with std::sort
     std::qsort(network + link_start,
                link_count,
                sizeof(unsigned int),
