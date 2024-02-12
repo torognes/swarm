@@ -741,7 +741,7 @@ auto write_network_file(const unsigned int number_of_networks,
   // a network is a cluster with at least two sequences (no singletons)
   progress_init("Dumping network:  ", number_of_networks);
 
-  uint64_t n_processed = 0;  // refactoring: reduce scope (add to for loop init)
+  uint64_t n_processed = 0;  // refactoring: reduce scope (move into the for loop init)
   assert(ampinfo_v.size() == amplicons);
   auto counter = 0ULL;
   for(auto const& amplicon: ampinfo_v) {
