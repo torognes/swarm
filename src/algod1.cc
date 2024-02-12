@@ -157,7 +157,6 @@ static uint64_t light_progress {0};
 static uint64_t light_amplicon_count {0};
 static unsigned int light_amplicon {0};
 
-static uint64_t network_alloc {one_megabyte};
 std::vector<unsigned int> network_v;
 static unsigned int network_count {0};
 static pthread_mutex_t network_mutex;
@@ -1132,7 +1131,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   progress_done();
 
   /* for all amplicons, generate list of matching amplicons */
-  network_v.resize(network_alloc);
+  network_v.resize(one_megabyte);
 
   network_count = 0;
 
