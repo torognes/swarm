@@ -159,7 +159,6 @@ static unsigned int light_amplicon {0};
 
 static uint64_t network_alloc {one_megabyte};
 std::vector<unsigned int> network_v;
-static unsigned int * network {nullptr};
 static unsigned int network_count {0};
 static pthread_mutex_t network_mutex;
 static unsigned int network_amp {0};
@@ -646,7 +645,6 @@ auto network_thread(int64_t nth_thread) -> void
       while (network_count + hits_count > network_v.size()) {
         network_v.reserve(network_v.size() + one_megabyte);
         network_v.resize(network_v.size() + one_megabyte);
-        network = network_v.data();
       }
 
       for(auto k = 0U; k < hits_count; k++) {
@@ -1135,7 +1133,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* for all amplicons, generate list of matching amplicons */
   network_v.resize(network_alloc);
-  network = network_v.data();
 
   network_count = 0;
 
@@ -1262,7 +1259,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   global_hits_data = nullptr;
 
-  network = nullptr;
   network_v.clear();
   network_v.shrink_to_fit();
 
