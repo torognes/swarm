@@ -237,9 +237,7 @@ auto attach(unsigned int seed, unsigned int amp,
   light_swarm.attached = true;
 
   // Update overall stats
-  if (heavy_swarm.size > largest) {
-    largest = heavy_swarm.size;
-  }
+  largest = std::max(heavy_swarm.size, largest);
 
   --swarmcount_adjusted;
 }
@@ -668,9 +666,7 @@ auto process_seed(unsigned int const seed,
   auto const & seed_info = ampinfo_v[seed];
 
   ++swarmsize;
-  if (seed_info.generation > swarm_maxgen) {
-    swarm_maxgen = seed_info.generation;
-  }
+  swarm_maxgen = std::max(seed_info.generation, swarm_maxgen);
   const auto abundance = db_getabundance(seed);
   abundance_sum += abundance;
   if (abundance == 1) {
@@ -1253,12 +1249,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           swarm_info.attached = false;
 
           /* update overall stats */
-          if (swarmsize > largest) {
-            largest = swarmsize;
-          }
-          if (swarm_maxgen > maxgen) {
-            maxgen = swarm_maxgen;
-          }
+          largest = std::max(swarmsize, largest);
+          maxgen = std::max(swarm_maxgen, maxgen);
 
           ++swarmcount;
         }
@@ -1334,11 +1326,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);  // safe if opt_bloom_bits < uint_max
 
           // int64_t k = int(bits * 0.693);    /* 11 */
-          auto n_hash_functions =
-            static_cast<unsigned int>(hash_functions_per_bit * bits); /* 6 */
-          if (n_hash_functions < 1) {
-            n_hash_functions = 1;
-          }
+          // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
+          auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
 
           uint64_t bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
 
@@ -1359,19 +1348,13 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                   std::fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
                   // k = int(bits * 0.693);
-                  n_hash_functions = static_cast<unsigned int>(hash_functions_per_bit * bits);
-                  if (n_hash_functions < 1) {
-                    n_hash_functions = 1;
-                  }
-
+                  n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
                   bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
                 }
             }
 
-          static constexpr auto min_bloom_length_in_bits = 64U;
-          if (bloom_length_in_bits < min_bloom_length_in_bits) {  // refactor C++17: std::clamp()
-            bloom_length_in_bits = min_bloom_length_in_bits;  // at least 64 bits
-          }
+          static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
+          bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
 
           if (memused + bloom_length_in_bits / sizeof(uint64_t) > memtotal)
             {
