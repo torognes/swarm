@@ -23,7 +23,8 @@
 
 #include "utils/pseudo_rng.h"
 #include "zobrist.h"
-#include <algorithm>  // std::for_each
+#include <algorithm> // std::for_each
+#include <cassert>
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
 #include <vector>
@@ -108,6 +109,13 @@ auto zobrist_exit() -> void
 {
   zobrist_tab_byte_base = nullptr;
   zobrist_tab_base = nullptr;
+}
+
+
+auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
+{
+  assert(offset == 0 || offset == 1 || offset == 2 || offset == 3);
+  return zobrist_tab_base[4 * pos + offset];
 }
 
 

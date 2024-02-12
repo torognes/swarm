@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cassert>
 #include <cstdint> // uint64_t
 #include <vector>
 
@@ -39,9 +38,5 @@ auto zobrist_hash(unsigned char * seq, unsigned int len) -> uint64_t;
 auto zobrist_hash_delete_first(unsigned char * seq, unsigned int len) -> uint64_t;
 auto zobrist_hash_insert_first(unsigned char * seq, unsigned int len) -> uint64_t;
 
-inline auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
-{
-  assert(offset == 0 || offset == 1 || offset == 2  || offset == 3);
-  return zobrist_tab_base[4 * pos + offset];
-}
+auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t;
 
