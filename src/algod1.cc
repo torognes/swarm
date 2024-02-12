@@ -689,7 +689,7 @@ auto process_seed(unsigned int const seed,
 
   for(auto offset = 0U; offset < link_count; offset++)
     {
-      const auto amp = network[link_start + offset];
+      const auto amp = network_v[link_start + offset];
 
       if (ampinfo_v[amp].swarmid == no_swarm)
         {
@@ -749,7 +749,7 @@ auto write_network_file(const unsigned int number_of_networks,
     const auto link_count = amplicon.link_count;
 
     // refactoring: add network tests before replacing with std::sort
-    std::qsort(network + link_start,
+    std::qsort(&network_v[link_start],
                link_count,
                sizeof(unsigned int),
                compare_amp);
