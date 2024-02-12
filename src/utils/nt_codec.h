@@ -31,8 +31,8 @@ inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
   // refactoring: replace with bitset operations?
   static constexpr auto max_nt_per_uint64 = 32U;  // 32 nt fit in 64 bits
   static constexpr auto drop_remainder = 5U;  // (len+31) % 32 (drop remainder)
-  static constexpr auto max_range = 3U;
-  const auto target_uint64 = static_cast<long long int>(pos >> drop_remainder);  // same as pos % 32
+  static constexpr auto max_range = 3U;  // = ...0000 0011 (mask all upper bits)
+  const auto target_uint64 = static_cast<long long int>(pos >> drop_remainder);  // same as int{pos / 32}
   auto const * seq_uint64 = reinterpret_cast<uint64_t *>(seq);
   const auto compressed_chunk = *std::next(seq_uint64, target_uint64);
   // max_nt_per_uint64 - 1 = 31 = ...OOO1 1111 (mask all upper bits)
