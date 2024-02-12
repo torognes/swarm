@@ -302,10 +302,7 @@ auto attach_candidates(unsigned int amplicon_count,
     }
     // ...then ties are sorted by child index (lowest index first)
     assert(lhs.child >= rhs.child); // refactoring: child indices are sorted by descending order?
-    if (lhs.child < rhs.child) {
-      return true;
-    }
-    return false;
+    return lhs.child < rhs.child;
   };
 
   std::sort(graft_array.begin(), graft_array.end(), compare_grafts);
@@ -938,11 +935,8 @@ auto write_representative_sequences(struct Parameters const & parameters,
     // ...then ties are sorted by headers (alphabetical order)
     const auto status = std::strcmp(db_getheader(swarm_x.seed),
                                     db_getheader(swarm_y.seed));
-    if (status < 0) {
-      return true;
-    }
     // assert(status != 0); // all headers are unique
-    return false;
+    return status < 0;
   };
 
   std::sort(sorter.begin(), sorter.end(), compare_mass_and_headers);
