@@ -74,7 +74,7 @@ constexpr char PRId64[] = "ld";
 #endif
 
 
-constexpr unsigned int one_kilobyte {1U << 10U};
+constexpr unsigned int one_kilobyte {1U << 10U};  // 1,024 bytes
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
 constexpr unsigned int no_swarm {std::numeric_limits<unsigned int>::max()};
 
