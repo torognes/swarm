@@ -48,6 +48,7 @@
 #include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // std::memcmp
+#include <iterator>  // std::next
 #include <limits>  // unsigned int max
 #include <memory>  // unique pointer
 #include <numeric>  // std::iota
@@ -178,7 +179,7 @@ inline auto check_amp_identical(unsigned int amp1,
 
   return ((amp1_seqlen == amp2_seqlen) and
           std::equal(db_getsequence(amp1),
-                     db_getsequence(amp1) + nt_bytelength(amp1_seqlen),
+                     std::next(db_getsequence(amp1), nt_bytelength(amp1_seqlen)),
                      db_getsequence(amp2)));
 }
 
