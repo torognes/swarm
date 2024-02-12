@@ -8,3 +8,7 @@ swarm
 .gdb_history
 *.clang
 *.sh
+GPATH
+GRTAGS
+GTAGS
+src/.cache/
