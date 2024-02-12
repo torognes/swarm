@@ -327,7 +327,7 @@ auto algo_run(struct Parameters const & parameters,
       uint64_t singletons {0};
       uint64_t hitcount {0};
       uint64_t maxradius {0};
-      uint64_t maxgen {0};
+      uint64_t maxgen {1};  // a cluster can't contain less than 1 generation
       uint64_t seedindex {0};
 
       seedindex = seeded;
@@ -418,7 +418,6 @@ auto algo_run(struct Parameters const & parameters,
 
                   amps_v[swarmed].swarmid = swarmid;
                   amps_v[swarmed].generation = 1;
-                  maxgen = std::max<uint64_t>(maxgen, 1);
                   amps_v[swarmed].radius = static_cast<unsigned int>(diff);
                   maxradius = std::max(diff, maxradius);
 
