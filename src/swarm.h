@@ -112,7 +112,6 @@ extern bool opt_no_cluster_breaking;  // three function calls
 extern int64_t opt_threads;
 
 extern int64_t penalty_gapopen;
-extern int64_t penalty_mismatch;
 
 extern std::FILE * outfile;
 extern std::FILE * statsfile;

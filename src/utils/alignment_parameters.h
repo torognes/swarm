@@ -25,3 +25,4 @@
 
 
 extern int64_t penalty_gapextend;
+extern int64_t penalty_mismatch;
