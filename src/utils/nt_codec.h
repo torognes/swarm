@@ -21,43 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cassert>
 #include <cstdint>  // uint64_t
-#include <iterator>  // std::next
-#include <limits>
 
 
-constexpr auto uint_max = std::numeric_limits<unsigned int>::max();
+auto nt_extract(char * seq, uint64_t pos) -> unsigned char;
 
-
-inline auto nt_extract(char * seq, const uint64_t pos) -> unsigned char
-{
-  // Extract compressed nucleotide in sequence seq at position pos
-  // refactoring: replace with bitset operations?
-  static constexpr auto divide_by_32 = 5U;  // (len+31) % 32 (drop remainder)
-  auto const * compressed_sequence = reinterpret_cast<uint64_t *>(seq);
-  const auto target_chunk = static_cast<long long int>(pos >> divide_by_32);  // same as int{pos / 32}
-  const auto compressed_chunk = *std::next(compressed_sequence, target_chunk);
-
-  static constexpr auto max_nt_per_uint64 = 32U; // 32 nt fit in 64 bits
-  static constexpr auto keep_first_five_bits = max_nt_per_uint64 - 1; // ...0001'1111 (mask all upper bits)
-  const auto remainder = pos & keep_first_five_bits;  // 0, 1, 2,..., 30, 31
-  const auto target_nucleotide = remainder << 1U;  // 0, 2, 4,..., 60, 62
-
-  static constexpr auto keep_first_two_bits = 3U;  // ...0000'0011 (mask all upper bits)
-  // outputs four possible values: 0, 1, 2 or 3
-  return (compressed_chunk >> target_nucleotide) & keep_first_two_bits;  // UBSAN: misaligned address for type 'uint64_t', which requires 8 byte alignment
-}
-
-
-inline auto nt_bytelength(const unsigned int len) -> unsigned int
-{
-  // Compute number of bytes used for compressed sequence of length len
-  // (minimum result is 8 bytes)
-  static constexpr auto max_nt_per_uint64 = 32U;  // 32 nt fit in 64 bits
-  static constexpr auto divide_by_32 = 5U;  // (len + 31) % 32 (drop remainder)
-  static constexpr auto bytes_per_uint64 = 8U;  // times 8 to get the number of bytes
-  assert(len != 0);
-  assert(len <= uint_max - (max_nt_per_uint64 - 1));
-  return ((len + max_nt_per_uint64 - 1) >> divide_by_32) * bytes_per_uint64;
-}
+auto nt_bytelength(unsigned int len) -> unsigned int;

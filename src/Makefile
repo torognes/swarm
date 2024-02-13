@@ -130,7 +130,7 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	swarm.o util.o utils/cigar.o utils/fatal.o utils/hashtable_size.o \
 	utils/input_output.o \
 	utils/intrinsics_to_functions_aarch64.o utils/intrinsics_to_functions_ppc.o utils/intrinsics_to_functions_x86_64.o \
-	utils/progress.o \
+	utils/nt_codec.o utils/progress.o \
 	variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
 
 DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hashtable.h \
