@@ -45,7 +45,7 @@ constexpr unsigned int ceiling_default {0};
 constexpr unsigned int append_abundance_default {0};
 constexpr unsigned int mismatch_penalty_default {4};
 constexpr unsigned int match_reward_default {5};
-constexpr unsigned int gap_opening_penalty_default {12};
+constexpr auto gap_opening_penalty_default {12};
 constexpr unsigned int gap_extension_penalty_default {4};
 constexpr unsigned int bloom_bits_default {16};
 
