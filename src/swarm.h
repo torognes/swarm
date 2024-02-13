@@ -84,6 +84,7 @@ struct Parameters {
                             2 * mismatch_penalty_default};
   int64_t penalty_gapextend {match_reward_default +
                              2 * gap_extension_penalty_default};
+  int64_t penalty_gapopen {2 * gap_opening_penalty_default};
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
@@ -110,8 +111,6 @@ extern std::string opt_log;  // used by multithreaded functions
 extern int64_t opt_boundary;  // used by multithreaded functions
 extern bool opt_no_cluster_breaking;  // three function calls
 extern int64_t opt_threads;
-
-extern int64_t penalty_gapopen;
 
 extern std::FILE * outfile;
 extern std::FILE * statsfile;

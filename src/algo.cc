@@ -272,7 +272,7 @@ auto algo_run(struct Parameters const & parameters,
 
   auto const diff_saturation
     = static_cast<uint64_t>(std::min(uint8_max / parameters.penalty_mismatch,
-                                     uint8_max / (penalty_gapopen +
+                                     uint8_max / (parameters.penalty_gapopen +
                                                   parameters.penalty_gapextend)));
 
   std::vector<unsigned char> directions;
@@ -620,7 +620,7 @@ auto algo_run(struct Parameters const & parameters,
               uint64_t nwdiff {0};
 
               nw(dseq, dlen, qseq, qlen,
-                 score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
+                 score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
                  static_cast<unsigned long int>(parameters.penalty_gapextend),
                  nwdiff, directions, hearray, raw_alignment);
 

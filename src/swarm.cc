@@ -240,7 +240,7 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
       std::fprintf(logfile,
               "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
               "gap extension: %" PRId64 "\n",
-              parameters.penalty_mismatch, penalty_gapopen, parameters.penalty_gapextend);
+              parameters.penalty_mismatch, parameters.penalty_gapopen, parameters.penalty_gapextend);
     }
   std::fprintf(logfile, "Break clusters:        %s\n",
           opt_no_cluster_breaking ? "No" : "Yes");
@@ -450,16 +450,18 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
   // scoring system
   parameters.penalty_mismatch = 2 * parameters.opt_match_reward + 2 * parameters.opt_mismatch_penalty;
   penalty_mismatch = parameters.penalty_mismatch;
-  penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
+  parameters.penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
+  penalty_gapopen = parameters.penalty_gapopen;
   parameters.penalty_gapextend = parameters.opt_match_reward + 2 * parameters.opt_gap_extension_penalty;
   penalty_gapextend = parameters.penalty_gapextend;
 
-  const int64_t penalty_factor {gcd(gcd(parameters.penalty_mismatch, penalty_gapopen), parameters.penalty_gapextend)};
+  const int64_t penalty_factor {gcd(gcd(parameters.penalty_mismatch, parameters.penalty_gapopen), parameters.penalty_gapextend)};
 
   // clang: risk of DivideZero, but that would require gcd(0, 0) which is not possible
   parameters.penalty_mismatch /= penalty_factor;
   penalty_mismatch = parameters.penalty_mismatch;
-  penalty_gapopen /= penalty_factor;
+  parameters.penalty_gapopen /= penalty_factor;
+  penalty_gapopen = parameters.penalty_gapopen;
   parameters.penalty_gapextend /= penalty_factor;
   penalty_gapextend = parameters.penalty_gapextend;
 
@@ -599,7 +601,7 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
 
   // scoring system check
   const int64_t diff_saturation_16 = (std::min((uint16_max / parameters.penalty_mismatch),
-                                               (uint16_max - penalty_gapopen)
+                                               (uint16_max - parameters.penalty_gapopen)
                                                / parameters.penalty_gapextend));
 
   if (parameters.opt_differences > diff_saturation_16) {

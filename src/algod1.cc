@@ -873,7 +873,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
         uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
 
         nw(dseq, dlen, qseq, qlen,
-           score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
+           score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
            static_cast<unsigned long int>(parameters.penalty_gapextend),
            nwdiff, directions, hearray, raw_alignment);
 
