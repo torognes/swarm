@@ -240,7 +240,7 @@ auto find_swarm_abundance(const char * header,
 
   start = static_cast<int>(abundance_start);
   end = static_cast<int>(abundance_end);
-  number = std::atol(abundance_string + 1);
+  number = std::atol(abundance_string + 1); // refactoring: std::strtol(start, end, base)
 
   return true;
 }
