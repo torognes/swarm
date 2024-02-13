@@ -26,7 +26,7 @@
 #include <iterator>  // std::next
 
 
-inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
+inline auto nt_extract(char * seq, const uint64_t pos) -> unsigned char
 {
   // Extract compressed nucleotide in sequence seq at position pos
   // refactoring: replace with bitset operations?
@@ -46,7 +46,7 @@ inline auto nt_extract(char * seq, uint64_t pos) -> unsigned char
 }
 
 
-inline auto nt_bytelength(unsigned int len) -> unsigned int
+inline auto nt_bytelength(const unsigned int len) -> unsigned int
 {
   // Compute number of bytes used for compressed sequence of length len
   // (minimum result is 8 bytes)
