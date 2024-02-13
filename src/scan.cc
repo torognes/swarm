@@ -25,6 +25,7 @@
 #include "db.h"
 #include "search8.h"
 #include "search16.h"
+#include "utils/alignment_parameters.h"
 #include "utils/nt_codec.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"

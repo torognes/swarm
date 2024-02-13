@@ -111,7 +111,6 @@ extern int64_t opt_boundary;  // used by multithreaded functions
 extern bool opt_no_cluster_breaking;  // three function calls
 extern int64_t opt_threads;
 
-extern int64_t penalty_gapextend;
 extern int64_t penalty_gapopen;
 extern int64_t penalty_mismatch;
 

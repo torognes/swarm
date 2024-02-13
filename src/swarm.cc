@@ -26,6 +26,7 @@
 #include "algod1.h"
 #include "db.h"
 #include "derep.h"
+#include "utils/alignment_parameters.h"
 #include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "utils/input_output.h"

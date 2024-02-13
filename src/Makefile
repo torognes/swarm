@@ -135,6 +135,7 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 
 DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hashtable.h \
 	nw.h qgram.h scan.h search16.h search8.h swarm.h \
+	utils/alignment_parameters.h \
 	util.h utils/backtrack.h utils/cigar.h utils/fatal.h utils/gcd.h utils/hashtable_size.h \
 	utils/input_output.h \
 	utils/intrinsics_to_functions_aarch64.h utils/intrinsics_to_functions_ppc.h utils/intrinsics_to_functions_x86_64.h \
