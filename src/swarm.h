@@ -80,7 +80,8 @@ struct Parameters {
   int64_t avx2_present {0};
   int64_t avx_present {0};
   int64_t sse3_present {0};
-  int64_t penalty_mismatch {2 * match_reward_default + 2 * mismatch_penalty_default};
+  int64_t penalty_mismatch{2 * match_reward_default +
+                           2 * mismatch_penalty_default};
   bool opt_help {false};
   bool opt_disable_sse3 {false};
   bool opt_version {false};
