@@ -35,7 +35,7 @@ extern unsigned int * hash_data;
 inline auto hash_getindex(uint64_t hash) -> uint64_t
 {
   // Shift bits right to get independence from the simple Bloom filter hash
-  static constexpr unsigned int divider {32};  // drop the first 32 bits
+  static constexpr auto divider = 32U;  // drop the first 32 bits
   hash = hash >> divider;
   return hash & hash_mask;
 }
@@ -47,16 +47,16 @@ inline auto hash_getnextindex(uint64_t index) -> uint64_t
 
 inline auto hash_set_occupied(uint64_t index) -> void
 {
-  static constexpr unsigned int divider {3};  // drop the first 3 bits
-  static constexpr unsigned int max_range {7};  // index & max_range = values ranging from 0 to 7
+  static constexpr auto divider = 3U;  // drop the first 3 bits
+  static constexpr auto max_range = 7U;  // index & max_range = values ranging from 0 to 7
   assert((index & max_range) <= 7);
   hash_occupied[index >> divider] |= static_cast<unsigned char>((1U << (index & max_range)));
 }
 
 inline auto hash_is_occupied(uint64_t index) -> bool
 {
-  static constexpr unsigned int divider {3};  // drop the first 3 bits
-  static constexpr unsigned int max_range {7};  // index & max_range = values ranging from 0 to 7
+  static constexpr auto divider = 3U;  // drop the first 3 bits
+  static constexpr auto max_range = 7U;  // index & max_range = values ranging from 0 to 7
   return (hash_occupied[index >> divider] & (1U << (index & max_range))) != 0;
 }
 
