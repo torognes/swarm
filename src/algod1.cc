@@ -874,7 +874,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
 
         nw(dseq, dlen, qseq, qlen,
            score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
-           static_cast<unsigned long int>(penalty_gapextend),
+           static_cast<unsigned long int>(parameters.penalty_gapextend),
            nwdiff, directions, hearray, raw_alignment);
 
         // backtracking produces a reversed alignment (starting from the end)

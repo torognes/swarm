@@ -273,7 +273,7 @@ auto algo_run(struct Parameters const & parameters,
   auto const diff_saturation
     = static_cast<uint64_t>(std::min(uint8_max / parameters.penalty_mismatch,
                                      uint8_max / (penalty_gapopen +
-                                                  penalty_gapextend)));
+                                                  parameters.penalty_gapextend)));
 
   std::vector<unsigned char> directions;
   std::vector<uint64_t> hearray;
@@ -621,7 +621,7 @@ auto algo_run(struct Parameters const & parameters,
 
               nw(dseq, dlen, qseq, qlen,
                  score_matrix_63, static_cast<unsigned long int>(penalty_gapopen),
-                 static_cast<unsigned long int>(penalty_gapextend),
+                 static_cast<unsigned long int>(parameters.penalty_gapextend),
                  nwdiff, directions, hearray, raw_alignment);
 
               // backtracking produces a reversed alignment (starting from the end)
