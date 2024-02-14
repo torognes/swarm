@@ -66,6 +66,7 @@ struct Parameters {
   int64_t avx2_present {0};
   int64_t avx_present {0};
   int64_t sse3_present{0};
+  int64_t sse41_present {0};
   int64_t popcnt_present {0};
   int64_t penalty_mismatch {2 * match_reward_default +
                             2 * mismatch_penalty_default};
@@ -108,4 +109,3 @@ extern std::FILE * fp_seeds;
 extern std::FILE * network_file;
 
 extern int64_t ssse3_present; // several function calls
-extern int64_t sse41_present; // several function calls
