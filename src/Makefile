@@ -143,7 +143,7 @@ DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hasht
 	utils/intrinsics_to_functions_x86_64.h \
 	utils/nt_codec.h utils/progress.h utils/pseudo_rng.h \
 	utils/qgram_array.h utils/qgram_threadinfo.h utils/queryinfo.h utils/search_data.h \
-	utils/score_matrix.h utils/threads.h variants.h x86_cpu_features.h \
+	utils/score_matrix.h utils/threads.h utils/x86_cpu_feature_popcnt.h variants.h x86_cpu_features.h \
 	zobrist.h
 
 

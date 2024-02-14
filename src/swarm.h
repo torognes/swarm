@@ -108,4 +108,3 @@ extern std::FILE * network_file;
 
 extern int64_t ssse3_present; // several function calls
 extern int64_t sse41_present; // several function calls
-extern int64_t popcnt_present; // several function calls

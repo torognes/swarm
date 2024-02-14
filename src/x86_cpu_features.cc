@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "utils/fatal.h"
+#include "utils/x86_cpu_feature_popcnt.h"
 #include <cstdint>  // int64_t
 #include <cstdio>  // fprintf
 #include <limits>
