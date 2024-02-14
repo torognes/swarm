@@ -48,18 +48,6 @@ constexpr unsigned int gap_extension_penalty_default {4};
 constexpr unsigned int bloom_bits_default {16};
 
 
-/* structures and data types */
-
-struct queryinfo
-{
-  uint64_t qno;
-  int64_t len;
-  char * seq;
-};
-
-using queryinfo_t = struct queryinfo;
-extern queryinfo_t query;
-
 /* common data */
 
 struct Parameters {

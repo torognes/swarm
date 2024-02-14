@@ -24,6 +24,7 @@
 #include "swarm.h"
 #include "db.h"
 #include "utils/backtrack.h"
+#include "utils/queryinfo.h"
 #include <array>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <iterator> // std::next, std::distance

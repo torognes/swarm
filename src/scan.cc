@@ -27,6 +27,7 @@
 #include "search16.h"
 #include "utils/alignment_parameters.h"
 #include "utils/nt_codec.h"
+#include "utils/queryinfo.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
@@ -52,7 +53,7 @@ static uint64_t * master_diffs;
 static uint64_t * master_alignlengths;
 static int master_bits;
 
-queryinfo_t query;
+struct queryinfo query;
 
 
 auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v,
