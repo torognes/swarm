@@ -65,7 +65,8 @@ struct Parameters {
   int64_t sse2_present {0};
   int64_t avx2_present {0};
   int64_t avx_present {0};
-  int64_t sse3_present {0};
+  int64_t sse3_present{0};
+  int64_t popcnt_present {0};
   int64_t penalty_mismatch {2 * match_reward_default +
                             2 * mismatch_penalty_default};
   int64_t penalty_gapextend {match_reward_default +

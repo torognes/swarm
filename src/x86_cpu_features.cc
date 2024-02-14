@@ -85,7 +85,8 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   ssse3_present  = (ecx >> bit_ssse3) & 1U;
   sse41_present  = (ecx >> bit_sse41) & 1U;
   parameters.sse42_present  = (ecx >> bit_sse42) & 1U;
-  popcnt_present = (ecx >> bit_popcnt) & 1U;
+  parameters.popcnt_present = (ecx >> bit_popcnt) & 1U;
+  popcnt_present = parameters.popcnt_present;
   parameters.avx_present    = (ecx >> bit_avx) & 1U;
 
   if (maxlevel >= post_pentium)
