@@ -59,6 +59,8 @@ constexpr char PRId64[] = "ld";
 constexpr auto int_max = std::numeric_limits<int>::max();
 constexpr auto int16_max = std::numeric_limits<int16_t>::max();
 static_assert(int_max > int16_max, "Your compiler uses very short integers.");
+const std::string swarm_version {"3.1.4"};
+
 
 /* OPTIONS */
 
