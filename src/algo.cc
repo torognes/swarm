@@ -178,7 +178,7 @@ auto write_swarms_default_format(const uint64_t amplicons,
                                  struct Parameters const & parameters,
                                  std::vector<struct ampliconinfo_s> & amps_v) -> void {
   /* native swarm output */
-  static constexpr char sep_amplicons {sepchar};  /* usually a space */
+  static constexpr char sepchar {' '};  /* usually a space */
   static constexpr char sep_swarms {'\n'};
 
   fprint_id(outfile, amps_v[0].ampliconid,
@@ -189,7 +189,7 @@ auto write_swarms_default_format(const uint64_t amplicons,
     {
       const int64_t current_id = amps_v[i].swarmid;
       if (current_id == previous_id) {
-        std::fputc(sep_amplicons, outfile);
+        std::fputc(sepchar, outfile);
       }
       else {
         std::fputc(sep_swarms, outfile);

@@ -37,7 +37,6 @@
 // will be de-duplicated by the linker.
 // (source: https://www.youtube.com/watch?v=QVHwOOrSh3w)
 
-constexpr char sepchar {' '};
 constexpr char dash_filename {'-'};
 constexpr unsigned int opt_differences_default {1};
 constexpr unsigned int ceiling_default {0};

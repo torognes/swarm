@@ -239,6 +239,7 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
 auto write_swarms_default_format(struct Parameters const & parameters,
                                  std::vector<struct bucket> const & hashtable,
                                  std::vector<unsigned int> const & nextseqtab) -> void {
+  static constexpr char sepchar {' '};
   progress_init("Writing swarms:   ", hashtable.size());
   auto counter = 0U;
 

@@ -769,6 +769,7 @@ auto write_network_file(const unsigned int number_of_networks,
 auto write_swarms_default_format(struct Parameters const & parameters,
                                  std::vector<struct ampinfo_s> & ampinfo_v,
                                  std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+  static constexpr char sepchar {' '};
   progress_init("Writing swarms:   ", swarminfo_v.size());
 
   for(auto i = 0U; i < swarminfo_v.size(); i++) {
