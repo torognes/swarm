@@ -30,6 +30,7 @@
 #include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "utils/input_output.h"
+#include "utils/opt_boundary.h"
 #include "utils/seqinfo.h"
 #include "x86_cpu_features.h"
 #include "zobrist.h"
@@ -248,7 +249,7 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
           opt_no_cluster_breaking ? "No" : "Yes");
   if (parameters.opt_fastidious) {
     std::fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
-            opt_boundary);
+            parameters.opt_boundary);
   }
   else {
     std::fprintf(logfile, "Fastidious:        No\n");
@@ -268,11 +269,10 @@ auto show(const std::vector<std::string> & message) -> void
 auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 {
   /* Set defaults */
-  static constexpr unsigned int boundary_default {3};
   static constexpr unsigned int threads_default {1};
   std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
-  opt_boundary = boundary_default;
+  opt_boundary = parameters.opt_boundary;
   opt_threads = threads_default;
   opterr = 1;  // unused variable? get_opt option?
 
@@ -324,7 +324,8 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
       case 'b':
         /* boundary */
-        opt_boundary = args_long(optarg, "-b or --boundary");
+        parameters.opt_boundary = args_long(optarg, "-b or --boundary");
+        opt_boundary = parameters.opt_boundary;
         break;
 
       case 'c':
@@ -564,7 +565,7 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
           "must be at least 1.");
   }
 
-  if (opt_boundary < 2) {
+  if (parameters.opt_boundary < 2) {
     fatal(error_prefix, "Illegal boundary specified with -b or --boundary, "
           "must be at least 2.");
   }

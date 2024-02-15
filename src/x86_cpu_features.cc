@@ -25,6 +25,7 @@
 #include "utils/fatal.h"
 #include "utils/x86_cpu_feature_popcnt.h"
 #include "utils/x86_cpu_feature_sse41.h"
+#include "utils/x86_cpu_feature_ssse3.h"
 #include <cstdint>  // int64_t
 #include <cstdio>  // fprintf
 #include <limits>
@@ -83,7 +84,8 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   parameters.sse_present    = (edx >> bit_sse) & 1U;
   parameters.sse2_present   = (edx >> bit_sse2) & 1U;
   parameters.sse3_present   = (ecx >> bit_sse3) & 1U;
-  ssse3_present  = (ecx >> bit_ssse3) & 1U;
+  parameters.ssse3_present = (ecx >> bit_ssse3) & 1U;
+  ssse3_present = parameters.ssse3_present;
   parameters.sse41_present = (ecx >> bit_sse41) & 1U;
   sse41_present  = parameters.sse41_present;
   parameters.sse42_present  = (ecx >> bit_sse42) & 1U;
@@ -106,6 +108,7 @@ auto cpu_features_test(struct Parameters & parameters) -> void {
   if (parameters.opt_disable_sse3)
     {
       parameters.sse3_present = 0;
+      parameters.ssse3_present = 0;
       ssse3_present = 0;
       parameters.sse41_present = 0;
       sse41_present = 0;
@@ -132,7 +135,7 @@ auto cpu_features_show(struct Parameters const & parameters) -> void
   if (parameters.sse3_present != 0) {
     std::fprintf(logfile, " sse3");
   }
-  if (ssse3_present != 0) {
+  if (parameters.ssse3_present != 0) {
     std::fprintf(logfile, " ssse3"); // Supplemental SSE3, introduced in 2006
   }
   if (parameters.sse41_present != 0) {

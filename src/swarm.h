@@ -40,6 +40,7 @@
 constexpr char dash_filename {'-'};
 constexpr unsigned int opt_differences_default {1};
 constexpr unsigned int ceiling_default {0};
+constexpr auto boundary_default = 3;
 constexpr unsigned int append_abundance_default {0};
 constexpr unsigned int mismatch_penalty_default {4};
 constexpr unsigned int match_reward_default {5};
@@ -59,14 +60,16 @@ struct Parameters {
   int64_t opt_gap_extension_penalty {gap_extension_penalty_default};
   int64_t opt_ceiling {ceiling_default};
   int64_t opt_append_abundance {append_abundance_default};
+  int64_t opt_boundary {boundary_default};
   int64_t mmx_present {0};
   int64_t sse42_present {0};
   int64_t sse_present {0};
   int64_t sse2_present {0};
   int64_t avx2_present {0};
   int64_t avx_present {0};
-  int64_t sse3_present{0};
+  int64_t sse3_present {0};
   int64_t sse41_present {0};
+  int64_t ssse3_present {0};
   int64_t popcnt_present {0};
   int64_t penalty_mismatch {2 * match_reward_default +
                             2 * mismatch_penalty_default};
@@ -96,7 +99,6 @@ struct Parameters {
 // of the translation units.
 
 extern std::string opt_log;  // used by multithreaded functions
-extern int64_t opt_boundary;  // used by multithreaded functions
 extern bool opt_no_cluster_breaking;  // three function calls
 extern int64_t opt_threads;
 
@@ -107,5 +109,3 @@ extern std::FILE * internal_structure_file;
 extern std::FILE * logfile;
 extern std::FILE * fp_seeds;
 extern std::FILE * network_file;
-
-extern int64_t ssse3_present; // several function calls

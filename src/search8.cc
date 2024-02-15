@@ -49,6 +49,7 @@ using VECTORTYPE = __m128i;
 
 #endif
 
+#include "utils/x86_cpu_feature_ssse3.h"
 #include "ssse3.h"
 
 #elif defined __PPC__

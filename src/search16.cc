@@ -45,6 +45,7 @@ using VECTORTYPE = uint16x8_t;
 
 #include <emmintrin.h>  // SSE2 intrinsics
 #include "utils/intrinsics_to_functions_x86_64.h"
+#include "utils/x86_cpu_feature_ssse3.h"
 #include "utils/x86_cpu_feature_sse41.h"
 using VECTORTYPE = __m128i;
 
