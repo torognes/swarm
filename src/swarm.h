@@ -82,6 +82,7 @@ struct Parameters {
   bool opt_fastidious {false};
   bool opt_usearch_abundance {false};
   bool opt_mothur {false};
+  bool opt_no_cluster_breaking {false};
   std::string input_filename {dash_filename};
   std::string opt_network_file;
   std::string opt_internal_structure;
@@ -99,7 +100,6 @@ struct Parameters {
 // of the translation units.
 
 extern std::string opt_log;  // used by multithreaded functions
-extern bool opt_no_cluster_breaking;  // three function calls
 extern int64_t opt_threads;
 
 extern std::FILE * outfile;

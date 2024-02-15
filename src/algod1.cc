@@ -38,6 +38,7 @@
 #include "utils/cigar.h"
 #include "utils/nt_codec.h"
 #include "utils/opt_boundary.h"
+#include "utils/opt_no_cluster_breaking.h"
 #include "utils/progress.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"

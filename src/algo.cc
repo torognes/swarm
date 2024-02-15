@@ -360,7 +360,7 @@ auto algo_run(struct Parameters const & parameters,
       for(auto i = 0ULL; i < amplicons - swarmed; i++)
         {
           const auto ampid = amps_v[swarmed + i].ampliconid;
-          if ((opt_no_cluster_breaking) or (db_getabundance(ampid) <= abundance))
+          if ((parameters.opt_no_cluster_breaking) or (db_getabundance(ampid) <= abundance))
             {
               qgramamps_v[i] = ampid;
               ++listlen;
@@ -480,7 +480,7 @@ auto algo_run(struct Parameters const & parameters,
                   const uint64_t targetampliconid = amps_v[i].ampliconid;
                   if ((amps_v[i].diffestimate <=
                        subseedradius + parameters.opt_differences) and
-                      ((opt_no_cluster_breaking) or
+                      ((parameters.opt_no_cluster_breaking) or
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
                     {

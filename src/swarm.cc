@@ -31,6 +31,7 @@
 #include "utils/gcd.h"
 #include "utils/input_output.h"
 #include "utils/opt_boundary.h"
+#include "utils/opt_no_cluster_breaking.h"
 #include "utils/seqinfo.h"
 #include "x86_cpu_features.h"
 #include "zobrist.h"
@@ -246,7 +247,7 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
               parameters.penalty_mismatch, parameters.penalty_gapopen, parameters.penalty_gapextend);
     }
   std::fprintf(logfile, "Break clusters:        %s\n",
-          opt_no_cluster_breaking ? "No" : "Yes");
+          parameters.opt_no_cluster_breaking ? "No" : "Yes");
   if (parameters.opt_fastidious) {
     std::fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
             parameters.opt_boundary);
@@ -380,7 +381,8 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
       case 'n':
         /* no-cluster-breaking */
-        opt_no_cluster_breaking = true;
+        parameters.opt_no_cluster_breaking = true;
+        opt_no_cluster_breaking = parameters.opt_no_cluster_breaking;
         break;
 
       case 'o':
