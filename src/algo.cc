@@ -240,10 +240,10 @@ auto algo_run(struct Parameters const & parameters,
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
-  std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(opt_threads));
+  std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
   search_begin(search_data_v);
   /* start threads */
-  std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(opt_threads), search_worker_core));
+  std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(parameters.opt_threads), search_worker_core));
 
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;

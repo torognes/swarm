@@ -1137,7 +1137,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   progress_init("Building network: ", amplicons);
   {
     // refactoring C++14: use std::make_unique
-    std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(static_cast<int>(opt_threads), network_thread));
+    std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), network_thread));
     network_tr->run();
   }
   pthread_mutex_destroy(&network_mutex);
@@ -1391,7 +1391,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           light_amplicon = amplicons - 1;
           {
             // refactoring C++14: use std::make_unique
-            std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(static_cast<int>(opt_threads), mark_light_thread));
+            std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), mark_light_thread));
             light_tr->run();
           }
           pthread_mutex_destroy(&light_mutex);
@@ -1418,7 +1418,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           heavy_amplicon = 0;
           {
             // refactoring C++14: use std::make_unique
-            std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(static_cast<int>(opt_threads), check_heavy_thread));
+            std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), check_heavy_thread));
             heavy_tr->run();
           }
 
