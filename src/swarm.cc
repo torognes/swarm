@@ -232,7 +232,7 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
     std::fprintf(logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
   }
   std::fprintf(logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
-  std::fprintf(logfile, "Threads:           %" PRId64 "\n", opt_threads);
+  std::fprintf(logfile, "Threads:           %" PRId64 "\n", parameters.opt_threads);
 
   if (parameters.opt_differences > 1)
     {
@@ -271,11 +271,10 @@ auto show(const std::vector<std::string> & message) -> void
 auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 {
   /* Set defaults */
-  static constexpr unsigned int threads_default {1};
   std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
   opt_boundary = parameters.opt_boundary;
-  opt_threads = threads_default;
+  opt_threads = parameters.opt_threads;
   opterr = 1;  // unused variable? get_opt option?
 
   int option_character {0};
@@ -409,7 +408,8 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
       case 't':
         /* threads */
-        opt_threads = args_long(optarg, "-t or --threads");
+        parameters.opt_threads = args_long(optarg, "-t or --threads");
+        opt_threads = parameters.opt_threads;
         break;
 
       case 'u':
@@ -494,7 +494,7 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
   static constexpr unsigned int mismatch_penalty_index {15};
   static constexpr unsigned int bloom_bits_index {24};
 
-  if ((opt_threads < 1) or (opt_threads > max_threads))
+  if ((parameters.opt_threads < 1) or (parameters.opt_threads > max_threads))
     {
       fatal(error_prefix, "Illegal number of threads specified with "
             "-t or --threads, must be in the range 1 to ", max_threads, ".");
