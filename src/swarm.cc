@@ -371,7 +371,8 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
       case 'l':
         /* log */
-        opt_log = optarg;
+        parameters.opt_log = optarg;
+        opt_log = parameters.opt_log;
         break;
 
       case 'm':
@@ -630,9 +631,9 @@ auto open_files() -> void
 
   /* open files */
 
-  if (not opt_log.empty())
+  if (not parameters.opt_log.empty())
     {
-      logfile = fopen_output(opt_log.c_str());
+      logfile = fopen_output(parameters.opt_log.c_str());
       if (logfile == nullptr) {
         fatal(error_prefix, "Unable to open log file for writing.");
       }
