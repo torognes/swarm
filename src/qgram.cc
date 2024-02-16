@@ -51,6 +51,7 @@
 #include "utils/qgram_array.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/nt_codec.h"
+#include "utils/opt_threads.h"
 #include "utils/threads.h"
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t

@@ -101,8 +101,6 @@ struct Parameters {
 // linker requires these objects to be explicitly initialized in one
 // of the translation units.
 
-extern int64_t opt_threads;
-
 extern std::FILE * outfile;
 extern std::FILE * statsfile;
 extern std::FILE * uclustfile;

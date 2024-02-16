@@ -33,6 +33,7 @@
 #include "utils/opt_boundary.h"
 #include "utils/opt_log.h"
 #include "utils/opt_no_cluster_breaking.h"
+#include "utils/opt_threads.h"
 #include "utils/seqinfo.h"
 #include "x86_cpu_features.h"
 #include "zobrist.h"
