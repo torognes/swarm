@@ -100,7 +100,6 @@ struct Parameters {
 // linker requires these objects to be explicitly initialized in one
 // of the translation units.
 
-extern std::string opt_log;  // used by multithreaded functions
 extern int64_t opt_threads;
 
 extern std::FILE * outfile;

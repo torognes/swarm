@@ -31,6 +31,7 @@
 #include "utils/gcd.h"
 #include "utils/input_output.h"
 #include "utils/opt_boundary.h"
+#include "utils/opt_log.h"
 #include "utils/opt_no_cluster_breaking.h"
 #include "utils/seqinfo.h"
 #include "x86_cpu_features.h"

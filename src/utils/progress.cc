@@ -22,6 +22,7 @@
 */
 
 #include "../swarm.h"
+#include "opt_log.h"
 #include <cstdio>  // fflush, fprintf
 #include <cstdint>  // uint64_t
 
