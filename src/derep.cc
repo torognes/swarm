@@ -209,28 +209,28 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
                                 std::vector<struct bucket> const & hashtable,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing swarms:   ", hashtable.size());
-  std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, hashtable.size());
+  std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, hashtable.size());
   auto counter = 0U;
 
   for(auto const & cluster: hashtable) {
     // print cluster seed
     const auto seed = cluster.seqno_first;
-    std::fputc('\t', outfile);
-    fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fputc('\t', parameters.outfile);
+    fprint_id(parameters.outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
     // print other cluster members
     auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
-        std::fputc(',', outfile);
-        fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fputc(',', parameters.outfile);
+        fprint_id(parameters.outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         next_identical = nextseqtab[next_identical];
       }
 
     ++counter;
     progress_update(counter);
   }
-    std::fputc('\n', outfile);
+    std::fputc('\n', parameters.outfile);
 
   progress_done();
 }
@@ -246,17 +246,17 @@ auto write_swarms_default_format(struct Parameters const & parameters,
   for(auto const & cluster: hashtable) {
     // print cluster seed
     const auto seed = cluster.seqno_first;
-    fprint_id(outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    fprint_id(parameters.outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
     // print other cluster members
     auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
-        std::fputc(sepchar, outfile);
-        fprint_id(outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fputc(sepchar, parameters.outfile);
+        fprint_id(parameters.outfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         next_identical = nextseqtab[next_identical];
       }
-    std::fputc('\n', outfile);
+    std::fputc('\n', parameters.outfile);
     ++counter;
     progress_update(counter);
   }
