@@ -82,7 +82,6 @@ int64_t penalty_gapopen;
 
 /* fine names and command line options */
 
-std::FILE * outfile {nullptr};
 std::FILE * statsfile {nullptr};
 std::FILE * uclustfile {nullptr};
 std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
@@ -627,7 +626,6 @@ auto open_files() -> void
 {
   // special case (always '-')??
   parameters.outfile = fopen_output(parameters.opt_output_file.c_str());
-  outfile = parameters.outfile;
   if (parameters.outfile == nullptr) {
     fatal(error_prefix, "Unable to open output file for writing.");
   }
