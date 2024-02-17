@@ -626,8 +626,9 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
 auto open_files() -> void
 {
   // special case (always '-')??
-  outfile = fopen_output(parameters.opt_output_file.c_str());
-  if (outfile == nullptr) {
+  parameters.outfile = fopen_output(parameters.opt_output_file.c_str());
+  outfile = parameters.outfile;
+  if (parameters.outfile == nullptr) {
     fatal(error_prefix, "Unable to open output file for writing.");
   }
 
@@ -686,7 +687,7 @@ auto open_files() -> void
 auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
     {network_file, internal_structure_file,
-     uclustfile, statsfile, fp_seeds, outfile,
+     uclustfile, statsfile, fp_seeds, parameters.outfile,
      logfile};
   for (auto * const file_handle : file_handles) {
     if (file_handle != nullptr) {
