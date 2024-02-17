@@ -181,7 +181,7 @@ auto write_swarms_default_format(const uint64_t amplicons,
   static constexpr char sepchar {' '};  /* usually a space */
   static constexpr char sep_swarms {'\n'};
 
-  fprint_id(outfile, amps_v[0].ampliconid,
+  fprint_id(parameters.outfile, amps_v[0].ampliconid,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
   int64_t previous_id = amps_v[0].swarmid;
 
@@ -189,16 +189,16 @@ auto write_swarms_default_format(const uint64_t amplicons,
     {
       const int64_t current_id = amps_v[i].swarmid;
       if (current_id == previous_id) {
-        std::fputc(sepchar, outfile);
+        std::fputc(sepchar, parameters.outfile);
       }
       else {
-        std::fputc(sep_swarms, outfile);
+        std::fputc(sep_swarms, parameters.outfile);
       }
-      fprint_id(outfile, amps_v[i].ampliconid,
+      fprint_id(parameters.outfile, amps_v[i].ampliconid,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       previous_id = current_id;
     }
-  std::fputc('\n', outfile);
+  std::fputc('\n', parameters.outfile);
 }
 
 
@@ -210,9 +210,9 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
   static constexpr char sep_amplicons {','};
   static constexpr char sep_swarms {'\t'};
 
-  std::fprintf(outfile, "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
+  std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
 
-  fprint_id(outfile, amps_v[0].ampliconid,
+  fprint_id(parameters.outfile, amps_v[0].ampliconid,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
   int64_t previous_id = amps_v[0].swarmid;
 
@@ -220,17 +220,17 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
     {
       const int64_t current_id = amps_v[i].swarmid;
       if (current_id == previous_id) {
-        std::fputc(sep_amplicons, outfile);
+        std::fputc(sep_amplicons, parameters.outfile);
       }
       else {
-        std::fputc(sep_swarms, outfile);
+        std::fputc(sep_swarms, parameters.outfile);
       }
-      fprint_id(outfile, amps_v[i].ampliconid,
+      fprint_id(parameters.outfile, amps_v[i].ampliconid,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       previous_id = current_id;
     }
 
-  std::fputc('\n', outfile);
+  std::fputc('\n', parameters.outfile);
 }
 
 
