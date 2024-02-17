@@ -782,12 +782,12 @@ auto write_swarms_default_format(struct Parameters const & parameters,
     const auto seed = swarminfo_v[i].seed;
     for(auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
       if (amp_id != seed) {
-        std::fputc(sepchar, outfile);
+        std::fputc(sepchar, parameters.outfile);
       }
-      fprint_id(outfile, amp_id,
+      fprint_id(parameters.outfile, amp_id,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     }
-    std::fputc('\n', outfile);
+    std::fputc('\n', parameters.outfile);
     progress_update(i + 1);
   }
 
@@ -800,7 +800,7 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
                                 std::vector<struct swarminfo_s> & swarminfo_v) -> void {
   progress_init("Writing swarms:   ", swarminfo_v.size());
 
-  std::fprintf(outfile, "swarm_%" PRId64 "\t%" PRIu64,
+  std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%" PRIu64,
                parameters.opt_differences, swarmcount_adjusted);
 
   for(auto i = 0U; i < swarminfo_v.size(); i++) {
@@ -812,18 +812,18 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
     const auto seed = swarminfo_v[i].seed;
     for(auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
       if (amp_id == seed) {
-        std::fputc('\t', outfile);
+        std::fputc('\t', parameters.outfile);
       }
       else {
-        std::fputc(',', outfile);
+        std::fputc(',', parameters.outfile);
       }
-      fprint_id(outfile, amp_id,
+      fprint_id(parameters.outfile, amp_id,
                 parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     }
     progress_update(i + 1);
   }
 
-  std::fputc('\n', outfile);
+  std::fputc('\n', parameters.outfile);
 
   progress_done();
 }
