@@ -21,8 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
-
 #ifdef __aarch64__
 #include <arm_neon.h>
 #endif

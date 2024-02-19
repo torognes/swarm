@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
 #include "db.h"
 #include "search8.h"
 #include "search16.h"
