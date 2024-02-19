@@ -34,8 +34,6 @@ auto db_read(struct Parameters const & parameters,
 
 auto db_getsequencecount() -> unsigned int;
 
-auto db_getnucleotidecount() -> uint64_t;
-
 auto db_getlongestheader() -> unsigned int;
 
 auto db_getlongestsequence() -> unsigned int;
