@@ -1264,11 +1264,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   if (parameters.opt_fastidious)
     {
-      std::fprintf(logfile, "\n");
-      std::fprintf(logfile, "Results before fastidious processing:\n");
-      std::fprintf(logfile, "Number of swarms:  %u\n", swarmcount);
-      std::fprintf(logfile, "Largest swarm:     %u\n", largest);
-      std::fprintf(logfile, "\n");
+      std::fprintf(parameters.logfile, "\n");
+      std::fprintf(parameters.logfile, "Results before fastidious processing:\n");
+      std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmcount);
+      std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
+      std::fprintf(parameters.logfile, "\n");
 
       uint64_t small_clusters = 0;
       uint64_t amplicons_in_small_clusters = 0;
@@ -1294,16 +1294,16 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
       const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
       const uint64_t large_clusters = swarmcount - small_clusters;
 
-      std::fprintf(logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
+      std::fprintf(parameters.logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
                    large_clusters, amplicons_in_large_clusters);
-      std::fprintf(logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
+      std::fprintf(parameters.logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
                    small_clusters, amplicons_in_small_clusters);
-      std::fprintf(logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
+      std::fprintf(parameters.logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
                    nucleotides_in_small_clusters);
 
       if ((small_clusters == 0) or (large_clusters == 0))
         {
-          std::fprintf(logfile, "Only light or heavy swarms found - "
+          std::fprintf(parameters.logfile, "Only light or heavy swarms found - "
                        "no need for further analysis.\n");
         }
       else
@@ -1339,7 +1339,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                   if (new_bits < 2) {
                     fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
                   }
-                  std::fprintf(logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
+                  std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
                   // k = int(bits * 0.693);
                   n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
@@ -1352,11 +1352,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           if (memused + bloom_length_in_bits / sizeof(uint64_t) > memtotal)
             {
-              std::fprintf(logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
-              std::fprintf(logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
+              std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
+              std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
             }
 
-          std::fprintf(logfile,
+          std::fprintf(parameters.logfile,
                        "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
                        bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (sizeof(uint64_t) * one_megabyte));
 
@@ -1398,7 +1398,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           progress_done();
 
-          std::fprintf(logfile,
+          std::fprintf(parameters.logfile,
                        "Generated %" PRIu64 " variants from light swarms\n",
                        light_variants);
 
@@ -1430,11 +1430,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           pthread_mutex_destroy(&graft_mutex);
 
-          std::fprintf(logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
-          std::fprintf(logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
+          std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
+          std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
           const unsigned int grafts = attach_candidates(amplicons, ampinfo_v, swarminfo_v);
-          std::fprintf(logfile, "Made %u grafts\n", grafts);
-          std::fprintf(logfile, "\n");
+          std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
+          std::fprintf(parameters.logfile, "\n");
         }
     }
 
@@ -1445,10 +1445,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   output_results(parameters, ampinfo_v, swarminfo_v);
 
-  std::fprintf(logfile, "\n");
-  std::fprintf(logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
-  std::fprintf(logfile, "Largest swarm:     %u\n", largest);
-  std::fprintf(logfile, "Max generations:   %u\n", maxgen);
+  std::fprintf(parameters.logfile, "\n");
+  std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
+  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
+  std::fprintf(parameters.logfile, "Max generations:   %u\n", maxgen);
 
   bloom_exit(bloom_a);
   hash_free();
