@@ -650,8 +650,9 @@ auto open_files() -> void
 
   if (not parameters.opt_statistics_file.empty())
     {
-      statsfile = fopen_output(parameters.opt_statistics_file.c_str());
-      if (statsfile == nullptr) {
+      parameters.statsfile = fopen_output(parameters.opt_statistics_file.c_str());
+      statsfile = parameters.statsfile;
+      if (parameters.statsfile == nullptr) {
         fatal(error_prefix, "Unable to open statistics file for writing.");
       }
     }
@@ -685,7 +686,7 @@ auto open_files() -> void
 auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
     {network_file, internal_structure_file,
-     uclustfile, statsfile, fp_seeds, parameters.outfile,
+     uclustfile, parameters.statsfile, fp_seeds, parameters.outfile,
      logfile};
   for (auto * const file_handle : file_handles) {
     if (file_handle != nullptr) {

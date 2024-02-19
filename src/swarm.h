@@ -93,6 +93,7 @@ struct Parameters {
   std::string opt_output_file {dash_filename};
   std::string opt_log;
   std::FILE * outfile {nullptr};
+  std::FILE * statsfile {nullptr};
 };
 
 // Note: extern - static storage duration and external linkage
