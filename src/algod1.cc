@@ -755,10 +755,10 @@ auto write_network_file(const unsigned int number_of_networks,
     for(auto link = 0U; link < link_count; link++)
       {
         const auto neighbour = network_v[link_start + link];
-        fprint_id(network_file, counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-        std::fprintf(network_file, "\t");
-        fprint_id(network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-        std::fprintf(network_file, "\n");
+        fprint_id(parameters.network_file, counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(parameters.network_file, "\t");
+        fprint_id(parameters.network_file, neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(parameters.network_file, "\n");
         ++n_processed;
       }
     progress_update(n_processed);
