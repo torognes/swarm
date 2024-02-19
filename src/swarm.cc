@@ -82,7 +82,6 @@ int64_t penalty_gapopen;
 
 /* fine names and command line options */
 
-std::FILE * uclustfile {nullptr};
 std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
 std::FILE * internal_structure_file {nullptr};
 std::FILE * fp_seeds {nullptr};
@@ -658,7 +657,6 @@ auto open_files() -> void
   if (not parameters.opt_uclust_file.empty())
     {
       parameters.uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
-      uclustfile = parameters.uclustfile;
       if (parameters.uclustfile == nullptr) {
         fatal(error_prefix, "Unable to open uclust file for writing.");
       }
