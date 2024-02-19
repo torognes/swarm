@@ -96,6 +96,7 @@ struct Parameters {
   std::FILE * statsfile {nullptr};
   std::FILE * uclustfile {nullptr};
   std::FILE * internal_structure_file {nullptr};
+  std::FILE * fp_seeds {nullptr};  // rename to seeds_file
 };
 
 // Note: extern - static storage duration and external linkage

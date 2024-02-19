@@ -639,8 +639,9 @@ auto open_files() -> void
 
   if (not parameters.opt_seeds.empty())
     {
-      fp_seeds = fopen_output(parameters.opt_seeds.c_str());
-      if (fp_seeds == nullptr) {
+      parameters.fp_seeds = fopen_output(parameters.opt_seeds.c_str());
+      fp_seeds = parameters.fp_seeds;
+      if (parameters.fp_seeds == nullptr) {
         fatal(error_prefix, "Unable to open seeds file for writing.");
       }
     }
