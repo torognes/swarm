@@ -26,8 +26,7 @@
 #include <vector>
 
 
-auto db_read(const char * filename,
-             struct Parameters const & parameters,
+auto db_read(struct Parameters const & parameters,
              std::vector<char> & data_v,
              std::vector<struct seqinfo_s> & seqindex_v,
              std::vector<uint64_t> & zobrist_tab_base_v,

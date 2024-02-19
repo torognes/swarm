@@ -407,8 +407,7 @@ auto sort_index_if_need_be(std::vector<struct seqinfo_s> & seqindex_v) -> void {
 }
 
 
-auto db_read(const char * filename,
-             struct Parameters const & parameters,
+auto db_read(struct Parameters const & parameters,
              std::vector<char> & data_v,
              std::vector<struct seqinfo_s> & seqindex_v,
              std::vector<uint64_t> & zobrist_tab_base_v,
@@ -425,12 +424,12 @@ auto db_read(const char * filename,
 
   /* open input file or stream */
 
-  assert(filename != nullptr);  // filename is set to '-' (stdin) by default
+  assert(parameters.input_filename.c_str() != nullptr);  // filename is set to '-' (stdin) by default
 
-  std::FILE * input_fp { fopen_input(filename) };
+  std::FILE * input_fp { fopen_input(parameters.input_filename.c_str()) };
   if (input_fp == nullptr)
     {
-      fatal(error_prefix, "Unable to open input data file (", filename, ").\n");
+      fatal(error_prefix, "Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
     }
 
   /* get file size */
@@ -439,7 +438,7 @@ auto db_read(const char * filename,
 
   if (fstat(fileno(input_fp), &fstat_buffer) != 0)  // refactor: fstat and fileno linuxisms
     {
-      fatal(error_prefix, "Unable to fstat on input file (", filename, ").\n");
+      fatal(error_prefix, "Unable to fstat on input file (", parameters.input_filename.c_str(), ").\n");
     }
   const bool is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG linuxisms
   const uint64_t filesize = is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0;

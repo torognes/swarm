@@ -704,8 +704,7 @@ auto main(int argc, char** argv) -> int
   std::vector<struct seqinfo_s> seqindex_v;
   std::vector<uint64_t> zobrist_tab_base_v;
   std::vector<uint64_t> zobrist_tab_byte_base_v;
-  db_read(parameters.input_filename.c_str(),
-          parameters,
+  db_read(parameters,
           data_v,
           seqindex_v,
           zobrist_tab_base_v,
