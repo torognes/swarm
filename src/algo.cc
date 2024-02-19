@@ -427,16 +427,16 @@ auto algo_run(struct Parameters const & parameters,
 
                   if (not parameters.opt_internal_structure.empty())
                     {
-                      fprint_id_noabundance(internal_structure_file,
+                      fprint_id_noabundance(parameters.internal_structure_file,
                                             seedampliconid, parameters.opt_usearch_abundance);
-                      std::fprintf(internal_structure_file, "\t");
-                      fprint_id_noabundance(internal_structure_file,
+                      std::fprintf(parameters.internal_structure_file, "\t");
+                      fprint_id_noabundance(parameters.internal_structure_file,
                                             poolampliconid, parameters.opt_usearch_abundance);
-                      std::fprintf(internal_structure_file, "\t%" PRIu64, diff);
-                      std::fprintf(internal_structure_file,
+                      std::fprintf(parameters.internal_structure_file, "\t%" PRIu64, diff);
+                      std::fprintf(parameters.internal_structure_file,
                               "\t%u\t1",
                               swarmid);
-                      std::fprintf(internal_structure_file, "\n");
+                      std::fprintf(parameters.internal_structure_file, "\n");
                     }
 
                   abundance = db_getabundance(poolampliconid);
@@ -563,18 +563,18 @@ auto algo_run(struct Parameters const & parameters,
 
                           if (not parameters.opt_internal_structure.empty())
                             {
-                              fprint_id_noabundance(internal_structure_file,
+                              fprint_id_noabundance(parameters.internal_structure_file,
                                                     subseedampliconid,
                                                     parameters.opt_usearch_abundance);
-                              std::fprintf(internal_structure_file, "\t");
-                              fprint_id_noabundance(internal_structure_file,
+                              std::fprintf(parameters.internal_structure_file, "\t");
+                              fprint_id_noabundance(parameters.internal_structure_file,
                                                     poolampliconid,
                                                     parameters.opt_usearch_abundance);
-                              std::fprintf(internal_structure_file, "\t%" PRIu64, diff);
-                              std::fprintf(internal_structure_file,
+                              std::fprintf(parameters.internal_structure_file, "\t%" PRIu64, diff);
+                              std::fprintf(parameters.internal_structure_file,
                                       "\t%u\t%" PRIu64,
                                       swarmid, subseedgeneration + 1);
-                              std::fprintf(internal_structure_file, "\n");
+                              std::fprintf(parameters.internal_structure_file, "\n");
                             }
 
                           abundance = db_getabundance(poolampliconid);

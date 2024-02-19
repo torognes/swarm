@@ -132,10 +132,10 @@ auto write_structure_file(struct Parameters const & parameters,
     auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
-        fprint_id_noabundance(internal_structure_file, seed, parameters.opt_usearch_abundance);
-        std::fprintf(internal_structure_file, "\t");
-        fprint_id_noabundance(internal_structure_file, next_identical, parameters.opt_usearch_abundance);
-        std::fprintf(internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
+        fprint_id_noabundance(parameters.internal_structure_file, seed, parameters.opt_usearch_abundance);
+        std::fprintf(parameters.internal_structure_file, "\t");
+        fprint_id_noabundance(parameters.internal_structure_file, next_identical, parameters.opt_usearch_abundance);
+        std::fprintf(parameters.internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
         next_identical = nextseqtab[next_identical];
       }
     ++counter;

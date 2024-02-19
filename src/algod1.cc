@@ -986,11 +986,11 @@ auto write_structure_file(struct Parameters const & parameters,
           const auto graft_parent = ampinfo_v[amp_id].graft_cand;
           if (graft_parent != no_swarm)
             {
-              fprint_id_noabundance(internal_structure_file,
+              fprint_id_noabundance(parameters.internal_structure_file,
                                     graft_parent, parameters.opt_usearch_abundance);
-              std::fprintf(internal_structure_file, "\t");
-              fprint_id_noabundance(internal_structure_file, amp_id, parameters.opt_usearch_abundance);
-              std::fprintf(internal_structure_file,
+              std::fprintf(parameters.internal_structure_file, "\t");
+              fprint_id_noabundance(parameters.internal_structure_file, amp_id, parameters.opt_usearch_abundance);
+              std::fprintf(parameters.internal_structure_file,
                            "\t%d\t%u\t%u\n",
                            2,
                            cluster_no + 1,
@@ -1000,10 +1000,10 @@ auto write_structure_file(struct Parameters const & parameters,
           const auto parent = ampinfo_v[amp_id].parent;
           if (parent != no_swarm)
             {
-              fprint_id_noabundance(internal_structure_file, parent, parameters.opt_usearch_abundance);
-              std::fprintf(internal_structure_file, "\t");
-              fprint_id_noabundance(internal_structure_file, amp_id, parameters.opt_usearch_abundance);
-              std::fprintf(internal_structure_file,
+              fprint_id_noabundance(parameters.internal_structure_file, parent, parameters.opt_usearch_abundance);
+              std::fprintf(parameters.internal_structure_file, "\t");
+              fprint_id_noabundance(parameters.internal_structure_file, amp_id, parameters.opt_usearch_abundance);
+              std::fprintf(parameters.internal_structure_file,
                            "\t%u\t%u\t%u\n",
                            1U,
                            cluster_no + 1,
