@@ -39,6 +39,7 @@
 #include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy, memcmp
+#include <iterator>  // std::next()
 #include <limits>
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
@@ -123,7 +124,7 @@ auto db_getlongestsequence() -> unsigned int
 auto fprint_id(std::FILE * stream, const uint64_t seqno, bool opt_usearch_abundance,
                int64_t opt_append_abundance) -> void
 {
-  const seqinfo_t * seqinfo = seqindex + seqno;
+  const seqinfo_t * seqinfo = std::next(seqindex, seqno);
   const char * hdrstr = seqinfo->header;
   const int hdrlen = seqinfo->headerlen;
 
