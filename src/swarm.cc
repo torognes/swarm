@@ -82,7 +82,6 @@ int64_t penalty_gapopen;
 
 /* fine names and command line options */
 
-std::FILE * statsfile {nullptr};
 std::FILE * uclustfile {nullptr};
 std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
 std::FILE * internal_structure_file {nullptr};
@@ -651,7 +650,6 @@ auto open_files() -> void
   if (not parameters.opt_statistics_file.empty())
     {
       parameters.statsfile = fopen_output(parameters.opt_statistics_file.c_str());
-      statsfile = parameters.statsfile;
       if (parameters.statsfile == nullptr) {
         fatal(error_prefix, "Unable to open statistics file for writing.");
       }

@@ -103,7 +103,6 @@ struct Parameters {
 // linker requires these objects to be explicitly initialized in one
 // of the translation units.
 
-extern std::FILE * statsfile;
 extern std::FILE * uclustfile;
 extern std::FILE * internal_structure_file;
 extern std::FILE * logfile;
