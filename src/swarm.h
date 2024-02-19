@@ -97,6 +97,7 @@ struct Parameters {
   std::FILE * uclustfile {nullptr};
   std::FILE * internal_structure_file {nullptr};
   std::FILE * seeds_file {nullptr};
+  std::FILE * network_file {nullptr};
 };
 
 // Note: extern - static storage duration and external linkage

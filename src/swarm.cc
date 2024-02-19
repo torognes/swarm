@@ -670,8 +670,9 @@ auto open_files() -> void
 
   if (not parameters.opt_network_file.empty())
     {
-      network_file = fopen_output(parameters.opt_network_file.c_str());
-      if (network_file == nullptr) {
+      parameters.network_file = fopen_output(parameters.opt_network_file.c_str());
+      network_file = parameters.network_file;
+      if (parameters.network_file == nullptr) {
         fatal(error_prefix, "Unable to open network file for writing.");
       }
     }
