@@ -122,7 +122,7 @@ auto db_getlongestsequence() -> unsigned int
 
 
 auto fprint_id(std::FILE * stream, const uint64_t seqno, bool opt_usearch_abundance,
-               int64_t opt_append_abundance) -> void
+               const int64_t opt_append_abundance) -> void
 {
   const seqinfo_t * seqinfo = std::next(seqindex, seqno);
   const char * hdrstr = seqinfo->header;
