@@ -684,13 +684,13 @@ auto algo_run(struct Parameters const & parameters,
 
   qgram_diff_done();
 
-  std::fprintf(logfile, "\n");
+  std::fprintf(parameters.logfile, "\n");
 
-  std::fprintf(logfile, "Number of swarms:  %u\n", swarmid);
+  std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmid);
 
-  std::fprintf(logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
+  std::fprintf(parameters.logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
 
-  std::fprintf(logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
+  std::fprintf(parameters.logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
 
   search_end();
 }
