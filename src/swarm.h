@@ -22,7 +22,7 @@
 */
 
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // FILE
+#include <cstdio>  // FILE, stderr
 #include <string>
 
 
@@ -98,6 +98,7 @@ struct Parameters {
   std::FILE * internal_structure_file {nullptr};
   std::FILE * seeds_file {nullptr};
   std::FILE * network_file {nullptr};
+  std::FILE * logfile {stderr};  // stderr macro expands to type std::FILE*
 };
 
 // Note: extern - static storage duration and external linkage
