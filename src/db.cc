@@ -122,7 +122,7 @@ auto db_getlongestsequence() -> unsigned int
 }
 
 
-auto fprint_id(std::FILE * stream, const uint64_t seqno, bool opt_usearch_abundance,
+auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance,
                const int64_t opt_append_abundance) -> void
 {
   auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
