@@ -664,8 +664,9 @@ auto open_files() -> void
 
   if (not parameters.opt_internal_structure.empty())
     {
-      internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
-      if (internal_structure_file == nullptr) {
+      parameters.internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
+      internal_structure_file = parameters.internal_structure_file;
+      if (parameters.internal_structure_file == nullptr) {
         fatal(error_prefix, "Unable to open internal structure file for writing.");
       }
     }
@@ -682,7 +683,7 @@ auto open_files() -> void
 
 auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
-    {network_file, internal_structure_file,
+    {network_file, parameters.internal_structure_file,
      parameters.uclustfile, parameters.statsfile, fp_seeds, parameters.outfile,
      logfile};
   for (auto * const file_handle : file_handles) {
