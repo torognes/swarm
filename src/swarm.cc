@@ -681,7 +681,7 @@ auto open_files() -> void
 
 auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
-    {network_file, parameters.internal_structure_file,
+    {parameters.network_file, parameters.internal_structure_file,
      parameters.uclustfile, parameters.statsfile, parameters.seeds_file, parameters.outfile,
      logfile};
   for (auto * const file_handle : file_handles) {
