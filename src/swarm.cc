@@ -83,7 +83,6 @@ int64_t penalty_gapopen;
 /* fine names and command line options */
 
 std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
-std::FILE * internal_structure_file {nullptr};
 std::FILE * fp_seeds {nullptr};
 std::FILE * network_file {nullptr};
 
@@ -665,7 +664,6 @@ auto open_files() -> void
   if (not parameters.opt_internal_structure.empty())
     {
       parameters.internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
-      internal_structure_file = parameters.internal_structure_file;
       if (parameters.internal_structure_file == nullptr) {
         fatal(error_prefix, "Unable to open internal structure file for writing.");
       }

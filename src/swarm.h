@@ -105,7 +105,6 @@ struct Parameters {
 // linker requires these objects to be explicitly initialized in one
 // of the translation units.
 
-extern std::FILE * internal_structure_file;
 extern std::FILE * logfile;
 extern std::FILE * fp_seeds;  // rename to seeds_file
 extern std::FILE * network_file;
