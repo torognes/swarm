@@ -146,18 +146,18 @@ auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
 }
 
 
-auto write_seeds(std::vector<struct swarminfo_t> const & seeds,
-                 bool const opt_usearch_abundance) -> void {
+auto write_seeds(std::vector<struct swarminfo_t> const &seeds,
+                 struct Parameters const & parameters) -> void {
   progress_init("Writing seeds:    ", seeds.size());
   auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
   for(const auto& seed: seeds) {
       const auto swarm_mass = seed.mass;
       const auto swarm_seed = seed.seed;
 
-      std::fprintf(fp_seeds, ">");
-      fprint_id_with_new_abundance(fp_seeds, swarm_seed, swarm_mass, opt_usearch_abundance);
-      std::fprintf(fp_seeds, "\n");
-      db_fprintseq(fp_seeds, swarm_seed);
+      std::fprintf(parameters.fp_seeds, ">");
+      fprint_id_with_new_abundance(parameters.fp_seeds, swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
+      std::fprintf(parameters.fp_seeds, "\n");
+      db_fprintseq(parameters.fp_seeds, swarm_seed);
       progress_update(ticker);
       ++ticker;
   }
@@ -170,7 +170,7 @@ auto write_representative_sequences(const uint64_t amplicons,
                                     std::vector<struct ampliconinfo_s> & amps_v) -> void {
   auto seeds = collect_seeds(amplicons, amps_v);
   sort_seeds(seeds);
-  write_seeds(seeds, parameters.opt_usearch_abundance);
+  write_seeds(seeds, parameters);
 }
 
 
