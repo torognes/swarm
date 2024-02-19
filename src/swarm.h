@@ -94,6 +94,7 @@ struct Parameters {
   std::string opt_log;
   std::FILE * outfile {nullptr};
   std::FILE * statsfile {nullptr};
+  std::FILE * uclustfile {nullptr};
 };
 
 // Note: extern - static storage duration and external linkage

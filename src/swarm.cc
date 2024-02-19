@@ -657,8 +657,9 @@ auto open_files() -> void
 
   if (not parameters.opt_uclust_file.empty())
     {
-      uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
-      if (uclustfile == nullptr) {
+      parameters.uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
+      uclustfile = parameters.uclustfile;
+      if (parameters.uclustfile == nullptr) {
         fatal(error_prefix, "Unable to open uclust file for writing.");
       }
     }
@@ -684,7 +685,7 @@ auto open_files() -> void
 auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
     {network_file, internal_structure_file,
-     uclustfile, parameters.statsfile, fp_seeds, parameters.outfile,
+     parameters.uclustfile, parameters.statsfile, fp_seeds, parameters.outfile,
      logfile};
   for (auto * const file_handle : file_handles) {
     if (file_handle != nullptr) {
