@@ -194,10 +194,10 @@ auto write_representative_sequences(struct Parameters const & parameters,
   auto counter = 0U;
   for(auto const & cluster: hashtable) {
     const auto seed = cluster.seqno_first;
-    std::fprintf(parameters.fp_seeds, ">");
-    fprint_id_with_new_abundance(parameters.fp_seeds, seed, cluster.mass, parameters.opt_usearch_abundance);
-    std::fprintf(parameters.fp_seeds, "\n");
-    db_fprintseq(parameters.fp_seeds, seed);
+    std::fprintf(parameters.seeds_file, ">");
+    fprint_id_with_new_abundance(parameters.seeds_file, seed, cluster.mass, parameters.opt_usearch_abundance);
+    std::fprintf(parameters.seeds_file, "\n");
+    db_fprintseq(parameters.seeds_file, seed);
     ++counter;
     progress_update(counter);
   }

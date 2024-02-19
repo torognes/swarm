@@ -154,10 +154,10 @@ auto write_seeds(std::vector<struct swarminfo_t> const &seeds,
       const auto swarm_mass = seed.mass;
       const auto swarm_seed = seed.seed;
 
-      std::fprintf(parameters.fp_seeds, ">");
-      fprint_id_with_new_abundance(parameters.fp_seeds, swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
-      std::fprintf(parameters.fp_seeds, "\n");
-      db_fprintseq(parameters.fp_seeds, swarm_seed);
+      std::fprintf(parameters.seeds_file, ">");
+      fprint_id_with_new_abundance(parameters.seeds_file, swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
+      std::fprintf(parameters.seeds_file, "\n");
+      db_fprintseq(parameters.seeds_file, swarm_seed);
       progress_update(ticker);
       ++ticker;
   }

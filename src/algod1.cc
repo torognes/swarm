@@ -952,11 +952,11 @@ auto write_representative_sequences(struct Parameters const & parameters,
     }
     const auto seed = a_swarm.seed;
     const auto mass = a_swarm.mass;
-    std::fprintf(parameters.fp_seeds, ">");
-    fprint_id_with_new_abundance(parameters.fp_seeds, seed, mass,
+    std::fprintf(parameters.seeds_file, ">");
+    fprint_id_with_new_abundance(parameters.seeds_file, seed, mass,
                                  parameters.opt_usearch_abundance);
-    std::fprintf(parameters.fp_seeds, "\n");
-    db_fprintseq(parameters.fp_seeds, seed);
+    std::fprintf(parameters.seeds_file, "\n");
+    db_fprintseq(parameters.seeds_file, seed);
     progress_update(counter);
     ++counter;
   }

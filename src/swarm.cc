@@ -638,8 +638,8 @@ auto open_files() -> void
 
   if (not parameters.opt_seeds.empty())
     {
-      parameters.fp_seeds = fopen_output(parameters.opt_seeds.c_str());
-      if (parameters.fp_seeds == nullptr) {
+      parameters.seeds_file = fopen_output(parameters.opt_seeds.c_str());
+      if (parameters.seeds_file == nullptr) {
         fatal(error_prefix, "Unable to open seeds file for writing.");
       }
     }
@@ -681,7 +681,7 @@ auto open_files() -> void
 auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
     {network_file, parameters.internal_structure_file,
-     parameters.uclustfile, parameters.statsfile, parameters.fp_seeds, parameters.outfile,
+     parameters.uclustfile, parameters.statsfile, parameters.seeds_file, parameters.outfile,
      logfile};
   for (auto * const file_handle : file_handles) {
     if (file_handle != nullptr) {
