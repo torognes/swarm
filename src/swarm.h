@@ -100,12 +100,3 @@ struct Parameters {
   std::FILE * network_file {nullptr};
   std::FILE * logfile {stderr};  // stderr macro expands to type std::FILE*
 };
-
-// Note: extern - static storage duration and external linkage
-//
-// Objects of static storage duration are zero-initialized before
-// main() is called (verified in gdb). However, it seems that the
-// linker requires these objects to be explicitly initialized in one
-// of the translation units.
-
-extern std::FILE * logfile;
