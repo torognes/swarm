@@ -83,7 +83,6 @@ int64_t penalty_gapopen;
 /* fine names and command line options */
 
 std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
-std::FILE * fp_seeds {nullptr};
 std::FILE * network_file {nullptr};
 
 constexpr int n_options {26};
@@ -640,7 +639,6 @@ auto open_files() -> void
   if (not parameters.opt_seeds.empty())
     {
       parameters.fp_seeds = fopen_output(parameters.opt_seeds.c_str());
-      fp_seeds = parameters.fp_seeds;
       if (parameters.fp_seeds == nullptr) {
         fatal(error_prefix, "Unable to open seeds file for writing.");
       }

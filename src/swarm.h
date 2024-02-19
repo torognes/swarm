@@ -107,5 +107,4 @@ struct Parameters {
 // of the translation units.
 
 extern std::FILE * logfile;
-extern std::FILE * fp_seeds;  // rename to seeds_file
 extern std::FILE * network_file;
