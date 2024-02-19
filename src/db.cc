@@ -35,6 +35,7 @@
 #include <array>
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
@@ -124,16 +125,16 @@ auto db_getlongestsequence() -> unsigned int
 auto fprint_id(std::FILE * stream, const uint64_t seqno, bool opt_usearch_abundance,
                const int64_t opt_append_abundance) -> void
 {
-  const seqinfo_t * seqinfo = std::next(seqindex, seqno);
-  const char * hdrstr = seqinfo->header;
-  const int hdrlen = seqinfo->headerlen;
+  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+  const char * hdrstr = seqinfo.header;
+  const int hdrlen = seqinfo.headerlen;
 
-  if ((opt_append_abundance != 0) and (seqinfo->abundance_start == seqinfo->abundance_end)) {
+  if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
     if (opt_usearch_abundance) {
-      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, seqinfo->abundance);
+      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, seqinfo.abundance);
     }
     else {
-      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, seqinfo->abundance);
+      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, seqinfo.abundance);
     }
   }
   else {
