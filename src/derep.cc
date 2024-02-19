@@ -154,31 +154,31 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
   for(auto const & cluster: hashtable) {
     const auto seed = cluster.seqno_first;
 
-    std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+    std::fprintf(parameters.uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                  counter,
                  cluster.size);
-    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fprintf(uclustfile, "\t*\n");
+    fprint_id(parameters.uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(parameters.uclustfile, "\t*\n");
 
-    std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+    std::fprintf(parameters.uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                  counter,
                  db_getsequencelen(seed));
-    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fprintf(uclustfile, "\t*\n");
+    fprint_id(parameters.uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(parameters.uclustfile, "\t*\n");
 
     auto next_identical = nextseqtab[seed];
     while (next_identical != 0U)
       {
-        std::fprintf(uclustfile,
+        std::fprintf(parameters.uclustfile,
                      "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                      counter,
                      db_getsequencelen(next_identical),
                      100.0,
                      "=");
-        fprint_id(uclustfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-        std::fprintf(uclustfile, "\t");
-        fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-        std::fprintf(uclustfile, "\n");
+        fprint_id(parameters.uclustfile, next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(parameters.uclustfile, "\t");
+        fprint_id(parameters.uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(parameters.uclustfile, "\n");
         next_identical = nextseqtab[next_identical];
       }
     ++counter;

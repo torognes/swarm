@@ -854,17 +854,17 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
 
     auto const & seed_info = ampinfo_v[seed];
 
-    std::fprintf(uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
+    std::fprintf(parameters.uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                  cluster_no,
                  swarm_info.size);
-    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fprintf(uclustfile, "\t*\n");
+    fprint_id(parameters.uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(parameters.uclustfile, "\t*\n");
 
-    std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+    std::fprintf(parameters.uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                  cluster_no,
                  db_getsequencelen(seed));
-    fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fprintf(uclustfile, "\t*\n");
+    fprint_id(parameters.uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(parameters.uclustfile, "\t*\n");
 
     for(auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
       {
@@ -888,17 +888,17 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
         const auto differences = static_cast<double>(nwdiff);
         const double percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
 
-        std::fprintf(uclustfile,
+        std::fprintf(parameters.uclustfile,
                      "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                      cluster_no,
                      db_getsequencelen(amp_id),
                      percentid,
                      nwdiff > 0 ? cigar_string.data() : "=");
 
-        fprint_id(uclustfile, amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-        std::fprintf(uclustfile, "\t");
-        fprint_id(uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-        std::fprintf(uclustfile, "\n");
+        fprint_id(parameters.uclustfile, amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(parameters.uclustfile, "\t");
+        fprint_id(parameters.uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        std::fprintf(parameters.uclustfile, "\n");
 
         raw_alignment.clear();
         cigar_string.clear();

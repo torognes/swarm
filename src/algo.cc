@@ -282,7 +282,7 @@ auto algo_run(struct Parameters const & parameters,
   raw_alignment.reserve(2 * longestamplicon);
   cigar_string.reserve(2 * longestamplicon);
 
-  if (uclustfile != nullptr)
+  if (parameters.uclustfile != nullptr)
     {
       directions.resize(longestamplicon * longestamplicon);
       hearray.resize(2 * longestamplicon);
@@ -595,18 +595,18 @@ auto algo_run(struct Parameters const & parameters,
       largestswarm = std::max(swarmsize, largestswarm);
       maxgenerations = std::max(maxgen, maxgenerations);
 
-      if (uclustfile != nullptr)
+      if (parameters.uclustfile != nullptr)
         {
-          std::fprintf(uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
+          std::fprintf(parameters.uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid-1, swarmsize);
-          fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\t*\n");
+          fprint_id(parameters.uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          std::fprintf(parameters.uclustfile, "\t*\n");
 
-          std::fprintf(uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+          std::fprintf(parameters.uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid-1, db_getsequencelen(seedampliconid));
-          fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(uclustfile, "\t*\n");
-          std::fflush(uclustfile);
+          fprint_id(parameters.uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          std::fprintf(parameters.uclustfile, "\t*\n");
+          std::fflush(parameters.uclustfile);
 
           for(auto i = 1ULL; i < hitcount; i++)
             {
@@ -632,15 +632,15 @@ auto algo_run(struct Parameters const & parameters,
               const auto differences = static_cast<double>(nwdiff);
               const double percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
-              std::fprintf(uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+              std::fprintf(parameters.uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid-1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? cigar_string.data() : "=");
 
-              fprint_id(uclustfile, hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(uclustfile, "\t");
-              fprint_id(uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(uclustfile, "\n");
-              std::fflush(uclustfile);
+              fprint_id(parameters.uclustfile, hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+              std::fprintf(parameters.uclustfile, "\t");
+              fprint_id(parameters.uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+              std::fprintf(parameters.uclustfile, "\n");
+              std::fflush(parameters.uclustfile);
 
               raw_alignment.clear();
               cigar_string.clear();
