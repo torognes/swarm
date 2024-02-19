@@ -1028,9 +1028,9 @@ auto write_stats_file(struct Parameters const & parameters,
     if (swarm_info.attached) {
       continue;
     }
-    std::fprintf(statsfile, "%u\t%" PRIu64 "\t", swarm_info.size, swarm_info.mass);
-    fprint_id_noabundance(statsfile, swarm_info.seed, parameters.opt_usearch_abundance);
-    std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+    std::fprintf(parameters.statsfile, "%u\t%" PRIu64 "\t", swarm_info.size, swarm_info.mass);
+    fprint_id_noabundance(parameters.statsfile, swarm_info.seed, parameters.opt_usearch_abundance);
+    std::fprintf(parameters.statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                  db_getabundance(swarm_info.seed),
                  swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
     progress_update(counter);

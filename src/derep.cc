@@ -109,9 +109,9 @@ auto write_stats_file(struct Parameters const & parameters,
   progress_init("Writing stats:    ", hashtable.size());
   auto counter = 0U;
   for(auto const & cluster: hashtable) {
-    std::fprintf(statsfile, "%u\t%" PRIu64 "\t", cluster.size, cluster.mass);
-    fprint_id_noabundance(statsfile, cluster.seqno_first, parameters.opt_usearch_abundance);
-    std::fprintf(statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
+    std::fprintf(parameters.statsfile, "%u\t%" PRIu64 "\t", cluster.size, cluster.mass);
+    fprint_id_noabundance(parameters.statsfile, cluster.seqno_first, parameters.opt_usearch_abundance);
+    std::fprintf(parameters.statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                  db_getabundance(cluster.seqno_first),
                  cluster.singletons, 0U, 0U);
     ++counter;

@@ -649,14 +649,14 @@ auto algo_run(struct Parameters const & parameters,
         }
 
 
-      if (statsfile != nullptr)
+      if (parameters.statsfile != nullptr)
         {
           abundance = db_getabundance(seedampliconid);
 
-          std::fprintf(statsfile, "%" PRIu64 "\t%" PRIu64 "\t",
+          std::fprintf(parameters.statsfile, "%" PRIu64 "\t%" PRIu64 "\t",
                   swarmsize, amplicons_copies);
-          fprint_id_noabundance(statsfile, seedampliconid, parameters.opt_usearch_abundance);
-          std::fprintf(statsfile,
+          fprint_id_noabundance(parameters.statsfile, seedampliconid, parameters.opt_usearch_abundance);
+          std::fprintf(parameters.statsfile,
                   "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                   abundance, singletons, maxgen, maxradius);
         }
