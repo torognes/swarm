@@ -436,7 +436,7 @@ and eliminates compilation warnings and static analysis warnings:
 - fix: minor bug introduced in version 3.1.1 (alloc-dealloc-mismatch;
   bug had no impact on clustering results),
 - fix: 50 warnings triggered by newly added compilation checks,
-- fix: x clang-tidy warnings (from 2,629 warnings, down to x),
+- fix: x clang-tidy warnings (from 2,629 warnings, down to y),
 - improve: documentation for output option `--network_file`,
 - improve: build target platform detection,
 - improve: code modernization for long-term maintenance,
