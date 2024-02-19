@@ -28,27 +28,19 @@
 
 auto hash_getindex(uint64_t hash) -> uint64_t;
 
-
 auto hash_getnextindex(uint64_t index) -> uint64_t;
-
 
 auto hash_set_occupied(uint64_t index) -> void;
 
-
 auto hash_is_occupied(uint64_t index) -> bool;
-
 
 auto hash_set_value(uint64_t index, uint64_t hash) -> void;
 
-
 auto hash_compare_value(uint64_t index, uint64_t hash) -> bool;
-
 
 auto hash_get_data(uint64_t index) -> unsigned int;
 
-
 auto hash_set_data(uint64_t index, unsigned int amplicon_id) -> void;
-
 
 auto hash_alloc(uint64_t amplicons,
                 std::vector<unsigned char>& hash_occupied_v,
