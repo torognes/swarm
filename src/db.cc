@@ -126,8 +126,8 @@ auto fprint_id(std::FILE * stream, const uint64_t seqno, bool opt_usearch_abunda
                const int64_t opt_append_abundance) -> void
 {
   auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
-  const char * hdrstr = seqinfo.header;
-  const int hdrlen = seqinfo.headerlen;
+  auto const * hdrstr = seqinfo.header;
+  auto const hdrlen = seqinfo.headerlen;
 
   if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
     if (opt_usearch_abundance) {
