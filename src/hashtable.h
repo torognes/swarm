@@ -26,12 +26,6 @@
 #include <vector>
 
 
-extern uint64_t hash_mask;
-extern unsigned char * hash_occupied;
-extern uint64_t * hash_values;
-extern unsigned int * hash_data;
-
-
 auto hash_getindex(uint64_t hash) -> uint64_t;
 
 
