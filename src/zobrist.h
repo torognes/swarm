@@ -25,9 +25,6 @@
 #include <vector>
 
 
-extern uint64_t * zobrist_tab_base;
-extern uint64_t * zobrist_tab_byte_base;
-
 auto zobrist_init(unsigned int n,
                   std::vector<uint64_t> & zobrist_tab_base_v,
                   std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void;
