@@ -32,53 +32,29 @@ extern uint64_t * hash_values;
 extern unsigned int * hash_data;
 
 
-inline auto hash_getindex(uint64_t hash) -> uint64_t
-{
-  // Shift bits right to get independence from the simple Bloom filter hash
-  static constexpr auto divider = 32U;  // drop the first 32 bits
-  hash = hash >> divider;
-  return hash & hash_mask;
-}
+auto hash_getindex(uint64_t hash) -> uint64_t;
 
-inline auto hash_getnextindex(uint64_t index) -> uint64_t
-{
-  return (index + 1) & hash_mask;
-}
 
-inline auto hash_set_occupied(uint64_t index) -> void
-{
-  static constexpr auto divider = 3U;  // drop the first 3 bits
-  static constexpr auto max_range = 7U;  // index & max_range = values ranging from 0 to 7
-  assert((index & max_range) <= 7);
-  hash_occupied[index >> divider] |= static_cast<unsigned char>((1U << (index & max_range)));
-}
+auto hash_getnextindex(uint64_t index) -> uint64_t;
 
-inline auto hash_is_occupied(uint64_t index) -> bool
-{
-  static constexpr auto divider = 3U;  // drop the first 3 bits
-  static constexpr auto max_range = 7U;  // index & max_range = values ranging from 0 to 7
-  return (hash_occupied[index >> divider] & (1U << (index & max_range))) != 0;
-}
 
-inline auto hash_set_value(uint64_t index, uint64_t hash) -> void
-{
-  hash_values[index] = hash;
-}
+auto hash_set_occupied(uint64_t index) -> void;
 
-inline auto hash_compare_value(uint64_t index, uint64_t hash) -> bool
-{
-  return (hash_values[index] == hash);
-}
 
-inline auto hash_get_data(uint64_t index) -> unsigned int
-{
-  return hash_data[index];
-}
+auto hash_is_occupied(uint64_t index) -> bool;
 
-inline auto hash_set_data(uint64_t index, unsigned int amplicon_id) -> void
-{
-  hash_data[index] = amplicon_id;
-}
+
+auto hash_set_value(uint64_t index, uint64_t hash) -> void;
+
+
+auto hash_compare_value(uint64_t index, uint64_t hash) -> bool;
+
+
+auto hash_get_data(uint64_t index) -> unsigned int;
+
+
+auto hash_set_data(uint64_t index, unsigned int amplicon_id) -> void;
+
 
 auto hash_alloc(uint64_t amplicons,
                 std::vector<unsigned char>& hash_occupied_v,
