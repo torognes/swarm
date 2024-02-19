@@ -445,7 +445,7 @@ auto db_read(struct Parameters const & parameters,
   uint64_t filepos = 0;
 
   if (not is_regular) {
-    std::fprintf(logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
+    std::fprintf(parameters.logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
   }
 
   std::size_t linecap = linealloc;
@@ -840,9 +840,9 @@ auto db_read(struct Parameters const & parameters,
   sort_index_if_need_be(seqindex_v);
 
   // user report
-  std::fprintf(logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
-  std::fprintf(logfile, " in %u sequences,", db_getsequencecount());
-  std::fprintf(logfile, " longest %u nt\n", db_getlongestsequence());
+  std::fprintf(parameters.logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
+  std::fprintf(parameters.logfile, " in %u sequences,", db_getsequencecount());
+  std::fprintf(parameters.logfile, " longest %u nt\n", db_getlongestsequence());
 }
 
 
