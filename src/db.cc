@@ -98,7 +98,6 @@ static uint64_t missingabundance_lineno {0};
 static char * missingabundance_header {nullptr};
 
 using seqinfo_t = struct seqinfo_s;
-extern seqinfo_t * seqindex;
 
 seqinfo_t * seqindex {nullptr};
 
