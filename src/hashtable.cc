@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cassert>
 #include <cstdint>
 #include <cstring>  // memset
 #include <vector>
