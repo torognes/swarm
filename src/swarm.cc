@@ -212,53 +212,53 @@ auto args_show() -> void  // refactoring: pass a ref to parameters as argument
   cpu_features_show(parameters);
 #endif
 
-  std::fprintf(logfile, "Database file:     %s\n", parameters.input_filename.c_str());
-  std::fprintf(logfile, "Output file:       %s\n", parameters.opt_output_file.c_str());
+  std::fprintf(parameters.logfile, "Database file:     %s\n", parameters.input_filename.c_str());
+  std::fprintf(parameters.logfile, "Output file:       %s\n", parameters.opt_output_file.c_str());
   if (not parameters.opt_statistics_file.empty()) {
-    std::fprintf(logfile, "Statistics file:   %s\n", parameters.opt_statistics_file.c_str());
+    std::fprintf(parameters.logfile, "Statistics file:   %s\n", parameters.opt_statistics_file.c_str());
   }
   if (not parameters.opt_uclust_file.empty()) {
-    std::fprintf(logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
+    std::fprintf(parameters.logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
   }
   if (not parameters.opt_internal_structure.empty()) {
-    std::fprintf(logfile, "Int. struct. file  %s\n", parameters.opt_internal_structure.c_str());
+    std::fprintf(parameters.logfile, "Int. struct. file  %s\n", parameters.opt_internal_structure.c_str());
   }
   if (not parameters.opt_network_file.empty()) {
-    std::fprintf(logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
+    std::fprintf(parameters.logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
   }
-  std::fprintf(logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
-  std::fprintf(logfile, "Threads:           %" PRId64 "\n", parameters.opt_threads);
+  std::fprintf(parameters.logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
+  std::fprintf(parameters.logfile, "Threads:           %" PRId64 "\n", parameters.opt_threads);
 
   if (parameters.opt_differences > 1)
     {
-      std::fprintf(logfile,
+      std::fprintf(parameters.logfile,
               "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
               parameters.opt_match_reward, parameters.opt_mismatch_penalty);
-      std::fprintf(logfile,
+      std::fprintf(parameters.logfile,
               "Gap penalties:     opening: %" PRId64 ", extension: %" PRId64 "\n",
               parameters.opt_gap_opening_penalty, parameters.opt_gap_extension_penalty);
-      std::fprintf(logfile,
+      std::fprintf(parameters.logfile,
               "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
               "gap extension: %" PRId64 "\n",
               parameters.penalty_mismatch, parameters.penalty_gapopen, parameters.penalty_gapextend);
     }
-  std::fprintf(logfile, "Break clusters:        %s\n",
+  std::fprintf(parameters.logfile, "Break clusters:        %s\n",
           parameters.opt_no_cluster_breaking ? "No" : "Yes");
   if (parameters.opt_fastidious) {
-    std::fprintf(logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
+    std::fprintf(parameters.logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
             parameters.opt_boundary);
   }
   else {
-    std::fprintf(logfile, "Fastidious:        No\n");
+    std::fprintf(parameters.logfile, "Fastidious:        No\n");
   }
-  std::fprintf(logfile, "\n");
+  std::fprintf(parameters.logfile, "\n");
 }
 
 
 auto show(const std::vector<std::string> & message) -> void
 {
   for (const auto & message_element : message) {
-    std::fprintf(logfile, "%s", message_element.c_str());
+    std::fprintf(parameters.logfile, "%s", message_element.c_str());
   }
 }
 
@@ -629,8 +629,9 @@ auto open_files() -> void
 
   if (not parameters.opt_log.empty())
     {
-      logfile = fopen_output(parameters.opt_log.c_str());
-      if (logfile == nullptr) {
+      parameters.logfile = fopen_output(parameters.opt_log.c_str());
+      logfile = parameters.logfile;
+      if (parameters.logfile == nullptr) {
         fatal(error_prefix, "Unable to open log file for writing.");
       }
     }
@@ -681,7 +682,7 @@ auto close_files() -> void {
   const std::vector<std::FILE *> file_handles
     {parameters.network_file, parameters.internal_structure_file,
      parameters.uclustfile, parameters.statsfile, parameters.seeds_file, parameters.outfile,
-     logfile};
+     parameters.logfile};
   for (auto * const file_handle : file_handles) {
     if (file_handle != nullptr) {
       std::fclose(file_handle);
