@@ -83,7 +83,6 @@ int64_t penalty_gapopen;
 /* fine names and command line options */
 
 std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
-std::FILE * network_file {nullptr};
 
 constexpr int n_options {26};
 
@@ -671,7 +670,6 @@ auto open_files() -> void
   if (not parameters.opt_network_file.empty())
     {
       parameters.network_file = fopen_output(parameters.opt_network_file.c_str());
-      network_file = parameters.network_file;
       if (parameters.network_file == nullptr) {
         fatal(error_prefix, "Unable to open network file for writing.");
       }

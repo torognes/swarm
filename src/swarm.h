@@ -108,4 +108,3 @@ struct Parameters {
 // of the translation units.
 
 extern std::FILE * logfile;
-extern std::FILE * network_file;
