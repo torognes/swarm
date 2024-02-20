@@ -86,8 +86,6 @@ std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::F
 
 constexpr int n_options {26};
 
-std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
-
 // refactoring: add option -q (no-cluster-breaking)
 const std::array<struct option, 25> long_options = {
   { // struct option { name, has_arg, flag, val }
@@ -265,6 +263,7 @@ auto show(const std::vector<std::string> &message,
 auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::array<bool, n_options>
 {
   /* Set defaults */
+  const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
   std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
   opt_boundary = parameters.opt_boundary;
