@@ -134,18 +134,10 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	utils/nt_codec.o utils/open_and_close_files.o utils/progress.o \
 	variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
 
-DEPS = Makefile arch.h algo.h algod1.h bloomflex.h bloompat.h db.h derep.h hashtable.h \
+DEPS = Makefile $(wildcard utils/*.h) arch.h algo.h algod1.h bloomflex.h bloompat.h \
+	db.h derep.h hashtable.h \
 	nw.h qgram.h scan.h search16.h search8.h swarm.h \
-	utils/alignment_parameters.h \
-	util.h utils/backtrack.h utils/cigar.h utils/fatal.h utils/gcd.h utils/hashtable_size.h \
-	utils/input_output.h \
-	utils/intrinsics_to_functions_aarch64.h utils/intrinsics_to_functions_ppc.h \
-	utils/intrinsics_to_functions_x86_64.h \
-	utils/nt_codec.h utils/open_and_close_files.h utils/opt_boundary.h utils/opt_log.h utils/opt_logfile.h \
-	utils/opt_no_cluster_breaking.h utils/opt_threads.h utils/progress.h utils/pseudo_rng.h \
-	utils/qgram_array.h utils/qgram_threadinfo.h utils/queryinfo.h utils/search_data.h \
-	utils/score_matrix.h utils/threads.h utils/x86_cpu_feature_popcnt.h variants.h \
-	x86_cpu_features.h zobrist.h
+	variants.h util.h x86_cpu_features.h zobrist.h
 
 
 all : $(PROG)
