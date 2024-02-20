@@ -42,6 +42,7 @@ enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
 //   uint64_t length;
 // };
 
+
 template <uint8_t n_bits>
 auto backtrack(char * qseq,
                char * dseq,
