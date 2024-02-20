@@ -205,7 +205,7 @@ auto args_long(char * str, const char * option) -> int64_t
 }
 
 
-auto args_show() -> void  // refactoring: pass a ref to parameters as argument
+auto args_show(struct Parameters & parameters) -> void  // refactoring: extract cpu_features and cpu_test to make const & 
 {
 #ifdef __x86_64__
   cpu_features_detect(parameters);
@@ -699,7 +699,7 @@ auto main(int argc, char** argv) -> int
   args_check(used_options);
   open_files();
   show(header_message);
-  args_show();
+  args_show(parameters);
 
   // parse fasta input
   std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *
