@@ -130,6 +130,7 @@ auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_
   auto const hdrlen = seqinfo.headerlen;
   auto const abundance = seqinfo.abundance;
 
+  // if abundance is missing and if user says that a missing abundance is ok, then...
   if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
     if (opt_usearch_abundance) {
       std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, abundance);
