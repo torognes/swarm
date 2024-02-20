@@ -69,7 +69,6 @@ const std::string swarm_version {"3.1.4"};
 
 /* OPTIONS */
 
-struct Parameters parameters;
 std::string opt_log;
 
 int64_t opt_boundary;
@@ -205,7 +204,7 @@ auto args_long(char * str, const char * option) -> int64_t
 }
 
 
-auto args_show(struct Parameters & parameters) -> void  // refactoring: extract cpu_features and cpu_test to make const & 
+auto args_show(struct Parameters const & parameters) -> void
 {
 #ifdef __x86_64__
   cpu_features_show(parameters);
@@ -254,15 +253,16 @@ auto args_show(struct Parameters & parameters) -> void  // refactoring: extract 
 }
 
 
-auto show(const std::vector<std::string> & message) -> void
+auto show(const std::vector<std::string> &message,
+          std::FILE * output_stream) -> void
 {
   for (const auto & message_element : message) {
-    std::fprintf(parameters.logfile, "%s", message_element.c_str());
+    std::fprintf(output_stream, "%s", message_element.c_str());
   }
 }
 
 
-auto args_init(int argc, char **argv) -> std::array<bool, n_options>
+auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::array<bool, n_options>
 {
   /* Set defaults */
   std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
@@ -437,8 +437,8 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
         break;
 
       default:
-        show(header_message);
-        show(args_usage_message);
+        show(header_message, parameters.logfile);
+        show(args_usage_message, parameters.logfile);
         fatal();
     }
   }
@@ -468,13 +468,15 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
 
 #ifdef __x86_64__
   cpu_features_detect(parameters);
+  cpu_features_test(parameters);
 #endif
 
   return used_options;
 }
 
 
-auto args_check(const std::array<bool, n_options> & used_options) -> void {
+auto args_check(const std::array<bool, n_options> &used_options,
+                struct Parameters const & parameters) -> void {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   static constexpr unsigned int min_bits_per_entry {2};
@@ -594,13 +596,13 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
   }
 
   if (parameters.opt_version) {
-    show(header_message);
+    show(header_message, parameters.logfile);
     std::exit(EXIT_SUCCESS);
   }
 
   if (parameters.opt_help) {
-    show(header_message);
-    show(args_usage_message);
+    show(header_message, parameters.logfile);
+    show(args_usage_message, parameters.logfile);
     std::exit(EXIT_SUCCESS);
   }
 
@@ -617,14 +619,10 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
     fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
           "please use different parameter values.");
   }
-
-#ifdef __x86_64__
-  cpu_features_test(parameters);
-#endif
 }
 
 
-auto open_files() -> void
+auto open_files(struct Parameters & parameters) -> void
 {
   // special case (always '-')??
   parameters.outfile = fopen_output(parameters.opt_output_file.c_str());
@@ -685,7 +683,7 @@ auto open_files() -> void
 }
 
 
-auto close_files() -> void {
+auto close_files(struct Parameters & parameters) -> void {
   const std::vector<std::FILE *> file_handles
     {parameters.network_file, parameters.internal_structure_file,
      parameters.uclustfile, parameters.statsfile, parameters.seeds_file, parameters.outfile,
@@ -701,10 +699,11 @@ auto close_files() -> void {
 auto main(int argc, char** argv) -> int
 {
   // initialization and checks
-  const auto used_options = args_init(argc, argv);
-  args_check(used_options);
-  open_files();
-  show(header_message);
+  struct Parameters parameters;
+  const auto used_options = args_init(argc, argv, parameters);
+  args_check(used_options, parameters);
+  open_files(parameters);
+  show(header_message, parameters.logfile);
   args_show(parameters);
 
   // parse fasta input
@@ -737,5 +736,5 @@ auto main(int argc, char** argv) -> int
   // clean up
   zobrist_exit();
   db_free();
-  close_files();
+  close_files(parameters);
 }
