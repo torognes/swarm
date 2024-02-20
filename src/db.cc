@@ -267,11 +267,11 @@ auto find_usearch_abundance(const char * header,
   static const std::string digit_chars {"0123456789"};
   auto const hlen = static_cast<int64_t>(std::strlen(header));
   auto const alen = static_cast<int64_t>(attribute.length());
-  std::ptrdiff_t position = 0;
+  int64_t position = 0;
 
   while (position + alen < hlen)
     {
-      auto const * result = std::strstr(header + position, attribute.c_str());
+      auto const * result = std::strstr(std::next(header, position), attribute.c_str());
 
       /* no match */
       assert(result != nullptr); // assert to prove impossible
@@ -282,13 +282,13 @@ auto find_usearch_abundance(const char * header,
       position = result - header;
 
       /* check for ';' in front */
-      if ((position > 0) and (header[position - 1] != ';'))
+      if ((position > 0) and (*std::next(header, position - 1) != ';'))
         {
           position += alen + 1;
           continue;
         }
 
-      auto const n_digits = static_cast<int64_t>(std::strspn(header + position + alen, digit_chars.c_str()));
+      auto const n_digits = static_cast<int64_t>(std::strspn(std::next(header, position + alen), digit_chars.c_str()));
 
       /* check for at least one digit */
       if (n_digits == 0)
@@ -298,7 +298,7 @@ auto find_usearch_abundance(const char * header,
         }
 
       /* check for ';' after */
-      if ((position + alen + n_digits < hlen) and (header[position + alen + n_digits] != ';'))
+      if ((position + alen + n_digits < hlen) and (*std::next(header, position + alen + n_digits) != ';'))
         {
           position += alen + n_digits + 2;
           continue;
@@ -312,7 +312,7 @@ auto find_usearch_abundance(const char * header,
         start = 0;
       }
       end   = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
-      number = std::atol(header + position + alen);
+      number = std::atol(std::next(header, position + alen));
 
       return true;
     }
