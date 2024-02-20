@@ -180,23 +180,23 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
                                   const uint64_t abundance,
                                   const bool opt_usearch_abundance) -> void
 {
-  auto const * seqinfo = seqindex + seqno;
+  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
 
   if (opt_usearch_abundance) {
     std::fprintf(stream,
             "%.*s%ssize=%" PRIu64 ";%.*s",
-            seqinfo->abundance_start,
-            seqinfo->header,
-            seqinfo->abundance_start > 0 ? ";" : "",
+            seqinfo.abundance_start,
+            seqinfo.header,
+            seqinfo.abundance_start > 0 ? ";" : "",
             abundance,
-            seqinfo->headerlen - seqinfo->abundance_end,
-            seqinfo->header + seqinfo->abundance_end);
+            seqinfo.headerlen - seqinfo.abundance_end,
+            seqinfo.header + seqinfo.abundance_end);
   }
   else {
     std::fprintf(stream,
             "%.*s_%" PRIu64,
-            seqinfo->abundance_start,
-            seqinfo->header,
+            seqinfo.abundance_start,
+            seqinfo.header,
             abundance);
   }
 }
