@@ -44,29 +44,8 @@ auto bloom_init(uint64_t size, struct bloom_s & bloom_filter) -> struct bloom_s 
 
 auto bloom_exit(struct bloom_s * bloom_filter) -> void;
 
-
-// --------------------------------------------------- used only in this header
-
-inline auto bloom_adr(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t *
-{
-  return bloom_filter->bitmap + ((hash >> bloom_pattern_shift) & bloom_filter->mask);
-}
-
-inline auto bloom_pat(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t
-{
-  return bloom_filter->patterns[hash & bloom_pattern_mask];
-}
-
-// ------------------------------------------------------------------------ end
+// used in algod1.cc
+auto bloom_set(struct bloom_s * bloom_filter, uint64_t hash) -> void;
 
 // used in algod1.cc
-inline auto bloom_set(struct bloom_s * bloom_filter, uint64_t hash) -> void
-{
-  * bloom_adr(bloom_filter, hash) &= compl bloom_pat(bloom_filter, hash);
-}
-
-// used in algod1.cc
-inline auto bloom_get(struct bloom_s * bloom_filter, uint64_t hash) -> bool
-{
-  return (* bloom_adr(bloom_filter, hash) & bloom_pat(bloom_filter, hash)) == 0U;
-}
+auto bloom_get(struct bloom_s * bloom_filter, uint64_t hash) -> bool;

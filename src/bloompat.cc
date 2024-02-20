@@ -39,6 +39,33 @@
 #include <limits>
 
 
+// --------------------------------------------------- used only in bloompat.cc
+
+auto bloom_adr(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t *
+{
+  return bloom_filter->bitmap + ((hash >> bloom_pattern_shift) & bloom_filter->mask);
+}
+
+auto bloom_pat(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t
+{
+  return bloom_filter->patterns[hash & bloom_pattern_mask];
+}
+
+// ------------------------------------------------------------------------ end
+
+// used in algod1.cc
+auto bloom_set(struct bloom_s * bloom_filter, uint64_t hash) -> void
+{
+  * bloom_adr(bloom_filter, hash) &= compl bloom_pat(bloom_filter, hash);
+}
+
+// used in algod1.cc
+auto bloom_get(struct bloom_s * bloom_filter, uint64_t hash) -> bool
+{
+  return (* bloom_adr(bloom_filter, hash) & bloom_pat(bloom_filter, hash)) == 0U;
+}
+
+
 auto bloom_patterns_generate(struct bloom_s & bloom_filter) -> void
 {
   static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
