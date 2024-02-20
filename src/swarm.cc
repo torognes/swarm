@@ -236,7 +236,7 @@ auto args_show(struct Parameters const & parameters) -> void
               "gap extension: %" PRId64 "\n",
               parameters.penalty_mismatch, parameters.penalty_gapopen, parameters.penalty_gapextend);
     }
-  std::fprintf(parameters.logfile, "Break clusters:        %s\n",
+  std::fprintf(parameters.logfile, "Break clusters:    %s\n",
           parameters.opt_no_cluster_breaking ? "No" : "Yes");
   if (parameters.opt_fastidious) {
     std::fprintf(parameters.logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
