@@ -208,8 +208,6 @@ auto args_long(char * str, const char * option) -> int64_t
 auto args_show(struct Parameters & parameters) -> void  // refactoring: extract cpu_features and cpu_test to make const & 
 {
 #ifdef __x86_64__
-  cpu_features_detect(parameters);
-  cpu_features_test(parameters);
   cpu_features_show(parameters);
 #endif
 
@@ -468,6 +466,10 @@ auto args_init(int argc, char **argv) -> std::array<bool, n_options>
   parameters.penalty_gapextend /= penalty_factor;
   penalty_gapextend = parameters.penalty_gapextend;
 
+#ifdef __x86_64__
+  cpu_features_detect(parameters);
+#endif
+
   return used_options;
 }
 
@@ -615,6 +617,10 @@ auto args_check(const std::array<bool, n_options> & used_options) -> void {
     fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
           "please use different parameter values.");
   }
+
+#ifdef __x86_64__
+  cpu_features_test(parameters);
+#endif
 }
 
 
