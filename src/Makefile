@@ -134,11 +134,7 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	utils/nt_codec.o utils/open_and_close_files.o utils/progress.o \
 	variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
 
-DEPS = Makefile $(wildcard utils/*.h) arch.h algo.h algod1.h bloomflex.h bloompat.h \
-	db.h derep.h hashtable.h \
-	nw.h qgram.h scan.h search16.h search8.h swarm.h \
-	util.h variants.h x86_cpu_features.h zobrist.h
-
+DEPS = Makefile $(wildcard *.h) $(wildcard utils/*.h)
 
 all : $(PROG)
 
