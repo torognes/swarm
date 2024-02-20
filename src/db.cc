@@ -265,13 +265,13 @@ auto find_usearch_abundance(const char * header,
 
   static const std::string attribute {"size="};
   static const std::string digit_chars {"0123456789"};
-  const uint64_t hlen = std::strlen(header);
-  const uint64_t alen = attribute.length();
-  uint64_t position = 0;
+  auto const hlen = static_cast<int64_t>(std::strlen(header));
+  auto const alen = static_cast<int64_t>(attribute.length());
+  std::ptrdiff_t position = 0;
 
   while (position + alen < hlen)
     {
-      const char * result = std::strstr(header + position, attribute.c_str());
+      auto const * result = std::strstr(header + position, attribute.c_str());
 
       /* no match */
       assert(result != nullptr); // assert to prove impossible
@@ -279,7 +279,7 @@ auto find_usearch_abundance(const char * header,
         break;
       }
 
-      position = static_cast<uint64_t>(result - header);
+      position = result - header;
 
       /* check for ';' in front */
       if ((position > 0) and (header[position - 1] != ';'))
@@ -288,7 +288,7 @@ auto find_usearch_abundance(const char * header,
           continue;
         }
 
-      const uint64_t n_digits = std::strspn(header + position + alen, digit_chars.c_str());
+      auto const n_digits = static_cast<int64_t>(std::strspn(header + position + alen, digit_chars.c_str()));
 
       /* check for at least one digit */
       if (n_digits == 0)
