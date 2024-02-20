@@ -180,7 +180,7 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
                                   const uint64_t abundance,
                                   const bool opt_usearch_abundance) -> void
 {
-  const seqinfo_t * seqinfo = seqindex + seqno;
+  auto const * seqinfo = seqindex + seqno;
 
   if (opt_usearch_abundance) {
     std::fprintf(stream,
