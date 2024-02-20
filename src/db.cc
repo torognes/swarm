@@ -190,7 +190,7 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
                  seqinfo.abundance_start > 0 ? ";" : "",
                  abundance,
                  seqinfo.headerlen - seqinfo.abundance_end,
-                 seqinfo.header + seqinfo.abundance_end);
+                 std::next(seqinfo.header, seqinfo.abundance_end));
   }
   else {
     std::fprintf(stream,
