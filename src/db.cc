@@ -236,7 +236,7 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  if (*std::next(abundance_string, n_digits + 1) != 0) {
+  if (*std::next(abundance_string, static_cast<std::ptrdiff_t>(n_digits + 1)) != 0) {
     return false;
   }
 
