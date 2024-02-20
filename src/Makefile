@@ -137,7 +137,7 @@ OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 DEPS = Makefile $(wildcard utils/*.h) arch.h algo.h algod1.h bloomflex.h bloompat.h \
 	db.h derep.h hashtable.h \
 	nw.h qgram.h scan.h search16.h search8.h swarm.h \
-	variants.h util.h x86_cpu_features.h zobrist.h
+	util.h variants.h x86_cpu_features.h zobrist.h
 
 
 all : $(PROG)
