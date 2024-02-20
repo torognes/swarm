@@ -186,7 +186,7 @@ auto args_long(char * str, const char * option) -> int64_t
 {
   static constexpr int base_value {10};
   char * endptr {nullptr};
-  const int64_t temp = strtol(str, & endptr, base_value);
+  const int64_t number = strtol(str, & endptr, base_value);
   if (*endptr != 0)
     {
       fatal(error_prefix, "Invalid numeric argument for option ", option, ".\n\n",
@@ -196,7 +196,7 @@ auto args_long(char * str, const char * option) -> int64_t
             "   (swarm accepts '--help' or '-h', but not '-help')\n\n",
             "Please see 'swarm --help' for more details.");
     }
-  return temp;
+  return number;
 }
 
 
