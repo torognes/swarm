@@ -184,20 +184,20 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
 
   if (opt_usearch_abundance) {
     std::fprintf(stream,
-            "%.*s%ssize=%" PRIu64 ";%.*s",
-            seqinfo.abundance_start,
-            seqinfo.header,
-            seqinfo.abundance_start > 0 ? ";" : "",
-            abundance,
-            seqinfo.headerlen - seqinfo.abundance_end,
-            seqinfo.header + seqinfo.abundance_end);
+                 "%.*s%ssize=%" PRIu64 ";%.*s",
+                 seqinfo.abundance_start,
+                 seqinfo.header,
+                 seqinfo.abundance_start > 0 ? ";" : "",
+                 abundance,
+                 seqinfo.headerlen - seqinfo.abundance_end,
+                 seqinfo.header + seqinfo.abundance_end);
   }
   else {
     std::fprintf(stream,
-            "%.*s_%" PRIu64,
-            seqinfo.abundance_start,
-            seqinfo.header,
-            abundance);
+                 "%.*s_%" PRIu64,
+                 seqinfo.abundance_start,
+                 seqinfo.header,
+                 abundance);
   }
 }
 
