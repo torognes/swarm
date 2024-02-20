@@ -30,9 +30,9 @@
 #include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "utils/input_output.h"
+#include "utils/open_and_close_files.h"
 #include "utils/opt_boundary.h"
 #include "utils/opt_log.h"
-#include "utils/opt_logfile.h"
 #include "utils/opt_no_cluster_breaking.h"
 #include "utils/opt_threads.h"
 #include "utils/seqinfo.h"
@@ -81,8 +81,6 @@ int64_t penalty_gapopen;
 
 
 /* fine names and command line options */
-
-std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
 
 constexpr int n_options {26};
 
@@ -617,80 +615,6 @@ auto args_check(const std::array<bool, n_options> &used_options,
   if (parameters.penalty_mismatch > uint8_max) {
     fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
           "please use different parameter values.");
-  }
-}
-
-
-auto open_files(struct Parameters & parameters) -> void
-{
-  // special case (always '-')??
-  parameters.outfile = fopen_output(parameters.opt_output_file.c_str());
-  if (parameters.outfile == nullptr) {
-    fatal(error_prefix, "Unable to open output file for writing.");
-  }
-
-  /* open files */
-
-  if (not parameters.opt_log.empty())
-    {
-      parameters.logfile = fopen_output(parameters.opt_log.c_str());
-      logfile = parameters.logfile;
-      if (parameters.logfile == nullptr) {
-        fatal(error_prefix, "Unable to open log file for writing.");
-      }
-    }
-
-  if (not parameters.opt_seeds.empty())
-    {
-      parameters.seeds_file = fopen_output(parameters.opt_seeds.c_str());
-      if (parameters.seeds_file == nullptr) {
-        fatal(error_prefix, "Unable to open seeds file for writing.");
-      }
-    }
-
-  if (not parameters.opt_statistics_file.empty())
-    {
-      parameters.statsfile = fopen_output(parameters.opt_statistics_file.c_str());
-      if (parameters.statsfile == nullptr) {
-        fatal(error_prefix, "Unable to open statistics file for writing.");
-      }
-    }
-
-  if (not parameters.opt_uclust_file.empty())
-    {
-      parameters.uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
-      if (parameters.uclustfile == nullptr) {
-        fatal(error_prefix, "Unable to open uclust file for writing.");
-      }
-    }
-
-  if (not parameters.opt_internal_structure.empty())
-    {
-      parameters.internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
-      if (parameters.internal_structure_file == nullptr) {
-        fatal(error_prefix, "Unable to open internal structure file for writing.");
-      }
-    }
-
-  if (not parameters.opt_network_file.empty())
-    {
-      parameters.network_file = fopen_output(parameters.opt_network_file.c_str());
-      if (parameters.network_file == nullptr) {
-        fatal(error_prefix, "Unable to open network file for writing.");
-      }
-    }
-}
-
-
-auto close_files(struct Parameters & parameters) -> void {
-  const std::vector<std::FILE *> file_handles
-    {parameters.network_file, parameters.internal_structure_file,
-     parameters.uclustfile, parameters.statsfile, parameters.seeds_file, parameters.outfile,
-     parameters.logfile};
-  for (auto * const file_handle : file_handles) {
-    if (file_handle != nullptr) {
-      std::fclose(file_handle);
-    }
   }
 }
 
