@@ -484,7 +484,7 @@ auto db_read(struct Parameters const & parameters,
       }
 
       auto headerlen = static_cast<unsigned int>
-        (std::strcspn(line + 1, " \r\n"));
+        (std::strcspn(std::next(line), " \r\n"));
 
       headerchars += headerlen;
       longestheader = std::max(headerlen, longestheader);
@@ -509,7 +509,7 @@ auto db_read(struct Parameters const & parameters,
         {
           data_v.resize(data_v.size() + memchunk);
         }
-      std::memcpy(&data_v[datalen], line + 1, headerlen);
+      std::memcpy(&data_v[datalen], std::next(line), headerlen);
       data_v[datalen + headerlen] = 0;
       datalen += headerlen + 1;
 
@@ -557,7 +557,7 @@ auto db_read(struct Parameters const & parameters,
           auto * line_ptr = line;
           while((character = static_cast<unsigned char>(*line_ptr)) != null_char)
             {
-              ++line_ptr;
+              line_ptr = std::next(line_ptr);
               const auto mapped_char = map_nt[character];
               if (mapped_char != 0)
                 {
@@ -680,19 +680,19 @@ auto db_read(struct Parameters const & parameters,
 
       /* get line number */
       const unsigned int line_number = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
-      cursor += sizeof(unsigned int);
+      cursor = std::next(cursor, sizeof(unsigned int));
 
       /* get header */
       a_sequence.header = cursor;
       a_sequence.headerlen = static_cast<int>(std::strlen(a_sequence.header));
-      cursor += a_sequence.headerlen + 1;
+      cursor = std::next(cursor, a_sequence.headerlen + 1);
 
       /* and sequence */
       const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
       a_sequence.seqlen = seqlen;
-      cursor += sizeof(unsigned int);
+      cursor = std::next(cursor, sizeof(unsigned int));
       a_sequence.seq = cursor;
-      cursor += nt_bytelength(seqlen);
+      cursor = std::next(cursor, nt_bytelength(seqlen));
 
       /* get amplicon abundance */
       find_abundance(a_sequence, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
