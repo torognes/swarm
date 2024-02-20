@@ -250,10 +250,10 @@ auto args_show(struct Parameters const & parameters) -> void
 
 
 auto show(const std::vector<std::string> &message,
-          std::FILE * output_stream) -> void
+          std::FILE * log_stream) -> void
 {
   for (const auto & message_element : message) {
-    std::fprintf(output_stream, "%s", message_element.c_str());
+    std::fprintf(log_stream, "%s", message_element.c_str());
   }
 }
 
