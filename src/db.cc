@@ -673,13 +673,13 @@ auto db_read(struct Parameters const & parameters,
   seqindex_v.resize(sequences);
   seqindex = seqindex_v.data();
 
-  char * cursor = data_v.data();
+  auto * cursor = data_v.data();
   progress_init("Indexing database:", sequences);
   auto counter = 0ULL;
   for(auto& a_sequence: seqindex_v) {
 
       /* get line number */
-      const unsigned int line_number = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
+      const auto line_number = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
       cursor = std::next(cursor, sizeof(unsigned int));
 
       /* get header */
@@ -688,7 +688,7 @@ auto db_read(struct Parameters const & parameters,
       cursor = std::next(cursor, a_sequence.headerlen + 1);
 
       /* and sequence */
-      const unsigned int seqlen = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
+      const auto seqlen = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
       a_sequence.seqlen = seqlen;
       cursor = std::next(cursor, sizeof(unsigned int));
       a_sequence.seq = cursor;
