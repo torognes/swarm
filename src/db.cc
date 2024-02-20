@@ -230,13 +230,13 @@ auto find_swarm_abundance(const char * header,
     return false;
   }
 
-  const std::size_t n_digits = std::strspn(abundance_string + 1, digit_chars.c_str());
+  const std::size_t n_digits = std::strspn(std::next(abundance_string), digit_chars.c_str());
 
   if (n_digits > max_digits) {
     return false;
   }
 
-  if (abundance_string[n_digits + 1] != 0) {
+  if (*std::next(abundance_string, n_digits + 1) != 0) {
     return false;
   }
 
@@ -245,7 +245,7 @@ auto find_swarm_abundance(const char * header,
 
   start = static_cast<int>(abundance_start);
   end = static_cast<int>(abundance_end);
-  number = std::atol(abundance_string + 1); // refactoring: std::strtol(start, end, base)
+  number = std::atol(std::next(abundance_string)); // refactoring: std::strtol(start, end, base)
 
   return true;
 }
