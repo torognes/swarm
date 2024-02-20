@@ -150,21 +150,23 @@ auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool 
   auto const * seqinfo = seqindex + seqno;
   auto const * hdrstr = seqinfo->header;
   auto const hdrlen = seqinfo->headerlen;
+  auto const abundance_start = seqinfo->abundance_start;
+  auto const abundance_end = seqinfo->abundance_end;
 
-  if (seqinfo->abundance_start < seqinfo->abundance_end)
+  if (abundance_start < abundance_end)
     {
       /* print start of header */
-      std::fprintf(stream, "%.*s", seqinfo->abundance_start, hdrstr);
+      std::fprintf(stream, "%.*s", abundance_start, hdrstr);
 
       if (opt_usearch_abundance)
         {
           /* print semicolon if the abundance is not at either end */
-          if ((seqinfo->abundance_start > 0) and (seqinfo->abundance_end < hdrlen)) {
+          if ((abundance_start > 0) and (abundance_end < hdrlen)) {
             std::fprintf(stream, ";");
           }
 
           /* print remaining part */
-          std::fprintf(stream, "%.*s", hdrlen - seqinfo->abundance_end, hdrstr + seqinfo->abundance_end);
+          std::fprintf(stream, "%.*s", hdrlen - abundance_end, hdrstr + abundance_end);
         }
     }
   else {
