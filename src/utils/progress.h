@@ -34,4 +34,4 @@
 
 auto progress_init(const char * prompt, uint64_t size) -> void;
 auto progress_update(uint64_t progress) -> void;
-auto progress_done() -> void;
+auto progress_done(struct Parameters const & parameters) -> void;

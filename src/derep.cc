@@ -72,7 +72,8 @@ struct Stats
 };
 
 
-auto sort_seeds(std::vector<struct bucket>& hashtable) -> void {
+auto sort_seeds(struct Parameters const & parameters,
+                std::vector<struct bucket>& hashtable) -> void {
   progress_init("Sorting:          ", 1);
 
   auto compare_seeds = [](struct bucket const& lhs,
@@ -92,7 +93,7 @@ auto sort_seeds(std::vector<struct bucket>& hashtable) -> void {
   };
 
   std::sort(hashtable.begin(), hashtable.end(), compare_seeds);
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -117,7 +118,7 @@ auto write_stats_file(struct Parameters const & parameters,
     ++counter;
     progress_update(counter);
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -141,7 +142,7 @@ auto write_structure_file(struct Parameters const & parameters,
     ++counter;
     progress_update(counter);
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -184,7 +185,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
     ++counter;
     progress_update(counter);
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -201,7 +202,7 @@ auto write_representative_sequences(struct Parameters const & parameters,
     ++counter;
     progress_update(counter);
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -232,7 +233,7 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
   }
     std::fputc('\n', parameters.outfile);
 
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -261,11 +262,12 @@ auto write_swarms_default_format(struct Parameters const & parameters,
     progress_update(counter);
   }
 
-  progress_done();
+  progress_done(parameters);
 }
 
 
-auto dereplicating(std::vector<struct bucket> & hashtable,
+auto dereplicating(struct Parameters const & parameters,
+                   std::vector<struct bucket> & hashtable,
                    std::vector<unsigned int> & nextseqtab) -> struct Stats
 {
   progress_init("Dereplicating:    ", nextseqtab.size());
@@ -339,7 +341,7 @@ auto dereplicating(std::vector<struct bucket> & hashtable,
 
       progress_update(seqno);
     }
-  progress_done();
+  progress_done(parameters);
 
   return stats;
 }
@@ -389,10 +391,10 @@ auto dereplicate(struct Parameters const & parameters) -> void
   std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
 
   // dereplicate input sequences
-  const auto stats = dereplicating(hashtable, nextseqtab);
+  const auto stats = dereplicating(parameters, hashtable, nextseqtab);
 
   // sort by decreasing abundance
-  sort_seeds(hashtable);
+  sort_seeds(parameters, hashtable);
   release_unused_memory(hashtable, stats.swarmcount);
 
   output_results(parameters, hashtable, nextseqtab);

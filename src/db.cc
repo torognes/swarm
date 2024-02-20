@@ -385,7 +385,8 @@ auto find_abundance(struct seqinfo_s & seqinfo, uint64_t lineno,
 }
 
 
-auto sort_index_if_need_be(std::vector<struct seqinfo_s> & seqindex_v) -> void {
+auto sort_index_if_need_be(struct Parameters const & parameters,
+                           std::vector<struct seqinfo_s> & seqindex_v) -> void {
       progress_init("Abundance sorting:", 1);
 
       auto compare_entries = [](struct seqinfo_s const& lhs,
@@ -408,7 +409,7 @@ auto sort_index_if_need_be(std::vector<struct seqinfo_s> & seqindex_v) -> void {
                              compare_entries)) {
         std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
       }
-      progress_done();
+      progress_done(parameters);
 }
 
 
@@ -643,7 +644,7 @@ auto db_read(struct Parameters const & parameters,
         progress_update(filepos);
       }
     }
-  progress_done();
+  progress_done(parameters);
 
   std::fclose(input_fp);
 
@@ -820,7 +821,7 @@ auto db_read(struct Parameters const & parameters,
             " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta");
     }
 
-  progress_done();
+  progress_done(parameters);
 
   if (line != nullptr)
     {
@@ -842,7 +843,7 @@ auto db_read(struct Parameters const & parameters,
             "and the first space or the end of the line, whichever comes first.");
     }
 
-  sort_index_if_need_be(seqindex_v);
+  sort_index_if_need_be(parameters, seqindex_v);
 
   // user report
   std::fprintf(parameters.logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
@@ -852,7 +853,8 @@ auto db_read(struct Parameters const & parameters,
 
 
 // refactoring: only used in algo.cc, extract to its own header file?
-auto db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v) -> void
+auto db_qgrams_init(struct Parameters const & parameters,
+                    std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
   // refactoring: qgrams is an array of char arrays!
   // - vector of std::array is not allowed,
@@ -873,7 +875,7 @@ auto db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v) -> void
     progress_update(counter);
     ++counter;
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 

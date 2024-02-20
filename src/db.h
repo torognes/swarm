@@ -62,7 +62,8 @@ auto db_free() -> void;
 
 auto db_putseq(int64_t seqno) -> void;
 
-auto db_qgrams_init(std::vector<struct seqinfo_s> & seqindex_v) -> void;
+auto db_qgrams_init(struct Parameters const & parameters,
+                    std::vector<struct seqinfo_s> & seqindex_v) -> void;
 
 auto db_qgrams_done() -> void;
 

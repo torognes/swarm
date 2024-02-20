@@ -271,7 +271,8 @@ auto count_pairs(unsigned int const amplicon_count,
 }
 
 
-auto attach_candidates(unsigned int amplicon_count,
+auto attach_candidates(struct Parameters const & parameters,
+                       unsigned int amplicon_count,
                        std::vector<struct ampinfo_s> & ampinfo_v,
                        std::vector<struct swarminfo_s> & swarminfo_v) -> unsigned int
 {
@@ -330,7 +331,7 @@ auto attach_candidates(unsigned int amplicon_count,
       progress_update(counter);
       ++counter;
     }
-  progress_done();
+  progress_done(parameters);
   return grafts;
 }
 
@@ -764,7 +765,7 @@ auto write_network_file(const unsigned int number_of_networks,
     progress_update(n_processed);
     ++counter;
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -791,7 +792,7 @@ auto write_swarms_default_format(struct Parameters const & parameters,
     progress_update(i + 1);
   }
 
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -825,7 +826,7 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
 
   std::fputc('\n', parameters.outfile);
 
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -908,7 +909,7 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
     progress_update(counter);
     ++counter;
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -961,7 +962,7 @@ auto write_representative_sequences(struct Parameters const & parameters,
     ++counter;
   }
 
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -1014,7 +1015,7 @@ auto write_structure_file(struct Parameters const & parameters,
       ++cluster_no;
       progress_update(swarmid);
     }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -1036,7 +1037,7 @@ auto write_stats_file(struct Parameters const & parameters,
     progress_update(counter);
     ++counter;
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -1125,7 +1126,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
     }
 
-  progress_done();
+  progress_done(parameters);
 
   /* for all amplicons, generate list of matching amplicons */
   network_v.resize(one_megabyte);
@@ -1142,7 +1143,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   }
   pthread_mutex_destroy(&network_mutex);
 
-  progress_done();
+  progress_done(parameters);
 
 
   /* dump network to file */
@@ -1251,7 +1252,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
         }
       progress_update(seed + 1);
     }
-  progress_done();
+  progress_done(parameters);
 
   global_hits_data = nullptr;
 
@@ -1289,7 +1290,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             }
           progress_update(i + 1);
         }
-      progress_done();
+      progress_done(parameters);
 
       const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
       const uint64_t large_clusters = swarmcount - small_clusters;
@@ -1396,7 +1397,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           }
           pthread_mutex_destroy(&light_mutex);
 
-          progress_done();
+          progress_done(parameters);
 
           std::fprintf(parameters.logfile,
                        "Generated %" PRIu64 " variants from light swarms\n",
@@ -1424,7 +1425,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           pthread_mutex_destroy(&heavy_mutex);
 
-          progress_done();
+          progress_done(parameters);
 
           bloomflex_exit(bloomflex_filter);
 
@@ -1432,7 +1433,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
           std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
-          const unsigned int grafts = attach_candidates(amplicons, ampinfo_v, swarminfo_v);
+          const unsigned int grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
           std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
           std::fprintf(parameters.logfile, "\n");
         }

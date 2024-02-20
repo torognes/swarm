@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "../swarm.h"
 #include "opt_log.h"
 #include "opt_logfile.h"
 #include <cstdio>  // fflush, fprintf
@@ -62,13 +63,13 @@ auto progress_update(const uint64_t progress) -> void
 }
 
 
-auto progress_done() -> void
+auto progress_done(struct Parameters const & parameters) -> void
 {
-  if (not opt_log.empty()) {
-    std::fprintf(logfile, " %.0f%%\n", 100.0);
+  if (not parameters.opt_log.empty()) {
+    std::fprintf(parameters.logfile, " %.0f%%\n", 100.0);
   }
   else {
-    std::fprintf(logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+    std::fprintf(parameters.logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
   }
-  std::fflush(logfile);
+  std::fflush(parameters.logfile);
 }

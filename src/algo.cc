@@ -122,7 +122,8 @@ auto collect_seeds(const uint64_t amplicons,
 }
 
 
-auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
+auto sort_seeds(struct Parameters const & parameters,
+                std::vector<struct swarminfo_t> & seeds) -> void {
   progress_init("Sorting seeds:    ", seeds.size());
 
   auto compare_seeds = [](struct swarminfo_t const& lhs,
@@ -142,12 +143,12 @@ auto sort_seeds(std::vector<struct swarminfo_t>& seeds) -> void {
   };
 
   std::sort(seeds.begin(), seeds.end(), compare_seeds);
-  progress_done();
+  progress_done(parameters);
 }
 
 
-auto write_seeds(std::vector<struct swarminfo_t> const &seeds,
-                 struct Parameters const & parameters) -> void {
+auto write_seeds(struct Parameters const & parameters,
+                 std::vector<struct swarminfo_t> const & seeds) -> void {
   progress_init("Writing seeds:    ", seeds.size());
   auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
   for(const auto& seed: seeds) {
@@ -161,7 +162,7 @@ auto write_seeds(std::vector<struct swarminfo_t> const &seeds,
       progress_update(ticker);
       ++ticker;
   }
-  progress_done();
+  progress_done(parameters);
 }
 
 
@@ -169,8 +170,8 @@ auto write_representative_sequences(const uint64_t amplicons,
                                     struct Parameters const & parameters,
                                     std::vector<struct ampliconinfo_s> & amps_v) -> void {
   auto seeds = collect_seeds(amplicons, amps_v);
-  sort_seeds(seeds);
-  write_seeds(seeds, parameters);
+  sort_seeds(parameters, seeds);
+  write_seeds(parameters, seeds);
 }
 
 
@@ -254,7 +255,7 @@ auto algo_run(struct Parameters const & parameters,
   const auto amplicons = db_getsequencecount();
   const uint64_t longestamplicon = db_getlongestsequence();
 
-  db_qgrams_init(seqindex_v);
+  db_qgrams_init(parameters, seqindex_v);
 
   std::vector<struct thread_info_s> thread_info_v;
   qgram_diff_init(thread_info_v);
@@ -662,7 +663,7 @@ auto algo_run(struct Parameters const & parameters,
         }
       progress_update(seeded);
     }
-  progress_done();
+  progress_done(parameters);
 
   /* output swarms */
   if (amplicons > 0) {
