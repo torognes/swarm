@@ -176,9 +176,9 @@ auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool 
 
 
 auto fprint_id_with_new_abundance(std::FILE * stream,
-                                  uint64_t seqno,
-                                  uint64_t abundance,
-                                  bool opt_usearch_abundance) -> void
+                                  const uint64_t seqno,
+                                  const uint64_t abundance,
+                                  const bool opt_usearch_abundance) -> void
 {
   const seqinfo_t * seqinfo = seqindex + seqno;
 
