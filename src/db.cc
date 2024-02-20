@@ -147,11 +147,11 @@ auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_
 
 auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance) -> void
 {
-  auto const * seqinfo = seqindex + seqno;
-  auto const * hdrstr = seqinfo->header;
-  auto const hdrlen = seqinfo->headerlen;
-  auto const abundance_start = seqinfo->abundance_start;
-  auto const abundance_end = seqinfo->abundance_end;
+  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+  auto const * hdrstr = seqinfo.header;
+  auto const hdrlen = seqinfo.headerlen;
+  auto const abundance_start = seqinfo.abundance_start;
+  auto const abundance_end = seqinfo.abundance_end;
 
   if (abundance_start < abundance_end)
     {
@@ -166,7 +166,7 @@ auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool 
           }
 
           /* print remaining part */
-          std::fprintf(stream, "%.*s", hdrlen - abundance_end, hdrstr + abundance_end);
+          std::fprintf(stream, "%.*s", hdrlen - abundance_end, std::next(hdrstr, abundance_end));
         }
     }
   else {
