@@ -128,13 +128,14 @@ auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_
   auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
   auto const * hdrstr = seqinfo.header;
   auto const hdrlen = seqinfo.headerlen;
+  auto const abundance = seqinfo.abundance;
 
   if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
     if (opt_usearch_abundance) {
-      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, seqinfo.abundance);
+      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, abundance);
     }
     else {
-      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, seqinfo.abundance);
+      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, abundance);
     }
   }
   else {
