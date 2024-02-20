@@ -127,12 +127,8 @@ PROG = swarm
 
 OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	hashtable.o nw.o qgram.o scan.o search16.o search8.o \
-	swarm.o util.o utils/cigar.o utils/fatal.o utils/hashtable_size.o \
-	utils/input_output.o \
-	utils/intrinsics_to_functions_aarch64.o utils/intrinsics_to_functions_ppc.o \
-	utils/intrinsics_to_functions_x86_64.o \
-	utils/nt_codec.o utils/open_and_close_files.o utils/progress.o \
-	variants.o x86_cpu_features.o zobrist.o $(EXTRAOBJ)
+	swarm.o util.o variants.o x86_cpu_features.o zobrist.o \
+	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(EXTRAOBJ)
 
 DEPS = Makefile $(wildcard *.h) $(wildcard utils/*.h)
 
