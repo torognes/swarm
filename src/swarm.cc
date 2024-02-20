@@ -263,7 +263,7 @@ auto show(const std::vector<std::string> &message,
 auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::array<bool, n_options>
 {
   /* Set defaults */
-  const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
+  static const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
   std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
   opt_boundary = parameters.opt_boundary;
