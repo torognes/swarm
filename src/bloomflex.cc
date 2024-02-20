@@ -38,6 +38,30 @@
 #include <limits>
 
 
+auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t *
+{
+  return bloom_filter->bitmap + ((hash >> bloom_filter->pattern_shift) % bloom_filter->size);
+}
+
+
+auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t
+{
+  return bloom_filter->patterns[hash & bloom_filter->pattern_mask];
+}
+
+
+auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t hash) -> void
+{
+  *bloomflex_adr(bloom_filter, hash) &= compl bloomflex_pat(bloom_filter, hash);
+}
+
+
+auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t hash) -> bool
+{
+  return (*bloomflex_adr(bloom_filter, hash) & bloomflex_pat(bloom_filter, hash)) == 0U;
+}
+
+
 auto bloomflex_patterns_generate(struct bloomflex_s & bloom_filter) -> void
 {
   static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
