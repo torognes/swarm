@@ -145,7 +145,7 @@ auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_
 }
 
 
-auto fprint_id_noabundance(std::FILE * stream, uint64_t seqno, bool opt_usearch_abundance) -> void
+auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance) -> void
 {
   const seqinfo_t * seqinfo = seqindex + seqno;
   const char * hdrstr = seqinfo->header;
