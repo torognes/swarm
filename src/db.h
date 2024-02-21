@@ -54,11 +54,7 @@ auto db_getheaderlen(uint64_t seqno) -> unsigned int;
 
 auto db_getabundance(uint64_t seqno) -> uint64_t;
 
-auto db_showall() -> void;
-
 auto db_free() -> void;
-
-auto db_putseq(int64_t seqno) -> void;
 
 auto db_qgrams_init(struct Parameters const & parameters,
                     std::vector<struct seqinfo_s> & seqindex_v) -> void;
