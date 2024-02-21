@@ -90,22 +90,19 @@ const std::array<char, 32> sym_nt =
    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 
+struct Seq_stats {
+  uint64_t nucleotides {0};
+  uint64_t headerchars {0};  // unused?
+  unsigned int longestheader {0};
+  int missingabundance {0};
+  uint64_t missingabundance_lineno {0};
+  char * missingabundance_header {nullptr};
+};
+
 static unsigned int sequences {0};
-static uint64_t nucleotides {0};
-static uint64_t headerchars {0};
 static unsigned int longest {0};
-static unsigned int longestheader {0};
-static int missingabundance {0};
-static uint64_t missingabundance_lineno {0};
-static char * missingabundance_header {nullptr};
 
 struct seqinfo_s * seqindex {nullptr};
-
-
-auto db_getnucleotidecount() -> uint64_t
-{
-  return nucleotides;
-}
 
 
 auto db_getsequencecount() -> unsigned int
@@ -319,7 +316,7 @@ auto find_usearch_abundance(const char * header,
 }
 
 
-auto find_abundance(struct seqinfo_s & seqinfo, uint64_t lineno,
+auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t lineno,
                     bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
 {
   char * header = seqinfo.header;
@@ -367,12 +364,12 @@ auto find_abundance(struct seqinfo_s & seqinfo, uint64_t lineno,
       }
       else
         {
-          ++missingabundance;
+          ++seq_stats.missingabundance;
           // record the position of the first missing abundance entry
-          if (missingabundance == 1)
+          if (seq_stats.missingabundance == 1)
             {
-              missingabundance_lineno = lineno;
-              missingabundance_header = header;
+              seq_stats.missingabundance_lineno = lineno;
+              seq_stats.missingabundance_header = header;
             }
         }
     }
@@ -417,14 +414,12 @@ auto db_read(struct Parameters const & parameters,
              std::vector<uint64_t> & zobrist_tab_base_v,
              std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void
 {
+  struct Seq_stats seq_stats;
   uint64_t datalen {0};
   uint64_t duplicates_found {0};
 
   longest = 0;
-  longestheader = 0;
   sequences = 0;
-  nucleotides = 0;
-  headerchars = 0;
 
   /* open input file or stream */
 
@@ -485,10 +480,10 @@ auto db_read(struct Parameters const & parameters,
       auto headerlen = static_cast<unsigned int>
         (std::strcspn(std::next(line), " \r\n"));
 
-      headerchars += headerlen;
-      longestheader = std::max(headerlen, longestheader);
+      seq_stats.headerchars += headerlen;  // refactoring: unused?
+      seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
-      if (longestheader > max_header_length) {
+      if (seq_stats.longestheader > max_header_length) {
         fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
       }
 
@@ -616,7 +611,7 @@ auto db_read(struct Parameters const & parameters,
           fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
         }
 
-      nucleotides += length;
+      seq_stats.nucleotides += length;
       longest = std::max(length, longest);
 
 
@@ -649,7 +644,7 @@ auto db_read(struct Parameters const & parameters,
   /* init zobrist hashing */
 
   // add 2 for two insertions (refactoring: insertions in headers?)
-  const auto zobrist_len = std::max(4 * longestheader, longest + 2);
+  const auto zobrist_len = std::max(4 * seq_stats.longestheader, longest + 2);
   zobrist_init(zobrist_len, zobrist_tab_base_v, zobrist_tab_byte_base_v);
 
   /* set up hash to check for unique headers */
@@ -694,7 +689,7 @@ auto db_read(struct Parameters const & parameters,
       cursor = std::next(cursor, nt_bytelength(seqlen));
 
       /* get amplicon abundance */
-      find_abundance(a_sequence, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      find_abundance(a_sequence, seq_stats, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       if ((a_sequence.abundance_start == 0) and
           (a_sequence.abundance_end == a_sequence.headerlen)) {
@@ -828,12 +823,12 @@ auto db_read(struct Parameters const & parameters,
       linecap = 0;
     }
 
-  if (missingabundance != 0)
+  if (seq_stats.missingabundance != 0)
     {
       fatal(error_prefix, "Abundance annotations not found for ",
-            missingabundance, " sequences, starting on line ",
-            missingabundance_lineno, ".\n>",
-            missingabundance_header, "\n",
+            seq_stats.missingabundance, " sequences, starting on line ",
+            seq_stats.missingabundance_lineno, ".\n>",
+            seq_stats.missingabundance_header, "\n",
             "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
             "The -z option must be used if the abundance annotation is in the latter format.\n"
             "Abundance annotations can be produced by dereplicating the sequences.\n"
@@ -844,7 +839,7 @@ auto db_read(struct Parameters const & parameters,
   sort_index_if_need_be(parameters, seqindex_v);
 
   // user report
-  std::fprintf(parameters.logfile, "Database info:     %" PRIu64 " nt", db_getnucleotidecount());
+  std::fprintf(parameters.logfile, "Database info:     %" PRIu64 " nt", seq_stats.nucleotides);
   std::fprintf(parameters.logfile, " in %u sequences,", db_getsequencecount());
   std::fprintf(parameters.logfile, " longest %u nt\n", db_getlongestsequence());
 }
