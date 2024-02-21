@@ -727,7 +727,7 @@ auto db_read(struct Parameters const & parameters,
         }
 
       const auto hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
-                                        (a_sequence.header + id_start),
+                                        (std::next(a_sequence.header, id_start)),
                                         4 * static_cast<unsigned int>(id_len));
 
       a_sequence.hdrhash = hdrhash;
@@ -754,8 +754,8 @@ auto db_read(struct Parameters const & parameters,
                 }
 
               if ((id_len == hit_id_len) and
-                  (std::strncmp(a_sequence.header + id_start,
-                                hdrfound->header + hit_id_start,
+                  (std::strncmp(std::next(a_sequence.header, id_start),
+                                std::next(hdrfound->header, hit_id_start),
                                 static_cast<uint64_t>(id_len)) == 0)) {
                 break;
               }
@@ -766,7 +766,7 @@ auto db_read(struct Parameters const & parameters,
 
       if (hdrfound != nullptr)
         {
-          const std::string full_header {a_sequence.header + id_start};
+          const std::string full_header {std::next(a_sequence.header, id_start)};
           fatal(error_prefix, "Duplicated sequence identifier: ", full_header.substr(0, static_cast<unsigned long int>(id_len)));
         }
 
@@ -791,7 +791,7 @@ auto db_read(struct Parameters const & parameters,
               if ((seqfound->seqhash == a_sequence.seqhash) and
                   (seqfound->seqlen == a_sequence.seqlen) and
                   std::equal(seqfound->seq,
-                             seqfound->seq + nt_bytelength(a_sequence.seqlen),
+                             std::next(seqfound->seq, nt_bytelength(a_sequence.seqlen)),
                              a_sequence.seq)) {
                 break;
               }
@@ -888,13 +888,13 @@ auto db_qgrams_done() -> void
 
 auto db_gethash(uint64_t seqno) -> uint64_t
 {
-  return seqindex[seqno].seqhash;
+  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seqhash;
 }
 
 
 auto db_getsequence(uint64_t seqno) -> char *
 {
-  return seqindex[seqno].seq;
+  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seq;
 }
 
 
@@ -902,26 +902,26 @@ auto db_getsequenceandlength(uint64_t seqno,
                              char * & address,
                              unsigned int & length) -> void
 {
-  address = seqindex[seqno].seq;
-  length = seqindex[seqno].seqlen;
+  address = std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seq;
+  length = std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seqlen;
 }
 
 
 auto db_getsequencelen(uint64_t seqno) -> unsigned int
 {
-  return seqindex[seqno].seqlen;
+  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seqlen;
 }
 
 
 auto db_getheader(uint64_t seqno) -> char *
 {
-  return seqindex[seqno].header;
+  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->header;
 }
 
 
 auto db_getabundance(uint64_t seqno) -> uint64_t
 {
-  return seqindex[seqno].abundance;
+  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->abundance;
 }
 
 
