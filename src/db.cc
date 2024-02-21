@@ -99,9 +99,7 @@ static int missingabundance {0};
 static uint64_t missingabundance_lineno {0};
 static char * missingabundance_header {nullptr};
 
-using seqinfo_t = struct seqinfo_s;
-
-seqinfo_t * seqindex {nullptr};
+struct seqinfo_s * seqindex {nullptr};
 
 
 auto db_getnucleotidecount() -> uint64_t
@@ -657,13 +655,13 @@ auto db_read(struct Parameters const & parameters,
   /* set up hash to check for unique headers */
 
   const uint64_t hdrhashsize {2ULL * sequences};
-  std::vector<seqinfo_t *> hdrhashtable(hdrhashsize);
+  std::vector<struct seqinfo_s *> hdrhashtable(hdrhashsize);
 
   /* set up hash to check for unique sequences */
 
   const uint64_t seqhashsize {2ULL * sequences};
 
-  std::vector<seqinfo_t *> seqhashtable;
+  std::vector<struct seqinfo_s *> seqhashtable;
 
   if (parameters.opt_differences > 1) {
     seqhashtable.resize(seqhashsize);
@@ -733,7 +731,7 @@ auto db_read(struct Parameters const & parameters,
       a_sequence.hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
-      seqinfo_t * hdrfound {nullptr};
+      struct seqinfo_s * hdrfound {nullptr};
 
       while ((hdrfound = hdrhashtable[hdrhashindex]) != nullptr)
         {
@@ -784,7 +782,7 @@ auto db_read(struct Parameters const & parameters,
           /* but only for d > 1. Handled internally for d = 1. */
 
           uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
-          seqinfo_t * seqfound {nullptr};
+          struct seqinfo_s * seqfound {nullptr};
 
           while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
             {
