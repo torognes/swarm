@@ -911,9 +911,11 @@ auto db_getsequenceandlength(uint64_t seqno,
 }
 
 
-auto db_getsequencelen(uint64_t seqno) -> unsigned int
+auto db_getsequencelen(const uint64_t seqno) -> unsigned int
 {
-  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seqlen;
+  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
+  auto const & fasta_record = *std::next(seqindex, record_number);
+  return fasta_record.seqlen;
 }
 
 
