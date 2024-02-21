@@ -906,8 +906,10 @@ auto db_getsequenceandlength(uint64_t seqno,
                              char * & address,
                              unsigned int & length) -> void
 {
-  address = std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seq;
-  length = std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seqlen;
+  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
+  auto const & fasta_record = *std::next(seqindex, record_number);
+  address = fasta_record.seq;
+  length = fasta_record.seqlen;
 }
 
 
@@ -919,15 +921,19 @@ auto db_getsequencelen(const uint64_t seqno) -> unsigned int
 }
 
 
-auto db_getheader(uint64_t seqno) -> char *
+auto db_getheader(const uint64_t seqno) -> char *
 {
-  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->header;
+  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
+  auto const & fasta_record = *std::next(seqindex, record_number);
+  return fasta_record.header;
 }
 
 
-auto db_getabundance(uint64_t seqno) -> uint64_t
+auto db_getabundance(const uint64_t seqno) -> uint64_t
 {
-  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->abundance;
+  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
+  auto const & fasta_record = *std::next(seqindex, record_number);
+  return fasta_record.abundance;
 }
 
 
