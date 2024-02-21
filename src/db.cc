@@ -889,14 +889,16 @@ auto db_qgrams_done() -> void
 auto db_gethash(const uint64_t seqno) -> uint64_t
 {
   auto const record_number = static_cast<std::ptrdiff_t>(seqno);
-  auto const & fasta_entry = *std::next(seqindex, record_number);
-  return fasta_entry.seqhash;
+  auto const & fasta_record = *std::next(seqindex, record_number);
+  return fasta_record.seqhash;
 }
 
 
-auto db_getsequence(uint64_t seqno) -> char *
+auto db_getsequence(const uint64_t seqno) -> char *
 {
-  return std::next(seqindex, static_cast<std::ptrdiff_t>(seqno))->seq;
+  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
+  auto const & fasta_record = *std::next(seqindex, record_number);
+  return fasta_record.seq;
 }
 
 
