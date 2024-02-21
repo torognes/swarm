@@ -21,11 +21,11 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
-#include "utils/fatal.h"
-#include "utils/x86_cpu_feature_popcnt.h"
-#include "utils/x86_cpu_feature_sse41.h"
-#include "utils/x86_cpu_feature_ssse3.h"
+#include "../swarm.h"
+#include "fatal.h"
+#include "x86_cpu_feature_popcnt.h"
+#include "x86_cpu_feature_sse41.h"
+#include "x86_cpu_feature_ssse3.h"
 #include <cstdint>  // int64_t
 #include <cstdio>  // fprintf
 #include <limits>

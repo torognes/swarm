@@ -127,7 +127,7 @@ PROG = swarm
 
 OBJS = algo.o algod1.o arch.o bloomflex.o bloompat.o db.o derep.o \
 	hashtable.o nw.o qgram.o scan.o search16.o search8.o \
-	swarm.o util.o variants.o x86_cpu_features.o zobrist.o \
+	swarm.o util.o variants.o zobrist.o \
 	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(EXTRAOBJ)
 
 DEPS = Makefile $(wildcard *.h) $(wildcard utils/*.h)
