@@ -92,7 +92,6 @@ const std::array<char, 32> sym_nt =
 
 struct Seq_stats {
   uint64_t nucleotides {0};
-  uint64_t headerchars {0};  // unused?
   unsigned int longestheader {0};
   int missingabundance {0};
   uint64_t missingabundance_lineno {0};
@@ -480,7 +479,6 @@ auto db_read(struct Parameters const & parameters,
       auto headerlen = static_cast<unsigned int>
         (std::strcspn(std::next(line), " \r\n"));
 
-      seq_stats.headerchars += headerlen;  // refactoring: unused?
       seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
       if (seq_stats.longestheader > max_header_length) {
