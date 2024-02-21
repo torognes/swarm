@@ -50,6 +50,11 @@ auto progress_init(const char * prompt, const uint64_t size) -> void
 }
 
 
+// refactoring: there are three calls to this function that are beyond
+// the pthread wall. There is no easy way (for now) to pass additional
+// arguments beyond that wall. This is a major roadblock and prevents
+// us to eliminate global variables (opt_log, logfile, as well as
+// 'progress_*' global). Could be solved by using std::thread?
 auto progress_update(const uint64_t progress) -> void
 {
   if (opt_log.empty() and (progress >= progress_next))
