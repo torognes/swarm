@@ -90,7 +90,7 @@ inline auto dprofile_fill8(BYTE * dprofile,
                            BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
-  static constexpr auto n_lanes = 16ULL;  // refactoring: same as channels?
+  static constexpr auto n_lanes = 16LL;  // refactoring: same as channels?
 
   static constexpr auto pos0  = 0U;
   static constexpr auto pos1  = pos0  + 1;
@@ -206,14 +206,14 @@ inline auto dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      v_store8(cast_vector8(dprofile + n_lanes * j + line0), reg0);
-      v_store8(cast_vector8(dprofile + n_lanes * j + line1), reg3);
-      v_store8(cast_vector8(dprofile + n_lanes * j + line2), reg2);
-      v_store8(cast_vector8(dprofile + n_lanes * j + line3), reg7);
-      v_store8(cast_vector8(dprofile + n_lanes * j + line4), reg1);
-      v_store8(cast_vector8(dprofile + n_lanes * j + line5), reg11);
-      v_store8(cast_vector8(dprofile + n_lanes * j + line6), reg6);
-      v_store8(cast_vector8(dprofile + n_lanes * j + line7), reg15);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line0)), reg0);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line1)), reg3);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line2)), reg2);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line3)), reg7);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line4)), reg1);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line5)), reg11);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line6)), reg6);
+      v_store8(cast_vector8(std::next(dprofile, n_lanes * j + line7)), reg15);
 
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
