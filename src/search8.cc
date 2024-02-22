@@ -146,7 +146,7 @@ inline auto dprofile_fill8(BYTE * dprofile,
     {
       std::array<unsigned int, channels> d {{}};  // refactoring: name?
       for(auto i = 0U; i < channels; i++) {
-        d[i] = (static_cast<unsigned int>(dseq[j * channels + i])) << multiplier;
+        d[i] = (static_cast<unsigned int>(*std::next(dseq, j * channels + i))) << multiplier;
       }
 
       reg0  = v_load_64(std::next(score_matrix, d[pos0]));
@@ -451,17 +451,17 @@ inline auto onestep_8(VECTORTYPE & H,
   H = v_add8(H, V);
   const auto W = H;
   H = v_min8(H, F);
-  *((DIR) + 0) = v_mask_eq8(W, H);
+  *std::next(DIR, 0) = v_mask_eq8(W, H);
   H = v_min8(H, E);
-  *((DIR) + 1) = v_mask_eq8(H, E);
+  *std::next(DIR, 1) = v_mask_eq8(H, E);
   N = H;
   H = v_add8(H, QR);
   F = v_add8(F, R);
   E = v_add8(E, R);
   F = v_min8(H, F);
-  *((DIR) + 2) = v_mask_eq8(H, F);
+  *std::next(DIR, 2) = v_mask_eq8(H, F);
   E = v_min8(H, E);
-  *((DIR) + 3) = v_mask_eq8(H, E);
+  *std::next(DIR, 3) = v_mask_eq8(H, E);
 }
 
 
