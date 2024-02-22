@@ -536,7 +536,7 @@ auto db_read(struct Parameters const & parameters,
 
       uint64_t nt_buffer {0};
       auto nt_bufferlen = 0U;
-      const unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
+      static constexpr unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
       static constexpr unsigned char null_char = '\0';
       static constexpr int new_line {10};
       static constexpr int carriage_return {13};
