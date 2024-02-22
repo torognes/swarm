@@ -208,8 +208,8 @@ auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64
 
   for(auto i = 0ULL; i < n_vector_lengths; ++i) {
     count += popcount_128(_mm_xor_si128(*lhs_ptr, *rhs_ptr));
-    ++lhs_ptr;
-    ++rhs_ptr;
+    lhs_ptr = std::next(lhs_ptr);
+    rhs_ptr = std::next(rhs_ptr);
   }
 
   return count;
@@ -232,9 +232,10 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 #endif
 
 
-inline auto db_getqgramvector(uint64_t seqno) -> unsigned char *
+inline auto db_getqgramvector(const uint64_t seqno) -> unsigned char *
 {
-  return reinterpret_cast<unsigned char*>(qgrams + seqno);
+  auto const position = static_cast<std::ptrdiff_t>(seqno);
+  return reinterpret_cast<unsigned char*>(std::next(qgrams, position));
 }
 
 
