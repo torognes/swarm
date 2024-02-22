@@ -149,23 +149,23 @@ inline auto dprofile_fill8(BYTE * dprofile,
         d[i] = (static_cast<unsigned int>(dseq[j * channels + i])) << multiplier;
       }
 
-      reg0  = v_load_64(score_matrix + d[pos0]);
-      reg2  = v_load_64(score_matrix + d[pos2]);
-      reg4  = v_load_64(score_matrix + d[pos4]);
-      reg6  = v_load_64(score_matrix + d[pos6]);
-      reg8  = v_load_64(score_matrix + d[pos8]);
-      reg10 = v_load_64(score_matrix + d[pos10]);
-      reg12 = v_load_64(score_matrix + d[pos12]);
-      reg14 = v_load_64(score_matrix + d[pos14]);
+      reg0  = v_load_64(std::next(score_matrix, d[pos0]));
+      reg2  = v_load_64(std::next(score_matrix, d[pos2]));
+      reg4  = v_load_64(std::next(score_matrix, d[pos4]));
+      reg6  = v_load_64(std::next(score_matrix, d[pos6]));
+      reg8  = v_load_64(std::next(score_matrix, d[pos8]));
+      reg10 = v_load_64(std::next(score_matrix, d[pos10]));
+      reg12 = v_load_64(std::next(score_matrix, d[pos12]));
+      reg14 = v_load_64(std::next(score_matrix, d[pos14]));
 
-      reg0  = v_merge_lo_8(reg0,  *cast_vector8(score_matrix + d[pos1]));
-      reg2  = v_merge_lo_8(reg2,  *cast_vector8(score_matrix + d[pos3]));
-      reg4  = v_merge_lo_8(reg4,  *cast_vector8(score_matrix + d[pos5]));
-      reg6  = v_merge_lo_8(reg6,  *cast_vector8(score_matrix + d[pos7]));
-      reg8  = v_merge_lo_8(reg8,  *cast_vector8(score_matrix + d[pos9]));
-      reg10 = v_merge_lo_8(reg10, *cast_vector8(score_matrix + d[pos11]));
-      reg12 = v_merge_lo_8(reg12, *cast_vector8(score_matrix + d[pos13]));
-      reg14 = v_merge_lo_8(reg14, *cast_vector8(score_matrix + d[pos15]));
+      reg0  = v_merge_lo_8(reg0,  *cast_vector8(std::next(score_matrix, d[pos1])));
+      reg2  = v_merge_lo_8(reg2,  *cast_vector8(std::next(score_matrix, d[pos3])));
+      reg4  = v_merge_lo_8(reg4,  *cast_vector8(std::next(score_matrix, d[pos5])));
+      reg6  = v_merge_lo_8(reg6,  *cast_vector8(std::next(score_matrix, d[pos7])));
+      reg8  = v_merge_lo_8(reg8,  *cast_vector8(std::next(score_matrix, d[pos9])));
+      reg10 = v_merge_lo_8(reg10, *cast_vector8(std::next(score_matrix, d[pos11])));
+      reg12 = v_merge_lo_8(reg12, *cast_vector8(std::next(score_matrix, d[pos13])));
+      reg14 = v_merge_lo_8(reg14, *cast_vector8(std::next(score_matrix, d[pos15])));
 
       reg1 = reg0;
       reg0 = v_merge_lo_16(reg0, reg2);
