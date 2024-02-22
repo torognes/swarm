@@ -78,27 +78,34 @@ auto hash_is_occupied(const uint64_t index) -> bool
 }
 
 
-auto hash_set_value(uint64_t index, uint64_t hash) -> void
-{
-  hash_values[index] = hash;
+auto hash_set_value(const uint64_t index, const uint64_t hash) -> void {
+  auto const position = static_cast<std::ptrdiff_t>(index);
+  auto & target_hash_value = *std::next(hash_values, position);
+  target_hash_value = hash;
 }
 
 
-auto hash_compare_value(uint64_t index, uint64_t hash) -> bool
+auto hash_compare_value(const uint64_t index, const uint64_t hash) -> bool
 {
-  return (hash_values[index] == hash);
+  auto const position = static_cast<std::ptrdiff_t>(index);
+  auto & target_hash_value = *std::next(hash_values, position);
+  return target_hash_value == hash;
 }
 
 
-auto hash_get_data(uint64_t index) -> unsigned int
+auto hash_get_data(const uint64_t index) -> unsigned int
 {
-  return hash_data[index];
+  auto const position = static_cast<std::ptrdiff_t>(index);
+  auto & target_hash_data = *std::next(hash_data, position);
+  return target_hash_data;
 }
 
 
-auto hash_set_data(uint64_t index, unsigned int amplicon_id) -> void
+auto hash_set_data(const uint64_t index, const unsigned int amplicon_id) -> void
 {
-  hash_data[index] = amplicon_id;
+  auto const position = static_cast<std::ptrdiff_t>(index);
+  auto & target_hash_data = *std::next(hash_data, position);
+  target_hash_data = amplicon_id;
 }
 
 
