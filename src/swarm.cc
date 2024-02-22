@@ -47,6 +47,7 @@
 #include <cstdlib>  // std::exit
 #include <getopt.h>  // getopt_long, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
+#include <iterator>  // std::next
 #include <limits>
 #include <string>
 // #include <unistd.h>  // getopt_long... FAIL
@@ -442,7 +443,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
   if (optind < argc) {  // external variable defined in unistd.h for
                         // use with the getopt function
-    parameters.input_filename = argv[optind];
+    parameters.input_filename = *std::next(argv, optind);
   }
 
   // scoring system
