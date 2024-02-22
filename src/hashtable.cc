@@ -22,8 +22,10 @@
 */
 
 #include <cassert>
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>
 #include <cstring>  // memset
+#include <iterator>  // std::next
 #include <vector>
 #include "hashtable.h"
 #include "utils/hashtable_size.h"
@@ -50,20 +52,29 @@ auto hash_getnextindex(uint64_t index) -> uint64_t
 }
 
 
-auto hash_set_occupied(uint64_t index) -> void
+auto hash_set_occupied(const uint64_t index) -> void
 {
-  static constexpr auto divider = 3U;  // drop the first 3 bits
-  static constexpr auto max_range = 7U;  // index & max_range = values ranging from 0 to 7
-  assert((index & max_range) <= 7);
-  hash_occupied[index >> divider] |= static_cast<unsigned char>((1U << (index & max_range)));
+  static constexpr auto divider = 3U;
+  static constexpr auto max_range = 7U;
+  auto const multiplier = index & max_range;  // mask all but the first 3 bits
+  assert(multiplier <= 7);
+  auto const bit_to_set = static_cast<unsigned char>(1U << multiplier);  // bit 0 to bit 7
+  auto const position = static_cast<std::ptrdiff_t>(index >> divider);  // divide by 8, so drop the first 3 bits
+  auto & target_bucket = *std::next(hash_occupied, position);
+  target_bucket |= bit_to_set;
 }
 
 
-auto hash_is_occupied(uint64_t index) -> bool
+auto hash_is_occupied(const uint64_t index) -> bool
 {
-  static constexpr auto divider = 3U;  // drop the first 3 bits
-  static constexpr auto max_range = 7U;  // index & max_range = values ranging from 0 to 7
-  return (hash_occupied[index >> divider] & (1U << (index & max_range))) != 0;
+  static constexpr auto divider = 3U;
+  static constexpr auto max_range = 7U;
+  auto const multiplier = index & max_range;  // mask all but the first 3 bits
+  assert(multiplier <= 7);
+  auto const bit_to_check = static_cast<unsigned char>(1U << multiplier);  // bit 0 to bit 7
+  auto const position = static_cast<std::ptrdiff_t>(index >> divider);  // divide by 8, so drop the first 3 bits
+  auto & target_bucket = *std::next(hash_occupied, position);
+  return (target_bucket & bit_to_check) != 0;
 }
 
 
