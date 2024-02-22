@@ -936,8 +936,8 @@ auto db_free() -> void
 
 auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
 {
-  const unsigned int len {db_getsequencelen(seqno)};
-  char * const seqptr {db_getsequence(seqno)};
+  auto const len = db_getsequencelen(seqno);
+  auto * const seqptr = db_getsequence(seqno);
   static std::vector<char> buffer(db_getlongestsequence() + 1, '\0');
 
   // decode to nucleotides (A, C, G and T)
