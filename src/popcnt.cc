@@ -53,7 +53,7 @@ auto compareqgramvectors_popcnt(unsigned char * lhs, unsigned char * rhs) -> uin
   uint64_t count {0};
 
   for(auto i = 0ULL; i < n_vector_lengths; ++i) {
-    count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr ^ *rhs_ptr));
+    count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr xor *rhs_ptr));
     lhs_ptr = std::next(lhs_ptr);
     rhs_ptr = std::next(rhs_ptr);
   }
