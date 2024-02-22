@@ -31,6 +31,9 @@
 #include "utils/hashtable_size.h"
 
 
+// refactoring: all functions and globals are only used in
+// algod1.cc. It should be possible to pass references to a struct and
+// to vectors, and to eliminate all globals.
 uint64_t hash_mask {0};
 unsigned char * hash_occupied {nullptr};
 uint64_t * hash_values {nullptr};
