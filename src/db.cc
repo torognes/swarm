@@ -451,7 +451,7 @@ auto db_read(struct Parameters const & parameters,
   ssize_t linelen = xgetline(& line, & linecap, input_fp);
   if (linelen < 0)
     {
-      line[0] = 0;
+      *line = 0;
       linelen = 0;
     }
   filepos += static_cast<unsigned long int>(linelen);
@@ -467,12 +467,12 @@ auto db_read(struct Parameters const & parameters,
   }
   data_v.resize(memchunk);
 
-  while(line[0] != 0)
+  while(*line != 0)
     {
       /* read header */
       /* the header ends at a space, cr, lf or null character */
 
-      if (line[0] != '>') {
+      if (*line != '>') {
         fatal(error_prefix, "Illegal header line in fasta file.");
       }
 
@@ -511,7 +511,7 @@ auto db_read(struct Parameters const & parameters,
       linelen = xgetline(& line, & linecap, input_fp);
       if (linelen < 0)
         {
-          line[0] = 0;
+          *line = 0;
           linelen = 0;
         }
       filepos += static_cast<unsigned long int>(linelen);
@@ -543,7 +543,7 @@ auto db_read(struct Parameters const & parameters,
       static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
       static constexpr int end_chars_range {126};
 
-      while ((line[0] != 0) and (line[0] != '>'))
+      while ((*line != 0) and (*line != '>'))
         {
           auto character = null_char;
           auto * line_ptr = line;
@@ -592,7 +592,7 @@ auto db_read(struct Parameters const & parameters,
           linelen = xgetline(& line, & linecap, input_fp);
           if (linelen < 0)
             {
-              line[0] = 0;
+              *line = 0;
               linelen = 0;
             }
           filepos += static_cast<unsigned long int>(linelen);
