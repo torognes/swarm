@@ -25,6 +25,7 @@
 #include "utils/backtrack.h"
 #include "utils/queryinfo.h"
 #include <array>
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <iterator> // std::next, std::distance
 #include <limits>
@@ -869,9 +870,9 @@ auto search8(std::vector<BYTE *> & q_start,
       H0 = v_sub8(F0, Q);
       F0 = v_add8(F0, R);
 
-      dir += 4 * q_start.size();
-      if (dir >= dirbuffer.data() + dirbuffer.size()) {
-        dir -= dirbuffer.size();
+      dir = std::next(dir, static_cast<std::ptrdiff_t>(4 * q_start.size()));
+      if (dir >= std::next(dirbuffer.data(), static_cast<std::ptrdiff_t>(dirbuffer.size()))) {
+        dir = std::prev(dir, static_cast<std::ptrdiff_t>(dirbuffer.size()));
       }
     }
 }
