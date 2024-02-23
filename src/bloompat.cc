@@ -56,13 +56,13 @@ auto bloom_pat(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t
 // used in algod1.cc
 auto bloom_set(struct bloom_s * bloom_filter, uint64_t hash) -> void
 {
-  * bloom_adr(bloom_filter, hash) &= compl bloom_pat(bloom_filter, hash);
+  *bloom_adr(bloom_filter, hash) &= compl bloom_pat(bloom_filter, hash);
 }
 
 // used in algod1.cc
 auto bloom_get(struct bloom_s * bloom_filter, uint64_t hash) -> bool
 {
-  return (* bloom_adr(bloom_filter, hash) & bloom_pat(bloom_filter, hash)) == 0U;
+  return (*bloom_adr(bloom_filter, hash) & bloom_pat(bloom_filter, hash)) == 0U;
 }
 
 
