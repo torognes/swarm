@@ -33,20 +33,24 @@
 
 #include "bloomflex.h"
 #include "utils/pseudo_rng.h"
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <cstring>  // memset
+#include <iterator>  // std::next
 #include <limits>
 
 
-auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t *
+auto bloomflex_adr(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t *
 {
-  return bloom_filter->bitmap + ((hash >> bloom_filter->pattern_shift) % bloom_filter->size);
+  auto const position = static_cast<std::ptrdiff_t>((hash >> bloom_filter->pattern_shift) % bloom_filter->size);
+  return std::next(bloom_filter->bitmap, position);
 }
 
 
-auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t
+auto bloomflex_pat(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t
 {
-  return bloom_filter->patterns[hash & bloom_filter->pattern_mask];
+  auto const position = static_cast<std::ptrdiff_t>(hash & bloom_filter->pattern_mask);
+  return *std::next(bloom_filter->patterns, position);
 }
 
 
