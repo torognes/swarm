@@ -34,16 +34,19 @@
 #include "bloompat.h"
 #include "utils/pseudo_rng.h"
 #include <algorithm>  // std::max(), std::fill()
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t, uint8_t
 #include <cstring>
+#include <iterator>  // std::next
 #include <limits>
 
 
 // --------------------------------------------------- used only in bloompat.cc
 
-auto bloom_adr(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t *
+auto bloom_adr(struct bloom_s * bloom_filter, const uint64_t hash) -> uint64_t *
 {
-  return bloom_filter->bitmap + ((hash >> bloom_pattern_shift) & bloom_filter->mask);
+  auto const position = static_cast<std::ptrdiff_t>((hash >> bloom_pattern_shift) & bloom_filter->mask);
+  return std::next(bloom_filter->bitmap, position);
 }
 
 auto bloom_pat(struct bloom_s * bloom_filter, uint64_t hash) -> uint64_t
