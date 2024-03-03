@@ -52,6 +52,7 @@
 #include "utils/opt_threads.h"
 #include "utils/threads.h"
 #include <cassert>
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // memset
 #include <iterator>  // std::next
