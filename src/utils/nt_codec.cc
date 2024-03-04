@@ -35,6 +35,7 @@ auto nt_extract(char * seq, const uint64_t pos) -> unsigned char
   // Extract compressed nucleotide in sequence seq at position pos
   // refactoring: replace with bitset operations?
   static constexpr auto divide_by_32 = 5U;  // (len+31) % 32 (drop remainder)
+  assert((pos >> divide_by_32) <= std::numeric_limits<long long int>::max());
   auto const * compressed_sequence = reinterpret_cast<uint64_t *>(seq);
   const auto target_chunk = static_cast<long long int>(pos >> divide_by_32);  // same as int{pos / 32}
   const auto compressed_chunk = *std::next(compressed_sequence, target_chunk);
