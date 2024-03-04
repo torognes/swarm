@@ -235,6 +235,7 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 
 inline auto db_getqgramvector(const uint64_t seqno) -> unsigned char *
 {
+  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const signed_position = static_cast<std::ptrdiff_t>(seqno);
   return reinterpret_cast<unsigned char*>(std::next(qgrams, signed_position));
 }
