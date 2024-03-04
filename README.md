@@ -431,20 +431,20 @@ swarm 4.0.0:
 
 ## Version history ##
 
-### version 3.1.x ###
+### version 3.1.5 ###
 
-**swarm** 3.1.x fixes a minor bug, improves code and documentation,
+**swarm** 3.1.5 fixes a minor bug, improves code and documentation,
 and eliminates compilation warnings and static analysis warnings:
 - add: more compilation checks (`shadow`, `useless-cast`,
   `conversion`, `sign-conversion`),
-- fix: minor bug introduced in version 3.1.1 (alloc-dealloc-mismatch;
+- fix: minor bug introduced in version 3.1.1 (`alloc-dealloc`-mismatch;
   bug had no impact on clustering results),
 - fix: 50 warnings triggered by newly added compilation checks,
 - fix: x clang-tidy warnings (from 2,629 warnings, down to y),
 - improve: documentation for output option `--network_file`,
 - improve: build target platform detection,
 - improve: code modernization for long-term maintenance,
-- improve: general performance? (case d = 0)
+- improve: x% faster dereplication (`d = 0`)
 
 ### version 3.1.4 ###
 
