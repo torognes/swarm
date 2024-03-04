@@ -22,7 +22,9 @@
 */
 
 #include "nt_codec.h"
+#include <cassert>
 #include <cstdint>  // uint64_t
+#include <limits>
 #include <vector>
 
 
@@ -67,6 +69,8 @@ auto backtrack(char * qseq,
   auto const maskextup   = compute_mask<n_bits>(channel, offset2);
   auto const maskextleft = compute_mask<n_bits>(channel, offset3);
 
+  assert(qlen <= std::numeric_limits<int64_t>::max());
+  assert(dlen <= std::numeric_limits<int64_t>::max());
   auto column = static_cast<int64_t>(qlen) - 1;
   auto row = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
