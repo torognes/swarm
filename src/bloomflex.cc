@@ -33,6 +33,7 @@
 
 #include "bloomflex.h"
 #include "utils/pseudo_rng.h"
+#include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <cstring>  // memset
@@ -42,14 +43,18 @@
 
 auto bloomflex_adr(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t *
 {
-  auto const signed_position = static_cast<std::ptrdiff_t>((hash >> bloom_filter->pattern_shift) % bloom_filter->size);
+  auto const position = (hash >> bloom_filter->pattern_shift) % bloom_filter->size;
+  assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const signed_position = static_cast<std::ptrdiff_t>(position);
   return std::next(bloom_filter->bitmap, signed_position);
 }
 
 
 auto bloomflex_pat(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t
 {
-  auto const signed_position = static_cast<std::ptrdiff_t>(hash & bloom_filter->pattern_mask);
+  auto const position = hash & bloom_filter->pattern_mask;
+  assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const signed_position = static_cast<std::ptrdiff_t>(position);
   return *std::next(bloom_filter->patterns, signed_position);
 }
 
