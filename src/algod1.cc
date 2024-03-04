@@ -885,6 +885,8 @@ auto write_swarms_uclust_format(struct Parameters const & parameters,
         std::reverse(raw_alignment.begin(), raw_alignment.end());
         compress_alignment_to_cigar(raw_alignment, cigar_string);
 
+        // loosing precision when converting raw_alignment.size() and
+        // nwdiff to double is not an issue, no need to add assertions
         const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
         const auto differences = static_cast<double>(nwdiff);
         const double percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
