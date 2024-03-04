@@ -32,6 +32,7 @@
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
 #include <cassert>  // assert()
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <iterator>
 #include <limits>
@@ -97,12 +98,15 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
   static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
   static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
   static constexpr auto bit_mode_16 = 16U;
-  auto const target_index = static_cast<long int>(thread_data.target_index);
+  assert(thread_data.target_index <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const target_index = static_cast<std::ptrdiff_t>(thread_data.target_index);
 
   assert(thread_data.target_count != 0);
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
   if (bits == bit_mode_16) {
+    assert(penalty_gapopen <= std::numeric_limits<WORD>::max());
+    assert(penalty_gapextend <= std::numeric_limits<WORD>::max());
     search16(thread_data.qtable_w_v,
              static_cast<WORD>(penalty_gapopen),
              static_cast<WORD>(penalty_gapextend),
@@ -117,6 +121,8 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
              static_cast<uint64_t>(query.len),
              thread_data.dir_array_v);
   } else {
+    assert(penalty_gapopen <= std::numeric_limits<BYTE>::max());
+    assert(penalty_gapextend <= std::numeric_limits<BYTE>::max());
     search8(thread_data.qtable_v,
             static_cast<BYTE>(penalty_gapopen),
             static_cast<BYTE>(penalty_gapextend),
