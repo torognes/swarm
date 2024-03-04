@@ -23,7 +23,9 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdint>  // int64_t, uint16_t
+#include <limits>
 #include <type_traits>
 
 
@@ -40,6 +42,7 @@ auto create_score_matrix(const std::int64_t mismatch_penalty)
                 or std::is_same<Integral, std::int64_t>::value,
                 "Invalid type! Only unsigned char, unsigned short and int64_t can be used.");
   static constexpr Integral matchscore {0};
+  assert(mismatch_penalty <= std::numeric_limits<Integral>::max());
   const auto mismatchscore = static_cast<Integral>(mismatch_penalty);
   std::array<Integral, n_cells * n_cells> score_matrix {{}};
 
