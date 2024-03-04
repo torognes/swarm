@@ -25,6 +25,7 @@
 #include "utils/backtrack.h"
 #include "utils/queryinfo.h"
 #include <array>
+#include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <iterator> // std::next, std::distance
@@ -91,6 +92,7 @@ inline auto dprofile_fill8(BYTE * dprofile,
                            BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
+  assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max());
   static constexpr auto n_lanes = 16LL;  // refactoring: same as channels?
 
   static constexpr auto pos0  = 0U;
@@ -662,6 +664,8 @@ auto search8(std::vector<BYTE *> & q_start,
                                   0, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
+  assert(gap_open_penalty + gap_extend_penalty <= std::numeric_limits<char>::max());
+  assert(gap_extend_penalty <= std::numeric_limits<char>::max());
   auto Q = v_dup8(static_cast<char>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup8(static_cast<char>(gap_extend_penalty));
 
@@ -792,6 +796,7 @@ auto search8(std::vector<BYTE *> & q_start,
                   if (next_id < sequences)
                     {
                       // get next sequence
+                      assert(next_id <= std::numeric_limits<int64_t>::max());
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = seqnos[next_id];
                       char * address {nullptr};
@@ -807,6 +812,7 @@ auto search8(std::vector<BYTE *> & q_start,
                       ++next_id;
 
                       (reinterpret_cast<BYTE*>(&H0))[channel] = 0;
+                      assert(2U * gap_open_penalty + 2U * gap_extend_penalty <= std::numeric_limits<BYTE>::max());
                       (reinterpret_cast<BYTE*>(&F0))[channel] = static_cast<BYTE>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
@@ -870,7 +876,9 @@ auto search8(std::vector<BYTE *> & q_start,
       H0 = v_sub8(F0, Q);
       F0 = v_add8(F0, R);
 
+      assert(4 * q_start.size() <= std::numeric_limits<std::ptrdiff_t>::max());
       dir = std::next(dir, static_cast<std::ptrdiff_t>(4 * q_start.size()));
+      assert(dirbuffer.size() <= std::numeric_limits<std::ptrdiff_t>::max());
       if (dir >= std::next(dirbuffer.data(), static_cast<std::ptrdiff_t>(dirbuffer.size()))) {
         dir = std::prev(dir, static_cast<std::ptrdiff_t>(dirbuffer.size()));
       }
