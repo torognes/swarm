@@ -256,7 +256,11 @@ sequence.
 Here is a typical way to use **swarm**:
 
 ```sh
-./swarm -f -t 4 -w cluster_representatives.fasta amplicons.fasta > /dev/null
+./swarm \
+    --fastidious \
+    --threads 4 \
+    --seeds cluster_representatives.fasta \
+    amplicons.fasta > /dev/null
 ```
 
 **swarm** will partition your dataset with the finest resolution
