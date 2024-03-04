@@ -268,7 +268,7 @@ auto qgram_diff_init(std::vector<struct thread_info_s>& thread_info_v) -> void
   /* allocate memory for thread info */
   thread_info_v.resize(static_cast<uint64_t>(opt_threads));
   thread_info_ptr = thread_info_v.data();
-
+  assert(opt_threads <= std::numeric_limits<int>::max());
   qgram_threads
     = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
 }
