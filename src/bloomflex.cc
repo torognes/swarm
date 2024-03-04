@@ -42,15 +42,15 @@
 
 auto bloomflex_adr(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t *
 {
-  auto const position = static_cast<std::ptrdiff_t>((hash >> bloom_filter->pattern_shift) % bloom_filter->size);
-  return std::next(bloom_filter->bitmap, position);
+  auto const signed_position = static_cast<std::ptrdiff_t>((hash >> bloom_filter->pattern_shift) % bloom_filter->size);
+  return std::next(bloom_filter->bitmap, signed_position);
 }
 
 
 auto bloomflex_pat(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t
 {
-  auto const position = static_cast<std::ptrdiff_t>(hash & bloom_filter->pattern_mask);
-  return *std::next(bloom_filter->patterns, position);
+  auto const signed_position = static_cast<std::ptrdiff_t>(hash & bloom_filter->pattern_mask);
+  return *std::next(bloom_filter->patterns, signed_position);
 }
 
 
