@@ -1337,9 +1337,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           if (parameters.opt_ceiling != 0)
             {
               const uint64_t memrest
-                = one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling) - memused;
-              const auto new_bits =
-                static_cast<unsigned int>(sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_clusters));
+                = one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling) - memused;  // underflow bug? memrest value is huge!
+              auto const new_bits_long = sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_clusters);
+              // refactoring: triggers a bug // assert(new_bits_long <= std::numeric_limits<unsigned int>::max());
+              auto const new_bits = static_cast<unsigned int>(new_bits_long);
               if (new_bits < bits)
                 {
                   if (new_bits < 2) {
