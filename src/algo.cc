@@ -33,6 +33,7 @@
 #include "utils/seqinfo.h"
 #include "utils/score_matrix.h"
 #include <algorithm>  // std::min(), std::reverse()
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), fflush
@@ -115,6 +116,7 @@ auto collect_seeds(const uint64_t amplicons,
   ++swarmcount;
 
   // free some memory
+  assert(swarmcount <= std::numeric_limits<long int>::max());
   seeds.erase(std::next(seeds.begin(), static_cast<long int>(swarmcount)), seeds.end());
   seeds.shrink_to_fit();
 
@@ -244,6 +246,7 @@ auto algo_run(struct Parameters const & parameters,
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
   search_begin(search_data_v);
   /* start threads */
+  assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(parameters.opt_threads), search_worker_core));
 
   count_comparisons_8 = 0;
@@ -375,6 +378,7 @@ auto algo_run(struct Parameters const & parameters,
         {
           const auto poolampliconid = qgramamps_v[i];
           const auto diff = qgramdiffs_v[i];
+          assert(diff <= std::numeric_limits<unsigned int>::max());
           amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(parameters.opt_differences))
             {
@@ -419,6 +423,7 @@ auto algo_run(struct Parameters const & parameters,
 
                   amps_v[swarmed].swarmid = swarmid;
                   amps_v[swarmed].generation = 1;
+                  assert(diff <= std::numeric_limits<unsigned int>::max());
                   amps_v[swarmed].radius = static_cast<unsigned int>(diff);
                   maxradius = std::max(diff, maxradius);
 
@@ -551,9 +556,11 @@ auto algo_run(struct Parameters const & parameters,
                             }
 
                           amps_v[pos].swarmid = swarmid;
+                          assert(subseedgeneration + 1 <= std::numeric_limits<unsigned int>::max());
                           amps_v[pos].generation =
                               static_cast<unsigned int>(subseedgeneration + 1);
                           maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
+                          assert(subseedradius + diff <= std::numeric_limits<unsigned int>::max());
                           amps_v[pos].radius =
                               static_cast<unsigned int>(subseedradius + diff);
                           maxradius = std::max<uint64_t>(amps_v[pos].radius, maxradius);

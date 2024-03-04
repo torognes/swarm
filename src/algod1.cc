@@ -1139,6 +1139,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   network_amp = 0;
   progress_init("Building network: ", amplicons);
   {
+    assert(parameters.opt_threads <= std::numeric_limits<int>::max());
     // refactoring C++14: use std::make_unique
     std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), network_thread));
     network_tr->run();
@@ -1318,12 +1319,14 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           static constexpr auto microvariants = 7U;
           static constexpr double hash_functions_per_bit {4.0 / 10};
-          assert(parameters.opt_bloom_bits <= 64);  // larger than expected"
-          assert(parameters.opt_bloom_bits >= 2);  // smaller than expected"
-          auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);  // safe if opt_bloom_bits < uint_max
+          assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
+          assert(parameters.opt_bloom_bits <= 64);  // larger than expected
+          assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
+          auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);
 
           // int64_t k = int(bits * 0.693);    /* 11 */
           // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
+          assert(hash_functions_per_bit * bits <= std::numeric_limits<unsigned int>::max());
           auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
 
           uint64_t bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
@@ -1345,6 +1348,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                   std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
                   // k = int(bits * 0.693);
+                  assert(hash_functions_per_bit * bits <= std::numeric_limits<unsigned int>::max());
                   n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
                   bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
                 }
@@ -1393,6 +1397,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           light_amplicon_count = amplicons_in_small_clusters;
           light_amplicon = amplicons - 1;
           {
+            assert(parameters.opt_threads <= std::numeric_limits<int>::max());
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), mark_light_thread));
             light_tr->run();
@@ -1420,6 +1425,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           heavy_amplicon_count = amplicons_in_large_clusters;
           heavy_amplicon = 0;
           {
+            assert(parameters.opt_threads <= std::numeric_limits<int>::max());
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), check_heavy_thread));
             heavy_tr->run();
