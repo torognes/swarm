@@ -315,7 +315,7 @@ auto qgram_diff_fast(uint64_t seed,
 
       /* distribute work */
       for(auto & tip: thread_info_v) {
-          const uint64_t chunk = (listrest + thrrest - 1) / thrrest;
+          auto const chunk = (listrest + thrrest - 1) / thrrest;
 
           tip.seed = seed;
           tip.listlen = chunk;
