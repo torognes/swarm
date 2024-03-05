@@ -25,6 +25,7 @@
 #include "zobrist.h"
 #include <algorithm> // std::for_each
 #include <cassert>
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
 #include <vector>
@@ -135,8 +136,11 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
   while (pos + nt_per_uint64 < len)
     {
       for(auto i = 0U; i < nt_per_uint64; i += 4) {
+        auto const target_hash = offset * (pos + i) + *query_in_bytes;
+        assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
+        auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
         // i = {0, 4, 8, 12, 16, 20, 24, 28}
-        zobrist_hash ^= zobrist_tab_byte_base[offset * (pos + i) + *query_in_bytes];
+        zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
         query_in_bytes = std::next(query_in_bytes);
       }
       pos += nt_per_uint64;
