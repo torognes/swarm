@@ -25,6 +25,7 @@
 #include "utils/backtrack.h"
 #include "utils/queryinfo.h"
 #include <array>
+#include <cassert>
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <iterator> // std::next, std::distance
 #include <limits>
@@ -412,6 +413,8 @@ auto search16(std::vector<WORD *> & q_start,
   const VECTORTYPE T0 = { unsigned_short_max, 0, 0, 0, 0, 0, 0, 0 };
 #endif
 
+  assert((gap_open_penalty + gap_extend_penalty) <= std::numeric_limits<short>::max());
+  assert(gap_extend_penalty <= std::numeric_limits<short>::max());
   auto Q = v_dup16(static_cast<short>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup16(static_cast<short>(gap_extend_penalty));
 
@@ -552,6 +555,7 @@ auto search16(std::vector<WORD *> & q_start,
 
                   if (next_id < sequences)
                     {
+                      assert(next_id <= std::numeric_limits<int64_t>::max());
                       // get next sequence
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = seqnos[next_id];
@@ -567,6 +571,7 @@ auto search16(std::vector<WORD *> & q_start,
                       d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer.data());
                       ++next_id;
 
+                      assert((2U * gap_open_penalty + 2U * gap_extend_penalty) <= std::numeric_limits<WORD>::max());
                       (reinterpret_cast<WORD*>(&H0))[channel] = 0;
                       (reinterpret_cast<WORD*>(&F0))[channel] = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
