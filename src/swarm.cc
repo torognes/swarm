@@ -285,6 +285,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
     if ((option_character >= 'a') and (option_character <= 'z'))
       {
         assert(option_character - 'a' >= 0);
+        assert(option_character <= std::numeric_limits<char>::max());
         auto optindex = static_cast<unsigned int>(option_character - 'a');
         if (used_options[optindex])
           {
