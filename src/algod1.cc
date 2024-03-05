@@ -46,6 +46,7 @@
 #include <algorithm>  // std::sort(), std::reverse(), std::max()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
@@ -248,11 +249,14 @@ auto add_graft_candidate(unsigned int seed, unsigned int amp) -> void
 {
   pthread_mutex_lock(&graft_mutex);
   ++graft_candidates;
+  assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const signed_position = static_cast<std::ptrdiff_t>(amp);
+  auto & amplicon = *std::next(ampinfo, signed_position);
   // if there is no heavy candidate to graft amp, or if seed is
   // earlier in the sorting order, then we change the attachment to
   // seed
-  if ((ampinfo[amp].graft_cand == no_swarm) or (ampinfo[amp].graft_cand > seed)) {
-    ampinfo[amp].graft_cand = seed;
+  if ((amplicon.graft_cand == no_swarm) or (amplicon.graft_cand > seed)) {
+    amplicon.graft_cand = seed;
   }
   pthread_mutex_unlock(&graft_mutex);
 }
@@ -469,8 +473,13 @@ auto check_heavy_thread(int64_t nth_thread) -> void
     {
       auto const heavy_amplicon_id = heavy_amplicon;
       ++heavy_amplicon;
-      if (swarminfo[ampinfo[heavy_amplicon_id].swarmid].mass >=
-          static_cast<uint64_t>(opt_boundary))
+      assert(heavy_amplicon_id <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const signed_position = static_cast<std::ptrdiff_t>(heavy_amplicon_id);
+      auto const & target_amplicon = *std::next(ampinfo, signed_position);
+      assert(target_amplicon.swarmid <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const signed_swarmid = static_cast<std::ptrdiff_t>(target_amplicon.swarmid);
+      auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
+      if (target_swarm.mass >= static_cast<uint64_t>(opt_boundary))
         {
           progress_update(++heavy_progress);  // refactoring: separate operations?
           pthread_mutex_unlock(&heavy_mutex);
@@ -527,8 +536,13 @@ auto mark_light_thread(int64_t nth_thread) -> void
     {
       const auto light_amplicon_id = light_amplicon;
       --light_amplicon;
-      if (swarminfo[ampinfo[light_amplicon_id].swarmid].mass <
-          static_cast<uint64_t>(opt_boundary))
+      assert(light_amplicon_id <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const signed_position = static_cast<std::ptrdiff_t>(light_amplicon_id);
+      auto const & target_amplicon = *std::next(ampinfo, signed_position);
+      assert(target_amplicon.swarmid <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const signed_swarmid = static_cast<std::ptrdiff_t>(target_amplicon.swarmid);
+      auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
+      if (target_swarm.mass < static_cast<uint64_t>(opt_boundary))
         {
           progress_update(++light_progress);  // refactoring: separate operations?
           pthread_mutex_unlock(&light_mutex);
@@ -639,8 +653,11 @@ auto network_thread(int64_t nth_thread) -> void
       const auto hits_count = check_variants(amp, variant_list, hits_data);
       pthread_mutex_lock(&network_mutex);
 
-      ampinfo[amp].link_start = network_count;
-      ampinfo[amp].link_count = hits_count;
+      assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const signed_position = static_cast<std::ptrdiff_t>(amp);
+      auto & target_amplicon = *std::next(ampinfo, signed_position);
+      target_amplicon.link_start = network_count;
+      target_amplicon.link_count = hits_count;
 
       while (network_count + hits_count > network_v.size()) {
         network_v.reserve(network_v.size() + one_megabyte);
