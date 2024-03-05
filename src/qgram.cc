@@ -316,14 +316,16 @@ auto qgram_diff_fast(uint64_t seed,
       /* distribute work */
       for(auto & tip: thread_info_v) {
           auto const chunk = (listrest + thrrest - 1) / thrrest;
+          assert(chunk <= std::numeric_limits<std::ptrdiff_t>::max());
+          auto const chunk_signed = static_cast<int64_t>(chunk);
 
           tip.seed = seed;
           tip.listlen = chunk;
           tip.amplist = next_amplist;
           tip.difflist = next_difflist;
 
-          next_amplist += chunk;
-          next_difflist += chunk;
+          next_amplist = std::next(next_amplist, chunk_signed);
+          next_difflist = std::next(next_difflist, chunk_signed);
           listrest -= chunk;
           --thrrest;
         }
