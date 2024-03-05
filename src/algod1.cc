@@ -630,7 +630,8 @@ auto network_thread(int64_t nth_thread) -> void
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
     {
-      const auto amp = network_amp++;
+      const auto amp = network_amp;
+      ++network_amp;
       progress_update(amp);
 
       pthread_mutex_unlock(&network_mutex);
