@@ -87,7 +87,10 @@ auto findqgrams(unsigned char * seq, uint64_t seqlen,
   {
     qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), position);
     assert((qgram & max_range) <= 7);
-    qgramvector[(qgram >> 3U) & (qgramvectorbytes - 1)] ^= static_cast<unsigned char>(1U << (qgram & max_range));
+    assert(((qgram >> 3U) & (qgramvectorbytes - 1)) <= std::numeric_limits<std::ptrdiff_t>::max());
+    auto const signed_position = static_cast<std::ptrdiff_t>((qgram >> 3U) & (qgramvectorbytes - 1));
+    auto & target_qgram = *std::next(qgramvector, signed_position);
+    target_qgram ^= static_cast<unsigned char>(1U << (qgram & max_range));
     ++position;
   }
 }
@@ -255,11 +258,15 @@ auto qgram_worker(int64_t const nth_thread) -> void
 
   const auto seed = tip.seed;
   const auto listlen = tip.listlen;
+  assert(listlen <= std::numeric_limits<std::ptrdiff_t>::max());
+  const auto listlen_signed = static_cast<int64_t>(listlen);
   auto * amplist = tip.amplist;
   auto * difflist = tip.difflist;
 
-  for(auto i = 0ULL; i < listlen; i++) {
-    difflist[i] = qgram_diff(seed, amplist[i]);
+  for(auto i = 0LL; i < listlen_signed; i++) {
+    auto & target_diff = *std::next(difflist, i);
+    auto const target_amplicon = *std::next(amplist, i);
+    target_diff = qgram_diff(seed, target_amplicon);
   }
 }
 
