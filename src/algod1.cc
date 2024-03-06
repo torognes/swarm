@@ -734,10 +734,10 @@ auto compare_amp(const void * void_lhs, const void * void_rhs) -> int
 
   assert(*lhs != *rhs);  // '*lhs == *rhs' is not expected at that stage
 
-  // compare amplicon index values (unsigned ints). Amplicons are
-  // sorted by decreasing abundance (+ other for stable sort), so
-  // smaller indexes should go first. This corresponds to a natural
-  // order sorting.
+  // compare amplicon index values (unsigned ints). Amplicon indexes
+  // are already sorted by decreasing abundance then by header in
+  // db.cc, so smaller indexes should go first. This corresponds to a
+  // natural order sorting.
   if (*lhs < *rhs) {
     status = -1;
   }
