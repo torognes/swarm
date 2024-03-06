@@ -74,6 +74,7 @@ using VECTORTYPE = vector unsigned char;
 #endif
 
 
+constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 constexpr unsigned int channels {16};
 constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {8};
@@ -876,9 +877,9 @@ auto search8(std::vector<BYTE *> & q_start,
       H0 = v_sub8(F0, Q);
       F0 = v_add8(F0, R);
 
-      assert(4 * q_start.size() <= std::numeric_limits<std::ptrdiff_t>::max());
+      assert(4 * q_start.size() <= max_ptrdiff);
       dir = std::next(dir, static_cast<std::ptrdiff_t>(4 * q_start.size()));
-      assert(dirbuffer.size() <= std::numeric_limits<std::ptrdiff_t>::max());
+      assert(dirbuffer.size() <= max_ptrdiff);
       if (dir >= std::next(dirbuffer.data(), static_cast<std::ptrdiff_t>(dirbuffer.size()))) {
         dir = std::prev(dir, static_cast<std::ptrdiff_t>(dirbuffer.size()));
       }
