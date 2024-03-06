@@ -166,8 +166,8 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * MR,
                                  VECTORTYPE * MQ0) -> void
 {
-  static constexpr auto step = 16U;
-  static constexpr auto offset0 = 0U;
+  static constexpr auto step = 16;
+  static constexpr auto offset0 = 0;
   static constexpr auto offset1 = offset0 + 4;
   static constexpr auto offset2 = offset1 + 4;
   static constexpr auto offset3 = offset2 + 4;
@@ -195,11 +195,15 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
   auto h7 = v_zero16();
   auto h8 = v_zero16();
 
-  for(auto i = 0ULL; i < ql; i++)
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
+  auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
+  for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      h4 = hep[2 * i + 0];
-      E  = hep[2 * i + 1];
-      VECTORTYPE * x = qp[i + 0];
+      h4 = *std::next(hep, 2 * pos + 0);
+      E  = *std::next(hep, 2 * pos + 1);
+      VECTORTYPE * x = qp[pos + 0];
 
       /* mask h4 and E */
       h4 = v_sub16(h4, *Mm);
@@ -214,12 +218,12 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
       *MQ = v_add16(*MQ,  *MR);
 
 
-      onestep_16_sse41(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
-      onestep_16_sse41(h1, h6, f1, x[1], dir + step * i + offset1, E, Q, R);
-      onestep_16_sse41(h2, h7, f2, x[2], dir + step * i + offset2, E, Q, R);
-      onestep_16_sse41(h3, h8, f3, x[3], dir + step * i + offset3, E, Q, R);
-      hep[2 * i + 0] = h8;
-      hep[2 * i + 1] = E;
+      onestep_16_sse41(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
+      onestep_16_sse41(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
+      onestep_16_sse41(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
+      onestep_16_sse41(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
+      *std::next(hep, 2 * pos + 0) = h8;
+      *std::next(hep, 2 * pos + 1) = E;
 
       h0 = h4;
       h1 = h5;
@@ -227,10 +231,10 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
       h3 = h7;
     }
 
-  Sm[0] = h5;
-  Sm[1] = h6;
-  Sm[2] = h7;
-  Sm[3] = h8;
+  *std::next(Sm, 0) = h5;
+  *std::next(Sm, 1) = h6;
+  *std::next(Sm, 2) = h7;
+  *std::next(Sm, 3) = h8;
 }
 
 #else
