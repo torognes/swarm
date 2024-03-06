@@ -21,6 +21,7 @@ High-precision clustering:
 .OP \-nrz
 .OP \-a int
 .OP \-i filename
+.OP \-j filename
 .OP \-l filename
 .OP \-o filename
 .OP \-s filename
@@ -38,6 +39,7 @@ High-precision clustering:
 .OP \-b int
 .OP \-c|y int
 .OP \-i filename
+.OP \-j filename
 .OP \-l filename
 .OP \-o filename
 .OP \-s filename
@@ -302,6 +304,21 @@ cluster. Cummulated number of steps in the small cluster (if any) are
 left unchanged.
 .RE
 .RE
+.TP
+.BI \-j\fP,\fB\ \-\-network\-file \0filename
+(advanced users) when working with \fId\fR = 1, dump raw amplicon
+network to \fIfilename\fR using a two-column tab-delimited table of
+headers with abundance annotations. Each line represents a connection
+between two similar amplicons, from the most abundant to the lesser
+abundant. When amplicons have the same abundance value, connections
+are bi-directional and are represented on two lines: A to B, then B to
+A.
+
+In order to delineate clusters and to compute the equivalent of a
+minimal spanning tree for each cluster (see option
+\-\-internal\-structure), swarm first builds a network of similar
+amplicons. This option is for advanced users who would like to explore
+this raw network.
 .TP
 .BI \-l\fP,\fB\ \-\-log \0filename
 output all messages to \fIfilename\fR instead of \fIstandard error\fR,
