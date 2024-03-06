@@ -160,7 +160,7 @@ const std::vector<std::string> args_usage_message
    "Input/output options:\n",
    " -a, --append-abundance INTEGER      value to use when abundance is missing\n",
    " -i, --internal-structure FILENAME   write internal cluster structure to file\n",
-   " -j, --network_file FILENAME         dump sequence network to file\n",
+   " -j, --network-file FILENAME         dump sequence network to file\n",
    " -l, --log FILENAME                  log to file, not to stderr\n",
    " -o, --output-file FILENAME          output result to file (stdout)\n",
    " -r, --mothur                        output using mothur-like format\n",
