@@ -479,7 +479,8 @@ auto align_cells_regular_8(VECTORTYPE * Sm,
                            uint64_t * dir_long,
                            VECTORTYPE * H0) -> void
 {
-  static constexpr auto offset0 = 0U;
+  static constexpr auto step = 16;
+  static constexpr auto offset0 = 0;
   static constexpr auto offset1 = offset0 + 4;
   static constexpr auto offset2 = offset1 + 4;
   static constexpr auto offset3 = offset2 + 4;
@@ -509,17 +510,17 @@ auto align_cells_regular_8(VECTORTYPE * Sm,
 
   assert(ql <= max_ptrdiff);
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
-  assert(ql <= ((max_ptrdiff - offset3) / channels));  // max 'dir' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, 2 * pos + 0);
       E  = *std::next(hep, 2 * pos + 1);
-      onestep_8(h0, h5, f0, *std::next(x, 0), std::next(dir, channels * pos + offset0), E, Q, R);
-      onestep_8(h1, h6, f1, *std::next(x, 1), std::next(dir, channels * pos + offset1), E, Q, R);
-      onestep_8(h2, h7, f2, *std::next(x, 2), std::next(dir, channels * pos + offset2), E, Q, R);
-      onestep_8(h3, h8, f3, *std::next(x, 3), std::next(dir, channels * pos + offset3), E, Q, R);
+      onestep_8(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
+      onestep_8(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
+      onestep_8(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
+      onestep_8(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
       *std::next(hep, 2 * pos + 0) = h8;
       *std::next(hep, 2 * pos + 1) = E;
       h0 = h4;
