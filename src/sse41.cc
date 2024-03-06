@@ -203,7 +203,7 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
     {
       h4 = *std::next(hep, 2 * pos + 0);
       E  = *std::next(hep, 2 * pos + 1);
-      VECTORTYPE * x = qp[pos + 0];
+      VECTORTYPE * x = *std::next(qp, pos + 0);
 
       /* mask h4 and E */
       h4 = v_sub16(h4, *Mm);
