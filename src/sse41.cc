@@ -27,7 +27,10 @@
 #ifdef __SSE2__
 #include <emmintrin.h>  // SSE2 intrinsics
 #include "utils/intrinsics_to_functions_x86_64.h"
+#include <cassert>
+#include <cstddef>  // std::ptrdiff_t
 #include <iterator>  // std::next
+#include <limits>
 #endif
 
 #ifdef __SSE4_1__
@@ -46,6 +49,7 @@
 #include <cstdint>  //uint64_t
 #include <smmintrin.h>  // _mm_min_epu16
 
+constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 using VECTORTYPE = __m128i;
 using WORD = unsigned short;
 
@@ -120,18 +124,21 @@ auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
   auto h7 = v_zero16();
   auto h8 = v_zero16();
 
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   for(auto i = 0ULL; i < ql; i++)
     {
-      VECTORTYPE * x = qp[i + 0];
-      h4 = hep[2 * i + 0];
-      E  = hep[2 * i + 1];
-      // refactoring: std::next -> -Wsign-conversion
-      onestep_16_sse41(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
-      onestep_16_sse41(h1, h6, f1, x[1], dir + step * i + offset1, E, Q, R);
-      onestep_16_sse41(h2, h7, f2, x[2], dir + step * i + offset2, E, Q, R);
-      onestep_16_sse41(h3, h8, f3, x[3], dir + step * i + offset3, E, Q, R);
-      hep[2 * i + 0] = h8;
-      hep[2 * i + 1] = E;
+      auto const pos = static_cast<std::ptrdiff_t>(i);
+      VECTORTYPE * x = *std::next(qp, pos + 0);
+      h4 = *std::next(hep, 2 * pos + 0);
+      E  = *std::next(hep, 2 * pos + 1);
+      onestep_16_sse41(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
+      onestep_16_sse41(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
+      onestep_16_sse41(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
+      onestep_16_sse41(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
+      *std::next(hep, 2 * pos + 0) = h8;
+      *std::next(hep, 2 * pos + 1) = E;
       h0 = h4;
       h1 = h5;
       h2 = h6;
