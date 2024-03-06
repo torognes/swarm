@@ -148,7 +148,10 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
 
   while (pos + 4 < len)
     {
-      zobrist_hash ^= zobrist_tab_byte_base[offset * pos + *query_in_bytes];
+      auto const target_hash = offset * pos + *query_in_bytes;
+      assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
+      zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
       query_in_bytes = std::next(query_in_bytes);
       pos += 4;
     }
