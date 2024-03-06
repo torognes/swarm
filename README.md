@@ -23,7 +23,7 @@ swarm 3.0 introduces:
 * a reduced memory footprint,
 * binaries for Windows x86-64, macOS ARM64, GNU/Linux ARM64, and
   GNU/Linux POWER8,
-* an updated, hardened, and thoroughly tested code (804 carefully
+* an updated, hardened, and thoroughly tested code (806 carefully
   crafted black-box tests),
 * strict dereplication of input sequences is now **mandatory**,
 * `--seeds` option (`-w`) now outputs results sorted by decreasing
@@ -437,12 +437,14 @@ swarm 4.0.0:
 and eliminates compilation warnings and static analysis warnings:
 - add: more compilation checks (`shadow`, `useless-cast`,
   `conversion`, `sign-conversion`),
+- add: 42 new black-box tests,
 - fix: minor bug introduced in version 3.1.1 (`alloc-dealloc`-mismatch;
   bug had no impact on clustering results),
 - fix: 50 warnings triggered by newly added compilation checks,
-- fix: x clang-tidy warnings (from 2,629 warnings, down to y),
-- improve: documentation for output option `--network_file`,
+- fix: 1,500 clang-tidy warnings (from 2,629 warnings, down to 1,100),
+- improve: documentation for output option `--network_file` (advanced users),
 - improve: build target platform detection,
+- improve: code-coverage of our test-suite,
 - improve: code modernization for long-term maintenance,
 - improve: x% faster dereplication (`d = 0`)
 
