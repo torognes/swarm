@@ -95,8 +95,8 @@ auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   uint64_t * dir_long,
                                   VECTORTYPE * H0) -> void
 {
-  static constexpr auto step = 16U;
-  static constexpr auto offset0 = 0U;
+  static constexpr auto step = 16;
+  static constexpr auto offset0 = 0;
   static constexpr auto offset1 = offset0 + 4;
   static constexpr auto offset2 = offset1 + 4;
   static constexpr auto offset3 = offset2 + 4;
@@ -125,11 +125,11 @@ auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
   auto h8 = v_zero16();
 
   assert(ql <= max_ptrdiff);
-  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
-  for(auto i = 0ULL; i < ql; i++)
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
+  auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
+  for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      auto const pos = static_cast<std::ptrdiff_t>(i);
       VECTORTYPE * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, 2 * pos + 0);
       E  = *std::next(hep, 2 * pos + 1);
@@ -145,10 +145,10 @@ auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
       h3 = h7;
     }
 
-  Sm[0] = h5;
-  Sm[1] = h6;
-  Sm[2] = h7;
-  Sm[3] = h8;
+  *std::next(Sm, 0) = h5;
+  *std::next(Sm, 1) = h6;
+  *std::next(Sm, 2) = h7;
+  *std::next(Sm, 3) = h8;
 }
 
 
