@@ -777,7 +777,7 @@ auto search8(std::vector<BYTE *> & q_start,
                       char * dbseq = d_address[channel];
                       const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
-                      assert(z * channels + channel <= std::numeric_limits<std::ptrdiff_t>::max());
+                      assert(z * channels + channel <= max_ptrdiff);
                       const uint64_t score
                         = *std::next(reinterpret_cast<BYTE *>(S), static_cast<std::ptrdiff_t>(z * channels + channel));
                       *std::next(scores, cand_id) = score;
@@ -808,7 +808,7 @@ auto search8(std::vector<BYTE *> & q_start,
                     {
                       // get next sequence
                       assert(next_id <= std::numeric_limits<int64_t>::max());
-                      assert(next_id <= std::numeric_limits<std::ptrdiff_t>::max());
+                      assert(next_id <= max_ptrdiff);
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
                       char * address {nullptr};
