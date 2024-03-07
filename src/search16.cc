@@ -26,6 +26,7 @@
 #include "utils/queryinfo.h"
 #include <array>
 #include <cassert>
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <iterator> // std::next, std::distance
 #include <limits>
@@ -84,6 +85,7 @@ using VECTORTYPE = vector unsigned short;
 #endif
 
 
+constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {16};
@@ -136,6 +138,7 @@ inline auto dprofile_fill16(WORD * dprofile_word,
   VECTORTYPE reg30;
   VECTORTYPE reg31;
 
+  assert(cdepth <= ((max_ptrdiff - channels) / channels));  // max 'd' offset
   for(auto j = 0ULL; j < cdepth; j++)
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
