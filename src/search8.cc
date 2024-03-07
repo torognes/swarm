@@ -808,8 +808,9 @@ auto search8(std::vector<BYTE *> & q_start,
                     {
                       // get next sequence
                       assert(next_id <= std::numeric_limits<int64_t>::max());
+                      assert(next_id <= std::numeric_limits<std::ptrdiff_t>::max());
                       seq_id[channel] = static_cast<int64_t>(next_id);
-                      const uint64_t seqno = *std::next(seqnos, next_id);
+                      const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
                       char * address {nullptr};
                       unsigned int length {0};
 
