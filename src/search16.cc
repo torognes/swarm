@@ -586,8 +586,8 @@ auto search16(std::vector<WORD *> & q_start,
                       ++next_id;
 
                       assert((2U * gap_open_penalty + 2U * gap_extend_penalty) <= std::numeric_limits<WORD>::max());
-                      (reinterpret_cast<WORD*>(&H0))[channel] = 0;
-                      (reinterpret_cast<WORD*>(&F0))[channel] = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
+                      *std::next(reinterpret_cast<WORD *>(&H0), channel) = 0;
+                      *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
                       for(auto j = 0U; j < cdepth; j++)
