@@ -335,6 +335,9 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
   auto h7 = v_zero16();
   auto h8 = v_zero16();
 
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   for(auto pos = 0ULL; pos < ql; ++pos)
     {
       h4 = hep[2 * pos + 0];
