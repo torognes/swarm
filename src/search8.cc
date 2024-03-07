@@ -779,7 +779,7 @@ auto search8(std::vector<BYTE *> & q_start,
                       const uint64_t z = (dbseqlen + 3) % 4;
                       const uint64_t score
                         = (reinterpret_cast<BYTE*>(S))[z * channels + channel];
-                      scores[cand_id] = score;
+                      *std::next(scores, cand_id) = score;
 
                       uint64_t diff {0};
 
@@ -798,7 +798,7 @@ auto search8(std::vector<BYTE *> & q_start,
                           diff = uint8_max;
                         }
 
-                      diffs[cand_id] = diff;
+                      *std::next(diffs, cand_id) = diff;
 
                       ++done;
                     }
