@@ -582,7 +582,7 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
   assert(ql <= max_ptrdiff);
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
-  for(auto pos = 0ULL; pos < ql; pos++)
+  for(auto pos = 0ULL; pos < ql; ++pos)
     {
       VECTORTYPE * x = qp[pos + 0];
 
