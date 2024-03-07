@@ -335,7 +335,7 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
   auto h7 = v_zero16();
   auto h8 = v_zero16();
 
-  for(auto pos = 0ULL; pos < ql; pos++)
+  for(auto pos = 0ULL; pos < ql; ++pos)
     {
       h4 = hep[2 * pos + 0];
       E  = hep[2 * pos + 1];
