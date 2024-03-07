@@ -366,10 +366,10 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
       h3 = h7;
     }
 
-  Sm[0] = h5;
-  Sm[1] = h6;
-  Sm[2] = h7;
-  Sm[3] = h8;
+  *std::next(Sm, 0) = h5;
+  *std::next(Sm, 1) = h6;
+  *std::next(Sm, 2) = h7;
+  *std::next(Sm, 3) = h8;
 }
 
 
