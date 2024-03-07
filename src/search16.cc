@@ -267,17 +267,17 @@ auto align_cells_regular_16(VECTORTYPE * Sm,
   assert(ql <= max_ptrdiff);
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
-  for(auto i = 0ULL; i < ql; i++)
+  for(auto pos = 0ULL; pos < ql; pos++)
     {
-      VECTORTYPE *x = qp[i + 0];
-      h4 = hep[2 * i + 0];
-      E  = hep[2 * i + 1];
-      onestep_16(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
-      onestep_16(h1, h6, f1, x[1], dir + step * i + offset1, E, Q, R);
-      onestep_16(h2, h7, f2, x[2], dir + step * i + offset2, E, Q, R);
-      onestep_16(h3, h8, f3, x[3], dir + step * i + offset3, E, Q, R);
-      hep[2 * i + 0] = h8;
-      hep[2 * i + 1] = E;
+      VECTORTYPE *x = qp[pos + 0];
+      h4 = hep[2 * pos + 0];
+      E  = hep[2 * pos + 1];
+      onestep_16(h0, h5, f0, x[0], dir + step * pos + offset0, E, Q, R);
+      onestep_16(h1, h6, f1, x[1], dir + step * pos + offset1, E, Q, R);
+      onestep_16(h2, h7, f2, x[2], dir + step * pos + offset2, E, Q, R);
+      onestep_16(h3, h8, f3, x[3], dir + step * pos + offset3, E, Q, R);
+      hep[2 * pos + 0] = h8;
+      hep[2 * pos + 1] = E;
       h0 = h4;
       h1 = h5;
       h2 = h6;
