@@ -264,6 +264,9 @@ auto align_cells_regular_16(VECTORTYPE * Sm,
   auto h7 = v_zero16();
   auto h8 = v_zero16();
 
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   for(auto i = 0ULL; i < ql; i++)
     {
       VECTORTYPE *x = qp[i + 0];
