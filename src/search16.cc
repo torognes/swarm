@@ -541,9 +541,10 @@ auto search16(std::vector<WORD *> & q_start,
                       char * dbseq = d_address[channel];
                       const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
+                      assert(z * channels + channel <= max_ptrdiff);
                       const uint64_t score
-                        = (reinterpret_cast<WORD*>(S))[z * channels + channel];
-                      scores[cand_id] = score;
+                        = *std::next(reinterpret_cast<WORD*>(S), static_cast<std::ptrdiff_t>(z * channels + channel));
+                      *std::next(scores, cand_id) = score;
 
                       uint64_t diff {0};
 
@@ -562,7 +563,7 @@ auto search16(std::vector<WORD *> & q_start,
                           diff = uint16_max;
                         }
 
-                      diffs[cand_id] = diff;
+                      *std::next(diffs, cand_id) = diff;
 
                       ++done;
                     }
@@ -570,9 +571,10 @@ auto search16(std::vector<WORD *> & q_start,
                   if (next_id < sequences)
                     {
                       assert(next_id <= std::numeric_limits<int64_t>::max());
+                      assert(next_id <= max_ptrdiff);
                       // get next sequence
                       seq_id[channel] = static_cast<int64_t>(next_id);
-                      const uint64_t seqno = seqnos[next_id];
+                      const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
                       char * address {nullptr};
                       unsigned int length {0};
 
