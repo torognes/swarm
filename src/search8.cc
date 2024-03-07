@@ -551,7 +551,7 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MQ0) -> void
 {
   static constexpr auto step = 16;
-  static constexpr auto offset0 = 0U;
+  static constexpr auto offset0 = 0;
   static constexpr auto offset1 = offset0 + 4;
   static constexpr auto offset2 = offset1 + 4;
   static constexpr auto offset3 = offset2 + 4;
@@ -582,7 +582,8 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
   assert(ql <= max_ptrdiff);
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
-  for(auto pos = 0ULL; pos < ql; ++pos)
+  auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
+  for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE * x = qp[pos + 0];
 
