@@ -550,6 +550,7 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * MR,
                           VECTORTYPE * MQ0) -> void
 {
+  static constexpr auto step = 16;
   static constexpr auto offset0 = 0U;
   static constexpr auto offset1 = offset0 + 4;
   static constexpr auto offset2 = offset1 + 4;
@@ -597,10 +598,10 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add8(*MQ,  *MR);
 
-      onestep_8(h0, h5, f0, x[0], dir + channels * i + offset0, E, Q, R);
-      onestep_8(h1, h6, f1, x[1], dir + channels * i + offset1, E, Q, R);
-      onestep_8(h2, h7, f2, x[2], dir + channels * i + offset2, E, Q, R);
-      onestep_8(h3, h8, f3, x[3], dir + channels * i + offset3, E, Q, R);
+      onestep_8(h0, h5, f0, x[0], dir + step * i + offset0, E, Q, R);
+      onestep_8(h1, h6, f1, x[1], dir + step * i + offset1, E, Q, R);
+      onestep_8(h2, h7, f2, x[2], dir + step * i + offset2, E, Q, R);
+      onestep_8(h3, h8, f3, x[3], dir + step * i + offset3, E, Q, R);
       hep[2 * i + 0] = h8;
       hep[2 * i + 1] = E;
 
