@@ -586,9 +586,8 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE * x = qp[pos + 0];
-
-      h4 = hep[2 * pos + 0];
-      E  = hep[2 * pos + 1];
+      h4 = *std::next(hep, 2 * pos + 0);
+      E  = *std::next(hep, 2 * pos + 1);
 
       /* mask h4 and E */
       h4 = v_sub8(h4, *Mm);
@@ -602,12 +601,12 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add8(*MQ,  *MR);
 
-      onestep_8(h0, h5, f0, x[0], dir + step * pos + offset0, E, Q, R);
-      onestep_8(h1, h6, f1, x[1], dir + step * pos + offset1, E, Q, R);
-      onestep_8(h2, h7, f2, x[2], dir + step * pos + offset2, E, Q, R);
-      onestep_8(h3, h8, f3, x[3], dir + step * pos + offset3, E, Q, R);
-      hep[2 * pos + 0] = h8;
-      hep[2 * pos + 1] = E;
+      onestep_8(h0, h5, f0, x[0], std::next(dir, step * pos + offset0), E, Q, R);
+      onestep_8(h1, h6, f1, x[1], std::next(dir, step * pos + offset1), E, Q, R);
+      onestep_8(h2, h7, f2, x[2], std::next(dir, step * pos + offset2), E, Q, R);
+      onestep_8(h3, h8, f3, x[3], std::next(dir, step * pos + offset3), E, Q, R);
+      *std::next(hep, 2 * pos + 0) = h8;
+      *std::next(hep, 2 * pos + 1) = E;
 
       h0 = h4;
       h1 = h5;
