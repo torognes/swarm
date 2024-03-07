@@ -146,7 +146,7 @@ inline auto dprofile_fill16(WORD * dprofile_word,
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
       for(auto z = 0U; z < channels; z++) {
-        d[z] = (static_cast<unsigned int>(dseq[j * channels + z])) << multiplier;
+        d[z] = (static_cast<unsigned int>(*std::next(dseq, j * channels + z))) << multiplier;
       }
 
       for(auto i = 0L; i < channels; i += channels)
