@@ -211,17 +211,17 @@ inline auto onestep_16(VECTORTYPE & H,
   H = v_add16(H, V);
   auto W = H;
   H = v_min16(H, F);
-  *(DIR + 0) = v_mask_eq16(W, H);
+  *std::next(DIR, 0) = v_mask_eq16(W, H);
   H = v_min16(H, E);
-  *(DIR + 1) = v_mask_eq16(H, E);
+  *std::next(DIR, 1) = v_mask_eq16(H, E);
   N = H;
   H = v_add16(H, QR);
   F = v_add16(F, R);
   E = v_add16(E, R);
   F = v_min16(H, F);
-  *(DIR + 2) = v_mask_eq16(H, F);
+  *std::next(DIR, 2) = v_mask_eq16(H, F);
   E = v_min16(H, E);
-  *(DIR + 3) = v_mask_eq16(H, E);
+  *std::next(DIR, 3) = v_mask_eq16(H, E);
 }
 
 
