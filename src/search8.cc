@@ -823,7 +823,7 @@ auto search8(std::vector<BYTE *> & q_start,
 
                       *std::next(reinterpret_cast<BYTE *>(&H0), channel) = 0;
                       assert(2U * gap_open_penalty + 2U * gap_extend_penalty <= std::numeric_limits<BYTE>::max());
-                      (reinterpret_cast<BYTE*>(&F0))[channel] = static_cast<BYTE>(2U * gap_open_penalty + 2U * gap_extend_penalty);
+                      *std::next(reinterpret_cast<BYTE *>(&F0), channel) = static_cast<BYTE>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
                       for(auto j = 0U; j < cdepth; j++)
