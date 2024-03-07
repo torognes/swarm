@@ -661,6 +661,7 @@ auto search16(std::vector<WORD *> & q_start,
       H0 = v_sub16(F0, Q);
       F0 = v_add16(F0, R);
 
+      assert(4 * std::distance(q_start.begin(), q_start.end()) <= max_ptrdiff);
       dir = std::next(dir, 4 * std::distance(q_start.begin(), q_start.end()));
       auto const distance = std::distance(dirbuffer.begin(), dirbuffer.end());
       if (dir >= std::next(dirbuffer.data(), distance)) {
