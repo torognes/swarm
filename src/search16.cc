@@ -97,7 +97,7 @@ inline auto dprofile_fill16(WORD * dprofile_word,
                             BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
-  static constexpr auto pos0 = 0U;
+  static constexpr auto pos0 = 0;
   static constexpr auto pos1 = pos0 + 1;
   static constexpr auto pos2 = pos1 + 1;
   static constexpr auto pos3 = pos2 + 1;
@@ -142,23 +142,23 @@ inline auto dprofile_fill16(WORD * dprofile_word,
   assert(channels <= std::numeric_limits<long int>::max());
   assert(channels <= std::numeric_limits<unsigned int>::max());
   assert((channels + pos7) * cdepth * channels + channels * cdepth <= max_ptrdiff);
-  for(auto j = 0ULL; j < cdepth; j++)
+  for(auto j = 0LL; j < cdepth; j++)
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
       for(auto z = 0U; z < channels; z++) {
         d[z] = (static_cast<unsigned int>(dseq[j * channels + z])) << multiplier;
       }
 
-      for(auto i = 0ULL; i < channels; i += channels)
+      for(auto i = 0L; i < channels; i += channels)
         {
-          reg0  = v_load16(cast_vector16(score_matrix + d[pos0] + i));
-          reg1  = v_load16(cast_vector16(score_matrix + d[pos1] + i));
-          reg2  = v_load16(cast_vector16(score_matrix + d[pos2] + i));
-          reg3  = v_load16(cast_vector16(score_matrix + d[pos3] + i));
-          reg4  = v_load16(cast_vector16(score_matrix + d[pos4] + i));
-          reg5  = v_load16(cast_vector16(score_matrix + d[pos5] + i));
-          reg6  = v_load16(cast_vector16(score_matrix + d[pos6] + i));
-          reg7  = v_load16(cast_vector16(score_matrix + d[pos7] + i));
+          reg0  = v_load16(cast_vector16(std::next(score_matrix, d[pos0] + i)));
+          reg1  = v_load16(cast_vector16(std::next(score_matrix, d[pos1] + i)));
+          reg2  = v_load16(cast_vector16(std::next(score_matrix, d[pos2] + i)));
+          reg3  = v_load16(cast_vector16(std::next(score_matrix, d[pos3] + i)));
+          reg4  = v_load16(cast_vector16(std::next(score_matrix, d[pos4] + i)));
+          reg5  = v_load16(cast_vector16(std::next(score_matrix, d[pos5] + i)));
+          reg6  = v_load16(cast_vector16(std::next(score_matrix, d[pos6] + i)));
+          reg7  = v_load16(cast_vector16(std::next(score_matrix, d[pos7] + i)));
 
           reg8  = v_merge_lo_16(reg0,  reg1);
           reg9  = v_merge_hi_16(reg0,  reg1);
@@ -187,14 +187,14 @@ inline auto dprofile_fill16(WORD * dprofile_word,
           reg30 = v_merge_lo_64(reg21, reg23);
           reg31 = v_merge_hi_64(reg21, reg23);
 
-          v_store16(cast_vector16(dprofile_word + (i + pos0) * cdepth * channels + channels * j), reg24);
-          v_store16(cast_vector16(dprofile_word + (i + pos1) * cdepth * channels + channels * j), reg25);
-          v_store16(cast_vector16(dprofile_word + (i + pos2) * cdepth * channels + channels * j), reg26);
-          v_store16(cast_vector16(dprofile_word + (i + pos3) * cdepth * channels + channels * j), reg27);
-          v_store16(cast_vector16(dprofile_word + (i + pos4) * cdepth * channels + channels * j), reg28);
-          v_store16(cast_vector16(dprofile_word + (i + pos5) * cdepth * channels + channels * j), reg29);
-          v_store16(cast_vector16(dprofile_word + (i + pos6) * cdepth * channels + channels * j), reg30);
-          v_store16(cast_vector16(dprofile_word + (i + pos7) * cdepth * channels + channels * j), reg31);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos0) * cdepth * channels + channels * j)), reg24);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos1) * cdepth * channels + channels * j)), reg25);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos2) * cdepth * channels + channels * j)), reg26);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos3) * cdepth * channels + channels * j)), reg27);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos4) * cdepth * channels + channels * j)), reg28);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos5) * cdepth * channels + channels * j)), reg29);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos6) * cdepth * channels + channels * j)), reg30);
+          v_store16(cast_vector16(std::next(dprofile_word, (i + pos7) * cdepth * channels + channels * j)), reg31);
         }
     }
 }
