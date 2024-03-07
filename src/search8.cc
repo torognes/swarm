@@ -585,7 +585,7 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      VECTORTYPE * x = qp[pos + 0];
+      VECTORTYPE * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, 2 * pos + 0);
       E  = *std::next(hep, 2 * pos + 1);
 
@@ -601,10 +601,10 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add8(*MQ,  *MR);
 
-      onestep_8(h0, h5, f0, x[0], std::next(dir, step * pos + offset0), E, Q, R);
-      onestep_8(h1, h6, f1, x[1], std::next(dir, step * pos + offset1), E, Q, R);
-      onestep_8(h2, h7, f2, x[2], std::next(dir, step * pos + offset2), E, Q, R);
-      onestep_8(h3, h8, f3, x[3], std::next(dir, step * pos + offset3), E, Q, R);
+      onestep_8(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
+      onestep_8(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
+      onestep_8(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
+      onestep_8(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
       *std::next(hep, 2 * pos + 0) = h8;
       *std::next(hep, 2 * pos + 1) = E;
 
@@ -777,8 +777,9 @@ auto search8(std::vector<BYTE *> & q_start,
                       char * dbseq = d_address[channel];
                       const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
+                      assert(z * channels + channel <= std::numeric_limits<std::ptrdiff_t>::max());
                       const uint64_t score
-                        = (reinterpret_cast<BYTE*>(S))[z * channels + channel];
+                        = *std::next(reinterpret_cast<BYTE *>(S), static_cast<std::ptrdiff_t>(z * channels + channel));
                       *std::next(scores, cand_id) = score;
 
                       uint64_t diff {0};
