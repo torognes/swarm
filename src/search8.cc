@@ -821,7 +821,7 @@ auto search8(std::vector<BYTE *> & q_start,
                       d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer.data());
                       ++next_id;
 
-                      (reinterpret_cast<BYTE*>(&H0))[channel] = 0;
+                      *std::next(reinterpret_cast<BYTE *>(&H0), channel) = 0;
                       assert(2U * gap_open_penalty + 2U * gap_extend_penalty <= std::numeric_limits<BYTE>::max());
                       (reinterpret_cast<BYTE*>(&F0))[channel] = static_cast<BYTE>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
