@@ -139,6 +139,8 @@ inline auto dprofile_fill16(WORD * dprofile_word,
   VECTORTYPE reg31;
 
   assert(cdepth <= ((max_ptrdiff - channels) / channels));  // max 'd' offset
+  assert(channels <= std::numeric_limits<long int>::max());
+  assert(channels <= std::numeric_limits<unsigned int>::max());
   for(auto j = 0ULL; j < cdepth; j++)
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
