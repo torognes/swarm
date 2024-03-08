@@ -26,13 +26,12 @@
 #include <cstdint>
 #include <cstring>  // memset
 #include <iterator>  // std::next
-#include <limits>
 #include <vector>
 #include "hashtable.h"
 #include "utils/hashtable_size.h"
 
-
 #ifndef NDEBUG
+#include <limits>
 // C++17 refactoring: [[maybe_unused]]
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif
