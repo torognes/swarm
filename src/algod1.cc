@@ -1342,12 +1342,13 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           static constexpr auto microvariants = 7U;
           static constexpr auto n_bits_in_a_byte = 8U;
           static constexpr double hash_functions_per_bit {4.0 / 10};
+          static_assert(hash_functions_per_bit <= 0.693147181, "upper limit is std::log(2)");
           assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
           assert(parameters.opt_bloom_bits <= 64);  // larger than expected
           assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
           auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);
 
-          // int64_t n_hash_functions = int(bits * 0.693);    /* 11 */
+          // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
           // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
           assert(hash_functions_per_bit * bits <= std::numeric_limits<unsigned int>::max());
           auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
@@ -1371,7 +1372,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                   }
                   std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
                   bits = new_bits;
-                  // k = int(bits * 0.693);
                   assert(hash_functions_per_bit * bits <= std::numeric_limits<unsigned int>::max());
                   n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
                   bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
