@@ -82,9 +82,9 @@ auto search_init(struct Search_data & thread_data) -> void
 
   for(auto i = 0U; i < query.len; i++)
   {
-    const auto nt_value {nt_extract(query.seq, i) + 1U};  // 1,  2,   3, or   4
-    const auto byte_offset {byte_multiplier * nt_value};  // 1, 64, 128, or 192
-    const auto word_offset {word_multiplier * nt_value};  // 1, 32,  64, or 128
+    const auto nt_value = nt_extract(query.seq, i) + 1U;  // 1,  2,   3, or   4
+    const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
+    const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
     thread_data.qtable_v[i]   = &thread_data.dprofile_v[byte_offset];
