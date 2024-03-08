@@ -85,6 +85,11 @@ using VECTORTYPE = vector unsigned short;
 #endif
 
 
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
+constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
+#endif
+
 constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {16};
@@ -137,10 +142,10 @@ inline auto dprofile_fill16(WORD * dprofile_word,
   VECTORTYPE reg30;
   VECTORTYPE reg31;
 
-  assert(cdepth <= ((std::numeric_limits<std::ptrdiff_t>::max() - channels) / channels));  // max 'd' offset
+  assert(cdepth <= ((max_ptrdiff - channels) / channels));  // max 'd' offset
   assert(channels <= std::numeric_limits<long int>::max());
   assert(channels <= std::numeric_limits<unsigned int>::max());
-  assert((channels + pos7) * cdepth * channels + channels * cdepth <= std::numeric_limits<std::ptrdiff_t>::max());
+  assert((channels + pos7) * cdepth * channels + channels * cdepth <= max_ptrdiff);
   for(auto j = 0LL; j < cdepth; j++)
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
@@ -263,9 +268,9 @@ auto align_cells_regular_16(VECTORTYPE * Sm,
   auto h7 = v_zero16();
   auto h8 = v_zero16();
 
-  assert(ql <= std::numeric_limits<std::ptrdiff_t>::max());
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - 1) / 2));  // max 'E' offset
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - offset3) / step));  // max 'dir' offset
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
@@ -334,9 +339,9 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
   auto h7 = v_zero16();
   auto h8 = v_zero16();
 
-  assert(ql <= std::numeric_limits<std::ptrdiff_t>::max());
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - 1) / 2));  // max 'E' offset
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - offset3) / step));  // max 'dir' offset
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
@@ -540,7 +545,7 @@ auto search16(std::vector<WORD *> & q_start,
                       char * dbseq = d_address[channel];
                       const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
-                      assert(z * channels + channel <= std::numeric_limits<std::ptrdiff_t>::max());
+                      assert(z * channels + channel <= max_ptrdiff);
                       const uint64_t score
                         = *std::next(reinterpret_cast<WORD*>(S), static_cast<std::ptrdiff_t>(z * channels + channel));
                       *std::next(scores, cand_id) = score;
@@ -570,7 +575,7 @@ auto search16(std::vector<WORD *> & q_start,
                   if (next_id < sequences)
                     {
                       assert(next_id <= std::numeric_limits<int64_t>::max());
-                      assert(next_id <= std::numeric_limits<std::ptrdiff_t>::max());
+                      assert(next_id <= max_ptrdiff);
                       // get next sequence
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
@@ -662,7 +667,7 @@ auto search16(std::vector<WORD *> & q_start,
       H0 = v_sub16(F0, Q);
       F0 = v_add16(F0, R);
 
-      assert(4 * std::distance(q_start.begin(), q_start.end()) <= std::numeric_limits<std::ptrdiff_t>::max());
+      assert(4 * std::distance(q_start.begin(), q_start.end()) <= max_ptrdiff);
       dir = std::next(dir, 4 * std::distance(q_start.begin(), q_start.end()));
       auto const distance = std::distance(dirbuffer.begin(), dirbuffer.end());
       if (dir >= std::next(dirbuffer.data(), distance)) {
