@@ -32,12 +32,15 @@
 #include "utils/hashtable_size.h"
 
 
-constexpr auto ptrdiff_max = std::numeric_limits<std::ptrdiff_t>::max();
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
+constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
+#endif
 
 // refactoring: all functions and globals are only used in
 // algod1.cc. It should be possible to pass references to a struct and
 // to vectors, and to eliminate all globals.
-uint64_t hash_mask {ptrdiff_max - ptrdiff_max};  // = 0 (ugly trick to use const once outside assert)
+uint64_t hash_mask {0};
 unsigned char * hash_occupied {nullptr};
 uint64_t * hash_values {nullptr};
 unsigned int * hash_data {nullptr};
@@ -65,7 +68,7 @@ auto hash_set_occupied(const uint64_t index) -> void
   auto const multiplier = index & max_range;  // mask all but the first 3 bits
   assert(multiplier <= 7);
   auto const bit_to_set = static_cast<unsigned char>(1U << multiplier);  // bit 0 to bit 7
-  assert((index >> divider) <= ptrdiff_max);
+  assert((index >> divider) <= max_ptrdiff);
   auto const position = static_cast<std::ptrdiff_t>(index >> divider);  // divide by 8, so drop the first 3 bits
   auto & target_bucket = *std::next(hash_occupied, position);
   target_bucket |= bit_to_set;
@@ -79,7 +82,7 @@ auto hash_is_occupied(const uint64_t index) -> bool
   auto const multiplier = index & max_range;  // mask all but the first 3 bits
   assert(multiplier <= 7);
   auto const bit_to_check = static_cast<unsigned char>(1U << multiplier);  // bit 0 to bit 7
-  assert((index >> divider) <= ptrdiff_max);
+  assert((index >> divider) <= max_ptrdiff);
   auto const position = static_cast<std::ptrdiff_t>(index >> divider);  // divide by 8, so drop the first 3 bits
   auto & target_bucket = *std::next(hash_occupied, position);
   return (target_bucket & bit_to_check) != 0;
@@ -87,7 +90,7 @@ auto hash_is_occupied(const uint64_t index) -> bool
 
 
 auto hash_set_value(const uint64_t index, const uint64_t hash) -> void {
-  assert(index <= ptrdiff_max);
+  assert(index <= max_ptrdiff);
   auto const position = static_cast<std::ptrdiff_t>(index);
   auto & target_hash_value = *std::next(hash_values, position);
   target_hash_value = hash;
@@ -96,7 +99,7 @@ auto hash_set_value(const uint64_t index, const uint64_t hash) -> void {
 
 auto hash_compare_value(const uint64_t index, const uint64_t hash) -> bool
 {
-  assert(index <= ptrdiff_max);
+  assert(index <= max_ptrdiff);
   auto const position = static_cast<std::ptrdiff_t>(index);
   auto & target_hash_value = *std::next(hash_values, position);
   return target_hash_value == hash;
@@ -105,7 +108,7 @@ auto hash_compare_value(const uint64_t index, const uint64_t hash) -> bool
 
 auto hash_get_data(const uint64_t index) -> unsigned int
 {
-  assert(index <= ptrdiff_max);
+  assert(index <= max_ptrdiff);
   auto const position = static_cast<std::ptrdiff_t>(index);
   auto & target_hash_data = *std::next(hash_data, position);
   return target_hash_data;
@@ -114,7 +117,7 @@ auto hash_get_data(const uint64_t index) -> unsigned int
 
 auto hash_set_data(const uint64_t index, const unsigned int amplicon_id) -> void
 {
-  assert(index <= ptrdiff_max);
+  assert(index <= max_ptrdiff);
   auto const position = static_cast<std::ptrdiff_t>(index);
   auto & target_hash_data = *std::next(hash_data, position);
   target_hash_data = amplicon_id;
