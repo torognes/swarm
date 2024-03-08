@@ -1340,6 +1340,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
           static constexpr auto microvariants = 7U;
+          static constexpr auto n_bits_in_a_byte = 8U;
           static constexpr double hash_functions_per_bit {4.0 / 10};
           assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
           assert(parameters.opt_bloom_bits <= 64);  // larger than expected
@@ -1360,7 +1361,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             {
               const uint64_t memrest
                 = one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling) - memused;  // underflow bug? memrest value is huge!
-              auto const new_bits_long = sizeof(uint64_t) * memrest / (microvariants * nucleotides_in_small_clusters);
+              auto const new_bits_long = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
               // refactoring: triggers a bug // assert(new_bits_long <= std::numeric_limits<unsigned int>::max());
               auto const new_bits = static_cast<unsigned int>(new_bits_long);
               if (new_bits < bits)
@@ -1380,7 +1381,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
           bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
 
-          if (memused + bloom_length_in_bits / sizeof(uint64_t) > memtotal)
+          if (memused + bloom_length_in_bits / n_bits_in_a_byte > memtotal)
             {
               std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
               std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
@@ -1388,12 +1389,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           std::fprintf(parameters.logfile,
                        "Bloom filter: bits=%u, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                       bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (sizeof(uint64_t) * one_megabyte));
+                       bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
 
 
           // bloom_length is in bits (divide by 8 to get bytes)
           // bloom_length is guaranteed to be at least 64 (see code above)
-          static constexpr auto n_bits_in_a_byte = 8U;
           assert(bloom_length_in_bits != 0);  // safeguard for future changes
           assert(bloom_length_in_bits >= 64);
           const uint64_t n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
