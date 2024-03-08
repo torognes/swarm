@@ -1347,7 +1347,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
           auto bits = static_cast<unsigned int>(parameters.opt_bloom_bits);
 
-          // int64_t k = int(bits * 0.693);    /* 11 */
+          // int64_t n_hash_functions = int(bits * 0.693);    /* 11 */
           // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
           assert(hash_functions_per_bit * bits <= std::numeric_limits<unsigned int>::max());
           auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits), 1U);
