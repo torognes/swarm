@@ -298,9 +298,9 @@ auto algo_run(struct Parameters const & parameters,
   }
 
   /* always search in 8 bit mode unless resolution is very high */
-  static constexpr auto bit_mode_8 {8};
-  static constexpr auto bit_mode_16 {16};
-  auto bits {bit_mode_8};
+  static constexpr auto bit_mode_8 = 8;
+  static constexpr auto bit_mode_16 = 16;
+  auto bits = bit_mode_8;
 
   if (static_cast<uint64_t>(parameters.opt_differences) > diff_saturation) {
     bits = bit_mode_16;
