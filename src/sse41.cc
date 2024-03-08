@@ -49,7 +49,11 @@
 #include <cstdint>  //uint64_t
 #include <smmintrin.h>  // _mm_min_epu16
 
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
+#endif
+
 using VECTORTYPE = __m128i;
 using WORD = unsigned short;
 
