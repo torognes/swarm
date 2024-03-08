@@ -74,6 +74,11 @@ using VECTORTYPE = vector unsigned char;
 #endif
 
 
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
+constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
+#endif
+
 constexpr unsigned int channels {16};
 constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {8};
@@ -507,9 +512,9 @@ auto align_cells_regular_8(VECTORTYPE * Sm,
   auto h7 = v_zero8();
   auto h8 = v_zero8();
 
-  assert(ql <= std::numeric_limits<std::ptrdiff_t>::max());
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - 1) / 2));  // max 'E' offset
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - offset3) / step));  // max 'dir' offset
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
@@ -578,9 +583,9 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
   auto h7 = v_zero8();
   auto h8 = v_zero8();
 
-  assert(ql <= std::numeric_limits<std::ptrdiff_t>::max());
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - 1) / 2));  // max 'E' offset
-  assert(ql <= ((std::numeric_limits<std::ptrdiff_t>::max() - offset3) / step));  // max 'dir' offset
+  assert(ql <= max_ptrdiff);
+  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
+  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
@@ -776,7 +781,7 @@ auto search8(std::vector<BYTE *> & q_start,
                       char * dbseq = d_address[channel];
                       const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
-                      assert(z * channels + channel <= std::numeric_limits<std::ptrdiff_t>::max());
+                      assert(z * channels + channel <= max_ptrdiff);
                       const uint64_t score
                         = *std::next(reinterpret_cast<BYTE *>(S), static_cast<std::ptrdiff_t>(z * channels + channel));
                       *std::next(scores, cand_id) = score;
@@ -807,7 +812,7 @@ auto search8(std::vector<BYTE *> & q_start,
                     {
                       // get next sequence
                       assert(next_id <= std::numeric_limits<int64_t>::max());
-                      assert(next_id <= std::numeric_limits<std::ptrdiff_t>::max());
+                      assert(next_id <= max_ptrdiff);
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
                       char * address {nullptr};
@@ -887,9 +892,9 @@ auto search8(std::vector<BYTE *> & q_start,
       H0 = v_sub8(F0, Q);
       F0 = v_add8(F0, R);
 
-      assert(4 * q_start.size() <= std::numeric_limits<std::ptrdiff_t>::max());
+      assert(4 * q_start.size() <= max_ptrdiff);
       dir = std::next(dir, static_cast<std::ptrdiff_t>(4 * q_start.size()));
-      assert(dirbuffer.size() <= std::numeric_limits<std::ptrdiff_t>::max());
+      assert(dirbuffer.size() <= max_ptrdiff);
       if (dir >= std::next(dirbuffer.data(), static_cast<std::ptrdiff_t>(dirbuffer.size()))) {
         dir = std::prev(dir, static_cast<std::ptrdiff_t>(dirbuffer.size()));
       }
