@@ -61,7 +61,7 @@ auto hash_getnextindex(uint64_t index) -> uint64_t
 auto hash_set_occupied(const uint64_t index) -> void
 {
   static constexpr auto divider = 3U;
-  static constexpr auto max_range = 7U;
+  static constexpr auto max_range = 7U;  // 0000 0111
   auto const multiplier = index & max_range;  // mask all but the first 3 bits
   assert(multiplier <= 7);
   auto const bit_to_set = static_cast<unsigned char>(1U << multiplier);  // bit 0 to bit 7
