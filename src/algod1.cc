@@ -1360,10 +1360,15 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           if (parameters.opt_ceiling != 0)
             {
+              if (static_cast<uint64_t>(parameters.opt_ceiling) * one_megabyte < memused)
+                {
+                  fatal(error_prefix, "Memory ceiling for Bloom filter is too low.");
+                }
+              assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
               const uint64_t memrest
-                = one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling) - memused;  // underflow bug? memrest value is huge!
+                = one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling) - memused;
               auto const new_bits_long = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
-              // refactoring: triggers a bug // assert(new_bits_long <= std::numeric_limits<unsigned int>::max());
+              assert(new_bits_long <= std::numeric_limits<unsigned int>::max());
               auto const new_bits = static_cast<unsigned int>(new_bits_long);
               if (new_bits < bits)
                 {
