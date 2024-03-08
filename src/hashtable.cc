@@ -37,7 +37,7 @@ constexpr auto ptrdiff_max = std::numeric_limits<std::ptrdiff_t>::max();
 // refactoring: all functions and globals are only used in
 // algod1.cc. It should be possible to pass references to a struct and
 // to vectors, and to eliminate all globals.
-uint64_t hash_mask {0};
+uint64_t hash_mask {std::numeric_limits<uint64_t>::min()};  // use limits once outside assert
 unsigned char * hash_occupied {nullptr};
 uint64_t * hash_values {nullptr};
 unsigned int * hash_data {nullptr};
