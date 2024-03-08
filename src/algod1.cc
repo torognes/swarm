@@ -1120,10 +1120,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   std::vector<unsigned char> hash_occupied_v;
   std::vector<uint64_t> hash_values_v;
   std::vector<unsigned int> hash_data_v;
-  const auto hashtablesize {hash_alloc(amplicons,
-                                       hash_occupied_v,
-                                       hash_values_v,
-                                       hash_data_v)};
+  const auto hashtablesize = hash_alloc(amplicons,
+                                        hash_occupied_v,
+                                        hash_values_v,
+                                        hash_data_v);
   struct bloom_s bloom_filter;
   bloom_a = bloom_init(hashtablesize, bloom_filter);
 
