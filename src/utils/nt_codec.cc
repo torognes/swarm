@@ -24,10 +24,12 @@
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
+
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
 #include <limits>
-
-
 constexpr auto uint_max = std::numeric_limits<unsigned int>::max();
+#endif
 
 
 auto nt_extract(char * seq, const uint64_t pos) -> unsigned char
