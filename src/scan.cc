@@ -35,13 +35,17 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <iterator>
-#include <limits>
 #include <memory>  // unique pointer
 #include <pthread.h>  // pthread_mutex_init
 #include <vector>
 
-
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
+#include <limits>
 constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
+#endif
+
+
 static pthread_mutex_t scan_mutex;
 
 static struct Search_data * search_data;
