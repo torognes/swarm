@@ -1335,7 +1335,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
       else
         {
           /* m: total size of Bloom filter in bits */
-          /* k: number of hash functions */
+          /* k: number of hash functions (n_hash_functions) */
           /* n: number of entries in the bloom filter */
           /* here: k=11 and m/n=18, that is 16 bits/entry */
 
