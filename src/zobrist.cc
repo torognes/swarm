@@ -79,8 +79,8 @@ auto fill_rng_byte_table(const unsigned int zobrist_len,
   zobrist_tab_byte_base_v.resize(1ULL * byte_range * (zobrist_len / 4));
   zobrist_tab_byte_base = zobrist_tab_byte_base_v.data();
 
-  for(auto i = 0U; i < zobrist_len / 4; i++) {
-    for(auto j = 0U; j < byte_range; j++) {
+  for(auto i = 0U; i < zobrist_len / 4; ++i) {
+    for(auto j = 0U; j < byte_range; ++j) {
       auto rng_value = 0ULL;
       auto offset = j;
       // rng value stored at: 4 *  position   +  offset & 3U (= 0, 1, 2, or 3)
@@ -183,7 +183,7 @@ auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> u
   auto * query = reinterpret_cast<uint64_t *>(seq);
   uint64_t offset = *query;
   uint64_t zobrist_hash = 0;
-  for(auto pos = 1U; pos < len; pos++)
+  for(auto pos = 1U; pos < len; ++pos)
     {
       if ((pos & (nt_per_uint64 - 1)) == 0) {
         auto const target_chunk = (pos >> divider);
@@ -210,7 +210,7 @@ auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> u
   auto * query = reinterpret_cast<uint64_t *>(seq);
   uint64_t offset = 0;
   uint64_t zobrist_hash = 0;
-  for(auto pos = 0U; pos < len; pos++)
+  for(auto pos = 0U; pos < len; ++pos)
     {
       if ((pos & (nt_per_uint64 - 1)) == 0) {
         auto const target_chunk = (pos >> divider);

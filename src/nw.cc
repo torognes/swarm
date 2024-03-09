@@ -64,7 +64,7 @@ auto align(char * dseq,
 
   // hearray: array of alignments and insertions (initialized here,
   // then modified through a pointer; can't be const)
-  for(auto column = 0UL; column < qlen; column++)
+  for(auto column = 0UL; column < qlen; ++column)
     {
       hearray[2 * column]     = 1 * gapopen + (column + 1) * gapextend; // H (N)
       hearray[2 * column + 1] = 2 * gapopen + (column + 2) * gapextend; // E
@@ -73,13 +73,13 @@ auto align(char * dseq,
   uint64_t previous_diagonal {0};
   uint64_t left {0};
 
-  for(auto row = 0UL; row < dlen; row++)
+  for(auto row = 0UL; row < dlen; ++row)
     {
       auto he_index = 0UL;
       auto top = 2 * gapopen + (row + 2) * gapextend;
       uint64_t diagonal = (row == 0) ? 0 : (gapopen + row * gapextend);
 
-      for(auto column = 0UL; column < qlen; column++)
+      for(auto column = 0UL; column < qlen; ++column)
         {
           const auto index = qlen * row + column;
 

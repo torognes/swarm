@@ -96,7 +96,7 @@ auto collect_seeds(const uint64_t amplicons,
   auto previous_id = amps_v[0].swarmid;
   auto seed = amps_v[0].ampliconid;
   mass += db_getabundance(seed);
-  for(auto i = 1ULL; i < amplicons; i++)
+  for(auto i = 1ULL; i < amplicons; ++i)
     {
       const auto current_id = amps_v[i].swarmid;
       if (current_id != previous_id)
@@ -188,7 +188,7 @@ auto write_swarms_default_format(const uint64_t amplicons,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
   int64_t previous_id = amps_v[0].swarmid;
 
-  for(auto i = 1ULL; i < amplicons; i++)
+  for(auto i = 1ULL; i < amplicons; ++i)
     {
       const int64_t current_id = amps_v[i].swarmid;
       if (current_id == previous_id) {
@@ -219,7 +219,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
             parameters.opt_usearch_abundance, parameters.opt_append_abundance);
   int64_t previous_id = amps_v[0].swarmid;
 
-  for(auto i = 1ULL; i < amplicons; i++)
+  for(auto i = 1ULL; i < amplicons; ++i)
     {
       const int64_t current_id = amps_v[i].swarmid;
       if (current_id == previous_id) {
@@ -293,7 +293,7 @@ auto algo_run(struct Parameters const & parameters,
     }
 
   /* set ampliconid for all */
-  for(auto i = 0U; i < amplicons; i++) {
+  for(auto i = 0U; i < amplicons; ++i) {
     amps_v[i].ampliconid = i;
   }
 
@@ -361,7 +361,7 @@ auto algo_run(struct Parameters const & parameters,
 
       uint64_t listlen {0};
 
-      for(auto i = 0ULL; i < amplicons - swarmed; i++)
+      for(auto i = 0ULL; i < amplicons - swarmed; ++i)
         {
           const auto ampid = amps_v[swarmed + i].ampliconid;
           if ((parameters.opt_no_cluster_breaking) or (db_getabundance(ampid) <= abundance))
@@ -374,7 +374,7 @@ auto algo_run(struct Parameters const & parameters,
       qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
 
 
-      for(auto i = 0ULL; i < listlen; i++)
+      for(auto i = 0ULL; i < listlen; ++i)
         {
           const auto poolampliconid = qgramamps_v[i];
           const auto diff = qgramdiffs_v[i];
@@ -400,7 +400,7 @@ auto algo_run(struct Parameters const & parameters,
             count_comparisons_16 += targetcount;
           }
 
-          for(auto target_id = 0ULL; target_id < targetcount; target_id++)
+          for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
             {
               const auto diff = diffs_v[target_id];
 
@@ -481,7 +481,7 @@ auto algo_run(struct Parameters const & parameters,
               targetcount = 0;
 
               uint64_t subseedlistlen {0};
-              for(auto i = swarmed; i < amplicons; i++)
+              for(auto i = swarmed; i < amplicons; ++i)
                 {
                   const uint64_t targetampliconid = amps_v[i].ampliconid;
                   if ((amps_v[i].diffestimate <=
@@ -499,7 +499,7 @@ auto algo_run(struct Parameters const & parameters,
               qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps_v.data(),
                               qgramdiffs_v.data(), thread_info_v);
 
-              for(auto i = 0ULL; i < subseedlistlen; i++) {
+              for(auto i = 0ULL; i < subseedlistlen; ++i) {
                 if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences))
                   {
                     targetindices[targetcount] = qgramindices_v[i];
@@ -520,7 +520,7 @@ auto algo_run(struct Parameters const & parameters,
                     count_comparisons_16 += targetcount;
                   }
 
-                  for(auto target_id = 0ULL; target_id < targetcount; target_id++)
+                  for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
                     {
                       const auto diff = diffs_v[target_id];
 
@@ -616,7 +616,7 @@ auto algo_run(struct Parameters const & parameters,
           std::fprintf(parameters.uclustfile, "\t*\n");
           std::fflush(parameters.uclustfile);
 
-          for(auto i = 1ULL; i < hitcount; i++)
+          for(auto i = 1ULL; i < hitcount; ++i)
             {
               const auto hit = hits[i];
 

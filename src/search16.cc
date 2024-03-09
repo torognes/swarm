@@ -146,10 +146,10 @@ inline auto dprofile_fill16(WORD * dprofile_word,
   assert(channels <= std::numeric_limits<long int>::max());
   assert(channels <= std::numeric_limits<unsigned int>::max());
   assert((channels + pos7) * cdepth * channels + channels * cdepth <= max_ptrdiff);
-  for(auto j = 0LL; j < cdepth; j++)
+  for(auto j = 0LL; j < cdepth; ++j)
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
-      for(auto z = 0U; z < channels; z++) {
+      for(auto z = 0U; z < channels; ++z) {
         d[z] = (static_cast<unsigned int>(*std::next(dseq, j * channels + z))) << multiplier;
       }
 
@@ -455,9 +455,9 @@ auto search16(std::vector<WORD *> & q_start,
         {
           // fill all channels
 
-          for(auto channel = 0U; channel < channels; channel++)
+          for(auto channel = 0U; channel < channels; ++channel)
             {
-              for(auto j = 0U; j < cdepth; j++)
+              for(auto j = 0U; j < cdepth; ++j)
                 {
                   if (d_pos[channel] < d_length[channel]) {
                     dseq[channels * j + channel]
@@ -508,13 +508,13 @@ auto search16(std::vector<WORD *> & q_start,
 
           M = v_zero16();
           T = T0;
-          for(auto channel = 0U; channel < channels; channel++)
+          for(auto channel = 0U; channel < channels; ++channel)
             {
               if (d_pos[channel] < d_length[channel])
                 {
                   // this channel has more sequence
 
-                  for(auto j = 0U; j < cdepth; j++)
+                  for(auto j = 0U; j < cdepth; ++j)
                     {
                       if (d_pos[channel] < d_length[channel]) {
                         dseq[channels * j + channel]
@@ -596,7 +596,7 @@ auto search16(std::vector<WORD *> & q_start,
                       *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
-                      for(auto j = 0U; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; ++j)
                         {
                           if (d_pos[channel] < d_length[channel]) {
                             dseq[channels * j + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]);
@@ -617,7 +617,7 @@ auto search16(std::vector<WORD *> & q_start,
                       d_address[channel] = nullptr;
                       d_pos[channel] = 0;
                       d_length[channel] = 0;
-                      for(auto j = 0U; j < cdepth; j++) {
+                      for(auto j = 0U; j < cdepth; ++j) {
                         dseq[channels * j + channel] = 0;
                       }
                     }

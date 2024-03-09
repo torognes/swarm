@@ -275,7 +275,7 @@ auto dereplicating(struct Parameters const & parameters,
   struct Stats stats;
   const uint64_t derep_hash_mask = hashtable.size() - 1;
 
-  for(auto seqno = 0U; seqno < nextseqtab.size(); seqno++)
+  for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
     {
       const unsigned int seqlen = db_getsequencelen(seqno);
       char * seq = db_getsequence(seqno);

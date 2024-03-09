@@ -150,10 +150,10 @@ inline auto dprofile_fill8(BYTE * dprofile,
   VECTORTYPE reg14;
   VECTORTYPE reg15;
 
-  for(auto j = 0U; j < cdepth; j++)
+  for(auto j = 0U; j < cdepth; ++j)
     {
       std::array<unsigned int, channels> d {{}};  // refactoring: name?
-      for(auto i = 0U; i < channels; i++) {
+      for(auto i = 0U; i < channels; ++i) {
         d[i] = (static_cast<unsigned int>(*std::next(dseq, j * channels + i))) << multiplier;
       }
 
@@ -702,9 +702,9 @@ auto search8(std::vector<BYTE *> & q_start,
         {
           // fill all channels
 
-          for(auto channel = 0U; channel < channels; channel++)
+          for(auto channel = 0U; channel < channels; ++channel)
             {
-              for(auto j = 0U; j < cdepth; j++)
+              for(auto j = 0U; j < cdepth; ++j)
                 {
                   if (d_pos[channel] < d_length[channel]) {
                     dseq[channels * j + channel]
@@ -744,13 +744,13 @@ auto search8(std::vector<BYTE *> & q_start,
 
           M = v_zero8();
           T = T0;
-          for(auto channel = 0U; channel < channels; channel++)
+          for(auto channel = 0U; channel < channels; ++channel)
             {
               if (d_pos[channel] < d_length[channel])
                 {
                   // this channel has more sequence
 
-                  for(auto j = 0U; j < cdepth; j++)
+                  for(auto j = 0U; j < cdepth; ++j)
                     {
                       if (d_pos[channel] < d_length[channel]) {
                         dseq[channels * j + channel]
@@ -832,7 +832,7 @@ auto search8(std::vector<BYTE *> & q_start,
                       *std::next(reinterpret_cast<BYTE *>(&F0), channel) = static_cast<BYTE>(2U * gap_open_penalty + 2U * gap_extend_penalty);
 
                       // fill channel
-                      for(auto j = 0U; j < cdepth; j++)
+                      for(auto j = 0U; j < cdepth; ++j)
                         {
                           if (d_pos[channel] < d_length[channel]) {
                             dseq[channels * j + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]);
@@ -853,7 +853,7 @@ auto search8(std::vector<BYTE *> & q_start,
                       d_address[channel] = nullptr;
                       d_pos[channel] = 0;
                       d_length[channel] = 0;
-                      for(auto j = 0U; j < cdepth; j++) {
+                      for(auto j = 0U; j < cdepth; ++j) {
                         dseq[channels * j + channel] = 0;
                       }
                     }

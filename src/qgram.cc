@@ -263,7 +263,7 @@ auto qgram_worker(int64_t const nth_thread) -> void
   auto * amplist = tip.amplist;
   auto * difflist = tip.difflist;
 
-  for(auto i = 0LL; i < listlen_signed; i++) {
+  for(auto i = 0LL; i < listlen_signed; ++i) {
     auto & target_diff = *std::next(difflist, i);
     auto const target_amplicon = *std::next(amplist, i);
     target_diff = qgram_diff(seed, target_amplicon);

@@ -84,7 +84,7 @@ auto search_init(struct Search_data & thread_data) -> void
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
 
-  for(auto i = 0U; i < query.len; i++)
+  for(auto i = 0U; i < query.len; ++i)
   {
     const auto nt_value = nt_extract(query.seq, i) + 1U;  // 1,  2,   3, or   4
     const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
