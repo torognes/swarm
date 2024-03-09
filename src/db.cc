@@ -956,7 +956,7 @@ auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
   static std::vector<char> buffer(db_getlongestsequence() + 1, '\0');
 
   // decode to nucleotides (A, C, G and T)
-  for(auto i = 0U; i < len; i++) {
+  for(auto i = 0U; i < len; ++i) {
     buffer[i] = sym_nt[1 + nt_extract(seqptr, i)];
   }
   buffer[len] = '\0';
