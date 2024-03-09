@@ -414,7 +414,7 @@ auto algo_run(struct Parameters const & parameters,
                   if (swarmed < target)
                     {
                       auto const temp = amps_v[target];  // refactoring: static?
-                      for(auto j = target; j > swarmed; j--)
+                      for(auto j = target; j > swarmed; --j)
                         {
                           amps_v[j] = amps_v[j - 1];
                         }
@@ -548,7 +548,7 @@ auto algo_run(struct Parameters const & parameters,
                           if (pos < target)
                             {
                               auto const temp = amps_v[target];  // refactoring: static?
-                              for(auto j = target; j > pos; j--)
+                              for(auto j = target; j > pos; --j)
                                 {
                                   amps_v[j] = amps_v[j - 1];
                                 }
