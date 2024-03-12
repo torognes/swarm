@@ -30,7 +30,6 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <iterator>  // std::next
-#include <limits>
 #endif
 
 #ifdef __SSE4_1__
@@ -51,6 +50,7 @@
 
 #ifndef NDEBUG
 // C++17 refactoring: [[maybe_unused]]
+#include <limits>
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif
 
