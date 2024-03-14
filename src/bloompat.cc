@@ -93,8 +93,8 @@ auto bloom_patterns_generate(struct bloom_s & bloom_filter) -> void
 
 auto bloom_zap(struct bloom_s & bloom_filter) -> void
 {
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  std::fill(bloom_filter.bitmap_v.begin(), bloom_filter.bitmap_v.end(), uint8_max);
+  static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
+  std::fill(bloom_filter.bitmap_v.begin(), bloom_filter.bitmap_v.end(), uint64_max);
 }
 
 
