@@ -104,7 +104,7 @@ auto bloom_init(uint64_t size, struct bloom_s & bloom_filter) -> struct bloom_s 
   // at least 8
   // assert(std::has_single_bit(size));  // C++20 refactoring: is power of 2?
   static constexpr uint64_t bytes_per_uint64 {8};
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
 
   size = std::max(size, bytes_per_uint64);
 
@@ -112,7 +112,7 @@ auto bloom_init(uint64_t size, struct bloom_s & bloom_filter) -> struct bloom_s 
 
   bloom_filter.mask = (size >> 3U) - 1;
 
-  bloom_filter.bitmap_v.resize(size, uint8_max);
+  bloom_filter.bitmap_v.resize(size, uint64_max);
   bloom_filter.bitmap = bloom_filter.bitmap_v.data();
 
   bloom_patterns_generate(bloom_filter);
