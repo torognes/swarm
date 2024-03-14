@@ -480,7 +480,7 @@ auto args_check(const std::array<bool, n_options> &used_options,
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   static constexpr unsigned int min_bits_per_entry {2};
   static constexpr unsigned int max_bits_per_entry {64};
-  static constexpr unsigned int min_ceiling {21};
+  static constexpr unsigned int min_ceiling {30};
   static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
   static constexpr unsigned int max_threads {512};
   // meaning of the used_options values
