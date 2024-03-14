@@ -96,7 +96,7 @@ auto bloomflex_init(const uint64_t size, const unsigned int n_hash_functions,
 
   static constexpr unsigned int multiplier {16};  // multiply by 65,536
   static constexpr unsigned int divider {3};  // divide by 8
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
 
   bloom_filter.size = size >> divider;  // divide by 8 to get number of uint64
 
@@ -109,7 +109,7 @@ auto bloomflex_init(const uint64_t size, const unsigned int n_hash_functions,
   bloom_filter.patterns = bloom_filter.patterns_v.data();
   bloomflex_patterns_generate(bloom_filter);
 
-  bloom_filter.bitmap_v.resize(bloom_filter.size, uint8_max);
+  bloom_filter.bitmap_v.resize(bloom_filter.size, uint64_max);
   bloom_filter.bitmap = bloom_filter.bitmap_v.data();
 
   return &bloom_filter;
