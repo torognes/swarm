@@ -1342,7 +1342,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           static constexpr auto microvariants = 7U;
           static constexpr auto n_bits_in_a_byte = 8U;
           static constexpr double hash_functions_per_bit {4.0 / 10};
-          static_assert(hash_functions_per_bit <= 0.693147181, "upper limit is std::log(2)");
+          static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
+          static_assert(hash_functions_per_bit <= natural_log_of_2, "upper limit is log(2)");
           assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
           assert(parameters.opt_bloom_bits <= 64);  // larger than expected
           assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
