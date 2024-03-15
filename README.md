@@ -433,15 +433,17 @@ swarm 4.0.0:
 
 ### version 3.1.5 ###
 
-**swarm** 3.1.5 fixes two minor bugs, improves code and documentation,
-and eliminates compilation warnings and static analysis warnings:
+**swarm** 3.1.5 fixes three minor bugs, improves code and
+documentation, and eliminates compilation warnings and static analysis
+warnings:
 - change: when using the fastidious and the ceiling options, minimal
-  ceiling value is now 21 megabytes (instead of 8 megabytes),
+  ceiling value is now 30 megabytes (instead of 8 megabytes),
 - add: more compilation checks (`shadow`, `useless-cast`,
   `conversion`, `sign-conversion`),
 - add: 42 new black-box tests,
-- fix: minor bug introduced in version 3.1.1 (`alloc-dealloc`-mismatch;
-  bug had no impact on clustering results),
+- fix: two minor bugs introduced in version 3.1.1
+  (`alloc-dealloc`-mismatch, and allocating too much memory; bugs had
+  no impact on clustering results),
 - fix: minor bug in the way available memory is estimated (buffer underflow;
   bug had no impact on clustering results),
 - fix: 50 warnings triggered by newly added compilation checks,
