@@ -136,11 +136,11 @@ all : $(PROG)
 
 swarm : $(OBJS) $(DEPS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
-	mkdir -p ../bin
-	cp -a $(BIN) ../bin
+	mkdir --parents ../bin
+	cp --archive $(BIN) ../bin
 
 clean :
-	rm -rf swarm *.o ./utils/*.o *~ gmon.out *.gcno *.gcda *.gcov \
+	rm --recursive --force swarm *.o ./utils/*.o *~ gmon.out *.gcno *.gcda *.gcov \
 	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov ../bin/
 
 .o : .cc $(DEPS)
