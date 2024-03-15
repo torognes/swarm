@@ -39,7 +39,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
-#include <cstring>  // memcpy, memcmp
+#include <cstring>  // memcpy
 #include <iterator>  // std::next()
 #include <limits>
 #include <string>

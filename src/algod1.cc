@@ -50,7 +50,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), size_t
 #include <cstdlib>  // qsort()
-#include <cstring>  // std::memcmp
+#include <cstring>  // std::strcmp
 #include <iterator>  // std::next
 #include <limits>  // unsigned int max
 #include <memory>  // unique pointer
