@@ -34,10 +34,11 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
   // C++20: refactor with std::bit_ceil()
   static constexpr unsigned int numerator {7};
   static constexpr unsigned int denominator {10};
+  static constexpr double divider {2.0};
   static_assert(numerator != 0, "Error: will result in a divide-by-zero");
   assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
   // GCC 6 to 9: std::log2 is not a member of std! (replace with log(x) / log(2.0) for now)
-  return static_cast<uint64_t>(std::pow(2, std::ceil(std::log(denominator * (sequence_count + 1) / numerator) / std::log(2.0))));
+  return static_cast<uint64_t>(std::pow(2, std::ceil(std::log(denominator * (sequence_count + 1) / numerator) / std::log(divider))));
 }
 
 
