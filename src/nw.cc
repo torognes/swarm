@@ -27,7 +27,6 @@
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // snprintf, size_t
-#include <cstring>  // memcpy, memmove, memset
 #include <vector>
 
 

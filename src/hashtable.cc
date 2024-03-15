@@ -24,7 +24,6 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>
-#include <cstring>  // memset
 #include <iterator>  // std::next
 #include <vector>
 #include "hashtable.h"

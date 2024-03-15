@@ -37,7 +37,6 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t, uint8_t
-#include <cstring>
 #include <iterator>  // std::next
 #include <limits>
 

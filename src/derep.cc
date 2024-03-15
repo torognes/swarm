@@ -33,7 +33,6 @@
 #include <cstdint>
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
-#include <cstring>  // memcmp
 #include <iterator>  // std::next
 #include <vector>
 
