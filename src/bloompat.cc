@@ -112,7 +112,7 @@ auto bloom_init(uint64_t size, struct bloom_s & bloom_filter) -> struct bloom_s 
 
   bloom_filter.mask = (size >> 3U) - 1;
 
-  bloom_filter.bitmap_v.resize(size, uint64_max);
+  bloom_filter.bitmap_v.resize(size / bytes_per_uint64, uint64_max);
   bloom_filter.bitmap = bloom_filter.bitmap_v.data();
 
   bloom_patterns_generate(bloom_filter);
