@@ -447,12 +447,14 @@ warnings:
 - fix: minor bug in the way available memory is estimated (buffer underflow;
   bug had no impact on clustering results),
 - fix: 50 warnings triggered by newly added compilation checks,
-- fix: 1,674 clang-tidy warnings (from 2,629 warnings, down to 955),
+- fix: 1,677 clang-tidy warnings (from 2,629 warnings, down to 952),
+- improve: x% faster dereplication (`d = 0`),
 - improve: documentation for output option `--network_file` (advanced users),
 - improve: build target platform detection,
 - improve: code-coverage of our test-suite,
 - improve: code modernization for long-term maintenance,
-- improve: x% faster dereplication (`d = 0`)
+- revert: due to inconsistent test results, reading from named pipes
+  (fifo) is marked as experimental for now
 
 ### version 3.1.4 ###
 
