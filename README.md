@@ -437,7 +437,7 @@ swarm 4.0.0:
 documentation, and eliminates compilation warnings and static analysis
 warnings:
 - change: when using the fastidious and the ceiling options, minimal
-  ceiling value is now 30 megabytes (instead of 8 megabytes),
+  ceiling value is now 40 megabytes (instead of 8 megabytes),
 - add: more compilation checks (`shadow`, `useless-cast`,
   `conversion`, `sign-conversion`),
 - add: 42 new black-box tests,
