@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "March 20, 2024" "version 3.1.5" "USER COMMANDS"
+.TH swarm 1 "March 21, 2024" "version 3.1.5" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -548,9 +548,14 @@ New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
 .TP
-.BR v3.1.5\~ "released March 20, 2024"
-Version 3.1.5 fixes two minor bugs. It eliminates compilation warnings
-with GCC 14 and clang 19, as well as 1,500 static analysis warnings.
+.BR v3.1.5\~ "released March 21, 2024"
+Version 3.1.5 changes the minimal value for the ceiling option from 8
+megabytes to 40 megabytes, and fixes three minor bugs. Warning, peak
+RSS memory increased by 5 to 10% when \fId\fR = 1 and \fId\fR >
+2. Version 3.1.5 improves documentation (now covering option
+\-\-network_file), adds more compilation checks and eliminates 50
+compilation warnings with GCC 13, GCC 14 and clang 19, as well as
+1,677 static analysis warnings.
 .TP
 .BR v3.1.4\~ "released September 20, 2023"
 Version 3.1.4 fixes a minor bug. It eliminates compilation warnings
