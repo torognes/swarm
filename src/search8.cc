@@ -97,7 +97,7 @@ inline auto dprofile_fill8(BYTE * dprofile,
                            BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
-  assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max());
+  assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max());  // refactoring: static_assert?
   static constexpr auto n_lanes = 16LL;  // refactoring: same as channels?
 
   static constexpr auto pos0  = 0U;
