@@ -410,23 +410,21 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 > MINOR version when you add functionality in a backwards compatible manner, and
 > PATCH version when you make backwards compatible bug fixes.
 
-swarm 3.1.x:
+swarm 3.1.6:
 - use more C++11 and STL features,
 - eliminate most of clang-tidy's warnings,
-- measure the effect of code modernization on run-time performances
-
-swarm 3.1.y:
 - refactor to reduce cyclomatic complexity (simpler and shorter functions),
-- reduce/eliminate linuxisms to improve portability
+- reduce/eliminate linuxisms to improve portability,
+- measure the effect of code modernization on run-time performances
 
 swarm 3.2.0:
 - swarm can be compiled natively on a BSD or a Windows system
 
 swarm 4.0.0:
+- rename option `-n` to `--no-cluster-breaking` (API change),
 - drop compatibility with GCC 4 and GCC 5 (late-2024 GCC 8 will become
   the new *de facto* standard for HPC centers),
-- start using C++14 and C++17 features,
-- rename option `-n` to `--no-cluster-breaking` (API change)
+- start using C++14 and C++17 features
 
 
 ## Version history ##
