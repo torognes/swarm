@@ -153,7 +153,7 @@ inline auto dprofile_fill16(WORD * dprofile_word,
         d[z] = (static_cast<unsigned int>(*std::next(dseq, j * channels + z))) << multiplier;
       }
 
-      for(auto i = 0L; i < channels; i += channels)
+      for(auto i = 0UL; i < channels; i += channels)
         {
           reg0  = v_load16(cast_vector16(std::next(score_matrix, d[pos0] + i)));
           reg1  = v_load16(cast_vector16(std::next(score_matrix, d[pos1] + i)));
