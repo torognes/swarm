@@ -1392,7 +1392,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             }
 
           std::fprintf(parameters.logfile,
-                       "Bloom filter: bits=%lu, m=%" PRIu64 ", k=%u, size=%.1fMB\n",
+                       "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
                        bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
 
 
