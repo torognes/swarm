@@ -22,7 +22,7 @@
 */
 
 #include "utils/threads.h"
-#include <cinttypes>
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <memory>  // unique pointer
 #include <vector>
