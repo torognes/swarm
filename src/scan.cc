@@ -99,8 +99,9 @@ auto search_init(struct Search_data & thread_data) -> void
 
 auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
 {
-  static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
-  static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
+  static constexpr auto sixteen_bytes = 16;
+  alignas(sixteen_bytes) static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
+  alignas(sixteen_bytes) static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
   static constexpr auto bit_mode_16 = 16U;
   assert(thread_data.target_index <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const target_index = static_cast<std::ptrdiff_t>(thread_data.target_index);
