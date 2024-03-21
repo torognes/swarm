@@ -135,7 +135,7 @@ auto write_structure_file(struct Parameters const & parameters,
         fprint_id_noabundance(parameters.internal_structure_file, seed, parameters.opt_usearch_abundance);
         std::fprintf(parameters.internal_structure_file, "\t");
         fprint_id_noabundance(parameters.internal_structure_file, next_identical, parameters.opt_usearch_abundance);
-        std::fprintf(parameters.internal_structure_file, "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
+        std::fprintf(parameters.internal_structure_file, "\t%d\t%lu\t%d\n", 0, counter + 1, 0);
         next_identical = nextseqtab[next_identical];
       }
     ++counter;
@@ -209,7 +209,7 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
                                 std::vector<struct bucket> const & hashtable,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing swarms:   ", hashtable.size());
-  std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%" PRIu64, parameters.opt_differences, hashtable.size());
+  std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%lu", parameters.opt_differences, hashtable.size());
   auto counter = 0U;
 
   for(auto const & cluster: hashtable) {
