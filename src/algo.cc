@@ -247,7 +247,7 @@ auto algo_run(struct Parameters const & parameters,
   search_begin(search_data_v);
   /* start threads */
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-  std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(parameters.opt_threads), search_worker_core));
+  const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(parameters.opt_threads), search_worker_core));
 
   count_comparisons_8 = 0;
   count_comparisons_16 = 0;
