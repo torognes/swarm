@@ -100,6 +100,7 @@ inline auto dprofile_fill16(WORD * dprofile_word,
                             WORD * score_matrix,
                             BYTE const * dseq) -> void
 {
+  static constexpr auto s_channels = static_cast<int>(channels);
   static constexpr auto multiplier = 5U;
   static constexpr auto pos0 = 0;
   static constexpr auto pos1 = pos0 + 1;
@@ -153,7 +154,7 @@ inline auto dprofile_fill16(WORD * dprofile_word,
         d[z] = (static_cast<unsigned int>(*std::next(dseq, j * channels + z))) << multiplier;
       }
 
-      for(auto i = 0UL; i < channels; i += channels)
+      for(auto i = 0L; i < s_channels; i += s_channels)
         {
           reg0  = v_load16(cast_vector16(std::next(score_matrix, d[pos0] + i)));
           reg1  = v_load16(cast_vector16(std::next(score_matrix, d[pos1] + i)));
