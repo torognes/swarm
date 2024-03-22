@@ -24,7 +24,6 @@
 #include "utils/threads.h"
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
-#include <memory>  // unique pointer
 #include <vector>
 
 
@@ -36,7 +35,7 @@ auto search_do(uint64_t query_no,
                uint64_t * diffs,
                uint64_t * alignlengths,
                int bits,
-               std::unique_ptr<ThreadRunner>& search_threads) -> void;
+               ThreadRunner * search_threads) -> void;
 auto search_begin(std::vector<struct Search_data>& search_data_v) -> void;
 auto search_end() -> void;
 auto search_worker_core(int64_t thread_id) -> void;

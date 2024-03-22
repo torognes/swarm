@@ -391,7 +391,7 @@ auto algo_run(struct Parameters const & parameters,
       if (targetcount > 0)
         {
           search_do(seedampliconid, targetcount, targetampliconids.data(),
-                    scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads);
+                    scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
           if (bits == bit_mode_8) {
             count_comparisons_8 += targetcount;
@@ -511,7 +511,7 @@ auto algo_run(struct Parameters const & parameters,
               if (targetcount > 0)
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
-                            scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads);
+                            scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
                   if (bits == bit_mode_8) {
                     count_comparisons_8 += targetcount;

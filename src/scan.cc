@@ -35,7 +35,6 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <iterator>
-#include <memory>  // unique pointer
 #include <pthread.h>  // pthread_mutex_init
 #include <vector>
 
@@ -225,7 +224,7 @@ auto search_do(const uint64_t query_no,
                uint64_t * diffs,
                uint64_t * alignlengths,
                const int bits,
-               std::unique_ptr<ThreadRunner>& search_threads) -> void
+               ThreadRunner * search_threads) -> void
 {
   auto query_len = 0U;
   query.qno = query_no;
