@@ -412,6 +412,7 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 
 swarm 3.1.6:
 - use more C++11 and STL features,
+- replace `pthreads` with `std::thread`,
 - eliminate most of clang-tidy's warnings,
 - refactor to reduce cyclomatic complexity (simpler and shorter functions),
 - reduce/eliminate linuxisms to improve portability,
