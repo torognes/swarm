@@ -423,6 +423,8 @@ swarm 3.2.0:
 
 swarm 4.0.0:
 - rename option `-n` to `--no-cluster-breaking` (API change),
+- faster similarity search? (AVX2, GPU, symmetric deletion lookup
+  algorithm, ...),
 - drop compatibility with GCC 4 and GCC 5 (late-2024 GCC 8 will become
   the new *de facto* standard for HPC centers),
 - start using C++14 and C++17 features
