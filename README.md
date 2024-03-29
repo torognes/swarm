@@ -452,9 +452,9 @@ warnings:
 - fix: 50 warnings triggered by newly added compilation checks,
 - fix: 1,677 clang-tidy warnings (from 2,629 warnings, down to 952),
 - performance: generally stable but compiler-dependent, with the
-  exception of a 5 to 10% increase in total memory footprint when d =
-  1 and d > 2 (we expect these performance regressions to be temporary
-  and to be fixed with further refactoring),
+  exception of a 5 to 10% increase in total memory footprint when d >=
+  2 (we expect these performance regressions to be temporary and to be
+  fixed with further refactoring),
 - improve: documentation for output option `--network_file` (advanced users),
 - improve: build target platform detection,
 - improve: code-coverage of our test-suite,
