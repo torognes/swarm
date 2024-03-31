@@ -209,7 +209,13 @@ auto write_swarms_mothur_format(struct Parameters const & parameters,
                                 std::vector<struct bucket> const & hashtable,
                                 std::vector<unsigned int> const & nextseqtab) -> void {
   progress_init("Writing swarms:   ", hashtable.size());
+
+#ifdef _WIN32
+  std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%llu", parameters.opt_differences, hashtable.size());
+#else
   std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%lu", parameters.opt_differences, hashtable.size());
+#endif
+
   auto counter = 0U;
 
   for(auto const & cluster: hashtable) {
