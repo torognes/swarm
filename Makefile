@@ -24,15 +24,19 @@
 PROG=bin/swarm
 MAN=man/swarm.1
 
+ifndef PREFIX
+	PREFIX=/usr/local
+endif
+
 swarm : $(PROG)
 
 $(PROG) :
 	$(MAKE) -C src swarm
 
 install : $(PROG) $(MAN)
-	/usr/bin/install -c $(PROG) '/usr/local/bin'
-	/usr/bin/install -d '/usr/local/share/man/man1'
-	/usr/bin/install -c $(MAN) '/usr/local/share/man/man1'
+	/usr/bin/install -c $(PROG) $(PREFIX)/bin
+	/usr/bin/install -d $(PREFIX)/share/man/man1
+	/usr/bin/install -c $(MAN) $(PREFIX)/share/man/man1
 
 clean :
 	$(MAKE) -C src clean
