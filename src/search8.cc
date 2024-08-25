@@ -28,7 +28,6 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t, uint8_t
-#include <cstdio>  // std::size_t
 #include <iterator> // std::next, std::distance
 #include <limits>
 #include <vector>
@@ -215,7 +214,7 @@ inline auto dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      std::size_t const lane = n_lanes * j;  // refactoring: meaningful name?
+      std::ptrdiff_t const lane = n_lanes * j;  // refactoring: meaningful name?
       v_store8(cast_vector8(std::next(dprofile, lane + line0)), reg0);
       v_store8(cast_vector8(std::next(dprofile, lane + line1)), reg3);
       v_store8(cast_vector8(std::next(dprofile, lane + line2)), reg2);
