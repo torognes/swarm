@@ -90,10 +90,10 @@ auto dprofile_shuffle8(BYTE * dprofile,
     // so five possible rows of scores
     const auto scores = v_load8(std::next(score_db, 2 * nuc));
 
-    v_store8(std::next(profile_db, 4 * nuc + 0), v_shuffle8(scores, seq_chunk0));
-    v_store8(std::next(profile_db, 4 * nuc + 1), v_shuffle8(scores, seq_chunk1));
-    v_store8(std::next(profile_db, 4 * nuc + 2), v_shuffle8(scores, seq_chunk2));
-    v_store8(std::next(profile_db, 4 * nuc + 3), v_shuffle8(scores, seq_chunk3));
+    v_store8(std::next(profile_db, (4 * nuc) + 0), v_shuffle8(scores, seq_chunk0));
+    v_store8(std::next(profile_db, (4 * nuc) + 1), v_shuffle8(scores, seq_chunk1));
+    v_store8(std::next(profile_db, (4 * nuc) + 2), v_shuffle8(scores, seq_chunk2));
+    v_store8(std::next(profile_db, (4 * nuc) + 3), v_shuffle8(scores, seq_chunk3));
   };
 
   profline8(0);  // -/gap/no nucleotide (0)
@@ -147,10 +147,10 @@ auto dprofile_shuffle16(WORD * dprofile,
   auto profline16 = [&](const long long int nuc) {
     const auto scores = v_load16(std::next(score_db, 4 * nuc));
 
-    v_store16(std::next(profile_db, 4 * nuc + 0), v_shuffle8(scores, m0));
-    v_store16(std::next(profile_db, 4 * nuc + 1), v_shuffle8(scores, m1));
-    v_store16(std::next(profile_db, 4 * nuc + 2), v_shuffle8(scores, m2));
-    v_store16(std::next(profile_db, 4 * nuc + 3), v_shuffle8(scores, m3));
+    v_store16(std::next(profile_db, (4 * nuc) + 0), v_shuffle8(scores, m0));
+    v_store16(std::next(profile_db, (4 * nuc) + 1), v_shuffle8(scores, m1));
+    v_store16(std::next(profile_db, (4 * nuc) + 2), v_shuffle8(scores, m2));
+    v_store16(std::next(profile_db, (4 * nuc) + 3), v_shuffle8(scores, m3));
   };
 
   profline16(0);  // -/gap/no nucleotide (0)
