@@ -151,7 +151,7 @@ inline auto dprofile_fill16(WORD * dprofile_word,
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
       for(auto z = 0U; z < channels; ++z) {
-        d[z] = (static_cast<unsigned int>(*std::next(dseq, j * channels + z))) << multiplier;
+        d[z] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + z))) << multiplier;
       }
 
       for(auto i = 0L; i < s_channels; i += s_channels)
@@ -192,14 +192,14 @@ inline auto dprofile_fill16(WORD * dprofile_word,
           reg30 = v_merge_lo_64(reg21, reg23);
           reg31 = v_merge_hi_64(reg21, reg23);
 
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos0) * cdepth * channels + channels * j)), reg24);
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos1) * cdepth * channels + channels * j)), reg25);
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos2) * cdepth * channels + channels * j)), reg26);
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos3) * cdepth * channels + channels * j)), reg27);
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos4) * cdepth * channels + channels * j)), reg28);
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos5) * cdepth * channels + channels * j)), reg29);
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos6) * cdepth * channels + channels * j)), reg30);
-          v_store16(cast_vector16(std::next(dprofile_word, (i + pos7) * cdepth * channels + channels * j)), reg31);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos0) * cdepth * channels) + (channels * j))), reg24);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos1) * cdepth * channels) + (channels * j))), reg25);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos2) * cdepth * channels) + (channels * j))), reg26);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos3) * cdepth * channels) + (channels * j))), reg27);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos4) * cdepth * channels) + (channels * j))), reg28);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos5) * cdepth * channels) + (channels * j))), reg29);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos6) * cdepth * channels) + (channels * j))), reg30);
+          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos7) * cdepth * channels) + (channels * j))), reg31);
         }
     }
 }
@@ -276,14 +276,14 @@ auto align_cells_regular_16(VECTORTYPE * Sm,
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE * x = *std::next(qp, pos + 0);
-      h4 = *std::next(hep, 2 * pos + 0);
-      E  = *std::next(hep, 2 * pos + 1);
-      onestep_16(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
-      onestep_16(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
-      onestep_16(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
-      onestep_16(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
-      *std::next(hep, 2 * pos + 0) = h8;
-      *std::next(hep, 2 * pos + 1) = E;
+      h4 = *std::next(hep, (2 * pos) + 0);
+      E  = *std::next(hep, (2 * pos) + 1);
+      onestep_16(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
+      onestep_16(h1, h6, f1, *std::next(x, 1), std::next(dir, (step * pos) + offset1), E, Q, R);
+      onestep_16(h2, h7, f2, *std::next(x, 2), std::next(dir, (step * pos) + offset2), E, Q, R);
+      onestep_16(h3, h8, f3, *std::next(x, 3), std::next(dir, (step * pos) + offset3), E, Q, R);
+      *std::next(hep, (2 * pos) + 0) = h8;
+      *std::next(hep, (2 * pos) + 1) = E;
       h0 = h4;
       h1 = h5;
       h2 = h6;
@@ -346,8 +346,8 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      h4 = *std::next(hep, 2 * pos + 0);
-      E  = *std::next(hep, 2 * pos + 1);
+      h4 = *std::next(hep, (2 * pos) + 0);
+      E  = *std::next(hep, (2 * pos) + 1);
       VECTORTYPE * x = *std::next(qp, pos + 0);
 
       /* mask h4 and E */
@@ -362,12 +362,12 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
       /* update MQ */
       *MQ = v_add16(*MQ,  *MR);
 
-      onestep_16(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
-      onestep_16(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
-      onestep_16(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
-      onestep_16(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
-      *std::next(hep, 2 * pos + 0) = h8;
-      *std::next(hep, 2 * pos + 1) = E;
+      onestep_16(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
+      onestep_16(h1, h6, f1, *std::next(x, 1), std::next(dir, (step * pos) + offset1), E, Q, R);
+      onestep_16(h2, h7, f2, *std::next(x, 2), std::next(dir, (step * pos) + offset2), E, Q, R);
+      onestep_16(h3, h8, f3, *std::next(x, 3), std::next(dir, (step * pos) + offset3), E, Q, R);
+      *std::next(hep, (2 * pos) + 0) = h8;
+      *std::next(hep, (2 * pos) + 1) = E;
 
       h0 = h4;
       h1 = h5;
@@ -461,12 +461,12 @@ auto search16(std::vector<WORD *> & q_start,
               for(auto j = 0U; j < cdepth; ++j)
                 {
                   if (d_pos[channel] < d_length[channel]) {
-                    dseq[channels * j + channel]
+                    dseq[(channels * j) + channel]
                       = 1 + nt_extract(d_address[channel], d_pos[channel]);
                     ++d_pos[channel];
                   }
                   else {
-                    dseq[channels * j + channel] = 0;
+                    dseq[(channels * j) + channel] = 0;
                   }
                 }
               if (d_pos[channel] == d_length[channel]) {
@@ -518,12 +518,12 @@ auto search16(std::vector<WORD *> & q_start,
                   for(auto j = 0U; j < cdepth; ++j)
                     {
                       if (d_pos[channel] < d_length[channel]) {
-                        dseq[channels * j + channel]
+                        dseq[(channels * j) + channel]
                           = 1 + nt_extract(d_address[channel], d_pos[channel]);
                         ++d_pos[channel];
                       }
                       else {
-                        dseq[channels * j + channel] = 0;
+                        dseq[(channels * j) + channel] = 0;
                       }
                     }
                   if (d_pos[channel] == d_length[channel]) {
@@ -548,7 +548,7 @@ auto search16(std::vector<WORD *> & q_start,
                       const uint64_t z = (dbseqlen + 3) % 4;
                       assert(z * channels + channel <= max_ptrdiff);
                       const uint64_t score
-                        = *std::next(reinterpret_cast<WORD*>(S), static_cast<std::ptrdiff_t>(z * channels + channel));
+                        = *std::next(reinterpret_cast<WORD*>(S), static_cast<std::ptrdiff_t>((z * channels) + channel));
                       *std::next(scores, cand_id) = score;
 
                       uint64_t diff {0};
@@ -592,19 +592,19 @@ auto search16(std::vector<WORD *> & q_start,
                       d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer.data());
                       ++next_id;
 
-                      assert((2U * gap_open_penalty + 2U * gap_extend_penalty) <= std::numeric_limits<WORD>::max());
+                      assert(((2U * gap_open_penalty) + (2U * gap_extend_penalty)) <= std::numeric_limits<WORD>::max());
                       *std::next(reinterpret_cast<WORD *>(&H0), channel) = 0;
-                      *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>(2U * gap_open_penalty + 2U * gap_extend_penalty);
+                      *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
 
                       // fill channel
                       for(auto j = 0U; j < cdepth; ++j)
                         {
                           if (d_pos[channel] < d_length[channel]) {
-                            dseq[channels * j + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]);
+                            dseq[(channels * j) + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]);
                             ++d_pos[channel];
                           }
                           else {
-                            dseq[channels * j + channel] = 0;
+                            dseq[(channels * j) + channel] = 0;
                           }
                         }
                       if (d_pos[channel] == d_length[channel]) {
@@ -619,7 +619,7 @@ auto search16(std::vector<WORD *> & q_start,
                       d_pos[channel] = 0;
                       d_length[channel] = 0;
                       for(auto j = 0U; j < cdepth; ++j) {
-                        dseq[channels * j + channel] = 0;
+                        dseq[(channels * j) + channel] = 0;
                       }
                     }
                 }
