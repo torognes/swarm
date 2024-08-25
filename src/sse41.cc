@@ -135,14 +135,14 @@ auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE * x = *std::next(qp, pos + 0);
-      h4 = *std::next(hep, 2 * pos + 0);
-      E  = *std::next(hep, 2 * pos + 1);
-      onestep_16_sse41(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
-      onestep_16_sse41(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
-      onestep_16_sse41(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
-      onestep_16_sse41(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
-      *std::next(hep, 2 * pos + 0) = h8;
-      *std::next(hep, 2 * pos + 1) = E;
+      h4 = *std::next(hep, (2 * pos) + 0);
+      E  = *std::next(hep, (2 * pos) + 1);
+      onestep_16_sse41(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
+      onestep_16_sse41(h1, h6, f1, *std::next(x, 1), std::next(dir, (step * pos) + offset1), E, Q, R);
+      onestep_16_sse41(h2, h7, f2, *std::next(x, 2), std::next(dir, (step * pos) + offset2), E, Q, R);
+      onestep_16_sse41(h3, h8, f3, *std::next(x, 3), std::next(dir, (step * pos) + offset3), E, Q, R);
+      *std::next(hep, (2 * pos) + 0) = h8;
+      *std::next(hep, (2 * pos) + 1) = E;
       h0 = h4;
       h1 = h5;
       h2 = h6;
@@ -205,8 +205,8 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      h4 = *std::next(hep, 2 * pos + 0);
-      E  = *std::next(hep, 2 * pos + 1);
+      h4 = *std::next(hep, (2 * pos) + 0);
+      E  = *std::next(hep, (2 * pos) + 1);
       VECTORTYPE * x = *std::next(qp, pos + 0);
 
       /* mask h4 and E */
@@ -222,12 +222,12 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
       *MQ = v_add16(*MQ,  *MR);
 
 
-      onestep_16_sse41(h0, h5, f0, *std::next(x, 0), std::next(dir, step * pos + offset0), E, Q, R);
-      onestep_16_sse41(h1, h6, f1, *std::next(x, 1), std::next(dir, step * pos + offset1), E, Q, R);
-      onestep_16_sse41(h2, h7, f2, *std::next(x, 2), std::next(dir, step * pos + offset2), E, Q, R);
-      onestep_16_sse41(h3, h8, f3, *std::next(x, 3), std::next(dir, step * pos + offset3), E, Q, R);
-      *std::next(hep, 2 * pos + 0) = h8;
-      *std::next(hep, 2 * pos + 1) = E;
+      onestep_16_sse41(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
+      onestep_16_sse41(h1, h6, f1, *std::next(x, 1), std::next(dir, (step * pos) + offset1), E, Q, R);
+      onestep_16_sse41(h2, h7, f2, *std::next(x, 2), std::next(dir, (step * pos) + offset2), E, Q, R);
+      onestep_16_sse41(h3, h8, f3, *std::next(x, 3), std::next(dir, (step * pos) + offset3), E, Q, R);
+      *std::next(hep, (2 * pos) + 0) = h8;
+      *std::next(hep, (2 * pos) + 1) = E;
 
       h0 = h4;
       h1 = h5;
