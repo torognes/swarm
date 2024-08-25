@@ -461,8 +461,8 @@ auto check_heavy_thread(int64_t nth_thread) -> void
   static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
   (void) nth_thread;  // refactoring: unused parameter, replace with function overload?
 
-  std::vector<struct var_s> variant_list(multiplier * longestamplicon + offset);
-  std::vector<struct var_s> variant_list2(multiplier * (longestamplicon + 1) + offset);
+  std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset);
+  std::vector<struct var_s> variant_list2((multiplier * (longestamplicon + 1)) + offset);
 
   const std::size_t size =
     sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
@@ -529,7 +529,7 @@ auto mark_light_thread(int64_t nth_thread) -> void
 
   (void) nth_thread;  // refactoring: unused?
 
-  std::vector<struct var_s> variant_list(multiplier * longestamplicon + offset);
+  std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset);
 
   pthread_mutex_lock(&light_mutex);
   while (light_progress < light_amplicon_count)
@@ -638,8 +638,8 @@ auto network_thread(int64_t nth_thread) -> void
 
   (void) nth_thread;  // refactoring: unused?
 
-  std::vector<unsigned int> hits_data(multiplier * longestamplicon + offset + 1);
-  std::vector<struct var_s> variant_list(multiplier * longestamplicon + offset + 1);
+  std::vector<unsigned int> hits_data((multiplier * longestamplicon) + offset + 1);
+  std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset + 1);
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
@@ -1112,7 +1112,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   // max number of microvariants = 7 * len + 4
   static constexpr auto multiplier = 7U;
   static constexpr auto offset = 4U;
-  const auto global_hits_alloc = multiplier * longestamplicon + offset + 1;
+  const auto global_hits_alloc = (multiplier * longestamplicon) + offset + 1;
   std::vector<unsigned int> global_hits_v(global_hits_alloc);
   global_hits_data = global_hits_v.data();
 
@@ -1367,7 +1367,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                 }
               assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
               const uint64_t memrest
-                = one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling) - memused;
+                = (one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling)) - memused;
               auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
               if (new_bits < bits)
                 {
