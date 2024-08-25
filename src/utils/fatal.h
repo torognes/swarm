@@ -40,9 +40,9 @@ auto fatal(T... args) -> void;
 
 // consume arguments one-by-one
 template <typename T, typename... Tail>
-auto fatal(T head, Tail... tail) -> void {
+auto fatal(T const & head, Tail... tail) -> void {
     std::cerr << head;
-    fatal(tail...);
+    fatal(std::move(tail...));
 }
 
 // // specialization: zero argument  // triggers a multiple definitions error at link time
