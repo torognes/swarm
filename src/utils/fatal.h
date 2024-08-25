@@ -32,7 +32,7 @@ auto fatal() -> void;
 
 // refactoring C++11: constrain with type traits?
 // refactoring C++17: use fold expression
-// refactoring C++20: use Printable concept
+// refactoring C++20: use concept "Printable"
 
 // general case: zero or n arguments
 template<typename... T>
