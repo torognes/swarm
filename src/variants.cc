@@ -231,16 +231,16 @@ auto generate_variants(char * sequence,
       add_variant(hash1, Variant_type::insertion, 0, base, variant_list, variant_count);
     }
   // insert after each position in the sequence
-  for(auto offset = 0U; offset < seqlen; ++offset)
+  for(auto position = 0U; position < seqlen; ++position)
     {
-      const auto current_base = nt_extract(sequence, offset);
-      hash ^= zobrist_value(offset, current_base) ^ zobrist_value(offset + 1, current_base);
+      const auto current_base = nt_extract(sequence, position);
+      hash ^= zobrist_value(position, current_base) ^ zobrist_value(position + 1, current_base);
       for(unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
-        const auto hash1 = hash ^ zobrist_value(offset + 1, base);
-        add_variant(hash1, Variant_type::insertion, offset + 1, base,
+        const auto hash1 = hash ^ zobrist_value(position + 1, base);
+        add_variant(hash1, Variant_type::insertion, position + 1, base,
                     variant_list, variant_count);
       }
     }
