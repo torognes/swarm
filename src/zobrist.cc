@@ -84,14 +84,14 @@ auto fill_rng_byte_table(const unsigned int zobrist_len,
       auto rng_value = 0ULL;
       auto offset = j;
       // rng value stored at: 4 *  position   +  offset & 3U (= 0, 1, 2, or 3)
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 0) + (offset & 3U)];
+      rng_value ^= zobrist_tab_base_v[(4 * (4 * i + 0)) + (offset & 3U)];
       offset >>= 2U;
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 1) + (offset & 3U)];
+      rng_value ^= zobrist_tab_base_v[(4 * (4 * i + 1)) + (offset & 3U)];
       offset >>= 2U;
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 2) + (offset & 3U)];
+      rng_value ^= zobrist_tab_base_v[(4 * (4 * i + 2)) + (offset & 3U)];
       offset >>= 2U;
-      rng_value ^= zobrist_tab_base_v[4 * (4 * i + 3) + (offset & 3U)];
-      zobrist_tab_byte_base_v[byte_range * i + j] = rng_value;
+      rng_value ^= zobrist_tab_base_v[(4 * (4 * i + 3)) + (offset & 3U)];
+      zobrist_tab_byte_base_v[(byte_range * i) + j] = rng_value;
     }
   }
 }
@@ -116,7 +116,7 @@ auto zobrist_exit() -> void
 auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
 {
   assert(offset == 0 || offset == 1 || offset == 2 || offset == 3);
-  return *std::next(zobrist_tab_base, 4 * pos + offset);
+  return *std::next(zobrist_tab_base, (4 * pos) + offset);
 }
 
 
@@ -136,7 +136,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
   while (pos + nt_per_uint64 < len)
     {
       for(auto i = 0U; i < nt_per_uint64; i += 4) {
-        auto const target_hash = offset * (pos + i) + *query_in_bytes;
+        auto const target_hash = (offset * (pos + i)) + *query_in_bytes;
         assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
         // i = {0, 4, 8, 12, 16, 20, 24, 28}
@@ -148,7 +148,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
 
   while (pos + 4 < len)
     {
-      auto const target_hash = offset * pos + *query_in_bytes;
+      auto const target_hash = (offset * pos) + *query_in_bytes;
       assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
       auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
       zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
