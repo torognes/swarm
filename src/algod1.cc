@@ -635,11 +635,12 @@ auto network_thread(int64_t nth_thread) -> void
 {
   static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
   static constexpr auto offset = 4U;
+  std::size_t const n_items = (multiplier * longestamplicon) + offset + 1;
 
   (void) nth_thread;  // refactoring: unused?
 
-  std::vector<unsigned int> hits_data((multiplier * longestamplicon) + offset + 1);
-  std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset + 1);
+  std::vector<unsigned int> hits_data(n_items);
+  std::vector<struct var_s> variant_list(n_items);
 
   pthread_mutex_lock(&network_mutex);
   while (network_amp < amplicons)
