@@ -871,7 +871,7 @@ auto db_qgrams_init(struct Parameters const & parameters,
     /* find qgrams */
     findqgrams(reinterpret_cast<unsigned char*>(seqindex_p.seq),
                seqindex_p.seqlen,
-               qgrams[counter]);
+              *std::next(qgrams, counter));
     progress_update(counter);
     ++counter;
   }
