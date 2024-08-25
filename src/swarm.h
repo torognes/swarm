@@ -72,10 +72,10 @@ struct Parameters {
   int64_t sse41_present {0};
   int64_t ssse3_present {0};
   int64_t popcnt_present {0};
-  int64_t penalty_mismatch {2 * match_reward_default +
-                            2 * mismatch_penalty_default};
+  int64_t penalty_mismatch {(2 * match_reward_default) +
+                            (2 * mismatch_penalty_default)};
   int64_t penalty_gapextend {match_reward_default +
-                             2 * gap_extension_penalty_default};
+                             (2 * gap_extension_penalty_default)};
   int64_t penalty_gapopen {2 * gap_opening_penalty_default};
   bool opt_help {false};
   bool opt_disable_sse3 {false};
