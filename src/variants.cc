@@ -189,17 +189,17 @@ auto generate_variants(char * sequence,
   auto variant_count = 0U;
   /* substitutions */
 
-  for(auto offset = 0U; offset < seqlen; ++offset)
+  for(auto position = 0U; position < seqlen; ++position)
     {
-      const auto current_base = nt_extract(sequence, offset);
-      const auto hash1 = hash ^ zobrist_value(offset, current_base);
+      const auto current_base = nt_extract(sequence, position);
+      const auto hash1 = hash ^ zobrist_value(position, current_base);
       for(unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
 
-        const auto hash2 = hash1 ^ zobrist_value(offset, base);
-        add_variant(hash2, Variant_type::substitution, offset, base,
+        const auto hash2 = hash1 ^ zobrist_value(position, base);
+        add_variant(hash2, Variant_type::substitution, position, base,
                     variant_list, variant_count);
 
       }
