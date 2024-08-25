@@ -66,7 +66,7 @@ auto align(char * dseq,
   for(auto column = 0UL; column < qlen; ++column)
     {
       hearray[2 * column]     = 1 * gapopen + (column + 1) * gapextend; // H (N)
-      hearray[2 * column + 1] = 2 * gapopen + (column + 2) * gapextend; // E
+      hearray[(2 * column) + 1] = 2 * gapopen + (column + 2) * gapextend; // E
     }
 
   uint64_t previous_diagonal {0};
@@ -75,12 +75,12 @@ auto align(char * dseq,
   for(auto row = 0UL; row < dlen; ++row)
     {
       auto he_index = 0UL;
-      auto top = 2 * gapopen + (row + 2) * gapextend;
-      uint64_t diagonal = (row == 0) ? 0 : (gapopen + row * gapextend);
+      auto top = (2 * gapopen) + ((row + 2) * gapextend);
+      uint64_t diagonal = (row == 0) ? 0 : (gapopen + (row * gapextend));
 
       for(auto column = 0UL; column < qlen; ++column)
         {
-          const auto index = qlen * row + column;
+          const auto index = (qlen * row) + column;
 
           previous_diagonal = hearray[he_index];
           left = hearray[he_index + 1];
@@ -132,7 +132,7 @@ auto backtrack(char * dseq,
 
   while ((column > 0) and (row > 0))
     {
-      const auto cell = directions[qlen * (row - 1) + (column - 1)];
+      const auto cell = directions[(qlen * (row - 1)) + (column - 1)];
 
       ++alength;
 
