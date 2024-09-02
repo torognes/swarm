@@ -114,8 +114,9 @@ releases"). Get the source code from
 [GitHub](https://github.com/torognes/swarm "swarm public repository")
 using the [ZIP
 button](https://github.com/torognes/swarm/archive/master.zip "swarm
-zipped folder") or `git clone`, and compile `swarm` with GCC (version
-4.8.5 or more recent) or with clang (version 9 or more recent):
+zipped folder") or `git clone`. Compiling `swarm` only requires
+`make`, and GCC (`g++` version 4.8.5 or more recent) or `clang`
+(version 9 or more recent):
 
 ```sh
 git clone https://github.com/torognes/swarm.git
