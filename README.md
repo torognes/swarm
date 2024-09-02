@@ -123,7 +123,7 @@ git clone https://github.com/torognes/swarm.git
 cd swarm/
 make
 
-# or, with clang
+# or, with clang version 9
 make CC="clang-9" CXX="clang++-9"
 ```
 
