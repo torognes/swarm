@@ -447,7 +447,16 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
     parameters.input_filename = *std::next(argv, optind);
   }
 
-  // scoring system
+#ifdef __x86_64__
+  cpu_features_detect(parameters);
+  cpu_features_test(parameters);
+#endif
+
+  return used_options;
+}
+
+
+auto set_alignment_scoring_system(struct Parameters &parameters) -> void {
   parameters.penalty_mismatch = 2 * parameters.opt_match_reward + 2 * parameters.opt_mismatch_penalty;
   penalty_mismatch = parameters.penalty_mismatch;
   parameters.penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
@@ -464,13 +473,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
   penalty_gapopen = parameters.penalty_gapopen;
   parameters.penalty_gapextend /= penalty_factor;
   penalty_gapextend = parameters.penalty_gapextend;
-
-#ifdef __x86_64__
-  cpu_features_detect(parameters);
-  cpu_features_test(parameters);
-#endif
-
-  return used_options;
 }
 
 
@@ -626,6 +628,7 @@ auto main(int argc, char** argv) -> int
   // initialization and checks
   struct Parameters parameters;
   const auto used_options = args_init(argc, argv, parameters);
+  set_alignment_scoring_system(parameters);
   args_check(used_options, parameters);
   open_files(parameters);
   show(header_message, parameters.logfile);
