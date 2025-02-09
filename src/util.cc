@@ -50,23 +50,6 @@ auto xmalloc(std::size_t size) -> void *
 }
 
 
-auto xrealloc(void *ptr, std::size_t size) -> void *
-{
-  if (size == 0) {
-    size = 1;
-  }
-#ifdef _WIN32
-  void * memptr = _aligned_realloc(ptr, size, memalignment);
-#else
-  void * memptr = std::realloc(ptr, size);
-#endif
-  if (memptr == nullptr) {
-    fatal(error_prefix, "Unable to allocate enough memory.");
-  }
-  return memptr;
-}
-
-
 auto xfree(void * ptr) -> void
 {
   if (ptr != nullptr)
