@@ -223,8 +223,8 @@ namespace {
   {
     /* graft light swarm (amp) on heavy swarm (seed) */
 
-    swarminfo_s & heavy_swarm = swarminfo_v[ampinfo_v[seed].swarmid];
-    swarminfo_s & light_swarm = swarminfo_v[ampinfo_v[amp].swarmid];
+    auto & heavy_swarm = swarminfo_v[ampinfo_v[seed].swarmid];
+    auto & light_swarm = swarminfo_v[ampinfo_v[amp].swarmid];
 
     // attach the seed of the light swarm to the tail of the heavy swarm (refactoring: unclear)
     ampinfo_v[heavy_swarm.last].next = light_swarm.seed;
@@ -797,7 +797,7 @@ namespace {
   auto write_swarms_default_format(struct Parameters const & parameters,
                                    std::vector<struct ampinfo_s> & ampinfo_v,
                                    std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-    static constexpr char sepchar {' '};
+    static constexpr auto sepchar {' '};
     progress_init("Writing swarms:   ", swarminfo_v.size());
 
     for(auto i = 0U; i < swarminfo_v.size(); ++i) {
@@ -858,7 +858,7 @@ namespace {
   auto write_swarms_uclust_format(struct Parameters const & parameters,
                                   std::vector<struct ampinfo_s> & ampinfo_v,
                                   std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-    static constexpr double one_hundred = 100.0;
+    static constexpr auto one_hundred = 100.0;
     auto cluster_no = 0U;
     const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
     std::vector<unsigned char> directions(1UL * longestamplicon * longestamplicon);
@@ -914,7 +914,7 @@ namespace {
           // nwdiff to double is not an issue, no need to add assertions
           const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
           const auto differences = static_cast<double>(nwdiff);
-          const double percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
+          const auto percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
 
           std::fprintf(parameters.uclustfile,
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
@@ -950,8 +950,8 @@ namespace {
     auto compare_mass_and_headers = [&swarminfo_v](unsigned int const lhs,
                                                    unsigned int const rhs) -> bool
     {
-      const swarminfo_s & swarm_x = swarminfo_v[lhs];
-      const swarminfo_s & swarm_y = swarminfo_v[rhs];
+      const auto & swarm_x = swarminfo_v[lhs];
+      const auto & swarm_y = swarminfo_v[rhs];
 
       const auto mass_x = swarm_x.mass;
       const auto mass_y = swarm_y.mass;
@@ -1358,10 +1358,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
           auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
 
-          uint64_t bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
+          auto bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
 
-          const uint64_t memtotal = arch_get_memtotal();
-          const uint64_t memused = arch_get_memused();
+          auto const memtotal = arch_get_memtotal();
+          auto const memused = arch_get_memused();
 
           if (parameters.opt_ceiling != 0)
             {
@@ -1472,7 +1472,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_variants);
           std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_candidates);
-          const unsigned int grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
+          auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
           std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
           std::fprintf(parameters.logfile, "\n");
         }
