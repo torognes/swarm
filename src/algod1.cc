@@ -170,6 +170,8 @@ static struct bloom_s * bloom_a {nullptr}; // Bloom filter for amplicons
 static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidious
 
 
+namespace {
+
 inline auto check_amp_identical(unsigned int amp1,
                                 unsigned int amp2) -> bool
 {
@@ -1097,6 +1099,7 @@ auto output_results(struct Parameters const & parameters,
     write_stats_file(parameters, swarminfo_v);
   }
 }
+} // namespace
 
 
 auto algo_d1_run(struct Parameters const & parameters) -> void
