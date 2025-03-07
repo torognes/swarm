@@ -62,6 +62,8 @@ constexpr char PRId64[] = "ld";
 #endif
 
 
+namespace {
+
 static uint64_t count_comparisons_8;
 static uint64_t count_comparisons_16;
 
@@ -235,6 +237,7 @@ auto write_swarms_mothur_format(const uint64_t amplicons,
 
   std::fputc('\n', parameters.outfile);
 }
+} // namespace
 
 
 auto algo_run(struct Parameters const & parameters,
