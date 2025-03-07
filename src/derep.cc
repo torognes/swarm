@@ -275,83 +275,84 @@ namespace {
 
   auto dereplicating(struct Parameters const & parameters,
                      std::vector<struct bucket> & hashtable,
-                     std::vector<unsigned int> & nextseqtab) -> struct Stats
-                                                                {
-                                                                  progress_init("Dereplicating:    ", nextseqtab.size());
+                     std::vector<unsigned int> & nextseqtab)
+    -> struct Stats
+       {
+         progress_init("Dereplicating:    ", nextseqtab.size());
 
-                                                                  struct Stats stats;
-                                                                  const uint64_t derep_hash_mask = hashtable.size() - 1;
+         struct Stats stats;
+         const uint64_t derep_hash_mask = hashtable.size() - 1;
 
-                                                                  for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
-                                                                    {
-                                                                      const unsigned int seqlen = db_getsequencelen(seqno);
-                                                                      char * seq = db_getsequence(seqno);
+         for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
+           {
+             const unsigned int seqlen = db_getsequencelen(seqno);
+             char * seq = db_getsequence(seqno);
 
-                                                                      /*
-                                                                        Find free bucket or bucket for identical sequence.
-                                                                        Make sure sequences are exactly identical
-                                                                        in case of any hash collision.
-                                                                        With 64-bit hashes, there is about 50% chance of a
-                                                                        collision when the number of sequences is about 5e9.
-                                                                      */
+             /*
+               Find free bucket or bucket for identical sequence.
+               Make sure sequences are exactly identical
+               in case of any hash collision.
+               With 64-bit hashes, there is about 50% chance of a
+               collision when the number of sequences is about 5e9.
+             */
 
-                                                                      const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq),
-                                                                                                         seqlen);
+             const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq),
+                                                seqlen);
 
-                                                                      uint64_t nth_bucket = hash & derep_hash_mask;
-                                                                      auto * clusterp = &hashtable[nth_bucket];
+             uint64_t nth_bucket = hash & derep_hash_mask;
+             auto * clusterp = &hashtable[nth_bucket];
 
-                                                                      while ((clusterp->mass != 0U) and
-                                                                             ((clusterp->hash != hash) or
-                                                                              (seqlen != db_getsequencelen(clusterp->seqno_first)) or
-                                                                              not std::equal(seq, std::next(seq, nt_bytelength(seqlen)),
-                                                                                             db_getsequence(clusterp->seqno_first))
-                                                                              )
-                                                                             )
-                                                                        {
-                                                                          clusterp = std::next(clusterp);
-                                                                          ++nth_bucket;
-                                                                          if (nth_bucket >= hashtable.size()) // wrap around the table if we reach the end
-                                                                            {
-                                                                              nth_bucket = 0;
-                                                                              clusterp = hashtable.data();
-                                                                            }
-                                                                        }
+             while ((clusterp->mass != 0U) and
+                    ((clusterp->hash != hash) or
+                     (seqlen != db_getsequencelen(clusterp->seqno_first)) or
+                     not std::equal(seq, std::next(seq, nt_bytelength(seqlen)),
+                                    db_getsequence(clusterp->seqno_first))
+                     )
+                    )
+               {
+                 clusterp = std::next(clusterp);
+                 ++nth_bucket;
+                 if (nth_bucket >= hashtable.size()) // wrap around the table if we reach the end
+                   {
+                     nth_bucket = 0;
+                     clusterp = hashtable.data();
+                   }
+               }
 
-                                                                      const uint64_t abundance = db_getabundance(seqno);
+             const uint64_t abundance = db_getabundance(seqno);
 
-                                                                      if (clusterp->mass != 0U)
-                                                                        {
-                                                                          /* at least one identical sequence already */
-                                                                          nextseqtab[clusterp->seqno_last] = seqno;
-                                                                        }
-                                                                      else
-                                                                        {
-                                                                          /* no identical sequences yet, start a new cluster */
-                                                                          ++stats.swarmcount;
-                                                                          clusterp->hash = hash;
-                                                                          clusterp->seqno_first = seqno;
-                                                                          clusterp->size = 0;
-                                                                          clusterp->singletons = 0;
-                                                                        }
+             if (clusterp->mass != 0U)
+               {
+                 /* at least one identical sequence already */
+                 nextseqtab[clusterp->seqno_last] = seqno;
+               }
+             else
+               {
+                 /* no identical sequences yet, start a new cluster */
+                 ++stats.swarmcount;
+                 clusterp->hash = hash;
+                 clusterp->seqno_first = seqno;
+                 clusterp->size = 0;
+                 clusterp->singletons = 0;
+               }
 
-                                                                      ++clusterp->size;
-                                                                      clusterp->seqno_last = seqno;
-                                                                      clusterp->mass += abundance;
+             ++clusterp->size;
+             clusterp->seqno_last = seqno;
+             clusterp->mass += abundance;
 
-                                                                      if (abundance == 1) {
-                                                                        ++clusterp->singletons;
-                                                                      }
+             if (abundance == 1) {
+               ++clusterp->singletons;
+             }
 
-                                                                      stats.maxmass = std::max(clusterp->mass, stats.maxmass);
-                                                                      stats.maxsize = std::max(clusterp->size, stats.maxsize);
+             stats.maxmass = std::max(clusterp->mass, stats.maxmass);
+             stats.maxsize = std::max(clusterp->size, stats.maxsize);
 
-                                                                      progress_update(seqno);
-                                                                    }
-                                                                  progress_done(parameters);
+             progress_update(seqno);
+           }
+         progress_done(parameters);
 
-                                                                  return stats;
-                     }
+         return stats;
+    }
 
 
   auto output_results(struct Parameters const & parameters,
