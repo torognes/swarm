@@ -53,6 +53,8 @@ constexpr char PRId64[] = "ld";
 #endif
 
 
+namespace {
+
 struct bucket
 {
   uint64_t hash = 0;
@@ -384,6 +386,7 @@ auto output_results(struct Parameters const & parameters,
     write_stats_file(parameters, hashtable);
   }
 }
+} // namespace
 
 
 auto dereplicate(struct Parameters const & parameters) -> void
