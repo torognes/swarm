@@ -64,98 +64,98 @@ constexpr char PRId64[] = "ld";
 
 namespace {
 
-static uint64_t count_comparisons_8;
-static uint64_t count_comparisons_16;
+  static uint64_t count_comparisons_8;
+  static uint64_t count_comparisons_16;
 
-static uint64_t targetcount;
+  static uint64_t targetcount;
 
-struct ampliconinfo_s
-{
-  unsigned int ampliconid;
-  unsigned int diffestimate; /* lower bound estimate of dist from initial seed */
-  unsigned int swarmid;
-  unsigned int generation;
-  unsigned int radius; /* actual diff from initial seed */
-};
-
-static uint64_t swarmed;
-static uint64_t seeded;
-
-struct swarminfo_t
-{
-  uint64_t mass {0};
-  unsigned int seed {0};
-  int dummy {0}; /* alignment padding only */
-};
-
-
-auto collect_seeds(const uint64_t amplicons,
-                   std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
-  progress_init("Collecting seeds:    ", amplicons);
-  std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
-  auto swarmcount = 0UL;
-  uint64_t mass = 0;
-  auto previous_id = amps_v[0].swarmid;
-  auto seed = amps_v[0].ampliconid;
-  mass += db_getabundance(seed);
-  for(auto i = 1ULL; i < amplicons; ++i)
-    {
-      const auto current_id = amps_v[i].swarmid;
-      if (current_id != previous_id)
-        {
-          seeds[swarmcount].seed = seed;  // update previous
-          seeds[swarmcount].mass = mass;
-          ++swarmcount;
-          mass = 0;
-          seed = amps_v[i].ampliconid;
-        }
-      mass += db_getabundance(amps_v[i].ampliconid);
-      previous_id = current_id;
-      progress_update(i);
-    }
-  seeds[swarmcount].seed = seed;
-  seeds[swarmcount].mass = mass;
-  ++swarmcount;
-
-  // free some memory
-  assert(swarmcount <= std::numeric_limits<long int>::max());
-  seeds.erase(std::next(seeds.begin(), static_cast<long int>(swarmcount)), seeds.end());
-  seeds.shrink_to_fit();
-
-  return seeds;
-}
-
-
-auto sort_seeds(struct Parameters const & parameters,
-                std::vector<struct swarminfo_t> & seeds) -> void {
-  progress_init("Sorting seeds:    ", seeds.size());
-
-  auto compare_seeds = [](struct swarminfo_t const& lhs,
-                          struct swarminfo_t const& rhs) -> bool {
-    // sort by decreasing mass...
-    if (lhs.mass > rhs.mass) {
-      return true;
-    }
-    if (lhs.mass < rhs.mass) {
-      return false;
-    }
-    // ...then ties are sorted by label (alphabetical order)
-    auto * const lhs_header = db_getheader(lhs.seed);
-    auto * const rhs_header = db_getheader(rhs.seed);
-    const auto results = std::strcmp(lhs_header, rhs_header);
-    return results == -1;
+  struct ampliconinfo_s
+  {
+    unsigned int ampliconid;
+    unsigned int diffestimate; /* lower bound estimate of dist from initial seed */
+    unsigned int swarmid;
+    unsigned int generation;
+    unsigned int radius; /* actual diff from initial seed */
   };
 
-  std::sort(seeds.begin(), seeds.end(), compare_seeds);
-  progress_done(parameters);
-}
+  static uint64_t swarmed;
+  static uint64_t seeded;
+
+  struct swarminfo_t
+  {
+    uint64_t mass {0};
+    unsigned int seed {0};
+    int dummy {0}; /* alignment padding only */
+  };
 
 
-auto write_seeds(struct Parameters const & parameters,
-                 std::vector<struct swarminfo_t> const & seeds) -> void {
-  progress_init("Writing seeds:    ", seeds.size());
-  auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
-  for(const auto& seed: seeds) {
+  auto collect_seeds(const uint64_t amplicons,
+                     std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
+    progress_init("Collecting seeds:    ", amplicons);
+    std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
+    auto swarmcount = 0UL;
+    uint64_t mass = 0;
+    auto previous_id = amps_v[0].swarmid;
+    auto seed = amps_v[0].ampliconid;
+    mass += db_getabundance(seed);
+    for(auto i = 1ULL; i < amplicons; ++i)
+      {
+        const auto current_id = amps_v[i].swarmid;
+        if (current_id != previous_id)
+          {
+            seeds[swarmcount].seed = seed;  // update previous
+            seeds[swarmcount].mass = mass;
+            ++swarmcount;
+            mass = 0;
+            seed = amps_v[i].ampliconid;
+          }
+        mass += db_getabundance(amps_v[i].ampliconid);
+        previous_id = current_id;
+        progress_update(i);
+      }
+    seeds[swarmcount].seed = seed;
+    seeds[swarmcount].mass = mass;
+    ++swarmcount;
+
+    // free some memory
+    assert(swarmcount <= std::numeric_limits<long int>::max());
+    seeds.erase(std::next(seeds.begin(), static_cast<long int>(swarmcount)), seeds.end());
+    seeds.shrink_to_fit();
+
+    return seeds;
+  }
+
+
+  auto sort_seeds(struct Parameters const & parameters,
+                  std::vector<struct swarminfo_t> & seeds) -> void {
+    progress_init("Sorting seeds:    ", seeds.size());
+
+    auto compare_seeds = [](struct swarminfo_t const& lhs,
+                            struct swarminfo_t const& rhs) -> bool {
+      // sort by decreasing mass...
+      if (lhs.mass > rhs.mass) {
+        return true;
+      }
+      if (lhs.mass < rhs.mass) {
+        return false;
+      }
+      // ...then ties are sorted by label (alphabetical order)
+      auto * const lhs_header = db_getheader(lhs.seed);
+      auto * const rhs_header = db_getheader(rhs.seed);
+      const auto results = std::strcmp(lhs_header, rhs_header);
+      return results == -1;
+    };
+
+    std::sort(seeds.begin(), seeds.end(), compare_seeds);
+    progress_done(parameters);
+  }
+
+
+  auto write_seeds(struct Parameters const & parameters,
+                   std::vector<struct swarminfo_t> const & seeds) -> void {
+    progress_init("Writing seeds:    ", seeds.size());
+    auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
+    for(const auto& seed: seeds) {
       const auto swarm_mass = seed.mass;
       const auto swarm_seed = seed.seed;
 
@@ -165,78 +165,78 @@ auto write_seeds(struct Parameters const & parameters,
       db_fprintseq(parameters.seeds_file, swarm_seed);
       progress_update(ticker);
       ++ticker;
+    }
+    progress_done(parameters);
   }
-  progress_done(parameters);
-}
 
 
-auto write_representative_sequences(const uint64_t amplicons,
-                                    struct Parameters const & parameters,
-                                    std::vector<struct ampliconinfo_s> & amps_v) -> void {
-  auto seeds = collect_seeds(amplicons, amps_v);
-  sort_seeds(parameters, seeds);
-  write_seeds(parameters, seeds);
-}
+  auto write_representative_sequences(const uint64_t amplicons,
+                                      struct Parameters const & parameters,
+                                      std::vector<struct ampliconinfo_s> & amps_v) -> void {
+    auto seeds = collect_seeds(amplicons, amps_v);
+    sort_seeds(parameters, seeds);
+    write_seeds(parameters, seeds);
+  }
 
 
-auto write_swarms_default_format(const uint64_t amplicons,
-                                 struct Parameters const & parameters,
-                                 std::vector<struct ampliconinfo_s> & amps_v) -> void {
-  /* native swarm output */
-  static constexpr char sepchar {' '};  /* usually a space */
-  static constexpr char sep_swarms {'\n'};
+  auto write_swarms_default_format(const uint64_t amplicons,
+                                   struct Parameters const & parameters,
+                                   std::vector<struct ampliconinfo_s> & amps_v) -> void {
+    /* native swarm output */
+    static constexpr char sepchar {' '};  /* usually a space */
+    static constexpr char sep_swarms {'\n'};
 
-  fprint_id(parameters.outfile, amps_v[0].ampliconid,
-            parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-  int64_t previous_id = amps_v[0].swarmid;
+    fprint_id(parameters.outfile, amps_v[0].ampliconid,
+              parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    int64_t previous_id = amps_v[0].swarmid;
 
-  for(auto i = 1ULL; i < amplicons; ++i)
-    {
-      const int64_t current_id = amps_v[i].swarmid;
-      if (current_id == previous_id) {
-        std::fputc(sepchar, parameters.outfile);
+    for(auto i = 1ULL; i < amplicons; ++i)
+      {
+        const int64_t current_id = amps_v[i].swarmid;
+        if (current_id == previous_id) {
+          std::fputc(sepchar, parameters.outfile);
+        }
+        else {
+          std::fputc(sep_swarms, parameters.outfile);
+        }
+        fprint_id(parameters.outfile, amps_v[i].ampliconid,
+                  parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        previous_id = current_id;
       }
-      else {
-        std::fputc(sep_swarms, parameters.outfile);
+    std::fputc('\n', parameters.outfile);
+  }
+
+
+  auto write_swarms_mothur_format(const uint64_t amplicons,
+                                  const unsigned int swarmid,
+                                  struct Parameters const & parameters,
+                                  std::vector<struct ampliconinfo_s> & amps_v) -> void {
+    /* mothur list file output */
+    static constexpr char sep_amplicons {','};
+    static constexpr char sep_swarms {'\t'};
+
+    std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
+
+    fprint_id(parameters.outfile, amps_v[0].ampliconid,
+              parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    int64_t previous_id = amps_v[0].swarmid;
+
+    for(auto i = 1ULL; i < amplicons; ++i)
+      {
+        const int64_t current_id = amps_v[i].swarmid;
+        if (current_id == previous_id) {
+          std::fputc(sep_amplicons, parameters.outfile);
+        }
+        else {
+          std::fputc(sep_swarms, parameters.outfile);
+        }
+        fprint_id(parameters.outfile, amps_v[i].ampliconid,
+                  parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        previous_id = current_id;
       }
-      fprint_id(parameters.outfile, amps_v[i].ampliconid,
-                parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      previous_id = current_id;
-    }
-  std::fputc('\n', parameters.outfile);
-}
 
-
-auto write_swarms_mothur_format(const uint64_t amplicons,
-                                const unsigned int swarmid,
-                                struct Parameters const & parameters,
-                                std::vector<struct ampliconinfo_s> & amps_v) -> void {
-  /* mothur list file output */
-  static constexpr char sep_amplicons {','};
-  static constexpr char sep_swarms {'\t'};
-
-  std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
-
-  fprint_id(parameters.outfile, amps_v[0].ampliconid,
-            parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-  int64_t previous_id = amps_v[0].swarmid;
-
-  for(auto i = 1ULL; i < amplicons; ++i)
-    {
-      const int64_t current_id = amps_v[i].swarmid;
-      if (current_id == previous_id) {
-        std::fputc(sep_amplicons, parameters.outfile);
-      }
-      else {
-        std::fputc(sep_swarms, parameters.outfile);
-      }
-      fprint_id(parameters.outfile, amps_v[i].ampliconid,
-                parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      previous_id = current_id;
-    }
-
-  std::fputc('\n', parameters.outfile);
-}
+    std::fputc('\n', parameters.outfile);
+  }
 } // namespace
 
 
