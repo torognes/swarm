@@ -39,13 +39,13 @@
 
   This code requires the _mm_popcnt_u64 intrinsic implemented
   with the POPCNT instruction on the CPU. That instruction was
-  available starting with the Nehalem architecture in 2008.
+  available starting with the Intel Nehalem architecture in 2008.
 */
 
 auto compareqgramvectors_popcnt(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 {
   /* Count number of different bits */
-  /* Uses the POPCNT instruction, requires CPU with this feature */
+  /* requires a CPU with the POPCNT instruction */
 
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(uint64_t);  // 16
   auto * lhs_ptr = reinterpret_cast<uint64_t *>(lhs);
@@ -53,7 +53,7 @@ auto compareqgramvectors_popcnt(unsigned char * lhs, unsigned char * rhs) -> uin
   uint64_t count {0};
 
   for(auto i = 0ULL; i < n_vector_lengths; ++i) {
-    count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr xor *rhs_ptr));
+    count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr xor *rhs_ptr));  // C++20 refactoring: std::popcount
     lhs_ptr = std::next(lhs_ptr);
     rhs_ptr = std::next(rhs_ptr);
   }
