@@ -64,8 +64,6 @@ constexpr char PRId64[] = "ld";
 
 namespace {
 
-  static uint64_t count_comparisons_16;
-
   static uint64_t targetcount;
 
   struct ampliconinfo_s
@@ -251,8 +249,6 @@ auto algo_run(struct Parameters const & parameters,
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(parameters.opt_threads), search_worker_core));
 
-  count_comparisons_16 = 0;
-
   uint64_t largestswarm {0};
   uint64_t maxgenerations {0};
 
@@ -397,7 +393,6 @@ auto algo_run(struct Parameters const & parameters,
           if (bits == bit_mode_8) {
           }
           else {
-            count_comparisons_16 += targetcount;
           }
 
           for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
@@ -516,7 +511,6 @@ auto algo_run(struct Parameters const & parameters,
                   if (bits == bit_mode_8) {
                   }
                   else {
-                    count_comparisons_16 += targetcount;
                   }
 
                   for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
