@@ -84,7 +84,7 @@ auto dprofile_shuffle8(BYTE * dprofile,
   const auto seq_chunk2 = v_load8(std::next(sequence_db, 2));  // next 16
   const auto seq_chunk3 = v_load8(std::next(sequence_db, 3));  // final 16 (total of 64)
 
-  auto profline8 = [&](const long long int nuc) {
+  auto profline8 = [&](const long long int nuc) -> void {
     // scores: 16 scores from the score matrix, matching the
     // nucleotide 'nuc'; five different nucleotides (0, 1, 2, 3, 4),
     // so five possible rows of scores
@@ -144,7 +144,7 @@ auto dprofile_shuffle16(WORD * dprofile,
   const auto m2 = transform_lower_seq_chunk(t3);
   const auto m3 = transform_higher_seq_chunk(t3);
 
-  auto profline16 = [&](const long long int nuc) {
+  auto profline16 = [&](const long long int nuc) -> void {
     const auto scores = v_load16(std::next(score_db, 4 * nuc));
 
     v_store16(std::next(profile_db, (4 * nuc) + 0), v_shuffle8(scores, m0));
