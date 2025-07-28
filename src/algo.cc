@@ -73,7 +73,7 @@ namespace {
     unsigned int radius {0}; /* actual diff from initial seed */
   };
 
-  uint64_t swarmed = 0;
+  uint64_t swarmed = 0;  // refactoring: reduce scope to algo()?
 
   struct swarminfo_t
   {
@@ -320,7 +320,7 @@ auto algo_run(struct Parameters const & parameters,
 
       ++swarmid;
 
-      uint64_t swarmsize {0};
+      uint64_t swarmsize {0};  // refactoring: set to 1, a cluster can't be empty
       uint64_t amplicons_copies {0};
       uint64_t singletons {0};
       uint64_t hitcount {0};
