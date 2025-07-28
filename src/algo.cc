@@ -74,7 +74,6 @@ namespace {
   };
 
   uint64_t swarmed = 0;
-  static uint64_t seeded;
 
   struct swarminfo_t
   {
@@ -309,7 +308,7 @@ auto algo_run(struct Parameters const & parameters,
 #endif
 #endif
 
-  seeded = 0;
+  uint64_t seeded = 0;
 
   auto swarmid = 0U;
 
