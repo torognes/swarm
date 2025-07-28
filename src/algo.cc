@@ -310,7 +310,6 @@ auto algo_run(struct Parameters const & parameters,
 #endif
 
   seeded = 0;
-  swarmed = 0;
 
   auto swarmid = 0U;
 
