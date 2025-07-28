@@ -66,11 +66,11 @@ namespace {
 
   struct ampliconinfo_s
   {
-    unsigned int ampliconid;
-    unsigned int diffestimate; /* lower bound estimate of dist from initial seed */
-    unsigned int swarmid;
-    unsigned int generation;
-    unsigned int radius; /* actual diff from initial seed */
+    unsigned int ampliconid {0};
+    unsigned int diffestimate {0}; /* lower bound estimate of dist from initial seed */
+    unsigned int swarmid {0};
+    unsigned int generation {0};
+    unsigned int radius {0}; /* actual diff from initial seed */
   };
 
   uint64_t swarmed = 0;
