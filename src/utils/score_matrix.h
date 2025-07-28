@@ -49,7 +49,7 @@ auto create_score_matrix(const std::int64_t mismatch_penalty)
   // fill in the upper-left quarter of the matrix with mismatchscore,
   // except the diagonal starting from cell (1, 1)
   auto index = 0U;
-  auto choose_score = [&index, &mismatchscore](Integral &element) {
+  auto choose_score = [&index, &mismatchscore](Integral &element) -> void {
     const auto column = index % n_cells;
     const auto row = index / n_cells;
     element = ((row == column and row != 0 and column != 0)
