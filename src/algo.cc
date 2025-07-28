@@ -332,8 +332,6 @@ auto algo_run(struct Parameters const & parameters,
       ++seeded;
 
       amps_v[seedindex].swarmid = swarmid;
-      amps_v[seedindex].generation = 0;
-      amps_v[seedindex].radius = 0;
 
       const uint64_t seedampliconid = amps_v[seedindex].ampliconid;
       hits[hitcount] = seedampliconid;
