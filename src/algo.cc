@@ -64,8 +64,6 @@ constexpr char PRId64[] = "ld";
 
 namespace {
 
-  static uint64_t targetcount;
-
   struct ampliconinfo_s
   {
     unsigned int ampliconid;
@@ -354,7 +352,7 @@ auto algo_run(struct Parameters const & parameters,
 
       /* find diff estimates between seed and each amplicon in pool */
 
-      targetcount = 0;
+      uint64_t targetcount = 0;
 
       uint64_t listlen {0};
 
