@@ -1389,7 +1389,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
           bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
 
-          if (memused + bloom_length_in_bits / n_bits_in_a_byte > memtotal)
+          if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
             {
               std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
               std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
