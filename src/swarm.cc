@@ -457,11 +457,11 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
 
 auto set_alignment_scoring_system(struct Parameters &parameters) -> void {
-  parameters.penalty_mismatch = 2 * parameters.opt_match_reward + 2 * parameters.opt_mismatch_penalty;
+  parameters.penalty_mismatch = (2 * parameters.opt_match_reward) + (2 * parameters.opt_mismatch_penalty);
   penalty_mismatch = parameters.penalty_mismatch;
   parameters.penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
   penalty_gapopen = parameters.penalty_gapopen;
-  parameters.penalty_gapextend = parameters.opt_match_reward + 2 * parameters.opt_gap_extension_penalty;
+  parameters.penalty_gapextend = parameters.opt_match_reward + (2 * parameters.opt_gap_extension_penalty);
   penalty_gapextend = parameters.penalty_gapextend;
 
   const int64_t penalty_factor {gcd(gcd(parameters.penalty_mismatch, parameters.penalty_gapopen), parameters.penalty_gapextend)};
