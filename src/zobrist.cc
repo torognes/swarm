@@ -56,7 +56,7 @@ auto fill_rng_table(const unsigned int zobrist_len,
 
   std::for_each(zobrist_tab_base_v.begin(),
                 zobrist_tab_base_v.end(),
-                [](uint64_t & rng_value) {
+                [](uint64_t & rng_value) -> void {
                   // refactoring: comment states 31-bit random numbers?!
                   rng_value = rand_64();
                   rng_value <<= multiplier;
