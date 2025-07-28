@@ -73,7 +73,7 @@ namespace {
     unsigned int radius; /* actual diff from initial seed */
   };
 
-  static uint64_t swarmed;
+  uint64_t swarmed = 0;
   static uint64_t seeded;
 
   struct swarminfo_t
