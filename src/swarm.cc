@@ -44,7 +44,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE, fclose, stderr  // refactoring: replace with <fstream>
-#include <cstdlib>  // std::exit
+#include <cstdlib>  // std::exit, std::strtol
 #include <getopt.h>  // getopt_long, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <iterator>  // std::next
@@ -187,7 +187,7 @@ auto args_long(char * str, const char * option) -> int64_t
 {
   static constexpr int base_value {10};
   char * endptr {nullptr};
-  const int64_t number = strtol(str, & endptr, base_value);
+  const int64_t number = std::strtol(str, & endptr, base_value);
   if (*endptr != 0)
     {
       fatal(error_prefix, "Invalid numeric argument for option ", option, ".\n\n",
