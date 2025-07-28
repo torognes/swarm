@@ -65,8 +65,8 @@ auto align(char * dseq,
   // then modified through a pointer; can't be const)
   for(auto column = 0UL; column < qlen; ++column)
     {
-      hearray[2 * column]     = 1 * gapopen + (column + 1) * gapextend; // H (N)
-      hearray[(2 * column) + 1] = 2 * gapopen + (column + 2) * gapextend; // E
+      hearray[2 * column]     = (1 * gapopen) + ((column + 1) * gapextend); // H (N)
+      hearray[(2 * column) + 1] = (2 * gapopen) + ((column + 2) * gapextend); // E
     }
 
   uint64_t previous_diagonal {0};
