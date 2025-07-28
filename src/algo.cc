@@ -64,7 +64,6 @@ constexpr char PRId64[] = "ld";
 
 namespace {
 
-  static uint64_t count_comparisons_8;
   static uint64_t count_comparisons_16;
 
   static uint64_t targetcount;
@@ -252,7 +251,6 @@ auto algo_run(struct Parameters const & parameters,
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(parameters.opt_threads), search_worker_core));
 
-  count_comparisons_8 = 0;
   count_comparisons_16 = 0;
 
   uint64_t largestswarm {0};
@@ -397,7 +395,6 @@ auto algo_run(struct Parameters const & parameters,
                     scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
           if (bits == bit_mode_8) {
-            count_comparisons_8 += targetcount;
           }
           else {
             count_comparisons_16 += targetcount;
@@ -517,7 +514,6 @@ auto algo_run(struct Parameters const & parameters,
                             scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
                   if (bits == bit_mode_8) {
-                    count_comparisons_8 += targetcount;
                   }
                   else {
                     count_comparisons_16 += targetcount;
