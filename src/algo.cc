@@ -87,6 +87,7 @@ namespace {
   auto collect_seeds(const uint64_t amplicons,
                      std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
     progress_init("Collecting seeds:    ", amplicons);
+    assert(swarmed == amplicons);
     std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
     auto swarmcount = 0UL;
     uint64_t mass = 0;
