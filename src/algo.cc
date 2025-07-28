@@ -390,11 +390,6 @@ auto algo_run(struct Parameters const & parameters,
           search_do(seedampliconid, targetcount, targetampliconids.data(),
                     scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
-          if (bits == bit_mode_8) {
-          }
-          else {
-          }
-
           for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
             {
               const auto diff = diffs_v[target_id];
@@ -507,11 +502,6 @@ auto algo_run(struct Parameters const & parameters,
                 {
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
                             scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
-
-                  if (bits == bit_mode_8) {
-                  }
-                  else {
-                  }
 
                   for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
                     {
