@@ -333,7 +333,7 @@ auto algo_run(struct Parameters const & parameters,
       ++swarmid;
 
       uint64_t swarmsize {1};  // a cluster cannot be empty
-      uint64_t amplicons_copies {0};
+      uint64_t amplicons_copies {0};  // total abundance of the cluster
       uint64_t singletons {0};
       uint64_t hitcount {0};
       uint64_t maxradius {0};
