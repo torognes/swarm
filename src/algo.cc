@@ -596,12 +596,12 @@ auto algo_run(struct Parameters const & parameters,
       if (parameters.uclustfile != nullptr)
         {
           std::fprintf(parameters.uclustfile, "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
-                  swarmid-1, swarmsize);
+                  swarmid - 1, swarmsize);
           fprint_id(parameters.uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile, "\t*\n");
 
           std::fprintf(parameters.uclustfile, "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  swarmid-1, db_getsequencelen(seedampliconid));
+                  swarmid - 1, db_getsequencelen(seedampliconid));
           fprint_id(parameters.uclustfile, seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile, "\t*\n");
           std::fflush(parameters.uclustfile);
@@ -633,7 +633,7 @@ auto algo_run(struct Parameters const & parameters,
               const double percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
               std::fprintf(parameters.uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                      swarmid-1, db_getsequencelen(hit), percentid,
+                      swarmid - 1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? cigar_string.data() : "=");
 
               fprint_id(parameters.uclustfile, hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
