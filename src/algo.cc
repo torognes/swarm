@@ -32,14 +32,14 @@
 #include "utils/search_data.h"
 #include "utils/seqinfo.h"
 #include "utils/score_matrix.h"
-#include <algorithm>  // std::min(), std::reverse()
+#include <algorithm>  // std::min(), std::reverse(), std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), fflush
 #include <cstdlib>  // qsort()
 #include <cstring>  // strcmp
-#include <iterator> // next
+#include <iterator> // std::next
 #include <limits>
 #include <memory>  // unique pointer
 #include <string>
@@ -300,7 +300,7 @@ auto algo_run(struct Parameters const & parameters,
   std::vector<uint64_t> scores_v(amplicons);
   std::vector<uint64_t> diffs_v(amplicons);
   std::vector<uint64_t> alignlengths(amplicons);
-  std::vector<uint64_t> qgramamps_v(amplicons);
+  std::vector<uint64_t> qgramamps_v;
   std::vector<uint64_t> qgramdiffs_v(amplicons);
   std::vector<uint64_t> qgramindices_v(amplicons);
   std::vector<uint64_t> hits(amplicons);
@@ -308,6 +308,7 @@ auto algo_run(struct Parameters const & parameters,
   std::vector<uint64_t> hearray;
   std::vector<char> raw_alignment;
   std::string cigar_string;
+  qgramamps_v.reserve(amplicons);
   raw_alignment.reserve(2 * longestamplicon);
   cigar_string.reserve(2 * longestamplicon);
 
@@ -331,6 +332,7 @@ auto algo_run(struct Parameters const & parameters,
       /* process each initial seed */
 
       ++swarmid;
+      qgramamps_v.clear();
 
       uint64_t swarmsize {1};  // a cluster cannot be empty
       uint64_t amplicons_copies {0};  // total abundance of the cluster
@@ -362,17 +364,17 @@ auto algo_run(struct Parameters const & parameters,
 
       uint64_t targetcount = 0;
 
-      uint64_t listlen {0};
-
-      for(auto i = 0ULL; i < amplicons - swarmed; ++i)
-        {
-          const auto ampid = amps_v[swarmed + i].ampliconid;
-          if ((parameters.opt_no_cluster_breaking) or (db_getabundance(ampid) <= abundance))
-            {
-              qgramamps_v[i] = ampid;
-              ++listlen;
+      // set_list_of_remaining_amplicons
+      std::for_each(std::next(amps_v.cbegin(), static_cast<long int>(swarmed)), amps_v.cend(),
+          [&parameters, abundance, &qgramamps_v](
+              struct ampliconinfo_s const & amplicon) -> void {
+            auto const ampliconid = amplicon.ampliconid;
+            if ((parameters.opt_no_cluster_breaking) or
+                (db_getabundance(ampliconid) <= abundance)) {
+              qgramamps_v.push_back(ampliconid);
             }
-        }
+          });
+      uint64_t const listlen = qgramamps_v.size();  // temporary refactoring
 
       qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
 
