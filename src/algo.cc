@@ -83,6 +83,16 @@ namespace {
   };
 
 
+  auto set_amplicon_ids(std::vector<struct ampliconinfo_s> & amplicons) -> void {
+    // a simple id based on input order
+    auto index = 0U;
+    for (auto & amplicon : amplicons) {
+      amplicon.ampliconid = index;
+      ++index;
+    }
+  }
+
+
   auto collect_seeds(const uint64_t amplicons,
                      std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
     progress_init("Collecting seeds:    ", amplicons);
@@ -287,10 +297,7 @@ auto algo_run(struct Parameters const & parameters,
       hearray.resize(2 * longestamplicon);
     }
 
-  /* set ampliconid for all */
-  for(auto i = 0U; i < amplicons; ++i) {
-    amps_v[i].ampliconid = i;
-  }
+  set_amplicon_ids(amps_v);
 
   /* always search in 8 bit mode unless resolution is very high */
   static constexpr auto bit_mode_8 = 8;
