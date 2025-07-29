@@ -332,7 +332,7 @@ auto algo_run(struct Parameters const & parameters,
 
       ++swarmid;
 
-      uint64_t swarmsize {0};  // refactoring: set to 1, a cluster can't be empty
+      uint64_t swarmsize {1};  // a cluster cannot be empty
       uint64_t amplicons_copies {0};
       uint64_t singletons {0};
       uint64_t hitcount {0};
@@ -355,7 +355,6 @@ auto algo_run(struct Parameters const & parameters,
         ++singletons;
       }
 
-      swarmsize = 1;
       ++swarmed;
 
 
