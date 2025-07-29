@@ -93,6 +93,33 @@ namespace {
   }
 
 
+  auto set_bit_mode(struct Parameters const & parameters) -> int {
+    static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+    static constexpr auto bit_mode_8 = 8;
+    static constexpr auto bit_mode_16 = 16;
+
+#ifdef __aarch64__
+#if !defined(DEBUG) || !defined(COVERAGE)
+    /* always use 16-bit version on aarch64 because it is faster */
+    return bit_mode_16;
+#endif
+#endif
+
+    // search in 16-bit mode when the number of allowed differences or
+    // penalty values are high (8 bits are not enough to keep track of
+    // the score)
+    auto const diff_saturation
+      = static_cast<uint64_t>(std::min(uint8_max / parameters.penalty_mismatch,
+                                       uint8_max / (parameters.penalty_gapopen +
+                                                    parameters.penalty_gapextend)));
+
+    if (static_cast<uint64_t>(parameters.opt_differences) > diff_saturation) {
+      return bit_mode_16;
+    }
+    return bit_mode_8;
+  }
+
+
   auto collect_seeds(const uint64_t amplicons,
                      std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
     progress_init("Collecting seeds:    ", amplicons);
@@ -248,7 +275,6 @@ namespace {
 auto algo_run(struct Parameters const & parameters,
               std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
@@ -278,12 +304,6 @@ auto algo_run(struct Parameters const & parameters,
   std::vector<uint64_t> qgramdiffs_v(amplicons);
   std::vector<uint64_t> qgramindices_v(amplicons);
   std::vector<uint64_t> hits(amplicons);
-
-  auto const diff_saturation
-    = static_cast<uint64_t>(std::min(uint8_max / parameters.penalty_mismatch,
-                                     uint8_max / (parameters.penalty_gapopen +
-                                                  parameters.penalty_gapextend)));
-
   std::vector<unsigned char> directions;
   std::vector<uint64_t> hearray;
   std::vector<char> raw_alignment;
@@ -298,22 +318,7 @@ auto algo_run(struct Parameters const & parameters,
     }
 
   set_amplicon_ids(amps_v);
-
-  /* always search in 8 bit mode unless resolution is very high */
-  static constexpr auto bit_mode_8 = 8;
-  static constexpr auto bit_mode_16 = 16;
-  auto bits = bit_mode_8;
-
-  if (static_cast<uint64_t>(parameters.opt_differences) > diff_saturation) {
-    bits = bit_mode_16;
-  }
-
-#ifdef __aarch64__
-#if !defined(DEBUG) || !defined(COVERAGE)
-  /* always use 16-bit version on aarch64 because it is faster */
-  bits = bit_mode_16;
-#endif
-#endif
+  auto const bits = set_bit_mode(parameters);
 
   uint64_t seeded = 0;
 
