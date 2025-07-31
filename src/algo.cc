@@ -202,6 +202,32 @@ namespace {
   }
 
 
+  auto move_target_to_first_unswarmed_position(uint64_t const position,
+                                               uint64_t const target,
+                                               std::vector<struct ampliconinfo_s> & amplicons) -> void {
+    /* move the 'target' to the position ('swarmed')
+       of the first unswarmed amplicon in the pool,
+       then move the target further into the swarmed
+       but unseeded part of the list, so that the
+       swarmed amplicons are ordered by id */
+
+    // position       target
+    // |              |
+    // A    B    C    D  (initial situation)
+    //                   (rotate to the right)
+    // D    A    B    C  (final situation)
+    // refactoring: replace with std::rotate (rorate rigth by one unit)
+    if (target <= position) { return; }
+    // target > position
+    // assert(target < amplicons.size());
+    auto const temp = amplicons[target];  // refactoring: static?
+    for (auto i = target; i > position; --i) {
+      amplicons[i] = amplicons[i - 1];
+    }
+    amplicons[position] = temp;
+  }
+
+
   auto write_representative_sequences(const uint64_t amplicons,
                                       struct Parameters const & parameters,
                                       std::vector<struct ampliconinfo_s> & amps_v) -> void {
@@ -408,16 +434,7 @@ auto algo_run(struct Parameters const & parameters,
 
                   /* move the 'target' to the position ('swarmed')
                      of the first unswarmed amplicon in the pool */
-
-                  if (swarmed < target)
-                    {
-                      auto const temp = amps_v[target];  // refactoring: static?
-                      for (auto j = target; j > swarmed; --j)
-                        {
-                          amps_v[j] = amps_v[j - 1];
-                        }
-                      amps_v[swarmed] = temp;
-                    }
+                  move_target_to_first_unswarmed_position(swarmed, target, amps_v);
 
                   amps_v[swarmed].swarmid = swarmid;
                   amps_v[swarmed].generation = 1;
@@ -536,15 +553,7 @@ auto algo_run(struct Parameters const & parameters,
                             --pos;
                           }
 
-                          if (pos < target)
-                            {
-                              auto const temp = amps_v[target];  // refactoring: static?
-                              for (auto j = target; j > pos; --j)
-                                {
-                                  amps_v[j] = amps_v[j - 1];
-                                }
-                              amps_v[pos] = temp;
-                            }
+                          move_target_to_first_unswarmed_position(pos, target, amps_v);
 
                           amps_v[pos].swarmid = swarmid;
                           assert(subseedgeneration + 1 <= std::numeric_limits<unsigned int>::max());
