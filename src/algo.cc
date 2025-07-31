@@ -631,7 +631,7 @@ auto algo_run(struct Parameters const & parameters,
               // nwdiff to double is not an issue, no need to add assertions
               const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
               const auto differences = static_cast<double>(nwdiff);
-              const double percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
+              auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
               std::fprintf(parameters.uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid - 1, db_getsequencelen(hit), percentid,
