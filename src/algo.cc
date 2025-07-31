@@ -130,7 +130,7 @@ namespace {
     auto previous_id = amps_v[0].swarmid;
     auto seed = amps_v[0].ampliconid;
     mass += db_getabundance(seed);
-    for(auto i = 1ULL; i < amplicons; ++i)
+    for (auto i = 1ULL; i < amplicons; ++i)
       {
         const auto current_id = amps_v[i].swarmid;
         if (current_id != previous_id)
@@ -187,7 +187,7 @@ namespace {
                    std::vector<struct swarminfo_t> const & seeds) -> void {
     progress_init("Writing seeds:    ", seeds.size());
     auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
-    for(const auto& seed: seeds) {
+    for (const auto& seed: seeds) {
       const auto swarm_mass = seed.mass;
       const auto swarm_seed = seed.seed;
 
@@ -222,7 +222,7 @@ namespace {
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
-    for(auto i = 1ULL; i < amplicons; ++i)
+    for (auto i = 1ULL; i < amplicons; ++i)
       {
         const int64_t current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
@@ -253,7 +253,7 @@ namespace {
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
-    for(auto i = 1ULL; i < amplicons; ++i)
+    for (auto i = 1ULL; i < amplicons; ++i)
       {
         const int64_t current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
@@ -379,7 +379,7 @@ auto algo_run(struct Parameters const & parameters,
       qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
 
 
-      for(auto i = 0ULL; i < listlen; ++i)
+      for (auto i = 0ULL; i < listlen; ++i)
         {
           const auto poolampliconid = qgramamps_v[i];
           const auto diff = qgramdiffs_v[i];
@@ -398,7 +398,7 @@ auto algo_run(struct Parameters const & parameters,
           search_do(seedampliconid, targetcount, targetampliconids.data(),
                     scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
-          for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
+          for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
             {
               const auto diff = diffs_v[target_id];
 
@@ -412,7 +412,7 @@ auto algo_run(struct Parameters const & parameters,
                   if (swarmed < target)
                     {
                       auto const temp = amps_v[target];  // refactoring: static?
-                      for(auto j = target; j > swarmed; --j)
+                      for (auto j = target; j > swarmed; --j)
                         {
                           amps_v[j] = amps_v[j - 1];
                         }
@@ -479,7 +479,7 @@ auto algo_run(struct Parameters const & parameters,
               targetcount = 0;
 
               uint64_t subseedlistlen {0};
-              for(auto i = swarmed; i < amplicons; ++i)
+              for (auto i = swarmed; i < amplicons; ++i)
                 {
                   const uint64_t targetampliconid = amps_v[i].ampliconid;
                   if ((amps_v[i].diffestimate <=
@@ -497,7 +497,7 @@ auto algo_run(struct Parameters const & parameters,
               qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps_v.data(),
                               qgramdiffs_v.data(), thread_info_v);
 
-              for(auto i = 0ULL; i < subseedlistlen; ++i) {
+              for (auto i = 0ULL; i < subseedlistlen; ++i) {
                 if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences))
                   {
                     targetindices[targetcount] = qgramindices_v[i];
@@ -511,7 +511,7 @@ auto algo_run(struct Parameters const & parameters,
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
                             scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
-                  for(auto target_id = 0ULL; target_id < targetcount; ++target_id)
+                  for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
                     {
                       const auto diff = diffs_v[target_id];
 
@@ -539,7 +539,7 @@ auto algo_run(struct Parameters const & parameters,
                           if (pos < target)
                             {
                               auto const temp = amps_v[target];  // refactoring: static?
-                              for(auto j = target; j > pos; --j)
+                              for (auto j = target; j > pos; --j)
                                 {
                                   amps_v[j] = amps_v[j - 1];
                                 }
@@ -607,7 +607,7 @@ auto algo_run(struct Parameters const & parameters,
           std::fprintf(parameters.uclustfile, "\t*\n");
           std::fflush(parameters.uclustfile);
 
-          for(auto i = 1ULL; i < hitcount; ++i)
+          for (auto i = 1ULL; i < hitcount; ++i)
             {
               const auto hit = hits[i];
 
