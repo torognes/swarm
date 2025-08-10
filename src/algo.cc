@@ -537,66 +537,66 @@ auto algo_run(struct Parameters const & parameters,
                       const auto diff = diffs_v[target_id];
 
                       if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
-                          const auto target = targetindices[target_id];
+                      const auto target = targetindices[target_id];
 
-                          /* find correct position in list */
+                      /* find correct position in list */
 
-                          /* move the 'target' to the position (swarmed)
-                             of the first unswarmed amplicon in the pool
-                             then move the target further into the swarmed
-                             but unseeded part of the list, so that the
-                             swarmed amplicons are ordered by id */
+                      /* move the 'target' to the position (swarmed)
+                         of the first unswarmed amplicon in the pool
+                         then move the target further into the swarmed
+                         but unseeded part of the list, so that the
+                         swarmed amplicons are ordered by id */
 
-                          const uint64_t targetampliconid = amps_v[target].ampliconid;
-                          auto pos = swarmed;
+                      const uint64_t targetampliconid = amps_v[target].ampliconid;
+                      auto pos = swarmed;
 
-                          while ((pos > seeded) and
-                                 (amps_v[pos - 1].ampliconid > targetampliconid) and
-                                 (amps_v[pos - 1].generation > subseedgeneration)) {
-                            --pos;
-                          }
+                      while ((pos > seeded) and
+                             (amps_v[pos - 1].ampliconid > targetampliconid) and
+                             (amps_v[pos - 1].generation > subseedgeneration)) {
+                        --pos;
+                      }
 
-                          move_target_to_first_unswarmed_position(pos, target, amps_v);
+                      move_target_to_first_unswarmed_position(pos, target, amps_v);
 
-                          amps_v[pos].swarmid = swarmid;
-                          assert(subseedgeneration + 1 <= std::numeric_limits<unsigned int>::max());
-                          amps_v[pos].generation =
-                              static_cast<unsigned int>(subseedgeneration + 1);
-                          maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
-                          assert(subseedradius + diff <= std::numeric_limits<unsigned int>::max());
-                          amps_v[pos].radius =
-                              static_cast<unsigned int>(subseedradius + diff);
-                          maxradius = std::max<uint64_t>(amps_v[pos].radius, maxradius);
+                      amps_v[pos].swarmid = swarmid;
+                      assert(subseedgeneration + 1 <= std::numeric_limits<unsigned int>::max());
+                      amps_v[pos].generation =
+                        static_cast<unsigned int>(subseedgeneration + 1);
+                      maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
+                      assert(subseedradius + diff <= std::numeric_limits<unsigned int>::max());
+                      amps_v[pos].radius =
+                        static_cast<unsigned int>(subseedradius + diff);
+                      maxradius = std::max<uint64_t>(amps_v[pos].radius, maxradius);
 
-                          const auto poolampliconid = amps_v[pos].ampliconid;
-                          hits[hitcount] = poolampliconid;
-                          ++hitcount;
+                      const auto poolampliconid = amps_v[pos].ampliconid;
+                      hits[hitcount] = poolampliconid;
+                      ++hitcount;
 
-                          if (not parameters.opt_internal_structure.empty())
-                            {
-                              fprint_id_noabundance(parameters.internal_structure_file,
-                                                    subseedampliconid,
-                                                    parameters.opt_usearch_abundance);
-                              std::fprintf(parameters.internal_structure_file, "\t");
-                              fprint_id_noabundance(parameters.internal_structure_file,
-                                                    poolampliconid,
-                                                    parameters.opt_usearch_abundance);
-                              std::fprintf(parameters.internal_structure_file, "\t%" PRIu64, diff);
-                              std::fprintf(parameters.internal_structure_file,
-                                      "\t%u\t%" PRIu64,
-                                      swarmid, subseedgeneration + 1);
-                              std::fprintf(parameters.internal_structure_file, "\n");
-                            }
+                      if (not parameters.opt_internal_structure.empty())
+                        {
+                          fprint_id_noabundance(parameters.internal_structure_file,
+                                                subseedampliconid,
+                                                parameters.opt_usearch_abundance);
+                          std::fprintf(parameters.internal_structure_file, "\t");
+                          fprint_id_noabundance(parameters.internal_structure_file,
+                                                poolampliconid,
+                                                parameters.opt_usearch_abundance);
+                          std::fprintf(parameters.internal_structure_file, "\t%" PRIu64, diff);
+                          std::fprintf(parameters.internal_structure_file,
+                                       "\t%u\t%" PRIu64,
+                                       swarmid, subseedgeneration + 1);
+                          std::fprintf(parameters.internal_structure_file, "\n");
+                        }
 
-                          abundance = db_getabundance(poolampliconid);
-                          amplicons_copies += abundance;
-                          if (abundance == 1) {
-                            ++singletons;
-                          }
+                      abundance = db_getabundance(poolampliconid);
+                      amplicons_copies += abundance;
+                      if (abundance == 1) {
+                        ++singletons;
+                      }
 
-                          ++swarmsize;
+                      ++swarmsize;
 
-                          ++swarmed;
+                      ++swarmed;
                     }
                 }
             }
