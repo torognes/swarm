@@ -483,7 +483,6 @@ auto algo_run(struct Parameters const & parameters,
               /* process each subseed */
 
               auto const & subseed = amps_v[seeded];
-              auto const subseedampliconid = amps_v[seeded].ampliconid;
               auto const subseedradius = amps_v[seeded].radius;
               auto const subseedgeneration = amps_v[seeded].generation;
 
