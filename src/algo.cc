@@ -485,7 +485,9 @@ auto algo_run(struct Parameters const & parameters,
               auto const subseedampliconid = amps_v[seeded].ampliconid;
               auto const subseedradius = amps_v[seeded].radius;
               uint64_t const subseedgeneration = amps_v[seeded].generation;
-              auto const subseedabundance = db_getabundance(subseedampliconid);
+              auto const subseedabundance = db_getabundance(subseedampliconid);  // could be delayed?
+              // replace with:
+              // auto const & subseed = amps_v[seeded];
 
               ++seeded;
 
