@@ -570,9 +570,8 @@ auto algo_run(struct Parameters const & parameters,
                                             parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file, "\t%" PRIu64, diff);
                       std::fprintf(parameters.internal_structure_file,
-                                   "\t%u\t%u",
+                                   "\t%u\t%u\n",
                                    swarmid, subseedgeneration + 1);
-                      std::fprintf(parameters.internal_structure_file, "\n");
                     }
 
                   abundance = db_getabundance(poolampliconid);
