@@ -541,12 +541,6 @@ auto algo_run(struct Parameters const & parameters,
 
                       /* find correct position in list */
 
-                      /* move the 'target' to the position (swarmed)
-                         of the first unswarmed amplicon in the pool
-                         then move the target further into the swarmed
-                         but unseeded part of the list, so that the
-                         swarmed amplicons are ordered by id */
-
                       const uint64_t targetampliconid = amps_v[target].ampliconid;
                       auto pos = swarmed;
 
