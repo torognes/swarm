@@ -482,17 +482,10 @@ auto algo_run(struct Parameters const & parameters,
 
               /* process each subseed */
 
-              uint64_t subseedindex {0};
-              auto subseedampliconid = 0U;
-              auto subseedradius = 0U;
-              uint64_t subseedgeneration {0};
-              uint64_t subseedabundance {0};
-
-              subseedindex = seeded;
-              subseedampliconid = amps_v[subseedindex].ampliconid;
-              subseedradius = amps_v[subseedindex].radius;
-              subseedgeneration = amps_v[subseedindex].generation;
-              subseedabundance = db_getabundance(subseedampliconid);
+              auto const subseedampliconid = amps_v[seeded].ampliconid;
+              auto const subseedradius = amps_v[seeded].radius;
+              uint64_t const subseedgeneration = amps_v[seeded].generation;
+              auto const subseedabundance = db_getabundance(subseedampliconid);
 
               ++seeded;
 
