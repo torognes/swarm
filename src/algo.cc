@@ -549,7 +549,7 @@ auto algo_run(struct Parameters const & parameters,
                   amps_v[pos].generation =
                     static_cast<unsigned int>(subseedgeneration + 1);
                   maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
-                  assert(subseedradius + diff <= std::numeric_limits<unsigned int>::max());
+                  assert(subseedradius <= std::numeric_limits<unsigned int>::max() - diff);
                   amps_v[pos].radius =
                     static_cast<unsigned int>(subseedradius + diff);
                   maxradius = std::max<uint64_t>(amps_v[pos].radius, maxradius);
