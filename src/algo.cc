@@ -545,7 +545,7 @@ auto algo_run(struct Parameters const & parameters,
                   move_target_to_first_unswarmed_position(pos, target, amps_v);
 
                   amps_v[pos].swarmid = swarmid;
-                  assert(subseedgeneration + 1 <= std::numeric_limits<unsigned int>::max());
+                  assert(subseedgeneration <= std::numeric_limits<unsigned int>::max() - 1);
                   amps_v[pos].generation =
                     static_cast<unsigned int>(subseedgeneration + 1);
                   maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
