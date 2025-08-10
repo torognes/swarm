@@ -483,7 +483,6 @@ auto algo_run(struct Parameters const & parameters,
               /* process each subseed */
 
               auto const & subseed = amps_v[seeded];
-              auto const subseedradius = amps_v[seeded].radius;
               auto const subseedgeneration = amps_v[seeded].generation;
 
               ++seeded;
@@ -496,7 +495,7 @@ auto algo_run(struct Parameters const & parameters,
                 {
                   const uint64_t targetampliconid = amps_v[i].ampliconid;
                   if ((amps_v[i].diffestimate <=
-                       subseedradius + parameters.opt_differences) and
+                       subseed.radius + parameters.opt_differences) and
                       ((parameters.opt_no_cluster_breaking) or
                        (db_getabundance(targetampliconid)
                         <= subseedabundance)))
@@ -548,9 +547,9 @@ auto algo_run(struct Parameters const & parameters,
                   assert(subseedgeneration <= std::numeric_limits<unsigned int>::max() - 1);
                   amps_v[pos].generation = subseedgeneration + 1;
                   maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
-                  assert(subseedradius <= std::numeric_limits<unsigned int>::max() - diff);
+                  assert(subseed.radius <= std::numeric_limits<unsigned int>::max() - diff);
                   amps_v[pos].radius =
-                    static_cast<unsigned int>(subseedradius + diff);
+                    static_cast<unsigned int>(subseed.radius + diff);
                   maxradius = std::max<uint64_t>(amps_v[pos].radius, maxradius);
 
                   const auto poolampliconid = amps_v[pos].ampliconid;
