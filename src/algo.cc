@@ -484,7 +484,7 @@ auto algo_run(struct Parameters const & parameters,
 
               auto const subseedampliconid = amps_v[seeded].ampliconid;
               auto const subseedradius = amps_v[seeded].radius;
-              uint64_t const subseedgeneration = amps_v[seeded].generation;
+              auto const subseedgeneration = amps_v[seeded].generation;
               auto const subseedabundance = db_getabundance(subseedampliconid);  // could be delayed?
               // replace with:
               // auto const & subseed = amps_v[seeded];
@@ -548,8 +548,7 @@ auto algo_run(struct Parameters const & parameters,
 
                   amps_v[pos].swarmid = swarmid;
                   assert(subseedgeneration <= std::numeric_limits<unsigned int>::max() - 1);
-                  amps_v[pos].generation =
-                    static_cast<unsigned int>(subseedgeneration + 1);
+                  amps_v[pos].generation = subseedgeneration + 1;
                   maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
                   assert(subseedradius <= std::numeric_limits<unsigned int>::max() - diff);
                   amps_v[pos].radius =
@@ -571,7 +570,7 @@ auto algo_run(struct Parameters const & parameters,
                                             parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file, "\t%" PRIu64, diff);
                       std::fprintf(parameters.internal_structure_file,
-                                   "\t%u\t%" PRIu64,
+                                   "\t%u\t%u",
                                    swarmid, subseedgeneration + 1);
                       std::fprintf(parameters.internal_structure_file, "\n");
                     }
