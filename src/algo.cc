@@ -527,8 +527,7 @@ auto algo_run(struct Parameters const & parameters,
                   }
               }
 
-              if (targetcount != 0)
-                {
+              if (targetcount == 0) { continue; }
                   search_do(subseedampliconid, targetcount, targetampliconids.data(),
                             scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
@@ -592,7 +591,6 @@ auto algo_run(struct Parameters const & parameters,
 
                       ++swarmed;
                     }
-                }
             }
         }
 
