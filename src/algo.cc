@@ -483,7 +483,6 @@ auto algo_run(struct Parameters const & parameters,
               /* process each subseed */
 
               auto const & subseed = amps_v[seeded];
-              auto const subseedgeneration = amps_v[seeded].generation;
 
               ++seeded;
 
@@ -537,15 +536,15 @@ auto algo_run(struct Parameters const & parameters,
 
                   while ((pos > seeded) and
                          (amps_v[pos - 1].ampliconid > targetampliconid) and
-                         (amps_v[pos - 1].generation > subseedgeneration)) {
+                         (amps_v[pos - 1].generation > subseed.generation)) {
                     --pos;
                   }
 
                   move_target_to_first_unswarmed_position(pos, target, amps_v);
 
                   amps_v[pos].swarmid = swarmid;
-                  assert(subseedgeneration <= std::numeric_limits<unsigned int>::max() - 1);
-                  amps_v[pos].generation = subseedgeneration + 1;
+                  assert(subseed.generation <= std::numeric_limits<unsigned int>::max() - 1);
+                  amps_v[pos].generation = subseed.generation + 1;
                   maxgen = std::max<uint64_t>(maxgen, amps_v[pos].generation);
                   assert(subseed.radius <= std::numeric_limits<unsigned int>::max() - diff);
                   amps_v[pos].radius =
@@ -568,7 +567,7 @@ auto algo_run(struct Parameters const & parameters,
                       std::fprintf(parameters.internal_structure_file, "\t%" PRIu64, diff);
                       std::fprintf(parameters.internal_structure_file,
                                    "\t%u\t%u\n",
-                                   swarmid, subseedgeneration + 1);
+                                   swarmid, subseed.generation + 1);
                     }
 
                   abundance = db_getabundance(poolampliconid);
