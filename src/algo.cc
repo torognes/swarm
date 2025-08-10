@@ -482,17 +482,16 @@ auto algo_run(struct Parameters const & parameters,
 
               /* process each subseed */
 
+              auto const & subseed = amps_v[seeded];
               auto const subseedampliconid = amps_v[seeded].ampliconid;
               auto const subseedradius = amps_v[seeded].radius;
               auto const subseedgeneration = amps_v[seeded].generation;
-              // replace with:
-              // auto const & subseed = amps_v[seeded];
 
               ++seeded;
 
               targetcount = 0;
 
-              auto const subseedabundance = db_getabundance(subseedampliconid);
+              auto const subseedabundance = db_getabundance(subseed.ampliconid);
               uint64_t subseedlistlen {0};
               for (auto i = swarmed; i < amplicons; ++i)
                 {
@@ -509,7 +508,7 @@ auto algo_run(struct Parameters const & parameters,
                     }
                 }
 
-              qgram_diff_fast(subseedampliconid, subseedlistlen, qgramamps_v.data(),
+              qgram_diff_fast(subseed.ampliconid, subseedlistlen, qgramamps_v.data(),
                               qgramdiffs_v.data(), thread_info_v);
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {
@@ -523,7 +522,7 @@ auto algo_run(struct Parameters const & parameters,
 
               if (targetcount == 0) { continue; }
 
-              search_do(subseedampliconid, targetcount, targetampliconids.data(),
+              search_do(subseed.ampliconid, targetcount, targetampliconids.data(),
                         scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
               for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
@@ -562,7 +561,7 @@ auto algo_run(struct Parameters const & parameters,
                   if (not parameters.opt_internal_structure.empty())
                     {
                       fprint_id_noabundance(parameters.internal_structure_file,
-                                            subseedampliconid,
+                                            subseed.ampliconid,
                                             parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file, "\t");
                       fprint_id_noabundance(parameters.internal_structure_file,
