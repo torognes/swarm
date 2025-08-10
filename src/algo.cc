@@ -485,7 +485,6 @@ auto algo_run(struct Parameters const & parameters,
               auto const subseedampliconid = amps_v[seeded].ampliconid;
               auto const subseedradius = amps_v[seeded].radius;
               auto const subseedgeneration = amps_v[seeded].generation;
-              auto const subseedabundance = db_getabundance(subseedampliconid);  // could be delayed?
               // replace with:
               // auto const & subseed = amps_v[seeded];
 
@@ -493,6 +492,7 @@ auto algo_run(struct Parameters const & parameters,
 
               targetcount = 0;
 
+              auto const subseedabundance = db_getabundance(subseedampliconid);
               uint64_t subseedlistlen {0};
               for (auto i = swarmed; i < amplicons; ++i)
                 {
