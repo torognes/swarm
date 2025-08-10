@@ -203,6 +203,23 @@ namespace {
   }
 
 
+  auto find_correct_position_in_list(uint64_t const starting_position,
+                                     uint64_t const target,
+                                     uint64_t const seeded,
+                                     struct ampliconinfo_s const & subseed,
+                                     std::vector<struct ampliconinfo_s> const & amplicons) -> uint64_t {
+    auto position = starting_position;  // == swarmed
+    auto const targetampliconid = amplicons[target].ampliconid;
+
+    while ((position > seeded) and
+           (amplicons[position - 1].ampliconid > targetampliconid) and
+           (amplicons[position - 1].generation > subseed.generation)) {
+      --position;
+    }
+    return position;
+  }
+
+
   auto move_target_to_first_unswarmed_position(uint64_t const position,
                                                uint64_t const target,
                                                std::vector<struct ampliconinfo_s> & amplicons) -> void {
@@ -531,14 +548,8 @@ auto algo_run(struct Parameters const & parameters,
 
                   /* find correct position in list */
 
-                  const uint64_t targetampliconid = amps_v[target].ampliconid;
-                  auto pos = swarmed;
-
-                  while ((pos > seeded) and
-                         (amps_v[pos - 1].ampliconid > targetampliconid) and
-                         (amps_v[pos - 1].generation > subseed.generation)) {
-                    --pos;
-                  }
+                  auto const pos = find_correct_position_in_list(swarmed, target, seeded,
+                                                                 subseed, amps_v);
 
                   move_target_to_first_unswarmed_position(pos, target, amps_v);
 
