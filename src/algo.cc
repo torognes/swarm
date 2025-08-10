@@ -484,7 +484,6 @@ auto algo_run(struct Parameters const & parameters,
 
               auto subseedampliconid = 0U;
               auto subseedradius = 0U;
-
               uint64_t subseedindex {0};
               uint64_t subseedgeneration {0};
               uint64_t subseedabundance {0};
