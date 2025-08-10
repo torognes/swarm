@@ -658,7 +658,7 @@ auto algo_run(struct Parameters const & parameters,
   progress_done(parameters);
 
   /* output swarms */
-  if (amplicons > 0) {
+  if (amplicons != 0) {
     if (parameters.opt_mothur) {
       write_swarms_mothur_format(amplicons, swarmid, parameters, amps_v);
     }
@@ -669,7 +669,7 @@ auto algo_run(struct Parameters const & parameters,
 
 
   /* dump seeds in fasta format with sum of abundances */
-  if ((not parameters.opt_seeds.empty()) and (amplicons > 0)) {
+  if ((not parameters.opt_seeds.empty()) and (amplicons != 0)) {
     write_representative_sequences(amplicons, parameters, amps_v);
   }
 
