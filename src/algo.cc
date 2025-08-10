@@ -536,8 +536,7 @@ auto algo_run(struct Parameters const & parameters,
                     {
                       const auto diff = diffs_v[target_id];
 
-                      if (diff <= static_cast<uint64_t>(parameters.opt_differences))
-                        {
+                      if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
                           const auto target = targetindices[target_id];
 
                           /* find correct position in list */
@@ -598,7 +597,6 @@ auto algo_run(struct Parameters const & parameters,
                           ++swarmsize;
 
                           ++swarmed;
-                        }
                     }
                 }
             }
