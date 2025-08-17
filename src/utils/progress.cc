@@ -59,11 +59,11 @@ auto progress_update(const uint64_t progress) -> void
 {
   if (not opt_log.empty()) { return; }  // no progress output if log is a file
   if (progress < progress_next) { return; }  // milestone not yet reached
-      std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
-                   100.0 * static_cast<double>(progress)
-                   / static_cast<double>(progress_size));
-      progress_next = progress + progress_chunk;
-      std::fflush(logfile);
+  std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
+               100.0 * static_cast<double>(progress)
+               / static_cast<double>(progress_size));
+  progress_next = progress + progress_chunk;
+  std::fflush(logfile);
 }
 
 
