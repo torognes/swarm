@@ -58,7 +58,7 @@ auto backtrack(char * qseq,
 {
   static constexpr uint8_t bits8 {8};
   static constexpr uint8_t bits16 {16};
-  static_assert(n_bits == bits8 || n_bits == bits16, "n_bits must be 8 or 16");
+  static_assert(n_bits == bits8 or n_bits == bits16, "n_bits must be 8 or 16");
   static constexpr auto offset0 = 0U;
   static constexpr auto offset1 = offset0 + 16;
   static constexpr auto offset2 = offset1 + 16;
