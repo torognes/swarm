@@ -54,7 +54,8 @@ auto progress_init(const char * prompt, const uint64_t size) -> void
 // the pthread wall. There is no easy way (for now) to pass additional
 // arguments beyond that wall. This is a major roadblock and prevents
 // us to eliminate global variables (opt_log, logfile, as well as
-// 'progress_*' global). Could be solved by using std::thread?
+// 'progress_*' global). Could be solved by using std::thread? or a
+// Progress object with private copies?
 auto progress_update(const uint64_t progress) -> void
 {
   if (not opt_log.empty()) { return; }  // no progress output if log is a file
