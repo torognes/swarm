@@ -57,14 +57,13 @@ auto progress_init(const char * prompt, const uint64_t size) -> void
 // 'progress_*' global). Could be solved by using std::thread?
 auto progress_update(const uint64_t progress) -> void
 {
-  if (opt_log.empty() and (progress >= progress_next))
-    {
+  if (not opt_log.empty()) { return; }  // no progress output if log is a file
+  if (progress < progress_next) { return; }  // milestone not yet reached
       std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
                    100.0 * static_cast<double>(progress)
                    / static_cast<double>(progress_size));
       progress_next = progress + progress_chunk;
       std::fflush(logfile);
-    }
 }
 
 
