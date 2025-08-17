@@ -115,7 +115,7 @@ auto zobrist_exit() -> void
 
 auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
 {
-  assert(offset == 0 || offset == 1 || offset == 2 || offset == 3);
+  assert(offset == 0 or offset == 1 or offset == 2 or offset == 3);
   return *std::next(zobrist_tab_base, (4 * pos) + offset);
 }
 
