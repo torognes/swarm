@@ -130,7 +130,7 @@ namespace {
     auto counter = 0UL;
 
     for(auto const & cluster: hashtable) {
-      const auto seed = cluster.seqno_first;
+      auto const seed = cluster.seqno_first;
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
@@ -154,7 +154,7 @@ namespace {
     auto counter = 0U;
 
     for(auto const & cluster: hashtable) {
-      const auto seed = cluster.seqno_first;
+      auto const seed = cluster.seqno_first;
 
       std::fprintf(parameters.uclustfile, "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    counter,
@@ -195,7 +195,7 @@ namespace {
     progress_init("Writing seeds:    ", hashtable.size());
     auto counter = 0U;
     for(auto const & cluster: hashtable) {
-      const auto seed = cluster.seqno_first;
+      auto const seed = cluster.seqno_first;
       std::fprintf(parameters.seeds_file, ">");
       fprint_id_with_new_abundance(parameters.seeds_file, seed, cluster.mass, parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file, "\n");
@@ -222,7 +222,7 @@ namespace {
 
     for(auto const & cluster: hashtable) {
       // print cluster seed
-      const auto seed = cluster.seqno_first;
+      auto const seed = cluster.seqno_first;
       std::fputc('\t', parameters.outfile);
       fprint_id(parameters.outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
@@ -253,7 +253,7 @@ namespace {
 
     for(auto const & cluster: hashtable) {
       // print cluster seed
-      const auto seed = cluster.seqno_first;
+      auto const seed = cluster.seqno_first;
       fprint_id(parameters.outfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       // print other cluster members
@@ -400,7 +400,7 @@ auto dereplicate(struct Parameters const & parameters) -> void
   std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
 
   // dereplicate input sequences
-  const auto stats = dereplicating(parameters, hashtable, nextseqtab);
+  auto const stats = dereplicating(parameters, hashtable, nextseqtab);
 
   // sort by decreasing abundance
   sort_seeds(parameters, hashtable);
