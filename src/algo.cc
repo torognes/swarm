@@ -133,7 +133,7 @@ namespace {
     mass += db_getabundance(seed);
     for (auto i = 1ULL; i < amplicons; ++i)
       {
-        const auto current_id = amps_v[i].swarmid;
+        auto const current_id = amps_v[i].swarmid;
         if (current_id != previous_id)
           {
             seeds[swarmcount].seed = seed;  // update previous
@@ -175,7 +175,7 @@ namespace {
       // ...then ties are sorted by label (alphabetical order)
       auto * const lhs_header = db_getheader(lhs.seed);
       auto * const rhs_header = db_getheader(rhs.seed);
-      const auto results = std::strcmp(lhs_header, rhs_header);
+      auto const results = std::strcmp(lhs_header, rhs_header);
       return results == -1;
     };
 
@@ -188,9 +188,9 @@ namespace {
                    std::vector<struct swarminfo_t> const & seeds) -> void {
     progress_init("Writing seeds:    ", seeds.size());
     auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
-    for (const auto& seed: seeds) {
-      const auto swarm_mass = seed.mass;
-      const auto swarm_seed = seed.seed;
+    for (auto const& seed: seeds) {
+      auto const swarm_mass = seed.mass;
+      auto const swarm_seed = seed.seed;
 
       std::fprintf(parameters.seeds_file, ">");
       fprint_id_with_new_abundance(parameters.seeds_file, swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
@@ -322,7 +322,7 @@ namespace {
 auto algo_run(struct Parameters const & parameters,
               std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
-  const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
+  auto const score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
   search_begin(search_data_v);
@@ -333,7 +333,7 @@ auto algo_run(struct Parameters const & parameters,
   uint64_t largestswarm {0};
   uint64_t maxgenerations {0};
 
-  const auto amplicons = db_getsequencecount();
+  auto const amplicons = db_getsequencecount();
   const uint64_t longestamplicon = db_getlongestsequence();
 
   db_qgrams_init(parameters, seqindex_v);
@@ -428,8 +428,8 @@ auto algo_run(struct Parameters const & parameters,
 
       for (auto i = 0ULL; i < listlen; ++i)
         {
-          const auto poolampliconid = qgramamps_v[i];
-          const auto diff = qgramdiffs_v[i];
+          auto const poolampliconid = qgramamps_v[i];
+          auto const diff = qgramdiffs_v[i];
           assert(diff <= std::numeric_limits<unsigned int>::max());
           amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(parameters.opt_differences))
@@ -447,11 +447,11 @@ auto algo_run(struct Parameters const & parameters,
 
           for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
             {
-              const auto diff = diffs_v[target_id];
+              auto const diff = diffs_v[target_id];
 
               if (diff <= static_cast<uint64_t>(parameters.opt_differences))
                 {
-                  const auto target = targetindices[target_id];
+                  auto const target = targetindices[target_id];
 
                   /* move the 'target' to the position ('swarmed')
                      of the first unswarmed amplicon in the pool */
@@ -463,7 +463,7 @@ auto algo_run(struct Parameters const & parameters,
                   amps_v[swarmed].radius = static_cast<unsigned int>(diff);
                   maxradius = std::max(diff, maxradius);
 
-                  const auto poolampliconid = amps_v[swarmed].ampliconid;
+                  auto const poolampliconid = amps_v[swarmed].ampliconid;
                   hits[hitcount] = poolampliconid;
                   ++hitcount;
 
@@ -541,10 +541,10 @@ auto algo_run(struct Parameters const & parameters,
 
               for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
                 {
-                  const auto diff = diffs_v[target_id];
+                  auto const diff = diffs_v[target_id];
 
                   if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
-                  const auto target = targetindices[target_id];
+                  auto const target = targetindices[target_id];
 
                   /* find correct position in list */
 
@@ -562,7 +562,7 @@ auto algo_run(struct Parameters const & parameters,
                     static_cast<unsigned int>(subseed.radius + diff);
                   maxradius = std::max<uint64_t>(amps_v[pos].radius, maxradius);
 
-                  const auto poolampliconid = amps_v[pos].ampliconid;
+                  auto const poolampliconid = amps_v[pos].ampliconid;
                   hits[hitcount] = poolampliconid;
                   ++hitcount;
 
@@ -612,12 +612,12 @@ auto algo_run(struct Parameters const & parameters,
 
           for (auto i = 1ULL; i < hitcount; ++i)
             {
-              const auto hit = hits[i];
+              auto const hit = hits[i];
 
               auto * dseq = db_getsequence(hit);
-              const auto dlen = db_getsequencelen(hit);
+              auto const dlen = db_getsequencelen(hit);
               auto * qseq = db_getsequence(seedampliconid);
-              const auto qlen = db_getsequencelen(seedampliconid);
+              auto const qlen = db_getsequencelen(seedampliconid);
 
               uint64_t nwdiff {0};
 
@@ -632,8 +632,8 @@ auto algo_run(struct Parameters const & parameters,
 
               // loosing precision when converting raw_alignment.size() and
               // nwdiff to double is not an issue, no need to add assertions
-              const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
-              const auto differences = static_cast<double>(nwdiff);
+              auto const nwalignmentlength = static_cast<double>(raw_alignment.size());
+              auto const differences = static_cast<double>(nwdiff);
               auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
               std::fprintf(parameters.uclustfile, "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
