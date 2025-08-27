@@ -58,23 +58,13 @@ constexpr char PRIu64[] = "lu";
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  constexpr auto int8_max = std::numeric_limits<int8_t>::max();
+  constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 
-}  // end of anonymous namespace
 
-
-constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
-constexpr unsigned int linealloc {2048};
-constexpr auto int8_max = std::numeric_limits<int8_t>::max();
-constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
-constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
-// for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
-// 2^32 (512 x max_sequence_length) and cannot be addressed with
-// uint32 pointers, which leads to a segmentation fault
-constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
-
-auto make_nt_map () -> std::array<uint64_t, n_chars> {
+  auto make_nt_map () -> std::array<uint64_t, n_chars> {
     // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
-  std::array<uint64_t, n_chars> ascii_map {{0}};
+    std::array<uint64_t, n_chars> ascii_map {{0}};
     ascii_map['A'] = 1;
     ascii_map['a'] = 1;
     ascii_map['C'] = 2;
@@ -86,7 +76,18 @@ auto make_nt_map () -> std::array<uint64_t, n_chars> {
     ascii_map['U'] = 4;
     ascii_map['u'] = 4;
     return ascii_map;
-    }
+  }
+
+}  // end of anonymous namespace
+
+
+constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
+constexpr unsigned int linealloc {2048};
+constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
+// for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
+// 2^32 (512 x max_sequence_length) and cannot be addressed with
+// uint32 pointers, which leads to a segmentation fault
+constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
 const auto map_nt = make_nt_map();
 
