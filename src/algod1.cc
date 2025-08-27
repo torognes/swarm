@@ -1116,6 +1116,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   std::vector<unsigned int> global_hits_v(global_hits_alloc);
   global_hits_data = global_hits_v.data();
 
+
   /* compute hash for all amplicons and store them in a hash table */
   std::vector<unsigned char> hash_occupied_v;
   std::vector<uint64_t> hash_values_v;
@@ -1151,6 +1152,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     }
 
   progress_done(parameters);
+
 
   /* for all amplicons, generate list of matching amplicons */
   network_v.resize(one_megabyte);
