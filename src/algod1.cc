@@ -194,8 +194,9 @@ namespace {
     auto has_duplicate = false;
     while (hash_is_occupied(index))
       {
-        if (hash_compare_value(index, hash) and
-            check_amp_identical(amp, hash_get_data(index))) {
+        auto const is_same_amplicon = hash_compare_value(index, hash) and
+          check_amp_identical(amp, hash_get_data(index));
+        if (is_same_amplicon) {
           has_duplicate = true;
         }
         index = hash_getnextindex(index);
