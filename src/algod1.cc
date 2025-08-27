@@ -268,7 +268,7 @@ namespace {
   auto count_pairs(unsigned int const amplicon_count,
                    std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int {
     auto counter = 0U;
-    for(auto i = 0U; i < amplicon_count; ++i) {
+    for (auto i = 0U; i < amplicon_count; ++i) {
       if (ampinfo_v[i].graft_cand != no_swarm) {
         ++counter;
       }
@@ -292,7 +292,7 @@ namespace {
     /* fill in */
     assert(ampinfo_v.size() == amplicon_count);
     auto ticker = 0U;  // refactoring: replace with a transform algorithm
-    for(auto i = 0U; i < amplicon_count; ++i) {
+    for (auto i = 0U; i < amplicon_count; ++i) {
       if (ampinfo_v[i].graft_cand == no_swarm) { continue; }
       graft_array[ticker].parent = ampinfo_v[i].graft_cand;
       graft_array[ticker].child = i;  // so two children cannot have the same uint value
@@ -319,7 +319,7 @@ namespace {
     /* attach in order */
     auto grafts = 0U;
     auto counter = 1U;
-    for(auto const& graft_pair : graft_array) {
+    for (auto const& graft_pair : graft_array) {
       const auto parent = graft_pair.parent;
       const auto child  = graft_pair.child;
 
@@ -390,7 +390,7 @@ namespace {
     const auto hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq.data()), seqlen);
     const auto variant_count = generate_variants(seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data() not fixable while db returns char*
 
-    for(auto i = 0U; i < variant_count; ++i) {
+    for (auto i = 0U; i < variant_count; ++i) {
       if (bloom_get(bloom_a, variant_list[i].hash) and
           hash_check_attach(seq.data(), seqlen, variant_list[i], seed)) {
         ++matches;
@@ -436,7 +436,7 @@ namespace {
     const auto hash = db_gethash(seed);
     const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
-    for(auto i = 0U; i < variant_count; ++i)
+    for (auto i = 0U; i < variant_count; ++i)
       {
         struct var_s & var = variant_list[i];
         if (bloomflex_get(bloom, var.hash))
@@ -516,7 +516,7 @@ namespace {
     const auto hash = db_gethash(seed);
     const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
-    for(auto i = 0U; i < variant_count; ++i) {
+    for (auto i = 0U; i < variant_count; ++i) {
       bloomflex_set(bloom, variant_list[i].hash);
     }
 
@@ -625,7 +625,7 @@ namespace {
     //                 [seed, &hits_data, &hits_count](auto& variant) {
     //                   find_variant_matches(seed, variant, hits_data, hits_count);
     //                 });
-    for(auto i = 0U; i < variant_count; ++i) {
+    for (auto i = 0U; i < variant_count; ++i) {
       find_variant_matches(seed, variant_list[i], hits_data, hits_count);
     }
 
@@ -667,7 +667,7 @@ namespace {
           network_v.resize(network_v.size() + one_megabyte);
         }
 
-        for(auto k = 0U; k < hits_count; ++k) {
+        for (auto k = 0U; k < hits_count; ++k) {
           network_v[network_count] = hits_data[k];
           ++network_count;
         }
@@ -706,7 +706,7 @@ namespace {
         global_hits_data = global_hits_v.data();
       }
 
-    for(auto offset = 0U; offset < link_count; ++offset)
+    for (auto offset = 0U; offset < link_count; ++offset)
       {
         const auto amp = network_v[link_start + offset];
 
@@ -767,7 +767,7 @@ namespace {
     uint64_t n_processed = 0;  // refactoring: reduce scope (move into the for loop init)
     assert(ampinfo_v.size() == amplicons);
     auto counter = 0ULL;
-    for(auto const& amplicon: ampinfo_v) {
+    for (auto const& amplicon: ampinfo_v) {
       const auto link_start = amplicon.link_start;
       const auto link_count = amplicon.link_count;
 
@@ -778,7 +778,7 @@ namespace {
                  compare_amp);
 
       // refactoring: std::vector<unsigned int> network_v(network_v.begin() + link_start, network_v.begin() + link_start + link_count);
-      for(auto link = 0U; link < link_count; ++link)
+      for (auto link = 0U; link < link_count; ++link)
         {
           const auto neighbour = network_v[link_start + link];
           fprint_id(parameters.network_file, counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
@@ -800,13 +800,13 @@ namespace {
     static constexpr auto sepchar {' '};
     progress_init("Writing swarms:   ", swarminfo_v.size());
 
-    for(auto i = 0U; i < swarminfo_v.size(); ++i) {
+    for (auto i = 0U; i < swarminfo_v.size(); ++i) {
       if (swarminfo_v[i].attached) {
         continue;
       }
 
       const auto seed = swarminfo_v[i].seed;
-      for(auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
+      for (auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
         if (amp_id != seed) {
           std::fputc(sepchar, parameters.outfile);
         }
@@ -829,14 +829,14 @@ namespace {
     std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%" PRIu64,
                  parameters.opt_differences, swarmcount_adjusted);
 
-    for(auto i = 0U; i < swarminfo_v.size(); ++i) {
+    for (auto i = 0U; i < swarminfo_v.size(); ++i) {
       assert(not swarminfo_v[i].attached);
       if (swarminfo_v[i].attached) {
         continue;
       }
 
       const auto seed = swarminfo_v[i].seed;
-      for(auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
+      for (auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
         if (amp_id == seed) {
           std::fputc('\t', parameters.outfile);
         }
@@ -892,7 +892,7 @@ namespace {
       fprint_id(parameters.uclustfile, seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile, "\t*\n");
 
-      for(auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
+      for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
         {
           auto * dseq = db_getsequence(amp_id);
           const auto dlen = db_getsequencelen(amp_id);  // refactoring: as a struct Sequence{ptr, length}
@@ -1000,7 +1000,7 @@ namespace {
 
     progress_init("Writing structure:", swarminfo_v.size());
 
-    for(auto swarmid = 0U; swarmid < swarminfo_v.size(); ++swarmid)
+    for (auto swarmid = 0U; swarmid < swarminfo_v.size(); ++swarmid)
       {
         if (swarminfo_v[swarmid].attached) {
           continue;
@@ -1009,7 +1009,7 @@ namespace {
 
         auto const & seed_info = ampinfo_v[seed];
 
-        for(auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
+        for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
           {
             const auto graft_parent = ampinfo_v[amp_id].graft_cand;
             if (graft_parent != no_swarm)
@@ -1134,7 +1134,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   duplicates_found = 0;
 
   progress_init("Hashing sequences:", amplicons);
-  for(auto k = 0U; k < amplicons; ++k)
+  for (auto k = 0U; k < amplicons; ++k)
     {
       hash_insert(k);
       progress_update(k);
@@ -1186,7 +1186,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
   progress_init("Clustering:       ", amplicons);
 
-  for(auto seed = 0U; seed < amplicons; ++seed)
+  for (auto seed = 0U; seed < amplicons; ++seed)
     {
       auto & seed_info = ampinfo_v[seed];
 
@@ -1219,7 +1219,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
 
           /* add subseeds on list to current swarm */
-          for(auto i = 0U; i < global_hits_count; ++i) {
+          for (auto i = 0U; i < global_hits_count; ++i) {
             add_amp_to_swarm(global_hits_v[i], ampinfo_v);
           }
 
@@ -1240,7 +1240,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
 
               /* add them to the swarm */
-              for(auto i = 0U; i < global_hits_count; ++i) {
+              for (auto i = 0U; i < global_hits_count; ++i) {
                 add_amp_to_swarm(global_hits_v[i], ampinfo_v);
               }
 
@@ -1308,7 +1308,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
       progress_init("Counting amplicons in heavy and light swarms",
                     swarmcount);
 
-      for(auto i = 0ULL; i < swarmcount; ++i)
+      for (auto i = 0ULL; i < swarmcount; ++i)
         {
           auto const & swarm_info = swarminfo_v[i];
           if (swarm_info.mass < static_cast<uint64_t>(opt_boundary))
