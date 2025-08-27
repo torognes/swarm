@@ -22,7 +22,7 @@
 */
 
 #include <cstdlib>
-#include <iostream>
+#include <iostream>  // replace with std::printf for performance?
 
 [[noreturn]]
 auto fatal() -> void {
