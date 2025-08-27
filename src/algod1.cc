@@ -81,7 +81,6 @@ constexpr unsigned int one_kilobyte {1U << 10U};  // 1,024 bytes
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
 constexpr unsigned int no_swarm {std::numeric_limits<unsigned int>::max()};
 
-static uint64_t duplicates_found {0};  // several function calls
 
 /* Information about each amplicon */
 
@@ -1129,7 +1128,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   bloom_a = bloom_init(hashtablesize, bloom_filter);
 
   bool has_duplicate {false};
-  duplicates_found = 0;
 
   progress_init("Hashing sequences:", amplicons);
   for (auto k = 0U; k < amplicons; ++k)
