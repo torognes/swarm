@@ -475,17 +475,8 @@ auto db_read(struct Parameters const & parameters,
       fatal(error_prefix, "Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
     }
 
-  /* get file size */
-  // refactoring: C++17 std::filesystem::file_size
-  struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
-
-  if (fstat(fileno(input_fp), &fstat_buffer) != 0)  // refactor: fstat and fileno linuxisms
-    {
-      fatal(error_prefix, "Unable to fstat on input file (", parameters.input_filename.c_str(), ").\n");
-    }
-  const bool is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG linuxisms
-  const uint64_t filesize = is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0;
-  warn_if_file_is_not_regular(parameters, is_regular);
+  auto const file_info = get_file_info(input_fp, parameters);
+  warn_if_file_is_not_regular(parameters, file_info.is_regular);
   uint64_t filepos = 0;
 
   std::size_t linecap = linealloc;
@@ -500,12 +491,12 @@ auto db_read(struct Parameters const & parameters,
 
   auto lineno = 1U;
 
-  progress_init("Reading sequences:", filesize);
+  progress_init("Reading sequences:", file_info.filesize);
 
   /* allocate space */
-  if (filesize > memchunk) {
+  if (file_info.filesize > memchunk) {
     // in-RAM data cannot be smaller than 1/4 of the on-disk data
-    data_v.reserve(filesize / 4);
+    data_v.reserve(file_info.filesize / 4);
   }
   data_v.resize(memchunk);
 
@@ -673,7 +664,7 @@ auto db_read(struct Parameters const & parameters,
 
       ++sequences;
 
-      if (is_regular) {
+      if (file_info.is_regular) {
         progress_update(filepos);
       }
     }
