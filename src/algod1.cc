@@ -1132,19 +1132,20 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   struct bloom_s bloom_filter;
   bloom_a = bloom_init(hashtablesize, bloom_filter);
 
+  bool has_duplicate {false};
   duplicates_found = 0;
 
   progress_init("Hashing sequences:", amplicons);
   for (auto k = 0U; k < amplicons; ++k)
     {
-      hash_insert(k);
+      has_duplicate = hash_insert(k);
       progress_update(k);
-      if (duplicates_found != 0U) {
+      if (has_duplicate) {
         break;
       }
     }
 
-  if (duplicates_found != 0U)
+  if (has_duplicate)
     {
       fatal(error_prefix,
             "some fasta entries have identical sequences.\n"
