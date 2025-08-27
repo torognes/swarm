@@ -440,7 +440,6 @@ auto db_read(struct Parameters const & parameters,
 {
   struct Seq_stats seq_stats;
   uint64_t datalen {0};
-  uint64_t duplicates_found {0};
 
   longest = 0;
   sequences = 0;
@@ -813,7 +812,6 @@ auto db_read(struct Parameters const & parameters,
 
           if (seqfound != nullptr)
             {
-              ++duplicates_found;
               seq_stats.has_duplicates = true;
               break;
             }
