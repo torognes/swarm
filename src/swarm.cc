@@ -62,6 +62,13 @@ constexpr char PRId64[] = "ld";
 #endif
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+
+}  // end of anonymous namespace
+
+
 constexpr auto int_max = std::numeric_limits<int>::max();
 constexpr auto int16_max = std::numeric_limits<int16_t>::max();
 static_assert(int_max > int16_max, "Your compiler uses very short integers.");
