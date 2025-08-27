@@ -733,7 +733,7 @@ auto db_read(struct Parameters const & parameters,
       a_sequence.hdrhash = hdrhash;
       uint64_t hdrhashindex = hdrhash % hdrhashsize;
 
-      struct seqinfo_s * hdrfound {nullptr};
+      struct seqinfo_s const * hdrfound {nullptr};
 
       while ((hdrfound = hdrhashtable[hdrhashindex]) != nullptr)
         {
@@ -784,7 +784,7 @@ auto db_read(struct Parameters const & parameters,
           /* but only for d > 1. Handled internally for d = 1. */
 
           uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
-          struct seqinfo_s * seqfound {nullptr};
+          struct seqinfo_s const * seqfound {nullptr};
 
           while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
             {
