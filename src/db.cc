@@ -55,6 +55,13 @@ constexpr char PRIu64[] = "lu";
 #endif
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+
+}  // end of anonymous namespace
+
+
 constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
 constexpr auto int8_max = std::numeric_limits<int8_t>::max();
