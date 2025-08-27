@@ -186,27 +186,25 @@ namespace {
   }
 
 
-  inline auto hash_insert(unsigned int const amp) -> bool
-  {
+  inline auto hash_insert(unsigned int const amp) -> bool {
     /* find the first empty bucket */
     const auto hash = db_gethash(amp);
     auto index = hash_getindex(hash);
     auto has_duplicate = false;
-    while (hash_is_occupied(index))
-      {
-        auto const is_same_amplicon = hash_compare_value(index, hash) and
-          check_amp_identical(amp, hash_get_data(index));
-        if (is_same_amplicon) {
-          has_duplicate = true;
-        }
-        index = hash_getnextindex(index);
+    while (hash_is_occupied(index)) {
+      auto const is_same_amplicon = hash_compare_value(index, hash) and
+        check_amp_identical(amp, hash_get_data(index));
+      if (is_same_amplicon) {
+        has_duplicate = true;
       }
+      index = hash_getnextindex(index);
+    }
 
     hash_set_occupied(index);
     hash_set_value(index, hash);
     hash_set_data(index, amp);
-
     bloom_set(bloom_a, hash);
+
     return has_duplicate;
   }
 
