@@ -187,7 +187,7 @@ namespace {
   }
 
 
-  inline auto hash_insert(unsigned int const amp) -> void
+  inline auto hash_insert(unsigned int const amp) -> bool
   {
     /* find the first empty bucket */
     const auto hash = db_gethash(amp);
@@ -211,6 +211,7 @@ namespace {
     hash_set_data(index, amp);
 
     bloom_set(bloom_a, hash);
+    return duplicate;
   }
 
 
