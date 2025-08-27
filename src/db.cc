@@ -78,6 +78,13 @@ namespace {
     return ascii_map;
   }
 
+
+  auto warn_if_file_is_not_regular(struct Parameters const & parameters, bool const is_regular) -> void {
+    if (not is_regular) {
+      std::fprintf(parameters.logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
+    }
+  }
+
 }  // end of anonymous namespace
 
 
@@ -459,9 +466,7 @@ auto db_read(struct Parameters const & parameters,
   const uint64_t filesize = is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0;
   uint64_t filepos = 0;
 
-  if (not is_regular) {
-    std::fprintf(parameters.logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
-  }
+  warn_if_file_is_not_regular(parameters, is_regular);
 
   std::size_t linecap = linealloc;
   auto * line = static_cast<char *>(xmalloc(linecap)); // char * line {new char[linecap]};  // refactoring: replacing with a std::vector fails, as getline might need to reallocate and will free() 'line', creating a double-free attempt at the end of the scope
