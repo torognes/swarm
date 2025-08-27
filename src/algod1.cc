@@ -172,8 +172,7 @@ static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidio
 namespace {
 
   inline auto check_amp_identical(unsigned int const amp1,
-                                  unsigned int const amp2) -> bool
-  {
+                                  unsigned int const amp2) -> bool {
     /* amplicon are identical if they have the same length, and the
        exact same sequence */
     const auto amp1_seqlen = db_getsequencelen(amp1);
