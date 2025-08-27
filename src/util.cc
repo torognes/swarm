@@ -66,6 +66,7 @@ auto xfree(void * ptr) -> void
 }
 
 
+// refactoring: std::getine(input, str) -> input
 auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssize_t
 {
 #ifndef _WIN32
