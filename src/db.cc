@@ -62,6 +62,12 @@ namespace {
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 
 
+  struct File_info {
+    uint64_t filesize {0};
+    bool is_regular {false};
+  };
+
+
   auto make_nt_map () -> std::array<uint64_t, n_chars> {
     // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
     std::array<uint64_t, n_chars> ascii_map {{0}};
@@ -83,6 +89,21 @@ namespace {
     if (not is_regular) {
       std::fprintf(parameters.logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
     }
+  }
+
+
+  auto get_file_info(std::FILE * input_handle, struct Parameters const & parameters) -> struct File_info {
+    // get file size and file type (regular or pipe)
+    // refactoring: C++17 std::filesystem::file_size
+    struct File_info file_info;;
+    struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
+
+    if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // refactor: fstat and fileno are linuxisms
+      fatal(error_prefix, "Unable to fstat on input file (", parameters.input_filename.c_str(), ").\n");
+    }
+    file_info.is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG is a linuxism
+    file_info.filesize = file_info.is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0U;
+    return file_info;
   }
 
 }  // end of anonymous namespace
