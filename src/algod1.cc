@@ -192,17 +192,17 @@ namespace {
     /* find the first empty bucket */
     const auto hash = db_gethash(amp);
     auto index = hash_getindex(hash);
-    auto duplicate = false;
+    auto has_duplicate = false;
     while (hash_is_occupied(index))
       {
         if (hash_compare_value(index, hash) and
             check_amp_identical(amp, hash_get_data(index))) {
-          duplicate = true;
+          has_duplicate = true;
         }
         index = hash_getnextindex(index);
       }
 
-    if (duplicate) {
+    if (has_duplicate) {
       ++duplicates_found;
     }
 
@@ -211,7 +211,7 @@ namespace {
     hash_set_data(index, amp);
 
     bloom_set(bloom_a, hash);
-    return duplicate;
+    return has_duplicate;
   }
 
 
