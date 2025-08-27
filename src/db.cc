@@ -535,7 +535,7 @@ auto db_read(struct Parameters const & parameters,
           data_v.resize(data_v.size() + memchunk);
         }
       std::memcpy(&data_v[datalen], std::next(line), headerlen);
-      data_v[datalen + headerlen] = 0;
+      data_v[datalen + headerlen] = '\0';
       datalen += headerlen + 1;
 
 
