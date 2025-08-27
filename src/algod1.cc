@@ -1127,9 +1127,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   struct bloom_s bloom_filter;
   bloom_a = bloom_init(hashtablesize, bloom_filter);
 
-  bool has_duplicate {false};
-
   progress_init("Hashing sequences:", amplicons);
+
+  bool has_duplicate {false};
   for (auto k = 0U; k < amplicons; ++k)
     {
       has_duplicate = hash_insert(k);
