@@ -54,8 +54,8 @@ auto compareqgramvectors_popcnt(unsigned char * lhs, unsigned char * rhs) -> uin
 
   for(auto i = 0ULL; i < n_vector_lengths; ++i) {
     count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr xor *rhs_ptr));  // C++20 refactoring: std::popcount
-    lhs_ptr = std::next(lhs_ptr);
-    rhs_ptr = std::next(rhs_ptr);
+    std::advance(lhs_ptr, 1);
+    std::advance(rhs_ptr, 1);
   }
 
   return count;
