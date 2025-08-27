@@ -464,9 +464,8 @@ auto db_read(struct Parameters const & parameters,
     }
   const bool is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG linuxisms
   const uint64_t filesize = is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0;
-  uint64_t filepos = 0;
-
   warn_if_file_is_not_regular(parameters, is_regular);
+  uint64_t filepos = 0;
 
   std::size_t linecap = linealloc;
   auto * line = static_cast<char *>(xmalloc(linecap)); // char * line {new char[linecap]};  // refactoring: replacing with a std::vector fails, as getline might need to reallocate and will free() 'line', creating a double-free attempt at the end of the scope
