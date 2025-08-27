@@ -172,8 +172,8 @@ static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidio
 
 namespace {
 
-  inline auto check_amp_identical(unsigned int amp1,
-                                  unsigned int amp2) -> bool
+  inline auto check_amp_identical(unsigned int const amp1,
+                                  unsigned int const amp2) -> bool
   {
     /* amplicon are identical if they have the same length, and the
        exact same sequence */
@@ -187,7 +187,7 @@ namespace {
   }
 
 
-  inline auto hash_insert(unsigned int amp) -> void
+  inline auto hash_insert(unsigned int const amp) -> void
   {
     /* find the first empty bucket */
     const auto hash = db_gethash(amp);
