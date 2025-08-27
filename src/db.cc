@@ -111,6 +111,7 @@ struct Seq_stats {
   int missingabundance {0};
   uint64_t missingabundance_lineno {0};
   char * missingabundance_header {nullptr};
+  bool has_duplicates {false};
 };
 
 static unsigned int sequences {0};
@@ -813,6 +814,7 @@ auto db_read(struct Parameters const & parameters,
           if (seqfound != nullptr)
             {
               ++duplicates_found;
+              seq_stats.has_duplicates = true;
               break;
             }
           seqhashtable[seqhashindex] = &a_sequence;
@@ -822,7 +824,7 @@ auto db_read(struct Parameters const & parameters,
       ++counter;
     }
 
-  if (duplicates_found != 0U)
+  if (seq_stats.has_duplicates)
     {
       fatal(error_prefix,
             "some fasta entries have identical sequences.\n"
