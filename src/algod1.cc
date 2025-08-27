@@ -202,10 +202,6 @@ namespace {
         index = hash_getnextindex(index);
       }
 
-    if (has_duplicate) {
-      ++duplicates_found;
-    }
-
     hash_set_occupied(index);
     hash_set_value(index, hash);
     hash_set_data(index, amp);
