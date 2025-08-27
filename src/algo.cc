@@ -335,6 +335,7 @@ auto algo_run(struct Parameters const & parameters,
 
   auto const amplicons = db_getsequencecount();
   const uint64_t longestamplicon = db_getlongestsequence();
+  assert(static_cast<std::size_t>(amplicons) == seqindex_v.size());
 
   db_qgrams_init(parameters, seqindex_v);
 
