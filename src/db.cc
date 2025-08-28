@@ -750,8 +750,7 @@ auto db_read(struct Parameters const & parameters,
           id_len = a_sequence.headerlen - a_sequence.abundance_end;
         }
 
-      const auto hdrhash = zobrist_hash(reinterpret_cast<unsigned char*>
-                                        (std::next(a_sequence.header, id_start)),
+      const auto hdrhash = zobrist_hash(std::next(a_sequence.header, id_start),
                                         4 * static_cast<unsigned int>(id_len));
 
       a_sequence.hdrhash = hdrhash;
@@ -797,9 +796,7 @@ auto db_read(struct Parameters const & parameters,
       hdrhashtable[hdrhashindex] = &a_sequence;
 
       /* hash sequence */
-      a_sequence.seqhash = zobrist_hash(reinterpret_cast<unsigned char*>
-                                         (a_sequence.seq),
-                                         a_sequence.seqlen);
+      a_sequence.seqhash = zobrist_hash(a_sequence.seq, a_sequence.seqlen);
 
       if (parameters.opt_differences > 1)
         {

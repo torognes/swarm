@@ -296,8 +296,7 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             const uint64_t hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq),
-                                                seqlen);
+             const uint64_t hash = zobrist_hash(seq, seqlen);
 
              uint64_t nth_bucket = hash & derep_hash_mask;
              auto * clusterp = &hashtable[nth_bucket];

@@ -381,7 +381,7 @@ namespace {
 
     uint64_t matches = 0;
 
-    const auto hash = zobrist_hash(reinterpret_cast<unsigned char *>(seq.data()), seqlen);
+    const auto hash = zobrist_hash(seq.data(), seqlen);
     const auto variant_count = generate_variants(seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data() not fixable while db returns char*
 
     for (auto i = 0U; i < variant_count; ++i) {
