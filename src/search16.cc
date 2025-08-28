@@ -543,7 +543,7 @@ auto search16(std::vector<WORD *> & q_start,
                     {
                       // save score
 
-                      char * dbseq = d_address[channel];
+                      char const * dbseq = d_address[channel];
                       const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
                       assert(z * channels + channel <= max_ptrdiff);
