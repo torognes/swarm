@@ -642,7 +642,7 @@ auto main(int argc, char** argv) -> int
   args_show(parameters);
 
   // parse fasta input
-  std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *
+  std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *  // alignas(8) does not fix alignment issue
   std::vector<struct seqinfo_s> seqindex_v;
   std::vector<uint64_t> zobrist_tab_base_v;
   std::vector<uint64_t> zobrist_tab_byte_base_v;
