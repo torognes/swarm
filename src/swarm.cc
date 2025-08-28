@@ -190,7 +190,7 @@ const std::vector<std::string> args_usage_message
   };
 
 
-auto args_long(char * str, const char * option) -> int64_t
+auto args_long(char const * str, const char * option) -> int64_t
 {
   static constexpr int base_value {10};
   char * endptr {nullptr};
