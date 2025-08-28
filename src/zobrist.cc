@@ -31,6 +31,17 @@
 #include <vector>
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  auto to_uchar(char const nucleotide) -> unsigned char {
+    // note: compressed nucleotides are in the range [-127, +127]
+    return static_cast<unsigned char>(nucleotide);
+  }
+
+}  // end of anonymous namespace
+
+
 uint64_t * zobrist_tab_base = nullptr;
 uint64_t * zobrist_tab_byte_base = nullptr;
 
@@ -117,6 +128,59 @@ auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64
 {
   assert(offset == 0 or offset == 1 or offset == 2 or offset == 3);
   return *std::next(zobrist_tab_base, (4 * pos) + offset);
+}
+
+
+auto zobrist_hash(char const * seq, unsigned int const len) -> uint64_t
+{
+  /* compute the Zobrist hash function of sequence seq of length len. */
+  /* len is the actual number of bases in the sequence */
+  /* it is encoded in (len + 3 ) / 4 bytes */
+
+  // refactoring: equivalent to a std::reduce() algorithm?
+  static constexpr auto offset = 64U;
+  static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
+  uint64_t zobrist_hash = 0;
+  auto pos = 0U;
+
+  while (pos + nt_per_uint64 < len)  // hash bytes by groups of 8
+    {
+      for(auto i = 0U; i < nt_per_uint64; i += 4) {
+        auto const a_byte = to_uchar(*seq);
+        auto const target_hash = (offset * (pos + i)) + a_byte;
+        assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
+        auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
+        // i = {0, 4, 8, 12, 16, 20, 24, 28}
+        zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
+        seq = std::next(seq);
+      }
+      pos += nt_per_uint64;
+    }
+
+  while (pos + 4 < len)  // less than 8 bytes remaining (hash bytes one-by-one)
+    {
+      auto const a_byte = to_uchar(*seq);
+      auto const target_hash = (offset * pos) + a_byte;
+      assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
+      zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
+      seq = std::next(seq);
+      pos += 4;
+    }
+
+  if (pos < len)  // less than a byte remaining (hash pairs of bits one-by-one)
+    {
+      auto last_byte = to_uchar(*seq);
+      seq = std::next(seq);  // useless in normal conditions, keep it for now
+      while (pos < len)
+        {
+          zobrist_hash ^= zobrist_value(pos, last_byte & 3U);
+          last_byte >>= 2U;
+          ++pos;
+        }
+    }
+
+  return zobrist_hash;
 }
 
 
