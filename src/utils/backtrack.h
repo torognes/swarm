@@ -24,8 +24,11 @@
 #include "nt_codec.h"
 #include <cassert>
 #include <cstdint>  // uint64_t
-#include <limits>
 #include <vector>
+
+#ifndef NDEBUG
+#include <limits>
+#endif
 
 
 // default template (16 bits)
