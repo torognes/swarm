@@ -184,58 +184,6 @@ auto zobrist_hash(char const * seq, unsigned int const len) -> uint64_t
 }
 
 
-auto zobrist_hash(unsigned char const * seq, const unsigned int len) -> uint64_t
-{
-  /* compute the Zobrist hash function of sequence seq of length len. */
-  /* len is the actual number of bases in the sequence */
-  /* it is encoded in (len + 3 ) / 4 bytes */
-
-  // refactoring: equivalent to a std::reduce() algorithm?
-  static constexpr auto offset = 64U;
-  static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
-  auto * query_in_bytes = seq;
-  uint64_t zobrist_hash = 0;
-  auto pos = 0U;
-
-  while (pos + nt_per_uint64 < len)  // hash qwords one-by-one
-    {
-      for(auto i = 0U; i < nt_per_uint64; i += 4) {
-        auto const target_hash = (offset * (pos + i)) + *query_in_bytes;
-        assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
-        // i = {0, 4, 8, 12, 16, 20, 24, 28}
-        zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
-        query_in_bytes = std::next(query_in_bytes);
-      }
-      pos += nt_per_uint64;
-    }
-
-  while (pos + 4 < len)  // less than a qword remaining (hash bytes one-by-one)
-    {
-      auto const target_hash = (offset * pos) + *query_in_bytes;
-      assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
-      auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
-      zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
-      query_in_bytes = std::next(query_in_bytes);
-      pos += 4;
-    }
-
-  if (pos < len)  // less than a byte remaining (hash pairs of bits one-by-one)
-    {
-      uint64_t next_byte = *query_in_bytes;  // refactoring: reinterpret_cast?
-      query_in_bytes = std::next(query_in_bytes);
-      while (pos < len)
-        {
-          zobrist_hash ^= zobrist_value(pos, next_byte & 3U);
-          next_byte >>= 2U;
-          ++pos;
-        }
-    }
-
-  return zobrist_hash;
-}
-
-
 // refactoring: factorize zobrist_hash_delete_first() and zobrist_hash_insert_first()?
 auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> uint64_t
 {
