@@ -37,9 +37,9 @@ constexpr unsigned char maskextup   = 4;
 constexpr unsigned char maskextleft = 8;
 
 
-auto align(char * dseq,
+auto align(char const * dseq,
            const uint64_t dlen,
-           char * qseq,
+           char const * qseq,
            const uint64_t qlen,
            const std::array<int64_t, n_cells * n_cells> & score_matrix,
            const uint64_t gapopen,
@@ -112,9 +112,9 @@ auto align(char * dseq,
 }
 
 
-auto backtrack(char * dseq,
+auto backtrack(char const * dseq,
                const uint64_t dlen,
-               char * qseq,
+               char const * qseq,
                const uint64_t qlen,
                uint64_t & nwdiff,
                std::vector<unsigned char> const & directions,
