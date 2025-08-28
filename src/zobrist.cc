@@ -133,7 +133,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
   uint64_t zobrist_hash = 0;
   auto pos = 0U;
 
-  while (pos + nt_per_uint64 < len)
+  while (pos + nt_per_uint64 < len)  // hash qwords one-by-one
     {
       for(auto i = 0U; i < nt_per_uint64; i += 4) {
         auto const target_hash = (offset * (pos + i)) + *query_in_bytes;
@@ -146,7 +146,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
       pos += nt_per_uint64;
     }
 
-  while (pos + 4 < len)
+  while (pos + 4 < len)  // less than a qword remaining (hash bytes one-by-one)
     {
       auto const target_hash = (offset * pos) + *query_in_bytes;
       assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
@@ -156,7 +156,7 @@ auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
       pos += 4;
     }
 
-  if (pos < len)
+  if (pos < len)  // less than a byte remaining (hash pairs of bits one-by-one)
     {
       uint64_t next_byte = *query_in_bytes;  // refactoring: reinterpret_cast?
       query_in_bytes = std::next(query_in_bytes);
