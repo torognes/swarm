@@ -49,8 +49,8 @@ enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
 
 
 template <uint8_t n_bits>
-auto backtrack(char * qseq,
-               char * dseq,
+auto backtrack(char const * qseq,
+               char const * dseq,
                uint64_t qlen,
                uint64_t dlen,
                std::vector<uint64_t> & dirbuffer,
