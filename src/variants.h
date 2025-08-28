@@ -43,10 +43,10 @@ auto generate_variant_sequence(char * seed_sequence,
                                std::vector<char>& seq,
                                unsigned int & seqlen) -> void;
 
-auto check_variant(char * seed_sequence,
+auto check_variant(char const * seed_sequence,
                    unsigned int seed_seqlen,
                    struct var_s & var,
-                   char * amp_sequence,
+                   char const * amp_sequence,
                    unsigned int amp_seqlen) -> bool;
 
 auto generate_variants(char * sequence,

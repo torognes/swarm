@@ -47,7 +47,7 @@ inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const 
 
 inline auto seq_copy(char * seq_a,
                      unsigned int a_start,
-                     char * seq_b,
+                     char const * seq_b,
                      unsigned int b_start,
                      unsigned int length) -> void
 {
@@ -58,9 +58,9 @@ inline auto seq_copy(char * seq_a,
 }
 
 
-inline auto seq_identical(char * seq_a,
+inline auto seq_identical(char const * seq_a,
                           unsigned int a_start,
-                          char * seq_b,
+                          char const * seq_b,
                           unsigned int b_start,
                           unsigned int length) -> bool
 {
@@ -115,10 +115,10 @@ auto generate_variant_sequence(char * seed_sequence,
 }
 
 
-auto check_variant(char * seed_sequence,
+auto check_variant(char const * seed_sequence,
                    unsigned int seed_seqlen,
                    struct var_s & var,
-                   char * amp_sequence,
+                   char const * amp_sequence,
                    unsigned int amp_seqlen) -> bool
 {
   /* make sure seed with given variant is really identical to amp */
