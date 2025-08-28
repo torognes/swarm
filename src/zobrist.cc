@@ -120,7 +120,7 @@ auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64
 }
 
 
-auto zobrist_hash(unsigned char * seq, const unsigned int len) -> uint64_t
+auto zobrist_hash(unsigned char const * seq, const unsigned int len) -> uint64_t
 {
   /* compute the Zobrist hash function of sequence seq of length len. */
   /* len is the actual number of bases in the sequence */
