@@ -285,8 +285,8 @@ namespace {
 
          for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
            {
-             const unsigned int seqlen = db_getsequencelen(seqno);
-             char const * seq = db_getsequence(seqno);
+             auto const seqlen = db_getsequencelen(seqno);
+             auto const * seq = db_getsequence(seqno);
 
              /*
                Find free bucket or bucket for identical sequence.
@@ -296,9 +296,9 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             const uint64_t hash = zobrist_hash(seq, seqlen);
+             auto const hash = zobrist_hash(seq, seqlen);
 
-             uint64_t nth_bucket = hash & derep_hash_mask;
+             auto nth_bucket = hash & derep_hash_mask;
              auto * clusterp = &hashtable[nth_bucket];
 
              while ((clusterp->mass != 0U) and
@@ -318,7 +318,7 @@ namespace {
                    }
                }
 
-             const uint64_t abundance = db_getabundance(seqno);
+             auto const abundance = db_getabundance(seqno);
 
              if (clusterp->mass != 0U)
                {
