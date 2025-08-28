@@ -286,7 +286,7 @@ namespace {
          for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
            {
              const unsigned int seqlen = db_getsequencelen(seqno);
-             char * seq = db_getsequence(seqno);
+             char const * seq = db_getsequence(seqno);
 
              /*
                Find free bucket or bucket for identical sequence.
