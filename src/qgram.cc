@@ -65,7 +65,7 @@ static ThreadRunner * qgram_threads = nullptr;
 static struct thread_info_s * thread_info_ptr;
 
 
-auto findqgrams(unsigned char * seq, uint64_t seqlen,
+auto findqgrams(char const * seq, uint64_t seqlen,
                 unsigned char * qgramvector) -> void
 {
   /* set qgram bit vector by xoring occurrences of qgrams in sequence */
@@ -79,13 +79,13 @@ auto findqgrams(unsigned char * seq, uint64_t seqlen,
 
   while((position < qgramlength - 1) and (position < seqlen))
   {
-    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), position);
+    qgram = (qgram << 2U) | nt_extract(seq, position);
     ++position;
   }
 
   while(position < seqlen)
   {
-    qgram = (qgram << 2U) | nt_extract(reinterpret_cast<char *>(seq), position);
+    qgram = (qgram << 2U) | nt_extract(seq, position);
     assert((qgram & max_range) <= 7);
     assert(((qgram >> 3U) & (qgramvectorbytes - 1)) <= std::numeric_limits<std::ptrdiff_t>::max());
     auto const signed_position = static_cast<std::ptrdiff_t>((qgram >> 3U) & (qgramvectorbytes - 1));

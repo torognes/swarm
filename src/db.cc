@@ -890,7 +890,7 @@ auto db_qgrams_init(struct Parameters const & parameters,
   auto counter = 0U;
   for(auto const & seqindex_p : seqindex_v) {
     /* find qgrams */
-    findqgrams(reinterpret_cast<unsigned char*>(seqindex_p.seq),
+    findqgrams(seqindex_p.seq,
                seqindex_p.seqlen,
               *std::next(qgrams, counter));
     progress_update(counter);
