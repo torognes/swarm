@@ -877,7 +877,7 @@ auto db_read(struct Parameters const & parameters,
 auto db_qgrams_init(struct Parameters const & parameters,
                     std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
-  // refactoring: qgrams is an array of char arrays!
+  // refactoring: qgrams is oly used here and qgrams is an array of char arrays!
   // - vector of std::array is not allowed,
   // - vector of vector is not contiguous!
   // - is contiguity really a requirement??
