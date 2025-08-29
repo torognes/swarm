@@ -740,7 +740,7 @@ auto db_read(struct Parameters const & parameters,
       const auto seqlen = static_cast<unsigned int>(entries[counter].sequence.length);
       a_sequence.seqlen = seqlen;
       cursor = std::next(cursor, sizeof(unsigned int));
-      a_sequence.seq = cursor;
+      a_sequence.seq = &data_v[entries[counter].sequence.offset];
       cursor = std::next(cursor, nt_bytelength(seqlen));
 
       /* get amplicon abundance */
