@@ -722,26 +722,21 @@ auto db_read(struct Parameters const & parameters,
   seqindex_v.resize(sequences);
   seqindex = seqindex_v.data();
 
-  auto * cursor = data_v.data();
   progress_init("Indexing database:", sequences);
   auto counter = 0ULL;
   for(auto& a_sequence: seqindex_v) {
 
       /* get line number */
       const auto line_number = entries[counter].lineno;
-      cursor = std::next(cursor, sizeof(unsigned int));
 
       /* get header */
       a_sequence.header = &data_v[entries[counter].header.offset];
       a_sequence.headerlen = static_cast<int>(entries[counter].header.length);
-      cursor = std::next(cursor, a_sequence.headerlen + 1);
 
       /* and sequence */
       const auto seqlen = static_cast<unsigned int>(entries[counter].sequence.length);
       a_sequence.seqlen = seqlen;
-      cursor = std::next(cursor, sizeof(unsigned int));
       a_sequence.seq = &data_v[entries[counter].sequence.offset];
-      cursor = std::next(cursor, nt_bytelength(seqlen));
 
       /* get amplicon abundance */
       find_abundance(a_sequence, seq_stats, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
