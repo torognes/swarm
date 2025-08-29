@@ -35,6 +35,8 @@ auto zobrist_hash(char const * seq, unsigned int len) -> uint64_t;
 
 auto zobrist_hash_delete_first(unsigned char * seq, unsigned int len) -> uint64_t;
 
+auto zobrist_hash_delete_first(char const * seq, unsigned int len) -> uint64_t;
+
 auto zobrist_hash_insert_first(unsigned char * seq, unsigned int len) -> uint64_t;
 
 auto zobrist_value(unsigned int pos, unsigned char offset) -> uint64_t;
