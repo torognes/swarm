@@ -521,6 +521,7 @@ auto db_read(struct Parameters const & parameters,
   std::size_t linecap = linealloc;
   auto * line = static_cast<char *>(xmalloc(linecap)); // char * line {new char[linecap]};  // refactoring: replacing with a std::vector fails, as getline might need to reallocate and will free() 'line', creating a double-free attempt at the end of the scope
 
+  std::vector<struct Entry> entries;
   auto lineno = 1U;
 
 
@@ -543,6 +544,8 @@ auto db_read(struct Parameters const & parameters,
         fatal(error_prefix, "Illegal header line in fasta file.");
       }
 
+      struct Entry entry;
+
       auto headerlen = static_cast<unsigned int>
         (std::strcspn(std::next(line), " \r\n"));
 
@@ -556,6 +559,7 @@ auto db_read(struct Parameters const & parameters,
 
       linear_resize_if_need_be(data_v, datalen + sizeof(unsigned int));
       std::memcpy(&data_v[datalen], & lineno, sizeof(unsigned int));
+      entry.lineno = lineno;
       datalen += sizeof(unsigned int);
 
 
@@ -564,8 +568,9 @@ auto db_read(struct Parameters const & parameters,
       linear_resize_if_need_be(data_v, datalen + headerlen + 1);
       std::memcpy(&data_v[datalen], std::next(line), headerlen);
       data_v[datalen + headerlen] = '\0';
+      entry.header.offset = datalen;
+      entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
       datalen += headerlen + 1;
-
 
       /* get next line */
 
@@ -599,6 +604,7 @@ auto db_read(struct Parameters const & parameters,
       static constexpr int carriage_return {13};
       static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
       static constexpr int end_chars_range {126};
+      entry.sequence.offset = datalen;
 
       while ((*line != 0) and (*line != '>'))
         {
@@ -655,6 +661,7 @@ auto db_read(struct Parameters const & parameters,
 
       /* fill in real length */
 
+      entry.sequence.length = length;
       std::memcpy(&data_v[datalen_seqlen], & length, sizeof(unsigned int));
 
       if (length == 0)
@@ -679,6 +686,7 @@ auto db_read(struct Parameters const & parameters,
         }
 
       ++sequences;
+      entries.push_back(entry);
 
       if (file_info.is_regular) {
         progress_update(filepos);
