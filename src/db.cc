@@ -532,20 +532,14 @@ auto db_read(struct Parameters const & parameters,
 
       /* store the line number */
 
-      while (datalen + sizeof(unsigned int) > data_v.size())
-        {
-          data_v.resize(data_v.size() + memchunk);
-        }
+      linear_resize_if_need_be(data_v, datalen + sizeof(unsigned int));
       std::memcpy(&data_v[datalen], & lineno, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
 
       /* store the header */
 
-      while (datalen + headerlen + 1 > data_v.size())
-        {
-          data_v.resize(data_v.size() + memchunk);
-        }
+      linear_resize_if_need_be(data_v, datalen + headerlen + 1);
       std::memcpy(&data_v[datalen], std::next(line), headerlen);
       data_v[datalen + headerlen] = '\0';
       datalen += headerlen + 1;
@@ -567,12 +561,8 @@ auto db_read(struct Parameters const & parameters,
       /* store a dummy sequence length */
 
       auto length = 0U;
-
-      while (datalen + sizeof(unsigned int) > data_v.size())
-        {
-          data_v.resize(data_v.size() + memchunk);
-        }
       const uint64_t datalen_seqlen = datalen;
+      linear_resize_if_need_be(data_v, datalen + sizeof(unsigned int));
       std::memcpy(&data_v[datalen], & length, sizeof(unsigned int));
       datalen += sizeof(unsigned int);
 
@@ -604,11 +594,7 @@ auto db_read(struct Parameters const & parameters,
 
                   if (nt_bufferlen == nt_buffersize)
                     {
-                      while (datalen + sizeof(nt_buffer) > data_v.size())
-                        {
-                          data_v.resize(data_v.size() + memchunk);
-                        }
-
+                      linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
                       std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
                       datalen += sizeof(nt_buffer);
 
@@ -662,11 +648,7 @@ auto db_read(struct Parameters const & parameters,
 
       if (nt_bufferlen > 0)
         {
-          while (datalen + sizeof(nt_buffer) > data_v.size())
-            {
-              data_v.resize(data_v.size() + memchunk);
-            }
-
+          linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
           std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
           datalen += sizeof(nt_buffer);
 
