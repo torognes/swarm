@@ -557,10 +557,7 @@ auto db_read(struct Parameters const & parameters,
 
       /* store the line number */
 
-      linear_resize_if_need_be(data_v, datalen + sizeof(unsigned int));
-      std::memcpy(&data_v[datalen], & lineno, sizeof(unsigned int));
       entry.lineno = lineno;
-      datalen += sizeof(unsigned int);
 
 
       /* store the header */
@@ -588,10 +585,6 @@ auto db_read(struct Parameters const & parameters,
       /* store a dummy sequence length */
 
       auto length = 0U;
-      const uint64_t datalen_seqlen = datalen;
-      linear_resize_if_need_be(data_v, datalen + sizeof(unsigned int));
-      std::memcpy(&data_v[datalen], & length, sizeof(unsigned int));
-      datalen += sizeof(unsigned int);
 
 
       /* read and store sequence */
@@ -662,7 +655,6 @@ auto db_read(struct Parameters const & parameters,
       /* fill in real length */
 
       entry.sequence.length = length;
-      std::memcpy(&data_v[datalen_seqlen], & length, sizeof(unsigned int));
 
       if (length == 0)
         {
