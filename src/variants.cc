@@ -181,7 +181,7 @@ inline auto add_variant(uint64_t hash,
 }
 
 
-auto generate_variants(char * sequence,
+auto generate_variants(char const * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
                        std::vector<struct var_s>& variant_list) -> unsigned int
