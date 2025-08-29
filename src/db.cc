@@ -69,6 +69,19 @@ namespace {
   };
 
 
+  struct Index {
+    uint64_t offset {0};
+    std::size_t length {0};
+  };
+
+
+  struct Entry {
+    unsigned int lineno {1U};
+    Index header;
+    Index sequence;
+  };
+
+
   auto make_nt_map () -> std::array<uint64_t, n_chars> {
     // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
     std::array<uint64_t, n_chars> ascii_map {{0}};
