@@ -535,7 +535,7 @@ auto db_read(struct Parameters const & parameters,
     }
   filepos += static_cast<unsigned long int>(linelen);
 
-  while(*line != 0)
+  while (*line != 0)
     {
       /* read header */
       /* the header ends at a space, cr, lf or null character */
@@ -610,7 +610,7 @@ auto db_read(struct Parameters const & parameters,
         {
           auto character = null_char;
           auto * line_ptr = line;
-          while((character = static_cast<unsigned char>(*line_ptr)) != null_char)
+          while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
             {
               line_ptr = std::next(line_ptr);
               const auto mapped_char = map_nt[character];
@@ -731,7 +731,7 @@ auto db_read(struct Parameters const & parameters,
 
   progress_init("Indexing database:", sequences);
   auto counter = 0ULL;
-  for(auto& a_sequence: seqindex_v) {
+  for (auto & a_sequence: seqindex_v) {
 
       /* get line number */
       const auto line_number = entries[counter].lineno;
@@ -907,7 +907,7 @@ auto db_qgrams_init(struct Parameters const & parameters,
 
   progress_init("Find qgram vects: ", seqindex_v.size());
   auto counter = 0U;
-  for(auto const & seqindex_p : seqindex_v) {
+  for (auto const & seqindex_p : seqindex_v) {
     /* find qgrams */
     findqgrams(seqindex_p.seq,
                seqindex_p.seqlen,
@@ -996,7 +996,7 @@ auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
   static std::vector<char> buffer(db_getlongestsequence() + 1, '\0');
 
   // decode to nucleotides (A, C, G and T)
-  for(auto i = 0U; i < len; ++i) {
+  for (auto i = 0U; i < len; ++i) {
     buffer[i] = sym_nt[1 + nt_extract(seqptr, i)];
   }
   buffer[len] = '\0';
