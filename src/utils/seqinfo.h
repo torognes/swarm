@@ -23,6 +23,14 @@
 
 #include <cstdint>  // uint64_t
 
+// refactoring: new struct seqindex { uint64_t offset, uint64_t
+// length, uint64_t abundance } that can be built while reading and
+// storing data. It can then be used to build the struct seqinfo_s
+// vector
+
+// refactoring: add View header_view and View seq_view to
+// progressively get rid of raw pointers
+
 struct seqinfo_s
 {
   char * header;
