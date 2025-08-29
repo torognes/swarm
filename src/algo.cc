@@ -615,9 +615,9 @@ auto algo_run(struct Parameters const & parameters,
             {
               auto const hit = hits[i];
 
-              auto * dseq = db_getsequence(hit);
+              auto const * dseq = db_getsequence(hit);
               auto const dlen = db_getsequencelen(hit);
-              auto * qseq = db_getsequence(seedampliconid);
+              auto const * qseq = db_getsequence(seedampliconid);
               auto const qlen = db_getsequencelen(seedampliconid);
 
               uint64_t nwdiff {0};
