@@ -108,6 +108,16 @@ namespace {
   }
 
 
+  auto initial_allocation(std::vector<char> & data_v, uint64_t const filesize) -> void {
+    auto const minimal_reserve = filesize >> 2U;  // 1/4 of filesize
+    if (minimal_reserve > memchunk) {
+      // in-RAM data cannot be smaller than 1/4 of the on-disk data
+      data_v.reserve(minimal_reserve);
+    }
+    data_v.resize(memchunk);
+  }
+
+
   auto linear_resize_if_need_be(std::vector<char> & data_v, uint64_t const minimal_size) -> void {
     auto const current_size = data_v.size();
     if (current_size > minimal_size) { return; }
