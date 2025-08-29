@@ -28,7 +28,7 @@ struct queryinfo
 {
   uint64_t qno;
   int64_t len;
-  char * seq;
+  char const * seq;
 };
 
 extern struct queryinfo query;

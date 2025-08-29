@@ -43,7 +43,7 @@ auto db_getsequencelen(uint64_t seqno) -> unsigned int;
 auto db_gethash(uint64_t seqno) -> uint64_t;
 
 auto db_getsequenceandlength(uint64_t seqno,
-                             char * & address,
+                             char const * & address,
                              unsigned int & length) -> void;
 
 auto db_getheader(uint64_t seqno) -> char const *;

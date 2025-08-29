@@ -131,7 +131,7 @@ struct Seq_stats {
   unsigned int longestheader {0};
   int missingabundance {0};
   uint64_t missingabundance_lineno {0};
-  char * missingabundance_header {nullptr};
+  char const * missingabundance_header {nullptr};
   bool has_duplicates {false};
 };
 
@@ -364,7 +364,7 @@ auto find_usearch_abundance(const char * header,
 auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t lineno,
                     bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
 {
-  char * header = seqinfo.header;
+  char const * header = seqinfo.header;
 
   /* read size/abundance annotation */
   int64_t abundance = 0;
@@ -926,7 +926,7 @@ auto db_getsequence(const uint64_t seqno) -> char const *
 
 
 auto db_getsequenceandlength(uint64_t seqno,
-                             char * & address,
+                             char const * & address,
                              unsigned int & length) -> void
 {
   assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());

@@ -407,7 +407,7 @@ auto search16(std::vector<WORD *> & q_start,
   // nullptr for pointers, etc)
   std::array<uint64_t, channels> d_pos {{}};
   std::array<uint64_t, channels> d_offset {{}};
-  std::array<char *, channels> d_address {{}};
+  std::array<char const *, channels> d_address {{}};
   std::array<uint64_t, channels> d_length {{}};
   std::array<int64_t, channels> seq_id {{}};
   seq_id.fill(-1);
@@ -580,7 +580,7 @@ auto search16(std::vector<WORD *> & q_start,
                       // get next sequence
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
-                      char * address {nullptr};
+                      char const * address {nullptr};
                       unsigned int length {0};
 
                       db_getsequenceandlength(seqno, address, length);
