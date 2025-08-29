@@ -946,7 +946,7 @@ auto db_getsequencelen(const uint64_t seqno) -> unsigned int
 }
 
 
-auto db_getheader(const uint64_t seqno) -> char *
+auto db_getheader(const uint64_t seqno) -> char const *
 {
   assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const record_number = static_cast<std::ptrdiff_t>(seqno);

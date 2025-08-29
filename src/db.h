@@ -48,7 +48,7 @@ auto db_getsequenceandlength(uint64_t seqno,
                              char * & address,
                              unsigned int & length) -> void;
 
-auto db_getheader(uint64_t seqno) -> char *;
+auto db_getheader(uint64_t seqno) -> char const *;
 
 auto db_getheaderlen(uint64_t seqno) -> unsigned int;
 
