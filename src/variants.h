@@ -40,7 +40,7 @@ struct var_s
 auto generate_variant_sequence(char const * seed_sequence,
                                unsigned int seed_seqlen,
                                struct var_s & var,
-                               std::vector<char>& seq,
+                               std::vector<char> & seq,
                                unsigned int & seqlen) -> void;
 
 auto check_variant(char const * seed_sequence,
@@ -52,4 +52,4 @@ auto check_variant(char const * seed_sequence,
 auto generate_variants(char const * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
-                       std::vector<struct var_s>& variant_list) -> unsigned int;
+                       std::vector<struct var_s> & variant_list) -> unsigned int;
