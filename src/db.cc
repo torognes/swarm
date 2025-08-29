@@ -516,11 +516,7 @@ auto db_read(struct Parameters const & parameters,
   progress_init("Reading sequences:", file_info.filesize);
 
   /* allocate space */
-  if (file_info.filesize > memchunk) {
-    // in-RAM data cannot be smaller than 1/4 of the on-disk data
-    data_v.reserve(file_info.filesize / 4);
-  }
-  data_v.resize(memchunk);
+  initial_allocation(data_v, file_info.filesize);
 
   while(*line != 0)
     {
