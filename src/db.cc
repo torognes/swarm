@@ -725,9 +725,6 @@ auto db_read(struct Parameters const & parameters,
   auto counter = 0ULL;
   for (auto & a_sequence: seqindex_v) {
 
-      /* get line number */
-      const auto line_number = entries[counter].lineno;
-
       /* get header */
       a_sequence.header = &data_v[entries[counter].header.offset];
       a_sequence.headerlen = static_cast<int>(entries[counter].header.length);
@@ -738,7 +735,7 @@ auto db_read(struct Parameters const & parameters,
       a_sequence.seq = &data_v[entries[counter].sequence.offset];
 
       /* get amplicon abundance */
-      find_abundance(a_sequence, seq_stats, line_number, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      find_abundance(a_sequence, seq_stats, entries[counter].lineno, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       if ((a_sequence.abundance_start == 0) and
           (a_sequence.abundance_end == a_sequence.headerlen)) {
