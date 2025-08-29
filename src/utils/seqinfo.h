@@ -33,7 +33,7 @@ struct seqinfo_s
   uint64_t abundance;
   uint64_t hdrhash;
   uint64_t seqhash;
-  int headerlen;
+  int headerlen;  // refactoring: should be unsigned int or size_t
   unsigned int seqlen;
   unsigned int clusterid;
   int abundance_start;
