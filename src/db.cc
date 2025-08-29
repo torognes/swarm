@@ -58,6 +58,7 @@ constexpr char PRIu64[] = "lu";
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 
@@ -106,10 +107,21 @@ namespace {
     return file_info;
   }
 
+
+  auto linear_resize_if_need_be(std::vector<char> & data_v, uint64_t const minimal_size) -> void {
+    auto const current_size = data_v.size();
+    if (current_size > minimal_size) { return; }
+    auto new_size = current_size;
+    while (minimal_size > new_size) {
+      assert(new_size <= std::numeric_limits<uint64_t>::max() - memchunk);
+      new_size += memchunk;
+    }
+    data_v.resize(new_size);
+  }
+
 }  // end of anonymous namespace
 
 
-constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
 constexpr unsigned int linealloc {2048};
 constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
 // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
