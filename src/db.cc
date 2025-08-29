@@ -499,10 +499,20 @@ auto db_read(struct Parameters const & parameters,
 
   auto const file_info = get_file_info(input_fp, parameters);
   warn_if_file_is_not_regular(parameters, file_info.is_regular);
+
+  /* allocate space */
+  initial_allocation(data_v, file_info.filesize);
+
   uint64_t filepos = 0;
 
   std::size_t linecap = linealloc;
   auto * line = static_cast<char *>(xmalloc(linecap)); // char * line {new char[linecap]};  // refactoring: replacing with a std::vector fails, as getline might need to reallocate and will free() 'line', creating a double-free attempt at the end of the scope
+
+  auto lineno = 1U;
+
+
+  progress_init("Reading sequences:", file_info.filesize);
+
   ssize_t linelen = xgetline(& line, & linecap, input_fp);
   if (linelen < 0)
     {
@@ -510,13 +520,6 @@ auto db_read(struct Parameters const & parameters,
       linelen = 0;
     }
   filepos += static_cast<unsigned long int>(linelen);
-
-  auto lineno = 1U;
-
-  progress_init("Reading sequences:", file_info.filesize);
-
-  /* allocate space */
-  initial_allocation(data_v, file_info.filesize);
 
   while(*line != 0)
     {
