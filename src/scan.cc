@@ -45,6 +45,7 @@ constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 #endif
 
 
+// refactoring: add anonymous namespace, create a struct Master, replace all master_* calls
 static pthread_mutex_t scan_mutex;
 
 static struct Search_data * search_data;
