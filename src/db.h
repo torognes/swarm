@@ -36,8 +36,6 @@ auto db_getsequencecount() -> unsigned int;
 
 auto db_getlongestsequence() -> unsigned int;
 
-auto db_getseqinfo(uint64_t seqno) -> struct seqinfo_s *;
-
 auto db_getsequence(uint64_t seqno) -> char *;
 
 auto db_getsequencelen(uint64_t seqno) -> unsigned int;
