@@ -213,34 +213,6 @@ auto zobrist_hash_delete_first(char const * seq, unsigned int const len) -> uint
 }
 
 
-// refactoring: factorize zobrist_hash_delete_first() and zobrist_hash_insert_first()?
-auto zobrist_hash_delete_first(unsigned char * seq, const unsigned int len) -> uint64_t
-{
-  /* compute the Zobrist hash function of sequence seq,
-     but delete the first base */
-
-  static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
-  static constexpr auto divider = 5U;  // 32 nucleotides can fit in a uint64
-  auto * query = reinterpret_cast<uint64_t *>(seq);
-  uint64_t offset = *query;
-  uint64_t zobrist_hash = 0;
-  for(auto pos = 1U; pos < len; ++pos)
-    {
-      if ((pos & (nt_per_uint64 - 1)) == 0) {
-        auto const target_chunk = (pos >> divider);
-        assert(target_chunk <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const target_chunk_signed = static_cast<std::ptrdiff_t>(target_chunk);
-        offset = *std::next(query, target_chunk_signed);  // UBSAN: misaligned address for type 'long unsigned int', which requires 8 byte alignment
-      }
-      else {
-        offset >>= 2U;
-      }
-      zobrist_hash ^= zobrist_value(pos - 1, offset & 3U);
-    }
-  return zobrist_hash;
-}
-
-
 auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> uint64_t
 {
   /* compute the Zobrist hash function of sequence seq,
