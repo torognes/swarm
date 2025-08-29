@@ -357,7 +357,7 @@ namespace {
             const auto amp = hash_get_data(index);
 
             /* make absolutely sure sequences are identical */
-            auto *amp_sequence = db_getsequence(amp);
+            auto const * amp_sequence = db_getsequence(amp);
             const auto amp_seqlen = db_getsequencelen(amp);
             if (check_variant(seed_sequence, seed_seqlen, var, amp_sequence, amp_seqlen))
               {
@@ -425,7 +425,7 @@ namespace {
 
     uint64_t matches = 0;
 
-    auto *sequence = db_getsequence(seed);
+    auto const * sequence = db_getsequence(seed);
     const auto seqlen = db_getsequencelen(seed);
     const auto hash = db_gethash(seed);
     const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
@@ -505,7 +505,7 @@ namespace {
 
     hash_insert(seed);
 
-    auto *sequence = db_getsequence(seed);
+    auto const * sequence = db_getsequence(seed);
     const auto seqlen = db_getsequencelen(seed);
     const auto hash = db_gethash(seed);
     const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
@@ -581,10 +581,10 @@ namespace {
               if ((opt_no_cluster_breaking) or
                   (db_getabundance(seed) >= db_getabundance(amp)))
                 {
-                  auto *seed_sequence = db_getsequence(seed);
+                  auto const * seed_sequence = db_getsequence(seed);
                   const auto seed_seqlen = db_getsequencelen(seed);
 
-                  auto *amp_sequence = db_getsequence(amp);
+                  auto const * amp_sequence = db_getsequence(amp);
                   const auto amp_seqlen = db_getsequencelen(amp);
 
                   if (check_variant(seed_sequence, seed_seqlen,
@@ -609,7 +609,7 @@ namespace {
   {
     auto hits_count = 0U;
 
-    auto * sequence = db_getsequence(seed);
+    auto const * sequence = db_getsequence(seed);
     const auto seqlen = db_getsequencelen(seed);
     const auto hash = db_gethash(seed);
     const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
@@ -888,9 +888,9 @@ namespace {
 
       for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
         {
-          auto * dseq = db_getsequence(amp_id);
+          auto const * dseq = db_getsequence(amp_id);
           const auto dlen = db_getsequencelen(amp_id);  // refactoring: as a struct Sequence{ptr, length}
-          auto * qseq = db_getsequence(seed);  // refactoring: can be moved outside of this loop!
+          auto const * qseq = db_getsequence(seed);  // refactoring: can be moved outside of this loop!
           const auto qlen = db_getsequencelen(seed);
 
           uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
