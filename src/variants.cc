@@ -207,7 +207,7 @@ auto generate_variants(char * sequence,
 
   /* deletions */
 
-  hash = zobrist_hash_delete_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
+  hash = zobrist_hash_delete_first(sequence, seqlen);
   add_variant(hash, Variant_type::deletion, 0, 0, variant_list, variant_count);
   auto previous_base = nt_extract(sequence, 0);
   for(auto offset = 1U; offset < seqlen; ++offset)
