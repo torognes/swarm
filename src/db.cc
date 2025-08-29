@@ -728,16 +728,16 @@ auto db_read(struct Parameters const & parameters,
   for(auto& a_sequence: seqindex_v) {
 
       /* get line number */
-      const auto line_number = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
+      const auto line_number = entries[counter].lineno;
       cursor = std::next(cursor, sizeof(unsigned int));
 
       /* get header */
-      a_sequence.header = cursor;
-      a_sequence.headerlen = static_cast<int>(std::strlen(a_sequence.header));
+      a_sequence.header = &data_v[entries[counter].header.offset];
+      a_sequence.headerlen = static_cast<int>(entries[counter].header.length);
       cursor = std::next(cursor, a_sequence.headerlen + 1);
 
       /* and sequence */
-      const auto seqlen = *(reinterpret_cast<unsigned int*>(cursor));  // UBSAN: misaligned address for type 'unsigned int', which requires 4 byte alignment
+      const auto seqlen = static_cast<unsigned int>(entries[counter].sequence.length);
       a_sequence.seqlen = seqlen;
       cursor = std::next(cursor, sizeof(unsigned int));
       a_sequence.seq = cursor;
