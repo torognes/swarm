@@ -694,6 +694,13 @@ auto db_read(struct Parameters const & parameters,
     }
   progress_done(parameters);
 
+  if (line != nullptr)
+    {
+      xfree(line);
+      line = nullptr;
+      linecap = 0;
+    }
+
   std::fclose(input_fp);
 
   /* init zobrist hashing */
@@ -862,13 +869,6 @@ auto db_read(struct Parameters const & parameters,
     }
 
   progress_done(parameters);
-
-  if (line != nullptr)
-    {
-      xfree(line);
-      line = nullptr;
-      linecap = 0;
-    }
 
   if (seq_stats.missingabundance != 0)
     {
