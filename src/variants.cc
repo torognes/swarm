@@ -223,7 +223,7 @@ auto generate_variants(char * sequence,
 
   /* insertions */
 
-  hash = zobrist_hash_insert_first(reinterpret_cast<unsigned char *>(sequence), seqlen);
+  hash = zobrist_hash_insert_first(sequence, seqlen);
   // insert before the first position in the sequence
   for(unsigned char base = 0; base < 4; ++base)
     {
