@@ -28,7 +28,7 @@
 
 struct seqinfo_s
 {
-  char * header;
+  char const * header;
   char const * seq;
   uint64_t abundance;
   uint64_t hdrhash;
