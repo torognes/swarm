@@ -916,7 +916,7 @@ auto db_gethash(const uint64_t seqno) -> uint64_t
 }
 
 
-auto db_getsequence(const uint64_t seqno) -> char *
+auto db_getsequence(const uint64_t seqno) -> char const *
 {
   assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const record_number = static_cast<std::ptrdiff_t>(seqno);
