@@ -173,8 +173,8 @@ namespace {
         return false;
       }
       // ...then ties are sorted by label (alphabetical order)
-      auto * const lhs_header = db_getheader(lhs.seed);
-      auto * const rhs_header = db_getheader(rhs.seed);
+      auto const * const lhs_header = db_getheader(lhs.seed);
+      auto const * const rhs_header = db_getheader(rhs.seed);
       auto const results = std::strcmp(lhs_header, rhs_header);
       return results == -1;
     };
