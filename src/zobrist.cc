@@ -213,6 +213,33 @@ auto zobrist_hash_delete_first(char const * seq, unsigned int const len) -> uint
 }
 
 
+auto zobrist_hash_insert_first(char const * seq, const unsigned int len) -> uint64_t
+{
+  /* compute the Zobrist hash function of sequence seq,
+     but insert a gap (no value) before the first base */
+
+  static constexpr auto nt_per_byte = 4U;  // 4 nucleotides per byte
+  static constexpr auto divider = 2U;
+  auto offset = to_uchar(*seq);
+  uint64_t zobrist_hash = 0;
+  for(auto pos = 0U; pos < len; ++pos)
+    {
+      auto const is_new_byte = (pos & (nt_per_byte - 1)) == 0;
+      if (is_new_byte) {  // every 4 positions, except the first one
+        auto const target_chunk = (pos >> divider);
+        assert(target_chunk <= std::numeric_limits<std::ptrdiff_t>::max());
+        auto const target_chunk_signed = static_cast<std::ptrdiff_t>(target_chunk);
+        offset = to_uchar(*std::next(seq, target_chunk_signed));  // load new data every 4 positions
+      }
+      else {
+        offset >>= 2U;
+      }
+      zobrist_hash ^= zobrist_value(pos + 1, offset & 3U);
+    }
+  return zobrist_hash;
+}
+
+
 auto zobrist_hash_insert_first(unsigned char * seq, const unsigned int len) -> uint64_t
 {
   /* compute the Zobrist hash function of sequence seq,
