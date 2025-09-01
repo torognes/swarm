@@ -682,7 +682,7 @@ auto db_read(struct Parameters const & parameters,
   /* init zobrist hashing */
 
   // add 2 for two insertions (refactoring: insertions in headers?)
-  const auto zobrist_len = std::max(4 * seq_stats.longestheader, longest + 2);
+  const auto zobrist_len = std::max(4 * seq_stats.longestheader, seq_stats.longest_sequence + 2);
   zobrist_init(zobrist_len, zobrist_tab_base_v, zobrist_tab_byte_base_v);
 
   /* set up hash to check for unique headers */
