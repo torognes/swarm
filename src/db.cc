@@ -846,6 +846,7 @@ auto db_read(struct Parameters const & parameters,
       ++counter;
     }
 
+  // refactoring: abort_if_duplicated_sequences()
   if (seq_stats.has_duplicates)
     {
       fatal(error_prefix,
