@@ -687,12 +687,12 @@ auto db_read(struct Parameters const & parameters,
 
   /* set up hash to check for unique headers */
 
-  const uint64_t hdrhashsize {2ULL * sequences};
+  const uint64_t hdrhashsize {2ULL * seq_stats.n_sequences};
   std::vector<struct seqinfo_s *> hdrhashtable(hdrhashsize);
 
   /* set up hash to check for unique sequences */
 
-  const uint64_t seqhashsize {2ULL * sequences};
+  const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
 
   std::vector<struct seqinfo_s *> seqhashtable;
 
@@ -702,10 +702,10 @@ auto db_read(struct Parameters const & parameters,
 
   /* create indices */
 
-  seqindex_v.resize(sequences);
+  seqindex_v.resize(seq_stats.n_sequences);
   seqindex = seqindex_v.data();
 
-  progress_init("Indexing database:", sequences);
+  progress_init("Indexing database:", seq_stats.n_sequences);
   auto counter = 0ULL;
   for (auto & a_sequence: seqindex_v) {
 
