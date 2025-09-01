@@ -347,6 +347,18 @@ namespace {
   }
 
 
+  auto abort_if_duplicated_identifier(struct seqinfo_s const * hdrfound,
+                                      struct seqinfo_s const & a_sequence,
+                                      int const id_start,
+                                      int const id_len) -> void {
+    if (hdrfound == nullptr) { return; }
+    std::string const full_header {std::next(a_sequence.header, id_start)};
+    fatal(error_prefix,
+          "Duplicated sequence identifier: ",
+          full_header.substr(0, static_cast<unsigned long int>(id_len)));
+  }
+
+
   auto abort_if_duplicated_sequences(struct Seq_stats const & seq_stats) -> void {
     if (not seq_stats.has_duplicates) { return; }
     fatal(error_prefix,
@@ -741,11 +753,7 @@ auto db_read(struct Parameters const & parameters,
           hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
         }
 
-      if (hdrfound != nullptr)
-        {
-          const std::string full_header {std::next(a_sequence.header, id_start)};
-          fatal(error_prefix, "Duplicated sequence identifier: ", full_header.substr(0, static_cast<unsigned long int>(id_len)));
-        }
+      abort_if_duplicated_identifier(hdrfound, a_sequence, id_start, id_len);
 
       hdrhashtable[hdrhashindex] = &a_sequence;
 
