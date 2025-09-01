@@ -347,6 +347,32 @@ namespace {
   }
 
 
+  auto abort_if_duplicated_sequences(struct Seq_stats const & seq_stats) -> void {
+    if (not seq_stats.has_duplicates) { return; }
+    fatal(error_prefix,
+          "some fasta entries have identical sequences.\n"
+          "Swarm expects dereplicated fasta files.\n"
+          "Such files can be produced with swarm or vsearch:\n"
+          " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
+          "or\n"
+          " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta");
+  }
+
+
+  auto abort_if_missing_abundance(struct Seq_stats const & seq_stats) -> void {
+    if (seq_stats.missingabundance == 0) { return; }
+    fatal(error_prefix, "Abundance annotations not found for ",
+          seq_stats.missingabundance, " sequences, starting on line ",
+          seq_stats.missingabundance_lineno, ".\n>",
+          seq_stats.missingabundance_header, "\n",
+          "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
+          "The -z option must be used if the abundance annotation is in the latter format.\n"
+          "Abundance annotations can be produced by dereplicating the sequences.\n"
+          "The header is defined as the string comprised between the \">\" symbol\n"
+          "and the first space or the end of the line, whichever comes first.");
+  }
+
+
   auto sort_index_if_need_be(struct Parameters const & parameters,
                              std::vector<struct seqinfo_s> & seqindex_v) -> void {
     progress_init("Abundance sorting:", 1);
@@ -372,6 +398,20 @@ namespace {
       std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
     }
     progress_done(parameters);
+  }
+
+
+  auto print_user_report(struct Parameters const & parameters,
+                         struct Seq_stats const & seq_stats) -> void {
+    static_cast<void>(std::fprintf(parameters.logfile,
+                                   "Database info:     %" PRIu64 " nt",
+                                   seq_stats.nucleotides));
+    static_cast<void>(std::fprintf(parameters.logfile,
+                                   " in %u sequences,",
+                                   seq_stats.n_sequences));
+    static_cast<void>(std::fprintf(parameters.logfile,
+                                   " longest %u nt\n",
+                                   seq_stats.longest_sequence));
   }
 
 } // end of anonymous namespace
@@ -745,39 +785,13 @@ auto db_read(struct Parameters const & parameters,
       ++counter;
     }
 
-  // refactoring: abort_if_duplicated_sequences()
-  if (seq_stats.has_duplicates)
-    {
-      fatal(error_prefix,
-            "some fasta entries have identical sequences.\n"
-            "Swarm expects dereplicated fasta files.\n"
-            "Such files can be produced with swarm or vsearch:\n"
-            " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
-            "or\n"
-            " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta");
-    }
+  abort_if_duplicated_sequences(seq_stats);
 
   progress_done(parameters);
 
-  if (seq_stats.missingabundance != 0)
-    {
-      fatal(error_prefix, "Abundance annotations not found for ",
-            seq_stats.missingabundance, " sequences, starting on line ",
-            seq_stats.missingabundance_lineno, ".\n>",
-            seq_stats.missingabundance_header, "\n",
-            "Fasta headers must end with abundance annotations (_INT or ;size=INT).\n"
-            "The -z option must be used if the abundance annotation is in the latter format.\n"
-            "Abundance annotations can be produced by dereplicating the sequences.\n"
-            "The header is defined as the string comprised between the \">\" symbol\n"
-            "and the first space or the end of the line, whichever comes first.");
-    }
-
+  abort_if_missing_abundance(seq_stats);
   sort_index_if_need_be(parameters, seqindex_v);
-
-  // user report
-  std::fprintf(parameters.logfile, "Database info:     %" PRIu64 " nt", seq_stats.nucleotides);
-  std::fprintf(parameters.logfile, " in %u sequences,", seq_stats.n_sequences);
-  std::fprintf(parameters.logfile, " longest %u nt\n", seq_stats.longest_sequence);
+  print_user_report(parameters, seq_stats);
 }
 
 
