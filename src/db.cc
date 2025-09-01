@@ -162,89 +162,6 @@ static unsigned int longest {0};
 struct seqinfo_s * seqindex {nullptr};
 
 
-auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance,
-               const int64_t opt_append_abundance) -> void
-{
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
-  auto const * hdrstr = seqinfo.header;
-  auto const hdrlen = seqinfo.headerlen;
-  auto const abundance = seqinfo.abundance;
-
-  // if abundance is missing and if user says that a missing abundance is ok, then...
-  if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
-    if (opt_usearch_abundance) {
-      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, abundance);
-    }
-    else {
-      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, abundance);
-    }
-  }
-  else {
-    std::fprintf(stream, "%.*s", hdrlen, hdrstr);
-  }
-}
-
-
-auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance) -> void
-{
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
-  auto const * hdrstr = seqinfo.header;
-  auto const hdrlen = seqinfo.headerlen;
-  auto const abundance_start = seqinfo.abundance_start;
-  auto const abundance_end = seqinfo.abundance_end;
-
-  if (abundance_start < abundance_end)
-    {
-      /* print start of header */
-      std::fprintf(stream, "%.*s", abundance_start, hdrstr);
-
-      if (opt_usearch_abundance)
-        {
-          /* print semicolon if the abundance is not at either end */
-          if ((abundance_start > 0) and (abundance_end < hdrlen)) {
-            std::fprintf(stream, ";");
-          }
-
-          /* print remaining part */
-          std::fprintf(stream, "%.*s", hdrlen - abundance_end, std::next(hdrstr, abundance_end));
-        }
-    }
-  else {
-    std::fprintf(stream, "%.*s", hdrlen, hdrstr);
-  }
-}
-
-
-auto fprint_id_with_new_abundance(std::FILE * stream,
-                                  const uint64_t seqno,
-                                  const uint64_t abundance,
-                                  const bool opt_usearch_abundance) -> void
-{
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
-
-  if (opt_usearch_abundance) {
-    std::fprintf(stream,
-                 "%.*s%ssize=%" PRIu64 ";%.*s",
-                 seqinfo.abundance_start,
-                 seqinfo.header,
-                 seqinfo.abundance_start > 0 ? ";" : "",
-                 abundance,
-                 seqinfo.headerlen - seqinfo.abundance_end,
-                 std::next(seqinfo.header, seqinfo.abundance_end));
-  }
-  else {
-    std::fprintf(stream,
-                 "%.*s_%" PRIu64,
-                 seqinfo.abundance_start,
-                 seqinfo.header,
-                 abundance);
-  }
-}
-
-
 auto find_swarm_abundance(const char * header,
                           int & start,
                           int & end,
@@ -1003,4 +920,87 @@ auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
   buffer[len] = '\0';
 
   std::fprintf(fastaout_fp, "%.*s\n", len, buffer.data());
+}
+
+
+auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance,
+               const int64_t opt_append_abundance) -> void
+{
+  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+  auto const * hdrstr = seqinfo.header;
+  auto const hdrlen = seqinfo.headerlen;
+  auto const abundance = seqinfo.abundance;
+
+  // if abundance is missing and if user says that a missing abundance is ok, then...
+  if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
+    if (opt_usearch_abundance) {
+      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, abundance);
+    }
+    else {
+      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, abundance);
+    }
+  }
+  else {
+    std::fprintf(stream, "%.*s", hdrlen, hdrstr);
+  }
+}
+
+
+auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance) -> void
+{
+  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+  auto const * hdrstr = seqinfo.header;
+  auto const hdrlen = seqinfo.headerlen;
+  auto const abundance_start = seqinfo.abundance_start;
+  auto const abundance_end = seqinfo.abundance_end;
+
+  if (abundance_start < abundance_end)
+    {
+      /* print start of header */
+      std::fprintf(stream, "%.*s", abundance_start, hdrstr);
+
+      if (opt_usearch_abundance)
+        {
+          /* print semicolon if the abundance is not at either end */
+          if ((abundance_start > 0) and (abundance_end < hdrlen)) {
+            std::fprintf(stream, ";");
+          }
+
+          /* print remaining part */
+          std::fprintf(stream, "%.*s", hdrlen - abundance_end, std::next(hdrstr, abundance_end));
+        }
+    }
+  else {
+    std::fprintf(stream, "%.*s", hdrlen, hdrstr);
+  }
+}
+
+
+auto fprint_id_with_new_abundance(std::FILE * stream,
+                                  const uint64_t seqno,
+                                  const uint64_t abundance,
+                                  const bool opt_usearch_abundance) -> void
+{
+  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+
+  if (opt_usearch_abundance) {
+    std::fprintf(stream,
+                 "%.*s%ssize=%" PRIu64 ";%.*s",
+                 seqinfo.abundance_start,
+                 seqinfo.header,
+                 seqinfo.abundance_start > 0 ? ";" : "",
+                 abundance,
+                 seqinfo.headerlen - seqinfo.abundance_end,
+                 std::next(seqinfo.header, seqinfo.abundance_end));
+  }
+  else {
+    std::fprintf(stream,
+                 "%.*s_%" PRIu64,
+                 seqinfo.abundance_start,
+                 seqinfo.header,
+                 abundance);
+  }
 }
