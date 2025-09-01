@@ -145,8 +145,6 @@ namespace {
 }  // end of anonymous namespace
 
 
-const auto map_nt = make_nt_map();
-
 struct Seq_stats {
   uint64_t nucleotides {0};
   unsigned int longestheader {0};
@@ -489,6 +487,7 @@ auto db_read(struct Parameters const & parameters,
   // uint32 pointers, which leads to a segmentation fault
   static constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
+  auto const map_nt = make_nt_map();
   struct Seq_stats seq_stats;
   uint64_t datalen {0};
 
