@@ -62,6 +62,9 @@ namespace {
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 
+  unsigned int sequences {0};
+  unsigned int longest {0};
+  struct seqinfo_s * seqindex {nullptr};
 
   struct File_info {
     uint64_t filesize {0};
@@ -155,11 +158,6 @@ struct Seq_stats {
   unsigned int longest_sequence {0};
   bool has_duplicates {false};
 };
-
-static unsigned int sequences {0};
-static unsigned int longest {0};
-
-struct seqinfo_s * seqindex {nullptr};
 
 
 auto find_swarm_abundance(const char * header,
