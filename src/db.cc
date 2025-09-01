@@ -162,18 +162,6 @@ static unsigned int longest {0};
 struct seqinfo_s * seqindex {nullptr};
 
 
-auto db_getsequencecount() -> unsigned int
-{
-  return sequences;
-}
-
-
-auto db_getlongestsequence() -> unsigned int
-{
-  return longest;
-}
-
-
 auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance,
                const int64_t opt_append_abundance) -> void
 {
@@ -875,6 +863,18 @@ auto db_read(struct Parameters const & parameters,
   std::fprintf(parameters.logfile, "Database info:     %" PRIu64 " nt", seq_stats.nucleotides);
   std::fprintf(parameters.logfile, " in %u sequences,", seq_stats.n_sequences);
   std::fprintf(parameters.logfile, " longest %u nt\n", seq_stats.longest_sequence);
+}
+
+
+auto db_getsequencecount() -> unsigned int
+{
+  return sequences;
+}
+
+
+auto db_getlongestsequence() -> unsigned int
+{
+  return longest;
 }
 
 
