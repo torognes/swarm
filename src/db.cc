@@ -472,7 +472,7 @@ auto db_read(struct Parameters const & parameters,
     }
   filepos += static_cast<unsigned long int>(linelen);
 
-  while (*line != 0)
+  while (*line != '\0')
     {
       /* read header */
       /* the header ends at a space, cr, lf or null character */
@@ -511,7 +511,7 @@ auto db_read(struct Parameters const & parameters,
       linelen = xgetline(& line, & linecap, input_fp);
       if (linelen < 0)
         {
-          *line = 0;
+          *line = '\0';
           linelen = 0;
         }
       filepos += static_cast<unsigned long int>(linelen);
