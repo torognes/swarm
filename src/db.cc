@@ -167,6 +167,8 @@ struct Seq_stats {
   int missingabundance {0};
   uint64_t missingabundance_lineno {0};
   char const * missingabundance_header {nullptr};
+  unsigned int n_sequences {0};
+  unsigned int longest_sequence {0};
   bool has_duplicates {false};
 };
 
@@ -662,6 +664,7 @@ auto db_read(struct Parameters const & parameters,
         }
 
       seq_stats.nucleotides += length;
+      seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
       longest = std::max(length, longest);
 
 
@@ -677,6 +680,7 @@ auto db_read(struct Parameters const & parameters,
           nt_bufferlen = 0;  // that value is never read again, all tests pass without it
         }
 
+      ++seq_stats.n_sequences;
       ++sequences;
       entries.push_back(entry);
 
@@ -877,8 +881,8 @@ auto db_read(struct Parameters const & parameters,
 
   // user report
   std::fprintf(parameters.logfile, "Database info:     %" PRIu64 " nt", seq_stats.nucleotides);
-  std::fprintf(parameters.logfile, " in %u sequences,", db_getsequencecount());
-  std::fprintf(parameters.logfile, " longest %u nt\n", db_getlongestsequence());
+  std::fprintf(parameters.logfile, " in %u sequences,", seq_stats.n_sequences);
+  std::fprintf(parameters.logfile, " longest %u nt\n", seq_stats.longest_sequence);
 }
 
 
