@@ -145,13 +145,6 @@ namespace {
 }  // end of anonymous namespace
 
 
-constexpr unsigned int linealloc {2048};
-constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
-// for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
-// 2^32 (512 x max_sequence_length) and cannot be addressed with
-// uint32 pointers, which leads to a segmentation fault
-constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
-
 const auto map_nt = make_nt_map();
 
 struct Seq_stats {
@@ -489,6 +482,13 @@ auto db_read(struct Parameters const & parameters,
              std::vector<uint64_t> & zobrist_tab_base_v,
              std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void
 {
+  static constexpr unsigned int linealloc {2048};
+  static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
+  // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
+  // 2^32 (512 x max_sequence_length) and cannot be addressed with
+  // uint32 pointers, which leads to a segmentation fault
+  static constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
+
   struct Seq_stats seq_stats;
   uint64_t datalen {0};
 
