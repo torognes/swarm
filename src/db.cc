@@ -157,8 +157,6 @@ namespace {
     data_v.resize(new_size);
   }
 
-}  // end of anonymous namespace
-
 
 auto find_swarm_abundance(const char * header,
                           int & start,
@@ -375,6 +373,8 @@ auto sort_index_if_need_be(struct Parameters const & parameters,
       }
       progress_done(parameters);
 }
+
+} // end of anonymous namespace
 
 
 auto db_read(struct Parameters const & parameters,
