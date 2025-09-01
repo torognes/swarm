@@ -978,6 +978,16 @@ auto db_free() -> void
 }
 
 
+// refactoring: decompress sequence (4 nt at a time)
+// - need a const vector<string> byte_decode = { "AAAA", "AAAC", "AAAG", ...
+// - need a std::string buffer of capacity = length + 3 + 1,
+// - for each compressed byte in the view of length (len + 3) % 4 bytes,
+//   for (auto const compressed_byte : compressed_bytes) {
+//       auto const s_compressed_byte = static_cast<unsigned char>(compressed_byte);
+//       buffer += byte_decode[s_compressed_byte];
+//   buffer[len] = '\0';  //
+//   std::fprintf(fastaout_fp, "%.*s\n", len, buffer.c_str());
+// benchmarck to check which way is faster
 auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
 {
   auto const len = db_getsequencelen(seqno);
