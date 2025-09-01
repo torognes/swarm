@@ -85,6 +85,18 @@ namespace {
   };
 
 
+  struct Seq_stats {
+    uint64_t nucleotides {0};
+    unsigned int longestheader {0};
+    int missingabundance {0};
+    uint64_t missingabundance_lineno {0};
+    char const * missingabundance_header {nullptr};
+    unsigned int n_sequences {0};
+    unsigned int longest_sequence {0};
+    bool has_duplicates {false};
+  };
+
+
   auto make_nt_map () -> std::array<uint64_t, n_chars> {
     // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
     std::array<uint64_t, n_chars> ascii_map {{0}};
@@ -146,18 +158,6 @@ namespace {
   }
 
 }  // end of anonymous namespace
-
-
-struct Seq_stats {
-  uint64_t nucleotides {0};
-  unsigned int longestheader {0};
-  int missingabundance {0};
-  uint64_t missingabundance_lineno {0};
-  char const * missingabundance_header {nullptr};
-  unsigned int n_sequences {0};
-  unsigned int longest_sequence {0};
-  bool has_duplicates {false};
-};
 
 
 auto find_swarm_abundance(const char * header,
