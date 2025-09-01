@@ -158,221 +158,221 @@ namespace {
   }
 
 
-auto find_swarm_abundance(const char * header,
-                          int & start,
-                          int & end,
-                          int64_t & number) -> bool
-{
-  /*
-    Identify the first occurence of the pattern (_)([0-9]+)$
-    in the header string.
-  */
-
-  start = 0;
-  end = 0;
-  number = 0;
-
-  static constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
-  static const std::string digit_chars = "0123456789";
-
-  assert(header != nullptr); // assert to prove impossible
-  if (header == nullptr) {
-    return false;  // refactoring: if header cannot be a nullptr, replace with assert
-  }
-
-  const char * abundance_string = std::strrchr(header, '_');
-
-  if (abundance_string == nullptr) {
-    return false;
-  }
-
-  const std::size_t n_digits = std::strspn(std::next(abundance_string), digit_chars.c_str());
-
-  if (n_digits > max_digits) {
-    return false;
-  }
-
-  assert((n_digits + 1) <= std::numeric_limits<std::ptrdiff_t>::max());
-  if (*std::next(abundance_string, static_cast<std::ptrdiff_t>(n_digits + 1)) != 0) {
-    return false;
-  }
-
-  const int64_t abundance_start = abundance_string - header;
-  assert(n_digits <= std::numeric_limits<int64_t>::max());
-  const int64_t abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
-
-  assert(abundance_start <= std::numeric_limits<int>::max());
-  assert(abundance_end <= std::numeric_limits<int>::max());
-  start = static_cast<int>(abundance_start);
-  end = static_cast<int>(abundance_end);
-  number = std::atol(std::next(abundance_string)); // refactoring: std::strtol(start, end, base)
-
-  return true;
-}
-
-
-auto find_usearch_abundance(const char * header,
+  auto find_swarm_abundance(const char * header,
                             int & start,
                             int & end,
                             int64_t & number) -> bool
-{
-  /*
-    Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
-    in the header string.
-  */
+  {
+    /*
+      Identify the first occurence of the pattern (_)([0-9]+)$
+      in the header string.
+    */
 
-  assert(header != nullptr); // header cannot be a nullptr at this stage
+    start = 0;
+    end = 0;
+    number = 0;
 
-  static const std::string attribute {"size="};
-  static const std::string digit_chars {"0123456789"};
-  auto const hlen = static_cast<int64_t>(std::strlen(header));
-  assert(attribute.length() <= std::numeric_limits<int64_t>::max());
-  auto const alen = static_cast<int64_t>(attribute.length());
-  int64_t position = 0;
+    static constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
+    static const std::string digit_chars = "0123456789";
 
-  while (position + alen < hlen)
-    {
-      auto const * result = std::strstr(std::next(header, position), attribute.c_str());
-
-      /* no match */
-      assert(result != nullptr); // assert to prove impossible
-      if (result == nullptr) {
-        break;
-      }
-
-      position = result - header;
-
-      /* check for ';' in front */
-      if ((position > 0) and (*std::next(header, position - 1) != ';'))
-        {
-          position += alen + 1;
-          continue;
-        }
-
-      auto const n_digits = static_cast<int64_t>(std::strspn(std::next(header, position + alen), digit_chars.c_str()));
-
-      /* check for at least one digit */
-      if (n_digits == 0)
-        {
-          position += alen + 1;
-          continue;
-        }
-
-      /* check for ';' after */
-      if ((position + alen + n_digits < hlen) and (*std::next(header, position + alen + n_digits) != ';'))
-        {
-          position += alen + n_digits + 2;
-          continue;
-        }
-
-      /* ok */
-      if (position > 0) {
-        assert((position - 1) <= std::numeric_limits<int>::max());
-        start = static_cast<int>(position - 1);
-      }
-      else {
-        start = 0;
-      }
-      end = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
-      number = std::atol(std::next(header, position + alen));
-
-      return true;
+    assert(header != nullptr); // assert to prove impossible
+    if (header == nullptr) {
+      return false;  // refactoring: if header cannot be a nullptr, replace with assert
     }
 
-  return false;
-}
+    const char * abundance_string = std::strrchr(header, '_');
 
-
-auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t lineno,
-                    bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
-{
-  char const * header = seqinfo.header;
-
-  /* read size/abundance annotation */
-  int64_t abundance = 0;
-  int start = 0;
-  int end = 0;
-  int64_t number = 0;
-
-  if (opt_usearch_abundance)
-    {
-      /* (^|;)size=([0-9]+)(;|$) */
-
-      if (find_usearch_abundance(header, start, end, number))
-        {
-          if (number <= 0) {
-            fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                  header, "\nAbundance values should be positive integers.");
-          }
-          abundance = number;
-        }
-    }
-  else
-    {
-      /* (_)([0-9]+)$ */
-
-      if (find_swarm_abundance(header, start, end, number))
-        {
-          if (number <= 0) {
-            fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                  header, "\nAbundance values should be positive integers.");
-          }
-          abundance = number;
-        }
+    if (abundance_string == nullptr) {
+      return false;
     }
 
-  if (abundance == 0)
-    {
-      start = seqinfo.headerlen;
-      end = start;
+    const std::size_t n_digits = std::strspn(std::next(abundance_string), digit_chars.c_str());
 
-      if (opt_append_abundance != 0) {
-        abundance = opt_append_abundance;
-      }
-      else
-        {
-          ++seq_stats.missingabundance;
-          // record the position of the first missing abundance entry
-          if (seq_stats.missingabundance == 1)
-            {
-              seq_stats.missingabundance_lineno = lineno;
-              seq_stats.missingabundance_header = header;
-            }
-        }
+    if (n_digits > max_digits) {
+      return false;
     }
 
-  seqinfo.abundance = static_cast<uint64_t>(abundance);
-  seqinfo.abundance_start = start;
-  seqinfo.abundance_end = end;
-}
+    assert((n_digits + 1) <= std::numeric_limits<std::ptrdiff_t>::max());
+    if (*std::next(abundance_string, static_cast<std::ptrdiff_t>(n_digits + 1)) != 0) {
+      return false;
+    }
+
+    const int64_t abundance_start = abundance_string - header;
+    assert(n_digits <= std::numeric_limits<int64_t>::max());
+    const int64_t abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
+
+    assert(abundance_start <= std::numeric_limits<int>::max());
+    assert(abundance_end <= std::numeric_limits<int>::max());
+    start = static_cast<int>(abundance_start);
+    end = static_cast<int>(abundance_end);
+    number = std::atol(std::next(abundance_string)); // refactoring: std::strtol(start, end, base)
+
+    return true;
+  }
 
 
-auto sort_index_if_need_be(struct Parameters const & parameters,
-                           std::vector<struct seqinfo_s> & seqindex_v) -> void {
-      progress_init("Abundance sorting:", 1);
+  auto find_usearch_abundance(const char * header,
+                              int & start,
+                              int & end,
+                              int64_t & number) -> bool
+  {
+    /*
+      Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
+      in the header string.
+    */
 
-      auto compare_entries = [](struct seqinfo_s const& lhs,
-                                struct seqinfo_s const& rhs) -> bool
+    assert(header != nullptr); // header cannot be a nullptr at this stage
+
+    static const std::string attribute {"size="};
+    static const std::string digit_chars {"0123456789"};
+    auto const hlen = static_cast<int64_t>(std::strlen(header));
+    assert(attribute.length() <= std::numeric_limits<int64_t>::max());
+    auto const alen = static_cast<int64_t>(attribute.length());
+    int64_t position = 0;
+
+    while (position + alen < hlen)
       {
-        // sort by decreasing abundance
-        if (lhs.abundance > rhs.abundance) {
-          return true;
+        auto const * result = std::strstr(std::next(header, position), attribute.c_str());
+
+        /* no match */
+        assert(result != nullptr); // assert to prove impossible
+        if (result == nullptr) {
+          break;
         }
 
-        if (lhs.abundance < rhs.abundance) {
-          return false;
+        position = result - header;
+
+        /* check for ';' in front */
+        if ((position > 0) and (*std::next(header, position - 1) != ';'))
+          {
+            position += alen + 1;
+            continue;
+          }
+
+        auto const n_digits = static_cast<int64_t>(std::strspn(std::next(header, position + alen), digit_chars.c_str()));
+
+        /* check for at least one digit */
+        if (n_digits == 0)
+          {
+            position += alen + 1;
+            continue;
+          }
+
+        /* check for ';' after */
+        if ((position + alen + n_digits < hlen) and (*std::next(header, position + alen + n_digits) != ';'))
+          {
+            position += alen + n_digits + 2;
+            continue;
+          }
+
+        /* ok */
+        if (position > 0) {
+          assert((position - 1) <= std::numeric_limits<int>::max());
+          start = static_cast<int>(position - 1);
         }
+        else {
+          start = 0;
+        }
+        end = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
+        number = std::atol(std::next(header, position + alen));
 
-        // ...then ties are sorted by header (lexicographical order)
-        return std::strcmp(lhs.header, rhs.header) < 0;
-      };
-
-      if (not std::is_sorted(seqindex_v.begin(), seqindex_v.end(),
-                             compare_entries)) {
-        std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
+        return true;
       }
-      progress_done(parameters);
-}
+
+    return false;
+  }
+
+
+  auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t lineno,
+                      bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
+  {
+    char const * header = seqinfo.header;
+
+    /* read size/abundance annotation */
+    int64_t abundance = 0;
+    int start = 0;
+    int end = 0;
+    int64_t number = 0;
+
+    if (opt_usearch_abundance)
+      {
+        /* (^|;)size=([0-9]+)(;|$) */
+
+        if (find_usearch_abundance(header, start, end, number))
+          {
+            if (number <= 0) {
+              fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
+                    header, "\nAbundance values should be positive integers.");
+            }
+            abundance = number;
+          }
+      }
+    else
+      {
+        /* (_)([0-9]+)$ */
+
+        if (find_swarm_abundance(header, start, end, number))
+          {
+            if (number <= 0) {
+              fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
+                    header, "\nAbundance values should be positive integers.");
+            }
+            abundance = number;
+          }
+      }
+
+    if (abundance == 0)
+      {
+        start = seqinfo.headerlen;
+        end = start;
+
+        if (opt_append_abundance != 0) {
+          abundance = opt_append_abundance;
+        }
+        else
+          {
+            ++seq_stats.missingabundance;
+            // record the position of the first missing abundance entry
+            if (seq_stats.missingabundance == 1)
+              {
+                seq_stats.missingabundance_lineno = lineno;
+                seq_stats.missingabundance_header = header;
+              }
+          }
+      }
+
+    seqinfo.abundance = static_cast<uint64_t>(abundance);
+    seqinfo.abundance_start = start;
+    seqinfo.abundance_end = end;
+  }
+
+
+  auto sort_index_if_need_be(struct Parameters const & parameters,
+                             std::vector<struct seqinfo_s> & seqindex_v) -> void {
+    progress_init("Abundance sorting:", 1);
+
+    auto compare_entries = [](struct seqinfo_s const& lhs,
+                              struct seqinfo_s const& rhs) -> bool
+    {
+      // sort by decreasing abundance
+      if (lhs.abundance > rhs.abundance) {
+        return true;
+      }
+
+      if (lhs.abundance < rhs.abundance) {
+        return false;
+      }
+
+      // ...then ties are sorted by header (lexicographical order)
+      return std::strcmp(lhs.header, rhs.header) < 0;
+    };
+
+    if (not std::is_sorted(seqindex_v.begin(), seqindex_v.end(),
+                           compare_entries)) {
+      std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
+    }
+    progress_done(parameters);
+  }
 
 } // end of anonymous namespace
 
