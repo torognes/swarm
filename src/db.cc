@@ -154,7 +154,7 @@ constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
 const auto map_nt = make_nt_map();
 
-const std::array<char, 32> sym_nt =
+constexpr std::array<char, 32> sym_nt =
   {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
    ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
