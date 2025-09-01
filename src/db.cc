@@ -154,13 +154,6 @@ constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
 const auto map_nt = make_nt_map();
 
-constexpr std::array<char, 32> sym_nt =
-  {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-   ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
-
-
 struct Seq_stats {
   uint64_t nucleotides {0};
   unsigned int longestheader {0};
@@ -995,6 +988,11 @@ auto db_free() -> void
 // benchmarck to check which way is faster
 auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
 {
+  static constexpr std::array<char, 32> sym_nt =
+    {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
+     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
   auto const len = db_getsequencelen(seqno);
   auto const * const seqptr = db_getsequence(seqno);
   static std::vector<char> buffer(db_getlongestsequence() + 1, '\0');
