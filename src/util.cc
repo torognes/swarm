@@ -108,7 +108,7 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
   std::size_t len = 0;
   *p = 0;
 
-  while (1)
+  while (true)
     {
       while (p < e)
         {
