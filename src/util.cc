@@ -27,11 +27,9 @@
 #include <cstring>  // strcmp
 
 
-constexpr std::size_t memalignment = 16;
-
-
 auto xmalloc(std::size_t size) -> void *
 {
+  static constexpr std::size_t memalignment = 16;
   if (size == 0) {
     size = 1;
   }
