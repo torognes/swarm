@@ -84,8 +84,8 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
      which is important for correct counting of characters and file size.
   */
 
-  const std::size_t minsize = 2;
-  const std::size_t maxsize = SIZE_MAX / 2;
+  static constexpr std::size_t minsize = 2;
+  static constexpr std::size_t maxsize = SIZE_MAX / 2;
 
   /* Error if linep or linecapp pointers are null */
   if ((linep == nullptr) or (linecapp == nullptr))
