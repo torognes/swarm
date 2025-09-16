@@ -113,7 +113,7 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
       while (p < e)
         {
           int c = getc(stream);
-          switch(c)
+          switch (c)
             {
             case -1:
               if (feof(stream))

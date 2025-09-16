@@ -316,7 +316,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
         used_options[optindex] = true;
       }
 
-    switch(option_character)
+    switch (option_character)
       {
       case 'a':  // refactoring: replace with enum class? static_cast<Short_option>(option_character), but what about unexpected characters such as 'k' or 'q'?
         /* append-abundance */
