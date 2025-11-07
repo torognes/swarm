@@ -32,12 +32,11 @@
 #include "utils/search_data.h"
 #include "utils/seqinfo.h"
 #include "utils/score_matrix.h"
-#include <algorithm>  // std::min(), std::reverse(), std::for_each, std::rotate
+#include <algorithm>  // std::min(), std::reverse(), std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), fflush
-#include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // qsort()
 #include <cstring>  // strcmp
 #include <iterator> // std::next
@@ -234,18 +233,15 @@ namespace {
     // A    B    C    D  (initial situation)
     //                   (rotate to the right)
     // D    A    B    C  (final situation)
+    // refactoring: replace with std::rotate (rorate rigth by one unit)
     if (target <= position) { return; }
-    assert(amplicons.size() <= std::numeric_limits<ptrdiff_t>::max());
-    assert(target < amplicons.size());
-    assert(position < target);
-    // compute reverse iterators starting from the vector's end
-    auto const ssize = static_cast<ptrdiff_t>(amplicons.size());
-    auto const sposition = static_cast<ptrdiff_t>(position);
-    auto const starget = static_cast<ptrdiff_t>(target);
-    auto const first = std::next(amplicons.rbegin(), ssize - starget - 1);  // - 1 to include target
-    auto const middle = std::next(first);
-    auto const last = std::next(amplicons.rbegin(), ssize - sposition);
-    std::rotate(first, middle, last);
+    // target > position
+    // assert(target < amplicons.size());
+    auto const temp = amplicons[target];  // refactoring: static?
+    for (auto i = target; i > position; --i) {
+      amplicons[i] = amplicons[i - 1];
+    }
+    amplicons[position] = temp;
   }
 
 
