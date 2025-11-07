@@ -1,5 +1,5 @@
 .\" ============================================================================
-.TH swarm 1 "March 31, 2024" "version 3.1.5" "USER COMMANDS"
+.TH swarm 1 "November 7, 2025" "version 3.1.6" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 swarm \(em find clusters of nearly-identical nucleotide amplicons
@@ -547,6 +547,13 @@ Torbjørn Rognes and documented by Frédéric Mahé, and is available at
 New features and important modifications of \fBswarm\fR (short lived
 or minor bug releases are not mentioned):
 .RS
+.TP
+.BR v3.1.6\~ "released November 7, 2025"
+Version 3.1.6 is a maintenance release. It fixes some compilation
+warnings (memory alignment) and static analysis warnings, and adds
+more compile-time checks. It brings more general performance, notably
+when using d = 0. However, a 15% slowdown was observed with vertain
+datasets when using d >= 2 (18SV9 dataset, x86-64 CPU, GCC 11.5).
 .TP
 .BR v3.1.5\~ "released March 31, 2024"
 Version 3.1.5 changes the minimal value for the ceiling option from 8
