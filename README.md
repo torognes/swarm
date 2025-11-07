@@ -433,6 +433,28 @@ swarm 4.0.0:
 
 ## Version history ##
 
+### version 3.1.6 ###
+
+**swarm** 3.1.6 is a maintenance release (204 commits). It improves
+code quality and documentation, and eliminates compilation warnings
+and static analysis warnings.
+
+changes:
+- add: official support for GCC 14,
+- add: experimental support for GCC 15,
+- add: official support for clang 20 and clang 21,
+- add: experimental support for clang 22,
+- add: more checks for debug builds (memory alignment sanitizer, see commit f26cb2d),
+- fix: memory alignment issues (final commit: a88adec),
+- fix: 1,677 clang-tidy warnings (from 2,629 warnings, down to 952),
+- performance: speedup when using d = 0. A 15% slowdown was observed
+  when using d >= 2 in certain conditions (18SV9 dataset, x86-64 CPU,
+  GCC 11.5),
+- improve: users can now change the target directory when installing
+  swarm with the `make install` command (39b961c),
+- improve: document swarm's dependencies (34e981c),
+- improve: code modernization (C++11) for long-term maintenance
+
 ### version 3.1.5 ###
 
 **swarm** 3.1.5 fixes four minor bugs, improves code and
