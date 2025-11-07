@@ -233,7 +233,7 @@ namespace {
     // A    B    C    D  (initial situation)
     //                   (rotate to the right)
     // D    A    B    C  (final situation)
-    // refactoring: replace with std::rotate (rorate rigth by one unit)
+
     if (target <= position) { return; }
     // target > position
     // assert(target < amplicons.size());
@@ -242,6 +242,17 @@ namespace {
       amplicons[i] = amplicons[i - 1];
     }
     amplicons[position] = temp;
+
+    // refactoring: replace with std::rotate (rorate rigth by one unit) (reverted: 2x slower)
+    // compute reverse iterators starting from the vector's end
+    // auto const ssize = static_cast<ptrdiff_t>(amplicons.size());
+    // auto const sposition = static_cast<ptrdiff_t>(position);
+    // auto const starget = static_cast<ptrdiff_t>(target);
+    // auto const first = std::next(amplicons.rbegin(),
+    //                              ssize - starget - 1);  // - 1 to include target
+    // auto const middle = std::next(first);
+    // auto const last = std::next(amplicons.rbegin(), ssize - sposition);
+    // std::rotate(first, middle, last);
   }
 
 
