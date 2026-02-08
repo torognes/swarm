@@ -190,3 +190,7 @@ auto v_mask_eq8(__m128i lhs, __m128i rhs) -> uint16_t {
 
 #endif
 #endif
+
+
+// refactoring C++26: std::simd
+//  - Code Rejuvenation: From Vector Compiler Intrinsics to Portable Standardized SIMD (https://link.springer.com/article/10.1007/s10766-025-00797-0)
