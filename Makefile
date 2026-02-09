@@ -31,7 +31,7 @@ endif
 swarm : $(PROG)
 
 $(PROG) :
-	$(MAKE) -C src swarm
+	$(MAKE) --directory=src swarm
 
 install : $(PROG) $(MAN)
 	/usr/bin/install -c $(PROG) $(PREFIX)/bin
@@ -39,4 +39,4 @@ install : $(PROG) $(MAN)
 	/usr/bin/install -c $(MAN) $(PREFIX)/share/man/man1
 
 clean :
-	$(MAKE) -C src clean
+	$(MAKE) --directory=src clean
