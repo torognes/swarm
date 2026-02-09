@@ -140,7 +140,7 @@ swarm : $(OBJS) $(DEPS)
 	cp -a $(BIN) ../bin
 
 clean :
-	rm -r -f swarm *.o ./utils/*.o *~ gmon.out *.gcno *.gcda *.gcov \
+	rm -r -f $(BIN) *.o ./utils/*.o *~ gmon.out *.gcno *.gcda *.gcov \
 	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov ../bin/
 
 .o : .cc $(DEPS)
