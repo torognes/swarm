@@ -7,7 +7,7 @@ on:
     branches: [ "master", "dev" ]
 
 jobs:
-  ubuntu:
+  linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,11 +19,10 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install make mingw-w64 g++-x86-64-linux-gnu g++-aarch64-linux-gnu g++-powerpc64le-linux-gnu
 
-    - name: Build for Linux x86_64
+    - name: Build for Windows x86_64
       run: |
         make clean
-        make CXX="x86_64-linux-gnu-g++" RELEASE=1
-        bin/swarm -v
+        make CXX="x86_64-w64-mingw32-g++" RELEASE=1
 
     - name: Build for Linux aarch64
       run: |
@@ -35,13 +34,23 @@ jobs:
         make clean
         make CXX="powerpc64le-linux-gnu-g++" RELEASE=1
 
-    - name: Build for Windows x86_64
+    - name: Build for Linux x86_64
       run: |
         make clean
-        make CXX="x86_64-w64-mingw32-g++" RELEASE=1
+        make CXX="x86_64-linux-gnu-g++" RELEASE=1
+        bin/swarm -v
+
+    - name: Install and run tests, for Linux x86_64 only
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install valgrind
+        export PATH=$PWD/bin:$PATH
+        git clone https://github.com/frederic-mahe/swarm-tests
+        cd swarm-tests
+        bash ./run_all_tests.sh
 
 
-  macos-aarch64:
+  macos-arm64:
     runs-on: macos-latest
 
     steps:
@@ -53,6 +62,13 @@ jobs:
         make clean
         make RELEASE=1
         bin/swarm -v
+
+    - name: Install and run tests
+      run: |
+        export PATH=$PWD/bin:$PATH
+        git clone https://github.com/frederic-mahe/swarm-tests
+        cd swarm-tests
+        bash ./run_all_tests.sh
 
 
   macos-x86_64:
@@ -67,3 +83,10 @@ jobs:
         make clean
         make RELEASE=1
         bin/swarm -v
+
+    - name: Install and run tests
+      run: |
+        export PATH=$PWD/bin:$PATH
+        git clone https://github.com/frederic-mahe/swarm-tests
+        cd swarm-tests
+        bash ./run_all_tests.sh
