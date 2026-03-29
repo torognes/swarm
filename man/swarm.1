@@ -125,7 +125,7 @@ annotation\fR representing the amplicon copy number and defined as '_'
 followed by a positive integer. See option \-z for input data using
 usearch/vsearch's abundance annotation format
 (';size=\fIinteger\fR[;]'). Once stripped from the abundance
-annotation, the remaining part of the header is call the
+annotation, the remaining part of the header is called the
 \fIlabel\fR. In summary, using regular expression patterns:
 .PP
 .ce 1
@@ -295,12 +295,12 @@ cluster number (\fIpositive integer\fR). Clusters are numbered in
 their order of delineation, starting from 1. All pairs of amplicons
 belonging to the same cluster will receive the same number.
 .IP \n+[step].
-cummulated number of steps from the cluster seed to amplicon B
+cumulated number of steps from the cluster seed to amplicon B
 (\fIpositive integer\fR). When using the option \-\-fastidious (\-f),
 the actual number of steps between grafted amplicons and the cluster
 seed cannot be re-computed efficiently and is always set to 2 for the
 amplicon pair linking the small cluster to the large
-cluster. Cummulated number of steps in the small cluster (if any) are
+cluster. Cumulated number of steps in the small cluster (if any) are
 left unchanged.
 .RE
 .RE
@@ -355,7 +355,7 @@ number of amplicons with an abundance of 1 in the cluster,
 .IP \n+[step].
 maximum number of iterations before the cluster reached its natural limit,
 .IP \n+[step].
-cummulated number of steps along the path joining the seed and the
+cumulated number of steps along the path joining the seed and the
 furthermost amplicon in the cluster. Please note that the actual
 number of differences between the seed and the furthermost amplicon is
 usually much smaller. When using the option \-\-fastidious (\-f),
@@ -406,7 +406,7 @@ Header of the centroid sequence (H), or set to '*' (S, C).
 output cluster representative sequences to \fIfilename\fR in fasta
 format. The abundance value of each cluster representative is the sum
 of the abundances of all the amplicons in the cluster. Fasta headers
-are formated as follows: '>label_\fIinteger\fR',
+are formatted as follows: '>label_\fIinteger\fR',
 or '>label;size=\fIinteger\fR;' if the \-z option is used, and
 sequences are uppercased. Sequences are sorted by decreasing
 abundance, and then by alphabetical order of sequence labels.
@@ -552,7 +552,7 @@ or minor bug releases are not mentioned):
 Version 3.1.6 is a maintenance release. It fixes some compilation
 warnings (memory alignment) and static analysis warnings, and adds
 more compile-time checks. It brings more general performance, notably
-when using d = 0. However, a 15% slowdown was observed with vertain
+when using d = 0. However, a 15% slowdown was observed with certain
 datasets when using d >= 2 (18SV9 dataset, x86-64 CPU, GCC 11.5).
 .TP
 .BR v3.1.5\~ "released March 31, 2024"
@@ -641,7 +641,7 @@ bug only applies when \fId\fR > 1.
 .TP
 .BR v2.1.10\~ "released December 22, 2016"
 Version 2.1.10 fixes two bugs related to gap penalties of alignments.
-The first bug may lead to wrong aligments and similarity percentages
+The first bug may lead to wrong alignments and similarity percentages
 reported in UCLUST (.uc) files. The second bug makes swarm use a
 slightly higher gap extension penalty than specified. The default gap
 extension penalty used have actually been 4.5 instead of 4.
@@ -732,7 +732,7 @@ algorithm (option \-a), with optional built-in cluster breaking
 (option \-n). That alternative algorithmic approach (usable only with
 \fId\fR = 1) is considerably faster than currently used clustering
 algorithms, and can deal with datasets of 100 million unique amplicons
-or more in a few hours. Of course, results are rigourously identical
+or more in a few hours. Of course, results are strictly identical
 to the results previously produced with swarm. That release also
 introduces new options to control swarm output (options \-i and \-l).
 .TP
