@@ -153,11 +153,14 @@ static uint64_t heavy_progress {0};
 static uint64_t heavy_amplicon_count {0};
 static unsigned int heavy_amplicon {0};
 
-static pthread_mutex_t light_mutex;
-static uint64_t light_variants {0};
-static uint64_t light_progress {0};
-static uint64_t light_amplicon_count {0};
-static unsigned int light_amplicon {0};
+struct Light_state
+{
+  pthread_mutex_t mutex;
+  uint64_t variants {0};
+  uint64_t progress {0};
+  uint64_t amplicon_count {0};
+  unsigned int amplicon {0};
+};
 
 struct Network_state
 {
@@ -521,7 +524,7 @@ namespace {
   }
 
 
-  auto mark_light_thread(int64_t nth_thread) -> void
+  auto mark_light_thread(int64_t nth_thread, struct Light_state & state) -> void
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
@@ -530,11 +533,11 @@ namespace {
 
     std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset);
 
-    pthread_mutex_lock(&light_mutex);
-    while (light_progress < light_amplicon_count)
+    pthread_mutex_lock(&state.mutex);
+    while (state.progress < state.amplicon_count)
       {
-        const auto light_amplicon_id = light_amplicon;
-        --light_amplicon;
+        const auto light_amplicon_id = state.amplicon;
+        --state.amplicon;
         assert(light_amplicon_id <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const signed_position = static_cast<std::ptrdiff_t>(light_amplicon_id);
         auto const & target_amplicon = *std::next(ampinfo, signed_position);
@@ -543,15 +546,15 @@ namespace {
         auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
         if (target_swarm.mass < static_cast<uint64_t>(opt_boundary))
           {
-            progress_update(++light_progress);  // refactoring: separate operations?
-            pthread_mutex_unlock(&light_mutex);
+            progress_update(++state.progress);  // refactoring: separate operations?
+            pthread_mutex_unlock(&state.mutex);
             const auto variant_count = mark_light_var(bloom_f, light_amplicon_id,
                                                       variant_list);
-            pthread_mutex_lock(&light_mutex);
-            light_variants += variant_count;
+            pthread_mutex_lock(&state.mutex);
+            state.variants += variant_count;
           }
       }
-    pthread_mutex_unlock(&light_mutex);
+    pthread_mutex_unlock(&state.mutex);
   }
 
 
@@ -1424,25 +1427,27 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           /* process amplicons in order from least to most abundant */
           /* but stop when all amplicons in small clusters are processed */
 
-          light_variants = 0;
-
-          pthread_mutex_init(&light_mutex, nullptr);
-          light_progress = 0;
-          light_amplicon_count = amplicons_in_small_clusters;
-          light_amplicon = amplicons - 1;
+          struct Light_state light_state {};
+          pthread_mutex_init(&light_state.mutex, nullptr);
+          light_state.amplicon_count = amplicons_in_small_clusters;
+          light_state.amplicon = amplicons - 1;
           {
             assert(parameters.opt_threads <= std::numeric_limits<int>::max());
             // refactoring C++14: use std::make_unique
-            std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), mark_light_thread));
+            std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
+                static_cast<int>(parameters.opt_threads),
+                [&light_state](int64_t nth_thread) {
+                  mark_light_thread(nth_thread, light_state);
+                }));
             light_tr->run();
           }
-          pthread_mutex_destroy(&light_mutex);
+          pthread_mutex_destroy(&light_state.mutex);
 
           progress_done(parameters);
 
           std::fprintf(parameters.logfile,
                        "Generated %" PRIu64 " variants from light swarms\n",
-                       light_variants);
+                       light_state.variants);
 
           progress_init("Checking heavy swarm amplicons against Bloom filter",
                         amplicons_in_large_clusters);
