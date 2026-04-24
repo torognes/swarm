@@ -159,10 +159,13 @@ static uint64_t light_progress {0};
 static uint64_t light_amplicon_count {0};
 static unsigned int light_amplicon {0};
 
-std::vector<unsigned int> network_v;
-static unsigned int network_count {0};
-static pthread_mutex_t network_mutex;
-static unsigned int network_amp {0};
+struct Network_state
+{
+  pthread_mutex_t mutex;
+  unsigned int amp {0};
+  unsigned int count {0};
+  std::vector<unsigned int> network_v;
+};
 
 static struct bloom_s * bloom_a {nullptr}; // Bloom filter for amplicons
 
@@ -627,7 +630,7 @@ namespace {
   }
 
 
-  auto network_thread(int64_t nth_thread) -> void
+  auto network_thread(int64_t nth_thread, struct Network_state & state) -> void
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
@@ -638,40 +641,41 @@ namespace {
     std::vector<unsigned int> hits_data(n_items);
     std::vector<struct var_s> variant_list(n_items);
 
-    pthread_mutex_lock(&network_mutex);
-    while (network_amp < amplicons)
+    pthread_mutex_lock(&state.mutex);
+    while (state.amp < amplicons)
       {
-        const auto amp = network_amp;
-        ++network_amp;
+        const auto amp = state.amp;
+        ++state.amp;
         progress_update(amp);
 
-        pthread_mutex_unlock(&network_mutex);
+        pthread_mutex_unlock(&state.mutex);
 
         const auto hits_count = check_variants(amp, variant_list, hits_data);
-        pthread_mutex_lock(&network_mutex);
+        pthread_mutex_lock(&state.mutex);
 
         assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const signed_position = static_cast<std::ptrdiff_t>(amp);
         auto & target_amplicon = *std::next(ampinfo, signed_position);
-        target_amplicon.link_start = network_count;
+        target_amplicon.link_start = state.count;
         target_amplicon.link_count = hits_count;
 
-        while (network_count + hits_count > network_v.size()) {
-          network_v.reserve(network_v.size() + one_megabyte);
-          network_v.resize(network_v.size() + one_megabyte);
+        while (state.count + hits_count > state.network_v.size()) {
+          state.network_v.reserve(state.network_v.size() + one_megabyte);
+          state.network_v.resize(state.network_v.size() + one_megabyte);
         }
 
         for (auto k = 0U; k < hits_count; ++k) {
-          network_v[network_count] = hits_data[k];
-          ++network_count;
+          state.network_v[state.count] = hits_data[k];
+          ++state.count;
         }
       }
-    pthread_mutex_unlock(&network_mutex);
+    pthread_mutex_unlock(&state.mutex);
   }
 
 
   auto process_seed(unsigned int const seed,
                     std::vector<struct ampinfo_s> & ampinfo_v,
+                    std::vector<unsigned int> const & network_v,
                     std::vector<unsigned int> & global_hits_v,
                     unsigned int & global_hits_count) -> void
   {
@@ -754,7 +758,8 @@ namespace {
 
   auto write_network_file(const unsigned int number_of_networks,
                           struct Parameters const & parameters,
-                          std::vector<struct ampinfo_s> & ampinfo_v) -> void {
+                          std::vector<struct ampinfo_s> & ampinfo_v,
+                          std::vector<unsigned int> & network_v) -> void {
     // a network is a cluster with at least two sequences (no singletons)
     progress_init("Dumping network:  ", number_of_networks);
 
@@ -1153,27 +1158,29 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
 
   /* for all amplicons, generate list of matching amplicons */
-  network_v.resize(one_megabyte);
+  struct Network_state network_state {};
+  network_state.network_v.resize(one_megabyte);
 
-  network_count = 0;
-
-  pthread_mutex_init(&network_mutex, nullptr);
-  network_amp = 0;
+  pthread_mutex_init(&network_state.mutex, nullptr);
   progress_init("Building network: ", amplicons);
   {
     assert(parameters.opt_threads <= std::numeric_limits<int>::max());
     // refactoring C++14: use std::make_unique
-    std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(static_cast<int>(parameters.opt_threads), network_thread));
+    std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
+        static_cast<int>(parameters.opt_threads),
+        [&network_state](int64_t nth_thread) {
+          network_thread(nth_thread, network_state);
+        }));
     network_tr->run();
   }
-  pthread_mutex_destroy(&network_mutex);
+  pthread_mutex_destroy(&network_state.mutex);
 
   progress_done(parameters);
 
 
   /* dump network to file */
   if (not parameters.opt_network_file.empty()) {
-    write_network_file(network_count, parameters, ampinfo_v);
+    write_network_file(network_state.count, parameters, ampinfo_v, network_state.network_v);
   }
 
 
@@ -1209,7 +1216,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           auto global_hits_count = 0U;
 
           /* find the first generation matches */
-          process_seed(seed, ampinfo_v, global_hits_v, global_hits_count);
+          process_seed(seed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
 
           /* sort hits */
           std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
@@ -1228,7 +1235,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
               while(subseed != no_swarm)
                 {
-                  process_seed(subseed, ampinfo_v, global_hits_v, global_hits_count);
+                  process_seed(subseed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
                   subseed = ampinfo_v[subseed].next;
                 }
 
@@ -1281,8 +1288,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   global_hits_data = nullptr;
 
-  network_v.clear();
-  network_v.shrink_to_fit();
+  network_state.network_v.clear();
+  network_state.network_v.shrink_to_fit();
 
   swarmcount_adjusted = swarmcount;
 
