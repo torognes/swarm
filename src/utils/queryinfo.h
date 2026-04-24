@@ -30,5 +30,3 @@ struct queryinfo
   int64_t len;
   char const * seq;
 };
-
-extern struct queryinfo query;

@@ -23,7 +23,6 @@
 
 #include "db.h"
 #include "utils/backtrack.h"
-#include "utils/queryinfo.h"
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
@@ -393,6 +392,7 @@ auto search16(std::vector<WORD *> & q_start,
               uint64_t * scores,
               uint64_t * diffs,
               uint64_t * alignmentlengths,
+              char const * qseq,
               uint64_t qlen,
               std::vector<uint64_t> & dirbuffer) -> void
 {
@@ -556,7 +556,7 @@ auto search16(std::vector<WORD *> & q_start,
                       if (score < uint16_max)
                         {
                           const uint64_t offset = d_offset[channel];
-                          diff = backtrack<n_bits>(query.seq, dbseq, qlen, dbseqlen,
+                          diff = backtrack<n_bits>(qseq, dbseq, qlen, dbseqlen,
                                                    dirbuffer,
                                                    offset,
                                                    channel,

@@ -28,7 +28,6 @@
 #include "utils/alignment_parameters.h"
 #include "utils/nt_codec.h"
 #include "utils/opt_threads.h"
-#include "utils/queryinfo.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include <cassert>  // assert()
@@ -43,10 +42,6 @@
 #include <limits>
 constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 #endif
-
-
-// refactoring: add anonymous namespace, create a struct Master, replace all master_* calls
-struct queryinfo query;
 
 
 auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v,
@@ -67,7 +62,8 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 }
 
 
-auto search_init(struct Search_data & thread_data) -> void
+auto search_init(struct Search_data & thread_data,
+                 struct queryinfo const & query) -> void
 {
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
@@ -113,7 +109,8 @@ auto search_chunk(struct Search_data & thread_data,
              std::next(state.master_scores, target_index),
              std::next(state.master_diffs, target_index),
              std::next(state.master_alignlengths, target_index),
-             static_cast<uint64_t>(query.len),
+             state.query.seq,
+             static_cast<uint64_t>(state.query.len),
              thread_data.dir_array_v);
   } else {
     assert(penalty_gapopen <= std::numeric_limits<BYTE>::max());
@@ -129,7 +126,8 @@ auto search_chunk(struct Search_data & thread_data,
             std::next(state.master_scores, target_index),
             std::next(state.master_diffs, target_index),
             std::next(state.master_alignlengths, target_index),
-            static_cast<uint64_t>(query.len),
+            state.query.seq,
+            static_cast<uint64_t>(state.query.len),
             thread_data.dir_array_v);
   }
 }
@@ -164,7 +162,7 @@ auto search_getwork(struct Search_state & state,
 
 auto search_worker_core(const int64_t thread_id, struct Search_state & state) -> void {
   auto & thread_data = *std::next(state.search_data, thread_id);
-  search_init(thread_data);
+  search_init(thread_data, state.query);
   while(search_getwork(state, thread_data.target_count, thread_data.target_index)) {
     search_chunk(thread_data, state, state.master_bits);
   }
@@ -218,9 +216,9 @@ auto search_do(struct Search_state & state,
                ThreadRunner * search_threads) -> void
 {
   auto query_len = 0U;
-  query.qno = query_no;
-  db_getsequenceandlength(query_no, query.seq, query_len);
-  query.len = query_len;
+  state.query.qno = query_no;
+  db_getsequenceandlength(query_no, state.query.seq, query_len);
+  state.query.len = query_len;
 
   state.master_next = 0;
   state.master_length = listlength;

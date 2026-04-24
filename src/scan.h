@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "utils/queryinfo.h"
 #include "utils/threads.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <mutex>
@@ -33,6 +34,7 @@ struct Search_state
 {
   std::mutex scan_mutex;
   struct Search_data * search_data;
+  struct queryinfo query;
   uint64_t master_next;
   uint64_t master_length;
   uint64_t remainingchunks;

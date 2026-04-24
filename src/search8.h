@@ -38,5 +38,6 @@ auto search8(std::vector<BYTE *> & q_start,
              uint64_t * scores,
              uint64_t * diffs,
              uint64_t * alignmentlengths,
+             char const * qseq,
              uint64_t qlen,
              std::vector<uint64_t> & dirbuffer) -> void;
