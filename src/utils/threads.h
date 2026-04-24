@@ -22,6 +22,7 @@
 */
 
 #include <cstdint>
+#include <functional>
 #include <vector>
 #include <pthread.h>  // refactoring: C++11 replace with std::thread
 #include "fatal.h"
@@ -36,7 +37,7 @@ private:
   struct thread_s
   {
     int64_t thread_id;
-    void (*fun)(int64_t thread_id);
+    std::function<void(int64_t)> fun;
     pthread_t pthread;
     pthread_mutex_t workmutex;
     pthread_cond_t workcond;
@@ -61,7 +62,7 @@ private:
 
         if (tip->work > 0)
           {
-            (*tip->fun)(tip->thread_id);
+            tip->fun(tip->thread_id);
             tip->work = 0;
             pthread_cond_signal(&tip->workcond);
           }
@@ -83,7 +84,7 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int thread_count, void (*function_ptr)(int64_t nth_thread))
+  ThreadRunner(int thread_count, std::function<void(int64_t nth_thread)> function)
   {
 
     pthread_attr_init(&attr);
@@ -97,7 +98,7 @@ public:
     for(auto& tip: thread_array) {
         tip.thread_id = counter;
         tip.work = 0;
-        tip.fun = function_ptr;
+        tip.fun = function;
         pthread_mutex_init(&tip.workmutex, nullptr);
         pthread_cond_init(&tip.workcond, nullptr);
         if (pthread_create(&tip.pthread,
