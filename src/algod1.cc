@@ -55,8 +55,8 @@
 #include <iterator>  // std::next
 #include <limits>  // unsigned int max
 #include <memory>  // unique pointer
+#include <mutex>  // std::lock_guard, std::unique_lock
 #include <numeric>  // std::iota
-#include <pthread.h>
 #include <string>
 #include <vector>
 
@@ -127,7 +127,7 @@ struct graft_cand
 /* Information about potential grafts */
 struct Graft_state
 {
-  pthread_mutex_t mutex;
+  std::mutex mutex;
   int64_t candidates {0};
 };
 
@@ -153,7 +153,7 @@ static unsigned int amplicons {0};
 
 struct Heavy_state
 {
-  pthread_mutex_t mutex;
+  std::mutex mutex;
   uint64_t variants {0};
   uint64_t progress {0};
   uint64_t amplicon_count {0};
@@ -162,7 +162,7 @@ struct Heavy_state
 
 struct Light_state
 {
-  pthread_mutex_t mutex;
+  std::mutex mutex;
   uint64_t variants {0};
   uint64_t progress {0};
   uint64_t amplicon_count {0};
@@ -171,7 +171,7 @@ struct Light_state
 
 struct Network_state
 {
-  pthread_mutex_t mutex;
+  std::mutex mutex;
   unsigned int amp {0};
   unsigned int count {0};
   std::vector<unsigned int> network_v;
@@ -257,7 +257,7 @@ namespace {
   auto add_graft_candidate(unsigned int seed, unsigned int amp,
                            struct Graft_state & graft_state) -> void
   {
-    pthread_mutex_lock(&graft_state.mutex);
+    std::lock_guard<std::mutex> const lock(graft_state.mutex);
     ++graft_state.candidates;
     assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
     auto const signed_position = static_cast<std::ptrdiff_t>(amp);
@@ -268,7 +268,6 @@ namespace {
     if ((amplicon.graft_cand == no_swarm) or (amplicon.graft_cand > seed)) {
       amplicon.graft_cand = seed;
     }
-    pthread_mutex_unlock(&graft_state.mutex);
   }
 
 
@@ -483,7 +482,7 @@ namespace {
     const std::size_t size =
       sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
     std::vector<char> buffer1(size);
-    pthread_mutex_lock(&heavy_state.mutex);
+    std::unique_lock<std::mutex> lock(heavy_state.mutex);
     while ((heavy_state.amplicon < amplicons) and
            (heavy_state.progress < heavy_state.amplicon_count))
       {
@@ -498,18 +497,17 @@ namespace {
         if (target_swarm.mass >= static_cast<uint64_t>(opt_boundary))
           {
             progress_update(++heavy_state.progress);  // refactoring: separate operations?
-            pthread_mutex_unlock(&heavy_state.mutex);
+            lock.unlock();
             uint64_t number_of_matches {0};
             uint64_t number_of_variants {0};
             check_heavy_var(bloom_f, buffer1, heavy_amplicon_id,
                             number_of_matches, number_of_variants,
                             variant_list, variant_list2,
                             graft_state);
-            pthread_mutex_lock(&heavy_state.mutex);
+            lock.lock();
             heavy_state.variants += number_of_variants;
           }
       }
-    pthread_mutex_unlock(&heavy_state.mutex);
   }
 
 
@@ -548,7 +546,7 @@ namespace {
 
     std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset);
 
-    pthread_mutex_lock(&state.mutex);
+    std::unique_lock<std::mutex> lock(state.mutex);
     while (state.progress < state.amplicon_count)
       {
         const auto light_amplicon_id = state.amplicon;
@@ -562,14 +560,13 @@ namespace {
         if (target_swarm.mass < static_cast<uint64_t>(opt_boundary))
           {
             progress_update(++state.progress);  // refactoring: separate operations?
-            pthread_mutex_unlock(&state.mutex);
+            lock.unlock();
             const auto variant_count = mark_light_var(bloom_f, light_amplicon_id,
                                                       variant_list);
-            pthread_mutex_lock(&state.mutex);
+            lock.lock();
             state.variants += variant_count;
           }
       }
-    pthread_mutex_unlock(&state.mutex);
   }
 
 
@@ -659,17 +656,17 @@ namespace {
     std::vector<unsigned int> hits_data(n_items);
     std::vector<struct var_s> variant_list(n_items);
 
-    pthread_mutex_lock(&state.mutex);
+    std::unique_lock<std::mutex> lock(state.mutex);
     while (state.amp < amplicons)
       {
         const auto amp = state.amp;
         ++state.amp;
         progress_update(amp);
 
-        pthread_mutex_unlock(&state.mutex);
+        lock.unlock();
 
         const auto hits_count = check_variants(amp, variant_list, hits_data);
-        pthread_mutex_lock(&state.mutex);
+        lock.lock();
 
         assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const signed_position = static_cast<std::ptrdiff_t>(amp);
@@ -687,7 +684,6 @@ namespace {
           ++state.count;
         }
       }
-    pthread_mutex_unlock(&state.mutex);
   }
 
 
@@ -1176,10 +1172,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
 
   /* for all amplicons, generate list of matching amplicons */
-  struct Network_state network_state {};
+  struct Network_state network_state;
   network_state.network_v.resize(one_megabyte);
 
-  pthread_mutex_init(&network_state.mutex, nullptr);
   progress_init("Building network: ", amplicons);
   {
     assert(parameters.opt_threads <= std::numeric_limits<int>::max());
@@ -1191,7 +1186,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
         }));
     network_tr->run();
   }
-  pthread_mutex_destroy(&network_state.mutex);
 
   progress_done(parameters);
 
@@ -1442,8 +1436,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           /* process amplicons in order from least to most abundant */
           /* but stop when all amplicons in small clusters are processed */
 
-          struct Light_state light_state {};
-          pthread_mutex_init(&light_state.mutex, nullptr);
+          struct Light_state light_state;
           light_state.amplicon_count = amplicons_in_small_clusters;
           light_state.amplicon = amplicons - 1;
           {
@@ -1456,7 +1449,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                 }));
             light_tr->run();
           }
-          pthread_mutex_destroy(&light_state.mutex);
 
           progress_done(parameters);
 
@@ -1470,11 +1462,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           /* process amplicons in order from most to least abundant */
           /* but stop when all amplicons in large clusters are processed */
 
-          struct Graft_state graft_state {};
-          pthread_mutex_init(&graft_state.mutex, nullptr);
+          struct Graft_state graft_state;
 
-          struct Heavy_state heavy_state {};
-          pthread_mutex_init(&heavy_state.mutex, nullptr);
+          struct Heavy_state heavy_state;
           heavy_state.amplicon_count = amplicons_in_large_clusters;
           {
             assert(parameters.opt_threads <= std::numeric_limits<int>::max());
@@ -1487,13 +1477,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             heavy_tr->run();
           }
 
-          pthread_mutex_destroy(&heavy_state.mutex);
-
           progress_done(parameters);
 
           bloomflex_exit(bloomflex_filter);
-
-          pthread_mutex_destroy(&graft_state.mutex);
 
           std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
           std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
