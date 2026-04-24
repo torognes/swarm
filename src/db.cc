@@ -387,7 +387,8 @@ namespace {
 
   auto sort_index_if_need_be(struct Parameters const & parameters,
                              std::vector<struct seqinfo_s> & seqindex_v) -> void {
-    progress_init("Abundance sorting:", 1);
+    struct Progress_status progress;
+    progress_init(progress, "Abundance sorting:", 1, parameters);
 
     auto compare_entries = [](struct seqinfo_s const& lhs,
                               struct seqinfo_s const& rhs) -> bool
@@ -409,7 +410,7 @@ namespace {
                            compare_entries)) {
       std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
     }
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
@@ -474,7 +475,8 @@ auto db_read(struct Parameters const & parameters,
   auto lineno = 1U;
 
 
-  progress_init("Reading sequences:", file_info.filesize);
+  struct Progress_status progress;
+  progress_init(progress, "Reading sequences:", file_info.filesize, parameters);
 
   ssize_t linelen = xgetline(& line, & linecap, input_fp);
   if (linelen < 0)
@@ -632,10 +634,10 @@ auto db_read(struct Parameters const & parameters,
       entries.push_back(entry);
 
       if (file_info.is_regular) {
-        progress_update(filepos);
+        progress_update(progress, filepos);
       }
     }
-  progress_done(parameters);
+  progress_done(progress);
 
   if (line != nullptr)
     {
@@ -672,7 +674,8 @@ auto db_read(struct Parameters const & parameters,
   seqindex_v.resize(seq_stats.n_sequences);
   seqindex = seqindex_v.data();
 
-  progress_init("Indexing database:", seq_stats.n_sequences);
+  struct Progress_status progress_idx;
+  progress_init(progress_idx, "Indexing database:", seq_stats.n_sequences, parameters);
   auto counter = 0ULL;
   for (auto & a_sequence: seqindex_v) {
 
@@ -789,13 +792,13 @@ auto db_read(struct Parameters const & parameters,
           seqhashtable[seqhashindex] = &a_sequence;
         }
 
-      progress_update(counter);
+      progress_update(progress_idx, counter);
       ++counter;
     }
 
   abort_if_duplicated_sequences(seq_stats);
 
-  progress_done(parameters);
+  progress_done(progress_idx);
 
   abort_if_missing_abundance(seq_stats);
   sort_index_if_need_be(parameters, seqindex_v);
@@ -828,17 +831,18 @@ auto db_qgrams_init(struct Parameters const & parameters,
   // - or std::vector<std::vector<char>> qgrams_v(sequences, std::vector<char>(unitSize, '\0'));
   qgrams = new qgramvector_t[seqindex_v.size()];
 
-  progress_init("Find qgram vects: ", seqindex_v.size());
+  struct Progress_status progress_qg;
+  progress_init(progress_qg, "Find qgram vects: ", seqindex_v.size(), parameters);
   auto counter = 0U;
   for (auto const & seqindex_p : seqindex_v) {
     /* find qgrams */
     findqgrams(seqindex_p.seq,
                seqindex_p.seqlen,
               *std::next(qgrams, counter));
-    progress_update(counter);
+    progress_update(progress_qg, counter);
     ++counter;
   }
-  progress_done(parameters);
+  progress_done(progress_qg);
 }
 
 

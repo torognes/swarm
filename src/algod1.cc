@@ -291,7 +291,8 @@ namespace {
   {
     auto const pair_count = count_pairs(amplicon_count, ampinfo_v);
 
-    progress_init("Grafting light swarms on heavy swarms", pair_count);
+    struct Progress_status progress;
+    progress_init(progress, "Grafting light swarms on heavy swarms", pair_count, parameters);
 
     /* allocate memory */
     std::vector<struct graft_cand> graft_array(pair_count);
@@ -341,10 +342,10 @@ namespace {
           attach(parent, child, ampinfo_v, swarminfo_v);
           ++grafts;
         }
-      progress_update(counter);
+      progress_update(progress, counter);
       ++counter;
     }
-    progress_done(parameters);
+    progress_done(progress);
     return grafts;
   }
 
@@ -469,7 +470,8 @@ namespace {
 
   auto check_heavy_thread(int64_t nth_thread,
                           struct Heavy_state & heavy_state,
-                          struct Graft_state & graft_state) -> void
+                          struct Graft_state & graft_state,
+                          struct Progress_status & progress) -> void
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
@@ -496,7 +498,7 @@ namespace {
         auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
         if (target_swarm.mass >= static_cast<uint64_t>(opt_boundary))
           {
-            progress_update(++heavy_state.progress);  // refactoring: separate operations?
+            progress_update(progress, ++heavy_state.progress);  // refactoring: separate operations?
             lock.unlock();
             uint64_t number_of_matches {0};
             uint64_t number_of_variants {0};
@@ -537,7 +539,9 @@ namespace {
   }
 
 
-  auto mark_light_thread(int64_t nth_thread, struct Light_state & state) -> void
+  auto mark_light_thread(int64_t nth_thread,
+                         struct Light_state & state,
+                         struct Progress_status & progress) -> void
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
@@ -559,7 +563,7 @@ namespace {
         auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
         if (target_swarm.mass < static_cast<uint64_t>(opt_boundary))
           {
-            progress_update(++state.progress);  // refactoring: separate operations?
+            progress_update(progress, ++state.progress);  // refactoring: separate operations?
             lock.unlock();
             const auto variant_count = mark_light_var(bloom_f, light_amplicon_id,
                                                       variant_list);
@@ -645,7 +649,9 @@ namespace {
   }
 
 
-  auto network_thread(int64_t nth_thread, struct Network_state & state) -> void
+  auto network_thread(int64_t nth_thread,
+                      struct Network_state & state,
+                      struct Progress_status & progress) -> void
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
@@ -661,7 +667,7 @@ namespace {
       {
         const auto amp = state.amp;
         ++state.amp;
-        progress_update(amp);
+        progress_update(progress, amp);
 
         lock.unlock();
 
@@ -775,7 +781,8 @@ namespace {
                           std::vector<struct ampinfo_s> & ampinfo_v,
                           std::vector<unsigned int> & network_v) -> void {
     // a network is a cluster with at least two sequences (no singletons)
-    progress_init("Dumping network:  ", number_of_networks);
+    struct Progress_status progress;
+    progress_init(progress, "Dumping network:  ", number_of_networks, parameters);
 
     uint64_t n_processed = 0;  // refactoring: reduce scope (move into the for loop init)
     assert(ampinfo_v.size() == amplicons);
@@ -800,10 +807,10 @@ namespace {
           std::fprintf(parameters.network_file, "\n");
           ++n_processed;
         }
-      progress_update(n_processed);
+      progress_update(progress, n_processed);
       ++counter;
     }
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
@@ -811,7 +818,8 @@ namespace {
                                    std::vector<struct ampinfo_s> & ampinfo_v,
                                    std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     static constexpr auto sepchar {' '};
-    progress_init("Writing swarms:   ", swarminfo_v.size());
+    struct Progress_status progress;
+    progress_init(progress, "Writing swarms:   ", swarminfo_v.size(), parameters);
 
     for (auto i = 0U; i < swarminfo_v.size(); ++i) {
       if (swarminfo_v[i].attached) {
@@ -827,17 +835,18 @@ namespace {
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
       std::fputc('\n', parameters.outfile);
-      progress_update(i + 1);
+      progress_update(progress, i + 1);
     }
 
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
   auto write_swarms_mothur_format(struct Parameters const & parameters,
                                   std::vector<struct ampinfo_s> & ampinfo_v,
                                   std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-    progress_init("Writing swarms:   ", swarminfo_v.size());
+    struct Progress_status progress;
+    progress_init(progress, "Writing swarms:   ", swarminfo_v.size(), parameters);
 
     std::fprintf(parameters.outfile, "swarm_%" PRId64 "\t%" PRIu64,
                  parameters.opt_differences, swarmcount_adjusted);
@@ -859,12 +868,12 @@ namespace {
         fprint_id(parameters.outfile, amp_id,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
-      progress_update(i + 1);
+      progress_update(progress, i + 1);
     }
 
     std::fputc('\n', parameters.outfile);
 
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
@@ -881,7 +890,8 @@ namespace {
     raw_alignment.reserve(2UL * longestamplicon);
     cigar_string.reserve(2UL * longestamplicon);
 
-    progress_init("Writing UCLUST:   ", swarminfo_v.size());
+    struct Progress_status progress;
+    progress_init(progress, "Writing UCLUST:   ", swarminfo_v.size(), parameters);
 
     auto counter = 0U;
     for (auto const & swarm_info : swarminfo_v) {
@@ -946,16 +956,17 @@ namespace {
         }
 
       ++cluster_no;
-      progress_update(counter);
+      progress_update(progress, counter);
       ++counter;
     }
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
   auto write_representative_sequences(struct Parameters const & parameters,
                                       std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-    progress_init("Writing seeds:    ", swarminfo_v.size());
+    struct Progress_status progress;
+    progress_init(progress, "Writing seeds:    ", swarminfo_v.size(), parameters);
 
     std::vector<unsigned int> sorter(swarminfo_v.size());
     std::iota(sorter.begin(), sorter.end(), 0);
@@ -998,11 +1009,11 @@ namespace {
                                    parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file, "\n");
       db_fprintseq(parameters.seeds_file, seed);
-      progress_update(counter);
+      progress_update(progress, counter);
       ++counter;
     }
 
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
@@ -1011,7 +1022,8 @@ namespace {
                             std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     auto cluster_no = 0U;
 
-    progress_init("Writing structure:", swarminfo_v.size());
+    struct Progress_status progress;
+    progress_init(progress, "Writing structure:", swarminfo_v.size(), parameters);
 
     for (auto swarmid = 0U; swarmid < swarminfo_v.size(); ++swarmid)
       {
@@ -1053,15 +1065,16 @@ namespace {
           }
 
         ++cluster_no;
-        progress_update(swarmid);
+        progress_update(progress, swarmid);
       }
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
   auto write_stats_file(struct Parameters const & parameters,
                         std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-    progress_init("Writing stats:    ", swarminfo_v.size());
+    struct Progress_status progress;
+    progress_init(progress, "Writing stats:    ", swarminfo_v.size(), parameters);
 
     auto counter = 0U;
     for (auto const & swarm_info : swarminfo_v) {
@@ -1074,10 +1087,10 @@ namespace {
       std::fprintf(parameters.statsfile, "\t%" PRIu64 "\t%u\t%u\t%u\n",
                    db_getabundance(swarm_info.seed),
                    swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
-      progress_update(counter);
+      progress_update(progress, counter);
       ++counter;
     }
-    progress_done(parameters);
+    progress_done(progress);
   }
 
 
@@ -1145,13 +1158,14 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   struct bloom_s bloom_filter;
   bloom_a = bloom_init(hashtablesize, bloom_filter);
 
-  progress_init("Hashing sequences:", amplicons);
+  struct Progress_status progress;
+  progress_init(progress, "Hashing sequences:", amplicons, parameters);
 
   bool has_duplicate {false};
   for (auto k = 0U; k < amplicons; ++k)
     {
       has_duplicate = hash_insert(k);
-      progress_update(k);
+      progress_update(progress, k);
       if (has_duplicate) {
         break;
       }
@@ -1168,26 +1182,26 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
     }
 
-  progress_done(parameters);
+  progress_done(progress);
 
 
   /* for all amplicons, generate list of matching amplicons */
   struct Network_state network_state;
   network_state.network_v.resize(one_megabyte);
 
-  progress_init("Building network: ", amplicons);
+  progress_init(progress, "Building network: ", amplicons, parameters);
   {
     assert(parameters.opt_threads <= std::numeric_limits<int>::max());
     // refactoring C++14: use std::make_unique
     std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
         static_cast<int>(parameters.opt_threads),
-        [&network_state](int64_t nth_thread) {
-          network_thread(nth_thread, network_state);
+        [&network_state, &progress](int64_t nth_thread) {
+          network_thread(nth_thread, network_state, progress);
         }));
     network_tr->run();
   }
 
-  progress_done(parameters);
+  progress_done(progress);
 
 
   /* dump network to file */
@@ -1199,7 +1213,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   /* for each non-swarmed amplicon look for subseeds ... */
 
   auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
-  progress_init("Clustering:       ", amplicons);
+  progress_init(progress, "Clustering:       ", amplicons, parameters);
 
   for (auto seed = 0U; seed < amplicons; ++seed)
     {
@@ -1294,9 +1308,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           ++swarmcount;
         }
-      progress_update(seed + 1);
+      progress_update(progress, seed + 1);
     }
-  progress_done(parameters);
+  progress_done(progress);
 
   global_hits_data = nullptr;
 
@@ -1320,8 +1334,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
       uint64_t nucleotides_in_small_clusters = 0;
 
       // refactoring: move to function that returns a struct cluster_stats
-      progress_init("Counting amplicons in heavy and light swarms",
-                    swarmcount);
+      progress_init(progress, "Counting amplicons in heavy and light swarms",
+                    swarmcount, parameters);
 
       for (auto i = 0ULL; i < swarmcount; ++i)
         {
@@ -1332,9 +1346,9 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
               nucleotides_in_small_clusters += swarm_info.sumlen;
               ++small_clusters;
             }
-          progress_update(i + 1);
+          progress_update(progress, i + 1);
         }
-      progress_done(parameters);
+      progress_done(progress);
 
       const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
       const uint64_t large_clusters = swarmcount - small_clusters;
@@ -1430,8 +1444,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           std::fill(hash_occupied_v.begin(), hash_occupied_v.end(), 0U);
           bloom_zap(bloom_filter);
 
-          progress_init("Adding light swarm amplicons to Bloom filter",
-                        amplicons_in_small_clusters);
+          progress_init(progress, "Adding light swarm amplicons to Bloom filter",
+                        amplicons_in_small_clusters, parameters);
 
           /* process amplicons in order from least to most abundant */
           /* but stop when all amplicons in small clusters are processed */
@@ -1444,20 +1458,20 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&light_state](int64_t nth_thread) {
-                  mark_light_thread(nth_thread, light_state);
+                [&light_state, &progress](int64_t nth_thread) {
+                  mark_light_thread(nth_thread, light_state, progress);
                 }));
             light_tr->run();
           }
 
-          progress_done(parameters);
+          progress_done(progress);
 
           std::fprintf(parameters.logfile,
                        "Generated %" PRIu64 " variants from light swarms\n",
                        light_state.variants);
 
-          progress_init("Checking heavy swarm amplicons against Bloom filter",
-                        amplicons_in_large_clusters);
+          progress_init(progress, "Checking heavy swarm amplicons against Bloom filter",
+                        amplicons_in_large_clusters, parameters);
 
           /* process amplicons in order from most to least abundant */
           /* but stop when all amplicons in large clusters are processed */
@@ -1471,13 +1485,13 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&heavy_state, &graft_state](int64_t nth_thread) {
-                  check_heavy_thread(nth_thread, heavy_state, graft_state);
+                [&heavy_state, &graft_state, &progress](int64_t nth_thread) {
+                  check_heavy_thread(nth_thread, heavy_state, graft_state, progress);
                 }));
             heavy_tr->run();
           }
 
-          progress_done(parameters);
+          progress_done(progress);
 
           bloomflex_exit(bloomflex_filter);
 

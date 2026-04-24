@@ -22,59 +22,54 @@
 */
 
 #include "../swarm.h"
-#include "opt_log.h"
-#include "opt_logfile.h"
+#include "progress.h"
 #include <cstdio>  // fflush, fprintf
 #include <cstdint>  // uint64_t
 
 
-static const char * progress_prompt;
-static uint64_t progress_next;
-static uint64_t progress_size;
-static uint64_t progress_chunk;
-
-auto progress_init(const char * prompt, const uint64_t size) -> void
+auto progress_init(struct Progress_status & progress,
+                   char const * prompt, uint64_t const size,
+                   struct Parameters const & parameters) -> void
 {
   static constexpr uint64_t progress_granularity {200};
-  progress_prompt = prompt;
-  progress_size = size;
-  progress_chunk = size < progress_granularity ?
+  progress.prompt = prompt;
+  progress.size = size;
+  progress.chunk = size < progress_granularity ?
     1 : size / progress_granularity;
-  progress_next = 1;
-  if (not opt_log.empty()) {
-    std::fprintf(logfile, "%s", prompt);
+  progress.next = 1;
+  progress.logfile = parameters.logfile;
+  progress.silent = not parameters.opt_log.empty();
+  if (progress.silent) {
+    std::fprintf(progress.logfile, "%s", prompt);
   }
   else {
-    std::fprintf(logfile, "%s %.0f%%", prompt, 0.0);
+    std::fprintf(progress.logfile, "%s %.0f%%", prompt, 0.0);
   }
 }
 
 
-// refactoring: there are three calls to this function that are beyond
-// the pthread wall. There is no easy way (for now) to pass additional
-// arguments beyond that wall. This is a major roadblock and prevents
-// us to eliminate global variables (opt_log, logfile, as well as
-// 'progress_*' global). Could be solved by using std::thread? or a
-// Progress object with private copies?
-auto progress_update(const uint64_t progress) -> void
+// Called from within worker threads (algod1.cc network/heavy/light workers)
+// as well as from the main thread; concurrent-safety is guaranteed by each
+// worker holding its own state.mutex when invoking this function.
+auto progress_update(struct Progress_status & progress, uint64_t const current) -> void
 {
-  if (not opt_log.empty()) { return; }  // no progress output if log is a file
-  if (progress < progress_next) { return; }  // milestone not yet reached
-  std::fprintf(logfile, "  \r%s %.0f%%", progress_prompt,
-               100.0 * static_cast<double>(progress)
-               / static_cast<double>(progress_size));
-  progress_next = progress + progress_chunk;
-  std::fflush(logfile);
+  if (progress.silent) { return; }  // no progress output if log is a file
+  if (current < progress.next) { return; }  // milestone not yet reached
+  std::fprintf(progress.logfile, "  \r%s %.0f%%", progress.prompt,
+               100.0 * static_cast<double>(current)
+               / static_cast<double>(progress.size));
+  progress.next = current + progress.chunk;
+  std::fflush(progress.logfile);
 }
 
 
-auto progress_done(struct Parameters const & parameters) -> void
+auto progress_done(struct Progress_status const & progress) -> void
 {
-  if (not parameters.opt_log.empty()) {
-    std::fprintf(parameters.logfile, " %.0f%%\n", 100.0);
+  if (progress.silent) {
+    std::fprintf(progress.logfile, " %.0f%%\n", 100.0);
   }
   else {
-    std::fprintf(parameters.logfile, "  \r%s %.0f%%\n", progress_prompt, 100.0);
+    std::fprintf(progress.logfile, "  \r%s %.0f%%\n", progress.prompt, 100.0);
   }
-  std::fflush(parameters.logfile);
+  std::fflush(progress.logfile);
 }

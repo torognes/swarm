@@ -22,16 +22,22 @@
 */
 
 #include <cstdint>  // uint64_t
+#include <cstdio>   // std::FILE
 
 
-// refactoring: use a struct to communicate and avoid global variables
-// struct Progress_status {
-//   const char * progress_prompt = nullptr;
-//   uint64_t progress_next = 0;
-//   uint64_t progress_size = 0;
-//   uint64_t progress_chunk = 0;
-// };
+struct Progress_status
+{
+  char const * prompt {nullptr};
+  uint64_t next {0};
+  uint64_t size {0};
+  uint64_t chunk {0};
+  std::FILE * logfile {nullptr};
+  bool silent {false};  // true when output goes to a log file (--log)
+};
 
-auto progress_init(const char * prompt, uint64_t size) -> void;
-auto progress_update(uint64_t progress) -> void;
-auto progress_done(struct Parameters const & parameters) -> void;
+
+auto progress_init(struct Progress_status & progress,
+                   char const * prompt, uint64_t size,
+                   struct Parameters const & parameters) -> void;
+auto progress_update(struct Progress_status & progress, uint64_t current) -> void;
+auto progress_done(struct Progress_status const & progress) -> void;
