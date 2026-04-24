@@ -46,17 +46,21 @@ constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 
 
 // refactoring: add anonymous namespace, create a struct Master, replace all master_* calls
-static pthread_mutex_t scan_mutex;
+struct Search_state
+{
+  pthread_mutex_t scan_mutex;
+  struct Search_data * search_data;
+  uint64_t master_next;
+  uint64_t master_length;
+  uint64_t remainingchunks;
+  uint64_t * master_targets;
+  uint64_t * master_scores;
+  uint64_t * master_diffs;
+  uint64_t * master_alignlengths;
+  int master_bits;
+};
 
-static struct Search_data * search_data;
-static uint64_t master_next;
-static uint64_t master_length;
-static uint64_t remainingchunks;
-static uint64_t * master_targets;
-static uint64_t * master_scores;
-static uint64_t * master_diffs;
-static uint64_t * master_alignlengths;
-static int master_bits;
+static struct Search_state search_state;
 
 struct queryinfo query;
 
@@ -97,7 +101,9 @@ auto search_init(struct Search_data & thread_data) -> void
 }
 
 
-auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
+auto search_chunk(struct Search_data & thread_data,
+                  struct Search_state const & state,
+                  const int64_t bits) -> void
 {
   static constexpr auto sixteen_bytes = 16;
   alignas(sixteen_bytes) static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
@@ -119,10 +125,10 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
              thread_data.dprofile_w_v,
              reinterpret_cast<WORD *>(thread_data.hearray_v.data()),
              thread_data.target_count,
-             std::next(master_targets, target_index),
-             std::next(master_scores, target_index),
-             std::next(master_diffs, target_index),
-             std::next(master_alignlengths, target_index),
+             std::next(state.master_targets, target_index),
+             std::next(state.master_scores, target_index),
+             std::next(state.master_diffs, target_index),
+             std::next(state.master_alignlengths, target_index),
              static_cast<uint64_t>(query.len),
              thread_data.dir_array_v);
   } else {
@@ -135,49 +141,51 @@ auto search_chunk(struct Search_data & thread_data, const int64_t bits) -> void
             thread_data.dprofile_v,
             thread_data.hearray_v.data(),
             thread_data.target_count,
-            std::next(master_targets, target_index),
-            std::next(master_scores, target_index),
-            std::next(master_diffs, target_index),
-            std::next(master_alignlengths, target_index),
+            std::next(state.master_targets, target_index),
+            std::next(state.master_scores, target_index),
+            std::next(state.master_diffs, target_index),
+            std::next(state.master_alignlengths, target_index),
             static_cast<uint64_t>(query.len),
             thread_data.dir_array_v);
   }
 }
 
 
-auto search_getwork(uint64_t & countref, uint64_t & firstref) -> bool
+auto search_getwork(struct Search_state & state,
+                    uint64_t & countref, uint64_t & firstref) -> bool
 {
   // countref = how many sequences to search
   // firstref = index into master_targets/scores/diffs where thread should start
 
   bool status {false};
 
-  pthread_mutex_lock(&scan_mutex);
+  pthread_mutex_lock(&state.scan_mutex);
 
-  if (master_next < master_length)
+  if (state.master_next < state.master_length)
     {
       const uint64_t chunksize =
-        ((master_length - master_next + remainingchunks - 1) / remainingchunks);
+        ((state.master_length - state.master_next + state.remainingchunks - 1) / state.remainingchunks);
 
       countref = chunksize;
-      firstref = master_next;
+      firstref = state.master_next;
 
-      master_next += chunksize;
-      --remainingchunks;
+      state.master_next += chunksize;
+      --state.remainingchunks;
       status = true;
     }
 
-  pthread_mutex_unlock(&scan_mutex);
+  pthread_mutex_unlock(&state.scan_mutex);
 
   return status;
 }
 
 
 auto search_worker_core(const int64_t thread_id) -> void {
-  auto & thread_data = *std::next(search_data, thread_id);
+  auto & state = search_state;
+  auto & thread_data = *std::next(state.search_data, thread_id);
   search_init(thread_data);
-  while(search_getwork(thread_data.target_count, thread_data.target_index)) {
-    search_chunk(thread_data, master_bits);
+  while(search_getwork(state, thread_data.target_count, thread_data.target_index)) {
+    search_chunk(thread_data, state, state.master_bits);
   }
 }
 
@@ -227,25 +235,27 @@ auto search_do(const uint64_t query_no,
                const int bits,
                ThreadRunner * search_threads) -> void
 {
+  auto & state = search_state;
+
   auto query_len = 0U;
   query.qno = query_no;
   db_getsequenceandlength(query_no, query.seq, query_len);
   query.len = query_len;
 
-  master_next = 0;
-  master_length = listlength;
-  master_targets = targets;
-  master_scores = scores;
-  master_diffs = diffs;
-  master_alignlengths = alignlengths;
-  master_bits = bits;
+  state.master_next = 0;
+  state.master_length = listlength;
+  state.master_targets = targets;
+  state.master_scores = scores;
+  state.master_diffs = diffs;
+  state.master_alignlengths = alignlengths;
+  state.master_bits = bits;
 
   const auto thr =
     adjust_thread_number(bits,
-                         master_length,
+                         state.master_length,
                          static_cast<uint64_t>(opt_threads));
 
-  remainingchunks = thr;
+  state.remainingchunks = thr;
 
   if (thr == 1) {
     search_worker_core(0);
@@ -258,11 +268,11 @@ auto search_do(const uint64_t query_no,
 
 auto search_begin(std::vector<struct Search_data> & search_data_v) -> void
 {
-  search_data = search_data_v.data();
+  search_state.search_data = search_data_v.data();
 
   allocate_per_thread_search_data(search_data_v, db_getlongestsequence());
 
-  pthread_mutex_init(&scan_mutex, nullptr);
+  pthread_mutex_init(&search_state.scan_mutex, nullptr);
 }
 
 
@@ -270,6 +280,6 @@ auto search_end() -> void
 {
   /* finish and clean up worker threads */
 
-  pthread_mutex_destroy(&scan_mutex);
-  search_data = nullptr;
+  pthread_mutex_destroy(&search_state.scan_mutex);
+  search_state.search_data = nullptr;
 }
