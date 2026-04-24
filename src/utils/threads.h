@@ -21,56 +21,50 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <condition_variable>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <mutex>
+#include <thread>
 #include <vector>
-#include <pthread.h>  // refactoring: C++11 replace with std::thread
-#include "fatal.h"
 
 
 class ThreadRunner
 {
 private:
 
-  pthread_attr_t attr {};
-
   struct thread_s
   {
-    int64_t thread_id;
+    int64_t thread_id {0};
     std::function<void(int64_t)> fun;
-    pthread_t pthread;
-    pthread_mutex_t workmutex;
-    pthread_cond_t workcond;
-    int64_t work; /* 1: work available, 0: wait, -1: quit */
+    std::thread thread;
+    std::mutex workmutex;
+    std::condition_variable workcond;
+    int64_t work {0}; /* 1: work available, 0: wait, -1: quit */
   };
 
   std::vector<struct thread_s> thread_array;
 
-  static auto worker(void * void_ptr) -> void *
+  static auto worker(struct thread_s * tip) -> void
   {
-    auto * tip = static_cast<struct thread_s *>(void_ptr);
-
-    pthread_mutex_lock(&tip->workmutex);  // refactoring: prefer mutex_lockguard (RAII)
+    std::unique_lock<std::mutex> lock(tip->workmutex);
 
     /* loop until signalled to quit */
     while (tip->work >= 0)
       {
         /* wait for work available */
         if (tip->work == 0) {
-          pthread_cond_wait(&tip->workcond, &tip->workmutex);
+          tip->workcond.wait(lock);
         }
 
         if (tip->work > 0)
           {
             tip->fun(tip->thread_id);
             tip->work = 0;
-            pthread_cond_signal(&tip->workcond);
+            tip->workcond.notify_one();
           }
       }
-
-    pthread_mutex_unlock(&tip->workmutex);
-
-    return nullptr;
   }
 
 
@@ -84,29 +78,15 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int thread_count, std::function<void(int64_t nth_thread)> function)
+  ThreadRunner(int thread_count, std::function<void(int64_t nth_thread)> function) :
+      thread_array(static_cast<std::size_t>(thread_count))
   {
-
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-    /* allocate memory for thread data */
-    thread_array.resize(static_cast<uint64_t>(thread_count));
-
     /* init and create worker threads */
     auto counter = 0LL;
     for(auto& tip: thread_array) {
         tip.thread_id = counter;
-        tip.work = 0;
         tip.fun = function;
-        pthread_mutex_init(&tip.workmutex, nullptr);
-        pthread_cond_init(&tip.workcond, nullptr);
-        if (pthread_create(&tip.pthread,
-                           &attr,
-                           worker,
-                           static_cast<void*>(&tip)) != 0) {
-          fatal(error_prefix, "Cannot create thread.");
-        }
+        tip.thread = std::thread(worker, &tip);
         ++counter;
       }
   }
@@ -115,27 +95,18 @@ public:
   ~ThreadRunner()
   {
     /* ask threads to quit */
-    /* sleep until they have quit */
-    /* destroy threads */
-    /* finish and clean up worker threads */
+    /* wait for them to join */
 
     for(auto& tip: thread_array) {
         /* tell worker to quit */
-        pthread_mutex_lock(&tip.workmutex);
-        tip.work = -1;
-        pthread_cond_signal(&tip.workcond);
-        pthread_mutex_unlock(&tip.workmutex);
-
-        /* wait for worker to quit */
-        if (pthread_join(tip.pthread, nullptr) != 0) {
-          fatal(error_prefix, "Cannot join thread.");
+        {
+          std::lock_guard<std::mutex> lock(tip.workmutex);
+          tip.work = -1;
+          tip.workcond.notify_one();
         }
-
-        pthread_cond_destroy(&tip.workcond);
-        pthread_mutex_destroy(&tip.workmutex);
+        /* wait for worker to quit */
+        tip.thread.join();
     }
-
-    pthread_attr_destroy(&attr);
   }
 
   ThreadRunner(const ThreadRunner&) = delete; // copy constructor
@@ -146,19 +117,15 @@ public:
   auto run() -> void {
     /* wake up threads */
     for(auto& tip: thread_array) {
-        pthread_mutex_lock(&tip.workmutex);
+        std::lock_guard<std::mutex> lock(tip.workmutex);
         tip.work = 1;
-        pthread_cond_signal(&tip.workcond);
-        pthread_mutex_unlock(&tip.workmutex);
+        tip.workcond.notify_one();
     }
 
     /* wait for threads to finish their work */
     for(auto& tip: thread_array) {
-        pthread_mutex_lock(&tip.workmutex);
-        while (tip.work > 0) {
-          pthread_cond_wait(&tip.workcond, &tip.workmutex);
-        }
-        pthread_mutex_unlock(&tip.workmutex);
+        std::unique_lock<std::mutex> lock(tip.workmutex);
+        tip.workcond.wait(lock, [&tip](){ return tip.work <= 0; });
     }
   }
 };
