@@ -332,10 +332,15 @@ auto algo_run(struct Parameters const & parameters,
   auto const score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
-  search_begin(search_data_v);
+  struct Search_state search_state {};
+  search_begin(search_state, search_data_v);
   /* start threads */
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-  const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(static_cast<int>(parameters.opt_threads), search_worker_core));
+  const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(
+      static_cast<int>(parameters.opt_threads),
+      [&search_state](int64_t thread_id) {
+        search_worker_core(thread_id, search_state);
+      }));
 
   uint64_t largestswarm {0};
   uint64_t maxgenerations {0};
@@ -450,7 +455,7 @@ auto algo_run(struct Parameters const & parameters,
 
       if (targetcount > 0)
         {
-          search_do(seedampliconid, targetcount, targetampliconids.data(),
+          search_do(search_state, seedampliconid, targetcount, targetampliconids.data(),
                     scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
           for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
@@ -544,7 +549,7 @@ auto algo_run(struct Parameters const & parameters,
 
               if (targetcount == 0) { continue; }
 
-              search_do(subseed.ampliconid, targetcount, targetampliconids.data(),
+              search_do(search_state, subseed.ampliconid, targetcount, targetampliconids.data(),
                         scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
               for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
@@ -704,6 +709,6 @@ auto algo_run(struct Parameters const & parameters,
 
   std::fprintf(parameters.logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
 
-  search_end();
+  search_end(search_state);
 }
 

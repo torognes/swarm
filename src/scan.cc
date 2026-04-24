@@ -22,6 +22,7 @@
 */
 
 #include "db.h"
+#include "scan.h"
 #include "search8.h"
 #include "search16.h"
 #include "utils/alignment_parameters.h"
@@ -30,7 +31,6 @@
 #include "utils/queryinfo.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
-#include "utils/threads.h"
 #include <cassert>  // assert()
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
@@ -46,22 +46,6 @@ constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 
 
 // refactoring: add anonymous namespace, create a struct Master, replace all master_* calls
-struct Search_state
-{
-  pthread_mutex_t scan_mutex;
-  struct Search_data * search_data;
-  uint64_t master_next;
-  uint64_t master_length;
-  uint64_t remainingchunks;
-  uint64_t * master_targets;
-  uint64_t * master_scores;
-  uint64_t * master_diffs;
-  uint64_t * master_alignlengths;
-  int master_bits;
-};
-
-static struct Search_state search_state;
-
 struct queryinfo query;
 
 
@@ -180,8 +164,7 @@ auto search_getwork(struct Search_state & state,
 }
 
 
-auto search_worker_core(const int64_t thread_id) -> void {
-  auto & state = search_state;
+auto search_worker_core(const int64_t thread_id, struct Search_state & state) -> void {
   auto & thread_data = *std::next(state.search_data, thread_id);
   search_init(thread_data);
   while(search_getwork(state, thread_data.target_count, thread_data.target_index)) {
@@ -226,7 +209,8 @@ auto adjust_thread_number(const int n_bits,
 // static_assert(adjust_thread_number(16, 17,  1) == 1);
 
 
-auto search_do(const uint64_t query_no,
+auto search_do(struct Search_state & state,
+               const uint64_t query_no,
                const uint64_t listlength,
                uint64_t * targets,
                uint64_t * scores,
@@ -235,8 +219,6 @@ auto search_do(const uint64_t query_no,
                const int bits,
                ThreadRunner * search_threads) -> void
 {
-  auto & state = search_state;
-
   auto query_len = 0U;
   query.qno = query_no;
   db_getsequenceandlength(query_no, query.seq, query_len);
@@ -258,7 +240,7 @@ auto search_do(const uint64_t query_no,
   state.remainingchunks = thr;
 
   if (thr == 1) {
-    search_worker_core(0);
+    search_worker_core(0, state);
   }
   else {
     search_threads->run();
@@ -266,20 +248,21 @@ auto search_do(const uint64_t query_no,
 }
 
 
-auto search_begin(std::vector<struct Search_data> & search_data_v) -> void
+auto search_begin(struct Search_state & state,
+                  std::vector<struct Search_data> & search_data_v) -> void
 {
-  search_state.search_data = search_data_v.data();
+  state.search_data = search_data_v.data();
 
   allocate_per_thread_search_data(search_data_v, db_getlongestsequence());
 
-  pthread_mutex_init(&search_state.scan_mutex, nullptr);
+  pthread_mutex_init(&state.scan_mutex, nullptr);
 }
 
 
-auto search_end() -> void
+auto search_end(struct Search_state & state) -> void
 {
   /* finish and clean up worker threads */
 
-  pthread_mutex_destroy(&search_state.scan_mutex);
-  search_state.search_data = nullptr;
+  pthread_mutex_destroy(&state.scan_mutex);
+  state.search_data = nullptr;
 }

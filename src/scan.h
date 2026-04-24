@@ -22,12 +22,31 @@
 */
 
 #include "utils/threads.h"
-#include <cstdint>  // int64_t
+#include <cstdint>  // int64_t, uint64_t
+#include <pthread.h>  // pthread_mutex_t
 #include <vector>
 
 
+struct Search_data;  // defined in utils/search_data.h
+
+struct Search_state
+{
+  pthread_mutex_t scan_mutex;
+  struct Search_data * search_data;
+  uint64_t master_next;
+  uint64_t master_length;
+  uint64_t remainingchunks;
+  uint64_t * master_targets;
+  uint64_t * master_scores;
+  uint64_t * master_diffs;
+  uint64_t * master_alignlengths;
+  int master_bits;
+};
+
+
 auto search_all(uint64_t query_no) -> void;
-auto search_do(uint64_t query_no,
+auto search_do(struct Search_state & state,
+               uint64_t query_no,
                uint64_t listlength,
                uint64_t * targets,
                uint64_t * scores,
@@ -35,6 +54,7 @@ auto search_do(uint64_t query_no,
                uint64_t * alignlengths,
                int bits,
                ThreadRunner * search_threads) -> void;
-auto search_begin(std::vector<struct Search_data>& search_data_v) -> void;
-auto search_end() -> void;
-auto search_worker_core(int64_t thread_id) -> void;
+auto search_begin(struct Search_state & state,
+                  std::vector<struct Search_data> & search_data_v) -> void;
+auto search_end(struct Search_state & state) -> void;
+auto search_worker_core(int64_t thread_id, struct Search_state & state) -> void;
