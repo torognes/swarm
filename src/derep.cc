@@ -87,10 +87,7 @@ namespace {
         return false;
       }
       // ...then ties are sorted by input order
-      if (lhs.seqno_first < rhs.seqno_first) {
-        return true;
-      }
-      return false;
+      return lhs.seqno_first < rhs.seqno_first;
     };
 
     std::sort(hashtable.begin(), hashtable.end(), compare_seeds);
