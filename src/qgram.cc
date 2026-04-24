@@ -62,7 +62,6 @@
 
 qgramvector_t * qgrams {nullptr};
 static ThreadRunner * qgram_threads = nullptr;
-static struct thread_info_s * thread_info_ptr;
 
 
 auto findqgrams(char const * seq, uint64_t seqlen,
@@ -96,7 +95,8 @@ auto findqgrams(char const * seq, uint64_t seqlen,
 }
 
 auto qgram_work_diff(thread_info_s * tip) -> void;
-auto qgram_worker(int64_t nth_thread) -> void;
+auto qgram_worker(int64_t nth_thread,
+                  std::vector<struct thread_info_s> const & thread_info_v) -> void;
 auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t;
 
 #ifdef __aarch64__
@@ -252,9 +252,10 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
 }
 
 
-auto qgram_worker(int64_t const nth_thread) -> void
+auto qgram_worker(int64_t const nth_thread,
+                  std::vector<struct thread_info_s> const & thread_info_v) -> void
 {
-  auto const & tip = *std::next(thread_info_ptr, nth_thread);
+  auto const & tip = *std::next(thread_info_v.begin(), nth_thread);
 
   const auto seed = tip.seed;
   const auto listlen = tip.listlen;
@@ -275,10 +276,12 @@ auto qgram_diff_init(std::vector<struct thread_info_s>& thread_info_v) -> void
 {
   /* allocate memory for thread info */
   thread_info_v.resize(static_cast<uint64_t>(opt_threads));
-  thread_info_ptr = thread_info_v.data();
   assert(opt_threads <= std::numeric_limits<int>::max());
   qgram_threads
-    = new ThreadRunner(static_cast<int>(opt_threads), qgram_worker);
+    = new ThreadRunner(static_cast<int>(opt_threads),
+                       [&thread_info_v](int64_t nth_thread) {
+                         qgram_worker(nth_thread, thread_info_v);
+                       });
 }
 
 
@@ -286,7 +289,6 @@ auto qgram_diff_done() -> void
 {
   delete qgram_threads;
   qgram_threads = nullptr;
-  thread_info_ptr = nullptr;
 }
 
 
@@ -304,7 +306,7 @@ auto qgram_diff_fast(uint64_t seed,
       tip.listlen = listlen;
       tip.amplist = amplist;
       tip.difflist = difflist;
-      qgram_worker(0);
+      qgram_worker(0, thread_info_v);
     }
   else
     {
