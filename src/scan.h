@@ -23,7 +23,7 @@
 
 #include "utils/threads.h"
 #include <cstdint>  // int64_t, uint64_t
-#include <pthread.h>  // pthread_mutex_t
+#include <mutex>
 #include <vector>
 
 
@@ -31,7 +31,7 @@ struct Search_data;  // defined in utils/search_data.h
 
 struct Search_state
 {
-  pthread_mutex_t scan_mutex;
+  std::mutex scan_mutex;
   struct Search_data * search_data;
   uint64_t master_next;
   uint64_t master_length;

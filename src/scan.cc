@@ -35,7 +35,7 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <iterator>
-#include <pthread.h>  // pthread_mutex_init
+#include <mutex>  // std::lock_guard
 #include <vector>
 
 #ifndef NDEBUG
@@ -143,7 +143,7 @@ auto search_getwork(struct Search_state & state,
 
   bool status {false};
 
-  pthread_mutex_lock(&state.scan_mutex);
+  std::lock_guard<std::mutex> const lock(state.scan_mutex);
 
   if (state.master_next < state.master_length)
     {
@@ -157,8 +157,6 @@ auto search_getwork(struct Search_state & state,
       --state.remainingchunks;
       status = true;
     }
-
-  pthread_mutex_unlock(&state.scan_mutex);
 
   return status;
 }
@@ -254,8 +252,6 @@ auto search_begin(struct Search_state & state,
   state.search_data = search_data_v.data();
 
   allocate_per_thread_search_data(search_data_v, db_getlongestsequence());
-
-  pthread_mutex_init(&state.scan_mutex, nullptr);
 }
 
 
@@ -263,6 +259,5 @@ auto search_end(struct Search_state & state) -> void
 {
   /* finish and clean up worker threads */
 
-  pthread_mutex_destroy(&state.scan_mutex);
   state.search_data = nullptr;
 }
