@@ -24,12 +24,8 @@
 #include "../swarm.h"
 #include "fatal.h"
 #include "input_output.h"
-#include "opt_logfile.h"
 #include <cstdio>  // FILE, fclose, stderr  // refactoring: replace with <fstream>
 #include <vector>
-
-
-std::FILE * logfile {stderr};  // cstdio stderr macro is expanded to type std::FILE*
 
 
 auto open_files(struct Parameters & parameters) -> void
@@ -45,7 +41,6 @@ auto open_files(struct Parameters & parameters) -> void
   if (not parameters.opt_log.empty())
     {
       parameters.logfile = fopen_output(parameters.opt_log.c_str());
-      logfile = parameters.logfile;
       if (parameters.logfile == nullptr) {
         fatal(error_prefix, "Unable to open log file for writing.");
       }

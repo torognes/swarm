@@ -32,7 +32,6 @@
 #include "utils/input_output.h"
 #include "utils/open_and_close_files.h"
 #include "utils/opt_boundary.h"
-#include "utils/opt_log.h"
 #include "utils/opt_no_cluster_breaking.h"
 #include "utils/opt_threads.h"
 #include "utils/seqinfo.h"
@@ -76,8 +75,6 @@ const std::string swarm_version {"3.1.6"};
 
 
 /* OPTIONS */
-
-std::string opt_log;
 
 int64_t opt_boundary;
 bool opt_no_cluster_breaking {false};
@@ -372,7 +369,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
       case 'l':
         /* log */
         parameters.opt_log = optarg;
-        opt_log = parameters.opt_log;
         break;
 
       case 'm':
