@@ -96,7 +96,7 @@ struct ampinfo_s
   unsigned int link_count {0U};
 };
 
-// refactoring: can't be eliminated yet, because of the pthread barrier
+// refactoring: still global; many helpers in this file reach through this pointer, so eliminating it means threading a context reference through them all
 static struct ampinfo_s * ampinfo = nullptr;
 
 /* Information about each swarm (cluster) */
