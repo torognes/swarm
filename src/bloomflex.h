@@ -38,7 +38,8 @@ struct bloomflex_s
   uint64_t * patterns = nullptr;
 };
 
-auto bloomflex_init(uint64_t size, unsigned int n_hash_functions,
+auto bloomflex_init(uint64_t size, unsigned int pattern_shift,
+                    unsigned int n_hash_functions,
                     struct bloomflex_s & bloom_filter) -> struct bloomflex_s *;
 
 auto bloomflex_exit(struct bloomflex_s & bloom_filter) -> void;

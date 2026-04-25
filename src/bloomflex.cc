@@ -88,19 +88,19 @@ auto bloomflex_patterns_generate(struct bloomflex_s & bloom_filter) -> void
 }
 
 
-auto bloomflex_init(const uint64_t size, const unsigned int n_hash_functions,
+auto bloomflex_init(const uint64_t size, const unsigned int pattern_shift,
+                    const unsigned int n_hash_functions,
                     struct bloomflex_s& bloom_filter) -> struct bloomflex_s *
 {
   /* Input size is in bytes for full bitmap */
 
-  static constexpr unsigned int multiplier {16};  // multiply by 65,536
   static constexpr unsigned int divider {3};  // divide by 8
   static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
 
   bloom_filter.size = size >> divider;  // divide by 8 to get number of uint64
 
-  bloom_filter.pattern_shift = multiplier;
-  bloom_filter.pattern_count = 1U << bloom_filter.pattern_shift;
+  bloom_filter.pattern_shift = pattern_shift;
+  bloom_filter.pattern_count = 1ULL << bloom_filter.pattern_shift;
   bloom_filter.pattern_mask = bloom_filter.pattern_count - 1;
   bloom_filter.pattern_k = n_hash_functions;
 

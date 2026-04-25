@@ -1434,8 +1434,10 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           assert(bloom_length_in_bits != 0);  // safeguard for future changes
           assert(bloom_length_in_bits >= 64);
           const uint64_t n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
+          static constexpr unsigned int fastidious_pattern_shift {16};
           struct bloomflex_s bloomflex_filter;
-          bloom_f = bloomflex_init(n_bytes, n_hash_functions, bloomflex_filter);
+          bloom_f = bloomflex_init(n_bytes, fastidious_pattern_shift,
+                                   n_hash_functions, bloomflex_filter);
 
 
           /* Empty the old hash and bloom filter
