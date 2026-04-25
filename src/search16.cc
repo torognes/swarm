@@ -396,7 +396,7 @@ auto search16(std::vector<WORD *> & q_start,
               std::vector<uint64_t> & dirbuffer,
               Cpu_features const & cpu_features) -> void
 {
-  (void) cpu_features;  // unused unless built with __x86_64__ and __SSE3__/__SSE4_1__
+  static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE3__/__SSE4_1__
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   VECTORTYPE T;
   VECTORTYPE M;

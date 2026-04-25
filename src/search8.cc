@@ -641,7 +641,7 @@ auto search8(std::vector<BYTE *> & q_start,
              std::vector<uint64_t> & dirbuffer,
              Cpu_features const & cpu_features) -> void
 {
-  (void) cpu_features;  // unused unless built with __x86_64__ and __SSE3__
+  static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE3__
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   VECTORTYPE T;
   VECTORTYPE M;
