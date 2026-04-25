@@ -25,9 +25,9 @@
 #include "scan.h"
 #include "search8.h"
 #include "search16.h"
+#include "swarm.h"
 #include "utils/alignment_parameters.h"
 #include "utils/nt_codec.h"
-#include "utils/opt_threads.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include <cassert>  // assert()
@@ -205,7 +205,8 @@ auto adjust_thread_number(const int n_bits,
 // static_assert(adjust_thread_number(16, 17,  1) == 1);
 
 
-auto search_do(struct Search_state & state,
+auto search_do(struct Parameters const & parameters,
+               struct Search_state & state,
                const uint64_t query_no,
                const uint64_t listlength,
                uint64_t * targets,
@@ -231,7 +232,7 @@ auto search_do(struct Search_state & state,
   const auto thr =
     adjust_thread_number(bits,
                          state.master_length,
-                         static_cast<uint64_t>(opt_threads));
+                         static_cast<uint64_t>(parameters.opt_threads));
 
   state.remainingchunks = thr;
 

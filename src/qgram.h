@@ -25,13 +25,17 @@
 #include <vector>
 
 
+struct Parameters;  // defined in swarm.h
+
 auto findqgrams(char const * seq, uint64_t seqlen,
                 unsigned char * qgramvector) -> void;
 auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t;
-auto qgram_diff_fast(uint64_t seed,
+auto qgram_diff_fast(struct Parameters const & parameters,
+                     uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
                      uint64_t * difflist,
                      std::vector<struct thread_info_s>& thread_info_v) -> void;
-auto qgram_diff_init(std::vector<struct thread_info_s>& thread_info_v) -> void;
+auto qgram_diff_init(struct Parameters const & parameters,
+                     std::vector<struct thread_info_s>& thread_info_v) -> void;
 auto qgram_diff_done() -> void;

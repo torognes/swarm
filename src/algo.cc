@@ -356,7 +356,7 @@ auto algo_run(struct Parameters const & parameters,
   db_qgrams_init(parameters, seqindex_v);
 
   std::vector<struct thread_info_s> thread_info_v;
-  qgram_diff_init(thread_info_v);
+  qgram_diff_init(parameters, thread_info_v);
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   std::vector<uint64_t> targetampliconids(amplicons);
@@ -441,7 +441,7 @@ auto algo_run(struct Parameters const & parameters,
           });
       uint64_t const listlen = qgramamps_v.size();  // temporary refactoring
 
-      qgram_diff_fast(seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
+      qgram_diff_fast(parameters, seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
 
 
       for (auto i = 0ULL; i < listlen; ++i)
@@ -460,7 +460,7 @@ auto algo_run(struct Parameters const & parameters,
 
       if (targetcount > 0)
         {
-          search_do(search_state, seedampliconid, targetcount, targetampliconids.data(),
+          search_do(parameters, search_state, seedampliconid, targetcount, targetampliconids.data(),
                     scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
           for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
@@ -540,7 +540,7 @@ auto algo_run(struct Parameters const & parameters,
                     }
                 }
 
-              qgram_diff_fast(subseed.ampliconid, subseedlistlen, qgramamps_v.data(),
+              qgram_diff_fast(parameters, subseed.ampliconid, subseedlistlen, qgramamps_v.data(),
                               qgramdiffs_v.data(), thread_info_v);
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {
@@ -554,7 +554,7 @@ auto algo_run(struct Parameters const & parameters,
 
               if (targetcount == 0) { continue; }
 
-              search_do(search_state, subseed.ampliconid, targetcount, targetampliconids.data(),
+              search_do(parameters, search_state, subseed.ampliconid, targetcount, targetampliconids.data(),
                         scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
               for (auto target_id = 0ULL; target_id < targetcount; ++target_id)

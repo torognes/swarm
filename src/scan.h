@@ -29,6 +29,7 @@
 
 
 struct Search_data;  // defined in utils/search_data.h
+struct Parameters;  // defined in swarm.h
 
 struct Search_state
 {
@@ -47,7 +48,8 @@ struct Search_state
 
 
 auto search_all(uint64_t query_no) -> void;
-auto search_do(struct Search_state & state,
+auto search_do(struct Parameters const & parameters,
+               struct Search_state & state,
                uint64_t query_no,
                uint64_t listlength,
                uint64_t * targets,

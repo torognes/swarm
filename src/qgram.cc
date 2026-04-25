@@ -46,10 +46,10 @@
 
 #endif
 
+#include "swarm.h"
 #include "utils/qgram_array.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/nt_codec.h"
-#include "utils/opt_threads.h"
 #include "utils/threads.h"
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
@@ -272,13 +272,14 @@ auto qgram_worker(int64_t const nth_thread,
 }
 
 
-auto qgram_diff_init(std::vector<struct thread_info_s>& thread_info_v) -> void
+auto qgram_diff_init(struct Parameters const & parameters,
+                     std::vector<struct thread_info_s>& thread_info_v) -> void
 {
   /* allocate memory for thread info */
-  thread_info_v.resize(static_cast<uint64_t>(opt_threads));
-  assert(opt_threads <= std::numeric_limits<int>::max());
+  thread_info_v.resize(static_cast<uint64_t>(parameters.opt_threads));
+  assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   qgram_threads
-    = new ThreadRunner(static_cast<int>(opt_threads),
+    = new ThreadRunner(static_cast<int>(parameters.opt_threads),
                        [&thread_info_v](int64_t nth_thread) {
                          qgram_worker(nth_thread, thread_info_v);
                        });
@@ -292,7 +293,8 @@ auto qgram_diff_done() -> void
 }
 
 
-auto qgram_diff_fast(uint64_t seed,
+auto qgram_diff_fast(struct Parameters const & parameters,
+                     uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
                      uint64_t * difflist,
@@ -313,7 +315,7 @@ auto qgram_diff_fast(uint64_t seed,
       auto * next_amplist = amplist;
       auto * next_difflist = difflist;
       auto listrest = listlen;
-      auto thrrest = static_cast<uint64_t>(opt_threads);
+      auto thrrest = static_cast<uint64_t>(parameters.opt_threads);
 
       /* distribute work */
       for(auto & tip: thread_info_v) {
