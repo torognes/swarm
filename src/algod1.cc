@@ -38,7 +38,6 @@
 #include "utils/fatal.h"
 #include "utils/nt_codec.h"
 #include "utils/opt_boundary.h"
-#include "utils/opt_no_cluster_breaking.h"
 #include "utils/progress.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
@@ -576,7 +575,8 @@ namespace {
   /******************** FASTIDIOUS END ********************/
 
 
-  inline auto find_variant_matches(unsigned int seed,
+  inline auto find_variant_matches(struct Parameters const & parameters,
+                                   unsigned int seed,
                                    struct var_s & var,
                                    std::vector<unsigned int>& hits_data,
                                    unsigned int & hits_count) -> void
@@ -599,7 +599,7 @@ namespace {
 
             /* avoid self */
             if (seed != amp) {
-              if ((opt_no_cluster_breaking) or
+              if ((parameters.opt_no_cluster_breaking) or
                   (db_getabundance(seed) >= db_getabundance(amp)))
                 {
                   auto const * seed_sequence = db_getsequence(seed);
@@ -624,7 +624,8 @@ namespace {
   }
 
 
-  auto check_variants(unsigned int seed,
+  auto check_variants(struct Parameters const & parameters,
+                      unsigned int seed,
                       std::vector<struct var_s> & variant_list,
                       std::vector<unsigned int>& hits_data) -> unsigned int
   {
@@ -638,17 +639,18 @@ namespace {
     // C++17 refactoring:
     // std::for_each_n(variant_list.begin(), variant_count,
     //                 [seed, &hits_data, &hits_count](auto& variant) {
-    //                   find_variant_matches(seed, variant, hits_data, hits_count);
+    //                   find_variant_matches(parameters, seed, variant, hits_data, hits_count);
     //                 });
     for (auto i = 0U; i < variant_count; ++i) {
-      find_variant_matches(seed, variant_list[i], hits_data, hits_count);
+      find_variant_matches(parameters, seed, variant_list[i], hits_data, hits_count);
     }
 
     return hits_count;
   }
 
 
-  auto network_thread(int64_t nth_thread,
+  auto network_thread(struct Parameters const & parameters,
+                      int64_t nth_thread,
                       struct Network_state & state,
                       struct Progress_status & progress) -> void
   {
@@ -670,7 +672,7 @@ namespace {
 
         lock.unlock();
 
-        const auto hits_count = check_variants(amp, variant_list, hits_data);
+        const auto hits_count = check_variants(parameters, amp, variant_list, hits_data);
         lock.lock();
 
         assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
@@ -1197,8 +1199,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     // refactoring C++14: use std::make_unique
     std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
         static_cast<int>(parameters.opt_threads),
-        [&network_state, &progress](int64_t nth_thread) {
-          network_thread(nth_thread, network_state, progress);
+        [&parameters, &network_state, &progress](int64_t nth_thread) {
+          network_thread(parameters, nth_thread, network_state, progress);
         }));
     network_tr->run();
   }

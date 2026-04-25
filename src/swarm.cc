@@ -32,7 +32,6 @@
 #include "utils/input_output.h"
 #include "utils/open_and_close_files.h"
 #include "utils/opt_boundary.h"
-#include "utils/opt_no_cluster_breaking.h"
 #include "utils/opt_threads.h"
 #include "utils/seqinfo.h"
 #include "utils/x86_cpu_features.h"
@@ -77,7 +76,6 @@ const std::string swarm_version {"3.1.6"};
 /* OPTIONS */
 
 int64_t opt_boundary;
-bool opt_no_cluster_breaking {false};
 int64_t opt_threads;
 
 int64_t penalty_mismatch;
@@ -379,7 +377,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
       case 'n':
         /* no-cluster-breaking */
         parameters.opt_no_cluster_breaking = true;
-        opt_no_cluster_breaking = parameters.opt_no_cluster_breaking;
         break;
 
       case 'o':
