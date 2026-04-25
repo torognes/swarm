@@ -30,7 +30,6 @@
 #include "swarm.h"
 #include "arch.h"
 #include "bloomflex.h"
-#include "bloompat.h"
 #include "db.h"
 #include "hashtable.h"
 #include "nw.h"
@@ -177,7 +176,7 @@ struct Network_state
   std::vector<unsigned int> network_v;
 };
 
-static struct bloom_s * bloom_a {nullptr}; // Bloom filter for amplicons
+static struct bloomflex_s * bloom_a {nullptr}; // Bloom filter for amplicons
 
 static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidious
 
@@ -215,7 +214,7 @@ namespace {
     hash_set_occupied(index);
     hash_set_value(index, hash);
     hash_set_data(index, amp);
-    bloom_set(bloom_a, hash);
+    bloomflex_set(bloom_a, hash);
 
     return has_duplicate;
   }
@@ -401,7 +400,7 @@ namespace {
     const auto variant_count = generate_variants(seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data() not fixable while db returns char*
 
     for (auto i = 0U; i < variant_count; ++i) {
-      if (bloom_get(bloom_a, variant_list[i].hash) and
+      if (bloomflex_get(bloom_a, variant_list[i].hash) and
           hash_check_attach(seq.data(), seqlen, variant_list[i], seed, graft_state)) {
         ++matches;
       }
@@ -582,7 +581,7 @@ namespace {
                                    std::vector<unsigned int>& hits_data,
                                    unsigned int & hits_count) -> void
   {
-    if (not bloom_get(bloom_a, var.hash)) {
+    if (not bloomflex_get(bloom_a, var.hash)) {
       return;
     }
 
@@ -1155,8 +1154,11 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
                                         hash_occupied_v,
                                         hash_values_v,
                                         hash_data_v);
-  struct bloom_s bloom_filter;
-  bloom_a = bloom_init(hashtablesize, bloom_filter);
+  static constexpr unsigned int amplicon_pattern_shift {10};
+  static constexpr unsigned int amplicon_n_hash_functions {8};
+  struct bloomflex_s bloom_filter;
+  bloom_a = bloomflex_init(hashtablesize, amplicon_pattern_shift,
+                           amplicon_n_hash_functions, bloom_filter);
 
   struct Progress_status progress;
   progress_init(progress, "Hashing sequences:", amplicons, parameters);
@@ -1444,7 +1446,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
              before we reinsert only the light swarm amplicons */
 
           std::fill(hash_occupied_v.begin(), hash_occupied_v.end(), 0U);
-          bloom_zap(bloom_filter);
+          bloomflex_zap(bloom_filter);
 
           progress_init(progress, "Adding light swarm amplicons to Bloom filter",
                         amplicons_in_small_clusters, parameters);
@@ -1517,7 +1519,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
   std::fprintf(parameters.logfile, "Max generations:   %u\n", maxgen);
 
-  bloom_exit(bloom_a);
+  bloomflex_exit(bloom_filter);
   hash_free();
 
   swarminfo = nullptr;
