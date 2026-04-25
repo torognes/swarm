@@ -26,7 +26,6 @@
 #include "algod1.h"
 #include "db.h"
 #include "derep.h"
-#include "utils/alignment_parameters.h"
 #include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "utils/input_output.h"
@@ -69,13 +68,6 @@ constexpr auto int_max = std::numeric_limits<int>::max();
 constexpr auto int16_max = std::numeric_limits<int16_t>::max();
 static_assert(int_max > int16_max, "Your compiler uses very short integers.");
 const std::string swarm_version {"3.1.6"};
-
-
-/* OPTIONS */
-
-int64_t penalty_mismatch;
-int64_t penalty_gapextend;
-int64_t penalty_gapopen;
 
 
 /* fine names and command line options */
@@ -449,21 +441,15 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
 auto set_alignment_scoring_system(struct Parameters &parameters) -> void {
   parameters.penalty_mismatch = (2 * parameters.opt_match_reward) + (2 * parameters.opt_mismatch_penalty);
-  penalty_mismatch = parameters.penalty_mismatch;
   parameters.penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
-  penalty_gapopen = parameters.penalty_gapopen;
   parameters.penalty_gapextend = parameters.opt_match_reward + (2 * parameters.opt_gap_extension_penalty);
-  penalty_gapextend = parameters.penalty_gapextend;
 
   const int64_t penalty_factor {gcd(gcd(parameters.penalty_mismatch, parameters.penalty_gapopen), parameters.penalty_gapextend)};
 
   // clang: risk of DivideZero, but that would require gcd(0, 0) which is not possible
   parameters.penalty_mismatch /= penalty_factor;
-  penalty_mismatch = parameters.penalty_mismatch;
   parameters.penalty_gapopen /= penalty_factor;
-  penalty_gapopen = parameters.penalty_gapopen;
   parameters.penalty_gapextend /= penalty_factor;
-  penalty_gapextend = parameters.penalty_gapextend;
 }
 
 

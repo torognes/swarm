@@ -26,7 +26,6 @@
 #include "search8.h"
 #include "search16.h"
 #include "swarm.h"
-#include "utils/alignment_parameters.h"
 #include "utils/nt_codec.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
@@ -81,13 +80,14 @@ auto search_init(struct Search_data & thread_data,
 }
 
 
-auto search_chunk(struct Search_data & thread_data,
+auto search_chunk(struct Parameters const & parameters,
+                  struct Search_data & thread_data,
                   struct Search_state const & state,
                   const int64_t bits) -> void
 {
   static constexpr auto sixteen_bytes = 16;
-  alignas(sixteen_bytes) static auto score_matrix_8 = create_score_matrix<unsigned char>(penalty_mismatch);
-  alignas(sixteen_bytes) static auto score_matrix_16 = create_score_matrix<unsigned short>(penalty_mismatch);
+  alignas(sixteen_bytes) static auto score_matrix_8 = create_score_matrix<unsigned char>(parameters.penalty_mismatch);
+  alignas(sixteen_bytes) static auto score_matrix_16 = create_score_matrix<unsigned short>(parameters.penalty_mismatch);
   static constexpr auto bit_mode_16 = 16U;
   assert(thread_data.target_index <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const target_index = static_cast<std::ptrdiff_t>(thread_data.target_index);
@@ -96,11 +96,11 @@ auto search_chunk(struct Search_data & thread_data,
   assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
   if (bits == bit_mode_16) {
-    assert(penalty_gapopen <= std::numeric_limits<WORD>::max());
-    assert(penalty_gapextend <= std::numeric_limits<WORD>::max());
+    assert(parameters.penalty_gapopen <= std::numeric_limits<WORD>::max());
+    assert(parameters.penalty_gapextend <= std::numeric_limits<WORD>::max());
     search16(thread_data.qtable_w_v,
-             static_cast<WORD>(penalty_gapopen),
-             static_cast<WORD>(penalty_gapextend),
+             static_cast<WORD>(parameters.penalty_gapopen),
+             static_cast<WORD>(parameters.penalty_gapextend),
              score_matrix_16.data(),
              thread_data.dprofile_w_v,
              reinterpret_cast<WORD *>(thread_data.hearray_v.data()),
@@ -113,11 +113,11 @@ auto search_chunk(struct Search_data & thread_data,
              static_cast<uint64_t>(state.query.len),
              thread_data.dir_array_v);
   } else {
-    assert(penalty_gapopen <= std::numeric_limits<BYTE>::max());
-    assert(penalty_gapextend <= std::numeric_limits<BYTE>::max());
+    assert(parameters.penalty_gapopen <= std::numeric_limits<BYTE>::max());
+    assert(parameters.penalty_gapextend <= std::numeric_limits<BYTE>::max());
     search8(thread_data.qtable_v,
-            static_cast<BYTE>(penalty_gapopen),
-            static_cast<BYTE>(penalty_gapextend),
+            static_cast<BYTE>(parameters.penalty_gapopen),
+            static_cast<BYTE>(parameters.penalty_gapextend),
             score_matrix_8.data(),
             thread_data.dprofile_v,
             thread_data.hearray_v.data(),
@@ -160,11 +160,12 @@ auto search_getwork(struct Search_state & state,
 }
 
 
-auto search_worker_core(const int64_t thread_id, struct Search_state & state) -> void {
+auto search_worker_core(struct Parameters const & parameters,
+                        const int64_t thread_id, struct Search_state & state) -> void {
   auto & thread_data = *std::next(state.search_data, thread_id);
   search_init(thread_data, state.query);
   while(search_getwork(state, thread_data.target_count, thread_data.target_index)) {
-    search_chunk(thread_data, state, state.master_bits);
+    search_chunk(parameters, thread_data, state, state.master_bits);
   }
 }
 
@@ -237,7 +238,7 @@ auto search_do(struct Parameters const & parameters,
   state.remainingchunks = thr;
 
   if (thr == 1) {
-    search_worker_core(0, state);
+    search_worker_core(parameters, 0, state);
   }
   else {
     search_threads->run();

@@ -61,4 +61,5 @@ auto search_do(struct Parameters const & parameters,
 auto search_begin(struct Search_state & state,
                   std::vector<struct Search_data> & search_data_v) -> void;
 auto search_end(struct Search_state & state) -> void;
-auto search_worker_core(int64_t thread_id, struct Search_state & state) -> void;
+auto search_worker_core(struct Parameters const & parameters,
+                        int64_t thread_id, struct Search_state & state) -> void;

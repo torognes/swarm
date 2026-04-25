@@ -342,8 +342,8 @@ auto algo_run(struct Parameters const & parameters,
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(
       static_cast<int>(parameters.opt_threads),
-      [&search_state](int64_t thread_id) {
-        search_worker_core(thread_id, search_state);
+      [&parameters, &search_state](int64_t thread_id) {
+        search_worker_core(parameters, thread_id, search_state);
       }));
 
   uint64_t largestswarm {0};
