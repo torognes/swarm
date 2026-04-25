@@ -33,6 +33,7 @@
 
 #include "bloomflex.h"
 #include "utils/pseudo_rng.h"
+#include <algorithm>  // std::fill
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
@@ -112,6 +113,13 @@ auto bloomflex_init(const uint64_t size, const unsigned int pattern_shift,
   bloom_filter.bitmap = bloom_filter.bitmap_v.data();
 
   return &bloom_filter;
+}
+
+
+auto bloomflex_zap(struct bloomflex_s & bloom_filter) -> void
+{
+  static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
+  std::fill(bloom_filter.bitmap_v.begin(), bloom_filter.bitmap_v.end(), uint64_max);
 }
 
 
