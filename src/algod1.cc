@@ -37,7 +37,6 @@
 #include "utils/cigar.h"
 #include "utils/fatal.h"
 #include "utils/nt_codec.h"
-#include "utils/opt_boundary.h"
 #include "utils/progress.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
@@ -466,7 +465,8 @@ namespace {
   }
 
 
-  auto check_heavy_thread(int64_t nth_thread,
+  auto check_heavy_thread(struct Parameters const & parameters,
+                          int64_t nth_thread,
                           struct Heavy_state & heavy_state,
                           struct Graft_state & graft_state,
                           struct Progress_status & progress) -> void
@@ -494,7 +494,7 @@ namespace {
         assert(target_amplicon.swarmid <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const signed_swarmid = static_cast<std::ptrdiff_t>(target_amplicon.swarmid);
         auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
-        if (target_swarm.mass >= static_cast<uint64_t>(opt_boundary))
+        if (target_swarm.mass >= static_cast<uint64_t>(parameters.opt_boundary))
           {
             progress_update(progress, ++heavy_state.progress);  // refactoring: separate operations?
             lock.unlock();
@@ -537,7 +537,8 @@ namespace {
   }
 
 
-  auto mark_light_thread(int64_t nth_thread,
+  auto mark_light_thread(struct Parameters const & parameters,
+                         int64_t nth_thread,
                          struct Light_state & state,
                          struct Progress_status & progress) -> void
   {
@@ -559,7 +560,7 @@ namespace {
         assert(target_amplicon.swarmid <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const signed_swarmid = static_cast<std::ptrdiff_t>(target_amplicon.swarmid);
         auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
-        if (target_swarm.mass < static_cast<uint64_t>(opt_boundary))
+        if (target_swarm.mass < static_cast<uint64_t>(parameters.opt_boundary))
           {
             progress_update(progress, ++state.progress);  // refactoring: separate operations?
             lock.unlock();
@@ -1344,7 +1345,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
       for (auto i = 0ULL; i < swarmcount; ++i)
         {
           auto const & swarm_info = swarminfo_v[i];
-          if (swarm_info.mass < static_cast<uint64_t>(opt_boundary))
+          if (swarm_info.mass < static_cast<uint64_t>(parameters.opt_boundary))
             {
               amplicons_in_small_clusters += swarm_info.size;
               nucleotides_in_small_clusters += swarm_info.sumlen;
@@ -1464,8 +1465,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&light_state, &progress](int64_t nth_thread) {
-                  mark_light_thread(nth_thread, light_state, progress);
+                [&parameters, &light_state, &progress](int64_t nth_thread) {
+                  mark_light_thread(parameters, nth_thread, light_state, progress);
                 }));
             light_tr->run();
           }
@@ -1491,8 +1492,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&heavy_state, &graft_state, &progress](int64_t nth_thread) {
-                  check_heavy_thread(nth_thread, heavy_state, graft_state, progress);
+                [&parameters, &heavy_state, &graft_state, &progress](int64_t nth_thread) {
+                  check_heavy_thread(parameters, nth_thread, heavy_state, graft_state, progress);
                 }));
             heavy_tr->run();
           }

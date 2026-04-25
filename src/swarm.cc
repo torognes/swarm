@@ -31,7 +31,6 @@
 #include "utils/gcd.h"
 #include "utils/input_output.h"
 #include "utils/open_and_close_files.h"
-#include "utils/opt_boundary.h"
 #include "utils/opt_threads.h"
 #include "utils/seqinfo.h"
 #include "utils/x86_cpu_features.h"
@@ -75,7 +74,6 @@ const std::string swarm_version {"3.1.6"};
 
 /* OPTIONS */
 
-int64_t opt_boundary;
 int64_t opt_threads;
 
 int64_t penalty_mismatch;
@@ -267,7 +265,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
   static const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
   std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
 
-  opt_boundary = parameters.opt_boundary;
   opt_threads = parameters.opt_threads;
   opterr = 1;  // unused variable? get_opt option?
 
@@ -321,7 +318,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
       case 'b':
         /* boundary */
         parameters.opt_boundary = args_long(optarg, "-b or --boundary");
-        opt_boundary = parameters.opt_boundary;
         break;
 
       case 'c':
