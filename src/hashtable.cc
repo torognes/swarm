@@ -21,134 +21,108 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <algorithm>  // std::fill
 #include <cassert>
-#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>
-#include <iterator>  // std::next
-#include <vector>
 #include "hashtable.h"
 #include "utils/hashtable_size.h"
 
-#ifndef NDEBUG
-#include <limits>
-// C++17 refactoring: [[maybe_unused]]
-constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
-#endif
 
-// refactoring: all functions and globals are only used in
-// algod1.cc. It should be possible to pass references to a struct and
-// to vectors, and to eliminate all globals.
-uint64_t hash_mask {0};
-unsigned char * hash_occupied {nullptr};
-uint64_t * hash_values {nullptr};
-unsigned int * hash_data {nullptr};
+auto Hashtable::allocate(const uint64_t amplicons) -> uint64_t
+{
+  static constexpr int padding {63};  // make sure our final value is >= 64 / 8
+  static constexpr int convert_to_bytes {8};
+
+  const auto hashtablesize = compute_hashtable_size(amplicons);
+  mask = hashtablesize - 1;
+
+  occupied.assign((hashtablesize + padding) / convert_to_bytes, 0U);
+  values.assign(hashtablesize, 0U);
+  data.assign(hashtablesize, 0U);
+
+  return hashtablesize;
+}
 
 
-auto hash_getindex(uint64_t hash) -> uint64_t
+auto Hashtable::clear() -> void
+{
+  std::fill(occupied.begin(), occupied.end(), 0U);
+}
+
+
+// noexcept: only performs arithmetic on built-in integer types.
+auto Hashtable::getindex(uint64_t hash) const noexcept -> uint64_t
 {
   // Shift bits right to get independence from the simple Bloom filter hash
   static constexpr auto divider = 32U;  // drop the first 32 bits
   hash = hash >> divider;
-  return hash & hash_mask;
+  return hash & mask;
 }
 
 
-auto hash_getnextindex(uint64_t index) -> uint64_t
+// noexcept: only performs arithmetic on built-in integer types.
+auto Hashtable::getnextindex(const uint64_t index) const noexcept -> uint64_t
 {
-  return (index + 1) & hash_mask;
+  return (index + 1) & mask;
 }
 
 
-auto hash_set_occupied(const uint64_t index) -> void
+// noexcept: arithmetic plus an unchecked vector subscript (operator[] does
+// not throw; out-of-range access is guarded by the assert in debug builds).
+auto Hashtable::set_occupied(const uint64_t index) noexcept -> void
 {
   static constexpr auto divider = 3U;
   static constexpr auto max_range = 7U;  // 0000 0111
   auto const multiplier = index & max_range;  // mask all but the first 3 bits
   assert(multiplier <= 7);
   auto const bit_to_set = static_cast<unsigned char>(1U << multiplier);  // bit 0 to bit 7
-  assert((index >> divider) <= max_ptrdiff);
-  auto const position = static_cast<std::ptrdiff_t>(index >> divider);  // divide by 8, so drop the first 3 bits
-  auto & target_bucket = *std::next(hash_occupied, position);
-  target_bucket |= bit_to_set;
+  auto const position = index >> divider;  // divide by 8, so drop the first 3 bits
+  assert(position < occupied.size());
+  occupied[position] |= bit_to_set;
 }
 
 
-auto hash_is_occupied(const uint64_t index) -> bool
+// noexcept: same reasoning as set_occupied.
+auto Hashtable::is_occupied(const uint64_t index) const noexcept -> bool
 {
   static constexpr auto divider = 3U;
   static constexpr auto max_range = 7U;
   auto const multiplier = index & max_range;  // mask all but the first 3 bits
   assert(multiplier <= 7);
   auto const bit_to_check = static_cast<unsigned char>(1U << multiplier);  // bit 0 to bit 7
-  assert((index >> divider) <= max_ptrdiff);
-  auto const position = static_cast<std::ptrdiff_t>(index >> divider);  // divide by 8, so drop the first 3 bits
-  auto & target_bucket = *std::next(hash_occupied, position);
-  return (target_bucket & bit_to_check) != 0;
+  auto const position = index >> divider;  // divide by 8, so drop the first 3 bits
+  assert(position < occupied.size());
+  return (occupied[position] & bit_to_check) != 0;
 }
 
 
-auto hash_set_value(const uint64_t index, const uint64_t hash) -> void {
-  assert(index <= max_ptrdiff);
-  auto const position = static_cast<std::ptrdiff_t>(index);
-  auto & target_hash_value = *std::next(hash_values, position);
-  target_hash_value = hash;
-}
-
-
-auto hash_compare_value(const uint64_t index, const uint64_t hash) -> bool
+// noexcept: vector operator[] does not throw.
+auto Hashtable::set_value(const uint64_t index, const uint64_t hash) noexcept -> void
 {
-  assert(index <= max_ptrdiff);
-  auto const position = static_cast<std::ptrdiff_t>(index);
-  auto & target_hash_value = *std::next(hash_values, position);
-  return target_hash_value == hash;
+  assert(index < values.size());
+  values[index] = hash;
 }
 
 
-auto hash_get_data(const uint64_t index) -> unsigned int
+// noexcept: vector operator[] does not throw, comparison is on built-ins.
+auto Hashtable::compare_value(const uint64_t index, const uint64_t hash) const noexcept -> bool
 {
-  assert(index <= max_ptrdiff);
-  auto const position = static_cast<std::ptrdiff_t>(index);
-  auto & target_hash_data = *std::next(hash_data, position);
-  return target_hash_data;
+  assert(index < values.size());
+  return values[index] == hash;
 }
 
 
-auto hash_set_data(const uint64_t index, const unsigned int amplicon_id) -> void
+// noexcept: vector operator[] does not throw.
+auto Hashtable::get_data(const uint64_t index) const noexcept -> unsigned int
 {
-  assert(index <= max_ptrdiff);
-  auto const position = static_cast<std::ptrdiff_t>(index);
-  auto & target_hash_data = *std::next(hash_data, position);
-  target_hash_data = amplicon_id;
+  assert(index < data.size());
+  return data[index];
 }
 
 
-auto hash_alloc(const uint64_t amplicons,
-                std::vector<unsigned char>& hash_occupied_v,
-                std::vector<uint64_t>& hash_values_v,
-                std::vector<unsigned int>& hash_data_v) -> uint64_t
+// noexcept: vector operator[] does not throw.
+auto Hashtable::set_data(const uint64_t index, const unsigned int amplicon_id) noexcept -> void
 {
-  static constexpr int padding {63};  // make sure our final value is >= 64 / 8
-  static constexpr int convert_to_bytes {8};
-
-  const auto hashtablesize = compute_hashtable_size(amplicons);
-  hash_mask = hashtablesize - 1;
-
-  hash_occupied_v.resize((hashtablesize + padding) / convert_to_bytes);
-  hash_occupied = hash_occupied_v.data();
-
-  hash_values_v.resize(hashtablesize);
-  hash_values = hash_values_v.data();
-
-  hash_data_v.resize(hashtablesize);
-  hash_data = hash_data_v.data();
-
-  return hashtablesize;
-}
-
-
-auto hash_free() -> void
-{
-  hash_occupied = nullptr;
-  hash_values = nullptr;
-  hash_data = nullptr;
+  assert(index < data.size());
+  data[index] = amplicon_id;
 }

@@ -195,23 +195,23 @@ namespace {
   }
 
 
-  inline auto hash_insert(unsigned int const amp) -> bool {
+  inline auto hash_insert(Hashtable & hash_table, unsigned int const amp) -> bool {
     /* find the first empty bucket */
     const auto hash = db_gethash(amp);
-    auto index = hash_getindex(hash);
+    auto index = hash_table.getindex(hash);
     auto has_duplicate = false;
-    while (hash_is_occupied(index)) {
-      auto const is_same_amplicon = hash_compare_value(index, hash) and
-        check_amp_identical(amp, hash_get_data(index));
+    while (hash_table.is_occupied(index)) {
+      auto const is_same_amplicon = hash_table.compare_value(index, hash) and
+        check_amp_identical(amp, hash_table.get_data(index));
       if (is_same_amplicon) {
         has_duplicate = true;
       }
-      index = hash_getnextindex(index);
+      index = hash_table.getnextindex(index);
     }
 
-    hash_set_occupied(index);
-    hash_set_value(index, hash);
-    hash_set_data(index, amp);
+    hash_table.set_occupied(index);
+    hash_table.set_value(index, hash);
+    hash_table.set_data(index, amp);
     bloomflex_set(bloom_a, hash);
 
     return has_duplicate;
@@ -347,7 +347,8 @@ namespace {
   }
 
 
-  auto hash_check_attach(char * seed_sequence,
+  auto hash_check_attach(Hashtable const & hash_table,
+                         char * seed_sequence,
                          unsigned int seed_seqlen,
                          struct var_s & var,
                          unsigned int seed,
@@ -357,16 +358,16 @@ namespace {
 
     /* compute hash and corresponding hash table index */
     const auto hash = var.hash;
-    auto index = hash_getindex(hash);
+    auto index = hash_table.getindex(hash);
 
     /* find matching buckets */
 
-    while (hash_is_occupied(index))
+    while (hash_table.is_occupied(index))
       {
-        if (hash_compare_value(index, hash))
+        if (hash_table.compare_value(index, hash))
           {
             /* check that mass is below threshold */
-            const auto amp = hash_get_data(index);
+            const auto amp = hash_table.get_data(index);
 
             /* make absolutely sure sequences are identical */
             auto const * amp_sequence = db_getsequence(amp);
@@ -377,13 +378,14 @@ namespace {
                 return true;
               }
           }
-        index = hash_getnextindex(index);
+        index = hash_table.getnextindex(index);
       }
     return false;
   }
 
 
-  inline auto check_heavy_var_2(std::vector<char>& seq,
+  inline auto check_heavy_var_2(Hashtable const & hash_table,
+                                std::vector<char>& seq,
                                 unsigned int seqlen,
                                 unsigned int seed,
                                 std::vector<struct var_s>& variant_list,
@@ -399,7 +401,7 @@ namespace {
 
     for (auto i = 0U; i < variant_count; ++i) {
       if (bloomflex_get(bloom_a, variant_list[i].hash) and
-          hash_check_attach(seq.data(), seqlen, variant_list[i], seed, graft_state)) {
+          hash_check_attach(hash_table, seq.data(), seqlen, variant_list[i], seed, graft_state)) {
         ++matches;
       }
     }
@@ -408,7 +410,8 @@ namespace {
   }
 
 
-  auto check_heavy_var(struct bloomflex_s * bloom,
+  auto check_heavy_var(Hashtable const & hash_table,
+                       struct bloomflex_s * bloom,
                        std::vector<char>& varseq,
                        unsigned int seed,
                        uint64_t & number_of_matches,
@@ -452,7 +455,8 @@ namespace {
             auto varlen = 0U;
             generate_variant_sequence(sequence, seqlen,
                                       var, varseq, varlen);
-            matches += check_heavy_var_2(varseq,
+            matches += check_heavy_var_2(hash_table,
+                                         varseq,
                                          varlen,
                                          seed,
                                          variant_list2,
@@ -466,6 +470,7 @@ namespace {
 
 
   auto check_heavy_thread(struct Parameters const & parameters,
+                          Hashtable const & hash_table,
                           int64_t nth_thread,
                           struct Heavy_state & heavy_state,
                           struct Graft_state & graft_state,
@@ -500,7 +505,7 @@ namespace {
             lock.unlock();
             uint64_t number_of_matches {0};
             uint64_t number_of_variants {0};
-            check_heavy_var(bloom_f, buffer1, heavy_amplicon_id,
+            check_heavy_var(hash_table, bloom_f, buffer1, heavy_amplicon_id,
                             number_of_matches, number_of_variants,
                             variant_list, variant_list2,
                             graft_state);
@@ -511,7 +516,8 @@ namespace {
   }
 
 
-  auto mark_light_var(struct bloomflex_s * bloom,
+  auto mark_light_var(Hashtable & hash_table,
+                      struct bloomflex_s * bloom,
                       unsigned int seed,
                       std::vector<struct var_s>& variant_list) -> uint64_t
   {
@@ -522,7 +528,7 @@ namespace {
       seed is the original seed
     */
 
-    hash_insert(seed);
+    hash_insert(hash_table, seed);
 
     auto const * sequence = db_getsequence(seed);
     const auto seqlen = db_getsequencelen(seed);
@@ -538,6 +544,7 @@ namespace {
 
 
   auto mark_light_thread(struct Parameters const & parameters,
+                         Hashtable & hash_table,
                          int64_t nth_thread,
                          struct Light_state & state,
                          struct Progress_status & progress) -> void
@@ -564,7 +571,7 @@ namespace {
           {
             progress_update(progress, ++state.progress);  // refactoring: separate operations?
             lock.unlock();
-            const auto variant_count = mark_light_var(bloom_f, light_amplicon_id,
+            const auto variant_count = mark_light_var(hash_table, bloom_f, light_amplicon_id,
                                                       variant_list);
             lock.lock();
             state.variants += variant_count;
@@ -577,6 +584,7 @@ namespace {
 
 
   inline auto find_variant_matches(struct Parameters const & parameters,
+                                   Hashtable const & hash_table,
                                    unsigned int seed,
                                    struct var_s & var,
                                    std::vector<unsigned int>& hits_data,
@@ -588,15 +596,15 @@ namespace {
 
     /* compute hash and corresponding hash table index */
 
-    auto index = hash_getindex(var.hash);
+    auto index = hash_table.getindex(var.hash);
 
     /* find matching buckets */
 
-    while (hash_is_occupied(index))
+    while (hash_table.is_occupied(index))
       {
-        if (hash_compare_value(index, var.hash))
+        if (hash_table.compare_value(index, var.hash))
           {
-            const auto amp = hash_get_data(index);
+            const auto amp = hash_table.get_data(index);
 
             /* avoid self */
             if (seed != amp) {
@@ -620,12 +628,13 @@ namespace {
                 }
             }
           }
-        index = hash_getnextindex(index);
+        index = hash_table.getnextindex(index);
       }
   }
 
 
   auto check_variants(struct Parameters const & parameters,
+                      Hashtable const & hash_table,
                       unsigned int seed,
                       std::vector<struct var_s> & variant_list,
                       std::vector<unsigned int>& hits_data) -> unsigned int
@@ -640,10 +649,10 @@ namespace {
     // C++17 refactoring:
     // std::for_each_n(variant_list.begin(), variant_count,
     //                 [seed, &hits_data, &hits_count](auto& variant) {
-    //                   find_variant_matches(parameters, seed, variant, hits_data, hits_count);
+    //                   find_variant_matches(parameters, hash_table, seed, variant, hits_data, hits_count);
     //                 });
     for (auto i = 0U; i < variant_count; ++i) {
-      find_variant_matches(parameters, seed, variant_list[i], hits_data, hits_count);
+      find_variant_matches(parameters, hash_table, seed, variant_list[i], hits_data, hits_count);
     }
 
     return hits_count;
@@ -651,6 +660,7 @@ namespace {
 
 
   auto network_thread(struct Parameters const & parameters,
+                      Hashtable const & hash_table,
                       int64_t nth_thread,
                       struct Network_state & state,
                       struct Progress_status & progress) -> void
@@ -673,7 +683,7 @@ namespace {
 
         lock.unlock();
 
-        const auto hits_count = check_variants(parameters, amp, variant_list, hits_data);
+        const auto hits_count = check_variants(parameters, hash_table, amp, variant_list, hits_data);
         lock.lock();
 
         assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
@@ -1150,13 +1160,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
 
   /* compute hash for all amplicons and store them in a hash table */
-  std::vector<unsigned char> hash_occupied_v;
-  std::vector<uint64_t> hash_values_v;
-  std::vector<unsigned int> hash_data_v;
-  const auto hashtablesize = hash_alloc(amplicons,
-                                        hash_occupied_v,
-                                        hash_values_v,
-                                        hash_data_v);
+  Hashtable hash_table;
+  const auto hashtablesize = hash_table.allocate(amplicons);
   static constexpr unsigned int amplicon_pattern_shift {10};
   static constexpr unsigned int amplicon_n_hash_functions {8};
   struct bloomflex_s bloom_filter;
@@ -1169,7 +1174,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   bool has_duplicate {false};
   for (auto k = 0U; k < amplicons; ++k)
     {
-      has_duplicate = hash_insert(k);
+      has_duplicate = hash_insert(hash_table, k);
       progress_update(progress, k);
       if (has_duplicate) {
         break;
@@ -1200,8 +1205,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     // refactoring C++14: use std::make_unique
     std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
         static_cast<int>(parameters.opt_threads),
-        [&parameters, &network_state, &progress](int64_t nth_thread) {
-          network_thread(parameters, nth_thread, network_state, progress);
+        [&parameters, &hash_table, &network_state, &progress](int64_t nth_thread) {
+          network_thread(parameters, hash_table, nth_thread, network_state, progress);
         }));
     network_tr->run();
   }
@@ -1448,7 +1453,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           /* Empty the old hash and bloom filter
              before we reinsert only the light swarm amplicons */
 
-          std::fill(hash_occupied_v.begin(), hash_occupied_v.end(), 0U);
+          hash_table.clear();
           bloomflex_zap(bloom_filter);
 
           progress_init(progress, "Adding light swarm amplicons to Bloom filter",
@@ -1465,8 +1470,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &light_state, &progress](int64_t nth_thread) {
-                  mark_light_thread(parameters, nth_thread, light_state, progress);
+                [&parameters, &hash_table, &light_state, &progress](int64_t nth_thread) {
+                  mark_light_thread(parameters, hash_table, nth_thread, light_state, progress);
                 }));
             light_tr->run();
           }
@@ -1492,8 +1497,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &heavy_state, &graft_state, &progress](int64_t nth_thread) {
-                  check_heavy_thread(parameters, nth_thread, heavy_state, graft_state, progress);
+                [&parameters, &hash_table, &heavy_state, &graft_state, &progress](int64_t nth_thread) {
+                  check_heavy_thread(parameters, hash_table, nth_thread, heavy_state, graft_state, progress);
                 }));
             heavy_tr->run();
           }
@@ -1523,7 +1528,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   std::fprintf(parameters.logfile, "Max generations:   %u\n", maxgen);
 
   bloomflex_exit(bloom_filter);
-  hash_free();
 
   swarminfo = nullptr;
   ampinfo = nullptr;

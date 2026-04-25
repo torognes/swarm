@@ -25,25 +25,39 @@
 #include <vector>
 
 
-auto hash_getindex(uint64_t hash) -> uint64_t;
+// Open-addressing hash table with linear probing, specialised for the
+// (64-bit Zobrist hash -> amplicon id) lookups performed by algod1.cc.
+// Three flat buffers back the table: a packed bitset of occupancy, the
+// stored hash value at each slot, and the amplicon id at each slot.
+class Hashtable
+{
+public:
 
-auto hash_getnextindex(uint64_t index) -> uint64_t;
+  // Allocate buffers sized for `amplicons` entries; returns the resulting
+  // hash-table size (always a power of two).
+  auto allocate(uint64_t amplicons) -> uint64_t;
 
-auto hash_set_occupied(uint64_t index) -> void;
+  // Reset all occupancy bits to zero, preserving allocated capacity. The
+  // value/data buffers are left untouched: they are only read when the
+  // matching occupancy bit is set.
+  auto clear() -> void;
 
-auto hash_is_occupied(uint64_t index) -> bool;
+  auto getindex(uint64_t hash) const noexcept -> uint64_t;
+  auto getnextindex(uint64_t index) const noexcept -> uint64_t;
 
-auto hash_set_value(uint64_t index, uint64_t hash) -> void;
+  auto set_occupied(uint64_t index) noexcept -> void;
+  auto is_occupied(uint64_t index) const noexcept -> bool;
 
-auto hash_compare_value(uint64_t index, uint64_t hash) -> bool;
+  auto set_value(uint64_t index, uint64_t hash) noexcept -> void;
+  auto compare_value(uint64_t index, uint64_t hash) const noexcept -> bool;
 
-auto hash_get_data(uint64_t index) -> unsigned int;
+  auto get_data(uint64_t index) const noexcept -> unsigned int;
+  auto set_data(uint64_t index, unsigned int amplicon_id) noexcept -> void;
 
-auto hash_set_data(uint64_t index, unsigned int amplicon_id) -> void;
+private:
 
-auto hash_alloc(uint64_t amplicons,
-                std::vector<unsigned char>& hash_occupied_v,
-                std::vector<uint64_t>& hash_values_v,
-                std::vector<unsigned int>& hash_data_v) -> uint64_t;
-
-auto hash_free() -> void;
+  uint64_t mask {0};
+  std::vector<unsigned char> occupied;
+  std::vector<uint64_t> values;
+  std::vector<unsigned int> data;
+};
