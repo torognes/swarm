@@ -97,12 +97,15 @@ auto findqgrams(char const * seq, uint64_t seqlen,
 auto qgram_work_diff(thread_info_s * tip) -> void;
 auto qgram_worker(int64_t nth_thread,
                   std::vector<struct thread_info_s> const & thread_info_v) -> void;
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t;
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+                         Cpu_features const & cpu_features) -> uint64_t;
 
 #ifdef __aarch64__
 
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+                         Cpu_features const & cpu_features) -> uint64_t
 {
+  static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE2__
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(uint8x16_t);  // 8
   auto * lhs_ptr = reinterpret_cast<uint8x16_t *>(lhs);
   auto * rhs_ptr = reinterpret_cast<uint8x16_t *>(rhs);
@@ -119,8 +122,10 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
 
 #elif defined __PPC__
 
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+                         Cpu_features const & cpu_features) -> uint64_t
 {
+  static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE2__
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(vector unsigned char);  // 8
   auto * lhs_ptr = reinterpret_cast<vector unsigned char *>(lhs);
   auto * rhs_ptr = reinterpret_cast<vector unsigned char *>(rhs);
