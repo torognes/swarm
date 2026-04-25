@@ -33,7 +33,7 @@
 
 #include "bloomflex.h"
 #include "utils/pseudo_rng.h"
-#include <algorithm>  // std::fill
+#include <algorithm>  // std::fill, std::max
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
@@ -93,12 +93,14 @@ auto bloomflex_init(const uint64_t size, const unsigned int pattern_shift,
                     const unsigned int n_hash_functions,
                     struct bloomflex_s& bloom_filter) -> struct bloomflex_s *
 {
-  /* Input size is in bytes for full bitmap */
+  /* Input size is in bytes for full bitmap; rounded up to at least
+     one uint64 so bloomflex_adr can compute a valid address. */
 
+  static constexpr uint64_t bytes_per_uint64 {8};
   static constexpr unsigned int divider {3};  // divide by 8
   static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
 
-  bloom_filter.size = size >> divider;  // divide by 8 to get number of uint64
+  bloom_filter.size = std::max(size, bytes_per_uint64) >> divider;  // number of uint64
 
   bloom_filter.pattern_shift = pattern_shift;
   bloom_filter.pattern_count = 1ULL << bloom_filter.pattern_shift;
