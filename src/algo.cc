@@ -337,7 +337,7 @@ auto algo_run(struct Parameters const & parameters,
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
   struct Search_state search_state {};
-  search_begin(search_state, search_data_v);
+  search_begin(parameters, search_state, search_data_v);
   /* start threads */
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(

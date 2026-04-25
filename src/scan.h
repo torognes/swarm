@@ -58,7 +58,8 @@ auto search_do(struct Parameters const & parameters,
                uint64_t * alignlengths,
                int bits,
                ThreadRunner * search_threads) -> void;
-auto search_begin(struct Search_state & state,
+auto search_begin(struct Parameters const & parameters,
+                  struct Search_state & state,
                   std::vector<struct Search_data> & search_data_v) -> void;
 auto search_end(struct Search_state & state) -> void;
 auto search_worker_core(struct Parameters const & parameters,

@@ -23,6 +23,7 @@
 
 #include "db.h"
 #include "utils/backtrack.h"
+#include "utils/cpu_features.h"
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
@@ -45,8 +46,6 @@ using VECTORTYPE = uint16x8_t;
 
 #include <emmintrin.h>  // SSE2 intrinsics
 #include "utils/intrinsics_to_functions_x86_64.h"
-#include "utils/x86_cpu_feature_ssse3.h"
-#include "utils/x86_cpu_feature_sse41.h"
 using VECTORTYPE = __m128i;
 
 #endif
@@ -394,8 +393,10 @@ auto search16(std::vector<WORD *> & q_start,
               uint64_t * alignmentlengths,
               char const * qseq,
               uint64_t qlen,
-              std::vector<uint64_t> & dirbuffer) -> void
+              std::vector<uint64_t> & dirbuffer,
+              Cpu_features const & cpu_features) -> void
 {
+  (void) cpu_features;  // unused unless built with __x86_64__ and __SSE3__/__SSE4_1__
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   VECTORTYPE T;
   VECTORTYPE M;
@@ -476,7 +477,7 @@ auto search16(std::vector<WORD *> & q_start,
 
 #ifdef __x86_64__
 #ifdef __SSE3__
-          if (ssse3_present != 0)
+          if (cpu_features.ssse3)
             {
               dprofile_shuffle16(dprofile.data(), score_matrix, dseq.data());
             }
@@ -489,7 +490,7 @@ auto search16(std::vector<WORD *> & q_start,
 
 #ifdef __x86_64__
 #ifdef __SSE4_1__
-          if (sse41_present != 0)
+          if (cpu_features.sse41)
             {
               align_cells_regular_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
             }
@@ -633,7 +634,7 @@ auto search16(std::vector<WORD *> & q_start,
 
 #ifdef __x86_64__
 #ifdef __SSE3__
-          if (ssse3_present != 0)
+          if (cpu_features.ssse3)
             {
               dprofile_shuffle16(dprofile.data(), score_matrix, dseq.data());
             }
@@ -650,7 +651,7 @@ auto search16(std::vector<WORD *> & q_start,
 
 #ifdef __x86_64__
 #ifdef __SSE4_1__
-          if (sse41_present != 0)
+          if (cpu_features.sse41)
             {
               align_cells_masked_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
             }

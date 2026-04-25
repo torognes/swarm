@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "utils/cpu_features.h"
 #include <cstdint>
 #include <vector>
 
@@ -40,4 +41,5 @@ auto search16(std::vector<WORD *> & q_start,
               uint64_t * alignmentlengths,
               char const * qseq,
               uint64_t qlen,
-              std::vector<uint64_t> & dirbuffer) -> void;
+              std::vector<uint64_t> & dirbuffer,
+              Cpu_features const & cpu_features) -> void;

@@ -21,7 +21,20 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdint>  // int64_t
+#ifndef SWARM_UTILS_CPU_FEATURES_H
+#define SWARM_UTILS_CPU_FEATURES_H
 
+// Subset of CPU feature flags consulted from hot paths (search8/search16
+// dispatch on ssse3/sse41, qgram comparison dispatches on popcnt). Bundled
+// here to avoid pulling the full Parameters struct into low-level files.
+//
+// Aggregate type (no default member initializers, no constructor) so it can
+// be brace-initialized in C++11.
+struct Cpu_features
+{
+  bool ssse3;
+  bool sse41;
+  bool popcnt;
+};
 
-extern int64_t sse41_present;
+#endif

@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "cpu_features.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
 
@@ -41,4 +42,6 @@ struct Search_data
 
   uint64_t target_count = 0;
   uint64_t target_index = 0;
+
+  Cpu_features cpu_features {};
 };

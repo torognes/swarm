@@ -39,7 +39,6 @@
 
 #ifdef __SSE2__
 #include <emmintrin.h>  // SSE2 intrinsics
-#include "utils/x86_cpu_feature_popcnt.h"
 #endif
 
 #include "popcnt.h"  // refactoring: fence with #ifdef __POPCNT__?
@@ -47,6 +46,7 @@
 #endif
 
 #include "swarm.h"
+#include "utils/cpu_features.h"
 #include "utils/qgram_array.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/nt_codec.h"
@@ -220,9 +220,10 @@ auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64
 }
 
 
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs) -> uint64_t
+auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+                         Cpu_features const & cpu_features) -> uint64_t
 {
-  if (popcnt_present != 0) {
+  if (cpu_features.popcnt) {
     return compareqgramvectors_popcnt(lhs, rhs);
   }
   return compareqgramvectors_128(lhs, rhs);
@@ -244,16 +245,19 @@ inline auto db_getqgramvector(const uint64_t seqno) -> unsigned char *
 }
 
 
-inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b) -> uint64_t
+inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b,
+                       Cpu_features const & cpu_features) -> uint64_t
 {
   const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(seqno_a),
-                                                  db_getqgramvector(seqno_b));
+                                                  db_getqgramvector(seqno_b),
+                                                  cpu_features);
   return (diffqgrams + 2ULL * qgramlength - 1) / (2ULL * qgramlength);  // mindiff
 }
 
 
 auto qgram_worker(int64_t const nth_thread,
-                  std::vector<struct thread_info_s> const & thread_info_v) -> void
+                  std::vector<struct thread_info_s> const & thread_info_v,
+                  Cpu_features const & cpu_features) -> void
 {
   auto const & tip = *std::next(thread_info_v.begin(), nth_thread);
 
@@ -267,7 +271,7 @@ auto qgram_worker(int64_t const nth_thread,
   for(auto i = 0LL; i < listlen_signed; ++i) {
     auto & target_diff = *std::next(difflist, i);
     auto const target_amplicon = *std::next(amplist, i);
-    target_diff = qgram_diff(seed, target_amplicon);
+    target_diff = qgram_diff(seed, target_amplicon, cpu_features);
   }
 }
 
@@ -278,10 +282,15 @@ auto qgram_diff_init(struct Parameters const & parameters,
   /* allocate memory for thread info */
   thread_info_v.resize(static_cast<uint64_t>(parameters.opt_threads));
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
+  Cpu_features const cpu_features {
+    parameters.ssse3_present != 0,
+    parameters.sse41_present != 0,
+    parameters.popcnt_present != 0
+  };
   qgram_threads
     = new ThreadRunner(static_cast<int>(parameters.opt_threads),
-                       [&thread_info_v](int64_t nth_thread) {
-                         qgram_worker(nth_thread, thread_info_v);
+                       [&thread_info_v, cpu_features](int64_t nth_thread) {
+                         qgram_worker(nth_thread, thread_info_v, cpu_features);
                        });
 }
 
@@ -301,6 +310,11 @@ auto qgram_diff_fast(struct Parameters const & parameters,
                      std::vector<struct thread_info_s>& thread_info_v) -> void
 {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  Cpu_features const cpu_features {
+    parameters.ssse3_present != 0,
+    parameters.sse41_present != 0,
+    parameters.popcnt_present != 0
+  };
   if (listlen <= uint8_max)
     {
       auto & tip = thread_info_v[0];
@@ -308,7 +322,7 @@ auto qgram_diff_fast(struct Parameters const & parameters,
       tip.listlen = listlen;
       tip.amplist = amplist;
       tip.difflist = difflist;
-      qgram_worker(0, thread_info_v);
+      qgram_worker(0, thread_info_v, cpu_features);
     }
   else
     {

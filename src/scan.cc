@@ -111,7 +111,8 @@ auto search_chunk(struct Parameters const & parameters,
              std::next(state.master_alignlengths, target_index),
              state.query.seq,
              static_cast<uint64_t>(state.query.len),
-             thread_data.dir_array_v);
+             thread_data.dir_array_v,
+             thread_data.cpu_features);
   } else {
     assert(parameters.penalty_gapopen <= std::numeric_limits<BYTE>::max());
     assert(parameters.penalty_gapextend <= std::numeric_limits<BYTE>::max());
@@ -128,7 +129,8 @@ auto search_chunk(struct Parameters const & parameters,
             std::next(state.master_alignlengths, target_index),
             state.query.seq,
             static_cast<uint64_t>(state.query.len),
-            thread_data.dir_array_v);
+            thread_data.dir_array_v,
+            thread_data.cpu_features);
   }
 }
 
@@ -246,12 +248,19 @@ auto search_do(struct Parameters const & parameters,
 }
 
 
-auto search_begin(struct Search_state & state,
+auto search_begin(struct Parameters const & parameters,
+                  struct Search_state & state,
                   std::vector<struct Search_data> & search_data_v) -> void
 {
   state.search_data = search_data_v.data();
 
   allocate_per_thread_search_data(search_data_v, db_getlongestsequence());
+
+  for (auto & thread_data : search_data_v) {
+    thread_data.cpu_features.ssse3 = (parameters.ssse3_present != 0);
+    thread_data.cpu_features.sse41 = (parameters.sse41_present != 0);
+    thread_data.cpu_features.popcnt = (parameters.popcnt_present != 0);
+  }
 }
 
 

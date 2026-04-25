@@ -23,18 +23,10 @@
 
 #include "../swarm.h"
 #include "fatal.h"
-#include "x86_cpu_feature_popcnt.h"
-#include "x86_cpu_feature_sse41.h"
-#include "x86_cpu_feature_ssse3.h"
-#include <cstdint>  // int64_t
+#include <cstdint>  // uint8_t
 #include <cstdio>  // fprintf
 #include <limits>
 
-
-// set to null if not x86-64
-int64_t ssse3_present {0};
-int64_t sse41_present {0};
-int64_t popcnt_present {0};
 
 #ifdef __x86_64__
 
@@ -85,12 +77,9 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   parameters.sse2_present   = (edx >> bit_sse2) & 1U;
   parameters.sse3_present   = (ecx >> bit_sse3) & 1U;
   parameters.ssse3_present = (ecx >> bit_ssse3) & 1U;
-  ssse3_present = parameters.ssse3_present;
   parameters.sse41_present = (ecx >> bit_sse41) & 1U;
-  sse41_present  = parameters.sse41_present;
   parameters.sse42_present  = (ecx >> bit_sse42) & 1U;
   parameters.popcnt_present = (ecx >> bit_popcnt) & 1U;
-  popcnt_present = parameters.popcnt_present;
   parameters.avx_present    = (ecx >> bit_avx) & 1U;
 
   if (maxlevel >= post_pentium)
@@ -109,12 +98,9 @@ auto cpu_features_test(struct Parameters & parameters) -> void {
     {
       parameters.sse3_present = 0;
       parameters.ssse3_present = 0;
-      ssse3_present = 0;
       parameters.sse41_present = 0;
-      sse41_present = 0;
       parameters.sse42_present = 0;
       parameters.popcnt_present = 0;
-      popcnt_present = 0;
       parameters.avx_present = 0;
       parameters.avx2_present = 0;
     }
