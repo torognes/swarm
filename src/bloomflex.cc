@@ -41,6 +41,18 @@
 #include <limits>
 
 
+// Refactoring: the modulo below is on the hot path (called twice per
+// Bloom filter probe in algod1.cc) and is markedly slower than a
+// bitwise AND. The previous bloompat code used `& mask` because it
+// required `size` to be a power of 2; bloomflex accepts arbitrary
+// sizes, so it must use `%`. To restore the fast path, constrain
+// bloom_filter->size to be a power of 2 (round up or down in
+// bloomflex_init or in the caller), store `size - 1` as a mask, and
+// replace `% size` with `& mask`. The amplicon filter (bloom_a)
+// already receives a power-of-2 size from compute_hashtable_size();
+// the fastidious filter (bloom_f) does not, and would need its
+// caller in algod1.cc to choose a rounding policy compatible with
+// the --ceiling / --bloom-bits memory budget.
 auto bloomflex_adr(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t *
 {
   auto const position = (hash >> bloom_filter->pattern_shift) % bloom_filter->size;
