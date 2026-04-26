@@ -38,14 +38,14 @@ struct bloomflex_s
 
 auto bloomflex_init(uint64_t size, unsigned int pattern_shift,
                     unsigned int n_hash_functions,
-                    struct bloomflex_s & bloom_filter) -> struct bloomflex_s *;
+                    struct bloomflex_s & bloom_filter) -> void;
 
 auto bloomflex_zap(struct bloomflex_s & bloom_filter) -> void;
 
-auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t *;
+auto bloomflex_adr(struct bloomflex_s & bloom_filter, uint64_t hash) -> uint64_t *;
 
-auto bloomflex_pat(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t;
+auto bloomflex_pat(struct bloomflex_s & bloom_filter, uint64_t hash) -> uint64_t;
 
-auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t hash) -> void;
+auto bloomflex_set(struct bloomflex_s & bloom_filter, uint64_t hash) -> void;
 
-auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t hash) -> bool;
+auto bloomflex_get(struct bloomflex_s & bloom_filter, uint64_t hash) -> bool;

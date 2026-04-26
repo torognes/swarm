@@ -53,31 +53,31 @@
 // the fastidious filter (bloom_f) does not, and would need its
 // caller in algod1.cc to choose a rounding policy compatible with
 // the --ceiling / --bloom-bits memory budget.
-auto bloomflex_adr(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t *
+auto bloomflex_adr(struct bloomflex_s & bloom_filter, const uint64_t hash) -> uint64_t *
 {
-  auto const position = (hash >> bloom_filter->pattern_shift) % bloom_filter->size;
+  auto const position = (hash >> bloom_filter.pattern_shift) % bloom_filter.size;
   assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const signed_position = static_cast<std::ptrdiff_t>(position);
-  return std::next(bloom_filter->bitmap_v.data(), signed_position);
+  return std::next(bloom_filter.bitmap_v.data(), signed_position);
 }
 
 
-auto bloomflex_pat(struct bloomflex_s * bloom_filter, const uint64_t hash) -> uint64_t
+auto bloomflex_pat(struct bloomflex_s & bloom_filter, const uint64_t hash) -> uint64_t
 {
-  auto const position = hash & bloom_filter->pattern_mask;
+  auto const position = hash & bloom_filter.pattern_mask;
   assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const signed_position = static_cast<std::ptrdiff_t>(position);
-  return *std::next(bloom_filter->patterns_v.data(), signed_position);
+  return *std::next(bloom_filter.patterns_v.data(), signed_position);
 }
 
 
-auto bloomflex_set(struct bloomflex_s * bloom_filter, uint64_t hash) -> void
+auto bloomflex_set(struct bloomflex_s & bloom_filter, uint64_t hash) -> void
 {
   *bloomflex_adr(bloom_filter, hash) &= compl bloomflex_pat(bloom_filter, hash);
 }
 
 
-auto bloomflex_get(struct bloomflex_s * bloom_filter, uint64_t hash) -> bool
+auto bloomflex_get(struct bloomflex_s & bloom_filter, uint64_t hash) -> bool
 {
   return (*bloomflex_adr(bloom_filter, hash) & bloomflex_pat(bloom_filter, hash)) == 0U;
 }
@@ -103,7 +103,7 @@ auto bloomflex_patterns_generate(struct bloomflex_s & bloom_filter) -> void
 
 auto bloomflex_init(const uint64_t size, const unsigned int pattern_shift,
                     const unsigned int n_hash_functions,
-                    struct bloomflex_s& bloom_filter) -> struct bloomflex_s *
+                    struct bloomflex_s& bloom_filter) -> void
 {
   /* Input size is in bytes for full bitmap; rounded up to at least
      one uint64 so bloomflex_adr can compute a valid address. */
@@ -123,8 +123,6 @@ auto bloomflex_init(const uint64_t size, const unsigned int pattern_shift,
   bloomflex_patterns_generate(bloom_filter);
 
   bloom_filter.bitmap_v.resize(bloom_filter.size, uint64_max);
-
-  return &bloom_filter;
 }
 
 
