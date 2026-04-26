@@ -174,11 +174,6 @@ struct Network_state
   std::vector<unsigned int> network_v;
 };
 
-static struct bloomflex_s * bloom_a {nullptr}; // Bloom filter for amplicons
-
-static struct bloomflex_s * bloom_f {nullptr}; // Huge Bloom filter for fastidious
-
-
 namespace {
 
   inline auto check_amp_identical(unsigned int const amp1,
@@ -195,7 +190,9 @@ namespace {
   }
 
 
-  inline auto hash_insert(Hashtable & hash_table, unsigned int const amp) -> bool {
+  inline auto hash_insert(Hashtable & hash_table,
+                          struct bloomflex_s & bloom_a,
+                          unsigned int const amp) -> bool {
     /* find the first empty bucket */
     const auto hash = db_gethash(amp);
     auto index = hash_table.getindex(hash);
@@ -212,7 +209,7 @@ namespace {
     hash_table.set_occupied(index);
     hash_table.set_value(index, hash);
     hash_table.set_data(index, amp);
-    bloomflex_set(*bloom_a, hash);
+    bloomflex_set(bloom_a, hash);
 
     return has_duplicate;
   }
@@ -385,6 +382,7 @@ namespace {
 
 
   inline auto check_heavy_var_2(Hashtable const & hash_table,
+                                struct bloomflex_s & bloom_a,
                                 std::vector<char>& seq,
                                 unsigned int seqlen,
                                 unsigned int seed,
@@ -400,7 +398,7 @@ namespace {
     const auto variant_count = generate_variants(seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data() not fixable while db returns char*
 
     for (auto i = 0U; i < variant_count; ++i) {
-      if (bloomflex_get(*bloom_a, variant_list[i].hash) and
+      if (bloomflex_get(bloom_a, variant_list[i].hash) and
           hash_check_attach(hash_table, seq.data(), seqlen, variant_list[i], seed, graft_state)) {
         ++matches;
       }
@@ -411,7 +409,8 @@ namespace {
 
 
   auto check_heavy_var(Hashtable const & hash_table,
-                       struct bloomflex_s & bloom,
+                       struct bloomflex_s & bloom_a,
+                       struct bloomflex_s & bloom_f,
                        std::vector<char>& varseq,
                        unsigned int seed,
                        uint64_t & number_of_matches,
@@ -421,7 +420,8 @@ namespace {
                        struct Graft_state & graft_state) -> void
   {
     /*
-      bloom is a bloom filter in which to check the variants
+      bloom_f is the fastidious bloom filter in which to check the variants
+      bloom_a is the amplicon bloom filter, used in check_heavy_var_2
       varseq is a buffer large enough to hold any sequence + 1 insertion
       seed is the original seed
       number_of_matches is where to store number of matches
@@ -450,12 +450,13 @@ namespace {
     for (auto i = 0U; i < variant_count; ++i)
       {
         struct var_s & var = variant_list[i];
-        if (bloomflex_get(bloom, var.hash))
+        if (bloomflex_get(bloom_f, var.hash))
           {
             auto varlen = 0U;
             generate_variant_sequence(sequence, seqlen,
                                       var, varseq, varlen);
             matches += check_heavy_var_2(hash_table,
+                                         bloom_a,
                                          varseq,
                                          varlen,
                                          seed,
@@ -471,6 +472,8 @@ namespace {
 
   auto check_heavy_thread(struct Parameters const & parameters,
                           Hashtable const & hash_table,
+                          struct bloomflex_s & bloom_a,
+                          struct bloomflex_s & bloom_f,
                           int64_t nth_thread,
                           struct Heavy_state & heavy_state,
                           struct Graft_state & graft_state,
@@ -505,7 +508,7 @@ namespace {
             lock.unlock();
             uint64_t number_of_matches {0};
             uint64_t number_of_variants {0};
-            check_heavy_var(hash_table, *bloom_f, buffer1, heavy_amplicon_id,
+            check_heavy_var(hash_table, bloom_a, bloom_f, buffer1, heavy_amplicon_id,
                             number_of_matches, number_of_variants,
                             variant_list, variant_list2,
                             graft_state);
@@ -517,18 +520,20 @@ namespace {
 
 
   auto mark_light_var(Hashtable & hash_table,
-                      struct bloomflex_s & bloom,
+                      struct bloomflex_s & bloom_a,
+                      struct bloomflex_s & bloom_f,
                       unsigned int seed,
                       std::vector<struct var_s>& variant_list) -> uint64_t
   {
     /*
       add all microvariants of seed to Bloom filter
 
-      bloom is a BloomFilter in which to enter the variants
+      bloom_f is the fastidious BloomFilter in which to enter the variants
+      bloom_a is the amplicon BloomFilter, updated by hash_insert
       seed is the original seed
     */
 
-    hash_insert(hash_table, seed);
+    hash_insert(hash_table, bloom_a, seed);
 
     auto const * sequence = db_getsequence(seed);
     const auto seqlen = db_getsequencelen(seed);
@@ -536,7 +541,7 @@ namespace {
     const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i) {
-      bloomflex_set(bloom, variant_list[i].hash);
+      bloomflex_set(bloom_f, variant_list[i].hash);
     }
 
     return variant_count;
@@ -545,6 +550,8 @@ namespace {
 
   auto mark_light_thread(struct Parameters const & parameters,
                          Hashtable & hash_table,
+                         struct bloomflex_s & bloom_a,
+                         struct bloomflex_s & bloom_f,
                          int64_t nth_thread,
                          struct Light_state & state,
                          struct Progress_status & progress) -> void
@@ -571,7 +578,8 @@ namespace {
           {
             progress_update(progress, ++state.progress);  // refactoring: separate operations?
             lock.unlock();
-            const auto variant_count = mark_light_var(hash_table, *bloom_f, light_amplicon_id,
+            const auto variant_count = mark_light_var(hash_table, bloom_a, bloom_f,
+                                                      light_amplicon_id,
                                                       variant_list);
             lock.lock();
             state.variants += variant_count;
@@ -585,12 +593,13 @@ namespace {
 
   inline auto find_variant_matches(struct Parameters const & parameters,
                                    Hashtable const & hash_table,
+                                   struct bloomflex_s & bloom_a,
                                    unsigned int seed,
                                    struct var_s & var,
                                    std::vector<unsigned int>& hits_data,
                                    unsigned int & hits_count) -> void
   {
-    if (not bloomflex_get(*bloom_a, var.hash)) {
+    if (not bloomflex_get(bloom_a, var.hash)) {
       return;
     }
 
@@ -635,6 +644,7 @@ namespace {
 
   auto check_variants(struct Parameters const & parameters,
                       Hashtable const & hash_table,
+                      struct bloomflex_s & bloom_a,
                       unsigned int seed,
                       std::vector<struct var_s> & variant_list,
                       std::vector<unsigned int>& hits_data) -> unsigned int
@@ -649,10 +659,10 @@ namespace {
     // C++17 refactoring:
     // std::for_each_n(variant_list.begin(), variant_count,
     //                 [seed, &hits_data, &hits_count](auto& variant) {
-    //                   find_variant_matches(parameters, hash_table, seed, variant, hits_data, hits_count);
+    //                   find_variant_matches(parameters, hash_table, bloom_a, seed, variant, hits_data, hits_count);
     //                 });
     for (auto i = 0U; i < variant_count; ++i) {
-      find_variant_matches(parameters, hash_table, seed, variant_list[i], hits_data, hits_count);
+      find_variant_matches(parameters, hash_table, bloom_a, seed, variant_list[i], hits_data, hits_count);
     }
 
     return hits_count;
@@ -661,6 +671,7 @@ namespace {
 
   auto network_thread(struct Parameters const & parameters,
                       Hashtable const & hash_table,
+                      struct bloomflex_s & bloom_a,
                       int64_t nth_thread,
                       struct Network_state & state,
                       struct Progress_status & progress) -> void
@@ -683,7 +694,7 @@ namespace {
 
         lock.unlock();
 
-        const auto hits_count = check_variants(parameters, hash_table, amp, variant_list, hits_data);
+        const auto hits_count = check_variants(parameters, hash_table, bloom_a, amp, variant_list, hits_data);
         lock.lock();
 
         assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
@@ -1167,7 +1178,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   struct bloomflex_s bloom_filter;
   bloomflex_init(hashtablesize, amplicon_pattern_shift,
                  amplicon_n_hash_functions, bloom_filter);
-  bloom_a = &bloom_filter;
 
   struct Progress_status progress;
   progress_init(progress, "Hashing sequences:", amplicons, parameters);
@@ -1175,7 +1185,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   bool has_duplicate {false};
   for (auto k = 0U; k < amplicons; ++k)
     {
-      has_duplicate = hash_insert(hash_table, k);
+      has_duplicate = hash_insert(hash_table, bloom_filter, k);
       progress_update(progress, k);
       if (has_duplicate) {
         break;
@@ -1206,8 +1216,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     // refactoring C++14: use std::make_unique
     std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
         static_cast<int>(parameters.opt_threads),
-        [&parameters, &hash_table, &network_state, &progress](int64_t nth_thread) {
-          network_thread(parameters, hash_table, nth_thread, network_state, progress);
+        [&parameters, &hash_table, &bloom_filter, &network_state, &progress](int64_t nth_thread) {
+          network_thread(parameters, hash_table, bloom_filter, nth_thread, network_state, progress);
         }));
     network_tr->run();
   }
@@ -1449,7 +1459,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           struct bloomflex_s bloomflex_filter;
           bloomflex_init(n_bytes, fastidious_pattern_shift,
                          n_hash_functions, bloomflex_filter);
-          bloom_f = &bloomflex_filter;
 
 
           /* Empty the old hash and bloom filter
@@ -1472,8 +1481,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &hash_table, &light_state, &progress](int64_t nth_thread) {
-                  mark_light_thread(parameters, hash_table, nth_thread, light_state, progress);
+                [&parameters, &hash_table, &bloom_filter, &bloomflex_filter, &light_state, &progress](int64_t nth_thread) {
+                  mark_light_thread(parameters, hash_table, bloom_filter, bloomflex_filter, nth_thread, light_state, progress);
                 }));
             light_tr->run();
           }
@@ -1499,8 +1508,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &hash_table, &heavy_state, &graft_state, &progress](int64_t nth_thread) {
-                  check_heavy_thread(parameters, hash_table, nth_thread, heavy_state, graft_state, progress);
+                [&parameters, &hash_table, &bloom_filter, &bloomflex_filter, &heavy_state, &graft_state, &progress](int64_t nth_thread) {
+                  check_heavy_thread(parameters, hash_table, bloom_filter, bloomflex_filter, nth_thread, heavy_state, graft_state, progress);
                 }));
             heavy_tr->run();
           }
