@@ -31,8 +31,8 @@
   https://doi.org/10.1145/1498698.1594230
 */
 
-#include "bloomflex.h"
-#include "utils/pseudo_rng.h"
+#include "bloom.h"
+#include "pseudo_rng.h"
 #include <algorithm>  // std::fill, std::max
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t

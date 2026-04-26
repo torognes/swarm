@@ -29,7 +29,7 @@
 
 #include "swarm.h"
 #include "arch.h"
-#include "bloomflex.h"
+#include "utils/bloom.h"
 #include "db.h"
 #include "hashtable.h"
 #include "nw.h"
