@@ -1505,8 +1505,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
           progress_done(progress);
 
-          bloomflex_exit(bloomflex_filter);
-
           std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
           std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
           auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
@@ -1526,8 +1524,6 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
   std::fprintf(parameters.logfile, "Max generations:   %u\n", maxgen);
-
-  bloomflex_exit(bloom_filter);
 
   swarminfo = nullptr;
   ampinfo = nullptr;

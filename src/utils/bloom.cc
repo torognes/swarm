@@ -58,7 +58,7 @@ auto bloomflex_adr(struct bloomflex_s * bloom_filter, const uint64_t hash) -> ui
   auto const position = (hash >> bloom_filter->pattern_shift) % bloom_filter->size;
   assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const signed_position = static_cast<std::ptrdiff_t>(position);
-  return std::next(bloom_filter->bitmap, signed_position);
+  return std::next(bloom_filter->bitmap_v.data(), signed_position);
 }
 
 
@@ -67,7 +67,7 @@ auto bloomflex_pat(struct bloomflex_s * bloom_filter, const uint64_t hash) -> ui
   auto const position = hash & bloom_filter->pattern_mask;
   assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const signed_position = static_cast<std::ptrdiff_t>(position);
-  return *std::next(bloom_filter->patterns, signed_position);
+  return *std::next(bloom_filter->patterns_v.data(), signed_position);
 }
 
 
@@ -120,11 +120,9 @@ auto bloomflex_init(const uint64_t size, const unsigned int pattern_shift,
   bloom_filter.pattern_k = n_hash_functions;
 
   bloom_filter.patterns_v.resize(bloom_filter.pattern_count);
-  bloom_filter.patterns = bloom_filter.patterns_v.data();
   bloomflex_patterns_generate(bloom_filter);
 
   bloom_filter.bitmap_v.resize(bloom_filter.size, uint64_max);
-  bloom_filter.bitmap = bloom_filter.bitmap_v.data();
 
   return &bloom_filter;
 }
@@ -134,11 +132,4 @@ auto bloomflex_zap(struct bloomflex_s & bloom_filter) -> void
 {
   static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
   std::fill(bloom_filter.bitmap_v.begin(), bloom_filter.bitmap_v.end(), uint64_max);
-}
-
-
-auto bloomflex_exit(struct bloomflex_s & bloom_filter) -> void
-{
-  bloom_filter.bitmap = nullptr;
-  bloom_filter.patterns =nullptr;
 }

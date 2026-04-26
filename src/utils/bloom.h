@@ -33,9 +33,7 @@ struct bloomflex_s
   uint64_t pattern_mask = 0;
   uint64_t pattern_k = 0;
   std::vector<uint64_t> bitmap_v;
-  uint64_t * bitmap = nullptr;
   std::vector<uint64_t> patterns_v;
-  uint64_t * patterns = nullptr;
 };
 
 auto bloomflex_init(uint64_t size, unsigned int pattern_shift,
@@ -43,8 +41,6 @@ auto bloomflex_init(uint64_t size, unsigned int pattern_shift,
                     struct bloomflex_s & bloom_filter) -> struct bloomflex_s *;
 
 auto bloomflex_zap(struct bloomflex_s & bloom_filter) -> void;
-
-auto bloomflex_exit(struct bloomflex_s & bloom_filter) -> void;
 
 auto bloomflex_adr(struct bloomflex_s * bloom_filter, uint64_t hash) -> uint64_t *;
 
