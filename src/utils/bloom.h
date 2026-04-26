@@ -56,7 +56,7 @@ public:
 private:
 
   auto bitmap_index(uint64_t hash) const noexcept -> uint64_t;
-  auto pat(uint64_t hash) const noexcept -> uint64_t;
+  auto bit_pattern(uint64_t hash) const noexcept -> uint64_t;
   auto generate_patterns() -> void;
 
   uint64_t size {0};            // bitmap length, in 64-bit words

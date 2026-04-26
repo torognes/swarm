@@ -81,7 +81,7 @@ auto BloomFilter::bitmap_index(const uint64_t hash) const noexcept -> uint64_t
 // noexcept: arithmetic plus a bounds-checked vector subscript;
 // operator[] does not throw and the assert guards out-of-range access
 // in debug builds.
-auto BloomFilter::pat(const uint64_t hash) const noexcept -> uint64_t
+auto BloomFilter::bit_pattern(const uint64_t hash) const noexcept -> uint64_t
 {
   auto const position = hash & pattern_mask;
   assert(position < patterns.size());
@@ -93,14 +93,14 @@ auto BloomFilter::pat(const uint64_t hash) const noexcept -> uint64_t
 // (does not throw) plus bitwise arithmetic on built-ins.
 auto BloomFilter::set(const uint64_t hash) noexcept -> void
 {
-  bitmap[bitmap_index(hash)] &= compl pat(hash);
+  bitmap[bitmap_index(hash)] &= compl bit_pattern(hash);
 }
 
 
 // noexcept: same reasoning as set().
 auto BloomFilter::get(const uint64_t hash) const noexcept -> bool
 {
-  return (bitmap[bitmap_index(hash)] & pat(hash)) == 0U;
+  return (bitmap[bitmap_index(hash)] & bit_pattern(hash)) == 0U;
 }
 
 
