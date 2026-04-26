@@ -35,61 +35,96 @@
 #include "pseudo_rng.h"
 #include <algorithm>  // std::fill, std::max
 #include <cassert>
-#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
-#include <iterator>  // std::next
 #include <limits>
+
+
+// Constructor is non-noexcept: the two vector resizes / construction
+// from (count, value) can throw std::bad_alloc.
+BloomFilter::BloomFilter(const uint64_t bitmap_bytes,
+                         const unsigned int shift,
+                         const unsigned int n_hash_functions)
+  : size{std::max(bitmap_bytes, uint64_t{8}) >> 3U}
+  , pattern_shift{shift}
+  , pattern_count{uint64_t{1} << shift}
+  , pattern_mask{pattern_count - 1}
+  , pattern_k{n_hash_functions}
+  , bitmap(size, std::numeric_limits<uint64_t>::max())
+  , patterns(pattern_count)
+{
+  generate_patterns();
+}
 
 
 // Refactoring: the modulo below is on the hot path (called twice per
 // Bloom filter probe in algod1.cc) and is markedly slower than a
 // bitwise AND. The previous bloompat code used `& mask` because it
-// required `size` to be a power of 2; bloomflex accepts arbitrary
+// required `size` to be a power of 2; BloomFilter accepts arbitrary
 // sizes, so it must use `%`. To restore the fast path, constrain
-// bloom_filter->size to be a power of 2 (round up or down in
-// bloomflex_init or in the caller), store `size - 1` as a mask, and
-// replace `% size` with `& mask`. The amplicon filter (bloom_a)
-// already receives a power-of-2 size from compute_hashtable_size();
-// the fastidious filter (bloom_f) does not, and would need its
-// caller in algod1.cc to choose a rounding policy compatible with
-// the --ceiling / --bloom-bits memory budget.
-auto bloomflex_adr(struct bloomflex_s & bloom_filter, const uint64_t hash) -> uint64_t *
+// `size` to be a power of 2 (round up or down in the constructor or
+// in the caller), store `size - 1` as a mask, and replace `% size`
+// with `& mask`. The amplicon filter already receives a power-of-2
+// size from compute_hashtable_size(); the fastidious filter does
+// not, and would need its caller in algod1.cc to choose a rounding
+// policy compatible with the --ceiling / --bloom-bits memory budget.
+//
+// noexcept: arithmetic plus an unchecked vector subscript is implicit
+// here only via the assert; the body never allocates or throws.
+auto BloomFilter::bitmap_index(const uint64_t hash) const noexcept -> uint64_t
 {
-  auto const position = (hash >> bloom_filter.pattern_shift) % bloom_filter.size;
-  assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const signed_position = static_cast<std::ptrdiff_t>(position);
-  return std::next(bloom_filter.bitmap_v.data(), signed_position);
+  auto const position = (hash >> pattern_shift) % size;
+  assert(position < bitmap.size());
+  return position;
 }
 
 
-auto bloomflex_pat(struct bloomflex_s & bloom_filter, const uint64_t hash) -> uint64_t
+// noexcept: arithmetic plus a bounds-checked vector subscript;
+// operator[] does not throw and the assert guards out-of-range access
+// in debug builds.
+auto BloomFilter::pat(const uint64_t hash) const noexcept -> uint64_t
 {
-  auto const position = hash & bloom_filter.pattern_mask;
-  assert(position <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const signed_position = static_cast<std::ptrdiff_t>(position);
-  return *std::next(bloom_filter.patterns_v.data(), signed_position);
+  auto const position = hash & pattern_mask;
+  assert(position < patterns.size());
+  return patterns[position];
 }
 
 
-auto bloomflex_set(struct bloomflex_s & bloom_filter, uint64_t hash) -> void
+// noexcept: only calls noexcept helpers and performs vector subscript
+// (does not throw) plus bitwise arithmetic on built-ins.
+auto BloomFilter::set(const uint64_t hash) noexcept -> void
 {
-  *bloomflex_adr(bloom_filter, hash) &= compl bloomflex_pat(bloom_filter, hash);
+  bitmap[bitmap_index(hash)] &= compl pat(hash);
 }
 
 
-auto bloomflex_get(struct bloomflex_s & bloom_filter, uint64_t hash) -> bool
+// noexcept: same reasoning as set().
+auto BloomFilter::get(const uint64_t hash) const noexcept -> bool
 {
-  return (*bloomflex_adr(bloom_filter, hash) & bloomflex_pat(bloom_filter, hash)) == 0U;
+  return (bitmap[bitmap_index(hash)] & pat(hash)) == 0U;
 }
 
 
-auto bloomflex_patterns_generate(struct bloomflex_s & bloom_filter) -> void
+// noexcept: std::fill on a std::vector with already-allocated storage
+// performs no allocation and only invokes uint64_t assignment, which
+// cannot throw.
+auto BloomFilter::zap() noexcept -> void
+{
+  std::fill(bitmap.begin(), bitmap.end(), std::numeric_limits<uint64_t>::max());
+}
+
+
+// Not marked noexcept: rand_64.operator() (std::mt19937_64) is not
+// formally noexcept in the standard, even if it does not throw in
+// practice. Called only from the constructor, which is itself non-
+// noexcept (vector resize/construction can throw bad_alloc), so the
+// distinction is academic.
+auto BloomFilter::generate_patterns() -> void
 {
   static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
-  for(auto & pattern : bloom_filter.patterns_v)
+  for(auto & pattern : patterns)
     {
       pattern = 0;
-      for(auto j = 0U; j < bloom_filter.pattern_k; ++j)
+      for(auto j = 0U; j < pattern_k; ++j)
         {
           uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
           while ((pattern & onebit) != 0U) {
@@ -98,36 +133,4 @@ auto bloomflex_patterns_generate(struct bloomflex_s & bloom_filter) -> void
           pattern |= onebit;
         }
     }
-}
-
-
-auto bloomflex_init(const uint64_t size, const unsigned int pattern_shift,
-                    const unsigned int n_hash_functions,
-                    struct bloomflex_s& bloom_filter) -> void
-{
-  /* Input size is in bytes for full bitmap; rounded up to at least
-     one uint64 so bloomflex_adr can compute a valid address. */
-
-  static constexpr uint64_t bytes_per_uint64 {8};
-  static constexpr unsigned int divider {3};  // divide by 8
-  static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
-
-  bloom_filter.size = std::max(size, bytes_per_uint64) >> divider;  // number of uint64
-
-  bloom_filter.pattern_shift = pattern_shift;
-  bloom_filter.pattern_count = 1ULL << bloom_filter.pattern_shift;
-  bloom_filter.pattern_mask = bloom_filter.pattern_count - 1;
-  bloom_filter.pattern_k = n_hash_functions;
-
-  bloom_filter.patterns_v.resize(bloom_filter.pattern_count);
-  bloomflex_patterns_generate(bloom_filter);
-
-  bloom_filter.bitmap_v.resize(bloom_filter.size, uint64_max);
-}
-
-
-auto bloomflex_zap(struct bloomflex_s & bloom_filter) -> void
-{
-  static constexpr auto uint64_max = std::numeric_limits<uint64_t>::max();
-  std::fill(bloom_filter.bitmap_v.begin(), bloom_filter.bitmap_v.end(), uint64_max);
 }
