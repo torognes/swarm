@@ -67,38 +67,77 @@ struct UsedOptions {
 constexpr char swarm_version[] {"3.1.6"};
 
 
-/* fine names and command line options */
+/* file names and command line options */
 
+// Single source of truth for every command-line option. long_options
+// (the C struct option array consumed by getopt_long) and short_options
+// (the colon-encoded short-letter string) are derived from this table,
+// so adding or renaming an option only requires editing one place.
+//
 // refactoring: add option -q (no-cluster-breaking)
-const std::array<struct option, 25> long_options = {
-  { // struct option { name, has_arg, flag, val }
-   {"append-abundance",      required_argument, nullptr, 'a' },
-   {"boundary",              required_argument, nullptr, 'b' },
-   {"ceiling",               required_argument, nullptr, 'c' },
-   {"differences",           required_argument, nullptr, 'd' },
-   {"gap-extension-penalty", required_argument, nullptr, 'e' },
-   {"fastidious",            no_argument,       nullptr, 'f' },
-   {"gap-opening-penalty",   required_argument, nullptr, 'g' },
-   {"help",                  no_argument,       nullptr, 'h' },
-   {"internal-structure",    required_argument, nullptr, 'i' },
-   {"log",                   required_argument, nullptr, 'l' },
-   {"network-file",          required_argument, nullptr, 'j' },
-   {"match-reward",          required_argument, nullptr, 'm' },
-   {"no-otu-breaking",       no_argument,       nullptr, 'n' },
-   {"output-file",           required_argument, nullptr, 'o' },
-   {"mismatch-penalty",      required_argument, nullptr, 'p' },
-   {"mothur",                no_argument,       nullptr, 'r' },
-   {"statistics-file",       required_argument, nullptr, 's' },
-   {"threads",               required_argument, nullptr, 't' },
-   {"uclust-file",           required_argument, nullptr, 'u' },
-   {"version",               no_argument,       nullptr, 'v' },
-   {"seeds",                 required_argument, nullptr, 'w' },
-   {"disable-sse3",          no_argument,       nullptr, 'x' },
-   {"bloom-bits",            required_argument, nullptr, 'y' },
-   {"usearch-abundance",     no_argument,       nullptr, 'z' },
-   {nullptr,                 0,                 nullptr, 0 }
-  }
+// (currently unused short letters: k, q)
+struct OptionSpec {
+  char short_name;
+  const char * long_name;
+  bool needs_arg;
 };
+
+constexpr std::array<OptionSpec, 24> option_specs {{
+   {'a', "append-abundance",      true },
+   {'b', "boundary",              true },
+   {'c', "ceiling",               true },
+   {'d', "differences",           true },
+   {'e', "gap-extension-penalty", true },
+   {'f', "fastidious",            false},
+   {'g', "gap-opening-penalty",   true },
+   {'h', "help",                  false},
+   {'i', "internal-structure",    true },
+   {'j', "network-file",          true },
+   {'l', "log",                   true },
+   {'m', "match-reward",          true },
+   {'n', "no-otu-breaking",       false},
+   {'o', "output-file",           true },
+   {'p', "mismatch-penalty",      true },
+   {'r', "mothur",                false},
+   {'s', "statistics-file",       true },
+   {'t', "threads",               true },
+   {'u', "uclust-file",           true },
+   {'v', "version",               false},
+   {'w', "seeds",                 true },
+   {'x', "disable-sse3",          false},
+   {'y', "bloom-bits",            true },
+   {'z', "usearch-abundance",     false}
+}};
+
+
+auto build_long_options() -> std::array<struct option, option_specs.size() + 1> {
+  std::array<struct option, option_specs.size() + 1> result {};
+  for (std::size_t idx = 0; idx < option_specs.size(); ++idx) {
+    result[idx].name    = option_specs[idx].long_name;
+    result[idx].has_arg = option_specs[idx].needs_arg ? required_argument : no_argument;
+    result[idx].flag    = nullptr;
+    result[idx].val     = option_specs[idx].short_name;
+  }
+  // last slot is the {nullptr, 0, nullptr, 0} sentinel (value-initialised above)
+  return result;
+}
+
+
+auto build_short_options() -> std::string {
+  std::string result;
+  result.reserve(option_specs.size() * 2);
+  for (auto const & spec : option_specs) {
+    result += spec.short_name;
+    if (spec.needs_arg) {
+      result += ':';
+    }
+  }
+  return result;
+}
+
+
+const std::array<struct option, option_specs.size() + 1> long_options = build_long_options();
+const std::string short_options = build_short_options();
 
 
 const std::array<const char *, 18> header_message {{
@@ -293,7 +332,6 @@ auto fatal_duplicate_option(int option_character) -> void {
 
 auto args_init(int argc, char **argv, struct Parameters & parameters) -> UsedOptions
 {
-  static const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
   static constexpr std::size_t alphabet_size {26};
   UsedOptions used_options {};
   std::bitset<alphabet_size> seen_options;  // duplicate detection keyed by short letter
