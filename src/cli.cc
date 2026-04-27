@@ -682,7 +682,7 @@ auto args_check(UsedOptions const & used_options,
 auto parse_command_line(int argc, char ** argv) -> Parameters
 {
   Parameters parameters;
-  const auto used_options = args_init(argc, argv, parameters);
+  auto const used_options = args_init(argc, argv, parameters);
   show_help_or_version_and_exit(parameters);
   set_alignment_scoring_system(parameters);
   args_check(used_options, parameters);
