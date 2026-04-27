@@ -340,7 +340,7 @@ auto algo_run(struct Parameters const & parameters) -> void
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(
       static_cast<int>(parameters.opt_threads),
-      [&parameters, &search_state](int64_t thread_id) {
+      [&parameters, &search_state](int64_t thread_id) -> void {
         search_worker_core(parameters, thread_id, search_state);
       }));
 

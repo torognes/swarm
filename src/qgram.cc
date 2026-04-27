@@ -294,7 +294,7 @@ auto qgram_diff_init(struct Parameters const & parameters,
   };
   qgram_threads
     = new ThreadRunner(static_cast<int>(parameters.opt_threads),
-                       [&thread_info_v, cpu_features](int64_t nth_thread) {
+                       [&thread_info_v, cpu_features](int64_t nth_thread) -> void {
                          qgram_worker(nth_thread, thread_info_v, cpu_features);
                        });
 }

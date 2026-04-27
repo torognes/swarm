@@ -1215,7 +1215,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     // refactoring C++14: use std::make_unique
     std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
         static_cast<int>(parameters.opt_threads),
-        [&parameters, &hash_table, &bloom_a, &network_state, &progress](int64_t nth_thread) {
+        [&parameters, &hash_table, &bloom_a, &network_state, &progress](int64_t nth_thread) -> void {
           network_thread(parameters, hash_table, bloom_a, nth_thread, network_state, progress);
         }));
     network_tr->run();
@@ -1479,7 +1479,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &hash_table, &bloom_a, &bloom_f, &light_state, &progress](int64_t nth_thread) {
+                [&parameters, &hash_table, &bloom_a, &bloom_f, &light_state, &progress](int64_t nth_thread) -> void {
                   mark_light_thread(parameters, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress);
                 }));
             light_tr->run();
@@ -1506,7 +1506,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress](int64_t nth_thread) {
+                [&parameters, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress](int64_t nth_thread) -> void {
                   check_heavy_thread(parameters, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress);
                 }));
             heavy_tr->run();
