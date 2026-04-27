@@ -55,7 +55,4 @@ auto main(int argc, char** argv) -> int
       algo_run(parameters);
       break;
     }
-
-  // clean up (open output files are closed via RAII when `parameters`
-  // goes out of scope)
 }
