@@ -126,7 +126,7 @@ public:
     /* wait for threads to finish their work */
     for(auto& tip: thread_array) {
         std::unique_lock<std::mutex> lock(tip.workmutex);
-        tip.workcond.wait(lock, [&tip](){ return tip.work <= 0; });
+        tip.workcond.wait(lock, [&tip]() -> bool { return tip.work <= 0; });
     }
   }
 };
