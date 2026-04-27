@@ -394,8 +394,7 @@ namespace {
   }
 
 
-  auto sort_index_if_need_be(struct Parameters const & parameters,
-                             std::vector<struct seqinfo_s> & seqindex_v) -> void {
+  auto sort_index_if_need_be(struct Parameters const & parameters) -> void {
     struct Progress_status progress;
     progress_init(progress, "Abundance sorting:", 1, parameters);
 
@@ -804,7 +803,7 @@ auto db_read(struct Parameters const & parameters,
   progress_done(progress_idx);
 
   abort_if_missing_abundance(seq_stats);
-  sort_index_if_need_be(parameters, seqindex_v);
+  sort_index_if_need_be(parameters);
   print_user_report(parameters, seq_stats);
 }
 
