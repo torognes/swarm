@@ -78,7 +78,8 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int thread_count, std::function<void(int64_t nth_thread)> function) :
+  ThreadRunner(int thread_count,
+               const std::function<void(int64_t nth_thread)> & function) :
       thread_array(static_cast<std::size_t>(thread_count))
   {
     /* init and create worker threads */
