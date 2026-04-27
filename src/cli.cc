@@ -38,11 +38,11 @@
 #include <cstdlib>  // std::exit, std::strtoll
 #include <getopt.h>  // getopt_long, optarg, optind, struct option
                      // (no_argument, required_argument)
+#include <cstddef>  // std::size_t
 #include <iterator>  // std::next
 #include <limits>
 #include <string>
 // #include <unistd.h>  // getopt_long... FAIL
-#include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -64,7 +64,7 @@ struct UsedOptions {
   bool bloom_bits {false};
 };
 
-const std::string swarm_version {"3.1.6"};
+constexpr char swarm_version[] {"3.1.6"};
 
 
 /* fine names and command line options */
@@ -101,8 +101,8 @@ const std::array<struct option, 25> long_options = {
 };
 
 
-const std::vector<std::string> header_message
-  {"Swarm ", swarm_version,
+const std::array<const char *, 18> header_message {{
+   "Swarm ", swarm_version,
    "\n",
    "Copyright (C) 2012-2026 Torbjorn Rognes and Frederic Mahe\n",
    "https://github.com/torognes/swarm\n",
@@ -118,13 +118,20 @@ const std::vector<std::string> header_message
    "Mahe F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T (2022)\n",
    "Swarm v3: towards tera-scale amplicon clustering\n",
    "Bioinformatics 38:1, 267-269 https://doi.org/10.1093/bioinformatics/btab493\n",
-   "\n"};
+   "\n"
+}};
 
 
-const std::vector<std::string> args_usage_message
+#ifdef __WIN32
+constexpr std::size_t args_usage_count {36};
+#else
+constexpr std::size_t args_usage_count {38};
+#endif
+
+const std::array<const char *, args_usage_count> args_usage_message {{
   /*0         1         2         3         4         5         6         7          */
   /*01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
-  {"Usage: swarm [OPTIONS] [FASTAFILE]\n",
+   "Usage: swarm [OPTIONS] [FASTAFILE]\n",
    "\n",
    "General options:\n",
    " -h, --help                          display this help and exit\n",
@@ -164,7 +171,7 @@ const std::vector<std::string> args_usage_message
    "See 'man swarm' for more details.\n",
 #endif
    "\n"
-  };
+}};
 
 
 auto args_long(char const * str, const char * option) -> int64_t
@@ -189,11 +196,12 @@ auto args_long(char const * str, const char * option) -> int64_t
 }
 
 
-auto show(const std::vector<std::string> &message,
+template <std::size_t N>
+auto show(const std::array<const char *, N> & message,
           std::FILE * log_stream) -> void
 {
-  for (const auto & message_element : message) {
-    std::fprintf(log_stream, "%s", message_element.c_str());
+  for (const char * message_element : message) {
+    std::fputs(message_element, log_stream);
   }
 }
 
