@@ -188,6 +188,20 @@ auto show_header_message(std::FILE * log_stream) -> void
 }
 
 
+auto show_help_or_version_and_exit(struct Parameters const & parameters) -> void
+{
+  if (parameters.opt_version) {
+    show(header_message, parameters.logfile);
+    std::exit(EXIT_SUCCESS);
+  }
+  if (parameters.opt_help) {
+    show(header_message, parameters.logfile);
+    show(args_usage_message, parameters.logfile);
+    std::exit(EXIT_SUCCESS);
+  }
+}
+
+
 auto args_show(struct Parameters const & parameters) -> void
 {
 #ifdef __x86_64__
@@ -560,17 +574,6 @@ auto args_check(const std::array<bool, n_options> &used_options,
     fatal(error_prefix, "A network file can only written when d = 1.");
   }
 
-  if (parameters.opt_version) {
-    show(header_message, parameters.logfile);
-    std::exit(EXIT_SUCCESS);
-  }
-
-  if (parameters.opt_help) {
-    show(header_message, parameters.logfile);
-    show(args_usage_message, parameters.logfile);
-    std::exit(EXIT_SUCCESS);
-  }
-
   // scoring system check
   const int64_t diff_saturation_16 = (std::min((uint16_max / parameters.penalty_mismatch),
                                                (uint16_max - parameters.penalty_gapopen)
@@ -593,6 +596,7 @@ auto parse_command_line(int argc, char ** argv) -> Parameters
 {
   Parameters parameters;
   const auto used_options = args_init(argc, argv, parameters);
+  show_help_or_version_and_exit(parameters);
   set_alignment_scoring_system(parameters);
   args_check(used_options, parameters);
   open_files(parameters);
