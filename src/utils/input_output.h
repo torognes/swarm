@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_INPUT_OUTPUT_H
+#define SWARM_UTILS_INPUT_OUTPUT_H
+
 #include <cstdio>  // FILE, fclose
 #include <memory>  // unique_ptr
 
@@ -42,3 +45,5 @@ using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 
 auto fopen_input(const char * filename) -> std::FILE *;
 auto fopen_output(const char * filename) -> FileHandle;
+
+#endif  // SWARM_UTILS_INPUT_OUTPUT_H
