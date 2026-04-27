@@ -118,7 +118,7 @@ public:
   auto run() -> void {
     /* wake up threads */
     for(auto& tip: thread_array) {
-        std::lock_guard<std::mutex> lock(tip.workmutex);
+        const std::lock_guard<std::mutex> lock(tip.workmutex);
         tip.work = 1;
         tip.workcond.notify_one();
     }
