@@ -29,6 +29,7 @@
 #include "utils/x86_cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>
+#include <bitset>
 #include <cassert>
 #include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -47,7 +48,21 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-constexpr int n_options {26};
+// Tracks which optional arguments were explicitly specified on the
+// command line. Only options whose presence influences a downstream
+// dependency or range check need a flag here; pure boolean flags
+// (e.g. --fastidious) and always-overwritten values (e.g. file paths)
+// are read directly from Parameters.
+struct UsedOptions {
+  bool append_abundance {false};
+  bool boundary {false};
+  bool ceiling {false};
+  bool gap_extension_penalty {false};
+  bool gap_opening_penalty {false};
+  bool match_reward {false};
+  bool mismatch_penalty {false};
+  bool bloom_bits {false};
+};
 
 const std::string swarm_version {"3.1.6"};
 
@@ -251,11 +266,29 @@ auto args_show(struct Parameters const & parameters) -> void
 }
 
 
-auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::array<bool, n_options>
+auto fatal_duplicate_option(int option_character) -> void {
+  // Find the matching long option name to include in the error message.
+  const char * long_name = "";
+  for (const auto & long_option : long_options) {
+    if (long_option.name == nullptr) {
+      break;
+    }
+    if (long_option.val == option_character) {
+      long_name = long_option.name;
+      break;
+    }
+  }
+  fatal(error_prefix, "Option -", static_cast<char>(option_character),
+        " or --", long_name, " specified more than once.");
+}
+
+
+auto args_init(int argc, char **argv, struct Parameters & parameters) -> UsedOptions
 {
-  /* Set defaults */
   static const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
-  std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
+  static constexpr std::size_t alphabet_size {26};
+  UsedOptions used_options {};
+  std::bitset<alphabet_size> seen_options;  // duplicate detection keyed by short letter
 
   int option_character {0};
 
@@ -269,48 +302,32 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
     }
 
     /* check if any option is specified more than once */
-
     if ((option_character >= 'a') and (option_character <= 'z'))
       {
-        assert(option_character - 'a' >= 0);
-        assert(option_character <= std::numeric_limits<char>::max());
-        auto optindex = static_cast<unsigned int>(option_character - 'a');
-        if (used_options[optindex])
-          {
-            auto longoptindex = 0UL;
-            for (const auto& long_option: long_options) {
-              assert(long_option.name != nullptr);
-              if (long_option.name == nullptr) {
-                break; // refactoring: unreachable?
-              }
-
-              if (long_option.val == option_character) {
-                break;
-              }
-              ++longoptindex;
-            }
-
-            fatal(error_prefix, "Option -", static_cast<char>(option_character),
-                  " or --", long_options[longoptindex].name,
-                  " specified more than once.");
-          }
-        used_options[optindex] = true;
+        const auto bit = static_cast<std::size_t>(option_character - 'a');
+        if (seen_options.test(bit)) {
+          fatal_duplicate_option(option_character);
+        }
+        seen_options.set(bit);
       }
 
     switch (option_character)
       {
-      case 'a':  // refactoring: replace with enum class? static_cast<Short_option>(option_character), but what about unexpected characters such as 'k' or 'q'?
+      case 'a':
         /* append-abundance */
+        used_options.append_abundance = true;
         parameters.opt_append_abundance = args_long(optarg, "-a or --append-abundance");
         break;
 
       case 'b':
         /* boundary */
+        used_options.boundary = true;
         parameters.opt_boundary = args_long(optarg, "-b or --boundary");
         break;
 
       case 'c':
         /* ceiling */
+        used_options.ceiling = true;
         parameters.opt_ceiling = args_long(optarg, "-c or --ceiling");
         break;
 
@@ -321,6 +338,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
       case 'e':
         /* gap extension penalty */
+        used_options.gap_extension_penalty = true;
         parameters.opt_gap_extension_penalty = args_long(optarg, "-e or --gap-extension-penalty");
         break;
 
@@ -331,6 +349,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
       case 'g':
         /* gap-opening-penalty */
+        used_options.gap_opening_penalty = true;
         parameters.opt_gap_opening_penalty = args_long(optarg, "-g or --gap-opening-penalty");
         break;
 
@@ -356,6 +375,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
       case 'm':
         /* match-reward */
+        used_options.match_reward = true;
         parameters.opt_match_reward = args_long(optarg, "-m or --match-reward");
         break;
 
@@ -371,6 +391,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
       case 'p':
         /* mismatch-penalty */
+        used_options.mismatch_penalty = true;
         parameters.opt_mismatch_penalty = args_long(optarg, "-p or --mismatch-penalty");
         break;
 
@@ -411,6 +432,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
 
       case 'y':
         /* bloom-bits */
+        used_options.bloom_bits = true;
         parameters.opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
         break;
 
@@ -454,7 +476,7 @@ auto set_alignment_scoring_system(struct Parameters &parameters) -> void {
 }
 
 
-auto args_check(const std::array<bool, n_options> &used_options,
+auto args_check(UsedOptions const & used_options,
                 struct Parameters const & parameters) -> void {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
@@ -463,15 +485,6 @@ auto args_check(const std::array<bool, n_options> &used_options,
   static constexpr unsigned int min_ceiling {40};
   static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
   static constexpr unsigned int max_threads {512};
-  // meaning of the used_options values
-  static constexpr unsigned int append_abundance_index {0};
-  static constexpr unsigned int boundary_index {1};
-  static constexpr unsigned int ceiling_index {2};
-  static constexpr unsigned int gap_extension_penalty_index {4};
-  static constexpr unsigned int gap_opening_penalty_index {6};
-  static constexpr unsigned int match_reward_index {12};
-  static constexpr unsigned int mismatch_penalty_index {15};
-  static constexpr unsigned int bloom_bits_index {24};
 
   if ((parameters.opt_threads < 1) or (parameters.opt_threads > max_threads))
     {
@@ -496,29 +509,29 @@ auto args_check(const std::array<bool, n_options> &used_options,
 
   if (not parameters.opt_fastidious)
     {
-      if (used_options[boundary_index]) {
+      if (used_options.boundary) {
         fatal(error_prefix, "Option -b or --boundary specified without -f or --fastidious.");
       }
-      if (used_options[ceiling_index]) {
+      if (used_options.ceiling) {
         fatal(error_prefix, "Option -c or --ceiling specified without -f or --fastidious.");
       }
-      if (used_options[bloom_bits_index]) {
+      if (used_options.bloom_bits) {
         fatal(error_prefix, "Option -y or --bloom-bits specified without -f or --fastidious.");
       }
     }
 
   if (parameters.opt_differences < 2)
     {
-      if (used_options[match_reward_index]) {
+      if (used_options.match_reward) {
         fatal(error_prefix, "Option -m or --match-reward specified when d < 2.");
       }
-      if (used_options[mismatch_penalty_index]) {
+      if (used_options.mismatch_penalty) {
         fatal(error_prefix, "Option -p or --mismatch-penalty specified when d < 2.");
       }
-      if (used_options[gap_opening_penalty_index]) {
+      if (used_options.gap_opening_penalty) {
         fatal(error_prefix, "Option -g or --gap-opening-penalty specified when d < 2.");
       }
-      if (used_options[gap_extension_penalty_index]) {
+      if (used_options.gap_extension_penalty) {
         fatal(error_prefix, "Option -e or --gap-extension-penalty specified when d < 2.");
       }
     }
@@ -553,8 +566,8 @@ auto args_check(const std::array<bool, n_options> &used_options,
           "must be at least 2.");
   }
 
-  if ((used_options[ceiling_index]) and ((parameters.opt_ceiling < min_ceiling) or
-                                         (parameters.opt_ceiling > max_ceiling))) {
+  if (used_options.ceiling and ((parameters.opt_ceiling < min_ceiling) or
+                                (parameters.opt_ceiling > max_ceiling))) {
     fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
@@ -565,7 +578,7 @@ auto args_check(const std::array<bool, n_options> &used_options,
           "--bloom-bits, must be in the range 2 to 64.");
   }
 
-  if ((used_options[append_abundance_index]) and (parameters.opt_append_abundance < 1)) {
+  if (used_options.append_abundance and (parameters.opt_append_abundance < 1)) {
     fatal(error_prefix, "Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
