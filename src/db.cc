@@ -906,12 +906,6 @@ auto db_getabundance(const uint64_t seqno) -> uint64_t
 }
 
 
-auto db_free() -> void
-{
-  seqindex = nullptr;
-}
-
-
 // refactoring: decompress sequence (4 nt at a time)
 // - need a const vector<string> byte_decode = { "AAAA", "AAAC", "AAAG", ...
 // - need a std::string buffer of capacity = length + 3 + 1,
