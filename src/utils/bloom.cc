@@ -123,7 +123,7 @@ auto BloomFilter::generate_patterns() -> void
   static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
   for(auto & pattern : patterns)
     {
-      pattern = 0;
+      assert(pattern == 0);  // value-initialized by the vector constructor
       for(auto j = 0U; j < pattern_k; ++j)
         {
           uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
