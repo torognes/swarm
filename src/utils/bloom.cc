@@ -78,8 +78,6 @@ BloomFilter::BloomFilter(const uint64_t bitmap_bytes,
 // not, and would need its caller in algod1.cc to choose a rounding
 // policy compatible with the --ceiling / --bloom-bits memory budget.
 //
-// noexcept: arithmetic plus an unchecked vector subscript is implicit
-// here only via the assert; the body never allocates or throws.
 auto BloomFilter::bitmap_index(const uint64_t hash) const noexcept -> uint64_t
 {
   auto const position = (hash >> pattern_shift) % size;
@@ -88,9 +86,6 @@ auto BloomFilter::bitmap_index(const uint64_t hash) const noexcept -> uint64_t
 }
 
 
-// noexcept: arithmetic plus a bounds-checked vector subscript;
-// operator[] does not throw and the assert guards out-of-range access
-// in debug builds.
 auto BloomFilter::bit_pattern(const uint64_t hash) const noexcept -> uint64_t
 {
   auto const position = hash & pattern_mask;
@@ -99,24 +94,18 @@ auto BloomFilter::bit_pattern(const uint64_t hash) const noexcept -> uint64_t
 }
 
 
-// noexcept: only calls noexcept helpers and performs vector subscript
-// (does not throw) plus bitwise arithmetic on built-ins.
 auto BloomFilter::set(const uint64_t hash) noexcept -> void
 {
   bitmap[bitmap_index(hash)] &= compl bit_pattern(hash);
 }
 
 
-// noexcept: same reasoning as set().
 auto BloomFilter::get(const uint64_t hash) const noexcept -> bool
 {
   return (bitmap[bitmap_index(hash)] & bit_pattern(hash)) == 0U;
 }
 
 
-// noexcept: std::fill on a std::vector with already-allocated storage
-// performs no allocation and only invokes uint64_t assignment, which
-// cannot throw.
 auto BloomFilter::zap() noexcept -> void
 {
   std::fill(bitmap.begin(), bitmap.end(), std::numeric_limits<uint64_t>::max());
