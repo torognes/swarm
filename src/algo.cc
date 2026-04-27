@@ -30,7 +30,6 @@
 #include "utils/qgram_threadinfo.h"
 #include "utils/progress.h"
 #include "utils/search_data.h"
-#include "utils/seqinfo.h"
 #include "utils/score_matrix.h"
 #include <algorithm>  // std::min(), std::reverse(), std::for_each
 #include <cassert>
@@ -330,8 +329,7 @@ namespace {
 } // namespace
 
 
-auto algo_run(struct Parameters const & parameters,
-              std::vector<struct seqinfo_s> & seqindex_v) -> void
+auto algo_run(struct Parameters const & parameters) -> void
 {
   auto const score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
@@ -351,9 +349,8 @@ auto algo_run(struct Parameters const & parameters,
 
   auto const amplicons = db_getsequencecount();
   const uint64_t longestamplicon = db_getlongestsequence();
-  assert(static_cast<std::size_t>(amplicons) == seqindex_v.size());
 
-  db_qgrams_init(parameters, seqindex_v);
+  db_qgrams_init(parameters);
 
   std::vector<struct thread_info_s> thread_info_v;
   qgram_diff_init(parameters, thread_info_v);

@@ -27,8 +27,7 @@
 
 
 auto db_read(struct Parameters const & parameters,
-             std::vector<char> & data_v,
-             std::vector<struct seqinfo_s> & seqindex_v) -> void;
+             std::vector<char> & data_v) -> void;
 
 auto db_getsequencecount() -> unsigned int;
 
@@ -50,8 +49,7 @@ auto db_getheaderlen(uint64_t seqno) -> unsigned int;
 
 auto db_getabundance(uint64_t seqno) -> uint64_t;
 
-auto db_qgrams_init(struct Parameters const & parameters,
-                    std::vector<struct seqinfo_s> const & seqindex_v) -> void;
+auto db_qgrams_init(struct Parameters const & parameters) -> void;
 
 auto db_qgrams_done() -> void;
 

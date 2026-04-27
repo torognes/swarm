@@ -21,8 +21,4 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <vector>
-
-
-auto algo_run(struct Parameters const & parameters,
-              std::vector<struct seqinfo_s> & seqindex_v) -> void;
+auto algo_run(struct Parameters const & parameters) -> void;

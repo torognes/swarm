@@ -64,7 +64,16 @@ namespace {
 
   unsigned int sequences {0};
   unsigned int longest {0};
-  struct seqinfo_s * seqindex {nullptr};
+  std::vector<struct seqinfo_s> seqindex_v;
+
+  auto seqinfo_at(uint64_t const seqno) -> struct seqinfo_s const & {
+    assert(not seqindex_v.empty());  // db_read() must run first
+    // bound-check is redundant with -D_GLIBCXX_DEBUG (operator[] is
+    // already checked under libstdc++ debug mode), kept here so the
+    // precondition is enforced in any assert-enabled build
+    assert(seqno < seqindex_v.size());
+    return seqindex_v[seqno];
+  }
 
   struct File_info {
     uint64_t filesize {0};
@@ -431,8 +440,7 @@ namespace {
 
 
 auto db_read(struct Parameters const & parameters,
-             std::vector<char> & data_v,
-             std::vector<struct seqinfo_s> & seqindex_v) -> void
+             std::vector<char> & data_v) -> void
 {
   static constexpr unsigned int linealloc {2048};
   static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
@@ -668,7 +676,6 @@ auto db_read(struct Parameters const & parameters,
   /* create indices */
 
   seqindex_v.resize(seq_stats.n_sequences);
-  seqindex = seqindex_v.data();
 
   struct Progress_status progress_idx;
   progress_init(progress_idx, "Indexing database:", seq_stats.n_sequences, parameters);
@@ -815,8 +822,7 @@ auto db_getlongestsequence() -> unsigned int
 
 
 // refactoring: only used in algo.cc, extract to its own header file?
-auto db_qgrams_init(struct Parameters const & parameters,
-                    std::vector<struct seqinfo_s> const & seqindex_v) -> void
+auto db_qgrams_init(struct Parameters const & parameters) -> void
 {
   // refactoring: qgrams is oly used here and qgrams is an array of char arrays!
   // - vector of std::array is not allowed,
@@ -851,19 +857,13 @@ auto db_qgrams_done() -> void
 
 auto db_gethash(const uint64_t seqno) -> uint64_t
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
-  auto const & fasta_record = *std::next(seqindex, record_number);
-  return fasta_record.seqhash;
+  return seqinfo_at(seqno).seqhash;
 }
 
 
 auto db_getsequence(const uint64_t seqno) -> char const *
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
-  auto const & fasta_record = *std::next(seqindex, record_number);
-  return fasta_record.seq;
+  return seqinfo_at(seqno).seq;
 }
 
 
@@ -871,9 +871,7 @@ auto db_getsequenceandlength(uint64_t seqno,
                              char const * & address,
                              unsigned int & length) -> void
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
-  auto const & fasta_record = *std::next(seqindex, record_number);
+  auto const & fasta_record = seqinfo_at(seqno);
   address = fasta_record.seq;
   length = fasta_record.seqlen;
 }
@@ -881,28 +879,19 @@ auto db_getsequenceandlength(uint64_t seqno,
 
 auto db_getsequencelen(const uint64_t seqno) -> unsigned int
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
-  auto const & fasta_record = *std::next(seqindex, record_number);
-  return fasta_record.seqlen;
+  return seqinfo_at(seqno).seqlen;
 }
 
 
 auto db_getheader(const uint64_t seqno) -> char const *
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
-  auto const & fasta_record = *std::next(seqindex, record_number);
-  return fasta_record.header;
+  return seqinfo_at(seqno).header;
 }
 
 
 auto db_getabundance(const uint64_t seqno) -> uint64_t
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const record_number = static_cast<std::ptrdiff_t>(seqno);
-  auto const & fasta_record = *std::next(seqindex, record_number);
-  return fasta_record.abundance;
+  return seqinfo_at(seqno).abundance;
 }
 
 
@@ -940,8 +929,7 @@ auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
 auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance,
                const int64_t opt_append_abundance) -> void
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+  auto const & seqinfo = seqinfo_at(seqno);
   auto const * hdrstr = seqinfo.header;
   auto const hdrlen = seqinfo.headerlen;
   auto const abundance = seqinfo.abundance;
@@ -963,8 +951,7 @@ auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_
 
 auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance) -> void
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+  auto const & seqinfo = seqinfo_at(seqno);
   auto const * hdrstr = seqinfo.header;
   auto const hdrlen = seqinfo.headerlen;
   auto const abundance_start = seqinfo.abundance_start;
@@ -997,8 +984,7 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
                                   const uint64_t abundance,
                                   const bool opt_usearch_abundance) -> void
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const & seqinfo = *std::next(seqindex, static_cast<std::ptrdiff_t>(seqno));
+  auto const & seqinfo = seqinfo_at(seqno);
 
   if (opt_usearch_abundance) {
     std::fprintf(stream,
