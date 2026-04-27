@@ -476,35 +476,34 @@ auto set_alignment_scoring_system(struct Parameters &parameters) -> void {
 }
 
 
-auto args_check(UsedOptions const & used_options,
-                struct Parameters const & parameters) -> void {
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
-  static constexpr unsigned int min_bits_per_entry {2};
-  static constexpr unsigned int max_bits_per_entry {64};
-  static constexpr unsigned int min_ceiling {40};
-  static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
+auto validate_threading(struct Parameters const & parameters) -> void {
   static constexpr unsigned int max_threads {512};
+  if ((parameters.opt_threads < 1) or (parameters.opt_threads > max_threads)) {
+    fatal(error_prefix, "Illegal number of threads specified with "
+          "-t or --threads, must be in the range 1 to ", max_threads, ".");
+  }
+}
 
-  if ((parameters.opt_threads < 1) or (parameters.opt_threads > max_threads))
-    {
-      fatal(error_prefix, "Illegal number of threads specified with "
-            "-t or --threads, must be in the range 1 to ", max_threads, ".");
-    }
 
+auto validate_clustering(struct Parameters const & parameters) -> void {
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   if ((parameters.opt_differences < 0) or (parameters.opt_differences > uint8_max)) {
     fatal(error_prefix, "Illegal number of differences specified with -d or --differences, "
           "must be in the range 0 to ", uint8_max, ".");
   }
+}
+
+
+auto validate_fastidious(UsedOptions const & used_options,
+                         struct Parameters const & parameters) -> void {
+  static constexpr unsigned int min_bits_per_entry {2};
+  static constexpr unsigned int max_bits_per_entry {64};
+  static constexpr unsigned int min_ceiling {40};
+  static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
 
   if (parameters.opt_fastidious and (parameters.opt_differences != 1)) {
     fatal(error_prefix, "Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
-  }
-
-  if (parameters.opt_disable_sse3 and (parameters.opt_differences < 2)) {
-    fatal(error_prefix, "Option --disable-sse3 or -x has no effect when d < 2 "
-          "(SSE3 instructions are only used when d > 1).");
   }
 
   if (not parameters.opt_fastidious)
@@ -519,6 +518,32 @@ auto args_check(UsedOptions const & used_options,
         fatal(error_prefix, "Option -y or --bloom-bits specified without -f or --fastidious.");
       }
     }
+
+  if (parameters.opt_boundary < 2) {
+    fatal(error_prefix, "Illegal boundary specified with -b or --boundary, "
+          "must be at least 2.");
+  }
+
+  if (used_options.ceiling and ((parameters.opt_ceiling < min_ceiling) or
+                                (parameters.opt_ceiling > max_ceiling))) {
+    fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
+          "must be in the range 8 to 1,073,741,824 MB.");
+  }
+
+  if ((parameters.opt_bloom_bits < min_bits_per_entry) or
+      (parameters.opt_bloom_bits > max_bits_per_entry)) {
+    fatal(error_prefix, "Illegal number of Bloom filter bits specified with -y or "
+          "--bloom-bits, must be in the range 2 to 64.");
+  }
+}
+
+
+auto validate_alignment(UsedOptions const & used_options,
+                        struct Parameters const & parameters) -> void {
+  if (parameters.opt_disable_sse3 and (parameters.opt_differences < 2)) {
+    fatal(error_prefix, "Option --disable-sse3 or -x has no effect when d < 2 "
+          "(SSE3 instructions are only used when d > 1).");
+  }
 
   if (parameters.opt_differences < 2)
     {
@@ -560,24 +585,11 @@ auto args_check(UsedOptions const & used_options,
     fatal(error_prefix, "Illegal mismatch penalty specified with -p or --mismatch-penalty, "
           "must be at least 1.");
   }
+}
 
-  if (parameters.opt_boundary < 2) {
-    fatal(error_prefix, "Illegal boundary specified with -b or --boundary, "
-          "must be at least 2.");
-  }
 
-  if (used_options.ceiling and ((parameters.opt_ceiling < min_ceiling) or
-                                (parameters.opt_ceiling > max_ceiling))) {
-    fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
-          "must be in the range 8 to 1,073,741,824 MB.");
-  }
-
-  if ((parameters.opt_bloom_bits < min_bits_per_entry) or
-      (parameters.opt_bloom_bits > max_bits_per_entry)) {
-    fatal(error_prefix, "Illegal number of Bloom filter bits specified with -y or "
-          "--bloom-bits, must be in the range 2 to 64.");
-  }
-
+auto validate_io(UsedOptions const & used_options,
+                 struct Parameters const & parameters) -> void {
   if (used_options.append_abundance and (parameters.opt_append_abundance < 1)) {
     fatal(error_prefix, "Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
@@ -586,11 +598,16 @@ auto args_check(UsedOptions const & used_options,
   if ((not parameters.opt_network_file.empty()) and (parameters.opt_differences != 1)) {
     fatal(error_prefix, "A network file can only written when d = 1.");
   }
+}
 
-  // scoring system check
-  const int64_t diff_saturation_16 = (std::min((uint16_max / parameters.penalty_mismatch),
-                                               (uint16_max - parameters.penalty_gapopen)
-                                               / parameters.penalty_gapextend));
+
+auto check_scoring_saturation(struct Parameters const & parameters) -> void {
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
+
+  const int64_t diff_saturation_16 = std::min((uint16_max / parameters.penalty_mismatch),
+                                              (uint16_max - parameters.penalty_gapopen)
+                                              / parameters.penalty_gapextend);
 
   if (parameters.opt_differences > diff_saturation_16) {
     fatal(error_prefix, "Resolution (d) too high for the given scoring system.");
@@ -600,6 +617,17 @@ auto args_check(UsedOptions const & used_options,
     fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
           "please use different parameter values.");
   }
+}
+
+
+auto args_check(UsedOptions const & used_options,
+                struct Parameters const & parameters) -> void {
+  validate_threading(parameters);
+  validate_clustering(parameters);
+  validate_fastidious(used_options, parameters);
+  validate_alignment(used_options, parameters);
+  validate_io(used_options, parameters);
+  check_scoring_saturation(parameters);
 }
 
 }  // end of anonymous namespace
