@@ -61,7 +61,7 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
     {
       /* allocate a default buffer if linep is a null pointer */
       *linecapp = minsize;
-      *linep = (char *) malloc(*linecapp);  // refactor C++11: *linep = new char[*linecapp];
+      *linep = static_cast<char *>(std::malloc(*linecapp));
       if (*linep == nullptr)
         return -1;
     }
@@ -128,7 +128,7 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
           return -1;
         }
 
-      char * newlinep = (char *) std::realloc(*linep, newlinecap);
+      char * newlinep = static_cast<char *>(std::realloc(*linep, newlinecap));
       if (newlinep == nullptr)
         {
           // Memory allocation error
