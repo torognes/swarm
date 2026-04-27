@@ -23,45 +23,8 @@
 
 #include "utils/fatal.h"
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
-#include <cstdlib>  // free, posix_memalign, realloc
+#include <cstdlib>  // malloc, realloc (Windows xgetline only)
 #include <cstring>  // strcmp
-
-
-auto xmalloc(std::size_t size) -> void *
-{
-  static constexpr std::size_t memalignment = 16;
-  if (size == 0) {
-    size = 1;
-  }
-  void * memptr {nullptr};  // address of the allocated memory
-#ifdef _WIN32
-  memptr = _aligned_malloc(size, memalignment);
-#else
-  if (posix_memalign(& memptr, memalignment, size) != 0) {
-    memptr = nullptr;
-  }
-#endif
-  if (memptr == nullptr) {
-    fatal(error_prefix, "Unable to allocate enough memory.");
-  }
-  return memptr;
-}
-
-
-auto xfree(void * ptr) -> void
-{
-  if (ptr != nullptr)
-    {
-#ifdef _WIN32
-      _aligned_free(ptr);
-#else
-      std::free(ptr);
-#endif
-    }
-  else {
-    fatal(error_prefix, "Trying to free a null pointer.");
-  }
-}
 
 
 // refactoring: std::getline(input, str) -> input

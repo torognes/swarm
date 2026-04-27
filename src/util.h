@@ -24,6 +24,4 @@
 #include <cstdio>  // size_t
 
 
-auto xmalloc(std::size_t size) -> void *;
-auto xfree(void * ptr) -> void;
 auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssize_t;
