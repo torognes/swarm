@@ -25,7 +25,7 @@
 #include "swarm.h"
 #include "utils/fatal.h"
 #include "utils/gcd.h"
-#include "utils/open_and_close_files.h"
+#include "utils/open_files.h"
 #include "utils/x86_cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>

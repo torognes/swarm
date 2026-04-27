@@ -37,7 +37,7 @@ auto fopen_input(const char * filename) -> std::FILE *
     input_stream = file_descriptor > 0 ? fdopen(file_descriptor, "rb") : nullptr;
   }
   else {
-    input_stream = fopen(filename, "rb");  // refactoring: prefer std::fstream
+    input_stream = fopen(filename, "rb");
   }
 
   return input_stream;
@@ -54,7 +54,7 @@ auto fopen_output(const char * filename) -> FileHandle
     output_stream = file_descriptor > 0 ? fdopen(file_descriptor, "w") : nullptr;
   }
   else {
-    output_stream = fopen(filename, "w");  // refactoring: prefer std::fstream
+    output_stream = fopen(filename, "w");
   }
 
   return FileHandle{output_stream};
