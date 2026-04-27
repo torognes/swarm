@@ -37,7 +37,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fileno, fclose(), size_t // stdio.h: fdopen, ssize_t, getline
+#include <cstdio>  // fileno, size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy
 #include <iterator>  // std::next()
