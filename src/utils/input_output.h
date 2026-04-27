@@ -41,4 +41,4 @@ using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 
 
 auto fopen_input(const char * filename) -> std::FILE *;
-auto fopen_output(const char * filename) -> std::FILE *;
+auto fopen_output(const char * filename) -> FileHandle;

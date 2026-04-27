@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "input_output.h"
 #include <cstdio>  // FILE, fdopen
 #include <cstring>  // strcmp
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
@@ -43,7 +44,7 @@ auto fopen_input(const char * filename) -> std::FILE *
 }
 
 
-auto fopen_output(const char * filename) -> std::FILE *
+auto fopen_output(const char * filename) -> FileHandle
 {
   /* open the output stream given by filename, but use stdout if name is - */
   std::FILE * output_stream {nullptr};
@@ -56,5 +57,5 @@ auto fopen_output(const char * filename) -> std::FILE *
     output_stream = fopen(filename, "w");  // refactoring: prefer std::fstream
   }
 
-  return output_stream;
+  return FileHandle{output_stream};
 }
