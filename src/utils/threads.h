@@ -72,7 +72,7 @@ public:
 
   // refactoring: heaptrack detects a memory leak of 640 bytes for
   // each thread created by this member function. Backtrace:
-  // ThreadRunner::ThreadRunner(int, void (*)(long))
+  // ThreadRunner::ThreadRunner(int, std::function<void(long)> const&)
   //   __pthread_create_2_1 in libc.so.6
   //   allocate_stack in libc.so.6
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
