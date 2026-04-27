@@ -21,7 +21,23 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <cstdio>  // FILE
+#include <cstdio>  // FILE, fclose
+#include <memory>  // unique_ptr
+
+
+// RAII wrapper for std::FILE *: the deleter calls std::fclose, so a
+// FileHandle that goes out of scope automatically closes its file.
+//
+// Note: taking the address of a standard library function (such as
+// &std::fclose) as deleter is unspecified behaviour; prefer a deleter
+// struct with an operator() that calls std::fclose.
+struct CloseFileHandle {
+  auto operator()(std::FILE * file_handle) const -> void {
+    static_cast<void>(std::fclose(file_handle));
+  }
+};
+
+using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 
 
 auto fopen_input(const char * filename) -> std::FILE *;
