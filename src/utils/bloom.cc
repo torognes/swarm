@@ -39,12 +39,22 @@
 #include <limits>
 
 
+namespace {
+  // bitmap is stored as an array of 64-bit words; this is the size of
+  // one such word (in bytes), used both to lower-bound the requested
+  // size and to convert bytes -> words via a right shift.
+  constexpr uint64_t bytes_per_word {8};
+  static_assert(bytes_per_word == sizeof(uint64_t),
+                "bytes_per_word must match sizeof(uint64_t)");
+}
+
+
 // Constructor is non-noexcept: the two vector resizes / construction
 // from (count, value) can throw std::bad_alloc.
 BloomFilter::BloomFilter(const uint64_t bitmap_bytes,
                          const unsigned int shift,
                          const unsigned int n_hash_functions)
-  : size{std::max(bitmap_bytes, uint64_t{8}) >> 3U}
+  : size{std::max(bitmap_bytes, bytes_per_word) >> 3U}
   , pattern_shift{shift}
   , pattern_count{uint64_t{1} << shift}
   , pattern_mask{pattern_count - 1}

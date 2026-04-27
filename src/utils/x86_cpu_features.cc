@@ -53,7 +53,10 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   parameters.avx_present    = ((ecx & bit_AVX)    != 0U) ? 1 : 0;
 
   // leaf 7, sub-leaf 0: extended feature flags
-  if (__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx) == 0) {
+  static constexpr unsigned int extended_features_leaf {7};
+  static constexpr unsigned int extended_features_subleaf {0};
+  if (__get_cpuid_count(extended_features_leaf, extended_features_subleaf,
+                        &eax, &ebx, &ecx, &edx) == 0) {
     return;
   }
   parameters.avx2_present   = ((ebx & bit_AVX2)   != 0U) ? 1 : 0;
