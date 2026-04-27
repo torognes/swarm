@@ -22,12 +22,9 @@
 */
 
 #include <cstdint> // uint64_t
-#include <vector>
 
 
-auto zobrist_init(unsigned int n,
-                  std::vector<uint64_t> & zobrist_tab_base_v,
-                  std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void;
+auto zobrist_init(unsigned int n) -> void;
 
 auto zobrist_hash(char const * seq, unsigned int len) -> uint64_t;
 

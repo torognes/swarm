@@ -28,9 +28,7 @@
 
 auto db_read(struct Parameters const & parameters,
              std::vector<char> & data_v,
-             std::vector<struct seqinfo_s> & seqindex_v,
-             std::vector<uint64_t> & zobrist_tab_base_v,
-             std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void;
+             std::vector<struct seqinfo_s> & seqindex_v) -> void;
 
 auto db_getsequencecount() -> unsigned int;
 

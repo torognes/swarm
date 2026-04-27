@@ -29,7 +29,6 @@
 #include "derep.h"
 #include "utils/seqinfo.h"
 #include "zobrist.h"
-#include <cstdint>  // uint64_t
 #include <vector>
 
 
@@ -41,13 +40,9 @@ auto main(int argc, char** argv) -> int
   // parse fasta input
   std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *  // alignas(8) does not fix alignment issue
   std::vector<struct seqinfo_s> seqindex_v;
-  std::vector<uint64_t> zobrist_tab_base_v;
-  std::vector<uint64_t> zobrist_tab_byte_base_v;
   db_read(parameters,
           data_v,
-          seqindex_v,
-          zobrist_tab_base_v,
-          zobrist_tab_byte_base_v);
+          seqindex_v);
 
   // clustering
   switch (parameters.opt_differences)

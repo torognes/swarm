@@ -432,9 +432,7 @@ namespace {
 
 auto db_read(struct Parameters const & parameters,
              std::vector<char> & data_v,
-             std::vector<struct seqinfo_s> & seqindex_v,
-             std::vector<uint64_t> & zobrist_tab_base_v,
-             std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void
+             std::vector<struct seqinfo_s> & seqindex_v) -> void
 {
   static constexpr unsigned int linealloc {2048};
   static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
@@ -650,7 +648,7 @@ auto db_read(struct Parameters const & parameters,
 
   // add 2 for two insertions (refactoring: insertions in headers?)
   const auto zobrist_len = std::max(4 * seq_stats.longestheader, seq_stats.longest_sequence + 2);
-  zobrist_init(zobrist_len, zobrist_tab_base_v, zobrist_tab_byte_base_v);
+  zobrist_init(zobrist_len);
 
   /* set up hash to check for unique headers */
 

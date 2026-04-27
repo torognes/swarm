@@ -34,6 +34,9 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  std::vector<uint64_t> zobrist_tab_base_v;
+  std::vector<uint64_t> zobrist_tab_byte_base_v;
+
   auto to_uchar(char const nucleotide) -> unsigned char {
     // note: compressed nucleotides are in the range [-127, +127]
     return static_cast<unsigned char>(nucleotide);
@@ -42,12 +45,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-uint64_t * zobrist_tab_base = nullptr;
-uint64_t * zobrist_tab_byte_base = nullptr;
-
-
-auto fill_rng_table(const unsigned int zobrist_len,
-                    std::vector<uint64_t> & zobrist_tab_base_v) -> void
+auto fill_rng_table(const unsigned int zobrist_len) -> void
 {
   /*
     Generate 4n random 64-bit numbers. They will represent the four
@@ -63,7 +61,6 @@ auto fill_rng_table(const unsigned int zobrist_len,
 
   /* allocate base table and fill with random 64 bit numbers */
   zobrist_tab_base_v.resize(4ULL * zobrist_len);
-  zobrist_tab_base = zobrist_tab_base_v.data();
 
   std::for_each(zobrist_tab_base_v.begin(),
                 zobrist_tab_base_v.end(),
@@ -80,15 +77,12 @@ auto fill_rng_table(const unsigned int zobrist_len,
 }
 
 
-auto fill_rng_byte_table(const unsigned int zobrist_len,
-                         std::vector<uint64_t> const & zobrist_tab_base_v,
-                         std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void
+auto fill_rng_byte_table(const unsigned int zobrist_len) -> void
 {
   static constexpr auto byte_range = 256U;
 
   /* allocate byte table and combine into bytes for faster computations */
   zobrist_tab_byte_base_v.resize(1ULL * byte_range * (zobrist_len / 4));
-  zobrist_tab_byte_base = zobrist_tab_byte_base_v.data();
 
   for(auto i = 0U; i < zobrist_len / 4; ++i) {
     for(auto j = 0U; j < byte_range; ++j) {
@@ -108,19 +102,18 @@ auto fill_rng_byte_table(const unsigned int zobrist_len,
 }
 
 
-auto zobrist_init(const unsigned int zobrist_len,
-                  std::vector<uint64_t> & zobrist_tab_base_v,
-                  std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void
+auto zobrist_init(const unsigned int zobrist_len) -> void
 {
-  fill_rng_table(zobrist_len, zobrist_tab_base_v);
-  fill_rng_byte_table(zobrist_len, zobrist_tab_base_v, zobrist_tab_byte_base_v);
+  fill_rng_table(zobrist_len);
+  fill_rng_byte_table(zobrist_len);
 }
 
 
 auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
 {
+  assert(not zobrist_tab_base_v.empty());  // zobrist_init() must run first
   assert(offset == 0 or offset == 1 or offset == 2 or offset == 3);
-  return *std::next(zobrist_tab_base, (4 * pos) + offset);
+  return zobrist_tab_base_v[(4 * pos) + offset];
 }
 
 
@@ -141,10 +134,8 @@ auto zobrist_hash(char const * seq, unsigned int const len) -> uint64_t
       for(auto i = 0U; i < nt_per_uint64; i += 4) {
         auto const a_byte = to_uchar(*seq);
         auto const target_hash = (offset * (pos + i)) + a_byte;
-        assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
         // i = {0, 4, 8, 12, 16, 20, 24, 28}
-        zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
+        zobrist_hash ^= zobrist_tab_byte_base_v[target_hash];
         seq = std::next(seq);
       }
       pos += nt_per_uint64;
@@ -154,9 +145,7 @@ auto zobrist_hash(char const * seq, unsigned int const len) -> uint64_t
     {
       auto const a_byte = to_uchar(*seq);
       auto const target_hash = (offset * pos) + a_byte;
-      assert(target_hash <= std::numeric_limits<std::ptrdiff_t>::max());
-      auto const target_hash_signed = static_cast<std::ptrdiff_t>(target_hash);
-      zobrist_hash ^= *std::next(zobrist_tab_byte_base, target_hash_signed);
+      zobrist_hash ^= zobrist_tab_byte_base_v[target_hash];
       seq = std::next(seq);
       pos += 4;
     }
