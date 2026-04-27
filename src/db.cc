@@ -106,6 +106,43 @@ namespace {
   };
 
 
+  // RAII wrapper for the line buffer passed to xgetline(). POSIX
+  // getline() owns the buffer's lifetime: it may std::realloc() it on
+  // long lines, so the storage must come from std::malloc and the
+  // destructor must call std::free. std::vector<char> or new[]/delete[]
+  // would create an allocator mismatch and undefined behavior.
+  struct Line_buffer {
+    char *      data {nullptr};
+    std::size_t capacity {0};
+
+    explicit Line_buffer(std::size_t const initial)
+      : data{static_cast<char *>(std::malloc(initial))}, capacity{initial}
+    {
+      if (data == nullptr) {
+        fatal(error_prefix, "Unable to allocate enough memory.");
+      }
+    }
+
+    // noexcept: std::free is noexcept and the nullptr guard performs
+    // only an integer comparison.
+    ~Line_buffer() noexcept { release(); }
+
+    // noexcept: see destructor.
+    auto release() noexcept -> void {
+      if (data != nullptr) {
+        std::free(data);
+        data = nullptr;
+        capacity = 0;
+      }
+    }
+
+    Line_buffer(Line_buffer const &)                     = delete;
+    auto operator=(Line_buffer const &) -> Line_buffer & = delete;
+    Line_buffer(Line_buffer &&)                          = delete;
+    auto operator=(Line_buffer &&)      -> Line_buffer & = delete;
+  };
+
+
   auto make_nt_map () -> std::array<uint64_t, n_chars> {
     // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
     std::array<uint64_t, n_chars> ascii_map {{0}};
@@ -478,8 +515,7 @@ auto db_read(struct Parameters const & parameters,
 
   uint64_t filepos = 0;
 
-  std::size_t linecap = linealloc;
-  auto * line = static_cast<char *>(xmalloc(linecap)); // char * line {new char[linecap]};  // refactoring: replacing with a std::vector fails, as getline might need to reallocate and will free() 'line', creating a double-free attempt at the end of the scope
+  Line_buffer line_buf{linealloc};
 
   std::vector<struct Entry> entries;
   auto lineno = 1U;
@@ -488,27 +524,27 @@ auto db_read(struct Parameters const & parameters,
   struct Progress_status progress;
   progress_init(progress, "Reading sequences:", file_info.filesize, parameters);
 
-  ssize_t linelen = xgetline(& line, & linecap, input_fp_handle.get());
+  ssize_t linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
   if (linelen < 0)
     {
-      *line = 0;
+      *line_buf.data = 0;
       linelen = 0;
     }
   filepos += static_cast<unsigned long int>(linelen);
 
-  while (*line != '\0')
+  while (*line_buf.data != '\0')
     {
       /* read header */
       /* the header ends at a space, cr, lf or null character */
 
-      if (*line != '>') {
+      if (*line_buf.data != '>') {
         fatal(error_prefix, "Illegal header line in fasta file.");
       }
 
       struct Entry entry;
 
       auto headerlen = static_cast<unsigned int>
-        (std::strcspn(std::next(line), " \r\n"));
+        (std::strcspn(std::next(line_buf.data), " \r\n"));
 
       seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
@@ -524,7 +560,7 @@ auto db_read(struct Parameters const & parameters,
       /* store the header */
 
       linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-      std::memcpy(&data_v[datalen], std::next(line), headerlen);
+      std::memcpy(&data_v[datalen], std::next(line_buf.data), headerlen);
       data_v[datalen + headerlen] = '\0';
       entry.header.offset = datalen;
       entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
@@ -532,10 +568,10 @@ auto db_read(struct Parameters const & parameters,
 
       /* get next line */
 
-      linelen = xgetline(& line, & linecap, input_fp_handle.get());
+      linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
       if (linelen < 0)
         {
-          *line = '\0';
+          *line_buf.data = '\0';
           linelen = 0;
         }
       filepos += static_cast<unsigned long int>(linelen);
@@ -560,10 +596,10 @@ auto db_read(struct Parameters const & parameters,
       static constexpr int end_chars_range {126};
       entry.sequence.offset = datalen;
 
-      while ((*line != 0) and (*line != '>'))
+      while ((*line_buf.data != 0) and (*line_buf.data != '>'))
         {
           auto character = null_char;
-          auto * line_ptr = line;
+          auto * line_ptr = line_buf.data;
           while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
             {
               line_ptr = std::next(line_ptr);
@@ -602,10 +638,10 @@ auto db_read(struct Parameters const & parameters,
             fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
           }
 
-          linelen = xgetline(& line, & linecap, input_fp_handle.get());
+          linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
           if (linelen < 0)
             {
-              *line = 0;
+              *line_buf.data = 0;
               linelen = 0;
             }
           filepos += static_cast<unsigned long int>(linelen);
@@ -649,12 +685,9 @@ auto db_read(struct Parameters const & parameters,
     }
   progress_done(progress);
 
-  if (line != nullptr)
-    {
-      xfree(line);
-      line = nullptr;
-      linecap = 0;
-    }
+  // free the line buffer early; the rest of db_read does not need it
+  // and indexing/hashing can use the released memory
+  line_buf.release();
 
   /* init zobrist hashing */
 
