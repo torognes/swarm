@@ -93,22 +93,17 @@ struct Parameters {
   std::string opt_uclust_file;
   std::string opt_output_file {dash_filename};
   std::string opt_log;
-  // Each output file has two members: a FileHandle owner that closes
-  // the FILE * at scope exit (RAII), and a non-owning raw FILE * alias
-  // used at I/O call sites. The two members will be unified once every
-  // call site is migrated to <name>_handle.get().
-  FileHandle outfile_handle;
-  FileHandle statsfile_handle;
-  FileHandle uclustfile_handle;
-  FileHandle internal_structure_file_handle;
-  FileHandle seeds_file_handle;
-  FileHandle network_file_handle;
-  FileHandle logfile_handle;  // empty unless -l was given; logfile defaults to stderr
-  std::FILE * outfile {nullptr};
-  std::FILE * statsfile {nullptr};
-  std::FILE * uclustfile {nullptr};
-  std::FILE * internal_structure_file {nullptr};
-  std::FILE * seeds_file {nullptr};
-  std::FILE * network_file {nullptr};
+  // Output files. The FileHandle destructor closes the underlying
+  // std::FILE * at scope exit; call sites pass <name>.get() to fprintf
+  // and friends. logfile is the exception: it defaults to stderr and
+  // is only optionally backed by an owned FileHandle (logfile_handle),
+  // so it stays a raw pointer.
+  FileHandle outfile;
+  FileHandle statsfile;
+  FileHandle uclustfile;
+  FileHandle internal_structure_file;
+  FileHandle seeds_file;
+  FileHandle network_file;
+  FileHandle logfile_handle;  // empty unless -l was given
   std::FILE * logfile {stderr};  // stderr macro expands to type std::FILE*
 };

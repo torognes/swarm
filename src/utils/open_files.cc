@@ -29,11 +29,10 @@
 auto open_files(struct Parameters & parameters) -> void
 {
   // special case (always '-')??
-  parameters.outfile_handle = fopen_output(parameters.opt_output_file.c_str());
-  if (not parameters.outfile_handle) {
+  parameters.outfile = fopen_output(parameters.opt_output_file.c_str());
+  if (not parameters.outfile) {
     fatal(error_prefix, "Unable to open output file for writing.");
   }
-  parameters.outfile = parameters.outfile_handle.get();
 
   /* open files */
 
@@ -48,46 +47,41 @@ auto open_files(struct Parameters & parameters) -> void
 
   if (not parameters.opt_seeds.empty())
     {
-      parameters.seeds_file_handle = fopen_output(parameters.opt_seeds.c_str());
-      if (not parameters.seeds_file_handle) {
+      parameters.seeds_file = fopen_output(parameters.opt_seeds.c_str());
+      if (not parameters.seeds_file) {
         fatal(error_prefix, "Unable to open seeds file for writing.");
       }
-      parameters.seeds_file = parameters.seeds_file_handle.get();
     }
 
   if (not parameters.opt_statistics_file.empty())
     {
-      parameters.statsfile_handle = fopen_output(parameters.opt_statistics_file.c_str());
-      if (not parameters.statsfile_handle) {
+      parameters.statsfile = fopen_output(parameters.opt_statistics_file.c_str());
+      if (not parameters.statsfile) {
         fatal(error_prefix, "Unable to open statistics file for writing.");
       }
-      parameters.statsfile = parameters.statsfile_handle.get();
     }
 
   if (not parameters.opt_uclust_file.empty())
     {
-      parameters.uclustfile_handle = fopen_output(parameters.opt_uclust_file.c_str());
-      if (not parameters.uclustfile_handle) {
+      parameters.uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
+      if (not parameters.uclustfile) {
         fatal(error_prefix, "Unable to open uclust file for writing.");
       }
-      parameters.uclustfile = parameters.uclustfile_handle.get();
     }
 
   if (not parameters.opt_internal_structure.empty())
     {
-      parameters.internal_structure_file_handle = fopen_output(parameters.opt_internal_structure.c_str());
-      if (not parameters.internal_structure_file_handle) {
+      parameters.internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
+      if (not parameters.internal_structure_file) {
         fatal(error_prefix, "Unable to open internal structure file for writing.");
       }
-      parameters.internal_structure_file = parameters.internal_structure_file_handle.get();
     }
 
   if (not parameters.opt_network_file.empty())
     {
-      parameters.network_file_handle = fopen_output(parameters.opt_network_file.c_str());
-      if (not parameters.network_file_handle) {
+      parameters.network_file = fopen_output(parameters.opt_network_file.c_str());
+      if (not parameters.network_file) {
         fatal(error_prefix, "Unable to open network file for writing.");
       }
-      parameters.network_file = parameters.network_file_handle.get();
     }
 }

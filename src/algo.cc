@@ -195,10 +195,10 @@ namespace {
       auto const swarm_mass = seed.mass;
       auto const swarm_seed = seed.seed;
 
-      std::fprintf(parameters.seeds_file_handle.get(), ">");
-      fprint_id_with_new_abundance(parameters.seeds_file_handle.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
-      std::fprintf(parameters.seeds_file_handle.get(), "\n");
-      db_fprintseq(parameters.seeds_file_handle.get(), swarm_seed);
+      std::fprintf(parameters.seeds_file.get(), ">");
+      fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
+      std::fprintf(parameters.seeds_file.get(), "\n");
+      db_fprintseq(parameters.seeds_file.get(), swarm_seed);
       progress_update(progress, ticker);
       ++ticker;
     }
@@ -276,7 +276,7 @@ namespace {
     static constexpr char sepchar {' '};  /* usually a space */
     static constexpr char sep_swarms {'\n'};
 
-    fprint_id(parameters.outfile_handle.get(), amps_v[0].ampliconid,
+    fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
@@ -284,16 +284,16 @@ namespace {
       {
         const int64_t current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
-          std::fputc(sepchar, parameters.outfile_handle.get());
+          std::fputc(sepchar, parameters.outfile.get());
         }
         else {
-          std::fputc(sep_swarms, parameters.outfile_handle.get());
+          std::fputc(sep_swarms, parameters.outfile.get());
         }
-        fprint_id(parameters.outfile_handle.get(), amps_v[i].ampliconid,
+        fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         previous_id = current_id;
       }
-    std::fputc('\n', parameters.outfile_handle.get());
+    std::fputc('\n', parameters.outfile.get());
   }
 
 
@@ -305,9 +305,9 @@ namespace {
     static constexpr char sep_amplicons {','};
     static constexpr char sep_swarms {'\t'};
 
-    std::fprintf(parameters.outfile_handle.get(), "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
+    std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
 
-    fprint_id(parameters.outfile_handle.get(), amps_v[0].ampliconid,
+    fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
@@ -315,17 +315,17 @@ namespace {
       {
         const int64_t current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
-          std::fputc(sep_amplicons, parameters.outfile_handle.get());
+          std::fputc(sep_amplicons, parameters.outfile.get());
         }
         else {
-          std::fputc(sep_swarms, parameters.outfile_handle.get());
+          std::fputc(sep_swarms, parameters.outfile.get());
         }
-        fprint_id(parameters.outfile_handle.get(), amps_v[i].ampliconid,
+        fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         previous_id = current_id;
       }
 
-    std::fputc('\n', parameters.outfile_handle.get());
+    std::fputc('\n', parameters.outfile.get());
   }
 } // namespace
 
@@ -376,7 +376,7 @@ auto algo_run(struct Parameters const & parameters,
   raw_alignment.reserve(2 * longestamplicon);
   cigar_string.reserve(2 * longestamplicon);
 
-  if (parameters.uclustfile_handle.get() != nullptr)
+  if (parameters.uclustfile.get() != nullptr)
     {
       directions.resize(longestamplicon * longestamplicon);
       hearray.resize(2 * longestamplicon);
@@ -487,16 +487,16 @@ auto algo_run(struct Parameters const & parameters,
 
                   if (not parameters.opt_internal_structure.empty())
                     {
-                      fprint_id_noabundance(parameters.internal_structure_file_handle.get(),
+                      fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             seedampliconid, parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file_handle.get(), "\t");
-                      fprint_id_noabundance(parameters.internal_structure_file_handle.get(),
+                      std::fprintf(parameters.internal_structure_file.get(), "\t");
+                      fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             poolampliconid, parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file_handle.get(), "\t%" PRIu64, diff);
-                      std::fprintf(parameters.internal_structure_file_handle.get(),
+                      std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
+                      std::fprintf(parameters.internal_structure_file.get(),
                               "\t%u\t1",
                               swarmid);
-                      std::fprintf(parameters.internal_structure_file_handle.get(), "\n");
+                      std::fprintf(parameters.internal_structure_file.get(), "\n");
                     }
 
                   abundance = db_getabundance(poolampliconid);
@@ -586,15 +586,15 @@ auto algo_run(struct Parameters const & parameters,
 
                   if (not parameters.opt_internal_structure.empty())
                     {
-                      fprint_id_noabundance(parameters.internal_structure_file_handle.get(),
+                      fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             subseed.ampliconid,
                                             parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file_handle.get(), "\t");
-                      fprint_id_noabundance(parameters.internal_structure_file_handle.get(),
+                      std::fprintf(parameters.internal_structure_file.get(), "\t");
+                      fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             poolampliconid,
                                             parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file_handle.get(), "\t%" PRIu64, diff);
-                      std::fprintf(parameters.internal_structure_file_handle.get(),
+                      std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
+                      std::fprintf(parameters.internal_structure_file.get(),
                                    "\t%u\t%u\n",
                                    swarmid, subseed.generation + 1);
                     }
@@ -615,18 +615,18 @@ auto algo_run(struct Parameters const & parameters,
       largestswarm = std::max(swarmsize, largestswarm);
       maxgenerations = std::max(maxgen, maxgenerations);
 
-      if (parameters.uclustfile_handle.get() != nullptr)
+      if (parameters.uclustfile.get() != nullptr)
         {
-          std::fprintf(parameters.uclustfile_handle.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
+          std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid - 1, swarmsize);
-          fprint_id(parameters.uclustfile_handle.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(parameters.uclustfile_handle.get(), "\t*\n");
+          fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
-          std::fprintf(parameters.uclustfile_handle.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+          std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                   swarmid - 1, db_getsequencelen(seedampliconid));
-          fprint_id(parameters.uclustfile_handle.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(parameters.uclustfile_handle.get(), "\t*\n");
-          std::fflush(parameters.uclustfile_handle.get());
+          fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          std::fprintf(parameters.uclustfile.get(), "\t*\n");
+          std::fflush(parameters.uclustfile.get());
 
           for (auto i = 1ULL; i < hitcount; ++i)
             {
@@ -654,15 +654,15 @@ auto algo_run(struct Parameters const & parameters,
               auto const differences = static_cast<double>(nwdiff);
               auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
-              std::fprintf(parameters.uclustfile_handle.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+              std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                       swarmid - 1, db_getsequencelen(hit), percentid,
                       nwdiff > 0 ? cigar_string.data() : "=");
 
-              fprint_id(parameters.uclustfile_handle.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(parameters.uclustfile_handle.get(), "\t");
-              fprint_id(parameters.uclustfile_handle.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(parameters.uclustfile_handle.get(), "\n");
-              std::fflush(parameters.uclustfile_handle.get());
+              fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+              std::fprintf(parameters.uclustfile.get(), "\t");
+              fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+              std::fprintf(parameters.uclustfile.get(), "\n");
+              std::fflush(parameters.uclustfile.get());
 
               raw_alignment.clear();
               cigar_string.clear();
@@ -671,14 +671,14 @@ auto algo_run(struct Parameters const & parameters,
         }
 
 
-      if (parameters.statsfile_handle.get() != nullptr)
+      if (parameters.statsfile.get() != nullptr)
         {
           abundance = db_getabundance(seedampliconid);
 
-          std::fprintf(parameters.statsfile_handle.get(), "%" PRIu64 "\t%" PRIu64 "\t",
+          std::fprintf(parameters.statsfile.get(), "%" PRIu64 "\t%" PRIu64 "\t",
                   swarmsize, amplicons_copies);
-          fprint_id_noabundance(parameters.statsfile_handle.get(), seedampliconid, parameters.opt_usearch_abundance);
-          std::fprintf(parameters.statsfile_handle.get(),
+          fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
+          std::fprintf(parameters.statsfile.get(),
                   "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                   abundance, singletons, maxgen, maxradius);
         }
