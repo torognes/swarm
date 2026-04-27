@@ -116,7 +116,7 @@ auto build_long_options() -> std::array<struct option, option_specs.size() + 1> 
     result[idx].name    = option_specs[idx].long_name;
     result[idx].has_arg = option_specs[idx].needs_arg ? required_argument : no_argument;
     result[idx].flag    = nullptr;
-    result[idx].val     = option_specs[idx].short_name;
+    result[idx].val     = static_cast<unsigned char>(option_specs[idx].short_name);
   }
   // last slot is the {nullptr, 0, nullptr, 0} sentinel (value-initialised above)
   return result;
