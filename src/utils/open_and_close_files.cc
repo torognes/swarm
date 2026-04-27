@@ -88,7 +88,7 @@ auto open_files(struct Parameters & parameters) -> void
 }
 
 
-auto close_files(struct Parameters & parameters) -> void {
+auto close_files(struct Parameters const & parameters) -> void {
   const std::vector<std::FILE *> file_handles
     {parameters.network_file, parameters.internal_structure_file,
      parameters.uclustfile, parameters.statsfile, parameters.seeds_file, parameters.outfile,
