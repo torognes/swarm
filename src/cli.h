@@ -21,11 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-struct Parameters;  // defined in swarm.h
-
-
 // Parse argv, validate the parsed options, derive the alignment
 // scoring system, open the input/output files, and print the header
 // banner. Returns a fully-initialised Parameters ready to be consumed
 // by the clustering algorithms.
-auto parse_command_line(int argc, char ** argv) -> Parameters;
+auto parse_command_line(int argc, char ** argv) -> struct Parameters;
