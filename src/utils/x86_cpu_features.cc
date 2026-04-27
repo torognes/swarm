@@ -23,70 +23,40 @@
 
 #include "../swarm.h"
 #include "fatal.h"
-#include <cstdint>  // uint8_t
 #include <cstdio>  // fprintf
-#include <limits>
 
 
 #ifdef __x86_64__
 
-// refactoring: rewrite using header 'cpuid.h' (GCC, clang)
-auto cpuid(unsigned int leaf_level,
-           unsigned int sublevel,
-           unsigned int & eax,
-           unsigned int & ebx,
-           unsigned int & ecx,
-           unsigned int & edx) -> void
-{
-  __asm__ __volatile__ ("cpuid"
-                        : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
-                        : "a" (leaf_level), "c" (sublevel));
-}
+#include <cpuid.h>  // __get_cpuid, __get_cpuid_count, bit_* masks
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
 {
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  static constexpr unsigned int post_pentium {7};  // new cpus: eax & 0xff > 6
-  static constexpr unsigned int bit_mmx {23};
-  static constexpr unsigned int bit_sse {25};
-  static constexpr unsigned int bit_sse2 {26};
-  static constexpr unsigned int bit_sse3 {0};
-  static constexpr unsigned int bit_ssse3 {9};
-  static constexpr unsigned int bit_sse41 {19};
-  static constexpr unsigned int bit_sse42 {20};
-  static constexpr unsigned int bit_popcnt {23};
-  static constexpr unsigned int bit_avx {28};
-  static constexpr unsigned int bit_avx2 {5};
-
   // CPU registers:
   unsigned int eax {0};
   unsigned int ebx {0};
   unsigned int ecx {0};
   unsigned int edx {0};
 
-  cpuid(0, 0, eax, ebx, ecx, edx);  // leaf 0
-  const unsigned int maxlevel = eax & uint8_max;
-
-  if (maxlevel == 0) {
+  // leaf 1: standard feature flags
+  if (__get_cpuid(1, &eax, &ebx, &ecx, &edx) == 0) {
     return;
   }
+  parameters.mmx_present    = ((edx & bit_MMX)    != 0U) ? 1 : 0;
+  parameters.sse_present    = ((edx & bit_SSE)    != 0U) ? 1 : 0;
+  parameters.sse2_present   = ((edx & bit_SSE2)   != 0U) ? 1 : 0;
+  parameters.sse3_present   = ((ecx & bit_SSE3)   != 0U) ? 1 : 0;
+  parameters.ssse3_present  = ((ecx & bit_SSSE3)  != 0U) ? 1 : 0;
+  parameters.sse41_present  = ((ecx & bit_SSE4_1) != 0U) ? 1 : 0;
+  parameters.sse42_present  = ((ecx & bit_SSE4_2) != 0U) ? 1 : 0;
+  parameters.popcnt_present = ((ecx & bit_POPCNT) != 0U) ? 1 : 0;
+  parameters.avx_present    = ((ecx & bit_AVX)    != 0U) ? 1 : 0;
 
-  cpuid(1, 0, eax, ebx, ecx, edx);  // leaf 1
-  parameters.mmx_present    = (edx >> bit_mmx) & 1U;
-  parameters.sse_present    = (edx >> bit_sse) & 1U;
-  parameters.sse2_present   = (edx >> bit_sse2) & 1U;
-  parameters.sse3_present   = (ecx >> bit_sse3) & 1U;
-  parameters.ssse3_present = (ecx >> bit_ssse3) & 1U;
-  parameters.sse41_present = (ecx >> bit_sse41) & 1U;
-  parameters.sse42_present  = (ecx >> bit_sse42) & 1U;
-  parameters.popcnt_present = (ecx >> bit_popcnt) & 1U;
-  parameters.avx_present    = (ecx >> bit_avx) & 1U;
-
-  if (maxlevel >= post_pentium)
-    {
-      cpuid(post_pentium, 0, eax, ebx, ecx, edx);  // leaf 7
-      parameters.avx2_present   = (ebx >> bit_avx2) & 1U;
-    }
+  // leaf 7, sub-leaf 0: extended feature flags
+  if (__get_cpuid_count(7, 0, &eax, &ebx, &ecx, &edx) == 0) {
+    return;
+  }
+  parameters.avx2_present   = ((ebx & bit_AVX2)   != 0U) ? 1 : 0;
 }
 
 auto cpu_features_test(struct Parameters & parameters) -> void {
