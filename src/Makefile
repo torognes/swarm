@@ -126,7 +126,7 @@ CXXFLAGS = $(COMMON) $(WARNINGS)
 PROG = swarm
 
 OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
-	hashtable.o nw.o qgram.o scan.o search16.o search8.o \
+	nw.o qgram.o scan.o search16.o search8.o \
 	swarm.o util.o variants.o zobrist.o \
 	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(EXTRAOBJ)
 

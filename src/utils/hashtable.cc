@@ -25,7 +25,7 @@
 #include <cassert>
 #include <cstdint>
 #include "hashtable.h"
-#include "utils/hashtable_size.h"
+#include "hashtable_size.h"
 
 
 auto Hashtable::allocate(const uint64_t amplicons) -> uint64_t

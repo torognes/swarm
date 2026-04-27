@@ -31,7 +31,7 @@
 #include "arch.h"
 #include "utils/bloom.h"
 #include "db.h"
-#include "hashtable.h"
+#include "utils/hashtable.h"
 #include "nw.h"
 #include "variants.h"
 #include "utils/cigar.h"
