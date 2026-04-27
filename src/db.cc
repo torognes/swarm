@@ -214,8 +214,11 @@ namespace {
     assert(abundance_end <= std::numeric_limits<int>::max());
     start = static_cast<int>(abundance_start);
     end = static_cast<int>(abundance_end);
+    // refactoring: capture strtoll's end pointer and check errno == ERANGE
+    // to detect overflow (n_digits is bounded above by max_digits = 20,
+    // which can exceed int64_t's 19-digit range).
     static constexpr int base_value {10};
-    number = std::strtoll(std::next(abundance_string), nullptr, base_value); // refactoring: std::strtol(start, end, base)
+    number = std::strtoll(std::next(abundance_string), nullptr, base_value);
 
     return true;
   }
