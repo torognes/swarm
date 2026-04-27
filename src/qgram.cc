@@ -256,7 +256,7 @@ inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b,
   const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(seqno_a),
                                                   db_getqgramvector(seqno_b),
                                                   cpu_features);
-  return (diffqgrams + 2ULL * qgramlength - 1) / (2ULL * qgramlength);  // mindiff
+  return (diffqgrams + (2ULL * qgramlength) - 1) / (2ULL * qgramlength);  // mindiff
 }
 
 

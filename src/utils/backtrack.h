@@ -35,7 +35,7 @@
 template <uint8_t n_bits>
 auto compute_mask(uint64_t const channel,
                   unsigned int const offset) -> uint64_t {
-  return (3ULL << (2 * channel + offset));
+  return (3ULL << ((2 * channel) + offset));
 }
 
 // refactoring: could 'Unknown' be eliminated?
@@ -86,8 +86,8 @@ auto backtrack(char const * qseq,
 
       const auto direction
         = dirbuffer[(offset
-                     + longestdbsequence * 4 * static_cast<uint64_t>(row / 4)
-                     + 4 * static_cast<uint64_t>(column)
+                     + (longestdbsequence * 4 * static_cast<uint64_t>(row / 4))
+                     + (4 * static_cast<uint64_t>(column))
                      + (static_cast<uint64_t>(row) & 3U)
                      ) % dirbuffer.size()];
 
