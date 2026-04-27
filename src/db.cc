@@ -861,7 +861,7 @@ auto db_getlongestsequence() -> unsigned int
 // refactoring: only used in algo.cc, extract to its own header file?
 auto db_qgrams_init(struct Parameters const & parameters) -> void
 {
-  // refactoring: qgrams is oly used here and qgrams is an array of char arrays!
+  // refactoring: qgrams is only used here and qgrams is an array of char arrays!
   // - vector of std::array is not allowed,
   // - vector of vector is not contiguous!
   // - is contiguity really a requirement??
