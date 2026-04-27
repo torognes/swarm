@@ -37,13 +37,7 @@
 auto main(int argc, char** argv) -> int
 {
   // initialization and checks
-  struct Parameters parameters;
-  const auto used_options = args_init(argc, argv, parameters);
-  set_alignment_scoring_system(parameters);
-  args_check(used_options, parameters);
-  open_files(parameters);
-  show_header_message(parameters.logfile);
-  args_show(parameters);
+  auto const parameters = parse_command_line(argc, argv);
 
   // parse fasta input
   std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *  // alignas(8) does not fix alignment issue

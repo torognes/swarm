@@ -25,6 +25,7 @@
 #include "swarm.h"
 #include "utils/fatal.h"
 #include "utils/gcd.h"
+#include "utils/open_and_close_files.h"
 #include "utils/x86_cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>
@@ -52,6 +53,8 @@ constexpr char PRId64[] = "ld";
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
+
+constexpr int n_options {26};
 
 const std::string swarm_version {"3.1.6"};
 
@@ -181,9 +184,6 @@ auto show(const std::vector<std::string> &message,
     std::fprintf(log_stream, "%s", message_element.c_str());
   }
 }
-
-}  // end of anonymous namespace
-
 
 auto show_header_message(std::FILE * log_stream) -> void
 {
@@ -589,4 +589,19 @@ auto args_check(const std::array<bool, n_options> &used_options,
     fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
           "please use different parameter values.");
   }
+}
+
+}  // end of anonymous namespace
+
+
+auto parse_command_line(int argc, char ** argv) -> Parameters
+{
+  Parameters parameters;
+  const auto used_options = args_init(argc, argv, parameters);
+  set_alignment_scoring_system(parameters);
+  args_check(used_options, parameters);
+  open_files(parameters);
+  show_header_message(parameters.logfile);
+  args_show(parameters);
+  return parameters;
 }

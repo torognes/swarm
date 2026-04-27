@@ -21,21 +21,11 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <array>
-#include <cstdio>  // std::FILE
+struct Parameters;  // defined in swarm.h
 
 
-constexpr int n_options {26};
-
-
-auto args_init(int argc, char **argv,
-               struct Parameters & parameters) -> std::array<bool, n_options>;
-
-auto args_check(std::array<bool, n_options> const & used_options,
-                struct Parameters const & parameters) -> void;
-
-auto args_show(struct Parameters const & parameters) -> void;
-
-auto set_alignment_scoring_system(struct Parameters & parameters) -> void;
-
-auto show_header_message(std::FILE * log_stream) -> void;
+// Parse argv, validate the parsed options, derive the alignment
+// scoring system, open the input/output files, and print the header
+// banner. Returns a fully-initialised Parameters ready to be consumed
+// by the clustering algorithms.
+auto parse_command_line(int argc, char ** argv) -> Parameters;
