@@ -50,7 +50,6 @@ auto Hashtable::clear() -> void
 }
 
 
-// noexcept: only performs arithmetic on built-in integer types.
 auto Hashtable::getindex(uint64_t hash) const noexcept -> uint64_t
 {
   // Shift bits right to get independence from the simple Bloom filter hash
@@ -60,15 +59,12 @@ auto Hashtable::getindex(uint64_t hash) const noexcept -> uint64_t
 }
 
 
-// noexcept: only performs arithmetic on built-in integer types.
 auto Hashtable::getnextindex(const uint64_t index) const noexcept -> uint64_t
 {
   return (index + 1) & mask;
 }
 
 
-// noexcept: arithmetic plus an unchecked vector subscript (operator[] does
-// not throw; out-of-range access is guarded by the assert in debug builds).
 auto Hashtable::set_occupied(const uint64_t index) noexcept -> void
 {
   static constexpr auto divider = 3U;
@@ -82,7 +78,6 @@ auto Hashtable::set_occupied(const uint64_t index) noexcept -> void
 }
 
 
-// noexcept: same reasoning as set_occupied.
 auto Hashtable::is_occupied(const uint64_t index) const noexcept -> bool
 {
   static constexpr auto divider = 3U;
@@ -96,7 +91,6 @@ auto Hashtable::is_occupied(const uint64_t index) const noexcept -> bool
 }
 
 
-// noexcept: vector operator[] does not throw.
 auto Hashtable::set_value(const uint64_t index, const uint64_t hash) noexcept -> void
 {
   assert(index < values.size());
@@ -104,7 +98,6 @@ auto Hashtable::set_value(const uint64_t index, const uint64_t hash) noexcept ->
 }
 
 
-// noexcept: vector operator[] does not throw, comparison is on built-ins.
 auto Hashtable::compare_value(const uint64_t index, const uint64_t hash) const noexcept -> bool
 {
   assert(index < values.size());
@@ -112,7 +105,6 @@ auto Hashtable::compare_value(const uint64_t index, const uint64_t hash) const n
 }
 
 
-// noexcept: vector operator[] does not throw.
 auto Hashtable::get_data(const uint64_t index) const noexcept -> unsigned int
 {
   assert(index < data.size());
@@ -120,7 +112,6 @@ auto Hashtable::get_data(const uint64_t index) const noexcept -> unsigned int
 }
 
 
-// noexcept: vector operator[] does not throw.
 auto Hashtable::set_data(const uint64_t index, const unsigned int amplicon_id) noexcept -> void
 {
   assert(index < data.size());
