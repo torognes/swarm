@@ -29,8 +29,6 @@ auto zobrist_init(unsigned int n,
                   std::vector<uint64_t> & zobrist_tab_base_v,
                   std::vector<uint64_t> & zobrist_tab_byte_base_v) -> void;
 
-auto zobrist_exit() -> void;
-
 auto zobrist_hash(char const * seq, unsigned int len) -> uint64_t;
 
 auto zobrist_hash_delete_first(char const * seq, unsigned int len) -> uint64_t;

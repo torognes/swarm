@@ -117,13 +117,6 @@ auto zobrist_init(const unsigned int zobrist_len,
 }
 
 
-auto zobrist_exit() -> void
-{
-  zobrist_tab_byte_base = nullptr;
-  zobrist_tab_base = nullptr;
-}
-
-
 auto zobrist_value(const unsigned int pos, const unsigned char offset) -> uint64_t
 {
   assert(offset == 0 or offset == 1 or offset == 2 or offset == 3);

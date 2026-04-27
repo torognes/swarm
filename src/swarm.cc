@@ -67,6 +67,5 @@ auto main(int argc, char** argv) -> int
 
   // clean up (open output files are closed via RAII when `parameters`
   // goes out of scope)
-  zobrist_exit();
   db_free();
 }
