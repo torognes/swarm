@@ -21,7 +21,7 @@
 
 # Makefile for SWARM
 
-COMMON = -g
+COMMON = -g -fno-exceptions
 EXTRAOBJ =
 LINKOPT =
 LIBS = -lpthread
