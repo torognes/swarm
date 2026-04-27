@@ -454,13 +454,13 @@ auto db_read(struct Parameters const & parameters,
 
   assert(parameters.input_filename.c_str() != nullptr);  // filename is set to '-' (stdin) by default
 
-  std::FILE * input_fp { fopen_input(parameters.input_filename.c_str()) };
-  if (input_fp == nullptr)
+  auto const input_fp_handle = fopen_input(parameters.input_filename.c_str());
+  if (not input_fp_handle)
     {
       fatal(error_prefix, "Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
     }
 
-  auto const file_info = get_file_info(input_fp, parameters);
+  auto const file_info = get_file_info(input_fp_handle.get(), parameters);
   warn_if_file_is_not_regular(parameters, file_info.is_regular);
 
   /* allocate space */
@@ -478,7 +478,7 @@ auto db_read(struct Parameters const & parameters,
   struct Progress_status progress;
   progress_init(progress, "Reading sequences:", file_info.filesize, parameters);
 
-  ssize_t linelen = xgetline(& line, & linecap, input_fp);
+  ssize_t linelen = xgetline(& line, & linecap, input_fp_handle.get());
   if (linelen < 0)
     {
       *line = 0;
@@ -522,7 +522,7 @@ auto db_read(struct Parameters const & parameters,
 
       /* get next line */
 
-      linelen = xgetline(& line, & linecap, input_fp);
+      linelen = xgetline(& line, & linecap, input_fp_handle.get());
       if (linelen < 0)
         {
           *line = '\0';
@@ -592,7 +592,7 @@ auto db_read(struct Parameters const & parameters,
             fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
           }
 
-          linelen = xgetline(& line, & linecap, input_fp);
+          linelen = xgetline(& line, & linecap, input_fp_handle.get());
           if (linelen < 0)
             {
               *line = 0;
@@ -645,8 +645,6 @@ auto db_read(struct Parameters const & parameters,
       line = nullptr;
       linecap = 0;
     }
-
-  std::fclose(input_fp);
 
   /* init zobrist hashing */
 
