@@ -23,5 +23,3 @@
 
 
 auto open_files(struct Parameters & parameters) -> void;
-
-auto close_files(struct Parameters const & parameters) -> void;

@@ -24,78 +24,70 @@
 #include "../swarm.h"
 #include "fatal.h"
 #include "input_output.h"
-#include <cstdio>  // FILE, fclose, stderr  // refactoring: replace with <fstream>
-#include <vector>
 
 
 auto open_files(struct Parameters & parameters) -> void
 {
   // special case (always '-')??
-  parameters.outfile = fopen_output(parameters.opt_output_file.c_str()).release();
-  if (parameters.outfile == nullptr) {
+  parameters.outfile_handle = fopen_output(parameters.opt_output_file.c_str());
+  if (not parameters.outfile_handle) {
     fatal(error_prefix, "Unable to open output file for writing.");
   }
+  parameters.outfile = parameters.outfile_handle.get();
 
   /* open files */
 
   if (not parameters.opt_log.empty())
     {
-      parameters.logfile = fopen_output(parameters.opt_log.c_str()).release();
-      if (parameters.logfile == nullptr) {
+      parameters.logfile_handle = fopen_output(parameters.opt_log.c_str());
+      if (not parameters.logfile_handle) {
         fatal(error_prefix, "Unable to open log file for writing.");
       }
+      parameters.logfile = parameters.logfile_handle.get();
     }
 
   if (not parameters.opt_seeds.empty())
     {
-      parameters.seeds_file = fopen_output(parameters.opt_seeds.c_str()).release();
-      if (parameters.seeds_file == nullptr) {
+      parameters.seeds_file_handle = fopen_output(parameters.opt_seeds.c_str());
+      if (not parameters.seeds_file_handle) {
         fatal(error_prefix, "Unable to open seeds file for writing.");
       }
+      parameters.seeds_file = parameters.seeds_file_handle.get();
     }
 
   if (not parameters.opt_statistics_file.empty())
     {
-      parameters.statsfile = fopen_output(parameters.opt_statistics_file.c_str()).release();
-      if (parameters.statsfile == nullptr) {
+      parameters.statsfile_handle = fopen_output(parameters.opt_statistics_file.c_str());
+      if (not parameters.statsfile_handle) {
         fatal(error_prefix, "Unable to open statistics file for writing.");
       }
+      parameters.statsfile = parameters.statsfile_handle.get();
     }
 
   if (not parameters.opt_uclust_file.empty())
     {
-      parameters.uclustfile = fopen_output(parameters.opt_uclust_file.c_str()).release();
-      if (parameters.uclustfile == nullptr) {
+      parameters.uclustfile_handle = fopen_output(parameters.opt_uclust_file.c_str());
+      if (not parameters.uclustfile_handle) {
         fatal(error_prefix, "Unable to open uclust file for writing.");
       }
+      parameters.uclustfile = parameters.uclustfile_handle.get();
     }
 
   if (not parameters.opt_internal_structure.empty())
     {
-      parameters.internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str()).release();
-      if (parameters.internal_structure_file == nullptr) {
+      parameters.internal_structure_file_handle = fopen_output(parameters.opt_internal_structure.c_str());
+      if (not parameters.internal_structure_file_handle) {
         fatal(error_prefix, "Unable to open internal structure file for writing.");
       }
+      parameters.internal_structure_file = parameters.internal_structure_file_handle.get();
     }
 
   if (not parameters.opt_network_file.empty())
     {
-      parameters.network_file = fopen_output(parameters.opt_network_file.c_str()).release();
-      if (parameters.network_file == nullptr) {
+      parameters.network_file_handle = fopen_output(parameters.opt_network_file.c_str());
+      if (not parameters.network_file_handle) {
         fatal(error_prefix, "Unable to open network file for writing.");
       }
+      parameters.network_file = parameters.network_file_handle.get();
     }
-}
-
-
-auto close_files(struct Parameters const & parameters) -> void {
-  const std::vector<std::FILE *> file_handles
-    {parameters.network_file, parameters.internal_structure_file,
-     parameters.uclustfile, parameters.statsfile, parameters.seeds_file, parameters.outfile,
-     parameters.logfile};
-  for (auto * const file_handle : file_handles) {
-    if (file_handle != nullptr) {
-      std::fclose(file_handle);
-    }
-  }
 }

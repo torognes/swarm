@@ -27,7 +27,6 @@
 #include "cli.h"
 #include "db.h"
 #include "derep.h"
-#include "utils/open_and_close_files.h"
 #include "utils/seqinfo.h"
 #include "zobrist.h"
 #include <cstdint>  // uint64_t
@@ -66,8 +65,8 @@ auto main(int argc, char** argv) -> int
       break;
     }
 
-  // clean up
+  // clean up (open output files are closed via RAII when `parameters`
+  // goes out of scope)
   zobrist_exit();
   db_free();
-  close_files(parameters);
 }
