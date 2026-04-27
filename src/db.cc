@@ -214,7 +214,8 @@ namespace {
     assert(abundance_end <= std::numeric_limits<int>::max());
     start = static_cast<int>(abundance_start);
     end = static_cast<int>(abundance_end);
-    number = std::atol(std::next(abundance_string)); // refactoring: std::strtol(start, end, base)
+    static constexpr int base_value {10};
+    number = std::strtoll(std::next(abundance_string), nullptr, base_value); // refactoring: std::strtol(start, end, base)
 
     return true;
   }
@@ -283,7 +284,8 @@ namespace {
           start = 0;
         }
         end = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
-        number = std::atol(std::next(header, position + alen));
+        static constexpr int base_value {10};
+        number = std::strtoll(std::next(header, position + alen), nullptr, base_value);
 
         return true;
       }
