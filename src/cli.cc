@@ -30,25 +30,18 @@
 #include <algorithm>  // std::min()
 #include <array>
 #include <cassert>
+#include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
-#include <cstdio>  // FILE, fclose, stderr  // refactoring: replace with <fstream>
-#include <cstdlib>  // std::exit, std::strtol
-#include <getopt.h>  // getopt_long, optarg, optind, opterr, struct
-                     // option (no_argument, required_argument)
+#include <cstdio>  // FILE, fclose, stderr
+#include <cstdlib>  // std::exit, std::strtoll
+#include <getopt.h>  // getopt_long, optarg, optind, struct option
+                     // (no_argument, required_argument)
 #include <iterator>  // std::next
 #include <limits>
 #include <string>
 // #include <unistd.h>  // getopt_long... FAIL
 #include <vector>
-
-#ifndef PRId64
-#ifdef _WIN32
-#define PRId64 "I64d"
-#else
-constexpr char PRId64[] = "ld";
-#endif
-#endif
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -163,8 +156,12 @@ auto args_long(char const * str, const char * option) -> int64_t
 {
   static constexpr int base_value {10};
   char * endptr {nullptr};
-  const int64_t number = std::strtol(str, & endptr, base_value);
-  if (*endptr != '\0')
+  errno = 0;
+  const long long number = std::strtoll(str, &endptr, base_value);
+  const bool empty_input {endptr == str};
+  const bool trailing_garbage {*endptr != '\0'};
+  const bool out_of_range {errno == ERANGE};
+  if (empty_input or trailing_garbage or out_of_range)
     {
       fatal(error_prefix, "Invalid numeric argument for option ", option, ".\n\n",
             "Frequent causes are:\n",
@@ -173,7 +170,7 @@ auto args_long(char const * str, const char * option) -> int64_t
             "   (swarm accepts '--help' or '-h', but not '-help')\n\n",
             "Please see 'swarm --help' for more details.");
     }
-  return number;
+  return static_cast<int64_t>(number);
 }
 
 
@@ -206,10 +203,10 @@ auto args_show(struct Parameters const & parameters) -> void
     std::fprintf(parameters.logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
   }
   if (not parameters.opt_internal_structure.empty()) {
-    std::fprintf(parameters.logfile, "Int. struct. file  %s\n", parameters.opt_internal_structure.c_str());
+    std::fprintf(parameters.logfile, "Int. struct. file: %s\n", parameters.opt_internal_structure.c_str());
   }
   if (not parameters.opt_network_file.empty()) {
-    std::fprintf(parameters.logfile, "Network file       %s\n", parameters.opt_network_file.c_str());
+    std::fprintf(parameters.logfile, "Network file:      %s\n", parameters.opt_network_file.c_str());
   }
   std::fprintf(parameters.logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
   std::fprintf(parameters.logfile, "Threads:           %" PRId64 "\n", parameters.opt_threads);
@@ -245,8 +242,6 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> std::ar
   /* Set defaults */
   static const std::string short_options = "a:b:c:d:e:fg:hi:j:l:m:no:p:rs:t:u:vw:xy:z"; /* unused: kq */
   std::array<bool, n_options> used_options {{}};  // value initialization sets values to 'false'
-
-  opterr = 1;  // unused variable? get_opt option?
 
   int option_character {0};
 
