@@ -21,10 +21,10 @@
 
 # Makefile for SWARM
 
-COMMON = -g -fno-exceptions
+COMMON = -g -fno-exceptions -pthread
 EXTRAOBJ =
 LINKOPT =
-LIBS = -lpthread
+LIBS =
 WARNINGS = -Wall -Wextra -Wpedantic
 CLANG = clang
 DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
