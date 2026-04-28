@@ -22,7 +22,6 @@
 # Makefile for SWARM
 
 COMMON = -g -fno-exceptions -pthread
-EXTRAOBJ =
 LINKOPT =
 LIBS =
 WARNINGS = -Wall -Wextra -Wpedantic
