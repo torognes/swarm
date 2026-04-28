@@ -21,4 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-auto algo_d1_run(struct Parameters const & parameters) -> void;
+class Data;  // defined in db.h
+
+
+auto algo_d1_run(struct Parameters const & parameters,
+                 Data const & data) -> void;

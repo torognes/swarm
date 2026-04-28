@@ -25,6 +25,9 @@
 #include <vector>
 
 
+class Zobrist;  // defined in zobrist.h
+
+
 /* Variant information */
 enum struct Variant_type : unsigned char { substitution, deletion, insertion };
 
@@ -49,7 +52,8 @@ auto check_variant(char const * seed_sequence,
                    char const * amp_sequence,
                    unsigned int amp_seqlen) -> bool;
 
-auto generate_variants(char const * sequence,
+auto generate_variants(Zobrist const & zobrist,
+                       char const * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
                        std::vector<struct var_s> & variant_list) -> unsigned int;

@@ -175,30 +175,32 @@ struct Network_state
 
 namespace {
 
-  inline auto check_amp_identical(unsigned int const amp1,
+  inline auto check_amp_identical(Data const & data,
+                                  unsigned int const amp1,
                                   unsigned int const amp2) -> bool {
     /* amplicon are identical if they have the same length, and the
        exact same sequence */
-    const auto amp1_seqlen = db_getsequencelen(amp1);
-    const auto amp2_seqlen = db_getsequencelen(amp2);
+    const auto amp1_seqlen = data.sequence_length(amp1);
+    const auto amp2_seqlen = data.sequence_length(amp2);
 
     return ((amp1_seqlen == amp2_seqlen) and
-            std::equal(db_getsequence(amp1),
-                       std::next(db_getsequence(amp1), nt_bytelength(amp1_seqlen)),
-                       db_getsequence(amp2)));
+            std::equal(data.sequence(amp1),
+                       std::next(data.sequence(amp1), nt_bytelength(amp1_seqlen)),
+                       data.sequence(amp2)));
   }
 
 
-  inline auto hash_insert(Hashtable & hash_table,
+  inline auto hash_insert(Data const & data,
+                          Hashtable & hash_table,
                           BloomFilter & bloom_a,
                           unsigned int const amp) -> bool {
     /* find the first empty bucket */
-    const auto hash = db_gethash(amp);
+    const auto hash = data.sequence_hash(amp);
     auto index = hash_table.getindex(hash);
     auto has_duplicate = false;
     while (hash_table.is_occupied(index)) {
       auto const is_same_amplicon = hash_table.compare_value(index, hash) and
-        check_amp_identical(amp, hash_table.get_data(index));
+        check_amp_identical(data, amp, hash_table.get_data(index));
       if (is_same_amplicon) {
         has_duplicate = true;
       }
@@ -343,7 +345,8 @@ namespace {
   }
 
 
-  auto hash_check_attach(Hashtable const & hash_table,
+  auto hash_check_attach(Data const & data,
+                         Hashtable const & hash_table,
                          char * seed_sequence,
                          unsigned int seed_seqlen,
                          struct var_s & var,
@@ -366,8 +369,8 @@ namespace {
             const auto amp = hash_table.get_data(index);
 
             /* make absolutely sure sequences are identical */
-            auto const * amp_sequence = db_getsequence(amp);
-            const auto amp_seqlen = db_getsequencelen(amp);
+            auto const * amp_sequence = data.sequence(amp);
+            const auto amp_seqlen = data.sequence_length(amp);
             if (check_variant(seed_sequence, seed_seqlen, var, amp_sequence, amp_seqlen))
               {
                 add_graft_candidate(seed, amp, graft_state);
@@ -380,7 +383,8 @@ namespace {
   }
 
 
-  inline auto check_heavy_var_2(Hashtable const & hash_table,
+  inline auto check_heavy_var_2(Data const & data,
+                                Hashtable const & hash_table,
                                 BloomFilter const & bloom_a,
                                 std::vector<char>& seq,
                                 unsigned int seqlen,
@@ -393,12 +397,12 @@ namespace {
 
     uint64_t matches = 0;
 
-    const auto hash = zobrist_hash(seq.data(), seqlen);
-    const auto variant_count = generate_variants(seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data() not fixable while db returns char*
+    const auto hash = data.zobrist().hash(seq.data(), seqlen);
+    const auto variant_count = generate_variants(data.zobrist(), seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data() not fixable while db returns char*
 
     for (auto i = 0U; i < variant_count; ++i) {
       if (bloom_a.get(variant_list[i].hash) and
-          hash_check_attach(hash_table, seq.data(), seqlen, variant_list[i], seed, graft_state)) {
+          hash_check_attach(data, hash_table, seq.data(), seqlen, variant_list[i], seed, graft_state)) {
         ++matches;
       }
     }
@@ -407,7 +411,8 @@ namespace {
   }
 
 
-  auto check_heavy_var(Hashtable const & hash_table,
+  auto check_heavy_var(Data const & data,
+                       Hashtable const & hash_table,
                        BloomFilter const & bloom_a,
                        BloomFilter const & bloom_f,
                        std::vector<char>& varseq,
@@ -441,10 +446,10 @@ namespace {
 
     uint64_t matches = 0;
 
-    auto const * sequence = db_getsequence(seed);
-    const auto seqlen = db_getsequencelen(seed);
-    const auto hash = db_gethash(seed);
-    const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
+    auto const * sequence = data.sequence(seed);
+    const auto seqlen = data.sequence_length(seed);
+    const auto hash = data.sequence_hash(seed);
+    const auto variant_count = generate_variants(data.zobrist(), sequence, seqlen, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i)
       {
@@ -454,7 +459,7 @@ namespace {
             auto varlen = 0U;
             generate_variant_sequence(sequence, seqlen,
                                       var, varseq, varlen);
-            matches += check_heavy_var_2(hash_table,
+            matches += check_heavy_var_2(data, hash_table,
                                          bloom_a,
                                          varseq,
                                          varlen,
@@ -470,6 +475,7 @@ namespace {
 
 
   auto check_heavy_thread(struct Parameters const & parameters,
+                          Data const & data,
                           Hashtable const & hash_table,
                           BloomFilter const & bloom_a,
                           BloomFilter const & bloom_f,
@@ -487,7 +493,7 @@ namespace {
     std::vector<struct var_s> variant_list2((multiplier * (longestamplicon + 1)) + offset);
 
     const std::size_t size =
-      sizeof(uint64_t) * ((db_getlongestsequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
+      sizeof(uint64_t) * ((data.longest_sequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
     std::vector<char> buffer1(size);
     std::unique_lock<std::mutex> lock(heavy_state.mutex);
     while ((heavy_state.amplicon < amplicons) and
@@ -507,7 +513,7 @@ namespace {
             lock.unlock();
             uint64_t number_of_matches {0};
             uint64_t number_of_variants {0};
-            check_heavy_var(hash_table, bloom_a, bloom_f, buffer1, heavy_amplicon_id,
+            check_heavy_var(data, hash_table, bloom_a, bloom_f, buffer1, heavy_amplicon_id,
                             number_of_matches, number_of_variants,
                             variant_list, variant_list2,
                             graft_state);
@@ -518,7 +524,8 @@ namespace {
   }
 
 
-  auto mark_light_var(Hashtable & hash_table,
+  auto mark_light_var(Data const & data,
+                      Hashtable & hash_table,
                       BloomFilter & bloom_a,
                       BloomFilter & bloom_f,
                       unsigned int seed,
@@ -532,12 +539,12 @@ namespace {
       seed is the original seed
     */
 
-    hash_insert(hash_table, bloom_a, seed);
+    hash_insert(data, hash_table, bloom_a, seed);
 
-    auto const * sequence = db_getsequence(seed);
-    const auto seqlen = db_getsequencelen(seed);
-    const auto hash = db_gethash(seed);
-    const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
+    auto const * sequence = data.sequence(seed);
+    const auto seqlen = data.sequence_length(seed);
+    const auto hash = data.sequence_hash(seed);
+    const auto variant_count = generate_variants(data.zobrist(), sequence, seqlen, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i) {
       bloom_f.set(variant_list[i].hash);
@@ -548,6 +555,7 @@ namespace {
 
 
   auto mark_light_thread(struct Parameters const & parameters,
+                         Data const & data,
                          Hashtable & hash_table,
                          BloomFilter & bloom_a,
                          BloomFilter & bloom_f,
@@ -577,7 +585,7 @@ namespace {
           {
             progress_update(progress, ++state.progress);  // refactoring: separate operations?
             lock.unlock();
-            const auto variant_count = mark_light_var(hash_table, bloom_a, bloom_f,
+            const auto variant_count = mark_light_var(data, hash_table, bloom_a, bloom_f,
                                                       light_amplicon_id,
                                                       variant_list);
             lock.lock();
@@ -591,6 +599,7 @@ namespace {
 
 
   inline auto find_variant_matches(struct Parameters const & parameters,
+                                   Data const & data,
                                    Hashtable const & hash_table,
                                    BloomFilter const & bloom_a,
                                    unsigned int seed,
@@ -617,13 +626,13 @@ namespace {
             /* avoid self */
             if (seed != amp) {
               if ((parameters.opt_no_cluster_breaking) or
-                  (db_getabundance(seed) >= db_getabundance(amp)))
+                  (data.abundance(seed) >= data.abundance(amp)))
                 {
-                  auto const * seed_sequence = db_getsequence(seed);
-                  const auto seed_seqlen = db_getsequencelen(seed);
+                  auto const * seed_sequence = data.sequence(seed);
+                  const auto seed_seqlen = data.sequence_length(seed);
 
-                  auto const * amp_sequence = db_getsequence(amp);
-                  const auto amp_seqlen = db_getsequencelen(amp);
+                  auto const * amp_sequence = data.sequence(amp);
+                  const auto amp_seqlen = data.sequence_length(amp);
 
                   if (check_variant(seed_sequence, seed_seqlen,
                                     var,
@@ -642,6 +651,7 @@ namespace {
 
 
   auto check_variants(struct Parameters const & parameters,
+                      Data const & data,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
                       unsigned int seed,
@@ -650,10 +660,10 @@ namespace {
   {
     auto hits_count = 0U;
 
-    auto const * sequence = db_getsequence(seed);
-    const auto seqlen = db_getsequencelen(seed);
-    const auto hash = db_gethash(seed);
-    const auto variant_count = generate_variants(sequence, seqlen, hash, variant_list);
+    auto const * sequence = data.sequence(seed);
+    const auto seqlen = data.sequence_length(seed);
+    const auto hash = data.sequence_hash(seed);
+    const auto variant_count = generate_variants(data.zobrist(), sequence, seqlen, hash, variant_list);
 
     // C++17 refactoring:
     // std::for_each_n(variant_list.begin(), variant_count,
@@ -661,7 +671,7 @@ namespace {
     //                   find_variant_matches(parameters, hash_table, bloom_a, seed, variant, hits_data, hits_count);
     //                 });
     for (auto i = 0U; i < variant_count; ++i) {
-      find_variant_matches(parameters, hash_table, bloom_a, seed, variant_list[i], hits_data, hits_count);
+      find_variant_matches(parameters, data, hash_table, bloom_a, seed, variant_list[i], hits_data, hits_count);
     }
 
     return hits_count;
@@ -669,6 +679,7 @@ namespace {
 
 
   auto network_thread(struct Parameters const & parameters,
+                      Data const & data,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
                       int64_t nth_thread,
@@ -693,7 +704,7 @@ namespace {
 
         lock.unlock();
 
-        const auto hits_count = check_variants(parameters, hash_table, bloom_a, amp, variant_list, hits_data);
+        const auto hits_count = check_variants(parameters, data, hash_table, bloom_a, amp, variant_list, hits_data);
         lock.lock();
 
         assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
@@ -715,7 +726,8 @@ namespace {
   }
 
 
-  auto process_seed(unsigned int const seed,
+  auto process_seed(Data const & data,
+                    unsigned int const seed,
                     std::vector<struct ampinfo_s> & ampinfo_v,
                     std::vector<unsigned int> const & network_v,
                     std::vector<unsigned int> & global_hits_v,
@@ -726,12 +738,12 @@ namespace {
 
     ++swarmsize;
     swarm_maxgen = std::max(seed_info.generation, swarm_maxgen);
-    const auto abundance = db_getabundance(seed);
+    const auto abundance = data.abundance(seed);
     abundance_sum += abundance;
     if (abundance == 1) {
       ++singletons;
     }
-    swarm_sumlen += db_getsequencelen(seed);
+    swarm_sumlen += data.sequence_length(seed);
 
     const auto link_start = ampinfo_v[seed].link_start;
     const auto link_count = ampinfo_v[seed].link_count;
@@ -800,6 +812,7 @@ namespace {
 
   auto write_network_file(const unsigned int number_of_networks,
                           struct Parameters const & parameters,
+                          Data const & data,
                           std::vector<struct ampinfo_s> & ampinfo_v,
                           std::vector<unsigned int> & network_v) -> void {
     // a network is a cluster with at least two sequences (no singletons)
@@ -823,9 +836,9 @@ namespace {
       for (auto link = 0U; link < link_count; ++link)
         {
           const auto neighbour = network_v[link_start + link];
-          fprint_id(parameters.network_file.get(), counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.network_file.get(), counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.network_file.get(), "\t");
-          fprint_id(parameters.network_file.get(), neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.network_file.get(), neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.network_file.get(), "\n");
           ++n_processed;
         }
@@ -837,6 +850,7 @@ namespace {
 
 
   auto write_swarms_default_format(struct Parameters const & parameters,
+                                   Data const & data,
                                    std::vector<struct ampinfo_s> & ampinfo_v,
                                    std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     static constexpr auto sepchar {' '};
@@ -853,7 +867,7 @@ namespace {
         if (amp_id != seed) {
           std::fputc(sepchar, parameters.outfile.get());
         }
-        fprint_id(parameters.outfile.get(), amp_id,
+        data.fprint_id(parameters.outfile.get(), amp_id,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
       std::fputc('\n', parameters.outfile.get());
@@ -865,6 +879,7 @@ namespace {
 
 
   auto write_swarms_mothur_format(struct Parameters const & parameters,
+                                  Data const & data,
                                   std::vector<struct ampinfo_s> & ampinfo_v,
                                   std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     struct Progress_status progress;
@@ -887,7 +902,7 @@ namespace {
         else {
           std::fputc(',', parameters.outfile.get());
         }
-        fprint_id(parameters.outfile.get(), amp_id,
+        data.fprint_id(parameters.outfile.get(), amp_id,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
       progress_update(progress, i + 1);
@@ -900,6 +915,7 @@ namespace {
 
 
   auto write_swarms_uclust_format(struct Parameters const & parameters,
+                                  Data const & data,
                                   std::vector<struct ampinfo_s> & ampinfo_v,
                                   std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     static constexpr auto one_hundred = 100.0;
@@ -928,21 +944,21 @@ namespace {
       std::fprintf(parameters.uclustfile.get(), "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
                    swarm_info.size);
-      fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
       std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
-                   db_getsequencelen(seed));
-      fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+                   data.sequence_length(seed));
+      data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
       for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
         {
-          auto const * dseq = db_getsequence(amp_id);
-          const auto dlen = db_getsequencelen(amp_id);  // refactoring: as a struct Sequence{ptr, length}
-          auto const * qseq = db_getsequence(seed);  // refactoring: can be moved outside of this loop!
-          const auto qlen = db_getsequencelen(seed);
+          auto const * dseq = data.sequence(amp_id);
+          const auto dlen = data.sequence_length(amp_id);  // refactoring: as a struct Sequence{ptr, length}
+          auto const * qseq = data.sequence(seed);  // refactoring: can be moved outside of this loop!
+          const auto qlen = data.sequence_length(seed);
 
           uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
 
@@ -964,13 +980,13 @@ namespace {
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                        cluster_no,
-                       db_getsequencelen(amp_id),
+                       data.sequence_length(amp_id),
                        percentid,
                        nwdiff > 0 ? cigar_string.data() : "=");
 
-          fprint_id(parameters.uclustfile.get(), amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.uclustfile.get(), amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\t");
-          fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\n");
 
           raw_alignment.clear();
@@ -986,6 +1002,7 @@ namespace {
 
 
   auto write_representative_sequences(struct Parameters const & parameters,
+                                      Data const & data,
                                       std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     struct Progress_status progress;
     progress_init(progress, "Writing seeds:    ", swarminfo_v.size(), parameters);
@@ -993,8 +1010,8 @@ namespace {
     std::vector<unsigned int> sorter(swarminfo_v.size());
     std::iota(sorter.begin(), sorter.end(), 0);
 
-    auto compare_mass_and_headers = [&swarminfo_v](unsigned int const lhs,
-                                                   unsigned int const rhs) -> bool
+    auto compare_mass_and_headers = [&swarminfo_v, &data](unsigned int const lhs,
+                                                          unsigned int const rhs) -> bool
     {
       const auto & swarm_x = swarminfo_v[lhs];
       const auto & swarm_y = swarminfo_v[rhs];
@@ -1010,8 +1027,8 @@ namespace {
         return false;
       }
       // ...then ties are sorted by headers (alphabetical order)
-      const auto status = std::strcmp(db_getheader(swarm_x.seed),
-                                      db_getheader(swarm_y.seed));
+      const auto status = std::strcmp(data.header(swarm_x.seed),
+                                      data.header(swarm_y.seed));
       // assert(status != 0); // all headers are unique
       return status < 0;
     };
@@ -1027,10 +1044,10 @@ namespace {
       const auto seed = a_swarm.seed;
       const auto mass = a_swarm.mass;
       std::fprintf(parameters.seeds_file.get(), ">");
-      fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, mass,
+      data.fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, mass,
                                    parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
-      db_fprintseq(parameters.seeds_file.get(), seed);
+      data.fprintseq(parameters.seeds_file.get(), seed);
       progress_update(progress, counter);
       ++counter;
     }
@@ -1040,6 +1057,7 @@ namespace {
 
 
   auto write_structure_file(struct Parameters const & parameters,
+                            Data const & data,
                             std::vector<struct ampinfo_s> & ampinfo_v,
                             std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     auto cluster_no = 0U;
@@ -1061,10 +1079,10 @@ namespace {
             const auto graft_parent = ampinfo_v[amp_id].graft_cand;
             if (graft_parent != no_swarm)
               {
-                fprint_id_noabundance(parameters.internal_structure_file.get(),
+                data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                                       graft_parent, parameters.opt_usearch_abundance);
                 std::fprintf(parameters.internal_structure_file.get(), "\t");
-                fprint_id_noabundance(parameters.internal_structure_file.get(), amp_id, parameters.opt_usearch_abundance);
+                data.fprint_id_noabundance(parameters.internal_structure_file.get(), amp_id, parameters.opt_usearch_abundance);
                 std::fprintf(parameters.internal_structure_file.get(),
                              "\t%d\t%u\t%u\n",
                              2,
@@ -1075,9 +1093,9 @@ namespace {
             const auto parent = ampinfo_v[amp_id].parent;
             if (parent != no_swarm)
               {
-                fprint_id_noabundance(parameters.internal_structure_file.get(), parent, parameters.opt_usearch_abundance);
+                data.fprint_id_noabundance(parameters.internal_structure_file.get(), parent, parameters.opt_usearch_abundance);
                 std::fprintf(parameters.internal_structure_file.get(), "\t");
-                fprint_id_noabundance(parameters.internal_structure_file.get(), amp_id, parameters.opt_usearch_abundance);
+                data.fprint_id_noabundance(parameters.internal_structure_file.get(), amp_id, parameters.opt_usearch_abundance);
                 std::fprintf(parameters.internal_structure_file.get(),
                              "\t%u\t%u\t%u\n",
                              1U,
@@ -1094,6 +1112,7 @@ namespace {
 
 
   auto write_stats_file(struct Parameters const & parameters,
+                        Data const & data,
                         std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     struct Progress_status progress;
     progress_init(progress, "Writing stats:    ", swarminfo_v.size(), parameters);
@@ -1105,9 +1124,9 @@ namespace {
         continue;
       }
       std::fprintf(parameters.statsfile.get(), "%u\t%" PRIu64 "\t", swarm_info.size, swarm_info.mass);
-      fprint_id_noabundance(parameters.statsfile.get(), swarm_info.seed, parameters.opt_usearch_abundance);
+      data.fprint_id_noabundance(parameters.statsfile.get(), swarm_info.seed, parameters.opt_usearch_abundance);
       std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                   db_getabundance(swarm_info.seed),
+                   data.abundance(swarm_info.seed),
                    swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
       progress_update(progress, counter);
       ++counter;
@@ -1117,43 +1136,45 @@ namespace {
 
 
   auto output_results(struct Parameters const & parameters,
+                      Data const & data,
                       std::vector<struct ampinfo_s> & ampinfo_v,
                       std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     /* dump swarms */
     if (parameters.opt_mothur) {
-      write_swarms_mothur_format(parameters, ampinfo_v, swarminfo_v);
+      write_swarms_mothur_format(parameters, data, ampinfo_v, swarminfo_v);
     }
     else {
-      write_swarms_default_format(parameters, ampinfo_v, swarminfo_v);
+      write_swarms_default_format(parameters, data, ampinfo_v, swarminfo_v);
     }
 
     /* dump seeds in fasta format with sum of abundances */
     if (not parameters.opt_seeds.empty()) {
-      write_representative_sequences(parameters, swarminfo_v);
+      write_representative_sequences(parameters, data, swarminfo_v);
     }
 
     /* output internal structure */
     if (not parameters.opt_internal_structure.empty()) {
-      write_structure_file(parameters, ampinfo_v, swarminfo_v);
+      write_structure_file(parameters, data, ampinfo_v, swarminfo_v);
     }
 
     /* output swarms in uclust format */
     if (not parameters.opt_uclust_file.empty()) {
-      write_swarms_uclust_format(parameters, ampinfo_v, swarminfo_v);
+      write_swarms_uclust_format(parameters, data, ampinfo_v, swarminfo_v);
     }
 
     /* output statistics to file */
     if (not parameters.opt_statistics_file.empty()) {
-      write_stats_file(parameters, swarminfo_v);
+      write_stats_file(parameters, data, swarminfo_v);
     }
   }
 } // namespace
 
 
-auto algo_d1_run(struct Parameters const & parameters) -> void
+auto algo_d1_run(struct Parameters const & parameters,
+                 Data const & data) -> void
 {
-  longestamplicon = db_getlongestsequence();
-  amplicons = db_getsequencecount();
+  longestamplicon = data.longest_sequence();
+  amplicons = data.sequence_count();
 
   std::vector<struct ampinfo_s> ampinfo_v(amplicons);
   ampinfo = ampinfo_v.data();
@@ -1183,7 +1204,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   bool has_duplicate {false};
   for (auto k = 0U; k < amplicons; ++k)
     {
-      has_duplicate = hash_insert(hash_table, bloom_a, k);
+      has_duplicate = hash_insert(data, hash_table, bloom_a, k);
       progress_update(progress, k);
       if (has_duplicate) {
         break;
@@ -1214,8 +1235,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
     // refactoring C++14: use std::make_unique
     std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
         static_cast<int>(parameters.opt_threads),
-        [&parameters, &hash_table, &bloom_a, &network_state, &progress](int64_t nth_thread) -> void {
-          network_thread(parameters, hash_table, bloom_a, nth_thread, network_state, progress);
+        [&parameters, &data, &hash_table, &bloom_a, &network_state, &progress](int64_t nth_thread) -> void {
+          network_thread(parameters, data, hash_table, bloom_a, nth_thread, network_state, progress);
         }));
     network_tr->run();
   }
@@ -1225,7 +1246,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
   /* dump network to file */
   if (not parameters.opt_network_file.empty()) {
-    write_network_file(network_state.count, parameters, ampinfo_v, network_state.network_v);
+    write_network_file(network_state.count, parameters, data, ampinfo_v, network_state.network_v);
   }
 
 
@@ -1261,7 +1282,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
           auto global_hits_count = 0U;
 
           /* find the first generation matches */
-          process_seed(seed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
+          process_seed(data, seed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
 
           /* sort hits */
           std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
@@ -1280,7 +1301,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
 
               while(subseed != no_swarm)
                 {
-                  process_seed(subseed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
+                  process_seed(data, subseed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
                   subseed = ampinfo_v[subseed].next;
                 }
 
@@ -1478,8 +1499,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &hash_table, &bloom_a, &bloom_f, &light_state, &progress](int64_t nth_thread) -> void {
-                  mark_light_thread(parameters, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress);
+                [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress](int64_t nth_thread) -> void {
+                  mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress);
                 }));
             light_tr->run();
           }
@@ -1505,8 +1526,8 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
             // refactoring C++14: use std::make_unique
             std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
                 static_cast<int>(parameters.opt_threads),
-                [&parameters, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress](int64_t nth_thread) -> void {
-                  check_heavy_thread(parameters, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress);
+                [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress](int64_t nth_thread) -> void {
+                  check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress);
                 }));
             heavy_tr->run();
           }
@@ -1526,7 +1547,7 @@ auto algo_d1_run(struct Parameters const & parameters) -> void
   swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
   swarminfo_v.shrink_to_fit();
 
-  output_results(parameters, ampinfo_v, swarminfo_v);
+  output_results(parameters, data, ampinfo_v, swarminfo_v);
 
   std::fprintf(parameters.logfile, "\n");
   std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);

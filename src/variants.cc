@@ -181,7 +181,8 @@ inline auto add_variant(uint64_t hash,
 }
 
 
-auto generate_variants(char const * sequence,
+auto generate_variants(Zobrist const & zobrist,
+                       char const * sequence,
                        unsigned int seqlen,
                        uint64_t hash,
                        std::vector<struct var_s>& variant_list) -> unsigned int
@@ -192,13 +193,13 @@ auto generate_variants(char const * sequence,
   for(auto position = 0U; position < seqlen; ++position)
     {
       const auto current_base = nt_extract(sequence, position);
-      const auto hash1 = hash ^ zobrist_value(position, current_base);
+      const auto hash1 = hash ^ zobrist.value(position, current_base);
       for(unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
 
-        const auto hash2 = hash1 ^ zobrist_value(position, base);
+        const auto hash2 = hash1 ^ zobrist.value(position, base);
         add_variant(hash2, Variant_type::substitution, position, base,
                     variant_list, variant_count);
 
@@ -207,7 +208,7 @@ auto generate_variants(char const * sequence,
 
   /* deletions */
 
-  hash = zobrist_hash_delete_first(sequence, seqlen);
+  hash = zobrist.hash_delete_first(sequence, seqlen);
   add_variant(hash, Variant_type::deletion, 0, 0, variant_list, variant_count);
   auto previous_base = nt_extract(sequence, 0);
   for(auto offset = 1U; offset < seqlen; ++offset)
@@ -216,30 +217,30 @@ auto generate_variants(char const * sequence,
       if (current_base == previous_base) {
         continue;
       }
-      hash ^= zobrist_value(offset - 1, previous_base) ^ zobrist_value(offset - 1, current_base);
+      hash ^= zobrist.value(offset - 1, previous_base) ^ zobrist.value(offset - 1, current_base);
       add_variant(hash, Variant_type::deletion, offset, 0, variant_list, variant_count);
       previous_base = current_base;
     }
 
   /* insertions */
 
-  hash = zobrist_hash_insert_first(sequence, seqlen);
+  hash = zobrist.hash_insert_first(sequence, seqlen);
   // insert before the first position in the sequence
   for(unsigned char base = 0; base < 4; ++base)
     {
-      const auto hash1 = hash ^ zobrist_value(0, base);
+      const auto hash1 = hash ^ zobrist.value(0, base);
       add_variant(hash1, Variant_type::insertion, 0, base, variant_list, variant_count);
     }
   // insert after each position in the sequence
   for(auto position = 0U; position < seqlen; ++position)
     {
       const auto current_base = nt_extract(sequence, position);
-      hash ^= zobrist_value(position, current_base) ^ zobrist_value(position + 1, current_base);
+      hash ^= zobrist.value(position, current_base) ^ zobrist.value(position + 1, current_base);
       for(unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
-        const auto hash1 = hash ^ zobrist_value(position + 1, base);
+        const auto hash1 = hash ^ zobrist.value(position + 1, base);
         add_variant(hash1, Variant_type::insertion, position + 1, base,
                     variant_list, variant_count);
       }

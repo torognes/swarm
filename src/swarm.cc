@@ -46,7 +46,7 @@ auto main(int argc, char** argv) -> int
       break;
 
     case 1:
-      algo_d1_run(parameters);
+      algo_d1_run(parameters, data);
       break;
 
     default:
