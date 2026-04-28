@@ -459,8 +459,7 @@ namespace {
 
 
   auto parse_fasta(struct Parameters const & parameters,
-                   std::vector<char> & data_v,
-                   unsigned int & longest_out) -> struct Parse_result
+                   std::vector<char> & data_v) -> struct Parse_result
   {
     static constexpr unsigned int linealloc {2048};
     static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
@@ -474,8 +473,6 @@ namespace {
     auto & seq_stats = result.stats;
     auto & entries = result.entries;
     uint64_t datalen {0};
-
-    longest_out = 0;
 
     /* open input file or stream */
 
@@ -639,7 +636,6 @@ namespace {
 
         seq_stats.nucleotides += length;
         seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
-        longest_out = std::max(length, longest_out);
 
 
         /* save remaining padded 64-bit value with nt's, if any */
@@ -833,12 +829,13 @@ namespace {
 
 Data::Data(struct Parameters const & parameters)
 {
-  auto parse_result = parse_fasta(parameters, data_, longest_);
+  auto parse_result = parse_fasta(parameters, data_);
 
   // Construct the Zobrist tables now that parse_fasta has determined
   // the longest header and sequence. The +2 budgets two insertions
   // for the variant enumeration in variants.cc.
   auto const & stats = parse_result.stats;
+  longest_ = stats.longest_sequence;
   auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
   zobrist_p_.reset(new Zobrist(zobrist_len));
 
