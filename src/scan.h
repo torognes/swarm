@@ -30,6 +30,7 @@
 
 struct Search_data;  // defined in utils/search_data.h
 struct Parameters;  // defined in swarm.h
+class  Data;        // defined in db.h
 
 struct Search_state
 {
@@ -49,6 +50,7 @@ struct Search_state
 
 auto search_all(uint64_t query_no) -> void;
 auto search_do(struct Parameters const & parameters,
+               Data const & data,
                struct Search_state & state,
                uint64_t query_no,
                uint64_t listlength,
@@ -59,6 +61,7 @@ auto search_do(struct Parameters const & parameters,
                int bits,
                ThreadRunner * search_threads) -> void;
 auto search_begin(struct Parameters const & parameters,
+                  Data const & data,
                   struct Search_state & state,
                   std::vector<struct Search_data> & search_data_v) -> void;
 auto search_end(struct Search_state & state) -> void;

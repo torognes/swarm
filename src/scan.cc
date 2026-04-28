@@ -209,6 +209,7 @@ auto adjust_thread_number(const int n_bits,
 
 
 auto search_do(struct Parameters const & parameters,
+               Data const & data,
                struct Search_state & state,
                const uint64_t query_no,
                const uint64_t listlength,
@@ -221,7 +222,9 @@ auto search_do(struct Parameters const & parameters,
 {
   auto query_len = 0U;
   state.query.qno = query_no;
-  db_getsequenceandlength(query_no, state.query.seq, query_len);
+  auto const & info = data.info(query_no);
+  state.query.seq = info.seq;
+  query_len = info.seqlen;
   state.query.len = query_len;
 
   state.master_next = 0;
@@ -249,12 +252,13 @@ auto search_do(struct Parameters const & parameters,
 
 
 auto search_begin(struct Parameters const & parameters,
+                  Data const & data,
                   struct Search_state & state,
                   std::vector<struct Search_data> & search_data_v) -> void
 {
   state.search_data = search_data_v.data();
 
-  allocate_per_thread_search_data(search_data_v, db_getlongestsequence());
+  allocate_per_thread_search_data(search_data_v, data.longest_sequence());
 
   for (auto & thread_data : search_data_v) {
     thread_data.cpu_features.ssse3 = (parameters.ssse3_present != 0);

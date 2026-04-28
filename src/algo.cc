@@ -120,6 +120,7 @@ namespace {
 
 
   auto collect_seeds(struct Parameters const & parameters,
+                     Data const & data,
                      const uint64_t amplicons,
                      std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
     struct Progress_status progress;
@@ -130,7 +131,7 @@ namespace {
     uint64_t mass = 0;
     auto previous_id = amps_v[0].swarmid;
     auto seed = amps_v[0].ampliconid;
-    mass += db_getabundance(seed);
+    mass += data.abundance(seed);
     for (auto i = 1ULL; i < amplicons; ++i)
       {
         auto const current_id = amps_v[i].swarmid;
@@ -142,7 +143,7 @@ namespace {
             mass = 0;
             seed = amps_v[i].ampliconid;
           }
-        mass += db_getabundance(amps_v[i].ampliconid);
+        mass += data.abundance(amps_v[i].ampliconid);
         previous_id = current_id;
         progress_update(progress, i);
       }
@@ -160,12 +161,13 @@ namespace {
 
 
   auto sort_seeds(struct Parameters const & parameters,
+                  Data const & data,
                   std::vector<struct swarminfo_t> & seeds) -> void {
     struct Progress_status progress;
     progress_init(progress, "Sorting seeds:    ", seeds.size(), parameters);
 
-    auto compare_seeds = [](struct swarminfo_t const& lhs,
-                            struct swarminfo_t const& rhs) -> bool {
+    auto compare_seeds = [&data](struct swarminfo_t const& lhs,
+                                 struct swarminfo_t const& rhs) -> bool {
       // sort by decreasing mass...
       if (lhs.mass > rhs.mass) {
         return true;
@@ -174,8 +176,8 @@ namespace {
         return false;
       }
       // ...then ties are sorted by label (alphabetical order)
-      auto const * const lhs_header = db_getheader(lhs.seed);
-      auto const * const rhs_header = db_getheader(rhs.seed);
+      auto const * const lhs_header = data.header(lhs.seed);
+      auto const * const rhs_header = data.header(rhs.seed);
       auto const results = std::strcmp(lhs_header, rhs_header);
       return results == -1;
     };
@@ -186,6 +188,7 @@ namespace {
 
 
   auto write_seeds(struct Parameters const & parameters,
+                   Data const & data,
                    std::vector<struct swarminfo_t> const & seeds) -> void {
     struct Progress_status progress;
     progress_init(progress, "Writing seeds:    ", seeds.size(), parameters);
@@ -195,9 +198,9 @@ namespace {
       auto const swarm_seed = seed.seed;
 
       std::fprintf(parameters.seeds_file.get(), ">");
-      fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
+      data.fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
-      db_fprintseq(parameters.seeds_file.get(), swarm_seed);
+      data.fprintseq(parameters.seeds_file.get(), swarm_seed);
       progress_update(progress, ticker);
       ++ticker;
     }
@@ -261,21 +264,23 @@ namespace {
 
   auto write_representative_sequences(const uint64_t amplicons,
                                       struct Parameters const & parameters,
+                                      Data const & data,
                                       std::vector<struct ampliconinfo_s> & amps_v) -> void {
-    auto seeds = collect_seeds(parameters, amplicons, amps_v);
-    sort_seeds(parameters, seeds);
-    write_seeds(parameters, seeds);
+    auto seeds = collect_seeds(parameters, data, amplicons, amps_v);
+    sort_seeds(parameters, data, seeds);
+    write_seeds(parameters, data, seeds);
   }
 
 
   auto write_swarms_default_format(const uint64_t amplicons,
                                    struct Parameters const & parameters,
+                                   Data const & data,
                                    std::vector<struct ampliconinfo_s> & amps_v) -> void {
     /* native swarm output */
     static constexpr char sepchar {' '};  /* usually a space */
     static constexpr char sep_swarms {'\n'};
 
-    fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
+    data.fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
@@ -288,7 +293,7 @@ namespace {
         else {
           std::fputc(sep_swarms, parameters.outfile.get());
         }
-        fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
+        data.fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         previous_id = current_id;
       }
@@ -299,6 +304,7 @@ namespace {
   auto write_swarms_mothur_format(const uint64_t amplicons,
                                   const unsigned int swarmid,
                                   struct Parameters const & parameters,
+                                  Data const & data,
                                   std::vector<struct ampliconinfo_s> & amps_v) -> void {
     /* mothur list file output */
     static constexpr char sep_amplicons {','};
@@ -306,7 +312,7 @@ namespace {
 
     std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
 
-    fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
+    data.fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
@@ -319,7 +325,7 @@ namespace {
         else {
           std::fputc(sep_swarms, parameters.outfile.get());
         }
-        fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
+        data.fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         previous_id = current_id;
       }
@@ -329,13 +335,14 @@ namespace {
 } // namespace
 
 
-auto algo_run(struct Parameters const & parameters) -> void
+auto algo_run(struct Parameters const & parameters,
+              Data const & data) -> void
 {
   auto const score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
   struct Search_state search_state {};
-  search_begin(parameters, search_state, search_data_v);
+  search_begin(parameters, data, search_state, search_data_v);
   /* start threads */
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(
@@ -347,8 +354,8 @@ auto algo_run(struct Parameters const & parameters) -> void
   uint64_t largestswarm {0};
   uint64_t maxgenerations {0};
 
-  auto const amplicons = db_getsequencecount();
-  const uint64_t longestamplicon = db_getlongestsequence();
+  auto const amplicons = data.sequence_count();
+  const uint64_t longestamplicon = data.longest_sequence();
 
   auto const qgram_store = build_qgram_store(parameters);
 
@@ -413,7 +420,7 @@ auto algo_run(struct Parameters const & parameters) -> void
       hits[hitcount] = seedampliconid;
       ++hitcount;
 
-      auto abundance = db_getabundance(seedampliconid);
+      auto abundance = data.abundance(seedampliconid);
       amplicons_copies += abundance;
       if (abundance == 1) {
         ++singletons;
@@ -428,11 +435,11 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       // set_list_of_remaining_amplicons
       std::for_each(std::next(amps_v.cbegin(), static_cast<long int>(swarmed)), amps_v.cend(),
-          [&parameters, abundance, &qgramamps_v](
+          [&parameters, &data, abundance, &qgramamps_v](
               struct ampliconinfo_s const & amplicon) -> void {
             auto const ampliconid = amplicon.ampliconid;
             if ((parameters.opt_no_cluster_breaking) or
-                (db_getabundance(ampliconid) <= abundance)) {
+                (data.abundance(ampliconid) <= abundance)) {
               qgramamps_v.push_back(ampliconid);
             }
           });
@@ -457,7 +464,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       if (targetcount > 0)
         {
-          search_do(parameters, search_state, seedampliconid, targetcount, targetampliconids.data(),
+          search_do(parameters, data, search_state, seedampliconid, targetcount, targetampliconids.data(),
                     scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
           for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
@@ -484,10 +491,10 @@ auto algo_run(struct Parameters const & parameters) -> void
 
                   if (not parameters.opt_internal_structure.empty())
                     {
-                      fprint_id_noabundance(parameters.internal_structure_file.get(),
+                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             seedampliconid, parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file.get(), "\t");
-                      fprint_id_noabundance(parameters.internal_structure_file.get(),
+                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             poolampliconid, parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
                       std::fprintf(parameters.internal_structure_file.get(),
@@ -496,7 +503,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                       std::fprintf(parameters.internal_structure_file.get(), "\n");
                     }
 
-                  abundance = db_getabundance(poolampliconid);
+                  abundance = data.abundance(poolampliconid);
                   amplicons_copies += abundance;
                   if (abundance == 1) {
                     ++singletons;
@@ -520,7 +527,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
               targetcount = 0;
 
-              auto const subseedabundance = db_getabundance(subseed.ampliconid);
+              auto const subseedabundance = data.abundance(subseed.ampliconid);
               uint64_t subseedlistlen {0};
               for (auto i = swarmed; i < amplicons; ++i)
                 {
@@ -528,7 +535,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                   if ((amps_v[i].diffestimate <=
                        subseed.radius + parameters.opt_differences) and
                       ((parameters.opt_no_cluster_breaking) or
-                       (db_getabundance(targetampliconid)
+                       (data.abundance(targetampliconid)
                         <= subseedabundance)))
                     {
                       qgramamps_v[subseedlistlen] = targetampliconid;
@@ -551,7 +558,7 @@ auto algo_run(struct Parameters const & parameters) -> void
 
               if (targetcount == 0) { continue; }
 
-              search_do(parameters, search_state, subseed.ampliconid, targetcount, targetampliconids.data(),
+              search_do(parameters, data, search_state, subseed.ampliconid, targetcount, targetampliconids.data(),
                         scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
               for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
@@ -583,11 +590,11 @@ auto algo_run(struct Parameters const & parameters) -> void
 
                   if (not parameters.opt_internal_structure.empty())
                     {
-                      fprint_id_noabundance(parameters.internal_structure_file.get(),
+                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             subseed.ampliconid,
                                             parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file.get(), "\t");
-                      fprint_id_noabundance(parameters.internal_structure_file.get(),
+                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             poolampliconid,
                                             parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
@@ -596,7 +603,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                                    swarmid, subseed.generation + 1);
                     }
 
-                  abundance = db_getabundance(poolampliconid);
+                  abundance = data.abundance(poolampliconid);
                   amplicons_copies += abundance;
                   if (abundance == 1) {
                     ++singletons;
@@ -616,12 +623,12 @@ auto algo_run(struct Parameters const & parameters) -> void
         {
           std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
                   swarmid - 1, swarmsize);
-          fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
           std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  swarmid - 1, db_getsequencelen(seedampliconid));
-          fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+                  swarmid - 1, data.sequence_length(seedampliconid));
+          data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\t*\n");
           std::fflush(parameters.uclustfile.get());
 
@@ -629,10 +636,10 @@ auto algo_run(struct Parameters const & parameters) -> void
             {
               auto const hit = hits[i];
 
-              auto const * dseq = db_getsequence(hit);
-              auto const dlen = db_getsequencelen(hit);
-              auto const * qseq = db_getsequence(seedampliconid);
-              auto const qlen = db_getsequencelen(seedampliconid);
+              auto const * dseq = data.sequence(hit);
+              auto const dlen = data.sequence_length(hit);
+              auto const * qseq = data.sequence(seedampliconid);
+              auto const qlen = data.sequence_length(seedampliconid);
 
               uint64_t nwdiff {0};
 
@@ -652,12 +659,12 @@ auto algo_run(struct Parameters const & parameters) -> void
               auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
               std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                      swarmid - 1, db_getsequencelen(hit), percentid,
+                      swarmid - 1, data.sequence_length(hit), percentid,
                       nwdiff > 0 ? cigar_string.data() : "=");
 
-              fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+              data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
               std::fprintf(parameters.uclustfile.get(), "\t");
-              fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+              data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
               std::fprintf(parameters.uclustfile.get(), "\n");
               std::fflush(parameters.uclustfile.get());
 
@@ -670,11 +677,11 @@ auto algo_run(struct Parameters const & parameters) -> void
 
       if (parameters.statsfile.get() != nullptr)
         {
-          abundance = db_getabundance(seedampliconid);
+          abundance = data.abundance(seedampliconid);
 
           std::fprintf(parameters.statsfile.get(), "%" PRIu64 "\t%" PRIu64 "\t",
                   swarmsize, amplicons_copies);
-          fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
+          data.fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
           std::fprintf(parameters.statsfile.get(),
                   "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                   abundance, singletons, maxgen, maxradius);
@@ -686,17 +693,17 @@ auto algo_run(struct Parameters const & parameters) -> void
   /* output swarms */
   if (amplicons != 0) {
     if (parameters.opt_mothur) {
-      write_swarms_mothur_format(amplicons, swarmid, parameters, amps_v);
+      write_swarms_mothur_format(amplicons, swarmid, parameters, data, amps_v);
     }
     else {
-      write_swarms_default_format(amplicons, parameters, amps_v);
+      write_swarms_default_format(amplicons, parameters, data, amps_v);
     }
   }
 
 
   /* dump seeds in fasta format with sum of abundances */
   if ((not parameters.opt_seeds.empty()) and (amplicons != 0)) {
-    write_representative_sequences(amplicons, parameters, amps_v);
+    write_representative_sequences(amplicons, parameters, data, amps_v);
   }
 
   qgram_diff_done();

@@ -50,7 +50,7 @@ auto main(int argc, char** argv) -> int
       break;
 
     default:
-      algo_run(parameters);
+      algo_run(parameters, data);
       break;
     }
 }
