@@ -104,15 +104,16 @@ namespace {
 
 
   auto write_stats_file(struct Parameters const & parameters,
+                        Data const & data,
                         std::vector<struct bucket> const & hashtable) -> void {
     struct Progress_status progress;
     progress_init(progress, "Writing stats:    ", hashtable.size(), parameters);
     auto counter = 0U;
     for(auto const & cluster: hashtable) {
       std::fprintf(parameters.statsfile.get(), "%u\t%" PRIu64 "\t", cluster.size, cluster.mass);
-      fprint_id_noabundance(parameters.statsfile.get(), cluster.seqno_first, parameters.opt_usearch_abundance);
+      data.fprint_id_noabundance(parameters.statsfile.get(), cluster.seqno_first, parameters.opt_usearch_abundance);
       std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                   db_getabundance(cluster.seqno_first),
+                   data.abundance(cluster.seqno_first),
                    cluster.singletons, 0U, 0U);
       ++counter;
       progress_update(progress, counter);
@@ -122,6 +123,7 @@ namespace {
 
 
   auto write_structure_file(struct Parameters const & parameters,
+                            Data const & data,
                             std::vector<struct bucket> const & hashtable,
                             std::vector<unsigned int> const & nextseqtab) -> void {
     struct Progress_status progress;
@@ -133,9 +135,9 @@ namespace {
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
-          fprint_id_noabundance(parameters.internal_structure_file.get(), seed, parameters.opt_usearch_abundance);
+          data.fprint_id_noabundance(parameters.internal_structure_file.get(), seed, parameters.opt_usearch_abundance);
           std::fprintf(parameters.internal_structure_file.get(), "\t");
-          fprint_id_noabundance(parameters.internal_structure_file.get(), next_identical, parameters.opt_usearch_abundance);
+          data.fprint_id_noabundance(parameters.internal_structure_file.get(), next_identical, parameters.opt_usearch_abundance);
           std::fprintf(parameters.internal_structure_file.get(), "\t%d\t%lu\t%d\n", 0, counter + 1, 0);
           next_identical = nextseqtab[next_identical];
         }
@@ -147,6 +149,7 @@ namespace {
 
 
   auto write_swarms_uclust_format(struct Parameters const & parameters,
+                                  Data const & data,
                                   std::vector<struct bucket> const & hashtable,
                                   std::vector<unsigned int> const & nextseqtab) -> void {
     struct Progress_status progress;
@@ -159,13 +162,13 @@ namespace {
       std::fprintf(parameters.uclustfile.get(), "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    counter,
                    cluster.size);
-      fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
       std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                    counter,
-                   db_getsequencelen(seed));
-      fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+                   data.sequence_length(seed));
+      data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
       auto next_identical = nextseqtab[seed];
@@ -174,12 +177,12 @@ namespace {
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                        counter,
-                       db_getsequencelen(next_identical),
+                       data.sequence_length(next_identical),
                        100.0,
                        "=");
-          fprint_id(parameters.uclustfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.uclustfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\t");
-          fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\n");
           next_identical = nextseqtab[next_identical];
         }
@@ -191,6 +194,7 @@ namespace {
 
 
   auto write_representative_sequences(struct Parameters const & parameters,
+                                      Data const & data,
                                       std::vector<struct bucket> const & hashtable) -> void {
     struct Progress_status progress;
     progress_init(progress, "Writing seeds:    ", hashtable.size(), parameters);
@@ -198,9 +202,9 @@ namespace {
     for(auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
       std::fprintf(parameters.seeds_file.get(), ">");
-      fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, cluster.mass, parameters.opt_usearch_abundance);
+      data.fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, cluster.mass, parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
-      db_fprintseq(parameters.seeds_file.get(), seed);
+      data.fprintseq(parameters.seeds_file.get(), seed);
       ++counter;
       progress_update(progress, counter);
     }
@@ -209,6 +213,7 @@ namespace {
 
 
   auto write_swarms_mothur_format(struct Parameters const & parameters,
+                                  Data const & data,
                                   std::vector<struct bucket> const & hashtable,
                                   std::vector<unsigned int> const & nextseqtab) -> void {
     struct Progress_status progress;
@@ -226,14 +231,14 @@ namespace {
       // print cluster seed
       auto const seed = cluster.seqno_first;
       std::fputc('\t', parameters.outfile.get());
-      fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      data.fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       // print other cluster members
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
           std::fputc(',', parameters.outfile.get());
-          fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           next_identical = nextseqtab[next_identical];
         }
 
@@ -247,6 +252,7 @@ namespace {
 
 
   auto write_swarms_default_format(struct Parameters const & parameters,
+                                   Data const & data,
                                    std::vector<struct bucket> const & hashtable,
                                    std::vector<unsigned int> const & nextseqtab) -> void {
     static constexpr char sepchar {' '};
@@ -257,14 +263,14 @@ namespace {
     for(auto const & cluster: hashtable) {
       // print cluster seed
       auto const seed = cluster.seqno_first;
-      fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      data.fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       // print other cluster members
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
           std::fputc(sepchar, parameters.outfile.get());
-          fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          data.fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           next_identical = nextseqtab[next_identical];
         }
       std::fputc('\n', parameters.outfile.get());
@@ -277,6 +283,7 @@ namespace {
 
 
   auto dereplicating(struct Parameters const & parameters,
+                     Data const & data,
                      std::vector<struct bucket> & hashtable,
                      std::vector<unsigned int> & nextseqtab)
     -> struct Stats
@@ -286,11 +293,12 @@ namespace {
 
          struct Stats stats;
          const uint64_t derep_hash_mask = hashtable.size() - 1;
+         auto const & zb = data.zobrist();
 
          for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
            {
-             auto const seqlen = db_getsequencelen(seqno);
-             auto const * seq = db_getsequence(seqno);
+             auto const seqlen = data.sequence_length(seqno);
+             auto const * seq = data.sequence(seqno);
 
              /*
                Find free bucket or bucket for identical sequence.
@@ -300,16 +308,16 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             auto const hash = zobrist_hash(seq, seqlen);
+             auto const hash = zb.hash(seq, seqlen);
 
              auto nth_bucket = hash & derep_hash_mask;
              auto * clusterp = &hashtable[nth_bucket];
 
              while ((clusterp->mass != 0U) and
                     ((clusterp->hash != hash) or
-                     (seqlen != db_getsequencelen(clusterp->seqno_first)) or
+                     (seqlen != data.sequence_length(clusterp->seqno_first)) or
                      not std::equal(seq, std::next(seq, nt_bytelength(seqlen)),
-                                    db_getsequence(clusterp->seqno_first))
+                                    data.sequence(clusterp->seqno_first))
                      )
                     )
                {
@@ -322,7 +330,7 @@ namespace {
                    }
                }
 
-             auto const abundance = db_getabundance(seqno);
+             auto const abundance = data.abundance(seqno);
 
              if (clusterp->mass != 0U)
                {
@@ -359,43 +367,45 @@ namespace {
 
 
   auto output_results(struct Parameters const & parameters,
+                      Data const & data,
                       std::vector<struct bucket> & hashtable,
                       std::vector<unsigned int> & nextseqtab) -> void {
     // refactoring: can data structures be marked as const?
     /* dump swarms */
     if (parameters.opt_mothur) {
-      write_swarms_mothur_format(parameters, hashtable, nextseqtab);
+      write_swarms_mothur_format(parameters, data, hashtable, nextseqtab);
     }
     else {
-      write_swarms_default_format(parameters, hashtable, nextseqtab);
+      write_swarms_default_format(parameters, data, hashtable, nextseqtab);
     }
 
     /* dump seeds in fasta format with sum of abundances */
     if (not parameters.opt_seeds.empty()) {
-      write_representative_sequences(parameters, hashtable);
+      write_representative_sequences(parameters, data, hashtable);
     }
 
     /* output swarm in uclust format */
     if (not parameters.opt_uclust_file.empty()) {
-      write_swarms_uclust_format(parameters, hashtable, nextseqtab);
+      write_swarms_uclust_format(parameters, data, hashtable, nextseqtab);
     }
 
     /* output internal structure to file */
     if (not parameters.opt_internal_structure.empty()) {
-      write_structure_file(parameters, hashtable, nextseqtab);
+      write_structure_file(parameters, data, hashtable, nextseqtab);
     }
 
     /* output statistics to file */
     if (not parameters.opt_statistics_file.empty()) {
-      write_stats_file(parameters, hashtable);
+      write_stats_file(parameters, data, hashtable);
     }
   }
 } // namespace
 
 
-auto dereplicate(struct Parameters const & parameters) -> void
+auto dereplicate(struct Parameters const & parameters,
+                 Data const & data) -> void
 {
-  const uint64_t dbsequencecount = db_getsequencecount();
+  const uint64_t dbsequencecount = data.sequence_count();
   const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
 
   std::vector<struct bucket> hashtable(hashtablesize);
@@ -403,13 +413,13 @@ auto dereplicate(struct Parameters const & parameters) -> void
   std::vector<unsigned int> nextseqtab(dbsequencecount, 0);
 
   // dereplicate input sequences
-  auto const stats = dereplicating(parameters, hashtable, nextseqtab);
+  auto const stats = dereplicating(parameters, data, hashtable, nextseqtab);
 
   // sort by decreasing abundance
   sort_seeds(parameters, hashtable);
   release_unused_memory(hashtable, stats.swarmcount);
 
-  output_results(parameters, hashtable, nextseqtab);
+  output_results(parameters, data, hashtable, nextseqtab);
 
   std::fprintf(parameters.logfile, "\n");
   std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n",

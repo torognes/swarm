@@ -42,7 +42,7 @@ auto main(int argc, char** argv) -> int
   switch (parameters.opt_differences)
     {
     case 0:
-      dereplicate(parameters);
+      dereplicate(parameters, data);
       break;
 
     case 1:
