@@ -25,6 +25,9 @@ COMMON = -g -fno-exceptions -pthread
 LINKOPT =
 LIBS =
 WARNINGS = -Wall -Wextra -Wpedantic
+# Generate header-dependency files alongside each object so that
+# editing a header forces a rebuild of the right translation units.
+DEPFLAGS = -MMD -MP
 DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
 	-Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
 	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
@@ -127,30 +130,34 @@ OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
 	swarm.o variants.o \
 	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(EXTRAOBJ)
 
-DEPS = Makefile $(wildcard *.h) $(wildcard utils/*.h)
+DEPFILES = $(OBJS:.o=.d)
 
 .PHONY: all swarm clean
 
 all : $(PROG)
 
-swarm : $(OBJS) $(DEPS)
+swarm : $(OBJS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
 	mkdir -p ../bin
 	cp -a $(BIN) ../bin
 
 clean :
-	rm -f $(BIN) $(OBJS) *~ gmon.out *.gcno *.gcda *.gcov \
+	rm -f $(BIN) $(OBJS) $(DEPFILES) *~ gmon.out *.gcno *.gcda *.gcov \
 	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov
 	rm -rf ../bin/
 
-.o : .cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+%.o : %.cc Makefile
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c -o $@ $<
 
-ssse3.o : ssse3.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -mssse3 -c -o $@ $<
+ssse3.o : ssse3.cc Makefile
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mssse3 -c -o $@ $<
 
-sse41.o : sse41.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -msse4.1 -c -o $@ $<
+sse41.o : sse41.cc Makefile
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -msse4.1 -c -o $@ $<
 
-popcnt.o : popcnt.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -mpopcnt -c -o $@ $<
+popcnt.o : popcnt.cc Makefile
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mpopcnt -c -o $@ $<
+
+# Pull in the auto-generated header-dependency files. The leading "-"
+# silences the warning when a .d file does not yet exist.
+-include $(DEPFILES)
