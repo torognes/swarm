@@ -79,17 +79,17 @@ else ifdef COVERAGE
 endif
 
 
-# Identify Machine
-ifeq ($(CXX), aarch64-linux-gnu-g++)
-	MACHINE = aarch64
-else ifeq ($(CXX), powerpc64le-linux-gnu-g++)
-	MACHINE = ppc64le
-else ifeq ($(CXX), x86_64-linux-gnu-g++)
-	MACHINE = x86_64
-else ifeq ($(CXX), x86_64-w64-mingw32-g++)
-	MACHINE = x86_64
-else
-	MACHINE = $(shell uname -m)
+# Identify the target machine and OS by asking the compiler. This is
+# robust to ccache wrappers, absolute paths, version-suffixed binaries
+# (e.g. clang++-19), and clang's --target= cross-compilation.
+TARGET_TRIPLE := $(shell $(CXX) -dumpmachine 2>/dev/null)
+MACHINE := $(firstword $(subst -, ,$(TARGET_TRIPLE)))
+ifeq ($(MACHINE),)
+	MACHINE := $(shell uname -m)
+endif
+# normalise the GCC name "powerpc64le" to the short form used below
+ifeq ($(MACHINE), powerpc64le)
+	MACHINE := ppc64le
 endif
 
 
@@ -108,7 +108,7 @@ endif
 
 
 # OS specific (Windows vs. others)
-ifeq ($(CXX), x86_64-w64-mingw32-g++)
+ifneq (,$(findstring mingw, $(TARGET_TRIPLE)))
 	LIBS += -lpsapi
 	LINKOPT += -static
 	BIN = swarm.exe
