@@ -28,8 +28,12 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
-#include <limits>
 #include <vector>
+
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
+#include <limits>
+#endif
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
