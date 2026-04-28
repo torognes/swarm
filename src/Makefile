@@ -26,7 +26,6 @@ EXTRAOBJ =
 LINKOPT =
 LIBS =
 WARNINGS = -Wall -Wextra -Wpedantic
-CLANG = clang
 DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
 	-Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
 	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
@@ -34,15 +33,24 @@ DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
         -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wuseless-cast -Wvla
 DEBUG_SANITIZER = -fsanitize=undefined,address -fno-omit-frame-pointer
 
+
+# Compiler identity and major version. Use the preprocessor to detect
+# clang via the __clang__ macro: that works regardless of the binary
+# name (g++, clang++, ccache wrappers, cross-compilers...). Use $(CXX)
+# -dumpversion to query the actual compiler being used, not the host
+# /usr/bin/gcc.
+IS_CLANG := $(shell $(CXX) -x c++ -E -dM - < /dev/null 2>/dev/null | grep -c '__clang__')
+CXX_VERSION_MAJOR := $(shell $(CXX) -dumpversion 2>/dev/null | cut -d. -f1)
+CXX_VERSION_MAJOR := $(or $(CXX_VERSION_MAJOR),0)
+
+
 # Run "make RELEASE=1" to compile for release
 ifdef RELEASE
 	COMMON += -O3 -DNDEBUG
-	COMPILER_VERSION := $(shell $(CXX) --version)
-	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
+	ifneq ($(IS_CLANG), 0)
 		COMMON += -flto=full
 	else
-		GCCVERSIONGTEQ12 := $(shell expr `gcc -dumpversion | cut -f 1 -d "."` \>= 12)
-		ifeq "$(GCCVERSIONGTEQ12)" "1"
+		ifeq ($(shell [ $(CXX_VERSION_MAJOR) -ge 12 ] && echo yes), yes)
 			COMMON += -flto=auto
 		else
 			COMMON += -flto
@@ -67,12 +75,10 @@ else ifdef COVERAGE
 # default behaviour is to compile for release (max optimizations)
 else
 	COMMON += -O3 -DNDEBUG
-	COMPILER_VERSION := $(shell $(CXX) --version)
-	ifeq ($(CLANG), $(findstring $(CLANG), $(COMPILER_VERSION)))
+	ifneq ($(IS_CLANG), 0)
 		COMMON += -flto=full
 	else
-		GCCVERSIONGTEQ12 := $(shell expr `gcc -dumpversion | cut -f 1 -d "."` \>= 12)
-		ifeq "$(GCCVERSIONGTEQ12)" "1"
+		ifeq ($(shell [ $(CXX_VERSION_MAJOR) -ge 12 ] && echo yes), yes)
 			COMMON += -flto=auto
 		else
 			COMMON += -flto
