@@ -44,7 +44,13 @@ CXX_VERSION_MAJOR := $(shell $(CXX) -dumpversion 2>/dev/null | cut -d. -f1)
 CXX_VERSION_MAJOR := $(or $(CXX_VERSION_MAJOR),0)
 
 
-# Run "make RELEASE=1" to compile for release
+# Default to RELEASE when no other build flavour was requested. Doing
+# this here lets us write the RELEASE flags exactly once below.
+ifeq ($(or $(RELEASE),$(PROFILE),$(DEBUG),$(COVERAGE)),)
+	RELEASE := 1
+endif
+
+# Run "make RELEASE=1" to compile for release (also the default)
 ifdef RELEASE
 	COMMON += -O3 -DNDEBUG
 	ifneq ($(IS_CLANG), 0)
@@ -65,25 +71,11 @@ else ifdef PROFILE
 else ifdef DEBUG
 	COMMON += -O0 -DDEBUG -ggdb3 -D_GLIBCXX_DEBUG $(DEBUG_SANITIZER) $(DEBUG_WARNINGS)
 
-
 # Run "make COVERAGE=1" to compile for coverage tests
 else ifdef COVERAGE
 	COMMON += -fprofile-arcs -ftest-coverage -O0
 	LIBS += -lgcov
 	LINKFLAGS += --coverage
-
-# default behaviour is to compile for release (max optimizations)
-else
-	COMMON += -O3 -DNDEBUG
-	ifneq ($(IS_CLANG), 0)
-		COMMON += -flto=full
-	else
-		ifeq ($(shell [ $(CXX_VERSION_MAJOR) -ge 12 ] && echo yes), yes)
-			COMMON += -flto=auto
-		else
-			COMMON += -flto
-		endif
-	endif
 endif
 
 
