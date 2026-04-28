@@ -22,13 +22,13 @@
 */
 
 #include "swarm.h"
+#include "db.h"
 #include "util.h"
 #include "utils/fatal.h"
 #include "utils/input_output.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
 #include "utils/seq_index.h"
-#include "utils/seqinfo.h"
 #include "zobrist.h"
 #include <algorithm>  // std::max() std::min() std::sort()
 #include <array>
@@ -41,6 +41,7 @@
 #include <cstring>  // memcpy
 #include <iterator>  // std::next()
 #include <limits>
+#include <memory>  // std::unique_ptr
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
 #include <vector>
@@ -61,18 +62,10 @@ namespace {
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 
-  unsigned int sequences {0};
-  unsigned int longest {0};
-  std::vector<struct seqinfo_s> seqindex_v;
-
-  auto seqinfo_at(uint64_t const seqno) -> struct seqinfo_s const & {
-    assert(not seqindex_v.empty());  // db_read() must run first
-    // bound-check is redundant with -D_GLIBCXX_DEBUG (operator[] is
-    // already checked under libstdc++ debug mode), kept here so the
-    // precondition is enforced in any assert-enabled build
-    assert(seqno < seqindex_v.size());
-    return seqindex_v[seqno];
-  }
+  // Singleton owning the loaded database. Constructed by db_read();
+  // read by the legacy db_* free functions below. Will go away once
+  // callers take Data const & directly.
+  std::unique_ptr<Data> db_data_p;
 
   struct File_info {
     uint64_t filesize {0};
@@ -428,7 +421,8 @@ namespace {
   }
 
 
-  auto sort_index_if_need_be(struct Parameters const & parameters) -> void {
+  auto sort_index_if_need_be(struct Parameters const & parameters,
+                             std::vector<struct seqinfo_s> & seqindex_v) -> void {
     struct Progress_status progress;
     progress_init(progress, "Abundance sorting:", 1, parameters);
 
@@ -471,7 +465,9 @@ namespace {
 
 
   auto parse_fasta(struct Parameters const & parameters,
-                   std::vector<char> & data_v) -> struct Parse_result
+                   std::vector<char> & data_v,
+                   unsigned int & sequences_out,
+                   unsigned int & longest_out) -> struct Parse_result
   {
     static constexpr unsigned int linealloc {2048};
     static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
@@ -486,8 +482,8 @@ namespace {
     auto & entries = result.entries;
     uint64_t datalen {0};
 
-    longest = 0;
-    sequences = 0;
+    longest_out = 0;
+    sequences_out = 0;
 
     /* open input file or stream */
 
@@ -651,7 +647,7 @@ namespace {
 
         seq_stats.nucleotides += length;
         seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
-        longest = std::max(length, longest);
+        longest_out = std::max(length, longest_out);
 
 
         /* save remaining padded 64-bit value with nt's, if any */
@@ -667,7 +663,7 @@ namespace {
           }
 
         ++seq_stats.n_sequences;
-        ++sequences;
+        ++sequences_out;
         entries.push_back(entry);
 
         if (file_info.is_regular) {
@@ -685,7 +681,8 @@ namespace {
   auto build_index(struct Parameters const & parameters,
                    std::vector<char> & data_v,
                    std::vector<struct Entry> const & entries,
-                   struct Seq_stats & seq_stats) -> void
+                   struct Seq_stats & seq_stats,
+                   std::vector<struct seqinfo_s> & seqindex_v) -> void
   {
     /* init zobrist hashing */
 
@@ -839,70 +836,60 @@ namespace {
     progress_done(progress_idx);
 
     abort_if_missing_abundance(seq_stats);
-    sort_index_if_need_be(parameters);
+    sort_index_if_need_be(parameters, seqindex_v);
     print_user_report(parameters, seq_stats);
   }
 
 } // end of anonymous namespace
 
 
-auto db_read(struct Parameters const & parameters,
-             std::vector<char> & data_v) -> void
+// ----- class Data -----
+
+Data::Data(struct Parameters const & parameters)
 {
-  auto parse_result = parse_fasta(parameters, data_v);
-  build_index(parameters, data_v, parse_result.entries, parse_result.stats);
+  auto parse_result = parse_fasta(parameters, data_, sequences_, longest_);
+  build_index(parameters, data_, parse_result.entries, parse_result.stats, seqindex_);
 }
 
 
-auto db_getsequencecount() -> unsigned int
+auto Data::info(uint64_t const seqno) const -> struct seqinfo_s const &
 {
-  return sequences;
+  assert(not seqindex_.empty());  // db_read() / Data ctor must run first
+  // bound-check is redundant with -D_GLIBCXX_DEBUG (operator[] is
+  // already checked under libstdc++ debug mode), kept here so the
+  // precondition is enforced in any assert-enabled build
+  assert(seqno < seqindex_.size());
+  return seqindex_[seqno];
 }
 
 
-auto db_getlongestsequence() -> unsigned int
+auto Data::sequence(uint64_t const seqno) const -> char const *
 {
-  return longest;
+  return info(seqno).seq;
 }
 
 
-auto db_gethash(const uint64_t seqno) -> uint64_t
+auto Data::sequence_length(uint64_t const seqno) const -> unsigned int
 {
-  return seqinfo_at(seqno).seqhash;
+  return info(seqno).seqlen;
 }
 
 
-auto db_getsequence(const uint64_t seqno) -> char const *
+auto Data::sequence_hash(uint64_t const seqno) const -> uint64_t
 {
-  return seqinfo_at(seqno).seq;
+  return info(seqno).seqhash;
 }
 
 
-auto db_getsequenceandlength(uint64_t seqno,
-                             char const * & address,
-                             unsigned int & length) -> void
+auto Data::header(uint64_t const seqno) const -> char const *
 {
-  auto const & fasta_record = seqinfo_at(seqno);
-  address = fasta_record.seq;
-  length = fasta_record.seqlen;
+  return info(seqno).header;
 }
 
 
-auto db_getsequencelen(const uint64_t seqno) -> unsigned int
+auto Data::abundance(uint64_t const seqno) const -> uint64_t
 {
-  return seqinfo_at(seqno).seqlen;
-}
-
-
-auto db_getheader(const uint64_t seqno) -> char const *
-{
-  return seqinfo_at(seqno).header;
-}
-
-
-auto db_getabundance(const uint64_t seqno) -> uint64_t
-{
-  return seqinfo_at(seqno).abundance;
+  return info(seqno).abundance;
 }
 
 
@@ -916,16 +903,16 @@ auto db_getabundance(const uint64_t seqno) -> uint64_t
 //   buffer[len] = '\0';  //
 //   std::fprintf(fastaout_fp, "%.*s\n", len, buffer.c_str());
 // benchmarck to check which way is faster
-auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
+auto Data::fprintseq(std::FILE * fastaout_fp, unsigned int const seqno) const -> void
 {
   static constexpr std::array<char, 32> sym_nt =
     {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
-  auto const len = db_getsequencelen(seqno);
-  auto const * const seqptr = db_getsequence(seqno);
-  static std::vector<char> buffer(db_getlongestsequence() + 1, '\0');
+  auto const len = sequence_length(seqno);
+  auto const * const seqptr = sequence(seqno);
+  static std::vector<char> buffer(longest_sequence() + 1, '\0');
 
   // decode to nucleotides (A, C, G and T)
   for (auto i = 0U; i < len; ++i) {
@@ -937,21 +924,22 @@ auto db_fprintseq(std::FILE * fastaout_fp, const unsigned int seqno) -> void
 }
 
 
-auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance,
-               const int64_t opt_append_abundance) -> void
+auto Data::fprint_id(std::FILE * stream, uint64_t const seqno,
+                     bool const opt_usearch_abundance,
+                     int64_t const opt_append_abundance) const -> void
 {
-  auto const & seqinfo = seqinfo_at(seqno);
+  auto const & seqinfo = info(seqno);
   auto const * hdrstr = seqinfo.header;
   auto const hdrlen = seqinfo.headerlen;
-  auto const abundance = seqinfo.abundance;
+  auto const abundance_value = seqinfo.abundance;
 
   // if abundance is missing and if user says that a missing abundance is ok, then...
   if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
     if (opt_usearch_abundance) {
-      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, abundance);
+      std::fprintf(stream, "%.*s;size=%" PRIu64 ";", hdrlen, hdrstr, abundance_value);
     }
     else {
-      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, abundance);
+      std::fprintf(stream, "%.*s_%" PRIu64, hdrlen, hdrstr, abundance_value);
     }
   }
   else {
@@ -960,9 +948,10 @@ auto fprint_id(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_
 }
 
 
-auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool opt_usearch_abundance) -> void
+auto Data::fprint_id_noabundance(std::FILE * stream, uint64_t const seqno,
+                                 bool const opt_usearch_abundance) const -> void
 {
-  auto const & seqinfo = seqinfo_at(seqno);
+  auto const & seqinfo = info(seqno);
   auto const * hdrstr = seqinfo.header;
   auto const hdrlen = seqinfo.headerlen;
   auto const abundance_start = seqinfo.abundance_start;
@@ -990,12 +979,12 @@ auto fprint_id_noabundance(std::FILE * stream, const uint64_t seqno, const bool 
 }
 
 
-auto fprint_id_with_new_abundance(std::FILE * stream,
-                                  const uint64_t seqno,
-                                  const uint64_t abundance,
-                                  const bool opt_usearch_abundance) -> void
+auto Data::fprint_id_with_new_abundance(std::FILE * stream,
+                                        uint64_t const seqno,
+                                        uint64_t const new_abundance,
+                                        bool const opt_usearch_abundance) const -> void
 {
-  auto const & seqinfo = seqinfo_at(seqno);
+  auto const & seqinfo = info(seqno);
 
   if (opt_usearch_abundance) {
     std::fprintf(stream,
@@ -1003,7 +992,7 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
                  seqinfo.abundance_start,
                  seqinfo.header,
                  seqinfo.abundance_start > 0 ? ";" : "",
-                 abundance,
+                 new_abundance,
                  seqinfo.headerlen - seqinfo.abundance_end,
                  std::next(seqinfo.header, seqinfo.abundance_end));
   }
@@ -1012,6 +1001,102 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
                  "%.*s_%" PRIu64,
                  seqinfo.abundance_start,
                  seqinfo.header,
-                 abundance);
+                 new_abundance);
   }
+}
+
+
+// ----- legacy free functions delegating to the singleton -----
+
+auto db_read(struct Parameters const & parameters) -> void
+{
+  db_data_p.reset(new Data(parameters));
+}
+
+
+namespace {
+  auto data() -> Data const & {
+    assert(db_data_p != nullptr);  // db_read() must run first
+    return *db_data_p;
+  }
+}  // namespace
+
+
+auto db_getsequencecount() -> unsigned int
+{
+  return data().sequence_count();
+}
+
+
+auto db_getlongestsequence() -> unsigned int
+{
+  return data().longest_sequence();
+}
+
+
+auto db_gethash(uint64_t const seqno) -> uint64_t
+{
+  return data().sequence_hash(seqno);
+}
+
+
+auto db_getsequence(uint64_t const seqno) -> char const *
+{
+  return data().sequence(seqno);
+}
+
+
+auto db_getsequenceandlength(uint64_t const seqno,
+                             char const * & address,
+                             unsigned int & length) -> void
+{
+  auto const & fasta_record = data().info(seqno);
+  address = fasta_record.seq;
+  length = fasta_record.seqlen;
+}
+
+
+auto db_getsequencelen(uint64_t const seqno) -> unsigned int
+{
+  return data().sequence_length(seqno);
+}
+
+
+auto db_getheader(uint64_t const seqno) -> char const *
+{
+  return data().header(seqno);
+}
+
+
+auto db_getabundance(uint64_t const seqno) -> uint64_t
+{
+  return data().abundance(seqno);
+}
+
+
+auto db_fprintseq(std::FILE * fastaout_fp, unsigned int const seqno) -> void
+{
+  data().fprintseq(fastaout_fp, seqno);
+}
+
+
+auto fprint_id(std::FILE * stream, uint64_t const seqno, bool const opt_usearch_abundance,
+               int64_t const opt_append_abundance) -> void
+{
+  data().fprint_id(stream, seqno, opt_usearch_abundance, opt_append_abundance);
+}
+
+
+auto fprint_id_noabundance(std::FILE * stream, uint64_t const seqno, bool const opt_usearch_abundance) -> void
+{
+  data().fprint_id_noabundance(stream, seqno, opt_usearch_abundance);
+}
+
+
+auto fprint_id_with_new_abundance(std::FILE * stream,
+                                  uint64_t const seqno,
+                                  uint64_t const abundance,
+                                  bool const opt_usearch_abundance) -> void
+{
+  data().fprint_id_with_new_abundance(stream, seqno, abundance, opt_usearch_abundance);
 }

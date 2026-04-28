@@ -28,7 +28,6 @@
 #include "db.h"
 #include "derep.h"
 #include "zobrist.h"
-#include <vector>
 
 
 auto main(int argc, char** argv) -> int
@@ -37,8 +36,7 @@ auto main(int argc, char** argv) -> int
   auto const parameters = parse_command_line(argc, argv);
 
   // parse fasta input
-  std::vector<char> data_v;  // refactoring: std::string fails? .data() -> const char *  // alignas(8) does not fix alignment issue
-  db_read(parameters, data_v);
+  db_read(parameters);
 
   // clustering
   switch (parameters.opt_differences)

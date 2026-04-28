@@ -21,13 +21,56 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "utils/seqinfo.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <vector>
 
 
-auto db_read(struct Parameters const & parameters,
-             std::vector<char> & data_v) -> void;
+struct Parameters;  // defined in swarm.h
+
+
+class Data {
+public:
+  explicit Data(struct Parameters const & parameters);
+
+  auto sequence_count()   const -> unsigned int { return sequences_; }
+  auto longest_sequence() const -> unsigned int { return longest_; }
+
+  auto info(uint64_t seqno) const -> struct seqinfo_s const &;
+
+  auto sequence(uint64_t seqno)        const -> char const *;
+  auto sequence_length(uint64_t seqno) const -> unsigned int;
+  auto sequence_hash(uint64_t seqno)   const -> uint64_t;
+  auto header(uint64_t seqno)          const -> char const *;
+  auto abundance(uint64_t seqno)       const -> uint64_t;
+
+  auto fprintseq(std::FILE * stream, unsigned int seqno) const -> void;
+  auto fprint_id(std::FILE * stream,
+                 uint64_t seqno,
+                 bool opt_usearch_abundance,
+                 int64_t opt_append_abundance) const -> void;
+  auto fprint_id_noabundance(std::FILE * stream,
+                             uint64_t seqno,
+                             bool opt_usearch_abundance) const -> void;
+  auto fprint_id_with_new_abundance(std::FILE * stream,
+                                    uint64_t seqno,
+                                    uint64_t new_abundance,
+                                    bool opt_usearch_abundance) const -> void;
+
+private:
+  std::vector<char>             data_;
+  std::vector<struct seqinfo_s> seqindex_;
+  unsigned int                  sequences_ {0};
+  unsigned int                  longest_ {0};
+};
+
+
+// Backwards-compatible free functions delegating to a static Data
+// constructed by db_read(). To be retired as callers migrate to use
+// Data const & directly.
+
+auto db_read(struct Parameters const & parameters) -> void;
 
 auto db_getsequencecount() -> unsigned int;
 
@@ -44,8 +87,6 @@ auto db_getsequenceandlength(uint64_t seqno,
                              unsigned int & length) -> void;
 
 auto db_getheader(uint64_t seqno) -> char const *;
-
-auto db_getheaderlen(uint64_t seqno) -> unsigned int;
 
 auto db_getabundance(uint64_t seqno) -> uint64_t;
 
