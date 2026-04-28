@@ -821,7 +821,7 @@ auto search8(Data const & data,
                       const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
                       auto const & info = data.info(seqno);
                       char const * address = info.seq;
-                      unsigned int length = info.seqlen;
+                      unsigned int const length = info.seqlen;
 
                       d_address[channel] = address;
                       d_length[channel] = length;
