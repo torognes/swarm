@@ -40,7 +40,6 @@
 #include "utils/progress.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
-#include "zobrist.h"
 #include <algorithm>  // std::sort(), std::reverse(), std::max()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64

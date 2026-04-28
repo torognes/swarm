@@ -27,7 +27,6 @@
 #include "cli.h"
 #include "db.h"
 #include "derep.h"
-#include "zobrist.h"
 
 
 auto main(int argc, char** argv) -> int

@@ -40,11 +40,12 @@ private:
 };
 
 
-// Backwards-compatible free functions delegating to a static Zobrist
-// constructed by zobrist_init(). To be retired as callers migrate to
-// use Zobrist const & directly.
+// Backwards-compatible free functions delegating to whichever Zobrist
+// is currently registered as active (via zobrist_set_active). To be
+// retired as callers migrate to use Zobrist const & directly — usually
+// obtained via Data::zobrist().
 
-auto zobrist_init(unsigned int n) -> void;
+auto zobrist_set_active(Zobrist const & active) -> void;
 
 auto zobrist_hash(char const * seq, unsigned int len) -> uint64_t;
 

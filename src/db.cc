@@ -29,7 +29,6 @@
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
 #include "utils/seq_index.h"
-#include "zobrist.h"
 #include <algorithm>  // std::max() std::min() std::sort()
 #include <array>
 #include <cassert>  // assert()
@@ -684,12 +683,6 @@ namespace {
                    struct Seq_stats & seq_stats,
                    std::vector<struct seqinfo_s> & seqindex_v) -> void
   {
-    /* init zobrist hashing */
-
-    // add 2 for two insertions (refactoring: insertions in headers?)
-    const auto zobrist_len = std::max(4 * seq_stats.longestheader, seq_stats.longest_sequence + 2);
-    zobrist_init(zobrist_len);
-
     /* set up hash to check for unique headers */
 
     const uint64_t hdrhashsize {2ULL * seq_stats.n_sequences};
@@ -848,6 +841,17 @@ namespace {
 Data::Data(struct Parameters const & parameters)
 {
   auto parse_result = parse_fasta(parameters, data_, sequences_, longest_);
+
+  // Construct the Zobrist tables now that parse_fasta has determined
+  // the longest header and sequence. The +2 budgets two insertions
+  // for the variant enumeration in variants.cc.
+  auto const & stats = parse_result.stats;
+  auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
+  zobrist_p_.reset(new Zobrist(zobrist_len));
+  // legacy free zobrist_* functions in zobrist.cc delegate here until
+  // callers are migrated to use Data::zobrist() directly
+  zobrist_set_active(*zobrist_p_);
+
   build_index(parameters, data_, parse_result.entries, parse_result.stats, seqindex_);
 }
 

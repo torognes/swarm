@@ -26,7 +26,6 @@
 #include "utils/hashtable_size.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
-#include "zobrist.h"
 #include <algorithm>  // sort
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64

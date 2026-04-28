@@ -22,8 +22,10 @@
 */
 
 #include "utils/seqinfo.h"
+#include "zobrist.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <memory>  // std::unique_ptr
 #include <vector>
 
 
@@ -36,6 +38,8 @@ public:
 
   auto sequence_count()   const -> unsigned int { return sequences_; }
   auto longest_sequence() const -> unsigned int { return longest_; }
+
+  auto zobrist() const -> Zobrist const & { return *zobrist_p_; }
 
   auto info(uint64_t seqno) const -> struct seqinfo_s const &;
 
@@ -61,6 +65,7 @@ public:
 private:
   std::vector<char>             data_;
   std::vector<struct seqinfo_s> seqindex_;
+  std::unique_ptr<Zobrist>      zobrist_p_;  // deferred: needs longest_sequence
   unsigned int                  sequences_ {0};
   unsigned int                  longest_ {0};
 };
