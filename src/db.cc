@@ -897,7 +897,7 @@ auto Data::abundance(uint64_t const seqno) const -> uint64_t
 //   buffer[len] = '\0';  //
 //   std::fprintf(fastaout_fp, "%.*s\n", len, buffer.c_str());
 // benchmarck to check which way is faster
-auto Data::fprintseq(std::FILE * fastaout_fp, unsigned int const seqno) const -> void
+auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
 {
   static constexpr std::array<char, 32> sym_nt =
     {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
@@ -914,7 +914,7 @@ auto Data::fprintseq(std::FILE * fastaout_fp, unsigned int const seqno) const ->
   }
   buffer[len] = '\0';
 
-  std::fprintf(fastaout_fp, "%.*s\n", len, buffer.data());
+  std::fprintf(stream, "%.*s\n", len, buffer.data());
 }
 
 
