@@ -21,23 +21,44 @@
 
 # Makefile for SWARM
 
-PROG=bin/swarm
-MAN=man/swarm.1
-SRC := src
+PROG := bin/swarm
+MAN  := man/swarm.1
+SRC  := src
 
-ifndef PREFIX
-	PREFIX=/usr/local
-endif
+PREFIX ?= /usr/local
+exec_prefix := $(PREFIX)
+datarootdir := $(PREFIX)/share
+bindir      := $(exec_prefix)/bin
+mandir      := $(datarootdir)/man
+man1dir     := $(mandir)/man1
 
-swarm : $(PROG)
+INSTALL         ?= /usr/bin/install
+INSTALL_PROGRAM ?= $(INSTALL) -m 0755
+INSTALL_DATA    ?= $(INSTALL) -m 0644
+MKDIR_P         ?= $(INSTALL) -d
+RM              ?= rm -f
 
-$(PROG) :
-	$(MAKE) --directory=$(SRC) swarm
+.PHONY: all swarm install uninstall clean distclean $(PROG)
 
-install : $(PROG) $(MAN)
-	/usr/bin/install -c $(PROG) $(PREFIX)/bin
-	/usr/bin/install -d $(PREFIX)/share/man/man1
-	/usr/bin/install -c $(MAN) $(PREFIX)/share/man/man1
+all: swarm
 
-clean :
-	$(MAKE) --directory=$(SRC) clean
+swarm: $(PROG)
+
+$(PROG):
+	$(MAKE) -C $(SRC) swarm
+
+install: $(PROG) $(MAN)
+	$(MKDIR_P) $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(bindir)
+	$(MKDIR_P) $(DESTDIR)$(man1dir)
+	$(INSTALL_DATA) $(MAN) $(DESTDIR)$(man1dir)
+
+uninstall:
+	$(RM) $(DESTDIR)$(bindir)/$(notdir $(PROG))
+	$(RM) $(DESTDIR)$(man1dir)/$(notdir $(MAN))
+
+clean:
+	$(MAKE) -C $(SRC) clean
+
+distclean: clean
+	$(RM) *~ $(SRC)/*~ $(SRC)/utils/*~ man/*~
