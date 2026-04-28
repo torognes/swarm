@@ -460,7 +460,6 @@ namespace {
 
   auto parse_fasta(struct Parameters const & parameters,
                    std::vector<char> & data_v,
-                   unsigned int & sequences_out,
                    unsigned int & longest_out) -> struct Parse_result
   {
     static constexpr unsigned int linealloc {2048};
@@ -477,7 +476,6 @@ namespace {
     uint64_t datalen {0};
 
     longest_out = 0;
-    sequences_out = 0;
 
     /* open input file or stream */
 
@@ -657,7 +655,6 @@ namespace {
           }
 
         ++seq_stats.n_sequences;
-        ++sequences_out;
         entries.push_back(entry);
 
         if (file_info.is_regular) {
@@ -836,7 +833,7 @@ namespace {
 
 Data::Data(struct Parameters const & parameters)
 {
-  auto parse_result = parse_fasta(parameters, data_, sequences_, longest_);
+  auto parse_result = parse_fasta(parameters, data_, longest_);
 
   // Construct the Zobrist tables now that parse_fasta has determined
   // the longest header and sequence. The +2 budgets two insertions

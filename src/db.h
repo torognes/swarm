@@ -36,7 +36,7 @@ class Data {
 public:
   explicit Data(struct Parameters const & parameters);
 
-  auto sequence_count()   const -> unsigned int { return sequences_; }
+  auto sequence_count()   const -> unsigned int { return static_cast<unsigned int>(seqindex_.size()); }
   auto longest_sequence() const -> unsigned int { return longest_; }
 
   auto zobrist() const -> Zobrist const & { return *zobrist_p_; }
@@ -66,7 +66,6 @@ private:
   std::vector<char>             data_;
   std::vector<struct seqinfo_s> seqindex_;
   std::unique_ptr<Zobrist>      zobrist_p_;  // deferred: needs longest_sequence
-  unsigned int                  sequences_ {0};
   unsigned int                  longest_ {0};
 };
 
