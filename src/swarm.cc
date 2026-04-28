@@ -35,7 +35,8 @@ auto main(int argc, char** argv) -> int
   auto const parameters = parse_command_line(argc, argv);
 
   // parse fasta input
-  db_read(parameters);
+  Data const data{parameters};
+  db_set_active(data);  // legacy db_* / zobrist_* free functions delegate here
 
   // clustering
   switch (parameters.opt_differences)

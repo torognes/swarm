@@ -61,10 +61,11 @@ namespace {
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 
-  // Singleton owning the loaded database. Constructed by db_read();
-  // read by the legacy db_* free functions below. Will go away once
-  // callers take Data const & directly.
-  std::unique_ptr<Data> db_data_p;
+  // Non-owning back-pointer to the currently active Data instance,
+  // typically owned by main(). Set by db_set_active(), read by the
+  // legacy db_* free functions below. Will go away once callers
+  // take Data const & directly.
+  Data const * active_data = nullptr;
 
   struct File_info {
     uint64_t filesize {0};
@@ -1010,18 +1011,18 @@ auto Data::fprint_id_with_new_abundance(std::FILE * stream,
 }
 
 
-// ----- legacy free functions delegating to the singleton -----
+// ----- legacy free functions delegating to the active back-pointer -----
 
-auto db_read(struct Parameters const & parameters) -> void
+auto db_set_active(Data const & active) -> void
 {
-  db_data_p.reset(new Data(parameters));
+  active_data = &active;
 }
 
 
 namespace {
   auto data() -> Data const & {
-    assert(db_data_p != nullptr);  // db_read() must run first
-    return *db_data_p;
+    assert(active_data != nullptr);  // db_set_active() must run first
+    return *active_data;
   }
 }  // namespace
 

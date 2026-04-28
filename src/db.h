@@ -71,11 +71,11 @@ private:
 };
 
 
-// Backwards-compatible free functions delegating to a static Data
-// constructed by db_read(). To be retired as callers migrate to use
-// Data const & directly.
+// Backwards-compatible free functions delegating to whichever Data
+// is currently registered as active (via db_set_active). To be
+// retired as callers migrate to use Data const & directly.
 
-auto db_read(struct Parameters const & parameters) -> void;
+auto db_set_active(Data const & active) -> void;
 
 auto db_getsequencecount() -> unsigned int;
 
