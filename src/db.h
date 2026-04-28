@@ -22,7 +22,7 @@
 */
 
 #include "utils/seqinfo.h"
-#include "zobrist.h"
+#include "utils/zobrist.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <memory>  // std::unique_ptr

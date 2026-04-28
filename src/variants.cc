@@ -22,8 +22,8 @@
 */
 
 #include "utils/nt_codec.h"
+#include "utils/zobrist.h"
 #include "variants.h"
-#include "zobrist.h"
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::memcpy
 #include <iterator>  // std::next

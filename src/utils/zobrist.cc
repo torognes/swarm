@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "utils/pseudo_rng.h"
+#include "pseudo_rng.h"
 #include "zobrist.h"
 #include <algorithm> // std::for_each
 #include <cassert>
