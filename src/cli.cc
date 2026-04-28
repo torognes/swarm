@@ -508,7 +508,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> UsedOpt
 }
 
 
-auto set_alignment_scoring_system(struct Parameters &parameters) -> void {
+auto set_alignment_scoring_system(struct Parameters & parameters) -> void {
   parameters.penalty_mismatch = (2 * parameters.opt_match_reward) + (2 * parameters.opt_mismatch_penalty);
   parameters.penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
   parameters.penalty_gapextend = parameters.opt_match_reward + (2 * parameters.opt_gap_extension_penalty);
