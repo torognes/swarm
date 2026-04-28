@@ -350,10 +350,10 @@ auto algo_run(struct Parameters const & parameters) -> void
   auto const amplicons = db_getsequencecount();
   const uint64_t longestamplicon = db_getlongestsequence();
 
-  db_qgrams_init(parameters);
+  auto const qgram_store = build_qgram_store(parameters);
 
   std::vector<struct thread_info_s> thread_info_v;
-  qgram_diff_init(parameters, thread_info_v);
+  qgram_diff_init(parameters, qgram_store, thread_info_v);
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   std::vector<uint64_t> targetampliconids(amplicons);
@@ -438,7 +438,7 @@ auto algo_run(struct Parameters const & parameters) -> void
           });
       uint64_t const listlen = qgramamps_v.size();  // temporary refactoring
 
-      qgram_diff_fast(parameters, seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
+      qgram_diff_fast(parameters, qgram_store, seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
 
 
       for (auto i = 0ULL; i < listlen; ++i)
@@ -537,7 +537,7 @@ auto algo_run(struct Parameters const & parameters) -> void
                     }
                 }
 
-              qgram_diff_fast(parameters, subseed.ampliconid, subseedlistlen, qgramamps_v.data(),
+              qgram_diff_fast(parameters, qgram_store, subseed.ampliconid, subseedlistlen, qgramamps_v.data(),
                               qgramdiffs_v.data(), thread_info_v);
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {
@@ -698,8 +698,6 @@ auto algo_run(struct Parameters const & parameters) -> void
   if ((not parameters.opt_seeds.empty()) and (amplicons != 0)) {
     write_representative_sequences(amplicons, parameters, amps_v);
   }
-
-  db_qgrams_done();
 
   qgram_diff_done();
 

@@ -45,8 +45,10 @@
 
 #endif
 
+#include "db.h"
 #include "swarm.h"
 #include "utils/cpu_features.h"
+#include "utils/progress.h"
 #include "utils/qgram_array.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/nt_codec.h"
@@ -60,7 +62,6 @@
 #include <vector>
 
 
-qgramvector_t * qgrams {nullptr};
 static ThreadRunner * qgram_threads = nullptr;
 
 
@@ -94,21 +95,18 @@ auto findqgrams(char const * seq, uint64_t seqlen,
   }
 }
 
-auto qgram_work_diff(thread_info_s * tip) -> void;
-auto qgram_worker(int64_t nth_thread,
-                  std::vector<struct thread_info_s> const & thread_info_v) -> void;
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t;
 
 #ifdef __aarch64__
 
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE2__
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(uint8x16_t);  // 8
-  auto * lhs_ptr = reinterpret_cast<uint8x16_t *>(lhs);
-  auto * rhs_ptr = reinterpret_cast<uint8x16_t *>(rhs);
+  auto const * lhs_ptr = reinterpret_cast<uint8x16_t const *>(lhs);
+  auto const * rhs_ptr = reinterpret_cast<uint8x16_t const *>(rhs);
   uint64_t count {0};
 
   for(auto i = 0ULL; i < n_vector_lengths; ++i) {
@@ -122,13 +120,13 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
 
 #elif defined __PPC__
 
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE2__
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(vector unsigned char);  // 8
-  auto * lhs_ptr = reinterpret_cast<vector unsigned char *>(lhs);
-  auto * rhs_ptr = reinterpret_cast<vector unsigned char *>(rhs);
+  auto const * lhs_ptr = reinterpret_cast<vector unsigned char const *>(lhs);
+  auto const * rhs_ptr = reinterpret_cast<vector unsigned char const *>(rhs);
   vector unsigned long long count_vector = { 0, 0 };
 
   for(auto i = 0ULL; i < n_vector_lengths; ++i) {
@@ -204,15 +202,15 @@ auto popcount_128(__m128i input_vector) -> uint64_t
 }
 
 
-auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64_t
+auto compareqgramvectors_128(unsigned char const * lhs, unsigned char const * rhs) -> uint64_t
 {
   /* Count number of different bits */
   /* Uses SSE2 but not POPCNT instruction */
   assert(qgramvectorbytes % 16 == 0); // input MUST be 16-byte aligned
 
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(__m128i);  // 8
-  auto * lhs_ptr = reinterpret_cast<__m128i *>(lhs);
-  auto * rhs_ptr = reinterpret_cast<__m128i *>(rhs);
+  auto const * lhs_ptr = reinterpret_cast<__m128i const *>(lhs);
+  auto const * rhs_ptr = reinterpret_cast<__m128i const *>(rhs);
   uint64_t count {0};
 
   for(auto i = 0ULL; i < n_vector_lengths; ++i) {
@@ -225,7 +223,7 @@ auto compareqgramvectors_128(unsigned char * lhs, unsigned char * rhs) -> uint64
 }
 
 
-auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
+auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   if (cpu_features.popcnt) {
@@ -242,25 +240,44 @@ auto compareqgramvectors(unsigned char * lhs, unsigned char * rhs,
 #endif
 
 
-inline auto db_getqgramvector(const uint64_t seqno) -> unsigned char *
+inline auto db_getqgramvector(Qgram_store const & store, uint64_t const seqno) -> unsigned char const *
 {
-  assert(seqno <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const signed_position = static_cast<std::ptrdiff_t>(seqno);
-  return reinterpret_cast<unsigned char*>(std::next(qgrams, signed_position));
+  assert(seqno < store.size());
+  return store[seqno].data();
 }
 
 
-inline auto qgram_diff(uint64_t seqno_a, uint64_t seqno_b,
+auto build_qgram_store(struct Parameters const & parameters) -> Qgram_store
+{
+  auto const n_sequences = db_getsequencecount();
+  Qgram_store store(n_sequences);
+
+  struct Progress_status progress_qg;
+  progress_init(progress_qg, "Find qgram vects: ", n_sequences, parameters);
+  for (auto counter = 0U; counter < n_sequences; ++counter) {
+    findqgrams(db_getsequence(counter),
+               db_getsequencelen(counter),
+               store[counter].data());
+    progress_update(progress_qg, counter);
+  }
+  progress_done(progress_qg);
+  return store;
+}
+
+
+inline auto qgram_diff(Qgram_store const & store,
+                       uint64_t seqno_a, uint64_t seqno_b,
                        Cpu_features const & cpu_features) -> uint64_t
 {
-  const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(seqno_a),
-                                                  db_getqgramvector(seqno_b),
+  const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(store, seqno_a),
+                                                  db_getqgramvector(store, seqno_b),
                                                   cpu_features);
   return (diffqgrams + (2ULL * qgramlength) - 1) / (2ULL * qgramlength);  // mindiff
 }
 
 
-auto qgram_worker(int64_t const nth_thread,
+auto qgram_worker(Qgram_store const & store,
+                  int64_t const nth_thread,
                   std::vector<struct thread_info_s> const & thread_info_v,
                   Cpu_features const & cpu_features) -> void
 {
@@ -276,12 +293,13 @@ auto qgram_worker(int64_t const nth_thread,
   for(auto i = 0LL; i < listlen_signed; ++i) {
     auto & target_diff = *std::next(difflist, i);
     auto const target_amplicon = *std::next(amplist, i);
-    target_diff = qgram_diff(seed, target_amplicon, cpu_features);
+    target_diff = qgram_diff(store, seed, target_amplicon, cpu_features);
   }
 }
 
 
 auto qgram_diff_init(struct Parameters const & parameters,
+                     Qgram_store const & store,
                      std::vector<struct thread_info_s>& thread_info_v) -> void
 {
   /* allocate memory for thread info */
@@ -294,8 +312,8 @@ auto qgram_diff_init(struct Parameters const & parameters,
   };
   qgram_threads
     = new ThreadRunner(static_cast<int>(parameters.opt_threads),
-                       [&thread_info_v, cpu_features](int64_t nth_thread) -> void {
-                         qgram_worker(nth_thread, thread_info_v, cpu_features);
+                       [&store, &thread_info_v, cpu_features](int64_t nth_thread) -> void {
+                         qgram_worker(store, nth_thread, thread_info_v, cpu_features);
                        });
 }
 
@@ -308,6 +326,7 @@ auto qgram_diff_done() -> void
 
 
 auto qgram_diff_fast(struct Parameters const & parameters,
+                     Qgram_store const & store,
                      uint64_t seed,
                      uint64_t listlen,
                      uint64_t * amplist,
@@ -327,7 +346,7 @@ auto qgram_diff_fast(struct Parameters const & parameters,
       tip.listlen = listlen;
       tip.amplist = amplist;
       tip.difflist = difflist;
-      qgram_worker(0, thread_info_v, cpu_features);
+      qgram_worker(store, 0, thread_info_v, cpu_features);
     }
   else
     {

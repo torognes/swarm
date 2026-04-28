@@ -21,9 +21,13 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <array>
+#include <vector>
+
+
 constexpr unsigned int qgramlength {5};
 constexpr unsigned int qgramvectorbits {1U << (2 * qgramlength)};  // 1,024
 constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};  // 128
 
-using qgramvector_t = unsigned char[qgramvectorbytes];
-extern qgramvector_t * qgrams;
+using Qgram_vector = std::array<unsigned char, qgramvectorbytes>;
+using Qgram_store  = std::vector<Qgram_vector>;

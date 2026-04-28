@@ -49,10 +49,6 @@ auto db_getheaderlen(uint64_t seqno) -> unsigned int;
 
 auto db_getabundance(uint64_t seqno) -> uint64_t;
 
-auto db_qgrams_init(struct Parameters const & parameters) -> void;
-
-auto db_qgrams_done() -> void;
-
 auto db_fprintseq(std::FILE * fastaout_fp, unsigned int seqno) -> void;
 
 auto fprint_id(std::FILE * stream,

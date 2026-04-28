@@ -22,13 +22,11 @@
 */
 
 #include "swarm.h"
-#include "qgram.h"
 #include "util.h"
 #include "utils/fatal.h"
 #include "utils/input_output.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
-#include "utils/qgram_array.h"
 #include "utils/seqinfo.h"
 #include "zobrist.h"
 #include <algorithm>  // std::max() std::min() std::sort()
@@ -877,40 +875,6 @@ auto db_getsequencecount() -> unsigned int
 auto db_getlongestsequence() -> unsigned int
 {
   return longest;
-}
-
-
-// refactoring: only used in algo.cc, extract to its own header file?
-auto db_qgrams_init(struct Parameters const & parameters) -> void
-{
-  // refactoring: qgrams is only used here and qgrams is an array of char arrays!
-  // - vector of std::array is not allowed,
-  // - vector of vector is not contiguous!
-  // - is contiguity really a requirement??
-  // in the meantime:
-  // - std::vector<char> qgrams_v(unitSize * sequences, '\0');  // unitSize = qgramvectorbytes = 128
-  // - or std::vector<std::vector<char>> qgrams_v(sequences, std::vector<char>(unitSize, '\0'));
-  qgrams = new qgramvector_t[seqindex_v.size()];
-
-  struct Progress_status progress_qg;
-  progress_init(progress_qg, "Find qgram vects: ", seqindex_v.size(), parameters);
-  auto counter = 0U;
-  for (auto const & seqindex_p : seqindex_v) {
-    /* find qgrams */
-    findqgrams(seqindex_p.seq,
-               seqindex_p.seqlen,
-              *std::next(qgrams, counter));
-    progress_update(progress_qg, counter);
-    ++counter;
-  }
-  progress_done(progress_qg);
-}
-
-
-auto db_qgrams_done() -> void
-{
-  delete [] qgrams;
-  qgrams = nullptr;
 }
 
 
