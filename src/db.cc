@@ -23,12 +23,12 @@
 
 #include "swarm.h"
 #include "db.h"
-#include "util.h"
 #include "utils/fatal.h"
 #include "utils/input_output.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
 #include "utils/seq_index.h"
+#include "utils/xgetline.h"
 #include <algorithm>  // std::max() std::min() std::sort()
 #include <array>
 #include <cassert>  // assert()

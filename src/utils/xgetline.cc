@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "utils/fatal.h"
+#include "fatal.h"
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // malloc, realloc (Windows xgetline only)
 #include <cstring>  // strcmp

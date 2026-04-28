@@ -127,7 +127,7 @@ PROG = swarm
 
 OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
 	nw.o qgram.o scan.o search16.o search8.o \
-	swarm.o util.o variants.o \
+	swarm.o variants.o \
 	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(EXTRAOBJ)
 
 DEPS = Makefile $(wildcard *.h) $(wildcard utils/*.h)
