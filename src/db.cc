@@ -27,6 +27,7 @@
 #include "utils/input_output.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
+#include "utils/seq_index.h"
 #include "utils/seqinfo.h"
 #include "zobrist.h"
 #include <algorithm>  // std::max() std::min() std::sort()
@@ -76,19 +77,6 @@ namespace {
   struct File_info {
     uint64_t filesize {0};
     bool is_regular {false};
-  };
-
-
-  struct Index {
-    uint64_t offset {0};
-    std::size_t length {0};
-  };
-
-
-  struct Entry {
-    unsigned int lineno {1U};
-    Index header;
-    Index sequence;
   };
 
 
