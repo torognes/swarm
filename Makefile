@@ -45,7 +45,7 @@ all: swarm
 swarm: $(PROG)
 
 $(PROG):
-	$(MAKE) -C $(SRC) swarm
+	$(MAKE) -C $(SRC)
 
 install: $(PROG) $(MAN)
 	$(MKDIR_P) $(DESTDIR)$(bindir)

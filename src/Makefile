@@ -123,7 +123,10 @@ LINKFLAGS = $(COMMON) $(LINKOPT)
 
 CXXFLAGS = $(COMMON) $(WARNINGS)
 
-PROG = swarm
+# Local link target ($(BIN) varies between "swarm" and "swarm.exe")
+PROG := $(BIN)
+# Final, installed location of the binary, relative to src/
+INSTALLED := ../bin/$(BIN)
 
 OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
 	nw.o qgram.o scan.o search16.o search8.o \
@@ -132,17 +135,23 @@ OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
 
 DEPFILES = $(OBJS:.o=.d)
 
-.PHONY: all swarm clean
+.PHONY: all clean
 
-all : $(PROG)
+all : $(INSTALLED)
 
-swarm : $(OBJS)
+$(PROG) : $(OBJS)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJS) $(LIBS)
-	mkdir -p ../bin
-	cp -a $(BIN) ../bin
+
+# Order-only prerequisite on ../bin: don't relink just because the
+# directory's mtime changed.
+$(INSTALLED) : $(PROG) | ../bin
+	cp -a $(PROG) $@
+
+../bin :
+	mkdir -p $@
 
 clean :
-	rm -f $(BIN) $(OBJS) $(DEPFILES) *~ gmon.out *.gcno *.gcda *.gcov \
+	rm -f $(PROG) $(OBJS) $(DEPFILES) *~ gmon.out *.gcno *.gcda *.gcov \
 	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov
 	rm -rf ../bin/
 
