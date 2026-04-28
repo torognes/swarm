@@ -28,11 +28,16 @@ WARNINGS = -Wall -Wextra -Wpedantic
 # Generate header-dependency files alongside each object so that
 # editing a header forces a rebuild of the right translation units.
 DEPFLAGS = -MMD -MP
-DEBUG_WARNINGS = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
-	-Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
-	-Wformat=2 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
-	-Wold-style-cast -Woverloaded-virtual -Wshadow -Wsign-conversion -Wuninitialized \
-        -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wuseless-cast -Wvla
+
+# Extra warnings used in DEBUG builds. Split per compiler family
+# because GCC and clang each understand a slightly different subset.
+DEBUG_WARNINGS_COMMON = -Wcast-align -Wcast-qual -Wconversion -Wdate-time \
+	-Wdouble-promotion -Wfloat-equal -Wformat=2 -Wnon-virtual-dtor \
+	-Wnull-dereference -Wold-style-cast -Woverloaded-virtual -Wshadow \
+	-Wsign-conversion -Wuninitialized -Wunused -Wunused-macros -Wvla
+DEBUG_WARNINGS_GCC = -Wduplicated-branches -Wduplicated-cond -Wformat-overflow \
+	-Wlogical-op -Wunsafe-loop-optimizations -Wuseless-cast
+DEBUG_WARNINGS_CLANG = -Wextra-semi -Wcomma -Wassign-enum -Wover-aligned
 DEBUG_SANITIZER = -fsanitize=undefined,address -fno-omit-frame-pointer
 
 
@@ -44,6 +49,13 @@ DEBUG_SANITIZER = -fsanitize=undefined,address -fno-omit-frame-pointer
 IS_CLANG := $(shell $(CXX) -x c++ -E -dM - < /dev/null 2>/dev/null | grep -c '__clang__')
 CXX_VERSION_MAJOR := $(shell $(CXX) -dumpversion 2>/dev/null | cut -d. -f1)
 CXX_VERSION_MAJOR := $(or $(CXX_VERSION_MAJOR),0)
+
+# Pick the right extra-warning set for the detected compiler.
+ifneq ($(IS_CLANG), 0)
+	DEBUG_WARNINGS = $(DEBUG_WARNINGS_COMMON) $(DEBUG_WARNINGS_CLANG)
+else
+	DEBUG_WARNINGS = $(DEBUG_WARNINGS_COMMON) $(DEBUG_WARNINGS_GCC)
+endif
 
 
 # Default to RELEASE when no other build flavour was requested. Doing
