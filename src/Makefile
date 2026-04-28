@@ -132,6 +132,8 @@ OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
 
 DEPS = Makefile $(wildcard *.h) $(wildcard utils/*.h)
 
+.PHONY: all swarm clean
+
 all : $(PROG)
 
 swarm : $(OBJS) $(DEPS)
