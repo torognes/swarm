@@ -106,6 +106,12 @@ namespace {
   };
 
 
+  struct Parse_result {
+    std::vector<struct Entry> entries;
+    struct Seq_stats stats;
+  };
+
+
   // RAII wrapper for the line buffer passed to xgetline(). POSIX
   // getline() owns the buffer's lifetime: it may std::realloc() it on
   // long lines, so the storage must come from std::malloc and the
@@ -477,372 +483,388 @@ namespace {
                                    seq_stats.longest_sequence));
   }
 
+
+  auto parse_fasta(struct Parameters const & parameters,
+                   std::vector<char> & data_v) -> struct Parse_result
+  {
+    static constexpr unsigned int linealloc {2048};
+    static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
+    // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
+    // 2^32 (512 x max_sequence_length) and cannot be addressed with
+    // uint32 pointers, which leads to a segmentation fault
+    static constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
+
+    auto const map_nt = make_nt_map();
+    struct Parse_result result;
+    auto & seq_stats = result.stats;
+    auto & entries = result.entries;
+    uint64_t datalen {0};
+
+    longest = 0;
+    sequences = 0;
+
+    /* open input file or stream */
+
+    assert(parameters.input_filename.c_str() != nullptr);  // filename is set to '-' (stdin) by default
+
+    auto const input_fp_handle = fopen_input(parameters.input_filename.c_str());
+    if (not input_fp_handle)
+      {
+        fatal(error_prefix, "Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
+      }
+
+    auto const file_info = get_file_info(input_fp_handle.get(), parameters);
+    warn_if_file_is_not_regular(parameters, file_info.is_regular);
+
+    /* allocate space */
+    initial_allocation(data_v, file_info.filesize);
+
+    uint64_t filepos = 0;
+
+    Line_buffer line_buf{linealloc};
+
+    auto lineno = 1U;
+
+
+    struct Progress_status progress;
+    progress_init(progress, "Reading sequences:", file_info.filesize, parameters);
+
+    ssize_t linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
+    if (linelen < 0)
+      {
+        *line_buf.data = 0;
+        linelen = 0;
+      }
+    filepos += static_cast<unsigned long int>(linelen);
+
+    while (*line_buf.data != '\0')
+      {
+        /* read header */
+        /* the header ends at a space, cr, lf or null character */
+
+        if (*line_buf.data != '>') {
+          fatal(error_prefix, "Illegal header line in fasta file.");
+        }
+
+        struct Entry entry;
+
+        auto headerlen = static_cast<unsigned int>
+          (std::strcspn(std::next(line_buf.data), " \r\n"));
+
+        seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
+
+        if (seq_stats.longestheader > max_header_length) {
+          fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
+        }
+
+        /* store the line number */
+
+        entry.lineno = lineno;
+
+
+        /* store the header */
+
+        linear_resize_if_need_be(data_v, datalen + headerlen + 1);
+        std::memcpy(&data_v[datalen], std::next(line_buf.data), headerlen);
+        data_v[datalen + headerlen] = '\0';
+        entry.header.offset = datalen;
+        entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
+        datalen += headerlen + 1;
+
+        /* get next line */
+
+        linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
+        if (linelen < 0)
+          {
+            *line_buf.data = '\0';
+            linelen = 0;
+          }
+        filepos += static_cast<unsigned long int>(linelen);
+
+        ++lineno;
+
+
+        /* store a dummy sequence length */
+
+        auto length = 0U;
+
+
+        /* read and store sequence */
+
+        uint64_t nt_buffer {0};
+        auto nt_bufferlen = 0U;
+        static constexpr unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
+        static constexpr unsigned char null_char = '\0';
+        static constexpr int new_line {10};
+        static constexpr int carriage_return {13};
+        static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
+        static constexpr int end_chars_range {126};
+        entry.sequence.offset = datalen;
+
+        while ((*line_buf.data != 0) and (*line_buf.data != '>'))
+          {
+            auto character = null_char;
+            auto * line_ptr = line_buf.data;
+            while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
+              {
+                line_ptr = std::next(line_ptr);
+                const auto mapped_char = map_nt[character];
+                if (mapped_char != 0)
+                  {
+                    nt_buffer |= (mapped_char - 1) << (2 * nt_bufferlen);
+                    ++length;
+                    ++nt_bufferlen;
+
+                    if (nt_bufferlen == nt_buffersize)
+                      {
+                        linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
+                        std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
+                        datalen += sizeof(nt_buffer);
+
+                        nt_bufferlen = 0;
+                        nt_buffer = 0;
+                      }
+                  }
+                else if ((character != new_line) and (character != carriage_return))
+                  {
+                    if ((character >= start_chars_range) and (character <= end_chars_range)) {
+                      fatal(error_prefix, "Illegal character '", character,
+                            "' in sequence on line ", lineno, ".");
+                    }
+                    else {
+                      fatal(error_prefix, "Illegal character (ascii no ", character,
+                            ") in sequence on line ", lineno, ".");
+                    }
+                  }
+              }
+
+            /* check length of longest sequence */
+            if (length > max_sequence_length) {
+              fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
+            }
+
+            linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
+            if (linelen < 0)
+              {
+                *line_buf.data = 0;
+                linelen = 0;
+              }
+            filepos += static_cast<unsigned long int>(linelen);
+
+            ++lineno;
+          }
+
+        /* fill in real length */
+
+        entry.sequence.length = length;
+
+        if (length == 0)
+          {
+            fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
+          }
+
+        seq_stats.nucleotides += length;
+        seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
+        longest = std::max(length, longest);
+
+
+        /* save remaining padded 64-bit value with nt's, if any */
+
+        if (nt_bufferlen > 0)
+          {
+            linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
+            std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
+            datalen += sizeof(nt_buffer);
+
+            nt_buffer = 0;
+            nt_bufferlen = 0;  // that value is never read again, all tests pass without it
+          }
+
+        ++seq_stats.n_sequences;
+        ++sequences;
+        entries.push_back(entry);
+
+        if (file_info.is_regular) {
+          progress_update(progress, filepos);
+        }
+      }
+    progress_done(progress);
+
+    // Line_buffer is destroyed on return; indexing/hashing in
+    // build_index can use the released memory
+    return result;
+  }
+
+
+  auto build_index(struct Parameters const & parameters,
+                   std::vector<char> & data_v,
+                   std::vector<struct Entry> const & entries,
+                   struct Seq_stats & seq_stats) -> void
+  {
+    /* init zobrist hashing */
+
+    // add 2 for two insertions (refactoring: insertions in headers?)
+    const auto zobrist_len = std::max(4 * seq_stats.longestheader, seq_stats.longest_sequence + 2);
+    zobrist_init(zobrist_len);
+
+    /* set up hash to check for unique headers */
+
+    const uint64_t hdrhashsize {2ULL * seq_stats.n_sequences};
+    std::vector<struct seqinfo_s *> hdrhashtable(hdrhashsize);
+
+    /* set up hash to check for unique sequences */
+
+    const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
+
+    std::vector<struct seqinfo_s *> seqhashtable;
+
+    if (parameters.opt_differences > 1) {
+      seqhashtable.resize(seqhashsize);
+    }
+
+    /* create indices */
+
+    seqindex_v.resize(seq_stats.n_sequences);
+
+    struct Progress_status progress_idx;
+    progress_init(progress_idx, "Indexing database:", seq_stats.n_sequences, parameters);
+    auto counter = 0ULL;
+    for (auto & a_sequence: seqindex_v) {
+
+        /* get header */
+        a_sequence.header = &data_v[entries[counter].header.offset];
+        a_sequence.headerlen = static_cast<int>(entries[counter].header.length);
+
+        /* and sequence */
+        const auto seqlen = static_cast<unsigned int>(entries[counter].sequence.length);
+        a_sequence.seqlen = seqlen;
+        a_sequence.seq = &data_v[entries[counter].sequence.offset];
+
+        /* get amplicon abundance */
+        find_abundance(a_sequence, seq_stats, entries[counter].lineno, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+
+        if ((a_sequence.abundance_start == 0) and
+            (a_sequence.abundance_end == a_sequence.headerlen)) {
+          fatal(error_prefix, "Empty sequence identifier.");
+        }
+
+        /* check for duplicated identifiers using hash table */
+        // refactoring: extract to a free function, perform for each new header
+        // C++14 refactoring: std::set::find() heterogeneous lookup (see overloads 3 and 4,
+        // https://en.cppreference.com/w/cpp/container/set/find)
+
+        /* find position and length of identifier in header */
+
+        int id_start {0};
+        int id_len {0};
+
+        if (a_sequence.abundance_start > 0)
+          {
+            /* id first, then abundance (e.g. >name;size=1 or >name_1) */
+            id_start = 0;
+            id_len = a_sequence.abundance_start;
+          }
+        else
+          {
+            /* abundance first then id (e.g. >size=1;name) */
+            id_start = a_sequence.abundance_end;
+            id_len = a_sequence.headerlen - a_sequence.abundance_end;
+          }
+
+        const auto hdrhash = zobrist_hash(std::next(a_sequence.header, id_start),
+                                          4 * static_cast<unsigned int>(id_len));
+
+        a_sequence.hdrhash = hdrhash;
+        uint64_t hdrhashindex = hdrhash % hdrhashsize;
+
+        struct seqinfo_s const * hdrfound {nullptr};
+
+        while ((hdrfound = hdrhashtable[hdrhashindex]) != nullptr)
+          {
+            if (hdrfound->hdrhash == hdrhash)
+              {
+                int hit_id_start {0};
+                int hit_id_len {0};
+
+                if (hdrfound->abundance_start > 0)
+                  {
+                    hit_id_start = 0;
+                    hit_id_len = hdrfound->abundance_start;
+                  }
+                else
+                  {
+                    hit_id_start = hdrfound->abundance_end;
+                    hit_id_len = hdrfound->headerlen - hdrfound->abundance_end;
+                  }
+
+                if ((id_len == hit_id_len) and
+                    (std::strncmp(std::next(a_sequence.header, id_start),
+                                  std::next(hdrfound->header, hit_id_start),
+                                  static_cast<uint64_t>(id_len)) == 0)) {
+                  break;
+                }
+              }
+
+            hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
+          }
+
+        abort_if_duplicated_identifier(hdrfound, a_sequence, id_start, id_len);
+
+        hdrhashtable[hdrhashindex] = &a_sequence;
+
+        /* hash sequence */
+        a_sequence.seqhash = zobrist_hash(a_sequence.seq, a_sequence.seqlen);
+
+        if (parameters.opt_differences > 1)
+          {
+            // refactoring: extract to a free function (not trivial)
+            /* Check for duplicated sequences using hash table,  */
+            /* but only for d > 1. Handled internally for d = 1. */
+
+            uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
+            struct seqinfo_s const * seqfound {nullptr};
+
+            while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
+              {
+                if ((seqfound->seqhash == a_sequence.seqhash) and
+                    (seqfound->seqlen == a_sequence.seqlen) and
+                    std::equal(seqfound->seq,
+                               std::next(seqfound->seq, nt_bytelength(a_sequence.seqlen)),
+                               a_sequence.seq)) {
+                  break;
+                }
+                seqhashindex = (seqhashindex + 1) % seqhashsize;
+              }
+
+            if (seqfound != nullptr)
+              {
+                seq_stats.has_duplicates = true;
+                break;
+              }
+            seqhashtable[seqhashindex] = &a_sequence;
+          }
+
+        progress_update(progress_idx, counter);
+        ++counter;
+      }
+
+    abort_if_duplicated_sequences(seq_stats);
+
+    progress_done(progress_idx);
+
+    abort_if_missing_abundance(seq_stats);
+    sort_index_if_need_be(parameters);
+    print_user_report(parameters, seq_stats);
+  }
+
 } // end of anonymous namespace
 
 
 auto db_read(struct Parameters const & parameters,
              std::vector<char> & data_v) -> void
 {
-  static constexpr unsigned int linealloc {2048};
-  static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
-  // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
-  // 2^32 (512 x max_sequence_length) and cannot be addressed with
-  // uint32 pointers, which leads to a segmentation fault
-  static constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
-
-  auto const map_nt = make_nt_map();
-  struct Seq_stats seq_stats;
-  uint64_t datalen {0};
-
-  longest = 0;
-  sequences = 0;
-
-  /* open input file or stream */
-
-  assert(parameters.input_filename.c_str() != nullptr);  // filename is set to '-' (stdin) by default
-
-  auto const input_fp_handle = fopen_input(parameters.input_filename.c_str());
-  if (not input_fp_handle)
-    {
-      fatal(error_prefix, "Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
-    }
-
-  auto const file_info = get_file_info(input_fp_handle.get(), parameters);
-  warn_if_file_is_not_regular(parameters, file_info.is_regular);
-
-  /* allocate space */
-  initial_allocation(data_v, file_info.filesize);
-
-  uint64_t filepos = 0;
-
-  Line_buffer line_buf{linealloc};
-
-  std::vector<struct Entry> entries;
-  auto lineno = 1U;
-
-
-  struct Progress_status progress;
-  progress_init(progress, "Reading sequences:", file_info.filesize, parameters);
-
-  ssize_t linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-  if (linelen < 0)
-    {
-      *line_buf.data = 0;
-      linelen = 0;
-    }
-  filepos += static_cast<unsigned long int>(linelen);
-
-  while (*line_buf.data != '\0')
-    {
-      /* read header */
-      /* the header ends at a space, cr, lf or null character */
-
-      if (*line_buf.data != '>') {
-        fatal(error_prefix, "Illegal header line in fasta file.");
-      }
-
-      struct Entry entry;
-
-      auto headerlen = static_cast<unsigned int>
-        (std::strcspn(std::next(line_buf.data), " \r\n"));
-
-      seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
-
-      if (seq_stats.longestheader > max_header_length) {
-        fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
-      }
-
-      /* store the line number */
-
-      entry.lineno = lineno;
-
-
-      /* store the header */
-
-      linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-      std::memcpy(&data_v[datalen], std::next(line_buf.data), headerlen);
-      data_v[datalen + headerlen] = '\0';
-      entry.header.offset = datalen;
-      entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
-      datalen += headerlen + 1;
-
-      /* get next line */
-
-      linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-      if (linelen < 0)
-        {
-          *line_buf.data = '\0';
-          linelen = 0;
-        }
-      filepos += static_cast<unsigned long int>(linelen);
-
-      ++lineno;
-
-
-      /* store a dummy sequence length */
-
-      auto length = 0U;
-
-
-      /* read and store sequence */
-
-      uint64_t nt_buffer {0};
-      auto nt_bufferlen = 0U;
-      static constexpr unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
-      static constexpr unsigned char null_char = '\0';
-      static constexpr int new_line {10};
-      static constexpr int carriage_return {13};
-      static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
-      static constexpr int end_chars_range {126};
-      entry.sequence.offset = datalen;
-
-      while ((*line_buf.data != 0) and (*line_buf.data != '>'))
-        {
-          auto character = null_char;
-          auto * line_ptr = line_buf.data;
-          while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
-            {
-              line_ptr = std::next(line_ptr);
-              const auto mapped_char = map_nt[character];
-              if (mapped_char != 0)
-                {
-                  nt_buffer |= (mapped_char - 1) << (2 * nt_bufferlen);
-                  ++length;
-                  ++nt_bufferlen;
-
-                  if (nt_bufferlen == nt_buffersize)
-                    {
-                      linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
-                      std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
-                      datalen += sizeof(nt_buffer);
-
-                      nt_bufferlen = 0;
-                      nt_buffer = 0;
-                    }
-                }
-              else if ((character != new_line) and (character != carriage_return))
-                {
-                  if ((character >= start_chars_range) and (character <= end_chars_range)) {
-                    fatal(error_prefix, "Illegal character '", character,
-                          "' in sequence on line ", lineno, ".");
-                  }
-                  else {
-                    fatal(error_prefix, "Illegal character (ascii no ", character,
-                          ") in sequence on line ", lineno, ".");
-                  }
-                }
-            }
-
-          /* check length of longest sequence */
-          if (length > max_sequence_length) {
-            fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
-          }
-
-          linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-          if (linelen < 0)
-            {
-              *line_buf.data = 0;
-              linelen = 0;
-            }
-          filepos += static_cast<unsigned long int>(linelen);
-
-          ++lineno;
-        }
-
-      /* fill in real length */
-
-      entry.sequence.length = length;
-
-      if (length == 0)
-        {
-          fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
-        }
-
-      seq_stats.nucleotides += length;
-      seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
-      longest = std::max(length, longest);
-
-
-      /* save remaining padded 64-bit value with nt's, if any */
-
-      if (nt_bufferlen > 0)
-        {
-          linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
-          std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
-          datalen += sizeof(nt_buffer);
-
-          nt_buffer = 0;
-          nt_bufferlen = 0;  // that value is never read again, all tests pass without it
-        }
-
-      ++seq_stats.n_sequences;
-      ++sequences;
-      entries.push_back(entry);
-
-      if (file_info.is_regular) {
-        progress_update(progress, filepos);
-      }
-    }
-  progress_done(progress);
-
-  // free the line buffer early; the rest of db_read does not need it
-  // and indexing/hashing can use the released memory
-  line_buf.release();
-
-  /* init zobrist hashing */
-
-  // add 2 for two insertions (refactoring: insertions in headers?)
-  const auto zobrist_len = std::max(4 * seq_stats.longestheader, seq_stats.longest_sequence + 2);
-  zobrist_init(zobrist_len);
-
-  /* set up hash to check for unique headers */
-
-  const uint64_t hdrhashsize {2ULL * seq_stats.n_sequences};
-  std::vector<struct seqinfo_s *> hdrhashtable(hdrhashsize);
-
-  /* set up hash to check for unique sequences */
-
-  const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
-
-  std::vector<struct seqinfo_s *> seqhashtable;
-
-  if (parameters.opt_differences > 1) {
-    seqhashtable.resize(seqhashsize);
-  }
-
-  /* create indices */
-
-  seqindex_v.resize(seq_stats.n_sequences);
-
-  struct Progress_status progress_idx;
-  progress_init(progress_idx, "Indexing database:", seq_stats.n_sequences, parameters);
-  auto counter = 0ULL;
-  for (auto & a_sequence: seqindex_v) {
-
-      /* get header */
-      a_sequence.header = &data_v[entries[counter].header.offset];
-      a_sequence.headerlen = static_cast<int>(entries[counter].header.length);
-
-      /* and sequence */
-      const auto seqlen = static_cast<unsigned int>(entries[counter].sequence.length);
-      a_sequence.seqlen = seqlen;
-      a_sequence.seq = &data_v[entries[counter].sequence.offset];
-
-      /* get amplicon abundance */
-      find_abundance(a_sequence, seq_stats, entries[counter].lineno, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-
-      if ((a_sequence.abundance_start == 0) and
-          (a_sequence.abundance_end == a_sequence.headerlen)) {
-        fatal(error_prefix, "Empty sequence identifier.");
-      }
-
-      /* check for duplicated identifiers using hash table */
-      // refactoring: extract to a free function, perform for each new header
-      // C++14 refactoring: std::set::find() heterogeneous lookup (see overloads 3 and 4,
-      // https://en.cppreference.com/w/cpp/container/set/find)
-
-      /* find position and length of identifier in header */
-
-      int id_start {0};
-      int id_len {0};
-
-      if (a_sequence.abundance_start > 0)
-        {
-          /* id first, then abundance (e.g. >name;size=1 or >name_1) */
-          id_start = 0;
-          id_len = a_sequence.abundance_start;
-        }
-      else
-        {
-          /* abundance first then id (e.g. >size=1;name) */
-          id_start = a_sequence.abundance_end;
-          id_len = a_sequence.headerlen - a_sequence.abundance_end;
-        }
-
-      const auto hdrhash = zobrist_hash(std::next(a_sequence.header, id_start),
-                                        4 * static_cast<unsigned int>(id_len));
-
-      a_sequence.hdrhash = hdrhash;
-      uint64_t hdrhashindex = hdrhash % hdrhashsize;
-
-      struct seqinfo_s const * hdrfound {nullptr};
-
-      while ((hdrfound = hdrhashtable[hdrhashindex]) != nullptr)
-        {
-          if (hdrfound->hdrhash == hdrhash)
-            {
-              int hit_id_start {0};
-              int hit_id_len {0};
-
-              if (hdrfound->abundance_start > 0)
-                {
-                  hit_id_start = 0;
-                  hit_id_len = hdrfound->abundance_start;
-                }
-              else
-                {
-                  hit_id_start = hdrfound->abundance_end;
-                  hit_id_len = hdrfound->headerlen - hdrfound->abundance_end;
-                }
-
-              if ((id_len == hit_id_len) and
-                  (std::strncmp(std::next(a_sequence.header, id_start),
-                                std::next(hdrfound->header, hit_id_start),
-                                static_cast<uint64_t>(id_len)) == 0)) {
-                break;
-              }
-            }
-
-          hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
-        }
-
-      abort_if_duplicated_identifier(hdrfound, a_sequence, id_start, id_len);
-
-      hdrhashtable[hdrhashindex] = &a_sequence;
-
-      /* hash sequence */
-      a_sequence.seqhash = zobrist_hash(a_sequence.seq, a_sequence.seqlen);
-
-      if (parameters.opt_differences > 1)
-        {
-          // refactoring: extract to a free function (not trivial)
-          /* Check for duplicated sequences using hash table,  */
-          /* but only for d > 1. Handled internally for d = 1. */
-
-          uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
-          struct seqinfo_s const * seqfound {nullptr};
-
-          while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
-            {
-              if ((seqfound->seqhash == a_sequence.seqhash) and
-                  (seqfound->seqlen == a_sequence.seqlen) and
-                  std::equal(seqfound->seq,
-                             std::next(seqfound->seq, nt_bytelength(a_sequence.seqlen)),
-                             a_sequence.seq)) {
-                break;
-              }
-              seqhashindex = (seqhashindex + 1) % seqhashsize;
-            }
-
-          if (seqfound != nullptr)
-            {
-              seq_stats.has_duplicates = true;
-              break;
-            }
-          seqhashtable[seqhashindex] = &a_sequence;
-        }
-
-      progress_update(progress_idx, counter);
-      ++counter;
-    }
-
-  abort_if_duplicated_sequences(seq_stats);
-
-  progress_done(progress_idx);
-
-  abort_if_missing_abundance(seq_stats);
-  sort_index_if_need_be(parameters);
-  print_user_report(parameters, seq_stats);
+  auto parse_result = parse_fasta(parameters, data_v);
+  build_index(parameters, data_v, parse_result.entries, parse_result.stats);
 }
 
 
