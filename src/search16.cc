@@ -380,7 +380,8 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
 }
 
 
-auto search16(std::vector<WORD *> & q_start,
+auto search16(Data const & data,
+              std::vector<WORD *> & q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
               WORD * score_matrix,
@@ -581,10 +582,9 @@ auto search16(std::vector<WORD *> & q_start,
                       // get next sequence
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
-                      char const * address {nullptr};
-                      unsigned int length {0};
-
-                      db_getsequenceandlength(seqno, address, length);
+                      auto const & info = data.info(seqno);
+                      char const * address = info.seq;
+                      unsigned int length = info.seqlen;
 
                       d_address[channel] = address;
                       d_length[channel] = length;

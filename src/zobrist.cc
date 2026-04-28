@@ -35,12 +35,6 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  // Non-owning back-pointer to the currently active Zobrist instance,
-  // typically owned by a Data object. Set by zobrist_set_active(),
-  // read by the legacy zobrist_* free functions below. Will go away
-  // once callers take Zobrist const & directly.
-  Zobrist const * active_zobrist = nullptr;
-
   auto to_uchar(char const nucleotide) -> unsigned char {
     // note: compressed nucleotides are in the range [-127, +127]
     return static_cast<unsigned char>(nucleotide);
@@ -231,41 +225,3 @@ auto Zobrist::hash_insert_first(char const * seq, unsigned int const len) const 
 }
 
 
-// ----- legacy free functions delegating to the active back-pointer -----
-
-auto zobrist_set_active(Zobrist const & active) -> void
-{
-  active_zobrist = &active;
-}
-
-
-namespace {
-  auto zobrist() -> Zobrist const & {
-    assert(active_zobrist != nullptr);  // zobrist_set_active() must run first
-    return *active_zobrist;
-  }
-}  // namespace
-
-
-auto zobrist_value(unsigned int const pos, unsigned char const offset) -> uint64_t
-{
-  return zobrist().value(pos, offset);
-}
-
-
-auto zobrist_hash(char const * seq, unsigned int const len) -> uint64_t
-{
-  return zobrist().hash(seq, len);
-}
-
-
-auto zobrist_hash_delete_first(char const * seq, unsigned int const len) -> uint64_t
-{
-  return zobrist().hash_delete_first(seq, len);
-}
-
-
-auto zobrist_hash_insert_first(char const * seq, unsigned int const len) -> uint64_t
-{
-  return zobrist().hash_insert_first(seq, len);
-}

@@ -26,9 +26,13 @@
 #include <vector>
 
 
+class Data;  // defined in db.h
+
+
 using BYTE = unsigned char;
 
-auto search8(std::vector<BYTE *> & q_start,
+auto search8(Data const & data,
+             std::vector<BYTE *> & q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE * score_matrix,

@@ -27,10 +27,12 @@
 
 
 struct Parameters;  // defined in swarm.h
+class Data;          // defined in db.h
 
 auto findqgrams(char const * seq, uint64_t seqlen,
                 unsigned char * qgramvector) -> void;
-auto build_qgram_store(struct Parameters const & parameters) -> Qgram_store;
+auto build_qgram_store(struct Parameters const & parameters,
+                       Data const & data) -> Qgram_store;
 auto qgram_diff_fast(struct Parameters const & parameters,
                      Qgram_store const & store,
                      uint64_t seed,

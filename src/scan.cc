@@ -81,6 +81,7 @@ auto search_init(struct Search_data & thread_data,
 
 
 auto search_chunk(struct Parameters const & parameters,
+                  Data const & data,
                   struct Search_data & thread_data,
                   struct Search_state const & state,
                   const int64_t bits) -> void
@@ -98,7 +99,8 @@ auto search_chunk(struct Parameters const & parameters,
   if (bits == bit_mode_16) {
     assert(parameters.penalty_gapopen <= std::numeric_limits<WORD>::max());
     assert(parameters.penalty_gapextend <= std::numeric_limits<WORD>::max());
-    search16(thread_data.qtable_w_v,
+    search16(data,
+             thread_data.qtable_w_v,
              static_cast<WORD>(parameters.penalty_gapopen),
              static_cast<WORD>(parameters.penalty_gapextend),
              score_matrix_16.data(),
@@ -116,7 +118,8 @@ auto search_chunk(struct Parameters const & parameters,
   } else {
     assert(parameters.penalty_gapopen <= std::numeric_limits<BYTE>::max());
     assert(parameters.penalty_gapextend <= std::numeric_limits<BYTE>::max());
-    search8(thread_data.qtable_v,
+    search8(data,
+            thread_data.qtable_v,
             static_cast<BYTE>(parameters.penalty_gapopen),
             static_cast<BYTE>(parameters.penalty_gapextend),
             score_matrix_8.data(),
@@ -163,11 +166,12 @@ auto search_getwork(struct Search_state & state,
 
 
 auto search_worker_core(struct Parameters const & parameters,
+                        Data const & data,
                         const int64_t thread_id, struct Search_state & state) -> void {
   auto & thread_data = *std::next(state.search_data, thread_id);
   search_init(thread_data, state.query);
   while(search_getwork(state, thread_data.target_count, thread_data.target_index)) {
-    search_chunk(parameters, thread_data, state, state.master_bits);
+    search_chunk(parameters, data, thread_data, state, state.master_bits);
   }
 }
 
@@ -243,7 +247,7 @@ auto search_do(struct Parameters const & parameters,
   state.remainingchunks = thr;
 
   if (thr == 1) {
-    search_worker_core(parameters, 0, state);
+    search_worker_core(parameters, data, 0, state);
   }
   else {
     search_threads->run();

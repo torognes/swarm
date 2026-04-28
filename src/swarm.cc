@@ -36,7 +36,6 @@ auto main(int argc, char** argv) -> int
 
   // parse fasta input
   Data const data{parameters};
-  db_set_active(data);  // legacy db_* / zobrist_* free functions delegate here
 
   // clustering
   switch (parameters.opt_differences)

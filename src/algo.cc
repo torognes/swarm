@@ -347,8 +347,8 @@ auto algo_run(struct Parameters const & parameters,
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(
       static_cast<int>(parameters.opt_threads),
-      [&parameters, &search_state](int64_t thread_id) -> void {
-        search_worker_core(parameters, thread_id, search_state);
+      [&parameters, &data, &search_state](int64_t thread_id) -> void {
+        search_worker_core(parameters, data, thread_id, search_state);
       }));
 
   uint64_t largestswarm {0};
@@ -357,7 +357,7 @@ auto algo_run(struct Parameters const & parameters,
   auto const amplicons = data.sequence_count();
   const uint64_t longestamplicon = data.longest_sequence();
 
-  auto const qgram_store = build_qgram_store(parameters);
+  auto const qgram_store = build_qgram_store(parameters, data);
 
   std::vector<struct thread_info_s> thread_info_v;
   qgram_diff_init(parameters, qgram_store, thread_info_v);

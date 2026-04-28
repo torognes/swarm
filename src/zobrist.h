@@ -40,17 +40,3 @@ private:
 };
 
 
-// Backwards-compatible free functions delegating to whichever Zobrist
-// is currently registered as active (via zobrist_set_active). To be
-// retired as callers migrate to use Zobrist const & directly — usually
-// obtained via Data::zobrist().
-
-auto zobrist_set_active(Zobrist const & active) -> void;
-
-auto zobrist_hash(char const * seq, unsigned int len) -> uint64_t;
-
-auto zobrist_hash_delete_first(char const * seq, unsigned int len) -> uint64_t;
-
-auto zobrist_hash_insert_first(char const * seq, unsigned int len) -> uint64_t;
-
-auto zobrist_value(unsigned int pos, unsigned char offset) -> uint64_t;

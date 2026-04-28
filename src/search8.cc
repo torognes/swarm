@@ -625,7 +625,8 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
 }
 
 
-auto search8(std::vector<BYTE *> & q_start,
+auto search8(Data const & data,
+             std::vector<BYTE *> & q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE * score_matrix,
@@ -818,10 +819,9 @@ auto search8(std::vector<BYTE *> & q_start,
                       assert(next_id <= max_ptrdiff);
                       seq_id[channel] = static_cast<int64_t>(next_id);
                       const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
-                      char const * address {nullptr};
-                      unsigned int length {0};
-
-                      db_getsequenceandlength(seqno, address, length);
+                      auto const & info = data.info(seqno);
+                      char const * address = info.seq;
+                      unsigned int length = info.seqlen;
 
                       d_address[channel] = address;
                       d_length[channel] = length;

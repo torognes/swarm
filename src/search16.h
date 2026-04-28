@@ -26,9 +26,13 @@
 #include <vector>
 
 
+class Data;  // defined in db.h
+
+
 using WORD = unsigned short;
 
-auto search16(std::vector<WORD *> & q_start,
+auto search16(Data const & data,
+              std::vector<WORD *> & q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
               WORD * score_matrix,

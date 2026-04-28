@@ -247,16 +247,17 @@ inline auto db_getqgramvector(Qgram_store const & store, uint64_t const seqno) -
 }
 
 
-auto build_qgram_store(struct Parameters const & parameters) -> Qgram_store
+auto build_qgram_store(struct Parameters const & parameters,
+                       Data const & data) -> Qgram_store
 {
-  auto const n_sequences = db_getsequencecount();
+  auto const n_sequences = data.sequence_count();
   Qgram_store store(n_sequences);
 
   struct Progress_status progress_qg;
   progress_init(progress_qg, "Find qgram vects: ", n_sequences, parameters);
   for (auto counter = 0U; counter < n_sequences; ++counter) {
-    findqgrams(db_getsequence(counter),
-               db_getsequencelen(counter),
+    findqgrams(data.sequence(counter),
+               data.sequence_length(counter),
                store[counter].data());
     progress_update(progress_qg, counter);
   }

@@ -61,12 +61,6 @@ namespace {
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
 
-  // Non-owning back-pointer to the currently active Data instance,
-  // typically owned by main(). Set by db_set_active(), read by the
-  // legacy db_* free functions below. Will go away once callers
-  // take Data const & directly.
-  Data const * active_data = nullptr;
-
   struct File_info {
     uint64_t filesize {0};
     bool is_regular {false};
@@ -679,6 +673,7 @@ namespace {
 
 
   auto build_index(struct Parameters const & parameters,
+                   Zobrist const & zobrist,
                    std::vector<char> & data_v,
                    std::vector<struct Entry> const & entries,
                    struct Seq_stats & seq_stats,
@@ -748,7 +743,7 @@ namespace {
             id_len = a_sequence.headerlen - a_sequence.abundance_end;
           }
 
-        const auto hdrhash = zobrist_hash(std::next(a_sequence.header, id_start),
+        const auto hdrhash = zobrist.hash(std::next(a_sequence.header, id_start),
                                           4 * static_cast<unsigned int>(id_len));
 
         a_sequence.hdrhash = hdrhash;
@@ -790,7 +785,7 @@ namespace {
         hdrhashtable[hdrhashindex] = &a_sequence;
 
         /* hash sequence */
-        a_sequence.seqhash = zobrist_hash(a_sequence.seq, a_sequence.seqlen);
+        a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
 
         if (parameters.opt_differences > 1)
           {
@@ -849,11 +844,8 @@ Data::Data(struct Parameters const & parameters)
   auto const & stats = parse_result.stats;
   auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
   zobrist_p_.reset(new Zobrist(zobrist_len));
-  // legacy free zobrist_* functions in zobrist.cc delegate here until
-  // callers are migrated to use Data::zobrist() directly
-  zobrist_set_active(*zobrist_p_);
 
-  build_index(parameters, data_, parse_result.entries, parse_result.stats, seqindex_);
+  build_index(parameters, *zobrist_p_, data_, parse_result.entries, parse_result.stats, seqindex_);
 }
 
 
@@ -1011,97 +1003,3 @@ auto Data::fprint_id_with_new_abundance(std::FILE * stream,
 }
 
 
-// ----- legacy free functions delegating to the active back-pointer -----
-
-auto db_set_active(Data const & active) -> void
-{
-  active_data = &active;
-}
-
-
-namespace {
-  auto data() -> Data const & {
-    assert(active_data != nullptr);  // db_set_active() must run first
-    return *active_data;
-  }
-}  // namespace
-
-
-auto db_getsequencecount() -> unsigned int
-{
-  return data().sequence_count();
-}
-
-
-auto db_getlongestsequence() -> unsigned int
-{
-  return data().longest_sequence();
-}
-
-
-auto db_gethash(uint64_t const seqno) -> uint64_t
-{
-  return data().sequence_hash(seqno);
-}
-
-
-auto db_getsequence(uint64_t const seqno) -> char const *
-{
-  return data().sequence(seqno);
-}
-
-
-auto db_getsequenceandlength(uint64_t const seqno,
-                             char const * & address,
-                             unsigned int & length) -> void
-{
-  auto const & fasta_record = data().info(seqno);
-  address = fasta_record.seq;
-  length = fasta_record.seqlen;
-}
-
-
-auto db_getsequencelen(uint64_t const seqno) -> unsigned int
-{
-  return data().sequence_length(seqno);
-}
-
-
-auto db_getheader(uint64_t const seqno) -> char const *
-{
-  return data().header(seqno);
-}
-
-
-auto db_getabundance(uint64_t const seqno) -> uint64_t
-{
-  return data().abundance(seqno);
-}
-
-
-auto db_fprintseq(std::FILE * fastaout_fp, unsigned int const seqno) -> void
-{
-  data().fprintseq(fastaout_fp, seqno);
-}
-
-
-auto fprint_id(std::FILE * stream, uint64_t const seqno, bool const opt_usearch_abundance,
-               int64_t const opt_append_abundance) -> void
-{
-  data().fprint_id(stream, seqno, opt_usearch_abundance, opt_append_abundance);
-}
-
-
-auto fprint_id_noabundance(std::FILE * stream, uint64_t const seqno, bool const opt_usearch_abundance) -> void
-{
-  data().fprint_id_noabundance(stream, seqno, opt_usearch_abundance);
-}
-
-
-auto fprint_id_with_new_abundance(std::FILE * stream,
-                                  uint64_t const seqno,
-                                  uint64_t const abundance,
-                                  bool const opt_usearch_abundance) -> void
-{
-  data().fprint_id_with_new_abundance(stream, seqno, abundance, opt_usearch_abundance);
-}
