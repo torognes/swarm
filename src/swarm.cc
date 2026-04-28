@@ -21,11 +21,11 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "swarm.h"
+#include "swarm.h"  // struct Parameters
 #include "algo.h"
 #include "algod1.h"
-#include "cli.h"
-#include "db.h"
+#include "cli.h"  // parse_command_line()
+#include "db.h"  // class Data
 #include "derep.h"
 
 
