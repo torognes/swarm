@@ -313,7 +313,7 @@ auto args_show(struct Parameters const & parameters) -> void
 }
 
 
-auto fatal_duplicate_option(int option_character) -> void {
+auto fatal_duplicate_option(int const option_character) -> void {
   // Find the matching long option name to include in the error message.
   const char * long_name = "";
   for (const auto & long_option : long_options) {
