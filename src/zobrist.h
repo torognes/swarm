@@ -22,7 +22,27 @@
 */
 
 #include <cstdint> // uint64_t
+#include <vector>
 
+
+class Zobrist {
+public:
+  explicit Zobrist(unsigned int n);
+
+  auto value(unsigned int pos, unsigned char offset) const -> uint64_t;
+  auto hash(char const * seq, unsigned int len) const -> uint64_t;
+  auto hash_delete_first(char const * seq, unsigned int len) const -> uint64_t;
+  auto hash_insert_first(char const * seq, unsigned int len) const -> uint64_t;
+
+private:
+  std::vector<uint64_t> tab_base_v_;
+  std::vector<uint64_t> tab_byte_base_v_;
+};
+
+
+// Backwards-compatible free functions delegating to a static Zobrist
+// constructed by zobrist_init(). To be retired as callers migrate to
+// use Zobrist const & directly.
 
 auto zobrist_init(unsigned int n) -> void;
 
@@ -33,4 +53,3 @@ auto zobrist_hash_delete_first(char const * seq, unsigned int len) -> uint64_t;
 auto zobrist_hash_insert_first(char const * seq, unsigned int len) -> uint64_t;
 
 auto zobrist_value(unsigned int pos, unsigned char offset) -> uint64_t;
-
