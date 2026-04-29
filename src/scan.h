@@ -35,16 +35,16 @@ class  Data;        // defined in db.h
 struct Search_state
 {
   std::mutex scan_mutex;
-  struct Search_data * search_data;
-  struct queryinfo query;
-  uint64_t master_next;
-  uint64_t master_length;
-  uint64_t remainingchunks;
-  uint64_t * master_targets;
-  uint64_t * master_scores;
-  uint64_t * master_diffs;
-  uint64_t * master_alignlengths;
-  int master_bits;
+  struct Search_data * search_data {nullptr};
+  struct queryinfo query {0, 0, nullptr};
+  uint64_t master_next {0};
+  uint64_t master_length {0};
+  uint64_t remainingchunks {0};
+  uint64_t * master_targets {nullptr};
+  uint64_t * master_scores {nullptr};
+  uint64_t * master_diffs {nullptr};
+  uint64_t * master_alignlengths {nullptr};
+  int master_bits {0};
 };
 
 

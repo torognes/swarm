@@ -341,7 +341,7 @@ auto algo_run(struct Parameters const & parameters,
   auto const score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
-  struct Search_state search_state {};
+  struct Search_state search_state;
   search_begin(parameters, data, search_state, search_data_v);
   /* start threads */
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
