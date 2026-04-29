@@ -44,11 +44,11 @@ struct GenericHash {
   }
 };
 
-// usage: std::unordered_set<Span<char>, GenericHash<fnv1a>> headers;
+// usage: std::unordered_set<View<char>, GenericHash<fnv1a>> headers;
 
 
 // hash_append() overloads for primitive types: (unused for now)
-// 
+//
 // template <class HashAlgorithm>
 // auto hash_append(HashAlgorithm & hasher, int integer) -> void {
 //     hasher(&integer, sizeof(integer));
@@ -60,22 +60,22 @@ struct GenericHash {
 // }
 
 // hash_append() overloads for complex types:
-// - see span.hpp
+// - see view.h
 
 
 // tests
 
 // auto main() -> int {
 //     char const* str = "test";
-//     auto const span = Span<char>{str, 4};
-//     auto const span2 = Span<char>{str, 3};
+//     auto const view  = View<char>{str, 4};
+//     auto const view2 = View<char>{str, 3};
 
-//     std::unordered_set<Span<char>, GenericHash<fnv1a>> headers;
-//     headers.insert(span);
+//     std::unordered_set<View<char>, GenericHash<fnv1a>> headers;
+//     headers.insert(view);
 //     std::cout << headers.size() << '\n';
-//     headers.insert(span);
+//     headers.insert(view);
 //     std::cout << headers.size() << '\n';
-//     headers.insert(span2);
+//     headers.insert(view2);
 //     std::cout << headers.size() << '\n';
 
 //     return 0;

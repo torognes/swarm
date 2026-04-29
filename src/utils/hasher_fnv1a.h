@@ -27,6 +27,7 @@
 
 #include "view.h"
 #include <cstdlib>  // std::size_t
+#include <numeric>  // std::accumulate
 
 
 // Fowler-Noll-Vo (FNV-1A 64-bit) hash function
@@ -41,11 +42,13 @@ private:
 public:
   // consume bytes and update internal state
   auto operator()(void const * key, std::size_t const length) noexcept -> void {
-    auto const * ptr = static_cast<unsigned char const *>(key);
+    auto const * const ptr = static_cast<unsigned char const *>(key);
     auto const bytes = View<unsigned char>{ptr, length};
-    for (auto const & byte : bytes) {
-      hash = (hash ^ byte) * FNV_prime;
-    }
+    auto const fnv_step = [](std::size_t const accumulator,
+                             unsigned char const byte) noexcept -> std::size_t {
+      return (accumulator ^ byte) * FNV_prime;
+    };
+    hash = std::accumulate(bytes.cbegin(), bytes.cend(), hash, fnv_step);
   }
 
   // finalize internal state to size_t (conversion operator)
@@ -54,17 +57,6 @@ public:
     return hash;
   }
 };
-
-
-// Notes:
-// 1) it is possible to use std algorithm and a lambda to extract the actual hashing
-// from the rest of the loop (it yields the same assembler code):
-//
-// #include <numeric>  // std::accumulate
-// auto operation = [](std::size_t & accumulator, unsigned char const & byte) -> decltype(hash) {
-//   return (accumulator ^ byte) * FNV_prime;
-//  };
-// hash = std::accumulate(bytes.cbegin(), bytes.cend(), hash, operation);
 
 
 // tests:
