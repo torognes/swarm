@@ -36,7 +36,6 @@
 #include "variants.h"
 #include "utils/cigar.h"
 #include "utils/fatal.h"
-#include "utils/nt_codec.h"
 #include "utils/progress.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
