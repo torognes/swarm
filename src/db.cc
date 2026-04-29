@@ -418,8 +418,7 @@ namespace {
 
   auto sort_index_if_need_be(struct Parameters const & parameters,
                              std::vector<struct seqinfo_s> & seqindex_v) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Abundance sorting:", 1, parameters);
+    Progress progress("Abundance sorting:", 1, parameters);
 
     auto compare_entries = [](struct seqinfo_s const& lhs,
                               struct seqinfo_s const& rhs) -> bool
@@ -441,7 +440,7 @@ namespace {
                            compare_entries)) {
       std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
     }
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -498,8 +497,7 @@ namespace {
     auto lineno = 1U;
 
 
-    struct Progress_status progress;
-    progress_init(progress, "Reading sequences:", file_info.filesize, parameters);
+    Progress progress("Reading sequences:", file_info.filesize, parameters);
 
     ssize_t linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
     if (linelen < 0)
@@ -655,14 +653,167 @@ namespace {
         entries.push_back(entry);
 
         if (file_info.is_regular) {
-          progress_update(progress, filepos);
+          progress.update(filepos);
         }
       }
-    progress_done(progress);
+    progress.done();
 
     // Line_buffer is destroyed on return; indexing/hashing in
     // build_index can use the released memory
     return result;
+  }
+
+
+  // Populate header_view and the (seq, seqlen) pointer pair from a
+  // parsed Entry into its destination seqinfo slot.
+  auto populate_views_from_entry(struct seqinfo_s & a_sequence,
+                                 struct Entry const & entry,
+                                 std::vector<char> & data_v) -> void
+  {
+    a_sequence.header_view = View<char>{
+      &data_v[entry.header.offset],
+      entry.header.length};
+    a_sequence.seqlen = static_cast<unsigned int>(entry.sequence.length);
+    a_sequence.seq    = &data_v[entry.sequence.offset];
+  }
+
+
+  // Compute the identifier subview within header_view, given the
+  // abundance range already filled in by find_abundance(). Aborts if
+  // the identifier would be empty.
+  auto compute_identifier_view(struct seqinfo_s const & a_sequence) -> View<char>
+  {
+    auto const headerlen_signed = static_cast<int>(a_sequence.header_view.size());
+    if ((a_sequence.abundance_start == 0) and
+        (a_sequence.abundance_end == headerlen_signed)) {
+      fatal(error_prefix, "Empty sequence identifier.");
+    }
+
+    int id_start {0};
+    int id_len {0};
+    if (a_sequence.abundance_start > 0)
+      {
+        /* id first, then abundance (e.g. >name;size=1 or >name_1) */
+        id_start = 0;
+        id_len = a_sequence.abundance_start;
+      }
+    else
+      {
+        /* abundance first then id (e.g. >size=1;name) */
+        id_start = a_sequence.abundance_end;
+        id_len = headerlen_signed - a_sequence.abundance_end;
+      }
+
+    return a_sequence.header_view.subview(
+      static_cast<std::size_t>(id_start),
+      static_cast<std::size_t>(id_len));
+  }
+
+
+  // Insert id_view into the dedup set; abort with the offending
+  // identifier in the error message if it was already present.
+  auto register_unique_identifier(
+    std::unordered_set<View<char>, GenericHash<fnv1a>> & seen_identifiers,
+    View<char> const id_view) -> void
+  {
+    auto const insertion = seen_identifiers.insert(id_view);
+    if (not insertion.second) {
+      std::string const id_str {id_view.data(), id_view.size()};
+      fatal(error_prefix, "Duplicated sequence identifier: ", id_str);
+    }
+  }
+
+
+  // Open-addressed lookup over seqhashtable, used only when d > 1
+  // (d = 1 handles dereplication internally). Returns true if an
+  // identical sequence was already inserted; otherwise records
+  // a_sequence at the probed slot and returns false.
+  auto is_duplicate_sequence(std::vector<struct seqinfo_s *> & seqhashtable,
+                             uint64_t const seqhashsize,
+                             struct seqinfo_s & a_sequence) -> bool
+  {
+    uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
+    struct seqinfo_s const * seqfound {nullptr};
+
+    while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
+      {
+        if ((seqfound->seqhash == a_sequence.seqhash) and
+            (seqfound->seqlen == a_sequence.seqlen) and
+            std::equal(seqfound->seq,
+                       std::next(seqfound->seq, nt_bytelength(a_sequence.seqlen)),
+                       a_sequence.seq)) {
+          return true;
+        }
+        seqhashindex = (seqhashindex + 1) % seqhashsize;
+      }
+
+    seqhashtable[seqhashindex] = &a_sequence;
+    return false;
+  }
+
+
+  // Pass 1: header-side work for every entry. Populates views,
+  // extracts the abundance annotation, and aborts on duplicated or
+  // empty identifiers. The seen_identifiers set is local so its
+  // buckets are released before the sequence pass allocates its own
+  // hashtable.
+  auto index_headers(struct Parameters const & parameters,
+                     std::vector<char> & data_v,
+                     std::vector<struct Entry> const & entries,
+                     struct Seq_stats & seq_stats,
+                     std::vector<struct seqinfo_s> & seqindex_v,
+                     Progress & progress_idx) -> void
+  {
+    std::unordered_set<View<char>, GenericHash<fnv1a>> seen_identifiers;
+    seen_identifiers.reserve(seq_stats.n_sequences);
+
+    auto counter = 0ULL;
+    for (auto & a_sequence: seqindex_v) {
+        populate_views_from_entry(a_sequence, entries[counter], data_v);
+
+        /* get amplicon abundance */
+        find_abundance(a_sequence, seq_stats, entries[counter].lineno,
+                       parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+
+        auto const id_view = compute_identifier_view(a_sequence);
+        register_unique_identifier(seen_identifiers, id_view);
+
+        progress_idx.update(counter);
+        ++counter;
+      }
+  }
+
+
+  // Pass 2: sequence-side work for every entry. Computes the Zobrist
+  // hash and, when d > 1, checks for duplicated sequences (d = 1
+  // dereplicates internally). Stops at the first duplicate; the
+  // caller calls abort_if_duplicated_sequences() afterwards.
+  auto index_sequences(struct Parameters const & parameters,
+                       Zobrist const & zobrist,
+                       struct Seq_stats & seq_stats,
+                       std::vector<struct seqinfo_s> & seqindex_v,
+                       Progress & progress_idx) -> void
+  {
+    const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
+    std::vector<struct seqinfo_s *> seqhashtable;
+    if (parameters.opt_differences > 1) {
+      seqhashtable.resize(seqhashsize);
+    }
+
+    auto counter = 0ULL;
+    for (auto & a_sequence: seqindex_v) {
+        a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
+
+        if ((parameters.opt_differences > 1) and
+            is_duplicate_sequence(seqhashtable, seqhashsize, a_sequence))
+          {
+            seq_stats.has_duplicates = true;
+            break;
+          }
+
+        progress_idx.update(seq_stats.n_sequences + counter);
+        ++counter;
+      }
   }
 
 
@@ -673,117 +824,19 @@ namespace {
                    struct Seq_stats & seq_stats,
                    std::vector<struct seqinfo_s> & seqindex_v) -> void
   {
-    /* set up set to check for unique header identifiers */
-
-    std::unordered_set<View<char>, GenericHash<fnv1a>> seen_identifiers;
-    seen_identifiers.reserve(seq_stats.n_sequences);
-
-    /* set up hash to check for unique sequences */
-
-    const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
-
-    std::vector<struct seqinfo_s *> seqhashtable;
-
-    if (parameters.opt_differences > 1) {
-      seqhashtable.resize(seqhashsize);
-    }
-
-    /* create indices */
-
     seqindex_v.resize(seq_stats.n_sequences);
 
-    struct Progress_status progress_idx;
-    progress_init(progress_idx, "Indexing database:", seq_stats.n_sequences, parameters);
-    auto counter = 0ULL;
-    for (auto & a_sequence: seqindex_v) {
+    // One progress bar drives both passes: pass 1 contributes the
+    // first half of the count, pass 2 the second half.
+    Progress progress_idx("Indexing database:",
+                          2ULL * seq_stats.n_sequences, parameters);
 
-        /* get header */
-        a_sequence.header_view = View<char>{
-          &data_v[entries[counter].header.offset],
-          entries[counter].header.length};
-
-        /* and sequence */
-        const auto seqlen = static_cast<unsigned int>(entries[counter].sequence.length);
-        a_sequence.seqlen = seqlen;
-        a_sequence.seq = &data_v[entries[counter].sequence.offset];
-
-        /* get amplicon abundance */
-        find_abundance(a_sequence, seq_stats, entries[counter].lineno, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-
-        auto const headerlen_signed = static_cast<int>(a_sequence.header_view.size());
-        if ((a_sequence.abundance_start == 0) and
-            (a_sequence.abundance_end == headerlen_signed)) {
-          fatal(error_prefix, "Empty sequence identifier.");
-        }
-
-        /* find position and length of identifier in header */
-
-        int id_start {0};
-        int id_len {0};
-
-        if (a_sequence.abundance_start > 0)
-          {
-            /* id first, then abundance (e.g. >name;size=1 or >name_1) */
-            id_start = 0;
-            id_len = a_sequence.abundance_start;
-          }
-        else
-          {
-            /* abundance first then id (e.g. >size=1;name) */
-            id_start = a_sequence.abundance_end;
-            id_len = headerlen_signed - a_sequence.abundance_end;
-          }
-
-        auto const id_view = a_sequence.header_view.subview(
-          static_cast<std::size_t>(id_start),
-          static_cast<std::size_t>(id_len));
-
-        /* check for duplicated identifiers */
-        auto const insertion = seen_identifiers.insert(id_view);
-        if (not insertion.second) {
-          std::string const id_str {id_view.data(), id_view.size()};
-          fatal(error_prefix, "Duplicated sequence identifier: ", id_str);
-        }
-
-        /* hash sequence */
-        a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
-
-        if (parameters.opt_differences > 1)
-          {
-            // refactoring: extract to a free function (not trivial)
-            /* Check for duplicated sequences using hash table,  */
-            /* but only for d > 1. Handled internally for d = 1. */
-
-            uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
-            struct seqinfo_s const * seqfound {nullptr};
-
-            while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
-              {
-                if ((seqfound->seqhash == a_sequence.seqhash) and
-                    (seqfound->seqlen == a_sequence.seqlen) and
-                    std::equal(seqfound->seq,
-                               std::next(seqfound->seq, nt_bytelength(a_sequence.seqlen)),
-                               a_sequence.seq)) {
-                  break;
-                }
-                seqhashindex = (seqhashindex + 1) % seqhashsize;
-              }
-
-            if (seqfound != nullptr)
-              {
-                seq_stats.has_duplicates = true;
-                break;
-              }
-            seqhashtable[seqhashindex] = &a_sequence;
-          }
-
-        progress_update(progress_idx, counter);
-        ++counter;
-      }
+    index_headers(parameters, data_v, entries, seq_stats, seqindex_v, progress_idx);
+    index_sequences(parameters, zobrist, seq_stats, seqindex_v, progress_idx);
 
     abort_if_duplicated_sequences(seq_stats);
 
-    progress_done(progress_idx);
+    progress_idx.done();
 
     abort_if_missing_abundance(seq_stats);
     sort_index_if_need_be(parameters, seqindex_v);

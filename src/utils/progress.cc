@@ -27,49 +27,48 @@
 #include <cstdint>  // uint64_t
 
 
-auto progress_init(struct Progress_status & progress,
-                   char const * prompt, uint64_t const size,
-                   struct Parameters const & parameters) -> void
+namespace {
+  constexpr uint64_t progress_granularity {200};
+}
+
+
+Progress::Progress(char const * prompt_, uint64_t const size_,
+                   struct Parameters const & parameters)
+  : prompt(prompt_),
+    next(1),
+    size(size_),
+    chunk(size_ < progress_granularity ? 1 : size_ / progress_granularity),
+    logfile(parameters.logfile),
+    silent(not parameters.opt_log.empty())
 {
-  static constexpr uint64_t progress_granularity {200};
-  progress.prompt = prompt;
-  progress.size = size;
-  progress.chunk = size < progress_granularity ?
-    1 : size / progress_granularity;
-  progress.next = 1;
-  progress.logfile = parameters.logfile;
-  progress.silent = not parameters.opt_log.empty();
-  if (progress.silent) {
-    std::fprintf(progress.logfile, "%s", prompt);
+  if (silent) {
+    std::fprintf(logfile, "%s", prompt);
   }
   else {
-    std::fprintf(progress.logfile, "%s %.0f%%", prompt, 0.0);
+    std::fprintf(logfile, "%s %.0f%%", prompt, 0.0);
   }
 }
 
 
-// Called from within worker threads (algod1.cc network/heavy/light workers)
-// as well as from the main thread; concurrent-safety is guaranteed by each
-// worker holding its own state.mutex when invoking this function.
-auto progress_update(struct Progress_status & progress, uint64_t const current) -> void
+auto Progress::update(uint64_t const current) -> void
 {
-  if (progress.silent) { return; }  // no progress output if log is a file
-  if (current < progress.next) { return; }  // milestone not yet reached
-  std::fprintf(progress.logfile, "  \r%s %.0f%%", progress.prompt,
+  if (silent) { return; }  // no progress output if log is a file
+  if (current < next) { return; }  // milestone not yet reached
+  std::fprintf(logfile, "  \r%s %.0f%%", prompt,
                100.0 * static_cast<double>(current)
-               / static_cast<double>(progress.size));
-  progress.next = current + progress.chunk;
-  std::fflush(progress.logfile);
+               / static_cast<double>(size));
+  next = current + chunk;
+  std::fflush(logfile);
 }
 
 
-auto progress_done(struct Progress_status const & progress) -> void
+auto Progress::done() const -> void
 {
-  if (progress.silent) {
-    std::fprintf(progress.logfile, " %.0f%%\n", 100.0);
+  if (silent) {
+    std::fprintf(logfile, " %.0f%%\n", 100.0);
   }
   else {
-    std::fprintf(progress.logfile, "  \r%s %.0f%%\n", progress.prompt, 100.0);
+    std::fprintf(logfile, "  \r%s %.0f%%\n", prompt, 100.0);
   }
-  std::fflush(progress.logfile);
+  std::fflush(logfile);
 }

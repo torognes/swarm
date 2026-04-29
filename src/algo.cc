@@ -122,8 +122,7 @@ namespace {
                      Data const & data,
                      const uint64_t amplicons,
                      std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
-    struct Progress_status progress;
-    progress_init(progress, "Collecting seeds:    ", amplicons, parameters);
+    Progress progress("Collecting seeds:    ", amplicons, parameters);
     assert(swarmed == amplicons);
     std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
     auto swarmcount = 0UL;
@@ -144,7 +143,7 @@ namespace {
           }
         mass += data.abundance(amps_v[i].ampliconid);
         previous_id = current_id;
-        progress_update(progress, i);
+        progress.update(i);
       }
     seeds[swarmcount].seed = seed;
     seeds[swarmcount].mass = mass;
@@ -162,8 +161,7 @@ namespace {
   auto sort_seeds(struct Parameters const & parameters,
                   Data const & data,
                   std::vector<struct swarminfo_t> & seeds) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Sorting seeds:    ", seeds.size(), parameters);
+    Progress progress("Sorting seeds:    ", seeds.size(), parameters);
 
     auto compare_seeds = [&data](struct swarminfo_t const& lhs,
                                  struct swarminfo_t const& rhs) -> bool {
@@ -179,15 +177,14 @@ namespace {
     };
 
     std::sort(seeds.begin(), seeds.end(), compare_seeds);
-    progress_done(progress);
+    progress.done();
   }
 
 
   auto write_seeds(struct Parameters const & parameters,
                    Data const & data,
                    std::vector<struct swarminfo_t> const & seeds) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Writing seeds:    ", seeds.size(), parameters);
+    Progress progress("Writing seeds:    ", seeds.size(), parameters);
     auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
     for (auto const& seed: seeds) {
       auto const swarm_mass = seed.mass;
@@ -197,10 +194,10 @@ namespace {
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
       data.fprintseq(parameters.seeds_file.get(), swarm_seed);
-      progress_update(progress, ticker);
+      progress.update(ticker);
       ++ticker;
     }
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -389,8 +386,7 @@ auto algo_run(struct Parameters const & parameters,
 
   auto swarmid = 0U;
 
-  struct Progress_status progress;
-  progress_init(progress, "Clustering:       ", amplicons, parameters);
+  Progress progress("Clustering:       ", amplicons, parameters);
   while (seeded < amplicons)
     {
 
@@ -680,9 +676,9 @@ auto algo_run(struct Parameters const & parameters,
                   "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                   abundance, singletons, maxgen, maxradius);
         }
-      progress_update(progress, seeded);
+      progress.update(seeded);
     }
-  progress_done(progress);
+  progress.done();
 
   /* output swarms */
   if (amplicons != 0) {

@@ -253,14 +253,13 @@ auto build_qgram_store(struct Parameters const & parameters,
   auto const n_sequences = data.sequence_count();
   Qgram_store store(n_sequences);
 
-  struct Progress_status progress_qg;
-  progress_init(progress_qg, "Find qgram vects: ", n_sequences, parameters);
+  Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
   for (auto counter = 0U; counter < n_sequences; ++counter) {
     auto const seq = data.sequence_view(counter);
     findqgrams(seq.encoded.data(), seq.length, store[counter].data());
-    progress_update(progress_qg, counter);
+    progress_qg.update(counter);
   }
-  progress_done(progress_qg);
+  progress_qg.done();
   return store;
 }
 
