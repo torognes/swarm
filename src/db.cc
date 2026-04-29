@@ -24,6 +24,8 @@
 #include "swarm.h"
 #include "db.h"
 #include "utils/fatal.h"
+#include "utils/hasher_fnv1a.h"
+#include "utils/hasher_generic.h"
 #include "utils/input_output.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
@@ -673,7 +675,7 @@ namespace {
   {
     /* set up set to check for unique header identifiers */
 
-    std::unordered_set<View<char>> seen_identifiers;
+    std::unordered_set<View<char>, GenericHash<fnv1a>> seen_identifiers;
     seen_identifiers.reserve(seq_stats.n_sequences);
 
     /* set up hash to check for unique sequences */
@@ -714,11 +716,6 @@ namespace {
           fatal(error_prefix, "Empty sequence identifier.");
         }
 
-        /* check for duplicated identifiers using hash table */
-        // refactoring: extract to a free function, perform for each new header
-        // C++14 refactoring: std::set::find() heterogeneous lookup (see overloads 3 and 4,
-        // https://en.cppreference.com/w/cpp/container/set/find)
-
         /* find position and length of identifier in header */
 
         int id_start {0};
@@ -741,6 +738,7 @@ namespace {
           static_cast<std::size_t>(id_start),
           static_cast<std::size_t>(id_len));
 
+        /* check for duplicated identifiers */
         auto const insertion = seen_identifiers.insert(id_view);
         if (not insertion.second) {
           std::string const id_str {id_view.data(), id_view.size()};
