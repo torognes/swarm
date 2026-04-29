@@ -623,7 +623,7 @@ auto algo_run(struct Parameters const & parameters,
           std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
           std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  swarmid - 1, data.sequence_length(seedampliconid));
+                  swarmid - 1, data.sequence_view(seedampliconid).length);
           data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\t*\n");
           std::fflush(parameters.uclustfile.get());
@@ -632,14 +632,12 @@ auto algo_run(struct Parameters const & parameters,
             {
               auto const hit = hits[i];
 
-              auto const * dseq = data.sequence(hit);
-              auto const dlen = data.sequence_length(hit);
-              auto const * qseq = data.sequence(seedampliconid);
-              auto const qlen = data.sequence_length(seedampliconid);
+              auto const hit_seq = data.sequence_view(hit);
+              auto const seed_seq = data.sequence_view(seedampliconid);
 
               uint64_t nwdiff {0};
 
-              nw(dseq, dlen, qseq, qlen,
+              nw(hit_seq.data, hit_seq.length, seed_seq.data, seed_seq.length,
                  score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
                  static_cast<unsigned long int>(parameters.penalty_gapextend),
                  nwdiff, directions, hearray, raw_alignment);
@@ -655,7 +653,7 @@ auto algo_run(struct Parameters const & parameters,
               auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
               std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                      swarmid - 1, data.sequence_length(hit), percentid,
+                      swarmid - 1, hit_seq.length, percentid,
                       nwdiff > 0 ? cigar_string.data() : "=");
 
               data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
