@@ -825,7 +825,7 @@ auto Data::info(uint64_t const seqno) const -> struct seqinfo_s const &
 auto Data::sequence_view(uint64_t const seqno) const -> Sequence
 {
   auto const & rec = info(seqno);
-  return {rec.seq, rec.seqlen};
+  return {View<char>{rec.seq, nt_bytelength(rec.seqlen)}, rec.seqlen};
 }
 
 
@@ -869,7 +869,7 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
 
   // decode to nucleotides (A, C, G and T)
   for (auto i = 0U; i < seq.length; ++i) {
-    buffer[i] = sym_nt[1 + nt_extract(seq.data, i)];
+    buffer[i] = sym_nt[1 + nt_extract(seq.encoded.data(), i)];
   }
   buffer[seq.length] = '\0';
 

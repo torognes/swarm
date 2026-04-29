@@ -33,13 +33,14 @@
 struct Parameters;  // defined in swarm.h
 
 
-// Non-owning {data, length} pair for a packed nucleotide sequence.
-// length is the nucleotide count (matches the historical seqlen);
-// the underlying buffer occupies nt_bytelength(length) bytes because
-// nucleotides are packed 4-per-byte. No iterator API is exposed: byte
-// iteration would walk past the nominal extent.
+// Non-owning view of a packed-nucleotide amplicon. `length` is the
+// nucleotide count (canonical: matches the historical seqlen).
+// `encoded` views the storage bytes, with encoded.size() ==
+// nt_bytelength(length) (4 nt per byte). Downstream consumers
+// reinterpret encoded.data() as uint64_t* for SIMD-friendly access;
+// iterating encoded directly walks the packed bytes, not nucleotides.
 struct Sequence {
-  char const * data;
+  View<char> encoded;
   unsigned int length;
 };
 

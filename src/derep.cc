@@ -307,7 +307,7 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             auto const hash = zobrist.hash(seq.data, seq.length);
+             auto const hash = zobrist.hash(seq.encoded.data(), seq.length);
 
              auto nth_bucket = hash & derep_hash_mask;
              auto * clusterp = &hashtable[nth_bucket];
@@ -315,8 +315,8 @@ namespace {
              while ((clusterp->mass != 0U) and
                     ((clusterp->hash != hash) or
                      (seq.length != data.sequence_view(clusterp->seqno_first).length) or
-                     not std::equal(seq.data, std::next(seq.data, nt_bytelength(seq.length)),
-                                    data.sequence_view(clusterp->seqno_first).data)
+                     not std::equal(seq.encoded.data(), std::next(seq.encoded.data(), nt_bytelength(seq.length)),
+                                    data.sequence_view(clusterp->seqno_first).encoded.data())
                      )
                     )
                {

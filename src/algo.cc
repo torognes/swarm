@@ -637,7 +637,7 @@ auto algo_run(struct Parameters const & parameters,
 
               uint64_t nwdiff {0};
 
-              nw(hit_seq.data, hit_seq.length, seed_seq.data, seed_seq.length,
+              nw(hit_seq.encoded.data(), hit_seq.length, seed_seq.encoded.data(), seed_seq.length,
                  score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
                  static_cast<unsigned long int>(parameters.penalty_gapextend),
                  nwdiff, directions, hearray, raw_alignment);
