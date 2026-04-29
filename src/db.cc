@@ -822,18 +822,6 @@ auto Data::info(uint64_t const seqno) const -> struct seqinfo_s const &
 }
 
 
-auto Data::sequence(uint64_t const seqno) const -> char const *
-{
-  return info(seqno).seq;
-}
-
-
-auto Data::sequence_length(uint64_t const seqno) const -> unsigned int
-{
-  return info(seqno).seqlen;
-}
-
-
 auto Data::sequence_view(uint64_t const seqno) const -> Sequence
 {
   auto const & rec = info(seqno);

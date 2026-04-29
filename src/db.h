@@ -55,8 +55,6 @@ public:
 
   auto info(uint64_t seqno) const -> struct seqinfo_s const &;
 
-  auto sequence(uint64_t seqno)        const -> char const *;
-  auto sequence_length(uint64_t seqno) const -> unsigned int;
   auto sequence_view(uint64_t seqno)   const -> Sequence;
   auto sequence_hash(uint64_t seqno)   const -> uint64_t;
   auto header_view(uint64_t seqno)     const -> View<char>;
