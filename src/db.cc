@@ -28,6 +28,7 @@
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
 #include "utils/seq_index.h"
+#include "utils/view.h"
 #include "utils/xgetline.h"
 #include <algorithm>  // std::max() std::min() std::sort()
 #include <array>
@@ -183,7 +184,7 @@ namespace {
   }
 
 
-  auto find_swarm_abundance(const char * header,
+  auto find_swarm_abundance(View<char const> const header_view,
                             int & start,
                             int & end,
                             int64_t & number) -> bool
@@ -200,18 +201,23 @@ namespace {
     static constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
     static const std::string digit_chars = "0123456789";
 
+    // strrchr / strspn / strtoll require a null-terminated string;
+    // header_view always points into Data::data_, where each header
+    // is followed by a '\0' byte written at parse time.
+    auto const * const header = header_view.data();
+
     assert(header != nullptr); // assert to prove impossible
     if (header == nullptr) {
       return false;  // refactoring: if header cannot be a nullptr, replace with assert
     }
 
-    const char * abundance_string = std::strrchr(header, '_');
+    auto const * const abundance_string = std::strrchr(header, '_');
 
     if (abundance_string == nullptr) {
       return false;
     }
 
-    const std::size_t n_digits = std::strspn(std::next(abundance_string), digit_chars.c_str());
+    std::size_t const n_digits = std::strspn(std::next(abundance_string), digit_chars.c_str());
 
     if (n_digits > max_digits) {
       return false;
@@ -222,9 +228,9 @@ namespace {
       return false;
     }
 
-    const int64_t abundance_start = abundance_string - header;
+    int64_t const abundance_start = std::distance(header_view.cbegin(), abundance_string);
     assert(n_digits <= std::numeric_limits<int64_t>::max());
-    const int64_t abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
+    int64_t const abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
 
     assert(abundance_start <= std::numeric_limits<int>::max());
     assert(abundance_end <= std::numeric_limits<int>::max());
@@ -240,7 +246,7 @@ namespace {
   }
 
 
-  auto find_usearch_abundance(const char * header,
+  auto find_usearch_abundance(View<char const> const header_view,
                               int & start,
                               int & end,
                               int64_t & number) -> bool
@@ -250,11 +256,15 @@ namespace {
       in the header string.
     */
 
+    // strstr / strspn / strtoll require a null-terminated string;
+    // header_view always points into Data::data_, where each header
+    // is followed by a '\0' byte written at parse time.
+    auto const * const header = header_view.data();
     assert(header != nullptr); // header cannot be a nullptr at this stage
 
     static const std::string attribute {"size="};
     static const std::string digit_chars {"0123456789"};
-    auto const hlen = static_cast<int64_t>(std::strlen(header));
+    auto const hlen = static_cast<int64_t>(header_view.size());
     assert(attribute.length() <= std::numeric_limits<int64_t>::max());
     auto const alen = static_cast<int64_t>(attribute.length());
     int64_t position = 0;
@@ -316,7 +326,8 @@ namespace {
   auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t lineno,
                       bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
   {
-    char const * header = seqinfo.header;
+    auto const header_view = View<char const>{seqinfo.header,
+                                              static_cast<std::size_t>(seqinfo.headerlen)};
 
     /* read size/abundance annotation */
     int64_t abundance = 0;
@@ -328,11 +339,11 @@ namespace {
       {
         /* (^|;)size=([0-9]+)(;|$) */
 
-        if (find_usearch_abundance(header, start, end, number))
+        if (find_usearch_abundance(header_view, start, end, number))
           {
             if (number <= 0) {
               fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                    header, "\nAbundance values should be positive integers.");
+                    header_view.data(), "\nAbundance values should be positive integers.");
             }
             abundance = number;
           }
@@ -341,11 +352,11 @@ namespace {
       {
         /* (_)([0-9]+)$ */
 
-        if (find_swarm_abundance(header, start, end, number))
+        if (find_swarm_abundance(header_view, start, end, number))
           {
             if (number <= 0) {
               fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                    header, "\nAbundance values should be positive integers.");
+                    header_view.data(), "\nAbundance values should be positive integers.");
             }
             abundance = number;
           }
@@ -366,7 +377,7 @@ namespace {
             if (seq_stats.missingabundance == 1)
               {
                 seq_stats.missingabundance_lineno = lineno;
-                seq_stats.missingabundance_header = header;
+                seq_stats.missingabundance_header = header_view.data();
               }
           }
       }
@@ -378,14 +389,12 @@ namespace {
 
 
   auto abort_if_duplicated_identifier(struct seqinfo_s const * hdrfound,
-                                      struct seqinfo_s const & a_sequence,
-                                      int const id_start,
-                                      int const id_len) -> void {
+                                      View<char const> const id_view) -> void {
     if (hdrfound == nullptr) { return; }
-    std::string const full_header {std::next(a_sequence.header, id_start)};
+    std::string const id_str {id_view.data(), id_view.size()};
     fatal(error_prefix,
           "Duplicated sequence identifier: ",
-          full_header.substr(0, static_cast<unsigned long int>(id_len)));
+          id_str);
   }
 
 
@@ -773,7 +782,9 @@ namespace {
             hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
           }
 
-        abort_if_duplicated_identifier(hdrfound, a_sequence, id_start, id_len);
+        auto const id_view = View<char const>{std::next(a_sequence.header, id_start),
+                                              static_cast<std::size_t>(id_len)};
+        abort_if_duplicated_identifier(hdrfound, id_view);
 
         hdrhashtable[hdrhashindex] = &a_sequence;
 
