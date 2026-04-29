@@ -43,5 +43,5 @@ struct Search_data
   uint64_t target_count = 0;
   uint64_t target_index = 0;
 
-  Cpu_features cpu_features {};
+  Cpu_features cpu_features {false, false, false};
 };
