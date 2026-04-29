@@ -293,7 +293,7 @@ namespace {
 
          struct Stats stats;
          const uint64_t derep_hash_mask = hashtable.size() - 1;
-         auto const & zb = data.zobrist();
+         auto const & zobrist = data.zobrist();
 
          for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
            {
@@ -308,7 +308,7 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             auto const hash = zb.hash(seq, seqlen);
+             auto const hash = zobrist.hash(seq, seqlen);
 
              auto nth_bucket = hash & derep_hash_mask;
              auto * clusterp = &hashtable[nth_bucket];
