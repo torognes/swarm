@@ -754,37 +754,23 @@ namespace {
   }
 
 
-  auto build_index(struct Parameters const & parameters,
-                   Zobrist const & zobrist,
-                   std::vector<char> & data_v,
-                   std::vector<struct Entry> const & entries,
-                   struct Seq_stats & seq_stats,
-                   std::vector<struct seqinfo_s> & seqindex_v) -> void
+  // Pass 1: header-side work for every entry. Populates views,
+  // extracts the abundance annotation, and aborts on duplicated or
+  // empty identifiers. The seen_identifiers set is local so its
+  // buckets are released before the sequence pass allocates its own
+  // hashtable.
+  auto index_headers(struct Parameters const & parameters,
+                     std::vector<char> & data_v,
+                     std::vector<struct Entry> const & entries,
+                     struct Seq_stats & seq_stats,
+                     std::vector<struct seqinfo_s> & seqindex_v,
+                     struct Progress_status & progress_idx) -> void
   {
-    /* set up set to check for unique header identifiers */
-
     std::unordered_set<View<char>, GenericHash<fnv1a>> seen_identifiers;
     seen_identifiers.reserve(seq_stats.n_sequences);
 
-    /* set up hash to check for unique sequences */
-
-    const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
-
-    std::vector<struct seqinfo_s *> seqhashtable;
-
-    if (parameters.opt_differences > 1) {
-      seqhashtable.resize(seqhashsize);
-    }
-
-    /* create indices */
-
-    seqindex_v.resize(seq_stats.n_sequences);
-
-    struct Progress_status progress_idx;
-    progress_init(progress_idx, "Indexing database:", seq_stats.n_sequences, parameters);
     auto counter = 0ULL;
     for (auto & a_sequence: seqindex_v) {
-
         populate_views_from_entry(a_sequence, entries[counter], data_v);
 
         /* get amplicon abundance */
@@ -794,11 +780,32 @@ namespace {
         auto const id_view = compute_identifier_view(a_sequence);
         register_unique_identifier(seen_identifiers, id_view);
 
-        /* hash sequence */
+        progress_update(progress_idx, counter);
+        ++counter;
+      }
+  }
+
+
+  // Pass 2: sequence-side work for every entry. Computes the Zobrist
+  // hash and, when d > 1, checks for duplicated sequences (d = 1
+  // dereplicates internally). Stops at the first duplicate; the
+  // caller calls abort_if_duplicated_sequences() afterwards.
+  auto index_sequences(struct Parameters const & parameters,
+                       Zobrist const & zobrist,
+                       struct Seq_stats & seq_stats,
+                       std::vector<struct seqinfo_s> & seqindex_v,
+                       struct Progress_status & progress_idx) -> void
+  {
+    const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
+    std::vector<struct seqinfo_s *> seqhashtable;
+    if (parameters.opt_differences > 1) {
+      seqhashtable.resize(seqhashsize);
+    }
+
+    auto counter = 0ULL;
+    for (auto & a_sequence: seqindex_v) {
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
 
-        /* Check for duplicated sequences using hash table,  */
-        /* but only for d > 1. Handled internally for d = 1. */
         if ((parameters.opt_differences > 1) and
             is_duplicate_sequence(seqhashtable, seqhashsize, a_sequence))
           {
@@ -806,9 +813,29 @@ namespace {
             break;
           }
 
-        progress_update(progress_idx, counter);
+        progress_update(progress_idx, seq_stats.n_sequences + counter);
         ++counter;
       }
+  }
+
+
+  auto build_index(struct Parameters const & parameters,
+                   Zobrist const & zobrist,
+                   std::vector<char> & data_v,
+                   std::vector<struct Entry> const & entries,
+                   struct Seq_stats & seq_stats,
+                   std::vector<struct seqinfo_s> & seqindex_v) -> void
+  {
+    seqindex_v.resize(seq_stats.n_sequences);
+
+    // One progress bar drives both passes: pass 1 contributes the
+    // first half of the count, pass 2 the second half.
+    struct Progress_status progress_idx;
+    progress_init(progress_idx, "Indexing database:",
+                  2ULL * seq_stats.n_sequences, parameters);
+
+    index_headers(parameters, data_v, entries, seq_stats, seqindex_v, progress_idx);
+    index_sequences(parameters, zobrist, seq_stats, seqindex_v, progress_idx);
 
     abort_if_duplicated_sequences(seq_stats);
 
