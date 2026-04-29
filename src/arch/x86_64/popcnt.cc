@@ -22,11 +22,10 @@
 */
 
 
-#ifdef __x86_64__
 #ifdef __POPCNT__
 
 #include <popcntintrin.h>  // refactoring: #include <immintrin.h>?
-#include "qgram_array.h"  // qgramvectorbytes
+#include "../../utils/qgram_array.h"  // qgramvectorbytes
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
 
@@ -63,5 +62,4 @@ auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const *
 
 #else
 #error __POPCNT__ not defined
-#endif
 #endif

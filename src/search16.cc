@@ -45,20 +45,20 @@ using VECTORTYPE = uint16x8_t;
 #ifdef __SSE2__
 
 #include <emmintrin.h>  // SSE2 intrinsics
-#include "utils/intrinsics_to_functions_x86_64.h"
+#include "arch/x86_64/intrinsics_to_functions.h"
 using VECTORTYPE = __m128i;
 
 #endif
 
 #ifdef __SSE3__
 
-#include "ssse3.h"
+#include "arch/x86_64/ssse3.h"
 
 #endif
 
 #ifdef __SSE4_1__
 
-#include "sse41.h"
+#include "arch/x86_64/sse41.h"
 
 #endif
 

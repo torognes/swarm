@@ -22,11 +22,9 @@
 */
 
 
-#ifdef __x86_64__
-
 #ifdef __SSE2__
 #include <emmintrin.h>  // SSE2 intrinsics
-#include "utils/intrinsics_to_functions_x86_64.h"
+#include "intrinsics_to_functions.h"
 #include <iterator>  // std::next
 #endif
 
@@ -162,5 +160,4 @@ auto dprofile_shuffle16(WORD * dprofile,
 
 #else
 #error __SSSE3__ not defined
-#endif
 #endif

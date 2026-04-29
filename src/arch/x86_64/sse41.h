@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#ifdef __x86_64__
 #ifdef __SSE4_1__
 
 /*
@@ -65,5 +64,4 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * MR,
                                  VECTORTYPE * MQ0) -> void;
 
-#endif
 #endif

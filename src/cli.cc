@@ -26,7 +26,7 @@
 #include "utils/fatal.h"
 #include "utils/gcd.h"
 #include "utils/open_files.h"
-#include "utils/x86_cpu_features.h"
+#include "arch/x86_64/cpu_features.h"
 #include <algorithm>  // std::min()
 #include <array>
 #include <bitset>

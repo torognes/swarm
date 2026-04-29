@@ -45,12 +45,12 @@ using VECTORTYPE = uint8x16_t;
 #ifdef __SSE2__
 
 #include <emmintrin.h>  // SSE2 intrinsics
-#include "utils/intrinsics_to_functions_x86_64.h"
+#include "arch/x86_64/intrinsics_to_functions.h"
 using VECTORTYPE = __m128i;
 
 #endif
 
-#include "ssse3.h"
+#include "arch/x86_64/ssse3.h"
 
 #elif defined __PPC__
 

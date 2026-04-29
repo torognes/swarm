@@ -22,11 +22,9 @@
 */
 
 
-#ifdef __x86_64__
-
 #ifdef __SSE2__
 #include <emmintrin.h>  // SSE2 intrinsics
-#include "utils/intrinsics_to_functions_x86_64.h"
+#include "intrinsics_to_functions.h"
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <iterator>  // std::next
@@ -243,5 +241,4 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
 
 #else
 #error __SSE4_1__ not defined
-#endif
 #endif

@@ -108,9 +108,13 @@ endif
 
 
 # Machine specific
+#
+# ARCH_DIR points at the per-ISA folder under src/arch/ that supplies the
+# vector intrinsics and any other arch-only translation units. Every .cc
+# in that folder gets compiled into the binary (see ARCH_OBJS below).
 ifeq ($(MACHINE), x86_64)
 	COMMON += -march=x86-64 -mtune=generic -std=c++11
-	EXTRAOBJ += ssse3.o sse41.o utils/popcnt.o
+	ARCH_DIR := arch/x86_64
 else ifeq ($(MACHINE), aarch64)
 	COMMON += -march=armv8-a+simd -mtune=generic \
 	          -flax-vector-conversions -std=c++11
@@ -119,6 +123,12 @@ else ifeq ($(MACHINE), arm64)
 else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=gnu++11
 endif
+
+# Auto-collect every .cc under the chosen ARCH_DIR. Per-flag overrides
+# (e.g. -mssse3 / -msse4.1 / -mpopcnt for the x86_64 dispatch helpers)
+# are attached as explicit target rules further down — those win over the
+# generic %.o pattern rule.
+ARCH_OBJS := $(patsubst %.cc, %.o, $(wildcard $(ARCH_DIR)/*.cc))
 
 
 # OS specific (Windows vs. others)
@@ -143,8 +153,7 @@ INSTALLED := ../bin/$(BIN)
 OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
 	nw.o qgram.o scan.o search16.o search8.o \
 	swarm.o variants.o \
-	$(filter-out utils/popcnt.o, \
-	    $(patsubst %.cc, %.o, $(wildcard utils/*.cc))) $(EXTRAOBJ)
+	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(ARCH_OBJS)
 
 DEPFILES = $(OBJS:.o=.d)
 
@@ -165,19 +174,20 @@ $(INSTALLED) : $(PROG) | ../bin
 
 clean :
 	rm -f $(PROG) $(OBJS) $(DEPFILES) *~ gmon.out *.gcno *.gcda *.gcov \
-	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov
+	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov \
+	./arch/*/*.gcno ./arch/*/*.gcda ./arch/*/*.gcov
 	rm -rf ../bin/
 
 %.o : %.cc Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c -o $@ $<
 
-ssse3.o : ssse3.cc Makefile
+arch/x86_64/ssse3.o : arch/x86_64/ssse3.cc Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mssse3 -c -o $@ $<
 
-sse41.o : sse41.cc Makefile
+arch/x86_64/sse41.o : arch/x86_64/sse41.cc Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -msse4.1 -c -o $@ $<
 
-utils/popcnt.o : utils/popcnt.cc Makefile
+arch/x86_64/popcnt.o : arch/x86_64/popcnt.cc Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mpopcnt -c -o $@ $<
 
 # Pull in the auto-generated header-dependency files. The leading "-"

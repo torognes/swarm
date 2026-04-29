@@ -26,7 +26,6 @@
 // uint16x8_t -> 16
 // uint8x16_t -> 8
 
-#ifdef __x86_64__
 #ifdef __SSE2__
 
 #include <cstdint>  // uint64_t
@@ -188,7 +187,6 @@ auto v_mask_eq8(__m128i lhs, __m128i rhs) -> uint16_t {
   return static_cast<uint16_t>(_mm_movemask_epi8(_mm_cmpeq_epi8(lhs, rhs)));
 }
 
-#endif
 #endif
 
 

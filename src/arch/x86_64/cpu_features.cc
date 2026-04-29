@@ -21,14 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "../swarm.h"
-#include "fatal.h"
-#include <cstdio>  // fprintf
-
-
-#ifdef __x86_64__
-
+#include "../../swarm.h"
+#include "../../utils/fatal.h"
 #include <cpuid.h>  // __get_cpuid, __get_cpuid_max, __cpuid_count, bit_* masks
+#include <cstdio>  // fprintf
 
 namespace {
 // __get_cpuid_count was only added to <cpuid.h> in GCC 7.0, so call sites
@@ -136,5 +132,3 @@ auto cpu_features_show(struct Parameters const & parameters) -> void
   }
   std::fprintf(parameters.logfile, "\n");
 }
-
-#endif

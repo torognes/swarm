@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#ifdef __x86_64__
 #ifdef __SSE3__
 
 using WORD = unsigned short;
@@ -35,5 +34,4 @@ auto dprofile_shuffle16(WORD * dprofile,
                         WORD * score_matrix,
                         BYTE * dseq_byte) -> void;
 
-#endif
 #endif
