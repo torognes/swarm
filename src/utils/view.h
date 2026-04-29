@@ -70,6 +70,9 @@ public:
     return size() == other.size()
       and std::equal(cbegin(), cend(), other.cbegin());
   }
+  auto operator!=(View<Type> const & other) const noexcept -> bool {
+    return not (*this == other);
+  }
   auto operator<(View<Type> const & other) const noexcept -> bool {
     static_assert(std::is_arithmetic<Type>::value,
                   "View::operator< requires an arithmetic element type");
