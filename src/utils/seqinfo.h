@@ -25,16 +25,15 @@
 #include <cstdint>  // uint64_t
 
 // refactoring: header (char const *) + headerlen (int) merged into
-// header_view (View<char const>); seq + seqlen could be similarly
+// header_view (View<char>); seq + seqlen could be similarly
 // merged in a follow-up, but the byte/nucleotide-count mismatch
 // (4 nt packed per byte) makes a clean swap less obvious.
 
 struct seqinfo_s
 {
-  View<char const> header_view;
+  View<char> header_view;
   char const * seq;
   uint64_t abundance;
-  uint64_t hdrhash;
   uint64_t seqhash;
   unsigned int seqlen;
   unsigned int clusterid;

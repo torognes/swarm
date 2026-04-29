@@ -47,7 +47,7 @@ public:
   auto sequence(uint64_t seqno)        const -> char const *;
   auto sequence_length(uint64_t seqno) const -> unsigned int;
   auto sequence_hash(uint64_t seqno)   const -> uint64_t;
-  auto header_view(uint64_t seqno)     const -> View<char const>;
+  auto header_view(uint64_t seqno)     const -> View<char>;
   auto abundance(uint64_t seqno)       const -> uint64_t;
 
   auto fprintseq(std::FILE * stream, unsigned int seqno) const -> void;

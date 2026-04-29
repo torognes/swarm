@@ -44,6 +44,7 @@
 #include <memory>  // std::unique_ptr
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
+#include <unordered_set>
 #include <vector>
 
 #ifndef PRIu64
@@ -184,7 +185,7 @@ namespace {
   }
 
 
-  auto find_swarm_abundance(View<char const> const header_view,
+  auto find_swarm_abundance(View<char> const header_view,
                             int & start,
                             int & end,
                             int64_t & number) -> bool
@@ -246,7 +247,7 @@ namespace {
   }
 
 
-  auto find_usearch_abundance(View<char const> const header_view,
+  auto find_usearch_abundance(View<char> const header_view,
                               int & start,
                               int & end,
                               int64_t & number) -> bool
@@ -384,16 +385,6 @@ namespace {
     seqinfo.abundance = static_cast<uint64_t>(abundance);
     seqinfo.abundance_start = start;
     seqinfo.abundance_end = end;
-  }
-
-
-  auto abort_if_duplicated_identifier(struct seqinfo_s const * hdrfound,
-                                      View<char const> const id_view) -> void {
-    if (hdrfound == nullptr) { return; }
-    std::string const id_str {id_view.data(), id_view.size()};
-    fatal(error_prefix,
-          "Duplicated sequence identifier: ",
-          id_str);
   }
 
 
@@ -680,10 +671,10 @@ namespace {
                    struct Seq_stats & seq_stats,
                    std::vector<struct seqinfo_s> & seqindex_v) -> void
   {
-    /* set up hash to check for unique headers */
+    /* set up set to check for unique header identifiers */
 
-    const uint64_t hdrhashsize {2ULL * seq_stats.n_sequences};
-    std::vector<struct seqinfo_s *> hdrhashtable(hdrhashsize);
+    std::unordered_set<View<char>> seen_identifiers;
+    seen_identifiers.reserve(seq_stats.n_sequences);
 
     /* set up hash to check for unique sequences */
 
@@ -705,7 +696,7 @@ namespace {
     for (auto & a_sequence: seqindex_v) {
 
         /* get header */
-        a_sequence.header_view = View<char const>{
+        a_sequence.header_view = View<char>{
           &data_v[entries[counter].header.offset],
           entries[counter].header.length};
 
@@ -750,48 +741,11 @@ namespace {
           static_cast<std::size_t>(id_start),
           static_cast<std::size_t>(id_len));
 
-        const auto hdrhash = zobrist.hash(id_view.data(),
-                                          4 * static_cast<unsigned int>(id_len));
-
-        a_sequence.hdrhash = hdrhash;
-        uint64_t hdrhashindex = hdrhash % hdrhashsize;
-
-        struct seqinfo_s const * hdrfound {nullptr};
-
-        while ((hdrfound = hdrhashtable[hdrhashindex]) != nullptr)
-          {
-            if (hdrfound->hdrhash == hdrhash)
-              {
-                int hit_id_start {0};
-                int hit_id_len {0};
-
-                auto const hit_headerlen_signed =
-                  static_cast<int>(hdrfound->header_view.size());
-                if (hdrfound->abundance_start > 0)
-                  {
-                    hit_id_start = 0;
-                    hit_id_len = hdrfound->abundance_start;
-                  }
-                else
-                  {
-                    hit_id_start = hdrfound->abundance_end;
-                    hit_id_len = hit_headerlen_signed - hdrfound->abundance_end;
-                  }
-
-                auto const hit_id_view = hdrfound->header_view.subview(
-                  static_cast<std::size_t>(hit_id_start),
-                  static_cast<std::size_t>(hit_id_len));
-                if (id_view == hit_id_view) {
-                  break;
-                }
-              }
-
-            hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
-          }
-
-        abort_if_duplicated_identifier(hdrfound, id_view);
-
-        hdrhashtable[hdrhashindex] = &a_sequence;
+        auto const insertion = seen_identifiers.insert(id_view);
+        if (not insertion.second) {
+          std::string const id_str {id_view.data(), id_view.size()};
+          fatal(error_prefix, "Duplicated sequence identifier: ", id_str);
+        }
 
         /* hash sequence */
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
@@ -888,7 +842,7 @@ auto Data::sequence_hash(uint64_t const seqno) const -> uint64_t
 }
 
 
-auto Data::header_view(uint64_t const seqno) const -> View<char const>
+auto Data::header_view(uint64_t const seqno) const -> View<char>
 {
   return info(seqno).header_view;
 }
