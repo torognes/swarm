@@ -179,13 +179,13 @@ namespace {
                                   unsigned int const amp2) -> bool {
     /* amplicon are identical if they have the same length, and the
        exact same sequence */
-    const auto amp1_seqlen = data.sequence_length(amp1);
-    const auto amp2_seqlen = data.sequence_length(amp2);
+    auto const amp1_seq = data.sequence_view(amp1);
+    auto const amp2_seq = data.sequence_view(amp2);
 
-    return ((amp1_seqlen == amp2_seqlen) and
-            std::equal(data.sequence(amp1),
-                       std::next(data.sequence(amp1), nt_bytelength(amp1_seqlen)),
-                       data.sequence(amp2)));
+    return ((amp1_seq.length == amp2_seq.length) and
+            std::equal(amp1_seq.data,
+                       std::next(amp1_seq.data, nt_bytelength(amp1_seq.length)),
+                       amp2_seq.data));
   }
 
 
@@ -368,9 +368,8 @@ namespace {
             const auto amp = hash_table.get_data(index);
 
             /* make absolutely sure sequences are identical */
-            auto const * amp_sequence = data.sequence(amp);
-            const auto amp_seqlen = data.sequence_length(amp);
-            if (check_variant(seed_sequence, seed_seqlen, var, amp_sequence, amp_seqlen))
+            auto const amp_seq = data.sequence_view(amp);
+            if (check_variant(seed_sequence, seed_seqlen, var, amp_seq.data, amp_seq.length))
               {
                 add_graft_candidate(seed, amp, graft_state);
                 return true;
@@ -445,10 +444,9 @@ namespace {
 
     uint64_t matches = 0;
 
-    auto const * sequence = data.sequence(seed);
-    const auto seqlen = data.sequence_length(seed);
+    auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), sequence, seqlen, hash, variant_list);
+    const auto variant_count = generate_variants(data.zobrist(), seed_seq.data, seed_seq.length, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i)
       {
@@ -456,7 +454,7 @@ namespace {
         if (bloom_f.get(var.hash))
           {
             auto varlen = 0U;
-            generate_variant_sequence(sequence, seqlen,
+            generate_variant_sequence(seed_seq.data, seed_seq.length,
                                       var, varseq, varlen);
             matches += check_heavy_var_2(data, hash_table,
                                          bloom_a,
@@ -540,10 +538,9 @@ namespace {
 
     hash_insert(data, hash_table, bloom_a, seed);
 
-    auto const * sequence = data.sequence(seed);
-    const auto seqlen = data.sequence_length(seed);
+    auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), sequence, seqlen, hash, variant_list);
+    const auto variant_count = generate_variants(data.zobrist(), seed_seq.data, seed_seq.length, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i) {
       bloom_f.set(variant_list[i].hash);
@@ -627,15 +624,12 @@ namespace {
               if ((parameters.opt_no_cluster_breaking) or
                   (data.abundance(seed) >= data.abundance(amp)))
                 {
-                  auto const * seed_sequence = data.sequence(seed);
-                  const auto seed_seqlen = data.sequence_length(seed);
+                  auto const seed_seq = data.sequence_view(seed);
+                  auto const amp_seq = data.sequence_view(amp);
 
-                  auto const * amp_sequence = data.sequence(amp);
-                  const auto amp_seqlen = data.sequence_length(amp);
-
-                  if (check_variant(seed_sequence, seed_seqlen,
+                  if (check_variant(seed_seq.data, seed_seq.length,
                                     var,
-                                    amp_sequence, amp_seqlen))
+                                    amp_seq.data, amp_seq.length))
                     {
                       hits_data[hits_count] = amp;
                       ++hits_count;
@@ -659,10 +653,9 @@ namespace {
   {
     auto hits_count = 0U;
 
-    auto const * sequence = data.sequence(seed);
-    const auto seqlen = data.sequence_length(seed);
+    auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), sequence, seqlen, hash, variant_list);
+    const auto variant_count = generate_variants(data.zobrist(), seed_seq.data, seed_seq.length, hash, variant_list);
 
     // C++17 refactoring:
     // std::for_each_n(variant_list.begin(), variant_count,
@@ -742,7 +735,7 @@ namespace {
     if (abundance == 1) {
       ++singletons;
     }
-    swarm_sumlen += data.sequence_length(seed);
+    swarm_sumlen += data.sequence_view(seed).length;
 
     const auto link_start = ampinfo_v[seed].link_start;
     const auto link_count = ampinfo_v[seed].link_count;
@@ -948,20 +941,18 @@ namespace {
 
       std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
-                   data.sequence_length(seed));
+                   data.sequence_view(seed).length);
       data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
       for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
         {
-          auto const * dseq = data.sequence(amp_id);
-          const auto dlen = data.sequence_length(amp_id);  // refactoring: as a struct Sequence{ptr, length}
-          auto const * qseq = data.sequence(seed);  // refactoring: can be moved outside of this loop!
-          const auto qlen = data.sequence_length(seed);
+          auto const amp_seq = data.sequence_view(amp_id);
+          auto const seed_seq = data.sequence_view(seed);  // refactoring: can be moved outside of this loop!
 
           uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
 
-          nw(dseq, dlen, qseq, qlen,
+          nw(amp_seq.data, amp_seq.length, seed_seq.data, seed_seq.length,
              score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
              static_cast<unsigned long int>(parameters.penalty_gapextend),
              nwdiff, directions, hearray, raw_alignment);
@@ -979,7 +970,7 @@ namespace {
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                        cluster_no,
-                       data.sequence_length(amp_id),
+                       amp_seq.length,
                        percentid,
                        nwdiff > 0 ? cigar_string.data() : "=");
 
