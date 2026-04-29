@@ -25,8 +25,26 @@
 #include <cstdio>   // std::FILE
 
 
-struct Progress_status
+struct Parameters;
+
+
+class Progress
 {
+public:
+
+  Progress(char const * prompt_, uint64_t size_,
+           struct Parameters const & parameters);
+
+  // update() is called from worker threads (algod1.cc network/heavy/light
+  // workers) as well as from the main thread; concurrent-safety is
+  // guaranteed by each worker holding its own state.mutex when invoking
+  // this method.
+  auto update(uint64_t current) -> void;
+
+  auto done() const -> void;
+
+private:
+
   char const * prompt {nullptr};
   uint64_t next {0};
   uint64_t size {0};
@@ -34,10 +52,3 @@ struct Progress_status
   std::FILE * logfile {nullptr};
   bool silent {false};  // true when output goes to a log file (--log)
 };
-
-
-auto progress_init(struct Progress_status & progress,
-                   char const * prompt, uint64_t size,
-                   struct Parameters const & parameters) -> void;
-auto progress_update(struct Progress_status & progress, uint64_t current) -> void;
-auto progress_done(struct Progress_status const & progress) -> void;

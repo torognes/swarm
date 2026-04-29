@@ -418,8 +418,7 @@ namespace {
 
   auto sort_index_if_need_be(struct Parameters const & parameters,
                              std::vector<struct seqinfo_s> & seqindex_v) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Abundance sorting:", 1, parameters);
+    Progress progress("Abundance sorting:", 1, parameters);
 
     auto compare_entries = [](struct seqinfo_s const& lhs,
                               struct seqinfo_s const& rhs) -> bool
@@ -441,7 +440,7 @@ namespace {
                            compare_entries)) {
       std::sort(seqindex_v.begin(), seqindex_v.end(), compare_entries);
     }
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -498,8 +497,7 @@ namespace {
     auto lineno = 1U;
 
 
-    struct Progress_status progress;
-    progress_init(progress, "Reading sequences:", file_info.filesize, parameters);
+    Progress progress("Reading sequences:", file_info.filesize, parameters);
 
     ssize_t linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
     if (linelen < 0)
@@ -655,10 +653,10 @@ namespace {
         entries.push_back(entry);
 
         if (file_info.is_regular) {
-          progress_update(progress, filepos);
+          progress.update(filepos);
         }
       }
-    progress_done(progress);
+    progress.done();
 
     // Line_buffer is destroyed on return; indexing/hashing in
     // build_index can use the released memory
@@ -764,7 +762,7 @@ namespace {
                      std::vector<struct Entry> const & entries,
                      struct Seq_stats & seq_stats,
                      std::vector<struct seqinfo_s> & seqindex_v,
-                     struct Progress_status & progress_idx) -> void
+                     Progress & progress_idx) -> void
   {
     std::unordered_set<View<char>, GenericHash<fnv1a>> seen_identifiers;
     seen_identifiers.reserve(seq_stats.n_sequences);
@@ -780,7 +778,7 @@ namespace {
         auto const id_view = compute_identifier_view(a_sequence);
         register_unique_identifier(seen_identifiers, id_view);
 
-        progress_update(progress_idx, counter);
+        progress_idx.update(counter);
         ++counter;
       }
   }
@@ -794,7 +792,7 @@ namespace {
                        Zobrist const & zobrist,
                        struct Seq_stats & seq_stats,
                        std::vector<struct seqinfo_s> & seqindex_v,
-                       struct Progress_status & progress_idx) -> void
+                       Progress & progress_idx) -> void
   {
     const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
     std::vector<struct seqinfo_s *> seqhashtable;
@@ -813,7 +811,7 @@ namespace {
             break;
           }
 
-        progress_update(progress_idx, seq_stats.n_sequences + counter);
+        progress_idx.update(seq_stats.n_sequences + counter);
         ++counter;
       }
   }
@@ -830,16 +828,15 @@ namespace {
 
     // One progress bar drives both passes: pass 1 contributes the
     // first half of the count, pass 2 the second half.
-    struct Progress_status progress_idx;
-    progress_init(progress_idx, "Indexing database:",
-                  2ULL * seq_stats.n_sequences, parameters);
+    Progress progress_idx("Indexing database:",
+                          2ULL * seq_stats.n_sequences, parameters);
 
     index_headers(parameters, data_v, entries, seq_stats, seqindex_v, progress_idx);
     index_sequences(parameters, zobrist, seq_stats, seqindex_v, progress_idx);
 
     abort_if_duplicated_sequences(seq_stats);
 
-    progress_done(progress_idx);
+    progress_idx.done();
 
     abort_if_missing_abundance(seq_stats);
     sort_index_if_need_be(parameters, seqindex_v);

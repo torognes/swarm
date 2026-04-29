@@ -73,8 +73,7 @@ namespace {
 
   auto sort_seeds(struct Parameters const & parameters,
                   std::vector<struct bucket>& hashtable) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Sorting:          ", 1, parameters);
+    Progress progress("Sorting:          ", 1, parameters);
 
     auto compare_seeds = [](struct bucket const& lhs,
                             struct bucket const& rhs) -> bool {
@@ -90,7 +89,7 @@ namespace {
     };
 
     std::sort(hashtable.begin(), hashtable.end(), compare_seeds);
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -105,8 +104,7 @@ namespace {
   auto write_stats_file(struct Parameters const & parameters,
                         Data const & data,
                         std::vector<struct bucket> const & hashtable) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Writing stats:    ", hashtable.size(), parameters);
+    Progress progress("Writing stats:    ", hashtable.size(), parameters);
     auto counter = 0U;
     for(auto const & cluster: hashtable) {
       std::fprintf(parameters.statsfile.get(), "%u\t%" PRIu64 "\t", cluster.size, cluster.mass);
@@ -115,9 +113,9 @@ namespace {
                    data.abundance(cluster.seqno_first),
                    cluster.singletons, 0U, 0U);
       ++counter;
-      progress_update(progress, counter);
+      progress.update(counter);
     }
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -125,8 +123,7 @@ namespace {
                             Data const & data,
                             std::vector<struct bucket> const & hashtable,
                             std::vector<unsigned int> const & nextseqtab) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Writing structure:", hashtable.size(), parameters);
+    Progress progress("Writing structure:", hashtable.size(), parameters);
     auto counter = 0UL;
 
     for(auto const & cluster: hashtable) {
@@ -141,9 +138,9 @@ namespace {
           next_identical = nextseqtab[next_identical];
         }
       ++counter;
-      progress_update(progress, counter);
+      progress.update(counter);
     }
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -151,8 +148,7 @@ namespace {
                                   Data const & data,
                                   std::vector<struct bucket> const & hashtable,
                                   std::vector<unsigned int> const & nextseqtab) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Writing UCLUST:   ", hashtable.size(), parameters);
+    Progress progress("Writing UCLUST:   ", hashtable.size(), parameters);
     auto counter = 0U;
 
     for(auto const & cluster: hashtable) {
@@ -186,17 +182,16 @@ namespace {
           next_identical = nextseqtab[next_identical];
         }
       ++counter;
-      progress_update(progress, counter);
+      progress.update(counter);
     }
-    progress_done(progress);
+    progress.done();
   }
 
 
   auto write_representative_sequences(struct Parameters const & parameters,
                                       Data const & data,
                                       std::vector<struct bucket> const & hashtable) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Writing seeds:    ", hashtable.size(), parameters);
+    Progress progress("Writing seeds:    ", hashtable.size(), parameters);
     auto counter = 0U;
     for(auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
@@ -205,9 +200,9 @@ namespace {
       std::fprintf(parameters.seeds_file.get(), "\n");
       data.fprintseq(parameters.seeds_file.get(), seed);
       ++counter;
-      progress_update(progress, counter);
+      progress.update(counter);
     }
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -215,8 +210,7 @@ namespace {
                                   Data const & data,
                                   std::vector<struct bucket> const & hashtable,
                                   std::vector<unsigned int> const & nextseqtab) -> void {
-    struct Progress_status progress;
-    progress_init(progress, "Writing swarms:   ", hashtable.size(), parameters);
+    Progress progress("Writing swarms:   ", hashtable.size(), parameters);
 
 #ifdef _WIN32
     std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%llu", parameters.opt_differences, hashtable.size());
@@ -242,11 +236,11 @@ namespace {
         }
 
       ++counter;
-      progress_update(progress, counter);
+      progress.update(counter);
     }
     std::fputc('\n', parameters.outfile.get());
 
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -255,8 +249,7 @@ namespace {
                                    std::vector<struct bucket> const & hashtable,
                                    std::vector<unsigned int> const & nextseqtab) -> void {
     static constexpr char sepchar {' '};
-    struct Progress_status progress;
-    progress_init(progress, "Writing swarms:   ", hashtable.size(), parameters);
+    Progress progress("Writing swarms:   ", hashtable.size(), parameters);
     auto counter = 0U;
 
     for(auto const & cluster: hashtable) {
@@ -274,10 +267,10 @@ namespace {
         }
       std::fputc('\n', parameters.outfile.get());
       ++counter;
-      progress_update(progress, counter);
+      progress.update(counter);
     }
 
-    progress_done(progress);
+    progress.done();
   }
 
 
@@ -287,8 +280,7 @@ namespace {
                      std::vector<unsigned int> & nextseqtab)
     -> struct Stats
        {
-         struct Progress_status progress;
-         progress_init(progress, "Dereplicating:    ", nextseqtab.size(), parameters);
+         Progress progress("Dereplicating:    ", nextseqtab.size(), parameters);
 
          struct Stats stats;
          const uint64_t derep_hash_mask = hashtable.size() - 1;
@@ -356,9 +348,9 @@ namespace {
              stats.maxmass = std::max(clusterp->mass, stats.maxmass);
              stats.maxsize = std::max(clusterp->size, stats.maxsize);
 
-             progress_update(progress, seqno);
+             progress.update(seqno);
            }
-         progress_done(progress);
+         progress.done();
 
          return stats;
     }
