@@ -32,8 +32,6 @@
 // two files, one per search8/16. The other arch could use only one
 // file, with function overload?
 
-#ifdef __aarch64__
-
 #include <cstdint>  // uint64_t, uint16_t
 #include <arm_neon.h>
 
@@ -238,5 +236,3 @@ auto v_mask_eq8(uint8x16_t lhs, uint8x16_t rhs) -> uint16_t {
                  neon_shift16)
          );
 }
-
-#endif

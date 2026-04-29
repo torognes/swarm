@@ -118,8 +118,10 @@ ifeq ($(MACHINE), x86_64)
 else ifeq ($(MACHINE), aarch64)
 	COMMON += -march=armv8-a+simd -mtune=generic \
 	          -flax-vector-conversions -std=c++11
+	ARCH_DIR := arch/aarch64
 else ifeq ($(MACHINE), arm64)
 	COMMON += -std=c++11
+	ARCH_DIR := arch/aarch64
 else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=gnu++11
 endif

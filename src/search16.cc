@@ -37,7 +37,7 @@
 #ifdef __aarch64__
 
 #include <arm_neon.h>
-#include "utils/intrinsics_to_functions_aarch64.h"
+#include "arch/aarch64/intrinsics_to_functions.h"
 using VECTORTYPE = uint16x8_t;
 
 #elif defined __x86_64__

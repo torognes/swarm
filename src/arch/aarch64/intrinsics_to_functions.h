@@ -26,8 +26,6 @@
 // uint16x8_t -> 16
 // uint8x16_t -> 8
 
-#ifdef __aarch64__
-
 #include <cstdint>  // uint64_t, uint16_t
 #include <arm_neon.h>
 
@@ -100,5 +98,3 @@ auto v_shift_left8(uint8x16_t vector) -> uint8x16_t;
 auto v_mask_eq16(uint16x8_t lhs, uint16x8_t rhs) -> uint16_t;
 
 auto v_mask_eq8(uint8x16_t lhs, uint8x16_t rhs) -> uint16_t;
-
-#endif
