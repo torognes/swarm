@@ -853,7 +853,7 @@ namespace {
                                    Data const & data,
                                    std::vector<struct ampinfo_s> & ampinfo_v,
                                    std::vector<struct swarminfo_s> & swarminfo_v) -> void {
-    static constexpr auto sepchar {' '};
+    static constexpr char sepchar {' '};
     struct Progress_status progress;
     progress_init(progress, "Writing swarms:   ", swarminfo_v.size(), parameters);
 
