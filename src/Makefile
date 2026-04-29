@@ -110,7 +110,7 @@ endif
 # Machine specific
 ifeq ($(MACHINE), x86_64)
 	COMMON += -march=x86-64 -mtune=generic -std=c++11
-	EXTRAOBJ += ssse3.o sse41.o popcnt.o
+	EXTRAOBJ += ssse3.o sse41.o utils/popcnt.o
 else ifeq ($(MACHINE), aarch64)
 	COMMON += -march=armv8-a+simd -mtune=generic \
 	          -flax-vector-conversions -std=c++11
@@ -143,7 +143,8 @@ INSTALLED := ../bin/$(BIN)
 OBJS = algo.o algod1.o arch.o cli.o db.o derep.o \
 	nw.o qgram.o scan.o search16.o search8.o \
 	swarm.o variants.o \
-	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(EXTRAOBJ)
+	$(filter-out utils/popcnt.o, \
+	    $(patsubst %.cc, %.o, $(wildcard utils/*.cc))) $(EXTRAOBJ)
 
 DEPFILES = $(OBJS:.o=.d)
 
@@ -176,7 +177,7 @@ ssse3.o : ssse3.cc Makefile
 sse41.o : sse41.cc Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -msse4.1 -c -o $@ $<
 
-popcnt.o : popcnt.cc Makefile
+utils/popcnt.o : utils/popcnt.cc Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mpopcnt -c -o $@ $<
 
 # Pull in the auto-generated header-dependency files. The leading "-"
