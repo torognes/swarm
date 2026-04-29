@@ -26,8 +26,6 @@
 // uint16x8_t -> 16
 // uint8x16_t -> 8
 
-#ifdef __PPC__
-
 #ifdef __LITTLE_ENDIAN__
 #include <altivec.h>
 #else
@@ -333,5 +331,3 @@ auto v_mask_eq8(v_u8_t lhs, v_u8_t rhs) -> uint16_t {
                      ), perm_bits)
          )[fifth_item];
 }
-
-#endif

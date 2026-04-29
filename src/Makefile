@@ -124,6 +124,7 @@ else ifeq ($(MACHINE), arm64)
 	ARCH_DIR := arch/aarch64
 else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=gnu++11
+	ARCH_DIR := arch/ppc
 endif
 
 # Auto-collect every .cc under the chosen ARCH_DIR. Per-flag overrides

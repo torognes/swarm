@@ -57,7 +57,7 @@ using VECTORTYPE = __m128i;
 #ifdef __LITTLE_ENDIAN__
 
 #include <altivec.h>
-#include "utils/intrinsics_to_functions_ppc.h"
+#include "arch/ppc/intrinsics_to_functions.h"
 using VECTORTYPE = vector unsigned char;
 
 #else

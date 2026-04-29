@@ -26,8 +26,6 @@
 // uint16x8_t -> 16
 // uint8x16_t -> 8
 
-#ifdef __PPC__
-
 #ifdef __LITTLE_ENDIAN__
 #include <altivec.h>
 #else
@@ -119,5 +117,3 @@ auto v_shift_left8(v_u8_t vector) -> v_u8_t;
 auto v_mask_eq16(v_u16_t lhs, v_u16_t rhs) -> uint16_t;
 
 auto v_mask_eq8(v_u8_t lhs, v_u8_t rhs) -> uint16_t;
-
-#endif
