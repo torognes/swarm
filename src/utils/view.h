@@ -28,7 +28,9 @@
 #include <algorithm>  // std::equal, std::lexicographical_compare, std::min
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
+#include <cstdint>  // std::uint64_t
 #include <cstdlib>  // std::size_t
+#include <functional>  // std::hash
 #include <iterator> // std::prev, std::next
 #include <type_traits>  // std::is_arithmetic
 
@@ -41,8 +43,10 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 
 
 // TODO:
-//  - add friend function for custom hashing,
-//  - goal is to be able to build std::unordered_set of View<char>
+//  - the hash_append friend below remains for use with custom hash
+//    algorithms (Howard Hinnant style); std::hash<View<char>> at
+//    the bottom of this header covers the std::unordered_set use
+//    case.
 
 
 // const-only, non-owning view over a contiguous sequence of elements
@@ -153,6 +157,35 @@ private:
   Type const * start_ {};
   std::size_t  length_ {};
 };
+
+
+// std::hash specialization, so that View<char> can be used as the
+// key type of std::unordered_set / std::unordered_map.
+//
+// Implementation: FNV-1a 64-bit over the byte sequence. Adequate
+// for short inputs such as fasta headers; not cryptographic. If
+// adversarial input ever becomes a concern, swap for a stronger
+// hash (e.g. SipHash with a runtime seed).
+//
+// Specialized for View<char> only on purpose: View<unsigned char>,
+// View<std::uint64_t>, etc. would require byte reinterpretation
+// machinery that is not yet justified by any caller.
+namespace std {
+  template <>
+  struct hash<View<char>> {
+    auto operator()(View<char> const & view) const noexcept -> std::size_t {
+      static constexpr std::uint64_t fnv_offset_basis {14695981039346656037ULL};
+      static constexpr std::uint64_t fnv_prime         {1099511628211ULL};
+      std::uint64_t accumulator {fnv_offset_basis};
+      for (auto const character : view) {
+        accumulator ^= static_cast<std::uint64_t>(
+                         static_cast<unsigned char>(character));
+        accumulator *= fnv_prime;
+      }
+      return static_cast<std::size_t>(accumulator);
+    }
+  };
+}
 
 
 // tests:
