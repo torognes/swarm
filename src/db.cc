@@ -724,10 +724,10 @@ namespace {
   }
 
 
-  // Open-addressed lookup over seqhashtable, used only when d > 1
-  // (d = 1 handles dereplication internally). Returns true if an
-  // identical sequence was already inserted; otherwise records
-  // a_sequence at the probed slot and returns false.
+  // Open-addressed lookup over seqhashtable, used when d > 0
+  // (d = 0 is the dereplication mode and accepts duplicates).
+  // Returns true if an identical sequence was already inserted;
+  // otherwise records a_sequence at the probed slot and returns false.
   auto is_duplicate_sequence(std::vector<struct seqinfo_s *> & seqhashtable,
                              uint64_t const seqhashsize,
                              struct seqinfo_s & a_sequence) -> bool
@@ -785,9 +785,9 @@ namespace {
 
 
   // Pass 2: sequence-side work for every entry. Computes the Zobrist
-  // hash and, when d > 1, checks for duplicated sequences (d = 1
-  // dereplicates internally). Stops at the first duplicate; the
-  // caller calls abort_if_duplicated_sequences() afterwards.
+  // hash and, when d > 0, checks for duplicated sequences (d = 0 is
+  // the dereplication mode and accepts duplicates). Stops at the first
+  // duplicate; the caller calls abort_if_duplicated_sequences() afterwards.
   auto index_sequences(struct Parameters const & parameters,
                        Zobrist const & zobrist,
                        struct Seq_stats & seq_stats,
@@ -796,7 +796,7 @@ namespace {
   {
     const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
     std::vector<struct seqinfo_s *> seqhashtable;
-    if (parameters.opt_differences > 1) {
+    if (parameters.opt_differences > 0) {
       seqhashtable.resize(seqhashsize);
     }
 
@@ -804,7 +804,7 @@ namespace {
     for (auto & a_sequence: seqindex_v) {
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
 
-        if ((parameters.opt_differences > 1) and
+        if ((parameters.opt_differences > 0) and
             is_duplicate_sequence(seqhashtable, seqhashsize, a_sequence))
           {
             seq_stats.has_duplicates = true;
