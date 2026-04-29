@@ -876,17 +876,16 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
-  auto const len = sequence_length(seqno);
-  auto const * const seqptr = sequence(seqno);
+  auto const seq = sequence_view(seqno);
   static std::vector<char> buffer(longest_sequence() + 1, '\0');
 
   // decode to nucleotides (A, C, G and T)
-  for (auto i = 0U; i < len; ++i) {
-    buffer[i] = sym_nt[1 + nt_extract(seqptr, i)];
+  for (auto i = 0U; i < seq.length; ++i) {
+    buffer[i] = sym_nt[1 + nt_extract(seq.data, i)];
   }
-  buffer[len] = '\0';
+  buffer[seq.length] = '\0';
 
-  std::fprintf(stream, "%.*s\n", len, buffer.data());
+  std::fprintf(stream, "%.*s\n", seq.length, buffer.data());
 }
 
 
