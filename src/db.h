@@ -33,6 +33,17 @@
 struct Parameters;  // defined in swarm.h
 
 
+// Non-owning {data, length} pair for a packed nucleotide sequence.
+// length is the nucleotide count (matches the historical seqlen);
+// the underlying buffer occupies nt_bytelength(length) bytes because
+// nucleotides are packed 4-per-byte. No iterator API is exposed: byte
+// iteration would walk past the nominal extent.
+struct Sequence {
+  char const * data;
+  unsigned int length;
+};
+
+
 class Data {
 public:
   explicit Data(struct Parameters const & parameters);
@@ -46,6 +57,7 @@ public:
 
   auto sequence(uint64_t seqno)        const -> char const *;
   auto sequence_length(uint64_t seqno) const -> unsigned int;
+  auto sequence_view(uint64_t seqno)   const -> Sequence;
   auto sequence_hash(uint64_t seqno)   const -> uint64_t;
   auto header_view(uint64_t seqno)     const -> View<char>;
   auto abundance(uint64_t seqno)       const -> uint64_t;

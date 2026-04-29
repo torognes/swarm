@@ -834,6 +834,13 @@ auto Data::sequence_length(uint64_t const seqno) const -> unsigned int
 }
 
 
+auto Data::sequence_view(uint64_t const seqno) const -> Sequence
+{
+  auto const & rec = info(seqno);
+  return {rec.seq, rec.seqlen};
+}
+
+
 auto Data::sequence_hash(uint64_t const seqno) const -> uint64_t
 {
   return info(seqno).seqhash;
