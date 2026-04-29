@@ -167,7 +167,7 @@ namespace {
 
       std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                    counter,
-                   data.sequence_length(seed));
+                   data.sequence_view(seed).length);
       data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
@@ -177,7 +177,7 @@ namespace {
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                        counter,
-                       data.sequence_length(next_identical),
+                       data.sequence_view(next_identical).length,
                        100.0,
                        "=");
           data.fprint_id(parameters.uclustfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
@@ -297,8 +297,7 @@ namespace {
 
          for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
            {
-             auto const seqlen = data.sequence_length(seqno);
-             auto const * seq = data.sequence(seqno);
+             auto const seq = data.sequence_view(seqno);
 
              /*
                Find free bucket or bucket for identical sequence.
@@ -308,16 +307,16 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             auto const hash = zobrist.hash(seq, seqlen);
+             auto const hash = zobrist.hash(seq.data, seq.length);
 
              auto nth_bucket = hash & derep_hash_mask;
              auto * clusterp = &hashtable[nth_bucket];
 
              while ((clusterp->mass != 0U) and
                     ((clusterp->hash != hash) or
-                     (seqlen != data.sequence_length(clusterp->seqno_first)) or
-                     not std::equal(seq, std::next(seq, nt_bytelength(seqlen)),
-                                    data.sequence(clusterp->seqno_first))
+                     (seq.length != data.sequence_view(clusterp->seqno_first).length) or
+                     not std::equal(seq.data, std::next(seq.data, nt_bytelength(seq.length)),
+                                    data.sequence_view(clusterp->seqno_first).data)
                      )
                     )
                {
