@@ -111,7 +111,7 @@ constexpr std::array<OptionSpec, 24> option_specs {{
 
 
 auto build_long_options() -> std::array<struct option, option_specs.size() + 1> {
-  std::array<struct option, option_specs.size() + 1> result {};
+  std::array<struct option, option_specs.size() + 1> result {{}};
   for (std::size_t idx = 0; idx < option_specs.size(); ++idx) {
     result[idx].name    = option_specs[idx].long_name;
     result[idx].has_arg = option_specs[idx].needs_arg ? required_argument : no_argument;
