@@ -28,7 +28,29 @@
 
 #ifdef __x86_64__
 
-#include <cpuid.h>  // __get_cpuid, __get_cpuid_count, bit_* masks
+#include <cpuid.h>  // __get_cpuid, __get_cpuid_max, __cpuid_count, bit_* masks
+
+namespace {
+// __get_cpuid_count was only added to <cpuid.h> in GCC 7.0, so call sites
+// using it fail to build on GCC 4 and 5. Replicate the same logic locally
+// in terms of __get_cpuid_max and __cpuid_count, both of which have shipped
+// in <cpuid.h> since GCC 4.4. The behaviour matches the upstream helper:
+// returns 0 if the requested leaf is not supported by the CPU, 1 otherwise.
+auto get_cpuid_count(unsigned int leaf,
+                     unsigned int subleaf,
+                     unsigned int & eax,
+                     unsigned int & ebx,
+                     unsigned int & ecx,
+                     unsigned int & edx) noexcept -> int {
+  unsigned int const ext = leaf & 0x80000000U;
+  unsigned int const max_level = __get_cpuid_max(ext, nullptr);
+  if (max_level == 0 || max_level < leaf) {
+    return 0;
+  }
+  __cpuid_count(leaf, subleaf, eax, ebx, ecx, edx);
+  return 1;
+}
+}  // namespace
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
 {
@@ -55,8 +77,8 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   // leaf 7, sub-leaf 0: extended feature flags
   static constexpr unsigned int extended_features_leaf {7};
   static constexpr unsigned int extended_features_subleaf {0};
-  if (__get_cpuid_count(extended_features_leaf, extended_features_subleaf,
-                        &eax, &ebx, &ecx, &edx) == 0) {
+  if (get_cpuid_count(extended_features_leaf, extended_features_subleaf,
+                      eax, ebx, ecx, edx) == 0) {
     return;
   }
   parameters.avx2_present   = ((ebx & bit_AVX2)   != 0U) ? 1 : 0;
