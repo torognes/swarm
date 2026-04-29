@@ -176,10 +176,7 @@ namespace {
         return false;
       }
       // ...then ties are sorted by label (alphabetical order)
-      auto const * const lhs_header = data.header(lhs.seed);
-      auto const * const rhs_header = data.header(rhs.seed);
-      auto const results = std::strcmp(lhs_header, rhs_header);
-      return results == -1;
+      return data.header_view(lhs.seed) < data.header_view(rhs.seed);
     };
 
     std::sort(seeds.begin(), seeds.end(), compare_seeds);

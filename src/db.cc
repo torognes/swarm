@@ -326,8 +326,7 @@ namespace {
   auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t lineno,
                       bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
   {
-    auto const header_view = View<char const>{seqinfo.header,
-                                              static_cast<std::size_t>(seqinfo.headerlen)};
+    auto const & header_view = seqinfo.header_view;
 
     /* read size/abundance annotation */
     int64_t abundance = 0;
@@ -364,7 +363,7 @@ namespace {
 
     if (abundance == 0)
       {
-        start = seqinfo.headerlen;
+        start = static_cast<int>(header_view.size());
         end = start;
 
         if (opt_append_abundance != 0) {
@@ -442,7 +441,7 @@ namespace {
       }
 
       // ...then ties are sorted by header (lexicographical order)
-      return std::strcmp(lhs.header, rhs.header) < 0;
+      return lhs.header_view < rhs.header_view;
     };
 
     if (not std::is_sorted(seqindex_v.begin(), seqindex_v.end(),
@@ -706,8 +705,9 @@ namespace {
     for (auto & a_sequence: seqindex_v) {
 
         /* get header */
-        a_sequence.header = &data_v[entries[counter].header.offset];
-        a_sequence.headerlen = static_cast<int>(entries[counter].header.length);
+        a_sequence.header_view = View<char const>{
+          &data_v[entries[counter].header.offset],
+          entries[counter].header.length};
 
         /* and sequence */
         const auto seqlen = static_cast<unsigned int>(entries[counter].sequence.length);
@@ -717,8 +717,9 @@ namespace {
         /* get amplicon abundance */
         find_abundance(a_sequence, seq_stats, entries[counter].lineno, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
+        auto const headerlen_signed = static_cast<int>(a_sequence.header_view.size());
         if ((a_sequence.abundance_start == 0) and
-            (a_sequence.abundance_end == a_sequence.headerlen)) {
+            (a_sequence.abundance_end == headerlen_signed)) {
           fatal(error_prefix, "Empty sequence identifier.");
         }
 
@@ -742,10 +743,14 @@ namespace {
           {
             /* abundance first then id (e.g. >size=1;name) */
             id_start = a_sequence.abundance_end;
-            id_len = a_sequence.headerlen - a_sequence.abundance_end;
+            id_len = headerlen_signed - a_sequence.abundance_end;
           }
 
-        const auto hdrhash = zobrist.hash(std::next(a_sequence.header, id_start),
+        auto const id_view = a_sequence.header_view.subview(
+          static_cast<std::size_t>(id_start),
+          static_cast<std::size_t>(id_len));
+
+        const auto hdrhash = zobrist.hash(id_view.data(),
                                           4 * static_cast<unsigned int>(id_len));
 
         a_sequence.hdrhash = hdrhash;
@@ -760,6 +765,8 @@ namespace {
                 int hit_id_start {0};
                 int hit_id_len {0};
 
+                auto const hit_headerlen_signed =
+                  static_cast<int>(hdrfound->header_view.size());
                 if (hdrfound->abundance_start > 0)
                   {
                     hit_id_start = 0;
@@ -768,13 +775,13 @@ namespace {
                 else
                   {
                     hit_id_start = hdrfound->abundance_end;
-                    hit_id_len = hdrfound->headerlen - hdrfound->abundance_end;
+                    hit_id_len = hit_headerlen_signed - hdrfound->abundance_end;
                   }
 
-                if ((id_len == hit_id_len) and
-                    (std::strncmp(std::next(a_sequence.header, id_start),
-                                  std::next(hdrfound->header, hit_id_start),
-                                  static_cast<uint64_t>(id_len)) == 0)) {
+                auto const hit_id_view = hdrfound->header_view.subview(
+                  static_cast<std::size_t>(hit_id_start),
+                  static_cast<std::size_t>(hit_id_len));
+                if (id_view == hit_id_view) {
                   break;
                 }
               }
@@ -782,8 +789,6 @@ namespace {
             hdrhashindex = (hdrhashindex + 1) % hdrhashsize;
           }
 
-        auto const id_view = View<char const>{std::next(a_sequence.header, id_start),
-                                              static_cast<std::size_t>(id_len)};
         abort_if_duplicated_identifier(hdrfound, id_view);
 
         hdrhashtable[hdrhashindex] = &a_sequence;
@@ -883,9 +888,9 @@ auto Data::sequence_hash(uint64_t const seqno) const -> uint64_t
 }
 
 
-auto Data::header(uint64_t const seqno) const -> char const *
+auto Data::header_view(uint64_t const seqno) const -> View<char const>
 {
-  return info(seqno).header;
+  return info(seqno).header_view;
 }
 
 
@@ -931,8 +936,8 @@ auto Data::fprint_id(std::FILE * stream, uint64_t const seqno,
                      int64_t const opt_append_abundance) const -> void
 {
   auto const & seqinfo = info(seqno);
-  auto const * hdrstr = seqinfo.header;
-  auto const hdrlen = seqinfo.headerlen;
+  auto const * hdrstr = seqinfo.header_view.data();
+  auto const hdrlen = static_cast<int>(seqinfo.header_view.size());
   auto const abundance_value = seqinfo.abundance;
 
   // if abundance is missing and if user says that a missing abundance is ok, then...
@@ -954,8 +959,8 @@ auto Data::fprint_id_noabundance(std::FILE * stream, uint64_t const seqno,
                                  bool const opt_usearch_abundance) const -> void
 {
   auto const & seqinfo = info(seqno);
-  auto const * hdrstr = seqinfo.header;
-  auto const hdrlen = seqinfo.headerlen;
+  auto const * hdrstr = seqinfo.header_view.data();
+  auto const hdrlen = static_cast<int>(seqinfo.header_view.size());
   auto const abundance_start = seqinfo.abundance_start;
   auto const abundance_end = seqinfo.abundance_end;
 
@@ -988,21 +993,24 @@ auto Data::fprint_id_with_new_abundance(std::FILE * stream,
 {
   auto const & seqinfo = info(seqno);
 
+  auto const * const hdrstr = seqinfo.header_view.data();
+  auto const hdrlen = static_cast<int>(seqinfo.header_view.size());
+
   if (opt_usearch_abundance) {
     std::fprintf(stream,
                  "%.*s%ssize=%" PRIu64 ";%.*s",
                  seqinfo.abundance_start,
-                 seqinfo.header,
+                 hdrstr,
                  seqinfo.abundance_start > 0 ? ";" : "",
                  new_abundance,
-                 seqinfo.headerlen - seqinfo.abundance_end,
-                 std::next(seqinfo.header, seqinfo.abundance_end));
+                 hdrlen - seqinfo.abundance_end,
+                 std::next(hdrstr, seqinfo.abundance_end));
   }
   else {
     std::fprintf(stream,
                  "%.*s_%" PRIu64,
                  seqinfo.abundance_start,
-                 seqinfo.header,
+                 hdrstr,
                  new_abundance);
   }
 }

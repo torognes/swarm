@@ -21,22 +21,23 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "view.h"
 #include <cstdint>  // uint64_t
 
-// refactoring: add View header_view and View seq_view to
-// progressively get rid of raw pointers
+// refactoring: header (char const *) + headerlen (int) merged into
+// header_view (View<char const>); seq + seqlen could be similarly
+// merged in a follow-up, but the byte/nucleotide-count mismatch
+// (4 nt packed per byte) makes a clean swap less obvious.
 
 struct seqinfo_s
 {
-  char const * header;
+  View<char const> header_view;
   char const * seq;
   uint64_t abundance;
   uint64_t hdrhash;
   uint64_t seqhash;
-  int headerlen;  // refactoring: should be unsigned int or size_t
   unsigned int seqlen;
   unsigned int clusterid;
   int abundance_start;
   int abundance_end;
-  int dummy; /* alignment padding only */
 };

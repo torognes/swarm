@@ -22,6 +22,7 @@
 */
 
 #include "utils/seqinfo.h"
+#include "utils/view.h"
 #include "utils/zobrist.h"
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
@@ -46,7 +47,7 @@ public:
   auto sequence(uint64_t seqno)        const -> char const *;
   auto sequence_length(uint64_t seqno) const -> unsigned int;
   auto sequence_hash(uint64_t seqno)   const -> uint64_t;
-  auto header(uint64_t seqno)          const -> char const *;
+  auto header_view(uint64_t seqno)     const -> View<char const>;
   auto abundance(uint64_t seqno)       const -> uint64_t;
 
   auto fprintseq(std::FILE * stream, unsigned int seqno) const -> void;

@@ -36,9 +36,6 @@
 
 #ifndef NDEBUG
 #include <limits>
-// C++17 refactoring: [[maybe_unused]]
-constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
-constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 #endif
 
 
@@ -58,6 +55,11 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 template <typename Type = char>
 class View {
 public:
+  // Default-constructed view is empty (data() == nullptr, size() == 0).
+  // Provided so that aggregates containing a View can themselves be
+  // default-constructed (e.g. seqinfo_s held in std::vector::resize()).
+  View() noexcept = default;
+
   explicit View(Type const * start, std::size_t const length) noexcept
     : start_ {start},
       length_ {length} {
@@ -157,6 +159,12 @@ public:
   }
 
 private:
+#ifndef NDEBUG
+  // C++17 refactoring: [[maybe_unused]]
+  static constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
+  static constexpr auto max_size = std::numeric_limits<std::size_t>::max();
+#endif
+
   Type const * start_ {};
   std::size_t  length_ {};
 };

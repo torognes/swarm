@@ -1027,10 +1027,8 @@ namespace {
         return false;
       }
       // ...then ties are sorted by headers (alphabetical order)
-      const auto status = std::strcmp(data.header(swarm_x.seed),
-                                      data.header(swarm_y.seed));
-      // assert(status != 0); // all headers are unique
-      return status < 0;
+      // assert(data.header_view(swarm_x.seed) != data.header_view(swarm_y.seed)); // all headers are unique
+      return data.header_view(swarm_x.seed) < data.header_view(swarm_y.seed);
     };
 
     std::sort(sorter.begin(), sorter.end(), compare_mass_and_headers);
