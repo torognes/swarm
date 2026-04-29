@@ -62,6 +62,7 @@ auto nt_extract(char const * compressed_sequence, uint64_t const position) -> un
 }
 
 
+// round-up operation, compiler cleverly elimates the multiplication (8 is a power of 2)
 auto nt_bytelength(const unsigned int len) -> unsigned int
 {
   // Compute number of bytes used for compressed sequence of length len
