@@ -183,9 +183,8 @@ namespace {
     auto const amp2_seq = data.sequence_view(amp2);
 
     return ((amp1_seq.length == amp2_seq.length) and
-            std::equal(amp1_seq.encoded.data(),
-                       std::next(amp1_seq.encoded.data(), nt_bytelength(amp1_seq.length)),
-                       amp2_seq.encoded.data()));
+            std::equal(amp1_seq.encoded.cbegin(), amp1_seq.encoded.cend(),
+                       amp2_seq.encoded.cbegin()));
   }
 
 

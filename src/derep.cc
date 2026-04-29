@@ -315,8 +315,8 @@ namespace {
              while ((clusterp->mass != 0U) and
                     ((clusterp->hash != hash) or
                      (seq.length != data.sequence_view(clusterp->seqno_first).length) or
-                     not std::equal(seq.encoded.data(), std::next(seq.encoded.data(), nt_bytelength(seq.length)),
-                                    data.sequence_view(clusterp->seqno_first).encoded.data())
+                     not std::equal(seq.encoded.cbegin(), seq.encoded.cend(),
+                                    data.sequence_view(clusterp->seqno_first).encoded.cbegin())
                      )
                     )
                {
