@@ -173,34 +173,14 @@ struct Network_state
 
 namespace {
 
-  inline auto check_amp_identical(Data const & data,
-                                  unsigned int const amp1,
-                                  unsigned int const amp2) -> bool {
-    /* amplicon are identical if they have the same length, and the
-       exact same sequence */
-    auto const amp1_seq = data.sequence_view(amp1);
-    auto const amp2_seq = data.sequence_view(amp2);
-
-    return ((amp1_seq.length == amp2_seq.length) and
-            std::equal(amp1_seq.encoded.cbegin(), amp1_seq.encoded.cend(),
-                       amp2_seq.encoded.cbegin()));
-  }
-
-
   inline auto hash_insert(Data const & data,
                           Hashtable & hash_table,
                           BloomFilter & bloom_a,
-                          unsigned int const amp) -> bool {
+                          unsigned int const amp) -> void {
     /* find the first empty bucket */
     const auto hash = data.sequence_hash(amp);
     auto index = hash_table.getindex(hash);
-    auto has_duplicate = false;
     while (hash_table.is_occupied(index)) {
-      auto const is_same_amplicon = hash_table.compare_value(index, hash) and
-        check_amp_identical(data, amp, hash_table.get_data(index));
-      if (is_same_amplicon) {
-        has_duplicate = true;
-      }
       index = hash_table.getnextindex(index);
     }
 
@@ -208,8 +188,6 @@ namespace {
     hash_table.set_value(index, hash);
     hash_table.set_data(index, amp);
     bloom_a.set(hash);
-
-    return has_duplicate;
   }
 
 
@@ -1178,25 +1156,10 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   Progress progress_hash("Hashing sequences:", amplicons, parameters);
 
-  bool has_duplicate {false};
   for (auto k = 0U; k < amplicons; ++k)
     {
-      has_duplicate = hash_insert(data, hash_table, bloom_a, k);
+      hash_insert(data, hash_table, bloom_a, k);
       progress_hash.update(k);
-      if (has_duplicate) {
-        break;
-      }
-    }
-
-  if (has_duplicate)
-    {
-      fatal(error_prefix,
-            "some fasta entries have identical sequences.\n"
-            "Swarm expects dereplicated fasta files.\n"
-            "Such files can be produced with swarm or vsearch:\n"
-            " swarm -d 0 -w derep.fasta -o /dev/null input.fasta\n"
-            "or\n"
-            " vsearch --derep_fulllength input.fasta --sizein --sizeout --output derep.fasta\n");
     }
 
   progress_hash.done();
