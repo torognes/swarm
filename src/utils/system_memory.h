@@ -25,5 +25,5 @@
 
 
 // operating system specific functions (Windows, macOS and Linux)
-auto arch_get_memused() -> uint64_t;
-auto arch_get_memtotal() -> uint64_t;
+auto system_get_memused() -> uint64_t;
+auto system_get_memtotal() -> uint64_t;

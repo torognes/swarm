@@ -28,7 +28,7 @@
 */
 
 #include "swarm.h"
-#include "arch.h"
+#include "utils/system_memory.h"
 #include "utils/bloom.h"
 #include "db.h"
 #include "utils/hashtable.h"
@@ -1429,8 +1429,8 @@ auto algo_d1_run(struct Parameters const & parameters,
 
           auto bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
 
-          auto const memtotal = arch_get_memtotal();
-          auto const memused = arch_get_memused();
+          auto const memtotal = system_get_memtotal();
+          auto const memused = system_get_memused();
 
           if (parameters.opt_ceiling != 0)
             {

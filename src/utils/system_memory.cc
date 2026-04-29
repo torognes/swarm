@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "utils/fatal.h"
+#include "fatal.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio> // size_t
 
@@ -38,7 +38,7 @@
 #endif
 
 
-auto arch_get_memused() -> uint64_t
+auto system_get_memused() -> uint64_t
 {
 #ifdef _WIN32
 
@@ -66,7 +66,7 @@ auto arch_get_memused() -> uint64_t
 }
 
 
-auto arch_get_memtotal() -> uint64_t
+auto system_get_memtotal() -> uint64_t
 {
 #ifdef _WIN32
 
