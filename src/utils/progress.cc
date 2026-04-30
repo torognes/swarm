@@ -62,6 +62,13 @@ auto Progress::update(uint64_t const current) -> void
 }
 
 
+auto Progress::update() -> void
+{
+  ++counter;
+  update(counter);
+}
+
+
 auto Progress::done() const -> void
 {
   if (silent) {

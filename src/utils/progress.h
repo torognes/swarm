@@ -41,6 +41,12 @@ public:
   // this method.
   auto update(uint64_t current) -> void;
 
+  // Convenience overload for single-threaded callers: increments the
+  // internal counter by one and reports the new value. Not safe to
+  // call from multiple threads concurrently; multi-threaded callers
+  // must keep using the explicit-counter overload above.
+  auto update() -> void;
+
   auto done() const -> void;
 
 private:
@@ -49,6 +55,7 @@ private:
   uint64_t next {0};
   uint64_t size {0};
   uint64_t chunk {0};
+  uint64_t counter {0};
   std::FILE * logfile {nullptr};
   bool silent {false};  // true when output goes to a log file (--log)
 };
