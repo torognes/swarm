@@ -32,7 +32,7 @@
 #include "utils/seq_index.h"
 #include "utils/view.h"
 #include "utils/xgetline.h"
-#include <algorithm>  // std::all_of() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
+#include <algorithm>  // std::all_of() std::copy_n() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
 #include <array>
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -521,7 +521,7 @@ namespace {
         /* store the header */
 
         linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-        std::memcpy(&data_v[datalen], std::next(line_buf.data), headerlen);
+        std::copy_n(std::next(line_buf.data), headerlen, &data_v[datalen]);
         data_v[datalen + headerlen] = '\0';
         entry.header.offset = datalen;
         entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
