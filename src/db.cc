@@ -197,6 +197,21 @@ namespace {
   }
 
 
+  // Read one line into line_buf and bump filepos by the number of bytes
+  // consumed. On read failure, leave the buffer empty (first byte set
+  // to '\0') so callers can use the same end-of-input sentinel.
+  auto read_next_line(Line_buffer & line_buf, std::FILE * stream,
+                      uint64_t & filepos) -> void
+  {
+    auto const linelen = xgetline(& line_buf.data, & line_buf.capacity, stream);
+    if (linelen < 0) {
+      *line_buf.data = '\0';
+      return;
+    }
+    filepos += static_cast<unsigned long int>(linelen);
+  }
+
+
   auto find_swarm_abundance(View<char> const header_view) -> Abundance_match
   {
     /*
@@ -485,13 +500,7 @@ namespace {
 
     Progress progress("Reading sequences:", file_info.filesize, parameters);
 
-    ssize_t linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-    if (linelen < 0)
-      {
-        *line_buf.data = 0;
-        linelen = 0;
-      }
-    filepos += static_cast<unsigned long int>(linelen);
+    read_next_line(line_buf, input_fp_handle.get(), filepos);
 
     while (*line_buf.data != '\0')
       {
@@ -529,13 +538,7 @@ namespace {
 
         /* get next line */
 
-        linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-        if (linelen < 0)
-          {
-            *line_buf.data = '\0';
-            linelen = 0;
-          }
-        filepos += static_cast<unsigned long int>(linelen);
+        read_next_line(line_buf, input_fp_handle.get(), filepos);
 
         ++lineno;
 
@@ -599,13 +602,7 @@ namespace {
               fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
             }
 
-            linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-            if (linelen < 0)
-              {
-                *line_buf.data = 0;
-                linelen = 0;
-              }
-            filepos += static_cast<unsigned long int>(linelen);
+            read_next_line(line_buf, input_fp_handle.get(), filepos);
 
             ++lineno;
           }
