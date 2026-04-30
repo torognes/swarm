@@ -336,12 +336,10 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> UsedOpt
   UsedOptions used_options {};
   std::bitset<alphabet_size> seen_options;  // duplicate detection keyed by short letter
 
-  int option_character {0};
-
   while (true)
   {
     int option_index {0};
-    option_character = getopt_long(argc, argv, short_options.c_str(), long_options.data(), &option_index);
+    const int option_character {getopt_long(argc, argv, short_options.c_str(), long_options.data(), &option_index)};
 
     if (option_character == -1) {
       break;
