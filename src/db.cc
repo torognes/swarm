@@ -64,6 +64,26 @@ namespace {
   constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
+  constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
+  constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
+  // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
+  // 2^32 (512 x max_sequence_length) and cannot be addressed with
+  // uint32 pointers, which leads to a segmentation fault
+
+  // Nucleotide character classification: the lookup table built by
+  // make_nt_classifier() returns one of these for every ASCII byte.
+  // The four nucleotide values are also the packed 2-bit encoding,
+  // so they can be passed straight to Nt_packer::push() after a cast
+  // to the underlying type. Ordering matters: bases < skip < illegal,
+  // so the hot-path test is a single "<" comparison.
+  enum struct Nt_class : uint8_t {
+    a       = 0,
+    c       = 1,
+    g       = 2,
+    t       = 3,
+    skip    = 4,
+    illegal = 5,
+  };
 
   struct File_info {
     uint64_t filesize {0};
@@ -136,20 +156,20 @@ namespace {
   };
 
 
-  auto make_nt_map () -> std::array<uint64_t, n_chars> {
-    // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
-    std::array<uint64_t, n_chars> ascii_map {{0}};
-    ascii_map['A'] = 1;
-    ascii_map['a'] = 1;
-    ascii_map['C'] = 2;
-    ascii_map['c'] = 2;
-    ascii_map['G'] = 3;
-    ascii_map['g'] = 3;
-    ascii_map['T'] = 4;
-    ascii_map['t'] = 4;
-    ascii_map['U'] = 4;
-    ascii_map['u'] = 4;
-    return ascii_map;
+  auto make_nt_classifier() -> std::array<Nt_class, n_chars> {
+    // every ascii byte falls into exactly one of: nucleotide (A/C/G/T/U,
+    // case insensitive) -> packed 2-bit encoding; line terminator
+    // (CR or LF) -> silently skipped; anything else -> fatal error
+    std::array<Nt_class, n_chars> table;
+    table.fill(Nt_class::illegal);
+    table['A'] = Nt_class::a;  table['a'] = Nt_class::a;
+    table['C'] = Nt_class::c;  table['c'] = Nt_class::c;
+    table['G'] = Nt_class::g;  table['g'] = Nt_class::g;
+    table['T'] = Nt_class::t;  table['t'] = Nt_class::t;
+    table['U'] = Nt_class::t;  table['u'] = Nt_class::t;
+    table['\n'] = Nt_class::skip;
+    table['\r'] = Nt_class::skip;
+    return table;
   }
 
 
@@ -194,6 +214,160 @@ namespace {
       new_size += memchunk;
     }
     data_v.resize(new_size);
+  }
+
+
+  // Read one line into line_buf and bump filepos by the number of bytes
+  // consumed. On read failure, leave the buffer empty (first byte set
+  // to '\0') so callers can use the same end-of-input sentinel.
+  auto read_next_line(Line_buffer & line_buf, std::FILE * stream,
+                      uint64_t & filepos) -> void
+  {
+    auto const linelen = xgetline(& line_buf.data, & line_buf.capacity, stream);
+    if (linelen < 0) {
+      *line_buf.data = '\0';
+      return;
+    }
+    filepos += static_cast<unsigned long int>(linelen);
+  }
+
+
+  // Pack 4 nucleotides per byte into a 64-bit accumulator and flush
+  // it to data_v as a fixed-size memcpy whenever it fills up. A final
+  // flush() at end-of-sequence writes the partially-filled buffer
+  // padded with zeros (so the on-disk layout is unchanged).
+  struct Nt_packer {
+    uint64_t buffer {0};
+    unsigned int filled {0};
+    static constexpr unsigned int capacity {4 * sizeof(buffer)};  // 32 bases per uint64
+
+    auto push(uint64_t const mapped_minus_one,
+              std::vector<char> & data_v, uint64_t & datalen) -> void
+    {
+      buffer |= mapped_minus_one << (2 * filled);
+      ++filled;
+      if (filled == capacity) { flush(data_v, datalen); }
+    }
+
+    auto flush(std::vector<char> & data_v, uint64_t & datalen) -> void
+    {
+      linear_resize_if_need_be(data_v, datalen + sizeof(buffer));
+      std::memcpy(&data_v[datalen], &buffer, sizeof(buffer));
+      datalen += sizeof(buffer);
+      buffer = 0;
+      filled = 0;
+    }
+  };
+
+
+  // Validate the '>' header line, copy the header bytes (everything
+  // after '>' up to the first space, CR or LF) into data_v, and fill
+  // entry.header. Updates seq_stats.longestheader and aborts when
+  // max_header_length is exceeded.
+  auto store_header(Line_buffer const & line_buf,
+                    struct Entry & entry,
+                    std::vector<char> & data_v,
+                    uint64_t & datalen,
+                    struct Seq_stats & seq_stats) -> void
+  {
+    if (*line_buf.data != '>') {
+      fatal(error_prefix, "Illegal header line in fasta file.");
+    }
+
+    auto const headerlen = static_cast<unsigned int>
+      (std::strcspn(std::next(line_buf.data), " \r\n"));
+
+    seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
+
+    if (seq_stats.longestheader > max_header_length) {
+      fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
+    }
+
+    linear_resize_if_need_be(data_v, datalen + headerlen + 1);
+    std::copy_n(std::next(line_buf.data), headerlen, &data_v[datalen]);
+    data_v[datalen + headerlen] = '\0';
+    entry.header.offset = datalen;
+    entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
+    datalen += headerlen + 1;
+  }
+
+
+  // Read sequence lines starting at line_buf (already loaded with the
+  // first line after a header) until the next header or end of input.
+  // Pack nucleotides into data_v via Nt_packer, validate characters,
+  // enforce max_sequence_length, and write entry.sequence + the
+  // running counters in seq_stats. Stops with line_buf holding the
+  // line that broke the loop ('>' or '\0').
+  auto parse_sequence_body(Line_buffer & line_buf, std::FILE * stream,
+                           std::array<Nt_class, n_chars> const & classify,
+                           std::vector<char> & data_v, uint64_t & datalen,
+                           uint64_t & filepos, unsigned int & lineno,
+                           struct Entry & entry,
+                           struct Seq_stats & seq_stats) -> void
+  {
+    static constexpr unsigned char null_char = '\0';
+    static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
+    static constexpr int end_chars_range {126};
+
+    Nt_packer packer;
+    auto length = 0U;
+    entry.sequence.offset = datalen;
+
+    while ((*line_buf.data != 0) and (*line_buf.data != '>'))
+      {
+        auto * line_ptr = line_buf.data;
+        unsigned char character {};
+        while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
+          {
+            line_ptr = std::next(line_ptr);
+            auto const category = classify[character];
+            if (category < Nt_class::skip)
+              {
+                packer.push(static_cast<uint8_t>(category), data_v, datalen);
+                ++length;
+              }
+            else if (category == Nt_class::illegal)
+              {
+                if ((character >= start_chars_range) and (character <= end_chars_range)) {
+                  fatal(error_prefix, "Illegal character '", character,
+                        "' in sequence on line ", lineno, ".");
+                }
+                else {
+                  fatal(error_prefix, "Illegal character (ascii no ", character,
+                        ") in sequence on line ", lineno, ".");
+                }
+              }
+            // else: Nt_class::skip (CR or LF), silently ignored
+          }
+
+        /* check length of longest sequence */
+        if (length > max_sequence_length) {
+          fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
+        }
+
+        read_next_line(line_buf, stream, filepos);
+
+        ++lineno;
+      }
+
+    /* fill in real length */
+
+    entry.sequence.length = length;
+
+    if (length == 0)
+      {
+        fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
+      }
+
+    seq_stats.nucleotides += length;
+    seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
+
+
+    /* save remaining padded 64-bit value with nt's, if any */
+
+    if (packer.filled > 0) {
+      packer.flush(data_v, datalen);
+    }
   }
 
 
@@ -448,13 +622,8 @@ namespace {
                    std::vector<char> & data_v) -> struct Parse_result
   {
     static constexpr unsigned int linealloc {2048};
-    static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
-    // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
-    // 2^32 (512 x max_sequence_length) and cannot be addressed with
-    // uint32 pointers, which leads to a segmentation fault
-    static constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
-    auto const map_nt = make_nt_map();
+    auto const classify = make_nt_classifier();
     struct Parse_result result;
     auto & seq_stats = result.stats;
     auto & entries = result.entries;
@@ -485,155 +654,30 @@ namespace {
 
     Progress progress("Reading sequences:", file_info.filesize, parameters);
 
-    ssize_t linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-    if (linelen < 0)
-      {
-        *line_buf.data = 0;
-        linelen = 0;
-      }
-    filepos += static_cast<unsigned long int>(linelen);
+    read_next_line(line_buf, input_fp_handle.get(), filepos);
 
     while (*line_buf.data != '\0')
       {
         /* read header */
         /* the header ends at a space, cr, lf or null character */
 
-        if (*line_buf.data != '>') {
-          fatal(error_prefix, "Illegal header line in fasta file.");
-        }
-
         struct Entry entry;
-
-        auto headerlen = static_cast<unsigned int>
-          (std::strcspn(std::next(line_buf.data), " \r\n"));
-
-        seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
-
-        if (seq_stats.longestheader > max_header_length) {
-          fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
-        }
-
-        /* store the line number */
-
         entry.lineno = lineno;
 
-
-        /* store the header */
-
-        linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-        std::copy_n(std::next(line_buf.data), headerlen, &data_v[datalen]);
-        data_v[datalen + headerlen] = '\0';
-        entry.header.offset = datalen;
-        entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
-        datalen += headerlen + 1;
+        store_header(line_buf, entry, data_v, datalen, seq_stats);
 
         /* get next line */
 
-        linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-        if (linelen < 0)
-          {
-            *line_buf.data = '\0';
-            linelen = 0;
-          }
-        filepos += static_cast<unsigned long int>(linelen);
+        read_next_line(line_buf, input_fp_handle.get(), filepos);
 
         ++lineno;
 
 
-        /* store a dummy sequence length */
-
-        auto length = 0U;
-
-
         /* read and store sequence */
 
-        uint64_t nt_buffer {0};
-        auto nt_bufferlen = 0U;
-        static constexpr unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
-        static constexpr unsigned char null_char = '\0';
-        static constexpr int new_line {10};
-        static constexpr int carriage_return {13};
-        static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
-        static constexpr int end_chars_range {126};
-        entry.sequence.offset = datalen;
-
-        while ((*line_buf.data != 0) and (*line_buf.data != '>'))
-          {
-            auto character = null_char;
-            auto * line_ptr = line_buf.data;
-            while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
-              {
-                line_ptr = std::next(line_ptr);
-                const auto mapped_char = map_nt[character];
-                if (mapped_char != 0)
-                  {
-                    nt_buffer |= (mapped_char - 1) << (2 * nt_bufferlen);
-                    ++length;
-                    ++nt_bufferlen;
-
-                    if (nt_bufferlen == nt_buffersize)
-                      {
-                        linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
-                        std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
-                        datalen += sizeof(nt_buffer);
-
-                        nt_bufferlen = 0;
-                        nt_buffer = 0;
-                      }
-                  }
-                else if ((character != new_line) and (character != carriage_return))
-                  {
-                    if ((character >= start_chars_range) and (character <= end_chars_range)) {
-                      fatal(error_prefix, "Illegal character '", character,
-                            "' in sequence on line ", lineno, ".");
-                    }
-                    else {
-                      fatal(error_prefix, "Illegal character (ascii no ", character,
-                            ") in sequence on line ", lineno, ".");
-                    }
-                  }
-              }
-
-            /* check length of longest sequence */
-            if (length > max_sequence_length) {
-              fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
-            }
-
-            linelen = xgetline(& line_buf.data, & line_buf.capacity, input_fp_handle.get());
-            if (linelen < 0)
-              {
-                *line_buf.data = 0;
-                linelen = 0;
-              }
-            filepos += static_cast<unsigned long int>(linelen);
-
-            ++lineno;
-          }
-
-        /* fill in real length */
-
-        entry.sequence.length = length;
-
-        if (length == 0)
-          {
-            fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
-          }
-
-        seq_stats.nucleotides += length;
-        seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
-
-
-        /* save remaining padded 64-bit value with nt's, if any */
-
-        if (nt_bufferlen > 0)
-          {
-            linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
-            std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
-            datalen += sizeof(nt_buffer);
-
-            nt_buffer = 0;
-            nt_bufferlen = 0;  // that value is never read again, all tests pass without it
-          }
+        parse_sequence_body(line_buf, input_fp_handle.get(), classify,
+                            data_v, datalen, filepos, lineno,
+                            entry, seq_stats);
 
         ++seq_stats.n_sequences;
         entries.push_back(entry);
