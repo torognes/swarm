@@ -32,7 +32,7 @@
 #include "utils/seq_index.h"
 #include "utils/view.h"
 #include "utils/xgetline.h"
-#include <algorithm>  // std::all_of() std::find() std::max() std::min() std::sort()
+#include <algorithm>  // std::all_of() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
 #include <array>
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -259,67 +259,64 @@ namespace {
       in the header string.
     */
 
-    // strstr / strspn / strtoll require a null-terminated string;
-    // header_view always points into Data::data_, where each header
-    // is followed by a '\0' byte written at parse time.
-    auto const * const header = header_view.data();
-    assert(header != nullptr); // header cannot be a nullptr at this stage
+    static constexpr char attribute[] {"size="};
+    static constexpr std::size_t alen {sizeof(attribute) - 1};  // exclude trailing '\0'
 
-    static const std::string attribute {"size="};
-    static const std::string digit_chars {"0123456789"};
-    auto const hlen = static_cast<int64_t>(header_view.size());
-    assert(attribute.length() <= std::numeric_limits<int64_t>::max());
-    auto const alen = static_cast<int64_t>(attribute.length());
-    int64_t position = 0;
+    auto const is_digit = [](char const character) noexcept -> bool {
+      return (character >= '0') and (character <= '9');
+    };
 
-    while (position + alen < hlen)
+    auto const * const header_begin = header_view.cbegin();
+    auto const * const header_end   = header_view.cend();
+    auto const * search_from = header_begin;
+
+    while (search_from != header_end)
       {
-        auto const * result = std::strstr(std::next(header, position), attribute.c_str());
-
-        /* no match */
-        assert(result != nullptr); // assert to prove impossible
-        if (result == nullptr) {
-          break;
+        auto const * const match = std::search(search_from, header_end,
+                                               std::begin(attribute),
+                                               std::next(std::begin(attribute), alen));
+        if (match == header_end) {
+          return false;
         }
 
-        position = result - header;
+        auto const * const digits_begin = std::next(match, alen);
 
-        /* check for ';' in front */
-        if ((position > 0) and (*std::next(header, position - 1) != ';'))
+        /* left context: start of header or ';' */
+        bool const left_ok = (match == header_begin)
+                          or (*std::prev(match) == ';');
+
+        /* digit run, then right context: end of header or ';' */
+        auto const * const digits_end = std::find_if_not(digits_begin, header_end,
+                                                         is_digit);
+        auto const n_digits = std::distance(digits_begin, digits_end);
+        bool const right_ok = (digits_end == header_end)
+                           or (*digits_end == ';');
+
+        if (left_ok and (n_digits > 0) and right_ok)
           {
-            position += alen + 1;
-            continue;
+            auto const match_offset = std::distance(header_begin, match);
+            assert(match_offset >= 0);
+            assert(match_offset <= std::numeric_limits<int>::max());
+            start = (match_offset > 0) ? static_cast<int>(match_offset - 1) : 0;
+
+            // include the trailing ';' when present, otherwise stop at end
+            auto end_offset = std::distance(header_begin, digits_end);
+            if (digits_end != header_end) {
+              ++end_offset;
+            }
+            assert(end_offset <= std::numeric_limits<int>::max());
+            end = static_cast<int>(end_offset);
+
+            // strtoll still requires null-termination at the end of the
+            // digit run; the digit run is always followed by either ';'
+            // or the '\0' at the end of the header in Data::data_.
+            static constexpr int base_value {10};
+            number = std::strtoll(digits_begin, nullptr, base_value);
+            return true;
           }
 
-        auto const n_digits = static_cast<int64_t>(std::strspn(std::next(header, position + alen), digit_chars.c_str()));
-
-        /* check for at least one digit */
-        if (n_digits == 0)
-          {
-            position += alen + 1;
-            continue;
-          }
-
-        /* check for ';' after */
-        if ((position + alen + n_digits < hlen) and (*std::next(header, position + alen + n_digits) != ';'))
-          {
-            position += alen + n_digits + 2;
-            continue;
-          }
-
-        /* ok */
-        if (position > 0) {
-          assert((position - 1) <= std::numeric_limits<int>::max());
-          start = static_cast<int>(position - 1);
-        }
-        else {
-          start = 0;
-        }
-        end = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
-        static constexpr int base_value {10};
-        number = std::strtoll(std::next(header, position + alen), nullptr, base_value);
-
-        return true;
+        // skip past this 'size=' and keep scanning
+        search_from = digits_begin;
       }
 
     return false;
