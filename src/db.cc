@@ -214,7 +214,7 @@ namespace {
     auto const r_underscore = std::find(header_view.crbegin(),
                                         header_view.crend(), '_');
     if (r_underscore == header_view.crend()) {
-      return {};
+      return Abundance_match{};
     }
 
     // base() of a reverse iterator points one past the matched element,
@@ -225,10 +225,10 @@ namespace {
       std::distance(digits_begin, digits_end));
 
     if ((n_digits == 0) or (n_digits > max_digits)) {
-      return {};
+      return Abundance_match{};
     }
     if (not std::all_of(digits_begin, digits_end, is_digit)) {
-      return {};
+      return Abundance_match{};
     }
 
     auto const underscore_offset = std::distance(header_view.cbegin(),
@@ -278,7 +278,7 @@ namespace {
                                                std::begin(attribute),
                                                std::next(std::begin(attribute), alen));
         if (match == header_end) {
-          return {};
+          return Abundance_match{};
         }
 
         auto const * const digits_begin = std::next(match, alen);
@@ -324,7 +324,7 @@ namespace {
         search_from = digits_begin;
       }
 
-    return {};
+    return Abundance_match{};
   }
 
 
