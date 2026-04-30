@@ -65,6 +65,10 @@ namespace {
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
   constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
+  constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
+  // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
+  // 2^32 (512 x max_sequence_length) and cannot be addressed with
+  // uint32 pointers, which leads to a segmentation fault
 
   struct File_info {
     uint64_t filesize {0};
@@ -270,6 +274,86 @@ namespace {
     entry.header.offset = datalen;
     entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
     datalen += headerlen + 1;
+  }
+
+
+  // Read sequence lines starting at line_buf (already loaded with the
+  // first line after a header) until the next header or end of input.
+  // Pack nucleotides into data_v via Nt_packer, validate characters,
+  // enforce max_sequence_length, and write entry.sequence + the
+  // running counters in seq_stats. Stops with line_buf holding the
+  // line that broke the loop ('>' or '\0').
+  auto parse_sequence_body(Line_buffer & line_buf, std::FILE * stream,
+                           std::array<uint64_t, n_chars> const & map_nt,
+                           std::vector<char> & data_v, uint64_t & datalen,
+                           uint64_t & filepos, unsigned int & lineno,
+                           struct Entry & entry,
+                           struct Seq_stats & seq_stats) -> void
+  {
+    static constexpr unsigned char null_char = '\0';
+    static constexpr int new_line {10};
+    static constexpr int carriage_return {13};
+    static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
+    static constexpr int end_chars_range {126};
+
+    Nt_packer packer;
+    auto length = 0U;
+    entry.sequence.offset = datalen;
+
+    while ((*line_buf.data != 0) and (*line_buf.data != '>'))
+      {
+        auto * line_ptr = line_buf.data;
+        unsigned char character {};
+        while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
+          {
+            line_ptr = std::next(line_ptr);
+            const auto mapped_char = map_nt[character];
+            if (mapped_char != 0)
+              {
+                packer.push(mapped_char - 1, data_v, datalen);
+                ++length;
+              }
+            else if ((character != new_line) and (character != carriage_return))
+              {
+                if ((character >= start_chars_range) and (character <= end_chars_range)) {
+                  fatal(error_prefix, "Illegal character '", character,
+                        "' in sequence on line ", lineno, ".");
+                }
+                else {
+                  fatal(error_prefix, "Illegal character (ascii no ", character,
+                        ") in sequence on line ", lineno, ".");
+                }
+              }
+          }
+
+        /* check length of longest sequence */
+        if (length > max_sequence_length) {
+          fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
+        }
+
+        read_next_line(line_buf, stream, filepos);
+
+        ++lineno;
+      }
+
+    /* fill in real length */
+
+    entry.sequence.length = length;
+
+    if (length == 0)
+      {
+        fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
+      }
+
+    seq_stats.nucleotides += length;
+    seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
+
+
+    /* save remaining padded 64-bit value with nt's, if any */
+
+    if (packer.filled > 0) {
+      packer.flush(data_v, datalen);
+    }
   }
 
 
@@ -524,10 +608,6 @@ namespace {
                    std::vector<char> & data_v) -> struct Parse_result
   {
     static constexpr unsigned int linealloc {2048};
-    static constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
-    // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
-    // 2^32 (512 x max_sequence_length) and cannot be addressed with
-    // uint32 pointers, which leads to a segmentation fault
 
     auto const map_nt = make_nt_map();
     struct Parse_result result;
@@ -579,75 +659,11 @@ namespace {
         ++lineno;
 
 
-        /* store a dummy sequence length */
-
-        auto length = 0U;
-
-
         /* read and store sequence */
 
-        Nt_packer packer;
-        static constexpr unsigned char null_char = '\0';
-        static constexpr int new_line {10};
-        static constexpr int carriage_return {13};
-        static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
-        static constexpr int end_chars_range {126};
-        entry.sequence.offset = datalen;
-
-        while ((*line_buf.data != 0) and (*line_buf.data != '>'))
-          {
-            auto character = null_char;
-            auto * line_ptr = line_buf.data;
-            while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
-              {
-                line_ptr = std::next(line_ptr);
-                const auto mapped_char = map_nt[character];
-                if (mapped_char != 0)
-                  {
-                    packer.push(mapped_char - 1, data_v, datalen);
-                    ++length;
-                  }
-                else if ((character != new_line) and (character != carriage_return))
-                  {
-                    if ((character >= start_chars_range) and (character <= end_chars_range)) {
-                      fatal(error_prefix, "Illegal character '", character,
-                            "' in sequence on line ", lineno, ".");
-                    }
-                    else {
-                      fatal(error_prefix, "Illegal character (ascii no ", character,
-                            ") in sequence on line ", lineno, ".");
-                    }
-                  }
-              }
-
-            /* check length of longest sequence */
-            if (length > max_sequence_length) {
-              fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
-            }
-
-            read_next_line(line_buf, input_fp_handle.get(), filepos);
-
-            ++lineno;
-          }
-
-        /* fill in real length */
-
-        entry.sequence.length = length;
-
-        if (length == 0)
-          {
-            fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
-          }
-
-        seq_stats.nucleotides += length;
-        seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
-
-
-        /* save remaining padded 64-bit value with nt's, if any */
-
-        if (packer.filled > 0) {
-          packer.flush(data_v, datalen);
-        }
+        parse_sequence_body(line_buf, input_fp_handle.get(), map_nt,
+                            data_v, datalen, filepos, lineno,
+                            entry, seq_stats);
 
         ++seq_stats.n_sequences;
         entries.push_back(entry);
