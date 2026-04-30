@@ -32,7 +32,7 @@
 #include "utils/seq_index.h"
 #include "utils/view.h"
 #include "utils/xgetline.h"
-#include <algorithm>  // std::max() std::min() std::sort()
+#include <algorithm>  // std::all_of() std::find() std::max() std::min() std::sort()
 #include <array>
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -201,49 +201,49 @@ namespace {
     end = 0;
     number = 0;
 
-    static constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
-    static const std::string digit_chars = "0123456789";
+    static constexpr std::size_t max_digits {20};  // 20 digits at most (abundance > 10^20)
 
-    // strrchr / strspn / strtoll require a null-terminated string;
-    // header_view always points into Data::data_, where each header
-    // is followed by a '\0' byte written at parse time.
-    auto const * const header = header_view.data();
+    auto const is_digit = [](char const character) noexcept -> bool {
+      return (character >= '0') and (character <= '9');
+    };
 
-    assert(header != nullptr); // assert to prove impossible
-    if (header == nullptr) {
-      return false;  // refactoring: if header cannot be a nullptr, replace with assert
-    }
-
-    auto const * const abundance_string = std::strrchr(header, '_');
-
-    if (abundance_string == nullptr) {
+    // Find the last '_' via reverse scan over the header view.
+    auto const r_underscore = std::find(header_view.crbegin(),
+                                        header_view.crend(), '_');
+    if (r_underscore == header_view.crend()) {
       return false;
     }
 
-    std::size_t const n_digits = std::strspn(std::next(abundance_string), digit_chars.c_str());
+    // base() of a reverse iterator points one past the matched element,
+    // i.e. at the first byte after the '_'.
+    auto const * const digits_begin = r_underscore.base();
+    auto const * const digits_end   = header_view.cend();
+    auto const n_digits = static_cast<std::size_t>(
+      std::distance(digits_begin, digits_end));
 
-    if (n_digits > max_digits) {
+    if ((n_digits == 0) or (n_digits > max_digits)) {
+      return false;
+    }
+    if (not std::all_of(digits_begin, digits_end, is_digit)) {
       return false;
     }
 
-    assert((n_digits + 1) <= std::numeric_limits<std::ptrdiff_t>::max());
-    if (*std::next(abundance_string, static_cast<std::ptrdiff_t>(n_digits + 1)) != 0) {
-      return false;
-    }
+    auto const underscore_offset = std::distance(header_view.cbegin(),
+                                                 std::prev(digits_begin));
+    assert(underscore_offset >= 0);
+    assert(underscore_offset <= std::numeric_limits<int>::max());
+    assert(n_digits <= static_cast<std::size_t>(std::numeric_limits<int>::max()));
+    start = static_cast<int>(underscore_offset);
+    end   = start + 1 + static_cast<int>(n_digits);
 
-    int64_t const abundance_start = std::distance(header_view.cbegin(), abundance_string);
-    assert(n_digits <= std::numeric_limits<int64_t>::max());
-    int64_t const abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
-
-    assert(abundance_start <= std::numeric_limits<int>::max());
-    assert(abundance_end <= std::numeric_limits<int>::max());
-    start = static_cast<int>(abundance_start);
-    end = static_cast<int>(abundance_end);
+    // strtoll still requires null-termination at the end of the digit run;
+    // header_view points into Data::data_, where each header is followed
+    // by a '\0' byte written at parse time.
     // refactoring: capture strtoll's end pointer and check errno == ERANGE
     // to detect overflow (n_digits is bounded above by max_digits = 20,
     // which can exceed int64_t's 19-digit range).
     static constexpr int base_value {10};
-    number = std::strtoll(std::next(abundance_string), nullptr, base_value);
+    number = std::strtoll(digits_begin, nullptr, base_value);
 
     return true;
   }
