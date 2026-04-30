@@ -64,6 +64,7 @@ namespace {
   constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
   constexpr auto int8_max = std::numeric_limits<int8_t>::max();
   constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
+  constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
   struct File_info {
     uint64_t filesize {0};
@@ -209,6 +210,38 @@ namespace {
       return;
     }
     filepos += static_cast<unsigned long int>(linelen);
+  }
+
+
+  // Validate the '>' header line, copy the header bytes (everything
+  // after '>' up to the first space, CR or LF) into data_v, and fill
+  // entry.header. Updates seq_stats.longestheader and aborts when
+  // max_header_length is exceeded.
+  auto store_header(Line_buffer const & line_buf,
+                    struct Entry & entry,
+                    std::vector<char> & data_v,
+                    uint64_t & datalen,
+                    struct Seq_stats & seq_stats) -> void
+  {
+    if (*line_buf.data != '>') {
+      fatal(error_prefix, "Illegal header line in fasta file.");
+    }
+
+    auto const headerlen = static_cast<unsigned int>
+      (std::strcspn(std::next(line_buf.data), " \r\n"));
+
+    seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
+
+    if (seq_stats.longestheader > max_header_length) {
+      fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
+    }
+
+    linear_resize_if_need_be(data_v, datalen + headerlen + 1);
+    std::copy_n(std::next(line_buf.data), headerlen, &data_v[datalen]);
+    data_v[datalen + headerlen] = '\0';
+    entry.header.offset = datalen;
+    entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
+    datalen += headerlen + 1;
   }
 
 
@@ -467,7 +500,6 @@ namespace {
     // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
     // 2^32 (512 x max_sequence_length) and cannot be addressed with
     // uint32 pointers, which leads to a segmentation fault
-    static constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
 
     auto const map_nt = make_nt_map();
     struct Parse_result result;
@@ -507,34 +539,10 @@ namespace {
         /* read header */
         /* the header ends at a space, cr, lf or null character */
 
-        if (*line_buf.data != '>') {
-          fatal(error_prefix, "Illegal header line in fasta file.");
-        }
-
         struct Entry entry;
-
-        auto headerlen = static_cast<unsigned int>
-          (std::strcspn(std::next(line_buf.data), " \r\n"));
-
-        seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
-
-        if (seq_stats.longestheader > max_header_length) {
-          fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
-        }
-
-        /* store the line number */
-
         entry.lineno = lineno;
 
-
-        /* store the header */
-
-        linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-        std::copy_n(std::next(line_buf.data), headerlen, &data_v[datalen]);
-        data_v[datalen + headerlen] = '\0';
-        entry.header.offset = datalen;
-        entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
-        datalen += headerlen + 1;
+        store_header(line_buf, entry, data_v, datalen, seq_stats);
 
         /* get next line */
 
