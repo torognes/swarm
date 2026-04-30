@@ -32,7 +32,7 @@
 #include "utils/seq_index.h"
 #include "utils/view.h"
 #include "utils/xgetline.h"
-#include <algorithm>  // std::max() std::min() std::sort()
+#include <algorithm>  // std::all_of() std::copy_n() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
 #include <array>
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -86,6 +86,16 @@ namespace {
   struct Parse_result {
     std::vector<struct Entry> entries;
     struct Seq_stats stats;
+  };
+
+
+  // Result of a successful abundance-annotation parse. 'found' is the
+  // discriminator: when false, the other fields are meaningless.
+  struct Abundance_match {
+    int     start  {0};
+    int     end    {0};
+    int64_t number {0};
+    bool    found  {false};
   };
 
 
@@ -187,142 +197,134 @@ namespace {
   }
 
 
-  auto find_swarm_abundance(View<char> const header_view,
-                            int & start,
-                            int & end,
-                            int64_t & number) -> bool
+  auto find_swarm_abundance(View<char> const header_view) -> Abundance_match
   {
     /*
       Identify the first occurence of the pattern (_)([0-9]+)$
       in the header string.
     */
 
-    start = 0;
-    end = 0;
-    number = 0;
+    static constexpr std::size_t max_digits {20};  // 20 digits at most (abundance > 10^20)
 
-    static constexpr unsigned int max_digits {20};  // 20 digits at most (abundance > 10^20)
-    static const std::string digit_chars = "0123456789";
+    auto const is_digit = [](char const character) noexcept -> bool {
+      return (character >= '0') and (character <= '9');
+    };
 
-    // strrchr / strspn / strtoll require a null-terminated string;
-    // header_view always points into Data::data_, where each header
-    // is followed by a '\0' byte written at parse time.
-    auto const * const header = header_view.data();
-
-    assert(header != nullptr); // assert to prove impossible
-    if (header == nullptr) {
-      return false;  // refactoring: if header cannot be a nullptr, replace with assert
+    // Find the last '_' via reverse scan over the header view.
+    auto const r_underscore = std::find(header_view.crbegin(),
+                                        header_view.crend(), '_');
+    if (r_underscore == header_view.crend()) {
+      return {};
     }
 
-    auto const * const abundance_string = std::strrchr(header, '_');
+    // base() of a reverse iterator points one past the matched element,
+    // i.e. at the first byte after the '_'.
+    auto const * const digits_begin = r_underscore.base();
+    auto const * const digits_end   = header_view.cend();
+    auto const n_digits = static_cast<std::size_t>(
+      std::distance(digits_begin, digits_end));
 
-    if (abundance_string == nullptr) {
-      return false;
+    if ((n_digits == 0) or (n_digits > max_digits)) {
+      return {};
+    }
+    if (not std::all_of(digits_begin, digits_end, is_digit)) {
+      return {};
     }
 
-    std::size_t const n_digits = std::strspn(std::next(abundance_string), digit_chars.c_str());
+    auto const underscore_offset = std::distance(header_view.cbegin(),
+                                                 std::prev(digits_begin));
+    assert(underscore_offset >= 0);
+    assert(underscore_offset <= std::numeric_limits<int>::max());
+    assert(n_digits <= static_cast<std::size_t>(std::numeric_limits<int>::max()));
 
-    if (n_digits > max_digits) {
-      return false;
-    }
+    Abundance_match match;
+    match.start = static_cast<int>(underscore_offset);
+    match.end   = match.start + 1 + static_cast<int>(n_digits);
 
-    assert((n_digits + 1) <= std::numeric_limits<std::ptrdiff_t>::max());
-    if (*std::next(abundance_string, static_cast<std::ptrdiff_t>(n_digits + 1)) != 0) {
-      return false;
-    }
-
-    int64_t const abundance_start = std::distance(header_view.cbegin(), abundance_string);
-    assert(n_digits <= std::numeric_limits<int64_t>::max());
-    int64_t const abundance_end = abundance_start + 1 + static_cast<int64_t>(n_digits);
-
-    assert(abundance_start <= std::numeric_limits<int>::max());
-    assert(abundance_end <= std::numeric_limits<int>::max());
-    start = static_cast<int>(abundance_start);
-    end = static_cast<int>(abundance_end);
+    // strtoll still requires null-termination at the end of the digit run;
+    // header_view points into Data::data_, where each header is followed
+    // by a '\0' byte written at parse time.
     // refactoring: capture strtoll's end pointer and check errno == ERANGE
     // to detect overflow (n_digits is bounded above by max_digits = 20,
     // which can exceed int64_t's 19-digit range).
     static constexpr int base_value {10};
-    number = std::strtoll(std::next(abundance_string), nullptr, base_value);
-
-    return true;
+    match.number = std::strtoll(digits_begin, nullptr, base_value);
+    match.found  = true;
+    return match;
   }
 
 
-  auto find_usearch_abundance(View<char> const header_view,
-                              int & start,
-                              int & end,
-                              int64_t & number) -> bool
+  auto find_usearch_abundance(View<char> const header_view) -> Abundance_match
   {
     /*
       Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
       in the header string.
     */
 
-    // strstr / strspn / strtoll require a null-terminated string;
-    // header_view always points into Data::data_, where each header
-    // is followed by a '\0' byte written at parse time.
-    auto const * const header = header_view.data();
-    assert(header != nullptr); // header cannot be a nullptr at this stage
+    static constexpr char attribute[] {"size="};
+    static constexpr std::size_t alen {sizeof(attribute) - 1};  // exclude trailing '\0'
 
-    static const std::string attribute {"size="};
-    static const std::string digit_chars {"0123456789"};
-    auto const hlen = static_cast<int64_t>(header_view.size());
-    assert(attribute.length() <= std::numeric_limits<int64_t>::max());
-    auto const alen = static_cast<int64_t>(attribute.length());
-    int64_t position = 0;
+    auto const is_digit = [](char const character) noexcept -> bool {
+      return (character >= '0') and (character <= '9');
+    };
 
-    while (position + alen < hlen)
+    auto const * const header_begin = header_view.cbegin();
+    auto const * const header_end   = header_view.cend();
+    auto const * search_from = header_begin;
+
+    while (search_from != header_end)
       {
-        auto const * result = std::strstr(std::next(header, position), attribute.c_str());
-
-        /* no match */
-        assert(result != nullptr); // assert to prove impossible
-        if (result == nullptr) {
-          break;
+        auto const * const match = std::search(search_from, header_end,
+                                               std::begin(attribute),
+                                               std::next(std::begin(attribute), alen));
+        if (match == header_end) {
+          return {};
         }
 
-        position = result - header;
+        auto const * const digits_begin = std::next(match, alen);
 
-        /* check for ';' in front */
-        if ((position > 0) and (*std::next(header, position - 1) != ';'))
+        /* left context: start of header or ';' */
+        bool const left_ok = (match == header_begin)
+                          or (*std::prev(match) == ';');
+
+        /* digit run, then right context: end of header or ';' */
+        auto const * const digits_end = std::find_if_not(digits_begin, header_end,
+                                                         is_digit);
+        auto const n_digits = std::distance(digits_begin, digits_end);
+        bool const right_ok = (digits_end == header_end)
+                           or (*digits_end == ';');
+
+        if (left_ok and (n_digits > 0) and right_ok)
           {
-            position += alen + 1;
-            continue;
+            auto const match_offset = std::distance(header_begin, match);
+            assert(match_offset >= 0);
+            assert(match_offset <= std::numeric_limits<int>::max());
+
+            Abundance_match result;
+            result.start = (match_offset > 0) ? static_cast<int>(match_offset - 1) : 0;
+
+            // include the trailing ';' when present, otherwise stop at end
+            auto end_offset = std::distance(header_begin, digits_end);
+            if (digits_end != header_end) {
+              ++end_offset;
+            }
+            assert(end_offset <= std::numeric_limits<int>::max());
+            result.end = static_cast<int>(end_offset);
+
+            // strtoll still requires null-termination at the end of the
+            // digit run; the digit run is always followed by either ';'
+            // or the '\0' at the end of the header in Data::data_.
+            static constexpr int base_value {10};
+            result.number = std::strtoll(digits_begin, nullptr, base_value);
+            result.found  = true;
+            return result;
           }
 
-        auto const n_digits = static_cast<int64_t>(std::strspn(std::next(header, position + alen), digit_chars.c_str()));
-
-        /* check for at least one digit */
-        if (n_digits == 0)
-          {
-            position += alen + 1;
-            continue;
-          }
-
-        /* check for ';' after */
-        if ((position + alen + n_digits < hlen) and (*std::next(header, position + alen + n_digits) != ';'))
-          {
-            position += alen + n_digits + 2;
-            continue;
-          }
-
-        /* ok */
-        if (position > 0) {
-          assert((position - 1) <= std::numeric_limits<int>::max());
-          start = static_cast<int>(position - 1);
-        }
-        else {
-          start = 0;
-        }
-        end = static_cast<int>(std::min(position + alen + n_digits + 1, hlen));
-        static constexpr int base_value {10};
-        number = std::strtoll(std::next(header, position + alen), nullptr, base_value);
-
-        return true;
+        // skip past this 'size=' and keep scanning
+        search_from = digits_begin;
       }
 
-    return false;
+    return {};
   }
 
 
@@ -332,39 +334,23 @@ namespace {
     auto const & header_view = seqinfo.header_view;
 
     /* read size/abundance annotation */
+    auto const match = opt_usearch_abundance
+      ? find_usearch_abundance(header_view)  /* (^|;)size=([0-9]+)(;|$) */
+      : find_swarm_abundance(header_view);   /* (_)([0-9]+)$ */
+
     int64_t abundance = 0;
-    int start = 0;
-    int end = 0;
-    int64_t number = 0;
+    int start = match.start;
+    int end   = match.end;
 
-    if (opt_usearch_abundance)
+    if (match.found)
       {
-        /* (^|;)size=([0-9]+)(;|$) */
-
-        if (find_usearch_abundance(header_view, start, end, number))
-          {
-            if (number <= 0) {
-              fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                    header_view.data(), "\nAbundance values should be positive integers.");
-            }
-            abundance = number;
-          }
+        if (match.number <= 0) {
+          fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
+                header_view.data(), "\nAbundance values should be positive integers.");
+        }
+        abundance = match.number;
       }
     else
-      {
-        /* (_)([0-9]+)$ */
-
-        if (find_swarm_abundance(header_view, start, end, number))
-          {
-            if (number <= 0) {
-              fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                    header_view.data(), "\nAbundance values should be positive integers.");
-            }
-            abundance = number;
-          }
-      }
-
-    if (abundance == 0)
       {
         start = static_cast<int>(header_view.size());
         end = start;
@@ -535,7 +521,7 @@ namespace {
         /* store the header */
 
         linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-        std::memcpy(&data_v[datalen], std::next(line_buf.data), headerlen);
+        std::copy_n(std::next(line_buf.data), headerlen, &data_v[datalen]);
         data_v[datalen + headerlen] = '\0';
         entry.header.offset = datalen;
         entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
