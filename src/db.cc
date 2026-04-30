@@ -337,34 +337,19 @@ namespace {
     int end = 0;
     int64_t number = 0;
 
-    if (opt_usearch_abundance)
-      {
-        /* (^|;)size=([0-9]+)(;|$) */
+    auto const found = opt_usearch_abundance
+      ? find_usearch_abundance(header_view, start, end, number)  /* (^|;)size=([0-9]+)(;|$) */
+      : find_swarm_abundance(header_view, start, end, number);   /* (_)([0-9]+)$ */
 
-        if (find_usearch_abundance(header_view, start, end, number))
-          {
-            if (number <= 0) {
-              fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                    header_view.data(), "\nAbundance values should be positive integers.");
-            }
-            abundance = number;
-          }
+    if (found)
+      {
+        if (number <= 0) {
+          fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
+                header_view.data(), "\nAbundance values should be positive integers.");
+        }
+        abundance = number;
       }
     else
-      {
-        /* (_)([0-9]+)$ */
-
-        if (find_swarm_abundance(header_view, start, end, number))
-          {
-            if (number <= 0) {
-              fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
-                    header_view.data(), "\nAbundance values should be positive integers.");
-            }
-            abundance = number;
-          }
-      }
-
-    if (abundance == 0)
       {
         start = static_cast<int>(header_view.size());
         end = start;
