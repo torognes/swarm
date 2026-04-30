@@ -295,7 +295,6 @@ namespace {
 
     /* attach in order */
     auto grafts = 0U;
-    auto counter = 1U;
     for (auto const& graft_pair : graft_array) {
       const auto parent = graft_pair.parent;
       const auto child  = graft_pair.child;
@@ -311,8 +310,7 @@ namespace {
           attach(parent, child, ampinfo_v, swarminfo_v);
           ++grafts;
         }
-      progress.update(counter);
-      ++counter;
+      progress.update();
     }
     progress.done();
     return grafts;
@@ -993,7 +991,6 @@ namespace {
 
     std::sort(sorter.begin(), sorter.end(), compare_mass_and_headers);
 
-    auto counter = 1U;
     for (const auto index : sorter) {
       const auto & a_swarm = swarminfo_v[index];
       if (a_swarm.attached) {
@@ -1006,8 +1003,7 @@ namespace {
                                    parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
       data.fprintseq(parameters.seeds_file.get(), seed);
-      progress.update(counter);
-      ++counter;
+      progress.update();
     }
 
     progress.done();
@@ -1073,7 +1069,6 @@ namespace {
                         std::vector<struct swarminfo_s> & swarminfo_v) -> void {
     Progress progress("Writing stats:    ", swarminfo_v.size(), parameters);
 
-    auto counter = 0U;
     for (auto const & swarm_info : swarminfo_v) {
       assert(not swarm_info.attached);
       if (swarm_info.attached) {
@@ -1084,8 +1079,7 @@ namespace {
       std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
                    data.abundance(swarm_info.seed),
                    swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
-      progress.update(counter);
-      ++counter;
+      progress.update();
     }
     progress.done();
   }

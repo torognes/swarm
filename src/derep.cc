@@ -105,15 +105,13 @@ namespace {
                         Data const & data,
                         std::vector<struct bucket> const & hashtable) -> void {
     Progress progress("Writing stats:    ", hashtable.size(), parameters);
-    auto counter = 0U;
     for(auto const & cluster: hashtable) {
       std::fprintf(parameters.statsfile.get(), "%u\t%" PRIu64 "\t", cluster.size, cluster.mass);
       data.fprint_id_noabundance(parameters.statsfile.get(), cluster.seqno_first, parameters.opt_usearch_abundance);
       std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
                    data.abundance(cluster.seqno_first),
                    cluster.singletons, 0U, 0U);
-      ++counter;
-      progress.update(counter);
+      progress.update();
     }
     progress.done();
   }
@@ -192,15 +190,13 @@ namespace {
                                       Data const & data,
                                       std::vector<struct bucket> const & hashtable) -> void {
     Progress progress("Writing seeds:    ", hashtable.size(), parameters);
-    auto counter = 0U;
     for(auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
       std::fprintf(parameters.seeds_file.get(), ">");
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, cluster.mass, parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
       data.fprintseq(parameters.seeds_file.get(), seed);
-      ++counter;
-      progress.update(counter);
+      progress.update();
     }
     progress.done();
   }
@@ -218,8 +214,6 @@ namespace {
     std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%lu", parameters.opt_differences, hashtable.size());
 #endif
 
-    auto counter = 0U;
-
     for(auto const & cluster: hashtable) {
       // print cluster seed
       auto const seed = cluster.seqno_first;
@@ -235,8 +229,7 @@ namespace {
           next_identical = nextseqtab[next_identical];
         }
 
-      ++counter;
-      progress.update(counter);
+      progress.update();
     }
     std::fputc('\n', parameters.outfile.get());
 
@@ -250,7 +243,6 @@ namespace {
                                    std::vector<unsigned int> const & nextseqtab) -> void {
     static constexpr char sepchar {' '};
     Progress progress("Writing swarms:   ", hashtable.size(), parameters);
-    auto counter = 0U;
 
     for(auto const & cluster: hashtable) {
       // print cluster seed
@@ -266,8 +258,7 @@ namespace {
           next_identical = nextseqtab[next_identical];
         }
       std::fputc('\n', parameters.outfile.get());
-      ++counter;
-      progress.update(counter);
+      progress.update();
     }
 
     progress.done();

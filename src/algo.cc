@@ -185,7 +185,6 @@ namespace {
                    Data const & data,
                    std::vector<struct swarminfo_t> const & seeds) -> void {
     Progress progress("Writing seeds:    ", seeds.size(), parameters);
-    auto ticker = 0ULL;  // refactoring: C++20 move ticker to range-loop init-statement
     for (auto const& seed: seeds) {
       auto const swarm_mass = seed.mass;
       auto const swarm_seed = seed.seed;
@@ -194,8 +193,7 @@ namespace {
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
       data.fprintseq(parameters.seeds_file.get(), swarm_seed);
-      progress.update(ticker);
-      ++ticker;
+      progress.update();
     }
     progress.done();
   }
