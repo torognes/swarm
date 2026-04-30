@@ -213,6 +213,34 @@ namespace {
   }
 
 
+  // Pack 4 nucleotides per byte into a 64-bit accumulator and flush
+  // it to data_v as a fixed-size memcpy whenever it fills up. A final
+  // flush() at end-of-sequence writes the partially-filled buffer
+  // padded with zeros (so the on-disk layout is unchanged).
+  struct Nt_packer {
+    uint64_t buffer {0};
+    unsigned int filled {0};
+    static constexpr unsigned int capacity {4 * sizeof(buffer)};  // 32 bases per uint64
+
+    auto push(uint64_t const mapped_minus_one,
+              std::vector<char> & data_v, uint64_t & datalen) -> void
+    {
+      buffer |= mapped_minus_one << (2 * filled);
+      ++filled;
+      if (filled == capacity) { flush(data_v, datalen); }
+    }
+
+    auto flush(std::vector<char> & data_v, uint64_t & datalen) -> void
+    {
+      linear_resize_if_need_be(data_v, datalen + sizeof(buffer));
+      std::memcpy(&data_v[datalen], &buffer, sizeof(buffer));
+      datalen += sizeof(buffer);
+      buffer = 0;
+      filled = 0;
+    }
+  };
+
+
   // Validate the '>' header line, copy the header bytes (everything
   // after '>' up to the first space, CR or LF) into data_v, and fill
   // entry.header. Updates seq_stats.longestheader and aborts when
@@ -558,9 +586,7 @@ namespace {
 
         /* read and store sequence */
 
-        uint64_t nt_buffer {0};
-        auto nt_bufferlen = 0U;
-        static constexpr unsigned int nt_buffersize {4 * sizeof(nt_buffer)};
+        Nt_packer packer;
         static constexpr unsigned char null_char = '\0';
         static constexpr int new_line {10};
         static constexpr int carriage_return {13};
@@ -578,19 +604,8 @@ namespace {
                 const auto mapped_char = map_nt[character];
                 if (mapped_char != 0)
                   {
-                    nt_buffer |= (mapped_char - 1) << (2 * nt_bufferlen);
+                    packer.push(mapped_char - 1, data_v, datalen);
                     ++length;
-                    ++nt_bufferlen;
-
-                    if (nt_bufferlen == nt_buffersize)
-                      {
-                        linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
-                        std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
-                        datalen += sizeof(nt_buffer);
-
-                        nt_bufferlen = 0;
-                        nt_buffer = 0;
-                      }
                   }
                 else if ((character != new_line) and (character != carriage_return))
                   {
@@ -630,15 +645,9 @@ namespace {
 
         /* save remaining padded 64-bit value with nt's, if any */
 
-        if (nt_bufferlen > 0)
-          {
-            linear_resize_if_need_be(data_v, datalen + sizeof(nt_buffer));
-            std::memcpy(&data_v[datalen], & nt_buffer, sizeof(nt_buffer));
-            datalen += sizeof(nt_buffer);
-
-            nt_buffer = 0;
-            nt_bufferlen = 0;  // that value is never read again, all tests pass without it
-          }
+        if (packer.filled > 0) {
+          packer.flush(data_v, datalen);
+        }
 
         ++seq_stats.n_sequences;
         entries.push_back(entry);
