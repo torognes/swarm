@@ -89,6 +89,16 @@ namespace {
   };
 
 
+  // Result of a successful abundance-annotation parse. 'found' is the
+  // discriminator: when false, the other fields are meaningless.
+  struct Abundance_match {
+    int     start  {0};
+    int     end    {0};
+    int64_t number {0};
+    bool    found  {false};
+  };
+
+
   // RAII wrapper for the line buffer passed to xgetline(). POSIX
   // getline() owns the buffer's lifetime: it may std::realloc() it on
   // long lines, so the storage must come from std::malloc and the
@@ -187,19 +197,12 @@ namespace {
   }
 
 
-  auto find_swarm_abundance(View<char> const header_view,
-                            int & start,
-                            int & end,
-                            int64_t & number) -> bool
+  auto find_swarm_abundance(View<char> const header_view) -> Abundance_match
   {
     /*
       Identify the first occurence of the pattern (_)([0-9]+)$
       in the header string.
     */
-
-    start = 0;
-    end = 0;
-    number = 0;
 
     static constexpr std::size_t max_digits {20};  // 20 digits at most (abundance > 10^20)
 
@@ -211,7 +214,7 @@ namespace {
     auto const r_underscore = std::find(header_view.crbegin(),
                                         header_view.crend(), '_');
     if (r_underscore == header_view.crend()) {
-      return false;
+      return {};
     }
 
     // base() of a reverse iterator points one past the matched element,
@@ -222,10 +225,10 @@ namespace {
       std::distance(digits_begin, digits_end));
 
     if ((n_digits == 0) or (n_digits > max_digits)) {
-      return false;
+      return {};
     }
     if (not std::all_of(digits_begin, digits_end, is_digit)) {
-      return false;
+      return {};
     }
 
     auto const underscore_offset = std::distance(header_view.cbegin(),
@@ -233,8 +236,10 @@ namespace {
     assert(underscore_offset >= 0);
     assert(underscore_offset <= std::numeric_limits<int>::max());
     assert(n_digits <= static_cast<std::size_t>(std::numeric_limits<int>::max()));
-    start = static_cast<int>(underscore_offset);
-    end   = start + 1 + static_cast<int>(n_digits);
+
+    Abundance_match match;
+    match.start = static_cast<int>(underscore_offset);
+    match.end   = match.start + 1 + static_cast<int>(n_digits);
 
     // strtoll still requires null-termination at the end of the digit run;
     // header_view points into Data::data_, where each header is followed
@@ -243,16 +248,13 @@ namespace {
     // to detect overflow (n_digits is bounded above by max_digits = 20,
     // which can exceed int64_t's 19-digit range).
     static constexpr int base_value {10};
-    number = std::strtoll(digits_begin, nullptr, base_value);
-
-    return true;
+    match.number = std::strtoll(digits_begin, nullptr, base_value);
+    match.found  = true;
+    return match;
   }
 
 
-  auto find_usearch_abundance(View<char> const header_view,
-                              int & start,
-                              int & end,
-                              int64_t & number) -> bool
+  auto find_usearch_abundance(View<char> const header_view) -> Abundance_match
   {
     /*
       Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -276,7 +278,7 @@ namespace {
                                                std::begin(attribute),
                                                std::next(std::begin(attribute), alen));
         if (match == header_end) {
-          return false;
+          return {};
         }
 
         auto const * const digits_begin = std::next(match, alen);
@@ -297,7 +299,9 @@ namespace {
             auto const match_offset = std::distance(header_begin, match);
             assert(match_offset >= 0);
             assert(match_offset <= std::numeric_limits<int>::max());
-            start = (match_offset > 0) ? static_cast<int>(match_offset - 1) : 0;
+
+            Abundance_match result;
+            result.start = (match_offset > 0) ? static_cast<int>(match_offset - 1) : 0;
 
             // include the trailing ';' when present, otherwise stop at end
             auto end_offset = std::distance(header_begin, digits_end);
@@ -305,21 +309,22 @@ namespace {
               ++end_offset;
             }
             assert(end_offset <= std::numeric_limits<int>::max());
-            end = static_cast<int>(end_offset);
+            result.end = static_cast<int>(end_offset);
 
             // strtoll still requires null-termination at the end of the
             // digit run; the digit run is always followed by either ';'
             // or the '\0' at the end of the header in Data::data_.
             static constexpr int base_value {10};
-            number = std::strtoll(digits_begin, nullptr, base_value);
-            return true;
+            result.number = std::strtoll(digits_begin, nullptr, base_value);
+            result.found  = true;
+            return result;
           }
 
         // skip past this 'size=' and keep scanning
         search_from = digits_begin;
       }
 
-    return false;
+    return {};
   }
 
 
@@ -329,22 +334,21 @@ namespace {
     auto const & header_view = seqinfo.header_view;
 
     /* read size/abundance annotation */
+    auto const match = opt_usearch_abundance
+      ? find_usearch_abundance(header_view)  /* (^|;)size=([0-9]+)(;|$) */
+      : find_swarm_abundance(header_view);   /* (_)([0-9]+)$ */
+
     int64_t abundance = 0;
-    int start = 0;
-    int end = 0;
-    int64_t number = 0;
+    int start = match.start;
+    int end   = match.end;
 
-    auto const found = opt_usearch_abundance
-      ? find_usearch_abundance(header_view, start, end, number)  /* (^|;)size=([0-9]+)(;|$) */
-      : find_swarm_abundance(header_view, start, end, number);   /* (_)([0-9]+)$ */
-
-    if (found)
+    if (match.found)
       {
-        if (number <= 0) {
+        if (match.number <= 0) {
           fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
                 header_view.data(), "\nAbundance values should be positive integers.");
         }
-        abundance = number;
+        abundance = match.number;
       }
     else
       {
