@@ -49,14 +49,6 @@
 #include <unordered_set>
 #include <vector>
 
-#ifndef PRIu64
-#ifdef _WIN32
-#define PRIu64 "I64u"
-#else
-constexpr char PRIu64[] = "lu";
-#endif
-#endif
-
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
