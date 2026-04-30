@@ -73,15 +73,17 @@ namespace {
   // Nucleotide character classification: the lookup table built by
   // make_nt_classifier() returns one of these for every ASCII byte.
   // The four nucleotide values are also the packed 2-bit encoding,
-  // so they can be passed straight to Nt_packer::push(). Ordering
-  // matters: nucleotides are < nt_class_skip < nt_class_illegal so
-  // the hot-path test is a single comparison.
-  constexpr uint8_t nt_class_a       {0};
-  constexpr uint8_t nt_class_c       {1};
-  constexpr uint8_t nt_class_g       {2};
-  constexpr uint8_t nt_class_t       {3};
-  constexpr uint8_t nt_class_skip    {4};
-  constexpr uint8_t nt_class_illegal {5};
+  // so they can be passed straight to Nt_packer::push() after a cast
+  // to the underlying type. Ordering matters: bases < skip < illegal,
+  // so the hot-path test is a single "<" comparison.
+  enum struct Nt_class : uint8_t {
+    a       = 0,
+    c       = 1,
+    g       = 2,
+    t       = 3,
+    skip    = 4,
+    illegal = 5,
+  };
 
   struct File_info {
     uint64_t filesize {0};
@@ -154,19 +156,19 @@ namespace {
   };
 
 
-  auto make_nt_classifier() -> std::array<uint8_t, n_chars> {
+  auto make_nt_classifier() -> std::array<Nt_class, n_chars> {
     // every ascii byte falls into exactly one of: nucleotide (A/C/G/T/U,
     // case insensitive) -> packed 2-bit encoding; line terminator
     // (CR or LF) -> silently skipped; anything else -> fatal error
-    std::array<uint8_t, n_chars> table;
-    table.fill(nt_class_illegal);
-    table['A'] = nt_class_a;  table['a'] = nt_class_a;
-    table['C'] = nt_class_c;  table['c'] = nt_class_c;
-    table['G'] = nt_class_g;  table['g'] = nt_class_g;
-    table['T'] = nt_class_t;  table['t'] = nt_class_t;
-    table['U'] = nt_class_t;  table['u'] = nt_class_t;
-    table['\n'] = nt_class_skip;
-    table['\r'] = nt_class_skip;
+    std::array<Nt_class, n_chars> table;
+    table.fill(Nt_class::illegal);
+    table['A'] = Nt_class::a;  table['a'] = Nt_class::a;
+    table['C'] = Nt_class::c;  table['c'] = Nt_class::c;
+    table['G'] = Nt_class::g;  table['g'] = Nt_class::g;
+    table['T'] = Nt_class::t;  table['t'] = Nt_class::t;
+    table['U'] = Nt_class::t;  table['u'] = Nt_class::t;
+    table['\n'] = Nt_class::skip;
+    table['\r'] = Nt_class::skip;
     return table;
   }
 
@@ -297,7 +299,7 @@ namespace {
   // running counters in seq_stats. Stops with line_buf holding the
   // line that broke the loop ('>' or '\0').
   auto parse_sequence_body(Line_buffer & line_buf, std::FILE * stream,
-                           std::array<uint8_t, n_chars> const & classify,
+                           std::array<Nt_class, n_chars> const & classify,
                            std::vector<char> & data_v, uint64_t & datalen,
                            uint64_t & filepos, unsigned int & lineno,
                            struct Entry & entry,
@@ -319,12 +321,12 @@ namespace {
           {
             line_ptr = std::next(line_ptr);
             auto const category = classify[character];
-            if (category < nt_class_skip)
+            if (category < Nt_class::skip)
               {
-                packer.push(category, data_v, datalen);
+                packer.push(static_cast<uint8_t>(category), data_v, datalen);
                 ++length;
               }
-            else if (category == nt_class_illegal)
+            else if (category == Nt_class::illegal)
               {
                 if ((character >= start_chars_range) and (character <= end_chars_range)) {
                   fatal(error_prefix, "Illegal character '", character,
@@ -335,7 +337,7 @@ namespace {
                         ") in sequence on line ", lineno, ".");
                 }
               }
-            // else: nt_class_skip (CR or LF), silently ignored
+            // else: Nt_class::skip (CR or LF), silently ignored
           }
 
         /* check length of longest sequence */
