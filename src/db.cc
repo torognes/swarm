@@ -70,6 +70,19 @@ namespace {
   // 2^32 (512 x max_sequence_length) and cannot be addressed with
   // uint32 pointers, which leads to a segmentation fault
 
+  // Nucleotide character classification: the lookup table built by
+  // make_nt_classifier() returns one of these for every ASCII byte.
+  // The four nucleotide values are also the packed 2-bit encoding,
+  // so they can be passed straight to Nt_packer::push(). Ordering
+  // matters: nucleotides are < nt_class_skip < nt_class_illegal so
+  // the hot-path test is a single comparison.
+  constexpr uint8_t nt_class_a       {0};
+  constexpr uint8_t nt_class_c       {1};
+  constexpr uint8_t nt_class_g       {2};
+  constexpr uint8_t nt_class_t       {3};
+  constexpr uint8_t nt_class_skip    {4};
+  constexpr uint8_t nt_class_illegal {5};
+
   struct File_info {
     uint64_t filesize {0};
     bool is_regular {false};
@@ -141,20 +154,20 @@ namespace {
   };
 
 
-  auto make_nt_map () -> std::array<uint64_t, n_chars> {
-    // set the 128 ascii chars to zero except Aa, Cc, Gg, Tt and Uu
-    std::array<uint64_t, n_chars> ascii_map {{0}};
-    ascii_map['A'] = 1;
-    ascii_map['a'] = 1;
-    ascii_map['C'] = 2;
-    ascii_map['c'] = 2;
-    ascii_map['G'] = 3;
-    ascii_map['g'] = 3;
-    ascii_map['T'] = 4;
-    ascii_map['t'] = 4;
-    ascii_map['U'] = 4;
-    ascii_map['u'] = 4;
-    return ascii_map;
+  auto make_nt_classifier() -> std::array<uint8_t, n_chars> {
+    // every ascii byte falls into exactly one of: nucleotide (A/C/G/T/U,
+    // case insensitive) -> packed 2-bit encoding; line terminator
+    // (CR or LF) -> silently skipped; anything else -> fatal error
+    std::array<uint8_t, n_chars> table;
+    table.fill(nt_class_illegal);
+    table['A'] = nt_class_a;  table['a'] = nt_class_a;
+    table['C'] = nt_class_c;  table['c'] = nt_class_c;
+    table['G'] = nt_class_g;  table['g'] = nt_class_g;
+    table['T'] = nt_class_t;  table['t'] = nt_class_t;
+    table['U'] = nt_class_t;  table['u'] = nt_class_t;
+    table['\n'] = nt_class_skip;
+    table['\r'] = nt_class_skip;
+    return table;
   }
 
 
@@ -284,15 +297,13 @@ namespace {
   // running counters in seq_stats. Stops with line_buf holding the
   // line that broke the loop ('>' or '\0').
   auto parse_sequence_body(Line_buffer & line_buf, std::FILE * stream,
-                           std::array<uint64_t, n_chars> const & map_nt,
+                           std::array<uint8_t, n_chars> const & classify,
                            std::vector<char> & data_v, uint64_t & datalen,
                            uint64_t & filepos, unsigned int & lineno,
                            struct Entry & entry,
                            struct Seq_stats & seq_stats) -> void
   {
     static constexpr unsigned char null_char = '\0';
-    static constexpr int new_line {10};
-    static constexpr int carriage_return {13};
     static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
     static constexpr int end_chars_range {126};
 
@@ -307,13 +318,13 @@ namespace {
         while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
           {
             line_ptr = std::next(line_ptr);
-            const auto mapped_char = map_nt[character];
-            if (mapped_char != 0)
+            auto const category = classify[character];
+            if (category < nt_class_skip)
               {
-                packer.push(mapped_char - 1, data_v, datalen);
+                packer.push(category, data_v, datalen);
                 ++length;
               }
-            else if ((character != new_line) and (character != carriage_return))
+            else if (category == nt_class_illegal)
               {
                 if ((character >= start_chars_range) and (character <= end_chars_range)) {
                   fatal(error_prefix, "Illegal character '", character,
@@ -324,6 +335,7 @@ namespace {
                         ") in sequence on line ", lineno, ".");
                 }
               }
+            // else: nt_class_skip (CR or LF), silently ignored
           }
 
         /* check length of longest sequence */
@@ -609,7 +621,7 @@ namespace {
   {
     static constexpr unsigned int linealloc {2048};
 
-    auto const map_nt = make_nt_map();
+    auto const classify = make_nt_classifier();
     struct Parse_result result;
     auto & seq_stats = result.stats;
     auto & entries = result.entries;
@@ -661,7 +673,7 @@ namespace {
 
         /* read and store sequence */
 
-        parse_sequence_body(line_buf, input_fp_handle.get(), map_nt,
+        parse_sequence_body(line_buf, input_fp_handle.get(), classify,
                             data_v, datalen, filepos, lineno,
                             entry, seq_stats);
 
