@@ -78,7 +78,7 @@ inline auto seq_identical(char const * seq_a,
 
 auto generate_variant_sequence(char const * seed_sequence,
                                unsigned int seed_seqlen,
-                               struct var_s & var,
+                               struct var_s const & var,
                                std::vector<char>& seq,
                                unsigned int & seqlen) -> void
 {
@@ -118,7 +118,7 @@ auto generate_variant_sequence(char const * seed_sequence,
 
 auto check_variant(char const * seed_sequence,
                    unsigned int seed_seqlen,
-                   struct var_s & var,
+                   struct var_s const & var,
                    char const * amp_sequence,
                    unsigned int amp_seqlen) -> bool
 {
