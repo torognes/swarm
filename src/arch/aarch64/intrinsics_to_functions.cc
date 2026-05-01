@@ -77,8 +77,8 @@ auto cast_vector8(uint8x16_t const * ptr) -> uint8x16_t const * {
 }
 
 // only used in v_merge_lo8()
-auto cast_vector8_real(uint8_t * ptr) -> uint8x16_t* {
-  return reinterpret_cast<uint8x16_t*>(ptr);
+auto cast_vector8_real(uint8_t const * ptr) -> uint8x16_t const * {
+  return reinterpret_cast<uint8x16_t const *>(ptr);
 }
 
 auto cast_vector64(uint8_t const * ptr) -> uint64_t const * {
@@ -103,9 +103,9 @@ auto v_store8(uint8_t * ptr, uint8x16_t cpu_register) -> void {
 }
 
 // only in search8
-auto v_merge_lo_8(uint8x16_t lhs, uint8_t& rhs) -> uint8x16_t {
+auto v_merge_lo_8(uint8x16_t lhs, uint8_t const & rhs) -> uint8x16_t {
   // vzip1q_u8: interleaves the lower halves of two uint8x16_t
-  auto * rhs_ptr = &rhs;
+  auto const * rhs_ptr = &rhs;
   return vzip1q_u8(lhs, *cast_vector8_real(rhs_ptr));
 }
 
