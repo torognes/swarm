@@ -773,11 +773,8 @@ namespace {
       const auto link_start = amplicon.link_start;
       const auto link_count = amplicon.link_count;
 
-      // refactoring: add network tests before replacing with std::sort
-      std::qsort(&network_v[link_start],
-                 link_count,
-                 sizeof(unsigned int),
-                 compare_amp);
+      std::sort(network_v.begin() + link_start,
+                network_v.begin() + link_start + link_count);
 
       // refactoring: std::vector<unsigned int> network_v(network_v.begin() + link_start, network_v.begin() + link_start + link_count);
       for (auto link = 0U; link < link_count; ++link)
