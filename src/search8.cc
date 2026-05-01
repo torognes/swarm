@@ -782,7 +782,6 @@ auto search8(Data const & data,
                     {
                       // save score
 
-                      char const * dbseq = d_address[channel];
                       const uint64_t dbseqlen = d_length[channel];
                       const uint64_t z = (dbseqlen + 3) % 4;
                       assert(z * channels + channel <= max_ptrdiff);
@@ -794,6 +793,7 @@ auto search8(Data const & data,
 
                       if (score < uint8_max)
                         {
+                          char const * dbseq = d_address[channel];
                           const uint64_t offset = d_offset[channel];
                           diff = backtrack<n_bits>(qseq, dbseq, qlen, dbseqlen,
                                                    dirbuffer,
