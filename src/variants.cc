@@ -30,6 +30,7 @@
 #include <vector>
 
 
+// cppcheck-suppress constParameterPointer  // false positive: seq is written via reinterpret_cast below
 inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const base) -> void
 {
   // base = replacement nucleotide = encoded as 0, 1, 2, 3
@@ -37,7 +38,7 @@ inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const 
   static constexpr auto max_range = 31U;
   static constexpr auto two_bits = 3ULL;  // '... 0011' in binary
   const auto whichlong = pos >> divider;
-  const uint64_t shift = (pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
+  const uint64_t shift = static_cast<uint64_t>(pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
   const uint64_t mask = compl (two_bits << shift);
   auto & mutated_position = *std::next(reinterpret_cast<uint64_t *>(seq), whichlong);
   mutated_position &= mask;
