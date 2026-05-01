@@ -31,15 +31,18 @@
 
 
 auto cast_vector16(uint16_t * ptr) -> uint16_t*;
+auto cast_vector16(uint16_t const * ptr) -> uint16_t const *;
 
 auto cast_vector8(uint8_t * ptr) -> uint8_t*;
+auto cast_vector8(uint8_t const * ptr) -> uint8_t const *;
 
 auto cast_vector8(uint8x16_t* ptr) -> uint8x16_t*;
+auto cast_vector8(uint8x16_t const * ptr) -> uint8x16_t const *;
 
 auto v_load16(uint16_t const * ptr) -> uint16x8_t;
 
 // only in search8
-auto v_load_64(uint8_t * ptr) -> uint64x2_t;
+auto v_load_64(uint8_t const * ptr) -> uint64x2_t;
 
 auto v_store16(uint16_t * ptr, uint16x8_t cpu_register) -> void;
 
