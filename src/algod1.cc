@@ -45,7 +45,6 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), size_t
-#include <cstdlib>  // qsort()
 #include <iterator>  // std::next
 #include <limits>  // unsigned int max
 #include <memory>  // unique pointer
@@ -724,31 +723,6 @@ namespace {
   }
 
 
-  auto compare_amp(const void * void_lhs, const void * void_rhs) -> int
-  {
-    /*
-      earlier steps in swarm check that all amplicon sequences are
-      unique (strictly dereplicated input data), so distinct amplicons
-      with the same sequence are not expected at this stage.
-    */
-    const auto * lhs = static_cast<const unsigned int*>(void_lhs);
-    const auto * rhs = static_cast<const unsigned int*>(void_rhs);
-    auto status = 1;  // default is *lhs > *rhs
-
-    assert(*lhs != *rhs);  // '*lhs == *rhs' is not expected at that stage
-
-    // compare amplicon index values (unsigned ints). Amplicon indexes
-    // are already sorted by decreasing abundance then by header in
-    // db.cc, so smaller indexes should go first. This corresponds to a
-    // natural order sorting.
-    if (*lhs < *rhs) {
-      status = -1;
-    }
-
-    return status;
-  }
-
-
   inline auto add_amp_to_swarm(unsigned int const amp,
                                std::vector<struct ampinfo_s> & ampinfo_v) -> void
   {
@@ -773,6 +747,10 @@ namespace {
       const auto link_start = amplicon.link_start;
       const auto link_count = amplicon.link_count;
 
+      // amplicon indexes are already sorted by decreasing abundance
+      // then by header in db.cc, so a natural ascending sort here
+      // emits neighbours in that ranking order. Earlier dereplication
+      // guarantees indexes are distinct.
       std::sort(network_v.begin() + link_start,
                 network_v.begin() + link_start + link_count);
 
