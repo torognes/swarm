@@ -792,12 +792,12 @@ namespace {
                      std::vector<char> & data_v,
                      std::vector<struct Entry> const & entries,
                      struct Seq_stats & seq_stats,
-                     std::vector<struct seqinfo_s> & seqindex_v,
-                     Progress & progress_idx) -> void
+                     std::vector<struct seqinfo_s> & seqindex_v) -> void
   {
     auto const hdr_table_size = uint64_t{2} * seq_stats.n_sequences;
     std::vector<View<char>> hdr_table(hdr_table_size);
 
+    Progress progress_hdr("Indexing headers:  ", seq_stats.n_sequences, parameters);
     auto entry_it = entries.cbegin();
     for (auto & a_sequence: seqindex_v) {
         populate_views_from_entry(a_sequence, *entry_it, data_v);
@@ -809,9 +809,10 @@ namespace {
         auto const id_view = compute_identifier_view(a_sequence);
         register_unique_identifier(hdr_table, id_view);
 
-        progress_idx.update();
+        progress_hdr.update();
         ++entry_it;
       }
+    progress_hdr.done();
   }
 
 
@@ -822,8 +823,7 @@ namespace {
   auto index_sequences(struct Parameters const & parameters,
                        Zobrist const & zobrist,
                        struct Seq_stats & seq_stats,
-                       std::vector<struct seqinfo_s> & seqindex_v,
-                       Progress & progress_idx) -> void
+                       std::vector<struct seqinfo_s> & seqindex_v) -> void
   {
     const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
     std::vector<struct seqinfo_s *> seqhashtable;
@@ -831,6 +831,7 @@ namespace {
       seqhashtable.resize(seqhashsize);
     }
 
+    Progress progress_seq("Indexing sequences:", seq_stats.n_sequences, parameters);
     for (auto & a_sequence: seqindex_v) {
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
 
@@ -841,8 +842,11 @@ namespace {
             break;
           }
 
-        progress_idx.update();
+        progress_seq.update();
       }
+    // Skip done() on the duplicate-detection break: the caller will
+    // abort_if_duplicated_sequences() and printing 100% would be misleading.
+    if (not seq_stats.has_duplicates) { progress_seq.done(); }
   }
 
 
@@ -855,17 +859,10 @@ namespace {
   {
     seqindex_v.resize(seq_stats.n_sequences);
 
-    // One progress bar drives both passes: pass 1 contributes the
-    // first half of the count, pass 2 the second half.
-    Progress progress_idx("Indexing database:",
-                          2ULL * seq_stats.n_sequences, parameters);
-
-    index_headers(parameters, data_v, entries, seq_stats, seqindex_v, progress_idx);
-    index_sequences(parameters, zobrist, seq_stats, seqindex_v, progress_idx);
+    index_headers(parameters, data_v, entries, seq_stats, seqindex_v);
+    index_sequences(parameters, zobrist, seq_stats, seqindex_v);
 
     abort_if_duplicated_sequences(seq_stats);
-
-    progress_idx.done();
 
     abort_if_missing_abundance(seq_stats);
     sort_index_if_need_be(parameters, seqindex_v);
