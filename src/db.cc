@@ -689,7 +689,7 @@ namespace {
   // parsed Entry into its destination seqinfo slot.
   auto populate_views_from_entry(struct seqinfo_s & a_sequence,
                                  struct Entry const & entry,
-                                 std::vector<char> & data_v) -> void
+                                 std::vector<char> const & data_v) -> void
   {
     a_sequence.header_view = View<char>{
       &data_v[entry.header.offset],
@@ -781,22 +781,16 @@ namespace {
   }
 
 
-  // Pass 1: header-side work for every entry. Populates views,
-  // extracts the abundance annotation, and aborts on duplicated or
-  // empty identifiers. The dedup table is local so its storage is
-  // released before the sequence pass allocates its own hashtable.
-  // Sized at 2 * n_sequences so the load factor stays <= 0.5: with
-  // linear probing this keeps the expected probe length around 1.5
-  // slots, matching the original pre-std::unordered_set implementation.
+  // Pass 1a: header-side population for every entry. Sets up the
+  // header_view and (seq, seqlen) pair from the parser entry, then
+  // extracts the abundance annotation. Empty identifiers are caught
+  // later, in detect_duplicate_identifiers().
   auto index_headers(struct Parameters const & parameters,
-                     std::vector<char> & data_v,
+                     std::vector<char> const & data_v,
                      std::vector<struct Entry> const & entries,
                      struct Seq_stats & seq_stats,
                      std::vector<struct seqinfo_s> & seqindex_v) -> void
   {
-    auto const hdr_table_size = uint64_t{2} * seq_stats.n_sequences;
-    std::vector<View<char>> hdr_table(hdr_table_size);
-
     Progress progress_hdr("Indexing headers:  ", seq_stats.n_sequences, parameters);
     auto entry_it = entries.cbegin();
     for (auto & a_sequence: seqindex_v) {
@@ -806,13 +800,36 @@ namespace {
         find_abundance(a_sequence, seq_stats, entry_it->lineno,
                        parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
-        auto const id_view = compute_identifier_view(a_sequence);
-        register_unique_identifier(hdr_table, id_view);
-
         progress_hdr.update();
         ++entry_it;
       }
     progress_hdr.done();
+  }
+
+
+  // Pass 1b: detect duplicated identifiers. Walks the populated
+  // seqindex_v, computes each identifier subview from the abundance
+  // range filled by index_headers(), and inserts it
+  // into a local open-addressing dedup table. The table is sized at
+  // 2 * n_sequences so the load factor stays <= 0.5: with linear
+  // probing this keeps the expected probe length around 1.5 slots,
+  // matching the original pre-std::unordered_set implementation. The
+  // table is local so its storage is released before the sequence
+  // passes allocate their own hashtable. Aborts on a duplicated or
+  // empty identifier (compute_identifier_view() catches the latter).
+  auto detect_duplicate_identifiers(struct Seq_stats const & seq_stats,
+                                    std::vector<struct seqinfo_s> const & seqindex_v,
+                                    struct Parameters const & parameters) -> void
+  {
+    auto const hdr_table_size = uint64_t{2} * seq_stats.n_sequences;
+    std::vector<View<char>> hdr_table(hdr_table_size);
+
+    Progress progress_dup("Checking identifiers:", seq_stats.n_sequences, parameters);
+    for (auto const & a_sequence: seqindex_v) {
+        register_unique_identifier(hdr_table, compute_identifier_view(a_sequence));
+        progress_dup.update();
+      }
+    progress_dup.done();
   }
 
 
@@ -861,7 +878,7 @@ namespace {
 
   auto build_index(struct Parameters const & parameters,
                    Zobrist const & zobrist,
-                   std::vector<char> & data_v,
+                   std::vector<char> const & data_v,
                    std::vector<struct Entry> const & entries,
                    struct Seq_stats & seq_stats,
                    std::vector<struct seqinfo_s> & seqindex_v) -> void
@@ -869,6 +886,7 @@ namespace {
     seqindex_v.resize(seq_stats.n_sequences);
 
     index_headers(parameters, data_v, entries, seq_stats, seqindex_v);
+    detect_duplicate_identifiers(seq_stats, seqindex_v, parameters);
     compute_sequence_hashes(zobrist, seq_stats, seqindex_v, parameters);
     if (parameters.opt_differences > 0) {
       detect_duplicate_sequences(seq_stats, seqindex_v, parameters);
