@@ -333,9 +333,8 @@ namespace {
 
   auto output_results(struct Parameters const & parameters,
                       Data const & data,
-                      std::vector<struct bucket> & hashtable,
-                      std::vector<unsigned int> & nextseqtab) -> void {
-    // refactoring: can data structures be marked as const?
+                      std::vector<struct bucket> const & hashtable,
+                      std::vector<unsigned int> const & nextseqtab) -> void {
     /* dump swarms */
     if (parameters.opt_mothur) {
       write_swarms_mothur_format(parameters, data, hashtable, nextseqtab);
