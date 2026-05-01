@@ -1085,8 +1085,6 @@ namespace {
 
   auto run_fastidious_pass(struct Parameters const & parameters,
                            Data const & data,
-                           Hashtable & hash_table,
-                           BloomFilter & bloom_a,
                            unsigned int const swarmcount,
                            std::vector<struct ampinfo_s> & ampinfo_v,
                            std::vector<struct swarminfo_s> & swarminfo_v) -> void
@@ -1207,11 +1205,13 @@ namespace {
                             n_hash_functions);
 
 
-        /* Empty the old hash and bloom filter
-           before we reinsert only the light swarm amplicons */
-
-        hash_table.clear();
-        bloom_a.zap();
+        /* Allocate a fresh per-amplicon hash table and Bloom filter
+           for the fastidious phase; only light-cluster amplicons will
+           be inserted. */
+        Hashtable hash_table;
+        const auto hashtablesize = hash_table.allocate(amplicons);
+        BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
+                            amplicon_n_hash_functions);
 
         Progress progress_light("Adding light swarm amplicons to Bloom filter",
                                 amplicons_in_small_clusters, parameters);
@@ -1292,41 +1292,46 @@ auto algo_d1_run(struct Parameters const & parameters,
   global_hits_data = global_hits_v.data();
 
 
-  /* populate the d=1 hash table and Bloom filter with the amplicon
-     hashes precomputed in db.cc */
-  Hashtable hash_table;
-  const auto hashtablesize = hash_table.allocate(amplicons);
-  BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
-                      amplicon_n_hash_functions);
-
-  Progress progress_hash("Building hashtable:", amplicons, parameters);
-
-  for (auto k = 0U; k < amplicons; ++k)
-    {
-      hash_insert(data, hash_table, bloom_a, k);
-      progress_hash.update(k);
-    }
-
-  progress_hash.done();
-
-
   /* for all amplicons, generate list of matching amplicons */
   struct Network_state network_state;
   network_state.network_v.resize(one_megabyte);
 
-  Progress progress_network("Building network: ", amplicons, parameters);
+  /* d=1 hashtable and Bloom filter live in their own scope so their
+     backing storage is released before run_fastidious_pass() allocates
+     its own fresh pair. */
   {
-    assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-    // refactoring C++14: use std::make_unique
-    std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
-        static_cast<int>(parameters.opt_threads),
-        [&parameters, &data, &hash_table, &bloom_a, &network_state, &progress_network](int64_t nth_thread) -> void {
-          network_thread(parameters, data, hash_table, bloom_a, nth_thread, network_state, progress_network);
-        }));
-    network_tr->run();
-  }
+    /* populate the d=1 hash table and Bloom filter with the amplicon
+       hashes precomputed in db.cc */
+    Hashtable hash_table;
+    const auto hashtablesize = hash_table.allocate(amplicons);
+    BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
+                        amplicon_n_hash_functions);
 
-  progress_network.done();
+    Progress progress_hash("Building hashtable:", amplicons, parameters);
+
+    for (auto k = 0U; k < amplicons; ++k)
+      {
+        hash_insert(data, hash_table, bloom_a, k);
+        progress_hash.update(k);
+      }
+
+    progress_hash.done();
+
+
+    Progress progress_network("Building network: ", amplicons, parameters);
+    {
+      assert(parameters.opt_threads <= std::numeric_limits<int>::max());
+      // refactoring C++14: use std::make_unique
+      std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
+          static_cast<int>(parameters.opt_threads),
+          [&parameters, &data, &hash_table, &bloom_a, &network_state, &progress_network](int64_t nth_thread) -> void {
+            network_thread(parameters, data, hash_table, bloom_a, nth_thread, network_state, progress_network);
+          }));
+      network_tr->run();
+    }
+
+    progress_network.done();
+  }
 
 
   /* dump network to file */
@@ -1446,8 +1451,7 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   /* fastidious */
   if (parameters.opt_fastidious) {
-    run_fastidious_pass(parameters, data, hash_table, bloom_a,
-                        swarmcount, ampinfo_v, swarminfo_v);
+    run_fastidious_pass(parameters, data, swarmcount, ampinfo_v, swarminfo_v);
   }
 
   // refactoring: trim vectors (remove allocated unused elements)
