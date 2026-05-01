@@ -798,19 +798,19 @@ namespace {
     auto const hdr_table_size = uint64_t{2} * seq_stats.n_sequences;
     std::vector<View<char>> hdr_table(hdr_table_size);
 
-    auto counter = 0ULL;
+    auto entry_it = entries.cbegin();
     for (auto & a_sequence: seqindex_v) {
-        populate_views_from_entry(a_sequence, entries[counter], data_v);
+        populate_views_from_entry(a_sequence, *entry_it, data_v);
 
         /* get amplicon abundance */
-        find_abundance(a_sequence, seq_stats, entries[counter].lineno,
+        find_abundance(a_sequence, seq_stats, entry_it->lineno,
                        parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
         auto const id_view = compute_identifier_view(a_sequence);
         register_unique_identifier(hdr_table, id_view);
 
-        progress_idx.update(counter);
-        ++counter;
+        progress_idx.update();
+        ++entry_it;
       }
   }
 
@@ -831,7 +831,6 @@ namespace {
       seqhashtable.resize(seqhashsize);
     }
 
-    auto counter = 0ULL;
     for (auto & a_sequence: seqindex_v) {
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
 
@@ -842,8 +841,7 @@ namespace {
             break;
           }
 
-        progress_idx.update(seq_stats.n_sequences + counter);
-        ++counter;
+        progress_idx.update();
       }
   }
 
