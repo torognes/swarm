@@ -58,13 +58,28 @@ auto cast_vector16(uint16_t * ptr) -> uint16_t* {
   return ptr;
 }
 
+auto cast_vector16(uint16_t const * ptr) -> uint16_t const * {
+  // dummy function, needed to match x86-64 code
+  return ptr;
+}
+
 auto cast_vector8(uint8_t * ptr) -> uint8_t* {
+  // dummy function, needed to match x86-64 code
+  return ptr;
+}
+
+auto cast_vector8(uint8_t const * ptr) -> uint8_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
 // refactoring: overload not covered by our tests. Not needed?
 auto cast_vector8(v_u8_t * ptr) -> v_u8_t* {
+  // dummy function, needed to match x86-64 code
+  return ptr;
+}
+
+auto cast_vector8(v_u8_t const * ptr) -> v_u8_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
@@ -79,8 +94,8 @@ auto v_load16(uint16_t const * ptr) -> v_u16_t {
 }
 
 // only in search8
-auto v_load_64(uint8_t * ptr) -> v_u8_t {
-  return reinterpret_cast<v_u8_t>(vec_splats(*reinterpret_cast<uint64_t*>(ptr)));
+auto v_load_64(uint8_t const * ptr) -> v_u8_t {
+  return reinterpret_cast<v_u8_t>(vec_splats(*reinterpret_cast<uint64_t const *>(ptr)));
 }
 
 auto v_store16(uint16_t * ptr, v_u16_t cpu_register) -> void {
