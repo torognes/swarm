@@ -476,12 +476,12 @@ inline auto onestep_8(VECTORTYPE & H,
 auto align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
                            VECTORTYPE ** qp,
-                           VECTORTYPE * Qm,
-                           VECTORTYPE * Rm,
+                           VECTORTYPE const * Qm,
+                           VECTORTYPE const * Rm,
                            uint64_t ql,
-                           VECTORTYPE * F0,
+                           VECTORTYPE const * F0,
                            uint64_t * dir_long,
-                           VECTORTYPE * H0) -> void
+                           VECTORTYPE const * H0) -> void
 {
   static constexpr auto step = 16;
   static constexpr auto offset0 = 0;
@@ -518,7 +518,7 @@ auto align_cells_regular_8(VECTORTYPE * Sm,
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      VECTORTYPE * x = *std::next(qp, pos + 0);
+      VECTORTYPE const * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, (2 * pos) + 0);
       E  = *std::next(hep, (2 * pos) + 1);
       onestep_8(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
@@ -543,16 +543,16 @@ auto align_cells_regular_8(VECTORTYPE * Sm,
 auto align_cells_masked_8(VECTORTYPE * Sm,
                           VECTORTYPE * hep,
                           VECTORTYPE ** qp,
-                          VECTORTYPE * Qm,
-                          VECTORTYPE * Rm,
+                          VECTORTYPE const * Qm,
+                          VECTORTYPE const * Rm,
                           uint64_t ql,
-                          VECTORTYPE * F0,
+                          VECTORTYPE const * F0,
                           uint64_t * dir_long,
-                          VECTORTYPE * H0,
-                          VECTORTYPE * Mm,
+                          VECTORTYPE const * H0,
+                          VECTORTYPE const * Mm,
                           VECTORTYPE * MQ,
-                          VECTORTYPE * MR,
-                          VECTORTYPE * MQ0) -> void
+                          VECTORTYPE const * MR,
+                          VECTORTYPE const * MQ0) -> void
 {
   static constexpr auto step = 16;
   static constexpr auto offset0 = 0;
@@ -589,7 +589,7 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
   for(auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      VECTORTYPE * x = *std::next(qp, pos + 0);
+      VECTORTYPE const * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, (2 * pos) + 0);
       E  = *std::next(hep, (2 * pos) + 1);
 
