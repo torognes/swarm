@@ -46,7 +46,6 @@
 #include <memory>  // std::unique_ptr
 #include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
-#include <unordered_set>
 #include <vector>
 
 
@@ -732,17 +731,25 @@ namespace {
   }
 
 
-  // Insert id_view into the dedup set; abort with the offending
-  // identifier in the error message if it was already present.
-  auto register_unique_identifier(
-    std::unordered_set<View<char>, GenericHash<fnv1a>> & seen_identifiers,
-    View<char> const id_view) -> void
+  // Insert id_view into a flat open-addressing dedup table; abort
+  // with the offending identifier in the error message if it was
+  // already present. Linear probing on collision; the empty default-
+  // constructed View<char> marks unused slots (a real identifier
+  // cannot be empty - the caller has already aborted on those).
+  auto register_unique_identifier(std::vector<View<char>> & hdr_table,
+                                  View<char> const id_view) -> void
   {
-    auto const insertion = seen_identifiers.insert(id_view);
-    if (not insertion.second) {
-      std::string const id_str {id_view.data(), id_view.size()};
-      fatal(error_prefix, "Duplicated sequence identifier: ", id_str);
+    GenericHash<fnv1a> const hdr_hasher;
+    auto const hdr_table_size = hdr_table.size();
+    auto hdr_idx = hdr_hasher(id_view) % hdr_table_size;
+    while (not hdr_table[hdr_idx].empty()) {
+      if (hdr_table[hdr_idx] == id_view) {
+        std::string const id_str {id_view.data(), id_view.size()};
+        fatal(error_prefix, "Duplicated sequence identifier: ", id_str);
+      }
+      hdr_idx = (hdr_idx + 1) % hdr_table_size;
     }
+    hdr_table[hdr_idx] = id_view;
   }
 
 
@@ -776,9 +783,11 @@ namespace {
 
   // Pass 1: header-side work for every entry. Populates views,
   // extracts the abundance annotation, and aborts on duplicated or
-  // empty identifiers. The seen_identifiers set is local so its
-  // buckets are released before the sequence pass allocates its own
-  // hashtable.
+  // empty identifiers. The dedup table is local so its storage is
+  // released before the sequence pass allocates its own hashtable.
+  // Sized at 2 * n_sequences so the load factor stays <= 0.5: with
+  // linear probing this keeps the expected probe length around 1.5
+  // slots, matching the original pre-std::unordered_set implementation.
   auto index_headers(struct Parameters const & parameters,
                      std::vector<char> & data_v,
                      std::vector<struct Entry> const & entries,
@@ -786,8 +795,8 @@ namespace {
                      std::vector<struct seqinfo_s> & seqindex_v,
                      Progress & progress_idx) -> void
   {
-    std::unordered_set<View<char>, GenericHash<fnv1a>> seen_identifiers;
-    seen_identifiers.reserve(seq_stats.n_sequences);
+    auto const hdr_table_size = static_cast<uint64_t>(2) * seq_stats.n_sequences;
+    std::vector<View<char>> hdr_table(hdr_table_size);
 
     auto counter = 0ULL;
     for (auto & a_sequence: seqindex_v) {
@@ -798,7 +807,7 @@ namespace {
                        parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
         auto const id_view = compute_identifier_view(a_sequence);
-        register_unique_identifier(seen_identifiers, id_view);
+        register_unique_identifier(hdr_table, id_view);
 
         progress_idx.update(counter);
         ++counter;
