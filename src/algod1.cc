@@ -153,6 +153,15 @@ struct Network_state
   std::vector<unsigned int> network_v;
 };
 
+struct Cluster_stats
+{
+  uint64_t small_clusters {0};
+  uint64_t large_clusters {0};
+  uint64_t amplicons_in_small_clusters {0};
+  uint64_t amplicons_in_large_clusters {0};
+  uint64_t nucleotides_in_small_clusters {0};
+};
+
 namespace {
 
   /* Bloom filter shape used for the per-amplicon hashtable + bloom_a
@@ -1083,6 +1092,35 @@ namespace {
   }
 
 
+  auto count_cluster_stats(struct Parameters const & parameters,
+                           unsigned int const swarmcount,
+                           std::vector<struct swarminfo_s> const & swarminfo_v) -> Cluster_stats
+  {
+    Cluster_stats stats;
+
+    Progress progress_count("Counting amplicons in heavy and light swarms",
+                            swarmcount, parameters);
+
+    for (auto i = 0ULL; i < swarmcount; ++i)
+      {
+        auto const & swarm_info = swarminfo_v[i];
+        if (swarm_info.mass < static_cast<uint64_t>(parameters.opt_boundary))
+          {
+            stats.amplicons_in_small_clusters += swarm_info.size;
+            stats.nucleotides_in_small_clusters += swarm_info.sumlen;
+            ++stats.small_clusters;
+          }
+        progress_count.update(i + 1);
+      }
+    progress_count.done();
+
+    stats.amplicons_in_large_clusters = amplicons - stats.amplicons_in_small_clusters;
+    stats.large_clusters = swarmcount - stats.small_clusters;
+
+    return stats;
+  }
+
+
   auto run_fastidious_pass(struct Parameters const & parameters,
                            Data const & data,
                            unsigned int const swarmcount,
@@ -1095,29 +1133,12 @@ namespace {
     std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
     std::fprintf(parameters.logfile, "\n");
 
-    uint64_t small_clusters = 0;
-    uint64_t amplicons_in_small_clusters = 0;
-    uint64_t nucleotides_in_small_clusters = 0;
-
-    // refactoring: move to function that returns a struct cluster_stats
-    Progress progress_count("Counting amplicons in heavy and light swarms",
-                            swarmcount, parameters);
-
-    for (auto i = 0ULL; i < swarmcount; ++i)
-      {
-        auto const & swarm_info = swarminfo_v[i];
-        if (swarm_info.mass < static_cast<uint64_t>(parameters.opt_boundary))
-          {
-            amplicons_in_small_clusters += swarm_info.size;
-            nucleotides_in_small_clusters += swarm_info.sumlen;
-            ++small_clusters;
-          }
-        progress_count.update(i + 1);
-      }
-    progress_count.done();
-
-    const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
-    const uint64_t large_clusters = swarmcount - small_clusters;
+    auto const stats = count_cluster_stats(parameters, swarmcount, swarminfo_v);
+    auto const small_clusters = stats.small_clusters;
+    auto const large_clusters = stats.large_clusters;
+    auto const amplicons_in_small_clusters = stats.amplicons_in_small_clusters;
+    auto const amplicons_in_large_clusters = stats.amplicons_in_large_clusters;
+    auto const nucleotides_in_small_clusters = stats.nucleotides_in_small_clusters;
 
     std::fprintf(parameters.logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
                  large_clusters, amplicons_in_large_clusters);
