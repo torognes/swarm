@@ -155,6 +155,12 @@ struct Network_state
 
 namespace {
 
+  /* Bloom filter shape used for the per-amplicon hashtable + bloom_a
+     in both the d=1 phase and the fastidious phase. */
+  static constexpr unsigned int amplicon_pattern_shift {10};
+  static constexpr unsigned int amplicon_n_hash_functions {8};
+
+
   inline auto hash_insert(Data const & data,
                           Hashtable & hash_table,
                           BloomFilter & bloom_a,
@@ -1290,8 +1296,6 @@ auto algo_d1_run(struct Parameters const & parameters,
      hashes precomputed in db.cc */
   Hashtable hash_table;
   const auto hashtablesize = hash_table.allocate(amplicons);
-  static constexpr unsigned int amplicon_pattern_shift {10};
-  static constexpr unsigned int amplicon_n_hash_functions {8};
   BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
                       amplicon_n_hash_functions);
 
