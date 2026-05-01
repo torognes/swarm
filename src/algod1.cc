@@ -1075,6 +1075,194 @@ namespace {
       write_stats_file(parameters, data, swarminfo_v);
     }
   }
+
+
+  auto run_fastidious_pass(struct Parameters const & parameters,
+                           Data const & data,
+                           Hashtable & hash_table,
+                           BloomFilter & bloom_a,
+                           unsigned int const swarmcount,
+                           std::vector<struct ampinfo_s> & ampinfo_v,
+                           std::vector<struct swarminfo_s> & swarminfo_v) -> void
+  {
+    std::fprintf(parameters.logfile, "\n");
+    std::fprintf(parameters.logfile, "Results before fastidious processing:\n");
+    std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmcount);
+    std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
+    std::fprintf(parameters.logfile, "\n");
+
+    uint64_t small_clusters = 0;
+    uint64_t amplicons_in_small_clusters = 0;
+    uint64_t nucleotides_in_small_clusters = 0;
+
+    // refactoring: move to function that returns a struct cluster_stats
+    Progress progress_count("Counting amplicons in heavy and light swarms",
+                            swarmcount, parameters);
+
+    for (auto i = 0ULL; i < swarmcount; ++i)
+      {
+        auto const & swarm_info = swarminfo_v[i];
+        if (swarm_info.mass < static_cast<uint64_t>(parameters.opt_boundary))
+          {
+            amplicons_in_small_clusters += swarm_info.size;
+            nucleotides_in_small_clusters += swarm_info.sumlen;
+            ++small_clusters;
+          }
+        progress_count.update(i + 1);
+      }
+    progress_count.done();
+
+    const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
+    const uint64_t large_clusters = swarmcount - small_clusters;
+
+    std::fprintf(parameters.logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
+                 large_clusters, amplicons_in_large_clusters);
+    std::fprintf(parameters.logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
+                 small_clusters, amplicons_in_small_clusters);
+    std::fprintf(parameters.logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
+                 nucleotides_in_small_clusters);
+
+    if ((small_clusters == 0) or (large_clusters == 0))
+      {
+        std::fprintf(parameters.logfile, "Only light or heavy swarms found - "
+                     "no need for further analysis.\n");
+      }
+    else
+      {
+        /* m: total size of Bloom filter in bits */
+        /* k: number of hash functions (n_hash_functions) */
+        /* n: number of entries in the bloom filter */
+        /* here: k=11 and m/n=18, that is 16 bits/entry */
+
+        static constexpr auto microvariants = 7U;
+        static constexpr auto n_bits_in_a_byte = 8U;
+        static constexpr double hash_functions_per_bit {4.0 / 10};
+        static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
+        static_assert(hash_functions_per_bit <= natural_log_of_2, "upper limit is log(2)");
+        assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
+        assert(parameters.opt_bloom_bits <= 64);  // larger than expected
+        assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
+        auto bits = static_cast<uint64_t>(parameters.opt_bloom_bits);
+        auto bits_uint = static_cast<unsigned int>(parameters.opt_bloom_bits);  // avoid risky conversion warning: uint64 to double
+
+        // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
+        // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
+        auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
+
+        auto bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
+
+        auto const memtotal = system_get_memtotal();
+        auto const memused = system_get_memused();
+
+        if (parameters.opt_ceiling != 0)
+          {
+            if (static_cast<uint64_t>(parameters.opt_ceiling) * one_megabyte < memused)
+              {
+                fatal(error_prefix, "Memory ceiling for Bloom filter is too low.");
+              }
+            assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
+            const uint64_t memrest
+              = (one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling)) - memused;
+            auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
+            if (new_bits < bits)
+              {
+                if (new_bits < 2) {
+                  fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
+                }
+                std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
+                bits = new_bits;
+                bits_uint = static_cast<unsigned int>(new_bits);
+                n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
+                bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
+              }
+          }
+
+        static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
+        bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
+
+        if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
+          {
+            std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
+            std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
+          }
+
+        std::fprintf(parameters.logfile,
+                     "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
+                     bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
+
+
+        // bloom_length is in bits (divide by 8 to get bytes)
+        // bloom_length is guaranteed to be at least 64 (see code above)
+        assert(bloom_length_in_bits != 0);  // safeguard for future changes
+        assert(bloom_length_in_bits >= 64);
+        const uint64_t n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
+        static constexpr unsigned int fastidious_pattern_shift {16};
+        BloomFilter bloom_f(n_bytes, fastidious_pattern_shift,
+                            n_hash_functions);
+
+
+        /* Empty the old hash and bloom filter
+           before we reinsert only the light swarm amplicons */
+
+        hash_table.clear();
+        bloom_a.zap();
+
+        Progress progress_light("Adding light swarm amplicons to Bloom filter",
+                                amplicons_in_small_clusters, parameters);
+
+        /* process amplicons in order from least to most abundant */
+        /* but stop when all amplicons in small clusters are processed */
+
+        struct Light_state light_state;
+        light_state.amplicon_count = amplicons_in_small_clusters;
+        light_state.amplicon = amplicons - 1;
+        {
+          assert(parameters.opt_threads <= std::numeric_limits<int>::max());
+          // refactoring C++14: use std::make_unique
+          std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
+              static_cast<int>(parameters.opt_threads),
+              [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
+                mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
+              }));
+          light_tr->run();
+        }
+
+        progress_light.done();
+
+        std::fprintf(parameters.logfile,
+                     "Generated %" PRIu64 " variants from light swarms\n",
+                     light_state.variants);
+
+        Progress progress_heavy("Checking heavy swarm amplicons against Bloom filter",
+                                amplicons_in_large_clusters, parameters);
+
+        /* process amplicons in order from most to least abundant */
+        /* but stop when all amplicons in large clusters are processed */
+
+        struct Graft_state graft_state;
+
+        struct Heavy_state heavy_state;
+        heavy_state.amplicon_count = amplicons_in_large_clusters;
+        {
+          assert(parameters.opt_threads <= std::numeric_limits<int>::max());
+          // refactoring C++14: use std::make_unique
+          std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
+              static_cast<int>(parameters.opt_threads),
+              [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
+                check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
+              }));
+          heavy_tr->run();
+        }
+
+        progress_heavy.done();
+
+        std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
+        std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
+        auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
+        std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
+        std::fprintf(parameters.logfile, "\n");
+      }
+  }
 } // namespace
 
 
@@ -1253,187 +1441,10 @@ auto algo_d1_run(struct Parameters const & parameters,
   swarmcount_adjusted = swarmcount;
 
   /* fastidious */
-
-  if (parameters.opt_fastidious)
-    {
-      std::fprintf(parameters.logfile, "\n");
-      std::fprintf(parameters.logfile, "Results before fastidious processing:\n");
-      std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmcount);
-      std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
-      std::fprintf(parameters.logfile, "\n");
-
-      uint64_t small_clusters = 0;
-      uint64_t amplicons_in_small_clusters = 0;
-      uint64_t nucleotides_in_small_clusters = 0;
-
-      // refactoring: move to function that returns a struct cluster_stats
-      Progress progress_count("Counting amplicons in heavy and light swarms",
-                              swarmcount, parameters);
-
-      for (auto i = 0ULL; i < swarmcount; ++i)
-        {
-          auto const & swarm_info = swarminfo_v[i];
-          if (swarm_info.mass < static_cast<uint64_t>(parameters.opt_boundary))
-            {
-              amplicons_in_small_clusters += swarm_info.size;
-              nucleotides_in_small_clusters += swarm_info.sumlen;
-              ++small_clusters;
-            }
-          progress_count.update(i + 1);
-        }
-      progress_count.done();
-
-      const uint64_t amplicons_in_large_clusters = amplicons - amplicons_in_small_clusters;
-      const uint64_t large_clusters = swarmcount - small_clusters;
-
-      std::fprintf(parameters.logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-                   large_clusters, amplicons_in_large_clusters);
-      std::fprintf(parameters.logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-                   small_clusters, amplicons_in_small_clusters);
-      std::fprintf(parameters.logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
-                   nucleotides_in_small_clusters);
-
-      if ((small_clusters == 0) or (large_clusters == 0))
-        {
-          std::fprintf(parameters.logfile, "Only light or heavy swarms found - "
-                       "no need for further analysis.\n");
-        }
-      else
-        {
-          /* m: total size of Bloom filter in bits */
-          /* k: number of hash functions (n_hash_functions) */
-          /* n: number of entries in the bloom filter */
-          /* here: k=11 and m/n=18, that is 16 bits/entry */
-
-          static constexpr auto microvariants = 7U;
-          static constexpr auto n_bits_in_a_byte = 8U;
-          static constexpr double hash_functions_per_bit {4.0 / 10};
-          static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
-          static_assert(hash_functions_per_bit <= natural_log_of_2, "upper limit is log(2)");
-          assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
-          assert(parameters.opt_bloom_bits <= 64);  // larger than expected
-          assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
-          auto bits = static_cast<uint64_t>(parameters.opt_bloom_bits);
-          auto bits_uint = static_cast<unsigned int>(parameters.opt_bloom_bits);  // avoid risky conversion warning: uint64 to double
-
-          // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
-          // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
-          auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
-
-          auto bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
-
-          auto const memtotal = system_get_memtotal();
-          auto const memused = system_get_memused();
-
-          if (parameters.opt_ceiling != 0)
-            {
-              if (static_cast<uint64_t>(parameters.opt_ceiling) * one_megabyte < memused)
-                {
-                  fatal(error_prefix, "Memory ceiling for Bloom filter is too low.");
-                }
-              assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
-              const uint64_t memrest
-                = (one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling)) - memused;
-              auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
-              if (new_bits < bits)
-                {
-                  if (new_bits < 2) {
-                    fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
-                  }
-                  std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
-                  bits = new_bits;
-                  bits_uint = static_cast<unsigned int>(new_bits);
-                  n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
-                  bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
-                }
-            }
-
-          static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
-          bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
-
-          if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
-            {
-              std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
-              std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
-            }
-
-          std::fprintf(parameters.logfile,
-                       "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                       bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
-
-
-          // bloom_length is in bits (divide by 8 to get bytes)
-          // bloom_length is guaranteed to be at least 64 (see code above)
-          assert(bloom_length_in_bits != 0);  // safeguard for future changes
-          assert(bloom_length_in_bits >= 64);
-          const uint64_t n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
-          static constexpr unsigned int fastidious_pattern_shift {16};
-          BloomFilter bloom_f(n_bytes, fastidious_pattern_shift,
-                              n_hash_functions);
-
-
-          /* Empty the old hash and bloom filter
-             before we reinsert only the light swarm amplicons */
-
-          hash_table.clear();
-          bloom_a.zap();
-
-          Progress progress_light("Adding light swarm amplicons to Bloom filter",
-                                  amplicons_in_small_clusters, parameters);
-
-          /* process amplicons in order from least to most abundant */
-          /* but stop when all amplicons in small clusters are processed */
-
-          struct Light_state light_state;
-          light_state.amplicon_count = amplicons_in_small_clusters;
-          light_state.amplicon = amplicons - 1;
-          {
-            assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-            // refactoring C++14: use std::make_unique
-            std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
-                static_cast<int>(parameters.opt_threads),
-                [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
-                  mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
-                }));
-            light_tr->run();
-          }
-
-          progress_light.done();
-
-          std::fprintf(parameters.logfile,
-                       "Generated %" PRIu64 " variants from light swarms\n",
-                       light_state.variants);
-
-          Progress progress_heavy("Checking heavy swarm amplicons against Bloom filter",
-                                  amplicons_in_large_clusters, parameters);
-
-          /* process amplicons in order from most to least abundant */
-          /* but stop when all amplicons in large clusters are processed */
-
-          struct Graft_state graft_state;
-
-          struct Heavy_state heavy_state;
-          heavy_state.amplicon_count = amplicons_in_large_clusters;
-          {
-            assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-            // refactoring C++14: use std::make_unique
-            std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
-                static_cast<int>(parameters.opt_threads),
-                [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
-                  check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
-                }));
-            heavy_tr->run();
-          }
-
-          progress_heavy.done();
-
-          std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
-          std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
-          auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
-          std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
-          std::fprintf(parameters.logfile, "\n");
-        }
-    }
+  if (parameters.opt_fastidious) {
+    run_fastidious_pass(parameters, data, hash_table, bloom_a,
+                        swarmcount, ampinfo_v, swarminfo_v);
+  }
 
   // refactoring: trim vectors (remove allocated unused elements)
   // could it be done before the fastidious phase?
