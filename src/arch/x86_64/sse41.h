@@ -43,25 +43,25 @@ using VECTORTYPE = __m128i;
 auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
                                   VECTORTYPE * hep,
                                   VECTORTYPE ** qp,
-                                  VECTORTYPE * Qm,
-                                  VECTORTYPE * Rm,
+                                  VECTORTYPE const * Qm,
+                                  VECTORTYPE const * Rm,
                                   uint64_t ql,
-                                  VECTORTYPE * F0,
+                                  VECTORTYPE const * F0,
                                   uint64_t * dir_long,
-                                  VECTORTYPE * H0) -> void;
+                                  VECTORTYPE const * H0) -> void;
 
 auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE * hep,
                                  VECTORTYPE ** qp,
-                                 VECTORTYPE * Qm,
-                                 VECTORTYPE * Rm,
+                                 VECTORTYPE const * Qm,
+                                 VECTORTYPE const * Rm,
                                  uint64_t ql,
-                                 VECTORTYPE * F0,
+                                 VECTORTYPE const * F0,
                                  uint64_t * dir_long,
-                                 VECTORTYPE * H0,
-                                 VECTORTYPE * Mm,
+                                 VECTORTYPE const * H0,
+                                 VECTORTYPE const * Mm,
                                  VECTORTYPE * MQ,
-                                 VECTORTYPE * MR,
-                                 VECTORTYPE * MQ0) -> void;
+                                 VECTORTYPE const * MR,
+                                 VECTORTYPE const * MQ0) -> void;
 
 #endif
