@@ -52,7 +52,7 @@ auto create_score_matrix(const std::int64_t mismatch_penalty)
   auto choose_score = [&index, &mismatchscore](Integral &element) -> void {
     const auto column = index % n_cells;
     const auto row = index / n_cells;
-    element = ((row == column and row != 0 and column != 0)
+    element = ((row == column and row != 0)
                or (column >= n_cells / 2)
                or (row >= n_cells / 2)) ? matchscore : mismatchscore;
     ++index;
