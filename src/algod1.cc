@@ -1204,6 +1204,73 @@ namespace {
   }
 
 
+  auto run_light_pass(struct Parameters const & parameters,
+                      Data const & data,
+                      Hashtable & hash_table,
+                      BloomFilter & bloom_a,
+                      BloomFilter & bloom_f,
+                      uint64_t const amplicons_in_small_clusters) -> void
+  {
+    Progress progress_light("Adding light swarm amplicons to Bloom filter",
+                            amplicons_in_small_clusters, parameters);
+
+    /* process amplicons in order from least to most abundant */
+    /* but stop when all amplicons in small clusters are processed */
+
+    struct Light_state light_state;
+    light_state.amplicon_count = amplicons_in_small_clusters;
+    light_state.amplicon = amplicons - 1;
+    {
+      assert(parameters.opt_threads <= std::numeric_limits<int>::max());
+      // refactoring C++14: use std::make_unique
+      std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
+          static_cast<int>(parameters.opt_threads),
+          [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
+            mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
+          }));
+      light_tr->run();
+    }
+    progress_light.done();
+
+    std::fprintf(parameters.logfile,
+                 "Generated %" PRIu64 " variants from light swarms\n",
+                 light_state.variants);
+  }
+
+
+  auto run_heavy_pass(struct Parameters const & parameters,
+                      Data const & data,
+                      Hashtable const & hash_table,
+                      BloomFilter const & bloom_a,
+                      BloomFilter const & bloom_f,
+                      uint64_t const amplicons_in_large_clusters,
+                      struct Graft_state & graft_state) -> void
+  {
+    Progress progress_heavy("Checking heavy swarm amplicons against Bloom filter",
+                            amplicons_in_large_clusters, parameters);
+
+    /* process amplicons in order from most to least abundant */
+    /* but stop when all amplicons in large clusters are processed */
+
+    struct Heavy_state heavy_state;
+    heavy_state.amplicon_count = amplicons_in_large_clusters;
+    {
+      assert(parameters.opt_threads <= std::numeric_limits<int>::max());
+      // refactoring C++14: use std::make_unique
+      std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
+          static_cast<int>(parameters.opt_threads),
+          [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
+            check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
+          }));
+      heavy_tr->run();
+    }
+    progress_heavy.done();
+
+    std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
+    std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
+  }
+
+
   auto run_fastidious_pass(struct Parameters const & parameters,
                            Data const & data,
                            unsigned int const swarmcount,
@@ -1251,57 +1318,11 @@ namespace {
         BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
                             amplicon_n_hash_functions);
 
-        Progress progress_light("Adding light swarm amplicons to Bloom filter",
-                                amplicons_in_small_clusters, parameters);
-
-        /* process amplicons in order from least to most abundant */
-        /* but stop when all amplicons in small clusters are processed */
-
-        struct Light_state light_state;
-        light_state.amplicon_count = amplicons_in_small_clusters;
-        light_state.amplicon = amplicons - 1;
-        {
-          assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-          // refactoring C++14: use std::make_unique
-          std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
-              static_cast<int>(parameters.opt_threads),
-              [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
-                mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
-              }));
-          light_tr->run();
-        }
-
-        progress_light.done();
-
-        std::fprintf(parameters.logfile,
-                     "Generated %" PRIu64 " variants from light swarms\n",
-                     light_state.variants);
-
-        Progress progress_heavy("Checking heavy swarm amplicons against Bloom filter",
-                                amplicons_in_large_clusters, parameters);
-
-        /* process amplicons in order from most to least abundant */
-        /* but stop when all amplicons in large clusters are processed */
+        run_light_pass(parameters, data, hash_table, bloom_a, bloom_f, amplicons_in_small_clusters);
 
         struct Graft_state graft_state;
+        run_heavy_pass(parameters, data, hash_table, bloom_a, bloom_f, amplicons_in_large_clusters, graft_state);
 
-        struct Heavy_state heavy_state;
-        heavy_state.amplicon_count = amplicons_in_large_clusters;
-        {
-          assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-          // refactoring C++14: use std::make_unique
-          std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
-              static_cast<int>(parameters.opt_threads),
-              [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
-                check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
-              }));
-          heavy_tr->run();
-        }
-
-        progress_heavy.done();
-
-        std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
-        std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
         auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
         std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
         std::fprintf(parameters.logfile, "\n");
