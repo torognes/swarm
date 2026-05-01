@@ -1098,7 +1098,8 @@ auto algo_d1_run(struct Parameters const & parameters,
   global_hits_data = global_hits_v.data();
 
 
-  /* compute hash for all amplicons and store them in a hash table */
+  /* populate the d=1 hash table and Bloom filter with the amplicon
+     hashes precomputed in db.cc */
   Hashtable hash_table;
   const auto hashtablesize = hash_table.allocate(amplicons);
   static constexpr unsigned int amplicon_pattern_shift {10};
@@ -1106,7 +1107,7 @@ auto algo_d1_run(struct Parameters const & parameters,
   BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
                       amplicon_n_hash_functions);
 
-  Progress progress_hash("Hashing sequences:", amplicons, parameters);
+  Progress progress_hash("Building hashtable:", amplicons, parameters);
 
   for (auto k = 0U; k < amplicons; ++k)
     {
