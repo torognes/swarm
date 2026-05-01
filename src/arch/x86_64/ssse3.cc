@@ -70,8 +70,8 @@ auto v_zero() -> __m128i {
 /* 8-bit version with 16 channels */
 
 auto dprofile_shuffle8(BYTE * dprofile,
-                       BYTE * score_matrix,
-                       BYTE * dseq_byte) -> void
+                       BYTE const * score_matrix,
+                       BYTE const * dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   auto * const sequence_db = cast_vector8(dseq_byte);
@@ -105,8 +105,8 @@ auto dprofile_shuffle8(BYTE * dprofile,
 /* 16-bit version with 8 channels */
 
 auto dprofile_shuffle16(WORD * dprofile,
-                        WORD * score_matrix,
-                        BYTE * dseq_byte) -> void
+                        WORD const * score_matrix,
+                        BYTE const * dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   auto * const profile_db = cast_vector16(dprofile);
