@@ -816,37 +816,46 @@ namespace {
   }
 
 
-  // Pass 2: sequence-side work for every entry. Computes the Zobrist
-  // hash and, when d > 0, checks for duplicated sequences (d = 0 is
-  // the dereplication mode and accepts duplicates). Stops at the first
-  // duplicate; the caller calls abort_if_duplicated_sequences() afterwards.
-  auto index_sequences(struct Parameters const & parameters,
-                       Zobrist const & zobrist,
-                       struct Seq_stats & seq_stats,
-                       std::vector<struct seqinfo_s> & seqindex_v) -> void
+  // Pass 2a: compute the Zobrist hash for every sequence. Always run,
+  // including in dereplication mode (d = 0), since downstream code
+  // relies on a populated seqhash field.
+  auto compute_sequence_hashes(Zobrist const & zobrist,
+                               struct Seq_stats const & seq_stats,
+                               std::vector<struct seqinfo_s> & seqindex_v,
+                               struct Parameters const & parameters) -> void
   {
-    const uint64_t seqhashsize {2ULL * seq_stats.n_sequences};
-    std::vector<struct seqinfo_s *> seqhashtable;
-    if (parameters.opt_differences > 0) {
-      seqhashtable.resize(seqhashsize);
-    }
-
-    Progress progress_seq("Indexing sequences:", seq_stats.n_sequences, parameters);
+    Progress progress_hash("Indexing sequences:", seq_stats.n_sequences, parameters);
     for (auto & a_sequence: seqindex_v) {
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
+        progress_hash.update();
+      }
+    progress_hash.done();
+  }
 
-        if ((parameters.opt_differences > 0) and
-            is_duplicate_sequence(seqhashtable, seqhashsize, a_sequence))
+
+  // Pass 2b: detect duplicated sequences via the seqhashtable. Only
+  // called when d > 0 (d = 0 is the dereplication mode and accepts
+  // duplicates). Stops at the first duplicate; the caller invokes
+  // abort_if_duplicated_sequences() afterwards.
+  auto detect_duplicate_sequences(struct Seq_stats & seq_stats,
+                                  std::vector<struct seqinfo_s> & seqindex_v,
+                                  struct Parameters const & parameters) -> void
+  {
+    auto const seqhashsize = uint64_t{2} * seq_stats.n_sequences;
+    std::vector<struct seqinfo_s *> seqhashtable(seqhashsize);
+
+    Progress progress_dup("Checking duplicates:", seq_stats.n_sequences, parameters);
+    for (auto & a_sequence: seqindex_v) {
+        if (is_duplicate_sequence(seqhashtable, seqhashsize, a_sequence))
           {
             seq_stats.has_duplicates = true;
             break;
           }
-
-        progress_seq.update();
+        progress_dup.update();
       }
     // Skip done() on the duplicate-detection break: the caller will
     // abort_if_duplicated_sequences() and printing 100% would be misleading.
-    if (not seq_stats.has_duplicates) { progress_seq.done(); }
+    if (not seq_stats.has_duplicates) { progress_dup.done(); }
   }
 
 
@@ -860,7 +869,10 @@ namespace {
     seqindex_v.resize(seq_stats.n_sequences);
 
     index_headers(parameters, data_v, entries, seq_stats, seqindex_v);
-    index_sequences(parameters, zobrist, seq_stats, seqindex_v);
+    compute_sequence_hashes(zobrist, seq_stats, seqindex_v, parameters);
+    if (parameters.opt_differences > 0) {
+      detect_duplicate_sequences(seq_stats, seqindex_v, parameters);
+    }
 
     abort_if_duplicated_sequences(seq_stats);
 
