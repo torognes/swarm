@@ -66,8 +66,8 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
         return -1;
     }
 
-  char * p = *linep;            // pointer to where to put next char
-  char * e = p + *linecapp - 1; // pointer to last byte in buffer
+  char * p = *linep;                  // pointer to where to put next char
+  char const * e = p + *linecapp - 1; // pointer to last byte in buffer
   std::size_t len = 0;
   *p = 0;
 
