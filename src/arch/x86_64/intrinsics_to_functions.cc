@@ -36,21 +36,29 @@ auto cast_vector16(uint16_t* ptr) -> __m128i* {
   return reinterpret_cast<__m128i*>(ptr);
 }
 
+auto cast_vector16(uint16_t const * ptr) -> __m128i const * {
+  return reinterpret_cast<__m128i const *>(ptr);
+}
+
 auto cast_vector8(uint8_t* ptr) -> __m128i* {
   return reinterpret_cast<__m128i*>(ptr);
 }
 
-auto v_load16(__m128i* ptr) -> __m128i {
+auto cast_vector8(uint8_t const * ptr) -> __m128i const * {
+  return reinterpret_cast<__m128i const *>(ptr);
+}
+
+auto v_load16(__m128i const * ptr) -> __m128i {
   return _mm_load_si128(ptr);
 }
 
 // only in ssse3
-auto v_load8(__m128i* ptr) -> __m128i {
+auto v_load8(__m128i const * ptr) -> __m128i {
   return _mm_load_si128(ptr);
 }
 
 // only in search8
-auto v_load_64(uint8_t* ptr) -> __m128i {
+auto v_load_64(uint8_t const * ptr) -> __m128i {
   return _mm_loadl_epi64(cast_vector8(ptr));
 }
 
