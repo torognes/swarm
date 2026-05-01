@@ -162,6 +162,12 @@ struct Cluster_stats
   uint64_t nucleotides_in_small_clusters {0};
 };
 
+struct Bloom_geometry
+{
+  uint64_t n_bytes {0};
+  unsigned int n_hash_functions {0};
+};
+
 namespace {
 
   /* Bloom filter shape used for the per-amplicon hashtable + bloom_a
@@ -1121,6 +1127,83 @@ namespace {
   }
 
 
+  auto compute_bloom_geometry(struct Parameters const & parameters,
+                              uint64_t const nucleotides_in_small_clusters) -> Bloom_geometry
+  {
+    /* m: total size of Bloom filter in bits */
+    /* k: number of hash functions (n_hash_functions) */
+    /* n: number of entries in the bloom filter */
+    /* here: k=11 and m/n=18, that is 16 bits/entry */
+
+    static constexpr auto microvariants = 7U;
+    static constexpr auto n_bits_in_a_byte = 8U;
+    static constexpr double hash_functions_per_bit {4.0 / 10};
+    static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
+    static_assert(hash_functions_per_bit <= natural_log_of_2, "upper limit is log(2)");
+    assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
+    assert(parameters.opt_bloom_bits <= 64);  // larger than expected
+    assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
+    auto bits = static_cast<uint64_t>(parameters.opt_bloom_bits);
+    auto bits_uint = static_cast<unsigned int>(parameters.opt_bloom_bits);  // avoid risky conversion warning: uint64 to double
+
+    // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
+    // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
+    auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
+
+    auto bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
+
+    auto const memtotal = system_get_memtotal();
+    auto const memused = system_get_memused();
+
+    if (parameters.opt_ceiling != 0)
+      {
+        if (static_cast<uint64_t>(parameters.opt_ceiling) * one_megabyte < memused)
+          {
+            fatal(error_prefix, "Memory ceiling for Bloom filter is too low.");
+          }
+        assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
+        const uint64_t memrest
+          = (one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling)) - memused;
+        auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
+        if (new_bits < bits)
+          {
+            if (new_bits < 2) {
+              fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
+            }
+            std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
+            bits = new_bits;
+            bits_uint = static_cast<unsigned int>(new_bits);
+            n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
+            bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
+          }
+      }
+
+    static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
+    bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
+
+    if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
+      {
+        std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
+        std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
+      }
+
+    std::fprintf(parameters.logfile,
+                 "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
+                 bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
+
+
+    // bloom_length is in bits (divide by 8 to get bytes)
+    // bloom_length is guaranteed to be at least 64 (see code above)
+    assert(bloom_length_in_bits != 0);  // safeguard for future changes
+    assert(bloom_length_in_bits >= 64);
+
+    Bloom_geometry geom;
+    geom.n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
+    geom.n_hash_functions = n_hash_functions;
+    return geom;
+  }
+
+
   auto run_fastidious_pass(struct Parameters const & parameters,
                            Data const & data,
                            unsigned int const swarmcount,
@@ -1154,76 +1237,10 @@ namespace {
       }
     else
       {
-        /* m: total size of Bloom filter in bits */
-        /* k: number of hash functions (n_hash_functions) */
-        /* n: number of entries in the bloom filter */
-        /* here: k=11 and m/n=18, that is 16 bits/entry */
-
-        static constexpr auto microvariants = 7U;
-        static constexpr auto n_bits_in_a_byte = 8U;
-        static constexpr double hash_functions_per_bit {4.0 / 10};
-        static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
-        static_assert(hash_functions_per_bit <= natural_log_of_2, "upper limit is log(2)");
-        assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
-        assert(parameters.opt_bloom_bits <= 64);  // larger than expected
-        assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
-        auto bits = static_cast<uint64_t>(parameters.opt_bloom_bits);
-        auto bits_uint = static_cast<unsigned int>(parameters.opt_bloom_bits);  // avoid risky conversion warning: uint64 to double
-
-        // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
-        // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
-        auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
-
-        auto bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
-
-        auto const memtotal = system_get_memtotal();
-        auto const memused = system_get_memused();
-
-        if (parameters.opt_ceiling != 0)
-          {
-            if (static_cast<uint64_t>(parameters.opt_ceiling) * one_megabyte < memused)
-              {
-                fatal(error_prefix, "Memory ceiling for Bloom filter is too low.");
-              }
-            assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
-            const uint64_t memrest
-              = (one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling)) - memused;
-            auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
-            if (new_bits < bits)
-              {
-                if (new_bits < 2) {
-                  fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
-                }
-                std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
-                bits = new_bits;
-                bits_uint = static_cast<unsigned int>(new_bits);
-                n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
-                bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
-              }
-          }
-
-        static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
-        bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
-
-        if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
-          {
-            std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
-            std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
-          }
-
-        std::fprintf(parameters.logfile,
-                     "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-                     bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
-
-
-        // bloom_length is in bits (divide by 8 to get bytes)
-        // bloom_length is guaranteed to be at least 64 (see code above)
-        assert(bloom_length_in_bits != 0);  // safeguard for future changes
-        assert(bloom_length_in_bits >= 64);
-        const uint64_t n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
+        auto const bloom_geom = compute_bloom_geometry(parameters, nucleotides_in_small_clusters);
         static constexpr unsigned int fastidious_pattern_shift {16};
-        BloomFilter bloom_f(n_bytes, fastidious_pattern_shift,
-                            n_hash_functions);
+        BloomFilter bloom_f(bloom_geom.n_bytes, fastidious_pattern_shift,
+                            bloom_geom.n_hash_functions);
 
 
         /* Allocate a fresh per-amplicon hash table and Bloom filter
