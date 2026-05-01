@@ -95,7 +95,7 @@ using BYTE = unsigned char;
 using WORD = unsigned short;  // refactoring: uint16_t?
 
 inline auto dprofile_fill16(WORD * dprofile_word,
-                            WORD * score_matrix,
+                            WORD const * score_matrix,
                             BYTE const * dseq) -> void
 {
   static constexpr auto s_channels = static_cast<int>(channels);
@@ -384,7 +384,7 @@ auto search16(Data const & data,
               std::vector<WORD *> & q_start,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
-              WORD * score_matrix,
+              WORD const * score_matrix,
               std::vector<WORD> & dprofile,
               WORD * hearray,
               uint64_t sequences,

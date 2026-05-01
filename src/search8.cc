@@ -92,7 +92,7 @@ auto compute_mask<n_bits>(uint64_t const channel,
 
 // refactoring: objdump shows this function is not inlined
 inline auto dprofile_fill8(BYTE * dprofile,
-                           BYTE * score_matrix,
+                           BYTE const * score_matrix,
                            BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
@@ -629,7 +629,7 @@ auto search8(Data const & data,
              std::vector<BYTE *> & q_start,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
-             BYTE * score_matrix,
+             BYTE const * score_matrix,
              std::vector<BYTE> & dprofile,
              BYTE * hearray,
              uint64_t sequences,
