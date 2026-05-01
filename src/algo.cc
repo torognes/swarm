@@ -105,7 +105,7 @@ namespace {
   auto collect_seeds(struct Parameters const & parameters,
                      Data const & data,
                      const uint64_t amplicons,
-                     std::vector<struct ampliconinfo_s> & amps_v) -> std::vector<struct swarminfo_t> {
+                     std::vector<struct ampliconinfo_s> const & amps_v) -> std::vector<struct swarminfo_t> {
     Progress progress("Collecting seeds:    ", amplicons, parameters);
     assert(swarmed == amplicons);
     std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
@@ -250,7 +250,7 @@ namespace {
   auto write_swarms_default_format(const uint64_t amplicons,
                                    struct Parameters const & parameters,
                                    Data const & data,
-                                   std::vector<struct ampliconinfo_s> & amps_v) -> void {
+                                   std::vector<struct ampliconinfo_s> const & amps_v) -> void {
     /* native swarm output */
     static constexpr char sepchar {' '};  /* usually a space */
     static constexpr char sep_swarms {'\n'};
@@ -280,7 +280,7 @@ namespace {
                                   const unsigned int swarmid,
                                   struct Parameters const & parameters,
                                   Data const & data,
-                                  std::vector<struct ampliconinfo_s> & amps_v) -> void {
+                                  std::vector<struct ampliconinfo_s> const & amps_v) -> void {
     /* mothur list file output */
     static constexpr char sep_amplicons {','};
     static constexpr char sep_swarms {'\t'};
