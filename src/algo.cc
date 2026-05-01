@@ -240,7 +240,7 @@ namespace {
   auto write_representative_sequences(const uint64_t amplicons,
                                       struct Parameters const & parameters,
                                       Data const & data,
-                                      std::vector<struct ampliconinfo_s> & amps_v) -> void {
+                                      std::vector<struct ampliconinfo_s> const & amps_v) -> void {
     auto seeds = collect_seeds(parameters, data, amplicons, amps_v);
     sort_seeds(parameters, data, seeds);
     write_seeds(parameters, data, seeds);
