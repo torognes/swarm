@@ -340,7 +340,7 @@ namespace {
   inline auto check_heavy_var_2(Data const & data,
                                 Hashtable const & hash_table,
                                 BloomFilter const & bloom_a,
-                                std::vector<char>& seq,
+                                std::vector<char> const & seq,
                                 unsigned int seqlen,
                                 unsigned int seed,
                                 std::vector<struct var_s>& variant_list,
@@ -352,7 +352,7 @@ namespace {
     uint64_t matches = 0;
 
     const auto hash = data.zobrist().hash(seq.data(), seqlen);
-    const auto variant_count = generate_variants(data.zobrist(), seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data() not fixable while db returns char*
+    const auto variant_count = generate_variants(data.zobrist(), seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data()
 
     for (auto i = 0U; i < variant_count; ++i) {
       if (bloom_a.get(variant_list[i].hash) and
@@ -945,7 +945,7 @@ namespace {
 
   auto write_representative_sequences(struct Parameters const & parameters,
                                       Data const & data,
-                                      std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+                                      std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     Progress progress("Writing seeds:    ", swarminfo_v.size(), parameters);
 
     std::vector<unsigned int> sorter(swarminfo_v.size());
@@ -1070,8 +1070,8 @@ namespace {
 
   auto output_results(struct Parameters const & parameters,
                       Data const & data,
-                      std::vector<struct ampinfo_s> & ampinfo_v,
-                      std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+                      std::vector<struct ampinfo_s> const & ampinfo_v,
+                      std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     /* dump swarms */
     if (parameters.opt_mothur) {
       write_swarms_mothur_format(parameters, data, ampinfo_v, swarminfo_v);
