@@ -304,7 +304,7 @@ namespace {
                          Hashtable const & hash_table,
                          char const * seed_sequence,
                          unsigned int seed_seqlen,
-                         struct var_s & var,
+                         struct var_s const & var,
                          unsigned int seed,
                          struct Graft_state & graft_state) -> bool
   {
@@ -406,7 +406,7 @@ namespace {
 
     for (auto i = 0U; i < variant_count; ++i)
       {
-        struct var_s & var = variant_list[i];
+        struct var_s const & var = variant_list[i];
         if (bloom_f.get(var.hash))
           {
             auto varlen = 0U;
@@ -555,7 +555,7 @@ namespace {
                                    Hashtable const & hash_table,
                                    BloomFilter const & bloom_a,
                                    unsigned int seed,
-                                   struct var_s & var,
+                                   struct var_s const & var,
                                    std::vector<unsigned int>& hits_data,
                                    unsigned int & hits_count) -> void
   {
