@@ -226,7 +226,7 @@ namespace {
 
   // C++17 refactoring: replace with std::count_if()
   auto count_pairs(unsigned int const amplicon_count,
-                   std::vector<struct ampinfo_s> & ampinfo_v) -> unsigned int {
+                   std::vector<struct ampinfo_s> const & ampinfo_v) -> unsigned int {
     auto counter = 0U;
     for (auto i = 0U; i < amplicon_count; ++i) {
       if (ampinfo_v[i].graft_cand != no_swarm) {
@@ -302,7 +302,7 @@ namespace {
 
   auto hash_check_attach(Data const & data,
                          Hashtable const & hash_table,
-                         char * seed_sequence,
+                         char const * seed_sequence,
                          unsigned int seed_seqlen,
                          struct var_s & var,
                          unsigned int seed,
@@ -761,7 +761,7 @@ namespace {
   auto write_network_file(const unsigned int number_of_networks,
                           struct Parameters const & parameters,
                           Data const & data,
-                          std::vector<struct ampinfo_s> & ampinfo_v,
+                          std::vector<struct ampinfo_s> const & ampinfo_v,
                           std::vector<unsigned int> & network_v) -> void {
     // a network is a cluster with at least two sequences (no singletons)
     Progress progress("Dumping network:  ", number_of_networks, parameters);
@@ -798,8 +798,8 @@ namespace {
 
   auto write_swarms_default_format(struct Parameters const & parameters,
                                    Data const & data,
-                                   std::vector<struct ampinfo_s> & ampinfo_v,
-                                   std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+                                   std::vector<struct ampinfo_s> const & ampinfo_v,
+                                   std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     static constexpr char sepchar {' '};
     Progress progress("Writing swarms:   ", swarminfo_v.size(), parameters);
 
@@ -826,8 +826,8 @@ namespace {
 
   auto write_swarms_mothur_format(struct Parameters const & parameters,
                                   Data const & data,
-                                  std::vector<struct ampinfo_s> & ampinfo_v,
-                                  std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+                                  std::vector<struct ampinfo_s> const & ampinfo_v,
+                                  std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     Progress progress("Writing swarms:   ", swarminfo_v.size(), parameters);
 
     std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%" PRIu64,
@@ -861,8 +861,8 @@ namespace {
 
   auto write_swarms_uclust_format(struct Parameters const & parameters,
                                   Data const & data,
-                                  std::vector<struct ampinfo_s> & ampinfo_v,
-                                  std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+                                  std::vector<struct ampinfo_s> const & ampinfo_v,
+                                  std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     static constexpr auto one_hundred = 100.0;
     auto cluster_no = 0U;
     const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
@@ -995,8 +995,8 @@ namespace {
 
   auto write_structure_file(struct Parameters const & parameters,
                             Data const & data,
-                            std::vector<struct ampinfo_s> & ampinfo_v,
-                            std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+                            std::vector<struct ampinfo_s> const & ampinfo_v,
+                            std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     auto cluster_no = 0U;
 
     Progress progress("Writing structure:", swarminfo_v.size(), parameters);
@@ -1049,7 +1049,7 @@ namespace {
 
   auto write_stats_file(struct Parameters const & parameters,
                         Data const & data,
-                        std::vector<struct swarminfo_s> & swarminfo_v) -> void {
+                        std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     Progress progress("Writing stats:    ", swarminfo_v.size(), parameters);
 
     for (auto const & swarm_info : swarminfo_v) {
