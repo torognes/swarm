@@ -795,7 +795,7 @@ namespace {
                      std::vector<struct seqinfo_s> & seqindex_v,
                      Progress & progress_idx) -> void
   {
-    auto const hdr_table_size = static_cast<uint64_t>(2) * seq_stats.n_sequences;
+    auto const hdr_table_size = uint64_t{2} * seq_stats.n_sequences;
     std::vector<View<char>> hdr_table(hdr_table_size);
 
     auto counter = 0ULL;
