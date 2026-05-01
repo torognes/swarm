@@ -55,23 +55,6 @@
 #include <vector>
 
 
-#ifndef PRIu64
-#ifdef _WIN32
-#define PRIu64 "I64u"
-#else
-constexpr char PRIu64[] = "lu";
-#endif
-#endif
-
-#ifndef PRId64
-#ifdef _WIN32
-#define PRId64 "I64d"
-#else
-constexpr char PRId64[] = "ld";
-#endif
-#endif
-
-
 constexpr unsigned int one_kilobyte {1U << 10U};  // 1,024 bytes
 constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
 constexpr unsigned int no_swarm {std::numeric_limits<unsigned int>::max()};
