@@ -246,11 +246,10 @@ namespace {
 
 
   // C++17 refactoring: replace with std::count_if()
-  auto count_pairs(unsigned int const amplicon_count,
-                   std::vector<struct ampinfo_s> const & ampinfo_v) -> unsigned int {
+  auto count_pairs(std::vector<struct ampinfo_s> const & ampinfo_v) -> unsigned int {
     auto counter = 0U;
-    for (auto i = 0U; i < amplicon_count; ++i) {
-      if (ampinfo_v[i].graft_cand != no_swarm) {
+    for (auto const & info : ampinfo_v) {
+      if (info.graft_cand != no_swarm) {
         ++counter;
       }
     }
@@ -263,7 +262,7 @@ namespace {
                          std::vector<struct ampinfo_s> & ampinfo_v,
                          std::vector<struct swarminfo_s> & swarminfo_v) -> unsigned int
   {
-    auto const pair_count = count_pairs(amplicon_count, ampinfo_v);
+    auto const pair_count = count_pairs(ampinfo_v);
 
     Progress progress("Grafting light swarms on heavy swarms", pair_count, parameters);
 
