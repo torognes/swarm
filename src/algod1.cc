@@ -1220,7 +1220,7 @@ namespace {
     light_state.amplicon = amplicons - 1;
     {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-      auto light_tr = utils::make_unique<ThreadRunner>(
+      auto const light_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
           [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
             mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
@@ -1253,7 +1253,7 @@ namespace {
     heavy_state.amplicon_count = amplicons_in_large_clusters;
     {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-      auto heavy_tr = utils::make_unique<ThreadRunner>(
+      auto const heavy_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
           [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
             check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
@@ -1376,7 +1376,7 @@ auto algo_d1_run(struct Parameters const & parameters,
     Progress progress_network("Building network: ", amplicons, parameters);
     {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-      auto network_tr = utils::make_unique<ThreadRunner>(
+      auto const network_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
           [&parameters, &data, &hash_table, &bloom_a, &network_state, &progress_network](int64_t nth_thread) -> void {
             network_thread(parameters, data, hash_table, bloom_a, nth_thread, network_state, progress_network);
