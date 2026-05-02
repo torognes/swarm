@@ -222,7 +222,7 @@ auto generate_variants(Zobrist const & zobrist,
 
   /* deletions */
 
-  hash = zobrist.hash_delete_first(sequence, seqlen);
+  hash = zobrist.hash_delete_first(seq);
   add_variant(hash, Variant_type::deletion, 0, 0, variant_list, variant_count);
   auto previous_base = nt_extract(sequence, 0);
   for(auto offset = 1U; offset < seqlen; ++offset)
@@ -238,7 +238,7 @@ auto generate_variants(Zobrist const & zobrist,
 
   /* insertions */
 
-  hash = zobrist.hash_insert_first(sequence, seqlen);
+  hash = zobrist.hash_insert_first(seq);
   // insert before the first position in the sequence
   for(unsigned char base = 0; base < 4; ++base)
     {

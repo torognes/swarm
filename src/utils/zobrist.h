@@ -25,6 +25,9 @@
 #include <vector>
 
 
+struct Sequence;  // defined in db.h
+
+
 class Zobrist {
 public:
   explicit Zobrist(unsigned int n);
@@ -33,6 +36,10 @@ public:
   auto hash(char const * seq, unsigned int len) const -> uint64_t;
   auto hash_delete_first(char const * seq, unsigned int len) const -> uint64_t;
   auto hash_insert_first(char const * seq, unsigned int len) const -> uint64_t;
+
+  auto hash(Sequence const & seq) const -> uint64_t;
+  auto hash_delete_first(Sequence const & seq) const -> uint64_t;
+  auto hash_insert_first(Sequence const & seq) const -> uint64_t;
 
 private:
   std::vector<uint64_t> tab_base_v_;

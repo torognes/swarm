@@ -21,8 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "../db.h"  // brings in zobrist.h transitively, plus the Sequence definition
 #include "pseudo_rng.h"
-#include "zobrist.h"
 #include <algorithm> // std::for_each
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
@@ -228,4 +228,21 @@ auto Zobrist::hash_insert_first(char const * seq, unsigned int const len) const 
   return zobrist_hash;
 }
 
+
+auto Zobrist::hash(Sequence const & seq) const -> uint64_t
+{
+  return hash(seq.encoded.data(), seq.length);
+}
+
+
+auto Zobrist::hash_delete_first(Sequence const & seq) const -> uint64_t
+{
+  return hash_delete_first(seq.encoded.data(), seq.length);
+}
+
+
+auto Zobrist::hash_insert_first(Sequence const & seq) const -> uint64_t
+{
+  return hash_insert_first(seq.encoded.data(), seq.length);
+}
 

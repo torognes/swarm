@@ -371,7 +371,7 @@ namespace {
 
     uint64_t matches = 0;
 
-    const auto hash = data.zobrist().hash(seq.encoded.data(), seq.length);
+    const auto hash = data.zobrist().hash(seq);
     const auto variant_count = generate_variants(data.zobrist(), seq, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i) {

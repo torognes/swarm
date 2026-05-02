@@ -273,7 +273,7 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             auto const hash = zobrist.hash(seq.encoded.data(), seq.length);
+             auto const hash = zobrist.hash(seq);
 
              auto nth_bucket = hash & derep_hash_mask;
              auto * clusterp = &hashtable[nth_bucket];
