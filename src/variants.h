@@ -25,7 +25,8 @@
 #include <vector>
 
 
-class Zobrist;  // defined in zobrist.h
+class Zobrist;       // defined in zobrist.h
+struct Sequence;     // defined in db.h
 
 
 /* Variant information */
@@ -40,20 +41,16 @@ struct var_s
   unsigned short dummy; /* for alignment padding only */
 };
 
-auto generate_variant_sequence(char const * seed_sequence,
-                               unsigned int seed_seqlen,
+auto generate_variant_sequence(Sequence const & seed,
                                struct var_s const & var,
                                std::vector<char> & seq,
                                unsigned int & seqlen) -> void;
 
-auto check_variant(char const * seed_sequence,
-                   unsigned int seed_seqlen,
+auto check_variant(Sequence const & seed,
                    struct var_s const & var,
-                   char const * amp_sequence,
-                   unsigned int amp_seqlen) -> bool;
+                   Sequence const & amp) -> bool;
 
 auto generate_variants(Zobrist const & zobrist,
-                       char const * sequence,
-                       unsigned int seqlen,
+                       Sequence const & seq,
                        uint64_t hash,
                        std::vector<struct var_s> & variant_list) -> unsigned int;

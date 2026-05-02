@@ -37,9 +37,11 @@
 #include "utils/cigar.h"
 #include "utils/fatal.h"
 #include "utils/make_unique.h"
+#include "utils/nt_codec.h"
 #include "utils/progress.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
+#include "utils/view.h"
 #include <algorithm>  // std::sort(), std::reverse(), std::max()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -322,8 +324,7 @@ namespace {
 
   auto hash_check_attach(Data const & data,
                          Hashtable const & hash_table,
-                         char const * seed_sequence,
-                         unsigned int seed_seqlen,
+                         Sequence const & seed_seq,
                          struct var_s const & var,
                          unsigned int seed,
                          struct Graft_state & graft_state) -> bool
@@ -345,7 +346,7 @@ namespace {
 
             /* make absolutely sure sequences are identical */
             auto const amp_seq = data.sequence_view(amp);
-            if (check_variant(seed_sequence, seed_seqlen, var, amp_seq.encoded.data(), amp_seq.length))
+            if (check_variant(seed_seq, var, amp_seq))
               {
                 add_graft_candidate(seed, amp, graft_state);
                 return true;
@@ -360,8 +361,7 @@ namespace {
   inline auto check_heavy_var_2(Data const & data,
                                 Hashtable const & hash_table,
                                 BloomFilter const & bloom_a,
-                                std::vector<char> const & seq,
-                                unsigned int seqlen,
+                                Sequence const & seq,
                                 unsigned int seed,
                                 std::vector<struct var_s>& variant_list,
                                 struct Graft_state & graft_state) -> uint64_t
@@ -371,12 +371,12 @@ namespace {
 
     uint64_t matches = 0;
 
-    const auto hash = data.zobrist().hash(seq.data(), seqlen);
-    const auto variant_count = generate_variants(data.zobrist(), seq.data(), seqlen, hash, variant_list);  // refactoring: seq.data()
+    const auto hash = data.zobrist().hash(seq.encoded.data(), seq.length);
+    const auto variant_count = generate_variants(data.zobrist(), seq, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i) {
       if (bloom_a.get(variant_list[i].hash) and
-          hash_check_attach(data, hash_table, seq.data(), seqlen, variant_list[i], seed, graft_state)) {
+          hash_check_attach(data, hash_table, seq, variant_list[i], seed, graft_state)) {
         ++matches;
       }
     }
@@ -422,7 +422,7 @@ namespace {
 
     auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), seed_seq.encoded.data(), seed_seq.length, hash, variant_list);
+    const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i)
       {
@@ -430,12 +430,11 @@ namespace {
         if (bloom_f.get(var.hash))
           {
             auto varlen = 0U;
-            generate_variant_sequence(seed_seq.encoded.data(), seed_seq.length,
-                                      var, varseq, varlen);
+            generate_variant_sequence(seed_seq, var, varseq, varlen);
+            auto const var_seq = Sequence{View<char>{varseq.data(), nt_bytelength(varlen)}, varlen};
             matches += check_heavy_var_2(data, hash_table,
                                          bloom_a,
-                                         varseq,
-                                         varlen,
+                                         var_seq,
                                          seed,
                                          variant_list2,
                                          graft_state);
@@ -516,7 +515,7 @@ namespace {
 
     auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), seed_seq.encoded.data(), seed_seq.length, hash, variant_list);
+    const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
     for (auto i = 0U; i < variant_count; ++i) {
       bloom_f.set(variant_list[i].hash);
@@ -603,9 +602,7 @@ namespace {
                   auto const seed_seq = data.sequence_view(seed);
                   auto const amp_seq = data.sequence_view(amp);
 
-                  if (check_variant(seed_seq.encoded.data(), seed_seq.length,
-                                    var,
-                                    amp_seq.encoded.data(), amp_seq.length))
+                  if (check_variant(seed_seq, var, amp_seq))
                     {
                       hits_data[hits_count] = amp;
                       ++hits_count;
@@ -631,7 +628,7 @@ namespace {
 
     auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), seed_seq.encoded.data(), seed_seq.length, hash, variant_list);
+    const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
     // C++17 refactoring:
     // std::for_each_n(variant_list.begin(), variant_count,

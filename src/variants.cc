@@ -21,8 +21,8 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "db.h"
 #include "utils/nt_codec.h"
-#include "utils/zobrist.h"
 #include "variants.h"
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::memcpy
@@ -76,13 +76,15 @@ inline auto seq_identical(char const * seq_a,
 }
 
 
-auto generate_variant_sequence(char const * seed_sequence,
-                               unsigned int seed_seqlen,
+auto generate_variant_sequence(Sequence const & seed,
                                struct var_s const & var,
                                std::vector<char>& seq,
                                unsigned int & seqlen) -> void
 {
   /* generate the actual sequence of a variant */
+
+  auto const * seed_sequence = seed.encoded.data();
+  auto const seed_seqlen = seed.length;
 
   switch (var.type)
     {
@@ -116,14 +118,17 @@ auto generate_variant_sequence(char const * seed_sequence,
 }
 
 
-auto check_variant(char const * seed_sequence,
-                   unsigned int seed_seqlen,
+auto check_variant(Sequence const & seed,
                    struct var_s const & var,
-                   char const * amp_sequence,
-                   unsigned int amp_seqlen) -> bool
+                   Sequence const & amp) -> bool
 {
   /* make sure seed with given variant is really identical to amp */
   /* we know the hashes are identical */
+
+  auto const * seed_sequence = seed.encoded.data();
+  auto const seed_seqlen = seed.length;
+  auto const * amp_sequence = amp.encoded.data();
+  auto const amp_seqlen = amp.length;
 
   bool equal {false};
 
@@ -183,11 +188,13 @@ inline auto add_variant(uint64_t hash,
 
 
 auto generate_variants(Zobrist const & zobrist,
-                       char const * sequence,
-                       unsigned int seqlen,
+                       Sequence const & seq,
                        uint64_t hash,
                        std::vector<struct var_s>& variant_list) -> unsigned int
 {
+  auto const * sequence = seq.encoded.data();
+  auto const seqlen = seq.length;
+
   auto variant_count = 0U;
   /* substitutions */
 
