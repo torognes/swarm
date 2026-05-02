@@ -33,56 +33,76 @@
 #include <vector>
 
 
-// cppcheck-suppress constParameterPointer  // false positive: seq is written via reinterpret_cast below
-inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const base) -> void
-{
-  // base = replacement nucleotide = encoded as 0, 1, 2, 3
-  static constexpr auto divider = 5U;
-  static constexpr auto max_range = 31U;
-  static constexpr auto two_bits = 3ULL;  // '... 0011' in binary
-  const auto whichlong = pos >> divider;
-  const uint64_t shift = static_cast<uint64_t>(pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
-  const uint64_t mask = compl (two_bits << shift);
-  auto & mutated_position = *std::next(reinterpret_cast<uint64_t *>(seq), whichlong);
-  mutated_position &= mask;
-  mutated_position |= (static_cast<uint64_t>(base)) << shift;
-}
+namespace {
+
+  constexpr std::size_t nt_per_byte = 4;  // 4 nucleotides packed per byte
 
 
-static constexpr std::size_t nt_per_byte = 4;  // 4 nucleotides packed per byte
-
-
-inline auto seq_copy(char * seq_a,
-                     unsigned int a_start,
-                     View<char> seq_b,
-                     unsigned int b_start,
-                     unsigned int length) -> void
-{
-  /* copy part of the compressed sequence b to a */
-  assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
-  for(auto i = 0U; i < length; ++i) {
-    nt_set(seq_a, a_start + i, nt_extract(seq_b.data(), b_start + i));
+  // cppcheck-suppress constParameterPointer  // false positive: seq is written via reinterpret_cast below
+  inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const base) -> void
+  {
+    // base = replacement nucleotide = encoded as 0, 1, 2, 3
+    static constexpr auto divider = 5U;
+    static constexpr auto max_range = 31U;
+    static constexpr auto two_bits = 3ULL;  // '... 0011' in binary
+    const auto whichlong = pos >> divider;
+    const uint64_t shift = static_cast<uint64_t>(pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
+    const uint64_t mask = compl (two_bits << shift);
+    auto & mutated_position = *std::next(reinterpret_cast<uint64_t *>(seq), whichlong);
+    mutated_position &= mask;
+    mutated_position |= (static_cast<uint64_t>(base)) << shift;
   }
-}
 
 
-inline auto seq_identical(View<char> seq_a,
-                          unsigned int a_start,
-                          View<char> seq_b,
-                          unsigned int b_start,
-                          unsigned int length) -> bool
-{
-  /* compare parts of two compressed sequences a and b */
-  /* return false if different, true if identical */
-  assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
-  assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
-  for(auto i = 0U; i < length; ++i) {
-    if (nt_extract(seq_a.data(), a_start + i) != nt_extract(seq_b.data(), b_start + i)) {
-      return false;
+  inline auto seq_copy(char * seq_a,
+                       unsigned int a_start,
+                       View<char> seq_b,
+                       unsigned int b_start,
+                       unsigned int length) -> void
+  {
+    /* copy part of the compressed sequence b to a */
+    assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
+    for(auto i = 0U; i < length; ++i) {
+      nt_set(seq_a, a_start + i, nt_extract(seq_b.data(), b_start + i));
     }
   }
-  return true;
-}
+
+
+  inline auto seq_identical(View<char> seq_a,
+                            unsigned int a_start,
+                            View<char> seq_b,
+                            unsigned int b_start,
+                            unsigned int length) -> bool
+  {
+    /* compare parts of two compressed sequences a and b */
+    /* return false if different, true if identical */
+    assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
+    assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
+    for(auto i = 0U; i < length; ++i) {
+      if (nt_extract(seq_a.data(), a_start + i) != nt_extract(seq_b.data(), b_start + i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+
+  inline auto add_variant(uint64_t hash,
+                          Variant_type type,
+                          unsigned int pos,
+                          unsigned char base,
+                          std::vector<struct var_s>& variant_list,
+                          unsigned int & variant_count) -> void
+  {
+    var_s & variant = variant_list[variant_count];
+    ++variant_count;
+    variant.hash = hash;
+    variant.type = type;
+    variant.pos = pos;
+    variant.base = base;
+  }
+
+}  // anonymous namespace
 
 
 auto generate_variant_sequence(Sequence const & seed,
@@ -174,22 +194,6 @@ auto check_variant(Sequence const & seed,
     }
 
   return equal;
-}
-
-
-inline auto add_variant(uint64_t hash,
-                        Variant_type type,
-                        unsigned int pos,
-                        unsigned char base,
-                        std::vector<struct var_s>& variant_list,
-                        unsigned int & variant_count) -> void
-{
-  var_s & variant = variant_list[variant_count];
-  ++variant_count;
-  variant.hash = hash;
-  variant.type = type;
-  variant.pos = pos;
-  variant.base = base;
 }
 
 
