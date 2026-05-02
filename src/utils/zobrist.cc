@@ -160,19 +160,21 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
 
 
 // refactoring: unrolling does not work (hard to deal with the last positions (sub-byte)
-// refactoring: factorize hash_delete_first() and hash_insert_first()?
-auto Zobrist::hash_delete_first(char const * seq, unsigned int const len) const -> uint64_t
+auto Zobrist::hash_first_shifted(char const * seq, unsigned int const len,
+                                 First_base_op const op) const -> uint64_t
 {
-  /* compute the Zobrist hash function of sequence seq,
-     but delete the first base */
+  /* Shared body of hash_delete_first and hash_insert_first.
+     remove:     skip the first input base, output position = input pos - 1.
+     insert_gap: keep all input bases,     output position = input pos + 1. */
 
   static constexpr auto nt_per_byte = 4U;  // 4 nucleotides per byte
   static constexpr auto divider = 2U;
   auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
   auto const view = View<char>{seq, n_bytes};
+  auto const start = (op == First_base_op::remove) ? 1U : 0U;
   auto offset = to_uchar(view.front());
   uint64_t zobrist_hash = 0;
-  for(auto pos = 1U; pos < len; ++pos)
+  for(auto pos = start; pos < len; ++pos)
     {
       auto const is_new_byte = (pos & (nt_per_byte - 1)) == 0;
       if (is_new_byte) {  // every 4 positions, except the first one
@@ -181,9 +183,18 @@ auto Zobrist::hash_delete_first(char const * seq, unsigned int const len) const 
       else {
         offset >>= 2U;
       }
-      zobrist_hash ^= value(pos - 1, offset & 3U);
+      auto const out_pos = (op == First_base_op::remove) ? pos - 1U : pos + 1U;
+      zobrist_hash ^= value(out_pos, offset & 3U);
     }
   return zobrist_hash;
+}
+
+
+auto Zobrist::hash_delete_first(char const * seq, unsigned int const len) const -> uint64_t
+{
+  /* compute the Zobrist hash function of sequence seq,
+     but delete the first base */
+  return hash_first_shifted(seq, len, First_base_op::remove);
 }
 
 
@@ -191,25 +202,7 @@ auto Zobrist::hash_insert_first(char const * seq, unsigned int const len) const 
 {
   /* compute the Zobrist hash function of sequence seq,
      but insert a gap (no value) before the first base */
-
-  static constexpr auto nt_per_byte = 4U;  // 4 nucleotides per byte
-  static constexpr auto divider = 2U;
-  auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
-  auto const view = View<char>{seq, n_bytes};
-  auto offset = to_uchar(view.front());
-  uint64_t zobrist_hash = 0;
-  for(auto pos = 0U; pos < len; ++pos)
-    {
-      auto const is_new_byte = (pos & (nt_per_byte - 1)) == 0;
-      if (is_new_byte) {  // every 4 positions, except the first one
-        offset = to_uchar(view[pos >> divider]);  // load new data every 4 positions
-      }
-      else {
-        offset >>= 2U;
-      }
-      zobrist_hash ^= value(pos + 1, offset & 3U);
-    }
-  return zobrist_hash;
+  return hash_first_shifted(seq, len, First_base_op::insert_gap);
 }
 
 

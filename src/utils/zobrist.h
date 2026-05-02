@@ -42,6 +42,10 @@ public:
   auto hash_insert_first(Sequence const & seq) const -> uint64_t;
 
 private:
+  enum struct First_base_op { remove, insert_gap };
+  auto hash_first_shifted(char const * seq, unsigned int len,
+                          First_base_op op) const -> uint64_t;
+
   std::vector<uint64_t> tab_base_v_;
   std::vector<uint64_t> tab_byte_base_v_;
 };
