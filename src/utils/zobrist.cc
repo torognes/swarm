@@ -25,15 +25,9 @@
 #include "pseudo_rng.h"
 #include <algorithm> // std::for_each
 #include <cassert>
-#include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
 #include <vector>
-
-#ifndef NDEBUG
-// C++17 refactoring: [[maybe_unused]]
-#include <limits>
-#endif
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -174,16 +168,15 @@ auto Zobrist::hash_delete_first(char const * seq, unsigned int const len) const 
 
   static constexpr auto nt_per_byte = 4U;  // 4 nucleotides per byte
   static constexpr auto divider = 2U;
-  auto offset = to_uchar(*seq);
+  auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
+  auto const view = View<char>{seq, n_bytes};
+  auto offset = to_uchar(view.front());
   uint64_t zobrist_hash = 0;
   for(auto pos = 1U; pos < len; ++pos)
     {
       auto const is_new_byte = (pos & (nt_per_byte - 1)) == 0;
       if (is_new_byte) {  // every 4 positions, except the first one
-        auto const target_chunk = (pos >> divider);
-        assert(target_chunk <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const target_chunk_signed = static_cast<std::ptrdiff_t>(target_chunk);
-        offset = to_uchar(*std::next(seq, target_chunk_signed));  // load new data every 4 positions
+        offset = to_uchar(view[pos >> divider]);  // load new data every 4 positions
       }
       else {
         offset >>= 2U;
@@ -201,16 +194,15 @@ auto Zobrist::hash_insert_first(char const * seq, unsigned int const len) const 
 
   static constexpr auto nt_per_byte = 4U;  // 4 nucleotides per byte
   static constexpr auto divider = 2U;
-  auto offset = to_uchar(*seq);
+  auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
+  auto const view = View<char>{seq, n_bytes};
+  auto offset = to_uchar(view.front());
   uint64_t zobrist_hash = 0;
   for(auto pos = 0U; pos < len; ++pos)
     {
       auto const is_new_byte = (pos & (nt_per_byte - 1)) == 0;
       if (is_new_byte) {  // every 4 positions, except the first one
-        auto const target_chunk = (pos >> divider);
-        assert(target_chunk <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const target_chunk_signed = static_cast<std::ptrdiff_t>(target_chunk);
-        offset = to_uchar(*std::next(seq, target_chunk_signed));  // load new data every 4 positions
+        offset = to_uchar(view[pos >> divider]);  // load new data every 4 positions
       }
       else {
         offset >>= 2U;
