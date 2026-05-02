@@ -23,9 +23,12 @@
 
 #include "db.h"
 #include "utils/nt_codec.h"
+#include "utils/view.h"
 #include "variants.h"
+#include <algorithm>  // std::copy
+#include <cassert>  // assert
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
-#include <cstring>  // std::memcpy
 #include <iterator>  // std::next
 #include <vector>
 
@@ -46,29 +49,35 @@ inline auto nt_set(char * const seq, unsigned int const pos, unsigned int const 
 }
 
 
+static constexpr std::size_t nt_per_byte = 4;  // 4 nucleotides packed per byte
+
+
 inline auto seq_copy(char * seq_a,
                      unsigned int a_start,
-                     char const * seq_b,
+                     View<char> seq_b,
                      unsigned int b_start,
                      unsigned int length) -> void
 {
   /* copy part of the compressed sequence b to a */
+  assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
   for(auto i = 0U; i < length; ++i) {
-    nt_set(seq_a, a_start + i, nt_extract(seq_b, b_start + i));
+    nt_set(seq_a, a_start + i, nt_extract(seq_b.data(), b_start + i));
   }
 }
 
 
-inline auto seq_identical(char const * seq_a,
+inline auto seq_identical(View<char> seq_a,
                           unsigned int a_start,
-                          char const * seq_b,
+                          View<char> seq_b,
                           unsigned int b_start,
                           unsigned int length) -> bool
 {
   /* compare parts of two compressed sequences a and b */
   /* return false if different, true if identical */
+  assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
+  assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
   for(auto i = 0U; i < length; ++i) {
-    if (nt_extract(seq_a, a_start + i) != nt_extract(seq_b, b_start + i)) {
+    if (nt_extract(seq_a.data(), a_start + i) != nt_extract(seq_b.data(), b_start + i)) {
       return false;
     }
   }
@@ -83,34 +92,33 @@ auto generate_variant_sequence(Sequence const & seed,
 {
   /* generate the actual sequence of a variant */
 
-  auto const * seed_sequence = seed.encoded.data();
   auto const seed_seqlen = seed.length;
 
   switch (var.type)
     {
     case Variant_type::substitution:
-      std::memcpy(seq.data(), seed_sequence, nt_bytelength(seed_seqlen));
+      std::copy(seed.encoded.cbegin(), seed.encoded.cend(), seq.begin());
       nt_set(seq.data(), var.pos, var.base);
       seqlen = seed_seqlen;
       break;
 
     case Variant_type::deletion:
       seq_copy(seq.data(), 0,
-               seed_sequence, 0,
+               seed.encoded, 0,
                var.pos);
       seq_copy(seq.data(), var.pos,
-               seed_sequence, var.pos + 1,
+               seed.encoded, var.pos + 1,
                seed_seqlen - var.pos - 1);
       seqlen = seed_seqlen - 1;
       break;
 
     case Variant_type::insertion:
       seq_copy(seq.data(), 0,
-               seed_sequence, 0,
+               seed.encoded, 0,
                var.pos);
       nt_set(seq.data(), var.pos, var.base);
       seq_copy(seq.data(), var.pos + 1,
-               seed_sequence, var.pos,
+               seed.encoded, var.pos,
                seed_seqlen - var.pos);
       seqlen = seed_seqlen + 1;
       break;
@@ -125,9 +133,7 @@ auto check_variant(Sequence const & seed,
   /* make sure seed with given variant is really identical to amp */
   /* we know the hashes are identical */
 
-  auto const * seed_sequence = seed.encoded.data();
   auto const seed_seqlen = seed.length;
-  auto const * amp_sequence = amp.encoded.data();
   auto const amp_seqlen = amp.length;
 
   bool equal {false};
@@ -136,33 +142,33 @@ auto check_variant(Sequence const & seed,
     {
     case Variant_type::substitution:
       equal = ((seed_seqlen == amp_seqlen) and
-               (seq_identical(seed_sequence, 0,
-                              amp_sequence, 0,
+               (seq_identical(seed.encoded, 0,
+                              amp.encoded, 0,
                               var.pos)) and
-               (nt_extract(amp_sequence, var.pos) == var.base) and
-               (seq_identical(seed_sequence, var.pos + 1,
-                              amp_sequence,  var.pos + 1,
+               (nt_extract(amp.encoded.data(), var.pos) == var.base) and
+               (seq_identical(seed.encoded, var.pos + 1,
+                              amp.encoded,  var.pos + 1,
                               seed_seqlen - var.pos - 1)));
       break;
 
     case Variant_type::deletion:
       equal = (((seed_seqlen - 1) == amp_seqlen) and
-               (seq_identical(seed_sequence, 0,
-                              amp_sequence, 0,
+               (seq_identical(seed.encoded, 0,
+                              amp.encoded, 0,
                               var.pos)) and
-               (seq_identical(seed_sequence, var.pos + 1,
-                              amp_sequence,  var.pos,
+               (seq_identical(seed.encoded, var.pos + 1,
+                              amp.encoded,  var.pos,
                               seed_seqlen - var.pos - 1)));
       break;
 
     case Variant_type::insertion:
       equal = (((seed_seqlen + 1) == amp_seqlen) and
-               (seq_identical(seed_sequence, 0,
-                              amp_sequence, 0,
+               (seq_identical(seed.encoded, 0,
+                              amp.encoded, 0,
                               var.pos)) and
-               (nt_extract(amp_sequence, var.pos) == var.base) and
-               (seq_identical(seed_sequence, var.pos,
-                              amp_sequence,  var.pos + 1,
+               (nt_extract(amp.encoded.data(), var.pos) == var.base) and
+               (seq_identical(seed.encoded, var.pos,
+                              amp.encoded,  var.pos + 1,
                               seed_seqlen - var.pos)));
       break;
     }
