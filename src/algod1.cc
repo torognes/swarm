@@ -1099,29 +1099,27 @@ namespace {
 
 
   auto count_cluster_stats(struct Parameters const & parameters,
-                           unsigned int const swarmcount,
                            std::vector<struct swarminfo_s> const & swarminfo_v) -> Cluster_stats
   {
     Cluster_stats stats;
 
     Progress progress_count("Counting amplicons in heavy and light swarms",
-                            swarmcount, parameters);
+                            swarminfo_v.size(), parameters);
 
-    for (auto i = 0ULL; i < swarmcount; ++i)
+    for (auto const & swarm_info : swarminfo_v)
       {
-        auto const & swarm_info = swarminfo_v[i];
         if (swarm_info.mass < static_cast<uint64_t>(parameters.opt_boundary))
           {
             stats.amplicons_in_small_clusters += swarm_info.size;
             stats.nucleotides_in_small_clusters += swarm_info.sumlen;
             ++stats.small_clusters;
           }
-        progress_count.update(i + 1);
+        progress_count.update();
       }
     progress_count.done();
 
     stats.amplicons_in_large_clusters = amplicons - stats.amplicons_in_small_clusters;
-    stats.large_clusters = swarmcount - stats.small_clusters;
+    stats.large_clusters = swarminfo_v.size() - stats.small_clusters;
 
     return stats;
   }
@@ -1283,7 +1281,7 @@ namespace {
     std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
     std::fprintf(parameters.logfile, "\n");
 
-    auto const stats = count_cluster_stats(parameters, swarmcount, swarminfo_v);
+    auto const stats = count_cluster_stats(parameters, swarminfo_v);
     auto const small_clusters = stats.small_clusters;
     auto const large_clusters = stats.large_clusters;
     auto const amplicons_in_small_clusters = stats.amplicons_in_small_clusters;
