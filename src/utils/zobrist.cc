@@ -132,29 +132,36 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
 
   // refactoring: equivalent to a std::reduce() algorithm?
   static constexpr auto offset = 64U;
-  static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
+  static constexpr auto nt_per_byte = 4U;
+  static constexpr auto bytes_per_uint64 = 8U;
+  static constexpr auto nt_per_uint64 = nt_per_byte * bytes_per_uint64;  // 32 nt per uint64 chunk
   uint64_t zobrist_hash = 0;
   auto pos = 0U;
 
-  while (pos + nt_per_uint64 < len)  // hash bytes by groups of 8
+  // Bulk: 32 nt (8 bytes) per outer iteration. The fixed-trip-count
+  // inner for-loop gives the compiler a clear hint to unroll.
+  auto const n_chunks = len / nt_per_uint64;
+  for (auto chunk = 0U; chunk < n_chunks; ++chunk)
     {
-      for(auto i = 0U; i < nt_per_uint64; i += 4) {
-        auto const a_byte = to_uchar(*seq);
-        auto const target_hash = (offset * (pos + i)) + a_byte;
-        // i = {0, 4, 8, 12, 16, 20, 24, 28}
-        zobrist_hash ^= tab_byte_base_v_[target_hash];
-        seq = std::next(seq);
-      }
-      pos += nt_per_uint64;
+      for (auto byte_i = 0U; byte_i < bytes_per_uint64; ++byte_i)
+        {
+          auto const a_byte = to_uchar(*seq);
+          auto const target_hash = (offset * pos) + a_byte;
+          zobrist_hash ^= tab_byte_base_v_[target_hash];
+          seq = std::next(seq);
+          pos += nt_per_byte;
+        }
     }
 
-  while (pos + 4 < len)  // less than 8 bytes remaining (hash bytes one-by-one)
+  // Tail handler: 0..31 nt left. First the remaining complete bytes
+  // (0..7 of them), then the sub-byte residue (0..3 nt).
+  while (pos + nt_per_byte <= len)
     {
       auto const a_byte = to_uchar(*seq);
       auto const target_hash = (offset * pos) + a_byte;
       zobrist_hash ^= tab_byte_base_v_[target_hash];
       seq = std::next(seq);
-      pos += 4;
+      pos += nt_per_byte;
     }
 
   if (pos < len)  // less than a byte remaining (hash pairs of bits one-by-one)
