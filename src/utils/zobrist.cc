@@ -130,44 +130,29 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len + 3 ) / 4 bytes */
 
-  // refactoring: equivalent to a std::reduce() algorithm?
-  static constexpr auto offset = 64U;
+  static constexpr auto byte_range = 256U;  // tab_byte_base_v_ entries per byte position
   static constexpr auto nt_per_byte = 4U;
-  static constexpr auto bytes_per_uint64 = 8U;
-  static constexpr auto nt_per_uint64 = nt_per_byte * bytes_per_uint64;  // 32 nt per uint64 chunk
   uint64_t zobrist_hash = 0;
-  auto pos = 0U;
 
-  // Bulk: 32 nt (8 bytes) per outer iteration. The fixed-trip-count
-  // inner for-loop gives the compiler a clear hint to unroll.
-  auto const n_chunks = len / nt_per_uint64;
-  for (auto chunk = 0U; chunk < n_chunks; ++chunk)
-    {
-      for (auto byte_i = 0U; byte_i < bytes_per_uint64; ++byte_i)
-        {
-          auto const a_byte = to_uchar(*seq);
-          auto const target_hash = (offset * pos) + a_byte;
-          zobrist_hash ^= tab_byte_base_v_[target_hash];
-          seq = std::next(seq);
-          pos += nt_per_byte;
-        }
-    }
+  // Bulk: hash all complete bytes via the precomputed byte-rate
+  // table. std::for_each over a View gives the compiler a tight,
+  // contiguous-iterator loop with a simple lambda body — easier to
+  // autovectorize than a moving-pointer hand-rolled loop.
+  auto const n_complete_bytes = len / nt_per_byte;
+  auto const bulk = View<char>{seq, n_complete_bytes};
+  auto byte_idx = 0U;
+  std::for_each(bulk.cbegin(), bulk.cend(),
+                [&](char const byte) {
+                  auto const a_byte = to_uchar(byte);
+                  zobrist_hash ^= tab_byte_base_v_[(byte_range * byte_idx) + a_byte];
+                  ++byte_idx;
+                });
 
-  // Tail handler: 0..31 nt left. First the remaining complete bytes
-  // (0..7 of them), then the sub-byte residue (0..3 nt).
-  while (pos + nt_per_byte <= len)
+  // Sub-byte residue: 0..3 nt that didn't fill a byte
+  auto pos = n_complete_bytes * nt_per_byte;
+  if (pos < len)
     {
-      auto const a_byte = to_uchar(*seq);
-      auto const target_hash = (offset * pos) + a_byte;
-      zobrist_hash ^= tab_byte_base_v_[target_hash];
-      seq = std::next(seq);
-      pos += nt_per_byte;
-    }
-
-  if (pos < len)  // less than a byte remaining (hash pairs of bits one-by-one)
-    {
-      auto last_byte = to_uchar(*seq);
-      seq = std::next(seq);  // useless in normal conditions, keep it for now
+      auto last_byte = to_uchar(*std::next(seq, n_complete_bytes));
       while (pos < len)
         {
           zobrist_hash ^= value(pos, last_byte & 3U);
