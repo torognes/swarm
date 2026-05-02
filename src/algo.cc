@@ -27,6 +27,7 @@
 #include "nw.h"
 #include "scan.h"
 #include "utils/cigar.h"
+#include "utils/make_unique.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/progress.h"
 #include "utils/search_data.h"
@@ -320,11 +321,11 @@ auto algo_run(struct Parameters const & parameters,
   search_begin(parameters, data, search_state, search_data_v);
   /* start threads */
   assert(parameters.opt_threads <= std::numeric_limits<int>::max());
-  const std::unique_ptr<ThreadRunner> search_threads (new ThreadRunner(
+  auto const search_threads = utils::make_unique<ThreadRunner>(
       static_cast<int>(parameters.opt_threads),
       [&parameters, &data, &search_state](int64_t thread_id) -> void {
         search_worker_core(parameters, data, thread_id, search_state);
-      }));
+      });
 
   uint64_t largestswarm {0};
   uint64_t maxgenerations {0};

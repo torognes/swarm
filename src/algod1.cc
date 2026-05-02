@@ -36,6 +36,7 @@
 #include "variants.h"
 #include "utils/cigar.h"
 #include "utils/fatal.h"
+#include "utils/make_unique.h"
 #include "utils/progress.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
@@ -1221,11 +1222,11 @@ namespace {
     {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       // refactoring C++14: use std::make_unique
-      std::unique_ptr<ThreadRunner> light_tr (new ThreadRunner(
+      auto light_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
           [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
             mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
-          }));
+          });
       light_tr->run();
     }
     progress_light.done();
@@ -1255,11 +1256,11 @@ namespace {
     {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       // refactoring C++14: use std::make_unique
-      std::unique_ptr<ThreadRunner> heavy_tr (new ThreadRunner(
+      auto heavy_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
           [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
             check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
-          }));
+          });
       heavy_tr->run();
     }
     progress_heavy.done();
@@ -1379,11 +1380,11 @@ auto algo_d1_run(struct Parameters const & parameters,
     {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       // refactoring C++14: use std::make_unique
-      std::unique_ptr<ThreadRunner> network_tr (new ThreadRunner(
+      auto network_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
           [&parameters, &data, &hash_table, &bloom_a, &network_state, &progress_network](int64_t nth_thread) -> void {
             network_thread(parameters, data, hash_table, bloom_a, nth_thread, network_state, progress_network);
-          }));
+          });
       network_tr->run();
     }
 
