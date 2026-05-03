@@ -24,6 +24,7 @@
 #include "../db.h"  // brings in zobrist.h transitively, plus the Sequence definition
 #include "pseudo_rng.h"
 #include <algorithm> // std::for_each
+#include <array>
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
@@ -63,33 +64,34 @@ auto Zobrist::fill_rng_table(unsigned int const zobrist_len) -> void
     31-bit random numbers.
   */
   static constexpr auto multiplier = 16U;
+  using Row = std::array<uint64_t, nt_per_byte>;
 
   /* allocate base table and fill with random 64 bit numbers */
-  tab_base_v_.resize(4ULL * zobrist_len);
+  tab_base_v_.resize(zobrist_len);
 
   std::for_each(tab_base_v_.begin(),
                 tab_base_v_.end(),
-                [](uint64_t & rng_value) -> void {
-                  // refactoring: comment states 31-bit random numbers?!
-                  rng_value = rand_64();
-                  rng_value <<= multiplier;
-                  rng_value ^= rand_64();
-                  rng_value <<= multiplier;
-                  rng_value ^= rand_64();
-                  rng_value <<= multiplier;
-                  rng_value ^= rand_64();
+                [](Row & row) -> void {
+                  for (auto & rng_value : row) {
+                    // refactoring: comment states 31-bit random numbers?!
+                    rng_value = rand_64();
+                    rng_value <<= multiplier;
+                    rng_value ^= rand_64();
+                    rng_value <<= multiplier;
+                    rng_value ^= rand_64();
+                    rng_value <<= multiplier;
+                    rng_value ^= rand_64();
+                  }
                 });
 }
 
 
 auto Zobrist::fill_rng_byte_table(unsigned int const zobrist_len) -> void
 {
-  static constexpr auto byte_range = 256U;
-  static constexpr auto nt_per_byte = 4U;
   auto const n_byte_positions = zobrist_len / nt_per_byte;
 
   /* allocate byte table and combine into bytes for faster computations */
-  tab_byte_base_v_.resize(1ULL * byte_range * n_byte_positions);
+  tab_byte_base_v_.resize(n_byte_positions);
 
   for (auto i = 0U; i < n_byte_positions; ++i) {
     for (auto j = 0U; j < byte_range; ++j) {
@@ -99,7 +101,7 @@ auto Zobrist::fill_rng_byte_table(unsigned int const zobrist_len) -> void
         rng_value ^= value((nt_per_byte * i) + k, offset & 3U);
         offset >>= 2U;
       }
-      tab_byte_base_v_[(byte_range * i) + j] = rng_value;
+      tab_byte_base_v_[i][j] = rng_value;
     }
   }
 }
@@ -109,7 +111,7 @@ auto Zobrist::value(unsigned int const pos, unsigned char const offset) const ->
 {
   assert(not tab_base_v_.empty());
   assert(offset == 0 or offset == 1 or offset == 2 or offset == 3);
-  return tab_base_v_[(4 * pos) + offset];
+  return tab_base_v_[pos][offset];
 }
 
 
@@ -119,8 +121,6 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len + 3 ) / 4 bytes */
 
-  static constexpr auto byte_range = 256U;  // tab_byte_base_v_ entries per byte position
-  static constexpr auto nt_per_byte = 4U;
   uint64_t zobrist_hash = 0;
 
   // Bulk: hash all complete bytes via the precomputed byte-rate
@@ -133,7 +133,7 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
   std::for_each(bulk.cbegin(), bulk.cend(),
                 [&](char const byte) {
                   auto const a_byte = to_uchar(byte);
-                  zobrist_hash ^= tab_byte_base_v_[(byte_range * byte_idx) + a_byte];
+                  zobrist_hash ^= tab_byte_base_v_[byte_idx][a_byte];
                   ++byte_idx;
                 });
 
@@ -162,7 +162,6 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
      remove:     skip the first input base, output position = input pos - 1.
      insert_gap: keep all input bases,     output position = input pos + 1. */
 
-  static constexpr auto nt_per_byte = 4U;  // 4 nucleotides per byte
   static constexpr auto divider = 2U;
   auto const len = seq.length;
   auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;

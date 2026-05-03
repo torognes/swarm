@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <array>
 #include <cstdint> // uint64_t
 #include <vector>
 
@@ -46,8 +47,14 @@ private:
   auto fill_rng_table(unsigned int zobrist_len) -> void;
   auto fill_rng_byte_table(unsigned int zobrist_len) -> void;
 
-  std::vector<uint64_t> tab_base_v_;
-  std::vector<uint64_t> tab_byte_base_v_;
+  static constexpr auto nt_per_byte = 4U;     // 4 nucleotides packed per encoded byte
+  static constexpr auto byte_range = 256U;    // 8-bit byte values: 256 possibilities
+
+  // tab_base_v_[pos]      : 4 RNG values, one per nucleotide A/C/G/T
+  // tab_byte_base_v_[bpos]: 256 precomputed XOR-folds, one per possible byte value,
+  //                         where bpos is the byte position in the encoded buffer
+  std::vector<std::array<uint64_t, nt_per_byte>>  tab_base_v_;
+  std::vector<std::array<uint64_t, byte_range>>   tab_byte_base_v_;
 };
 
 
