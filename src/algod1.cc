@@ -856,7 +856,6 @@ namespace {
 
     Progress progress("Writing UCLUST:   ", swarminfo_v.size(), parameters);
 
-    auto counter = 0U;
     for (auto const & swarm_info : swarminfo_v) {
       if (swarm_info.attached) {
         continue;
@@ -917,8 +916,7 @@ namespace {
         }
 
       ++cluster_no;
-      progress.update(counter);
-      ++counter;
+      progress.update();
     }
     progress.done();
   }
