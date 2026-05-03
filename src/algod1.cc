@@ -639,6 +639,7 @@ namespace {
 
   auto network_thread(struct Parameters const & parameters,
                       Data const & data,
+                      std::vector<struct ampinfo_s> & ampinfo_v,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
                       int64_t nth_thread,
@@ -666,9 +667,7 @@ namespace {
         const auto hits_count = check_variants(parameters, data, hash_table, bloom_a, amp, variant_list, hits_data);
         lock.lock();
 
-        assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const signed_position = static_cast<std::ptrdiff_t>(amp);
-        auto & target_amplicon = *std::next(ampinfo, signed_position);
+        auto & target_amplicon = ampinfo_v[amp];
         target_amplicon.link_start = state.count;
         target_amplicon.link_count = hits_count;
 
@@ -1369,8 +1368,8 @@ auto algo_d1_run(struct Parameters const & parameters,
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const network_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &hash_table, &bloom_a, &network_state, &progress_network](int64_t nth_thread) -> void {
-            network_thread(parameters, data, hash_table, bloom_a, nth_thread, network_state, progress_network);
+          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](int64_t nth_thread) -> void {
+            network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
           });
       network_tr->run();
     }
