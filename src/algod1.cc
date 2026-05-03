@@ -126,8 +126,6 @@ static uint64_t swarm_sumlen {0};
 
 static unsigned int * global_hits_data {nullptr};
 
-static unsigned int longestamplicon {0};
-
 static unsigned int amplicons {0};
 
 struct Heavy_state
@@ -461,8 +459,8 @@ namespace {
     static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
     (void) nth_thread;  // refactoring: unused parameter, replace with function overload?
 
-    std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset);
-    std::vector<struct var_s> variant_list2((multiplier * (longestamplicon + 1)) + offset);
+    std::vector<struct var_s> variant_list((multiplier * data.longest_sequence()) + offset);
+    std::vector<struct var_s> variant_list2((multiplier * (data.longest_sequence() + 1)) + offset);
 
     const std::size_t size =
       sizeof(uint64_t) * ((data.longest_sequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
@@ -539,7 +537,7 @@ namespace {
 
     (void) nth_thread;  // refactoring: unused?
 
-    std::vector<struct var_s> variant_list((multiplier * longestamplicon) + offset);
+    std::vector<struct var_s> variant_list((multiplier * data.longest_sequence()) + offset);
 
     std::unique_lock<std::mutex> lock(state.mutex);
     while (state.progress < state.amplicon_count)
@@ -653,7 +651,7 @@ namespace {
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
-    std::size_t const n_items = (multiplier * longestamplicon) + offset + 1;
+    std::size_t const n_items = (multiplier * data.longest_sequence()) + offset + 1;
 
     (void) nth_thread;  // refactoring: unused?
 
@@ -859,12 +857,12 @@ namespace {
     static constexpr auto one_hundred = 100.0;
     auto cluster_no = 0U;
     const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-    std::vector<unsigned char> directions(1UL * longestamplicon * longestamplicon);
-    std::vector<uint64_t> hearray(2UL * longestamplicon);
+    std::vector<unsigned char> directions(1UL * data.longest_sequence() * data.longest_sequence());
+    std::vector<uint64_t> hearray(2UL * data.longest_sequence());
     std::vector<char> raw_alignment;
     std::string cigar_string;
-    raw_alignment.reserve(2UL * longestamplicon);
-    cigar_string.reserve(2UL * longestamplicon);
+    raw_alignment.reserve(2UL * data.longest_sequence());
+    cigar_string.reserve(2UL * data.longest_sequence());
 
     Progress progress("Writing UCLUST:   ", swarminfo_v.size(), parameters);
 
@@ -1327,7 +1325,6 @@ namespace {
 auto algo_d1_run(struct Parameters const & parameters,
                  Data const & data) -> void
 {
-  longestamplicon = data.longest_sequence();
   amplicons = data.sequence_count();
 
   std::vector<struct ampinfo_s> ampinfo_v(amplicons);
@@ -1339,7 +1336,7 @@ auto algo_d1_run(struct Parameters const & parameters,
   // max number of microvariants = 7 * len + 4
   static constexpr auto multiplier = 7U;
   static constexpr auto offset = 4U;
-  const auto global_hits_alloc = (multiplier * longestamplicon) + offset + 1;
+  const auto global_hits_alloc = (multiplier * data.longest_sequence()) + offset + 1;
   std::vector<unsigned int> global_hits_v(global_hits_alloc);
   global_hits_data = global_hits_v.data();
 
