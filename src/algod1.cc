@@ -95,8 +95,6 @@ struct swarminfo_s
   char dummy_3 = '\0'; /* alignment padding only */
 };  // total of 40 bytes (five 64-bit machine words)
 
-static struct swarminfo_s* swarminfo = nullptr;
-
 struct graft_cand
 {
   unsigned int parent;
@@ -1331,7 +1329,6 @@ auto algo_d1_run(struct Parameters const & parameters,
   ampinfo = ampinfo_v.data();
 
   std::vector<struct swarminfo_s> swarminfo_v(one_kilobyte);
-  swarminfo = swarminfo_v.data();
 
   // max number of microvariants = 7 * len + 4
   static constexpr auto multiplier = 7U;
@@ -1466,7 +1463,6 @@ auto algo_d1_run(struct Parameters const & parameters,
               // note: capacity doubles, as usual
               // 1,024 times struct size (so at least 40,960 new bytes reserved)
               swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
-              swarminfo = swarminfo_v.data();
             }
 
           auto & swarm_info = swarminfo_v[swarmcount];
@@ -1514,6 +1510,5 @@ auto algo_d1_run(struct Parameters const & parameters,
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
   std::fprintf(parameters.logfile, "Max generations:   %u\n", maxgen);
 
-  swarminfo = nullptr;
   ampinfo = nullptr;
 }
