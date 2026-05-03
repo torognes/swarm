@@ -28,6 +28,7 @@
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
+#include <numeric>  // std::accumulate
 #include <vector>
 
 
@@ -154,7 +155,6 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
 }
 
 
-// refactoring: unrolling does not work (hard to deal with the last positions (sub-byte)
 auto Zobrist::hash_first_shifted(Sequence const & seq,
                                  First_base_op const op) const -> uint64_t
 {
@@ -162,26 +162,27 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
      remove:     skip the first input base, output position = input pos - 1.
      insert_gap: keep all input bases,     output position = input pos + 1. */
 
-  static constexpr auto divider = 2U;
   auto const len = seq.length;
   auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
-  auto const view = View<char>{seq.encoded.data(), n_bytes};
+  auto const view = seq.encoded.first(n_bytes);
   auto const start = (op == First_base_op::remove) ? 1U : 0U;
-  auto offset = to_uchar(view.front());
-  uint64_t zobrist_hash = 0;
-  for(auto pos = start; pos < len; ++pos)
-    {
-      auto const is_new_byte = (pos & (nt_per_byte - 1)) == 0;
-      if (is_new_byte) {  // every 4 positions, except the first one
-        offset = to_uchar(view[pos >> divider]);  // load new data every 4 positions
-      }
-      else {
+
+  auto byte_idx = 0U;
+  return std::accumulate(view.cbegin(), view.cend(), uint64_t{0},
+    [&](uint64_t acc, char const byte_value) {
+      auto offset = to_uchar(byte_value);
+      auto const base_pos = nt_per_byte * byte_idx;
+      ++byte_idx;
+      for (auto k = 0U; k < nt_per_byte; ++k) {
+        auto const pos = base_pos + k;
+        if (pos >= start and pos < len) {
+          auto const out_pos = (op == First_base_op::remove) ? pos - 1U : pos + 1U;
+          acc ^= value(out_pos, offset & 3U);
+        }
         offset >>= 2U;
       }
-      auto const out_pos = (op == First_base_op::remove) ? pos - 1U : pos + 1U;
-      zobrist_hash ^= value(out_pos, offset & 3U);
-    }
-  return zobrist_hash;
+      return acc;
+    });
 }
 
 
