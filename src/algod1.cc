@@ -226,14 +226,13 @@ namespace {
   }
 
 
-  auto add_graft_candidate(unsigned int seed, unsigned int amp,
+  auto add_graft_candidate(std::vector<struct ampinfo_s> & ampinfo_v,
+                           unsigned int seed, unsigned int amp,
                            struct Graft_state & graft_state) -> void
   {
     std::lock_guard<std::mutex> const lock(graft_state.mutex);
     ++graft_state.candidates;
-    assert(amp <= std::numeric_limits<std::ptrdiff_t>::max());
-    auto const signed_position = static_cast<std::ptrdiff_t>(amp);
-    auto & amplicon = *std::next(ampinfo, signed_position);
+    auto & amplicon = ampinfo_v[amp];
     // if there is no heavy candidate to graft amp, or if seed is
     // earlier in the sorting order, then we change the attachment to
     // seed
@@ -319,6 +318,7 @@ namespace {
 
 
   auto hash_check_attach(Data const & data,
+                         std::vector<struct ampinfo_s> & ampinfo_v,
                          Hashtable const & hash_table,
                          Sequence const & seed_seq,
                          struct var_s const & var,
@@ -344,7 +344,7 @@ namespace {
             auto const amp_seq = data.sequence_view(amp);
             if (check_variant(seed_seq, var, amp_seq))
               {
-                add_graft_candidate(seed, amp, graft_state);
+                add_graft_candidate(ampinfo_v, seed, amp, graft_state);
                 return true;
               }
           }
@@ -355,6 +355,7 @@ namespace {
 
 
   inline auto check_heavy_var_2(Data const & data,
+                                std::vector<struct ampinfo_s> & ampinfo_v,
                                 Hashtable const & hash_table,
                                 BloomFilter const & bloom_a,
                                 Sequence const & seq,
@@ -372,7 +373,7 @@ namespace {
 
     for (auto i = 0U; i < variant_count; ++i) {
       if (bloom_a.get(variant_list[i].hash) and
-          hash_check_attach(data, hash_table, seq, variant_list[i], seed, graft_state)) {
+          hash_check_attach(data, ampinfo_v, hash_table, seq, variant_list[i], seed, graft_state)) {
         ++matches;
       }
     }
@@ -382,6 +383,7 @@ namespace {
 
 
   auto check_heavy_var(Data const & data,
+                       std::vector<struct ampinfo_s> & ampinfo_v,
                        Hashtable const & hash_table,
                        BloomFilter const & bloom_a,
                        BloomFilter const & bloom_f,
@@ -428,7 +430,7 @@ namespace {
             auto varlen = 0U;
             generate_variant_sequence(seed_seq, var, varseq, varlen);
             auto const var_seq = Sequence{View<char>{varseq.data(), nt_bytelength(varlen)}, varlen};
-            matches += check_heavy_var_2(data, hash_table,
+            matches += check_heavy_var_2(data, ampinfo_v, hash_table,
                                          bloom_a,
                                          var_seq,
                                          seed,
@@ -444,6 +446,7 @@ namespace {
 
   auto check_heavy_thread(struct Parameters const & parameters,
                           Data const & data,
+                          std::vector<struct ampinfo_s> & ampinfo_v,
                           std::vector<struct swarminfo_s> const & swarminfo_v,
                           Hashtable const & hash_table,
                           BloomFilter const & bloom_a,
@@ -470,9 +473,7 @@ namespace {
       {
         auto const heavy_amplicon_id = heavy_state.amplicon;
         ++heavy_state.amplicon;
-        assert(heavy_amplicon_id <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const signed_position = static_cast<std::ptrdiff_t>(heavy_amplicon_id);
-        auto const & target_amplicon = *std::next(ampinfo, signed_position);
+        auto const & target_amplicon = ampinfo_v[heavy_amplicon_id];
         auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
         if (target_swarm.mass >= static_cast<uint64_t>(parameters.opt_boundary))
           {
@@ -480,7 +481,7 @@ namespace {
             lock.unlock();
             uint64_t number_of_matches {0};
             uint64_t number_of_variants {0};
-            check_heavy_var(data, hash_table, bloom_a, bloom_f, buffer1, heavy_amplicon_id,
+            check_heavy_var(data, ampinfo_v, hash_table, bloom_a, bloom_f, buffer1, heavy_amplicon_id,
                             number_of_matches, number_of_variants,
                             variant_list, variant_list2,
                             graft_state);
@@ -522,6 +523,7 @@ namespace {
 
   auto mark_light_thread(struct Parameters const & parameters,
                          Data const & data,
+                         std::vector<struct ampinfo_s> const & ampinfo_v,
                          std::vector<struct swarminfo_s> const & swarminfo_v,
                          Hashtable & hash_table,
                          BloomFilter & bloom_a,
@@ -542,9 +544,7 @@ namespace {
       {
         const auto light_amplicon_id = state.amplicon;
         --state.amplicon;
-        assert(light_amplicon_id <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const signed_position = static_cast<std::ptrdiff_t>(light_amplicon_id);
-        auto const & target_amplicon = *std::next(ampinfo, signed_position);
+        auto const & target_amplicon = ampinfo_v[light_amplicon_id];
         auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
         if (target_swarm.mass < static_cast<uint64_t>(parameters.opt_boundary))
           {
@@ -1194,6 +1194,7 @@ namespace {
 
   auto run_light_pass(struct Parameters const & parameters,
                       Data const & data,
+                      std::vector<struct ampinfo_s> const & ampinfo_v,
                       std::vector<struct swarminfo_s> const & swarminfo_v,
                       Hashtable & hash_table,
                       BloomFilter & bloom_a,
@@ -1213,8 +1214,8 @@ namespace {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const light_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
-            mark_light_thread(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
+          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
+            mark_light_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
           });
       light_tr->run();
     }
@@ -1228,6 +1229,7 @@ namespace {
 
   auto run_heavy_pass(struct Parameters const & parameters,
                       Data const & data,
+                      std::vector<struct ampinfo_s> & ampinfo_v,
                       std::vector<struct swarminfo_s> const & swarminfo_v,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
@@ -1247,8 +1249,8 @@ namespace {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const heavy_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
-            check_heavy_thread(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
+          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
+            check_heavy_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
           });
       heavy_tr->run();
     }
@@ -1306,10 +1308,10 @@ namespace {
         BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
                             amplicon_n_hash_functions);
 
-        run_light_pass(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_small_clusters);
+        run_light_pass(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_small_clusters);
 
         struct Graft_state graft_state;
-        run_heavy_pass(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_large_clusters, graft_state);
+        run_heavy_pass(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_large_clusters, graft_state);
 
         auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
         std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
