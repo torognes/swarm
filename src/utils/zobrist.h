@@ -43,6 +43,9 @@ private:
   enum struct First_base_op { remove, insert_gap };
   auto hash_first_shifted(Sequence const & seq, First_base_op op) const -> uint64_t;
 
+  auto fill_rng_table(unsigned int zobrist_len) -> void;
+  auto fill_rng_byte_table(unsigned int zobrist_len) -> void;
+
   std::vector<uint64_t> tab_base_v_;
   std::vector<uint64_t> tab_byte_base_v_;
 };
