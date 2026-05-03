@@ -748,7 +748,6 @@ namespace {
     // a network is a cluster with at least two sequences (no singletons)
     Progress progress("Dumping network:  ", number_of_networks, parameters);
 
-    uint64_t n_processed = 0;  // refactoring: reduce scope (move into the for loop init)
     assert(ampinfo_v.size() == amplicons);
     auto counter = 0ULL;
     for (auto const& amplicon: ampinfo_v) {
@@ -770,9 +769,8 @@ namespace {
           std::fprintf(parameters.network_file.get(), "\t");
           data.fprint_id(parameters.network_file.get(), neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.network_file.get(), "\n");
-          ++n_processed;
+          progress.update();
         }
-      progress.update(n_processed);
       ++counter;
     }
     progress.done();
