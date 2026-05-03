@@ -160,7 +160,7 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
 
 
 // refactoring: unrolling does not work (hard to deal with the last positions (sub-byte)
-auto Zobrist::hash_first_shifted(char const * seq, unsigned int const len,
+auto Zobrist::hash_first_shifted(Sequence const & seq,
                                  First_base_op const op) const -> uint64_t
 {
   /* Shared body of hash_delete_first and hash_insert_first.
@@ -169,8 +169,9 @@ auto Zobrist::hash_first_shifted(char const * seq, unsigned int const len,
 
   static constexpr auto nt_per_byte = 4U;  // 4 nucleotides per byte
   static constexpr auto divider = 2U;
+  auto const len = seq.length;
   auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
-  auto const view = View<char>{seq, n_bytes};
+  auto const view = View<char>{seq.encoded.data(), n_bytes};
   auto const start = (op == First_base_op::remove) ? 1U : 0U;
   auto offset = to_uchar(view.front());
   uint64_t zobrist_hash = 0;
@@ -190,22 +191,6 @@ auto Zobrist::hash_first_shifted(char const * seq, unsigned int const len,
 }
 
 
-auto Zobrist::hash_delete_first(char const * seq, unsigned int const len) const -> uint64_t
-{
-  /* compute the Zobrist hash function of sequence seq,
-     but delete the first base */
-  return hash_first_shifted(seq, len, First_base_op::remove);
-}
-
-
-auto Zobrist::hash_insert_first(char const * seq, unsigned int const len) const -> uint64_t
-{
-  /* compute the Zobrist hash function of sequence seq,
-     but insert a gap (no value) before the first base */
-  return hash_first_shifted(seq, len, First_base_op::insert_gap);
-}
-
-
 auto Zobrist::hash(Sequence const & seq) const -> uint64_t
 {
   return hash(seq.encoded.data(), seq.length);
@@ -214,12 +199,16 @@ auto Zobrist::hash(Sequence const & seq) const -> uint64_t
 
 auto Zobrist::hash_delete_first(Sequence const & seq) const -> uint64_t
 {
-  return hash_delete_first(seq.encoded.data(), seq.length);
+  /* compute the Zobrist hash function of sequence seq,
+     but delete the first base */
+  return hash_first_shifted(seq, First_base_op::remove);
 }
 
 
 auto Zobrist::hash_insert_first(Sequence const & seq) const -> uint64_t
 {
-  return hash_insert_first(seq.encoded.data(), seq.length);
+  /* compute the Zobrist hash function of sequence seq,
+     but insert a gap (no value) before the first base */
+  return hash_first_shifted(seq, First_base_op::insert_gap);
 }
 

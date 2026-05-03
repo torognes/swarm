@@ -34,8 +34,6 @@ public:
 
   auto value(unsigned int pos, unsigned char offset) const -> uint64_t;
   auto hash(char const * seq, unsigned int len) const -> uint64_t;
-  auto hash_delete_first(char const * seq, unsigned int len) const -> uint64_t;
-  auto hash_insert_first(char const * seq, unsigned int len) const -> uint64_t;
 
   auto hash(Sequence const & seq) const -> uint64_t;
   auto hash_delete_first(Sequence const & seq) const -> uint64_t;
@@ -43,8 +41,7 @@ public:
 
 private:
   enum struct First_base_op { remove, insert_gap };
-  auto hash_first_shifted(char const * seq, unsigned int len,
-                          First_base_op op) const -> uint64_t;
+  auto hash_first_shifted(Sequence const & seq, First_base_op op) const -> uint64_t;
 
   std::vector<uint64_t> tab_base_v_;
   std::vector<uint64_t> tab_byte_base_v_;
