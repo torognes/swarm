@@ -75,9 +75,6 @@ struct ampinfo_s
   unsigned int link_count {0U};
 };
 
-// refactoring: still global; many helpers in this file reach through this pointer, so eliminating it means threading a context reference through them all
-static struct ampinfo_s * ampinfo = nullptr;
-
 /* Information about each swarm (cluster) */
 
 struct swarminfo_s
@@ -1327,7 +1324,6 @@ auto algo_d1_run(struct Parameters const & parameters,
   amplicons = data.sequence_count();
 
   std::vector<struct ampinfo_s> ampinfo_v(amplicons);
-  ampinfo = ampinfo_v.data();
 
   std::vector<struct swarminfo_s> swarminfo_v(one_kilobyte);
 
@@ -1510,6 +1506,4 @@ auto algo_d1_run(struct Parameters const & parameters,
   std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
   std::fprintf(parameters.logfile, "Max generations:   %u\n", maxgen);
-
-  ampinfo = nullptr;
 }
