@@ -446,6 +446,7 @@ namespace {
 
   auto check_heavy_thread(struct Parameters const & parameters,
                           Data const & data,
+                          std::vector<struct swarminfo_s> const & swarminfo_v,
                           Hashtable const & hash_table,
                           BloomFilter const & bloom_a,
                           BloomFilter const & bloom_f,
@@ -474,9 +475,7 @@ namespace {
         assert(heavy_amplicon_id <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const signed_position = static_cast<std::ptrdiff_t>(heavy_amplicon_id);
         auto const & target_amplicon = *std::next(ampinfo, signed_position);
-        assert(target_amplicon.swarmid <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const signed_swarmid = static_cast<std::ptrdiff_t>(target_amplicon.swarmid);
-        auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
+        auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
         if (target_swarm.mass >= static_cast<uint64_t>(parameters.opt_boundary))
           {
             progress.update(++heavy_state.progress);  // refactoring: separate operations?
@@ -525,6 +524,7 @@ namespace {
 
   auto mark_light_thread(struct Parameters const & parameters,
                          Data const & data,
+                         std::vector<struct swarminfo_s> const & swarminfo_v,
                          Hashtable & hash_table,
                          BloomFilter & bloom_a,
                          BloomFilter & bloom_f,
@@ -547,9 +547,7 @@ namespace {
         assert(light_amplicon_id <= std::numeric_limits<std::ptrdiff_t>::max());
         auto const signed_position = static_cast<std::ptrdiff_t>(light_amplicon_id);
         auto const & target_amplicon = *std::next(ampinfo, signed_position);
-        assert(target_amplicon.swarmid <= std::numeric_limits<std::ptrdiff_t>::max());
-        auto const signed_swarmid = static_cast<std::ptrdiff_t>(target_amplicon.swarmid);
-        auto const & target_swarm = *std::next(swarminfo, signed_swarmid);
+        auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
         if (target_swarm.mass < static_cast<uint64_t>(parameters.opt_boundary))
           {
             progress.update(++state.progress);  // refactoring: separate operations?
@@ -1199,6 +1197,7 @@ namespace {
 
   auto run_light_pass(struct Parameters const & parameters,
                       Data const & data,
+                      std::vector<struct swarminfo_s> const & swarminfo_v,
                       Hashtable & hash_table,
                       BloomFilter & bloom_a,
                       BloomFilter & bloom_f,
@@ -1217,8 +1216,8 @@ namespace {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const light_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
-            mark_light_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
+          [&parameters, &data, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
+            mark_light_thread(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
           });
       light_tr->run();
     }
@@ -1232,6 +1231,7 @@ namespace {
 
   auto run_heavy_pass(struct Parameters const & parameters,
                       Data const & data,
+                      std::vector<struct swarminfo_s> const & swarminfo_v,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
                       BloomFilter const & bloom_f,
@@ -1250,8 +1250,8 @@ namespace {
       assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const heavy_tr = utils::make_unique<ThreadRunner>(
           static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
-            check_heavy_thread(parameters, data, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
+          [&parameters, &data, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
+            check_heavy_thread(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
           });
       heavy_tr->run();
     }
@@ -1309,10 +1309,10 @@ namespace {
         BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
                             amplicon_n_hash_functions);
 
-        run_light_pass(parameters, data, hash_table, bloom_a, bloom_f, amplicons_in_small_clusters);
+        run_light_pass(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_small_clusters);
 
         struct Graft_state graft_state;
-        run_heavy_pass(parameters, data, hash_table, bloom_a, bloom_f, amplicons_in_large_clusters, graft_state);
+        run_heavy_pass(parameters, data, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_large_clusters, graft_state);
 
         auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
         std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
