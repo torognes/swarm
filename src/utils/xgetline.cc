@@ -22,8 +22,9 @@
 */
 
 #include "fatal.h"
+#include "xgetline.h"
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
-#include <cstdlib>  // malloc, realloc (Windows xgetline only)
+#include <cstdlib>  // malloc, realloc, free
 #include <cstring>  // strcmp
 
 
@@ -142,4 +143,37 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
       e = p + *linecapp - 1;
     }
 #endif
+}
+
+
+Line_buffer::Line_buffer(std::size_t const initial)
+  : data{static_cast<char *>(std::malloc(initial))}, capacity{initial}
+{
+  if (data == nullptr) {
+    fatal("Unable to allocate enough memory.");
+  }
+}
+
+
+Line_buffer::~Line_buffer() noexcept { release(); }
+
+
+auto Line_buffer::release() noexcept -> void {
+  if (data != nullptr) {
+    std::free(data);
+    data = nullptr;
+    capacity = 0;
+  }
+}
+
+
+auto read_next_line(Line_buffer & line_buf, std::FILE * stream,
+                    uint64_t & filepos) -> void
+{
+  auto const linelen = xgetline(& line_buf.data, & line_buf.capacity, stream);
+  if (linelen < 0) {
+    *line_buf.data = '\0';
+    return;
+  }
+  filepos += static_cast<unsigned long int>(linelen);
 }

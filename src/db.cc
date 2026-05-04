@@ -110,43 +110,6 @@ namespace {
   };
 
 
-  // RAII wrapper for the line buffer passed to xgetline(). POSIX
-  // getline() owns the buffer's lifetime: it may std::realloc() it on
-  // long lines, so the storage must come from std::malloc and the
-  // destructor must call std::free. std::vector<char> or new[]/delete[]
-  // would create an allocator mismatch and undefined behavior.
-  struct Line_buffer {
-    char *      data {nullptr};
-    std::size_t capacity {0};
-
-    explicit Line_buffer(std::size_t const initial)
-      : data{static_cast<char *>(std::malloc(initial))}, capacity{initial}
-    {
-      if (data == nullptr) {
-        fatal("Unable to allocate enough memory.");
-      }
-    }
-
-    // noexcept: std::free is noexcept and the nullptr guard performs
-    // only an integer comparison.
-    ~Line_buffer() noexcept { release(); }
-
-    // noexcept: see destructor.
-    auto release() noexcept -> void {
-      if (data != nullptr) {
-        std::free(data);
-        data = nullptr;
-        capacity = 0;
-      }
-    }
-
-    Line_buffer(Line_buffer const &)                     = delete;
-    auto operator=(Line_buffer const &) -> Line_buffer & = delete;
-    Line_buffer(Line_buffer &&)                          = delete;
-    auto operator=(Line_buffer &&)      -> Line_buffer & = delete;
-  };
-
-
   auto make_nt_classifier() -> std::array<Nt_class, n_chars> {
     // every ascii byte falls into exactly one of: nucleotide (A/C/G/T/U,
     // case insensitive) -> packed 2-bit encoding; line terminator
@@ -205,21 +168,6 @@ namespace {
       new_size += memchunk;
     }
     data_v.resize(new_size);
-  }
-
-
-  // Read one line into line_buf and bump filepos by the number of bytes
-  // consumed. On read failure, leave the buffer empty (first byte set
-  // to '\0') so callers can use the same end-of-input sentinel.
-  auto read_next_line(Line_buffer & line_buf, std::FILE * stream,
-                      uint64_t & filepos) -> void
-  {
-    auto const linelen = xgetline(& line_buf.data, & line_buf.capacity, stream);
-    if (linelen < 0) {
-      *line_buf.data = '\0';
-      return;
-    }
-    filepos += static_cast<unsigned long int>(linelen);
   }
 
 
