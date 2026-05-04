@@ -23,9 +23,11 @@
 
 #include "fatal.h"
 #include "xgetline.h"
+#include <algorithm>  // std::min
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // malloc, realloc, free
-#include <cstring>  // strcmp
+#include <iterator>  // std::next
+#include <string>  // std::char_traits
 
 
 // refactoring: std::getline(input, str) -> input
@@ -48,8 +50,9 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
      which is important for correct counting of characters and file size.
   */
 
-  static constexpr std::size_t minsize = 2;
-  static constexpr std::size_t maxsize = SIZE_MAX / 2;
+  static constexpr std::size_t minsize {2};
+  static constexpr std::size_t maxsize {SIZE_MAX / 2};
+  static constexpr auto eof_value = std::char_traits<char>::eof();
 
   /* Error if linep or linecapp pointers are null */
   if ((linep == nullptr) or (linecapp == nullptr))
@@ -63,52 +66,46 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
       /* allocate a default buffer if linep is a null pointer */
       *linecapp = minsize;
       *linep = static_cast<char *>(std::malloc(*linecapp));
-      if (*linep == nullptr)
+      if (*linep == nullptr) {
         return -1;
+      }
     }
 
-  char * p = *linep;                  // pointer to where to put next char
-  char const * e = p + *linecapp - 1; // pointer to last byte in buffer
-  std::size_t len = 0;
-  *p = 0;
+  auto * p = *linep;                  // pointer to where to put next char
+  auto const * e = std::next(p, static_cast<std::ptrdiff_t>(*linecapp - 1));  // pointer to last byte in buffer
+  *p = '\0';
 
   while (true)
     {
       while (p < e)
         {
-          int c = getc(stream);
-          switch (c)
+          auto const c = std::getc(stream);
+          if (c == eof_value)
             {
-            case -1:
-              if (feof(stream))
+              if (std::feof(stream) != 0)
                 {
                   // EOF, add NUL
-                  *p = 0;
-                  len = p - *linep;
-                  if (len > 0)
-                    return len;
-                  else
-                    return -1;
-                }
-              else
-                {
-                  // Error
+                  *p = '\0';
+                  auto const len = static_cast<std::size_t>(p - *linep);
+                  if (len > 0) {
+                    return static_cast<ssize_t>(len);
+                  }
                   return -1;
                 }
-
-            case '\n':
-              // Newline
-              *p = c;
-              ++p;
-              *p = 0;
-              return p - *linep;
-
-            default:
-              // Ordinary character, including NUL
-              *p = c;
-              ++p;
-              break;
+              // Error
+              return -1;
             }
+          if (c == '\n')
+            {
+              // Newline
+              *p = static_cast<char>(c);
+              ++p;
+              *p = '\0';
+              return p - *linep;
+            }
+          // Ordinary character, including NUL
+          *p = static_cast<char>(c);
+          ++p;
         }
 
       // Increase buffer size
@@ -119,28 +116,20 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
           return -1;
         }
 
-      std::size_t newlinecap = minsize;
-      while ((newlinecap <= *linecapp) and (newlinecap < maxsize))
-        newlinecap *= 2;
+      auto const newlinecap = std::min(*linecapp * 2, maxsize);
 
-      if (newlinecap > maxsize)
-        {
-          errno = EOVERFLOW;
-          return -1;
-        }
-
-      char * newlinep = static_cast<char *>(std::realloc(*linep, newlinecap));
+      auto * const newlinep = static_cast<char *>(std::realloc(*linep, newlinecap));
       if (newlinep == nullptr)
         {
           // Memory allocation error
           return -1;
         }
 
-      len = p - *linep;
+      auto const len = static_cast<std::size_t>(p - *linep);
       *linep = newlinep;
       *linecapp = newlinecap;
-      p = newlinep + len;
-      e = p + *linecapp - 1;
+      p = std::next(newlinep, static_cast<std::ptrdiff_t>(len));
+      e = std::next(p, static_cast<std::ptrdiff_t>(*linecapp - 1));
     }
 #endif
 }
