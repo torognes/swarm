@@ -569,7 +569,7 @@ namespace {
 
   auto sort_index_if_need_be(struct Parameters const & parameters,
                              std::vector<struct seqinfo_s> & seqindex_v) -> void {
-    Progress progress("Abundance sorting:", 1, parameters);
+    Progress const progress("Abundance sorting:", 1, parameters);
 
     auto compare_entries = [](struct seqinfo_s const& lhs,
                               struct seqinfo_s const& rhs) -> bool

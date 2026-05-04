@@ -146,7 +146,7 @@ namespace {
   auto sort_seeds(struct Parameters const & parameters,
                   Data const & data,
                   std::vector<struct swarminfo_t> & seeds) -> void {
-    Progress progress("Sorting seeds:    ", seeds.size(), parameters);
+    Progress const progress("Sorting seeds:    ", seeds.size(), parameters);
 
     auto compare_seeds = [&data](struct swarminfo_t const& lhs,
                                  struct swarminfo_t const& rhs) -> bool {

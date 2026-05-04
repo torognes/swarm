@@ -57,7 +57,7 @@ namespace {
 
   auto sort_seeds(struct Parameters const & parameters,
                   std::vector<struct bucket>& hashtable) -> void {
-    Progress progress("Sorting:          ", 1, parameters);
+    Progress const progress("Sorting:          ", 1, parameters);
 
     auto compare_seeds = [](struct bucket const& lhs,
                             struct bucket const& rhs) -> bool {
