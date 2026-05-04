@@ -324,7 +324,7 @@ namespace {
                         "' in sequence on line ", lineno, ".");
                 }
                 else {
-                  fatal("Illegal character (ascii no ", character,
+                  fatal("Illegal character (ascii no ", static_cast<unsigned int>(character),
                         ") in sequence on line ", lineno, ".");
                 }
               }

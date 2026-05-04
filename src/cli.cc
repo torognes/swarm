@@ -533,7 +533,7 @@ auto validate_clustering(struct Parameters const & parameters) -> void {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   if ((parameters.opt_differences < 0) or (parameters.opt_differences > uint8_max)) {
     fatal("Illegal number of differences specified with -d or --differences, "
-          "must be in the range 0 to ", uint8_max, ".");
+          "must be in the range 0 to ", static_cast<unsigned int>(uint8_max), ".");
   }
 }
 
