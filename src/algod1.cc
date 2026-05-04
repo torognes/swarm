@@ -168,8 +168,8 @@ namespace {
 
   /* Bloom filter shape used for the per-amplicon hashtable + bloom_a
      in both the d=1 phase and the fastidious phase. */
-  static constexpr unsigned int amplicon_pattern_shift {10};
-  static constexpr unsigned int amplicon_n_hash_functions {8};
+  constexpr unsigned int amplicon_pattern_shift {10};
+  constexpr unsigned int amplicon_n_hash_functions {8};
 
 
   inline auto hash_insert(Data const & data,
