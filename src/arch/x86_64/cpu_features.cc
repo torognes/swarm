@@ -82,7 +82,7 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
 
 auto cpu_features_test(struct Parameters & parameters) -> void {
   if (parameters.sse2_present == 0) {
-    fatal(error_prefix, "This program requires a processor with SSE2 instructions.");
+    fatal("This program requires a processor with SSE2 instructions.");
   }
 
   if (parameters.opt_disable_sse3)

@@ -24,7 +24,7 @@
 #include <iostream>
 
 
-static char const * const error_prefix {"\nError: "};  // refactoring C++17: move into template
+/* bare-exit form: terminate with a final newline (no error prefix) */
 auto fatal() -> void;
 
 
@@ -34,20 +34,25 @@ auto fatal() -> void;
 // refactoring C++17: use fold expression
 // refactoring C++20: use concept "Printable"
 
-// general case: zero or n arguments
-template<typename... T>
-auto fatal(T... args) -> void;
+namespace fatal_detail {
 
-// consume arguments one-by-one
-template <typename T, typename... Tail>
+    // recursion base case: defined out-of-line in fatal.cc to avoid
+    // multiple-definitions at link time
+    auto print_then_exit() -> void;
+
+    // recursive case: consume arguments one-by-one
+    template<typename T, typename... Tail>
+    auto print_then_exit(T head, Tail... tail) -> void {
+        std::cerr << head;
+        print_then_exit(tail...);
+    }
+
+}  // namespace fatal_detail
+
+
+// public variadic: auto-prefix "\nError: " then forward
+template<typename T, typename... Tail>
 auto fatal(T head, Tail... tail) -> void {
-    std::cerr << head;
-    fatal(tail...);
+    std::cerr << "\nError: ";
+    fatal_detail::print_then_exit(head, tail...);
 }
-
-// // specialization: zero argument  // triggers a multiple definitions error at link time
-// template<>
-// auto fatal() -> void {
-//     std::cerr << '\n';
-//     std::exit(EXIT_FAILURE);
-// }

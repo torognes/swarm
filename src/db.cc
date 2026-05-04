@@ -123,7 +123,7 @@ namespace {
       : data{static_cast<char *>(std::malloc(initial))}, capacity{initial}
     {
       if (data == nullptr) {
-        fatal(error_prefix, "Unable to allocate enough memory.");
+        fatal("Unable to allocate enough memory.");
       }
     }
 
@@ -178,7 +178,7 @@ namespace {
     struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
 
     if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // refactor: fstat and fileno are linuxisms
-      fatal(error_prefix, "Unable to fstat on input file (", parameters.input_filename.c_str(), ").\n");
+      fatal("Unable to fstat on input file (", parameters.input_filename.c_str(), ").\n");
     }
     file_info.is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG is a linuxism
     file_info.filesize = file_info.is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0U;
@@ -262,7 +262,7 @@ namespace {
                     struct Seq_stats & seq_stats) -> void
   {
     if (*line_buf.data != '>') {
-      fatal(error_prefix, "Illegal header line in fasta file.");
+      fatal("Illegal header line in fasta file.");
     }
 
     auto const headerlen = static_cast<unsigned int>
@@ -271,7 +271,7 @@ namespace {
     seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
     if (seq_stats.longestheader > max_header_length) {
-      fatal(error_prefix, "Headers longer than 16,777,215 symbols are not supported.");
+      fatal("Headers longer than 16,777,215 symbols are not supported.");
     }
 
     linear_resize_if_need_be(data_v, datalen + headerlen + 1);
@@ -320,11 +320,11 @@ namespace {
             else if (category == Nt_class::illegal)
               {
                 if ((character >= start_chars_range) and (character <= end_chars_range)) {
-                  fatal(error_prefix, "Illegal character '", character,
+                  fatal("Illegal character '", character,
                         "' in sequence on line ", lineno, ".");
                 }
                 else {
-                  fatal(error_prefix, "Illegal character (ascii no ", character,
+                  fatal("Illegal character (ascii no ", character,
                         ") in sequence on line ", lineno, ".");
                 }
               }
@@ -333,7 +333,7 @@ namespace {
 
         /* check length of longest sequence */
         if (length > max_sequence_length) {
-          fatal(error_prefix, "Sequences longer than 67,108,861 symbols are not supported.");
+          fatal("Sequences longer than 67,108,861 symbols are not supported.");
         }
 
         read_next_line(line_buf, stream, filepos);
@@ -347,7 +347,7 @@ namespace {
 
     if (length == 0)
       {
-        fatal(error_prefix, "Empty sequence found on line ", lineno - 1, ".");
+        fatal("Empty sequence found on line ", lineno - 1, ".");
       }
 
     seq_stats.nucleotides += length;
@@ -510,7 +510,7 @@ namespace {
     if (match.found)
       {
         if (match.number <= 0) {
-          fatal(error_prefix, "Illegal abundance value on line ", lineno, ":\n",
+          fatal("Illegal abundance value on line ", lineno, ":\n",
                 header_view.data(), "\nAbundance values should be positive integers.");
         }
         abundance = match.number;
@@ -543,7 +543,7 @@ namespace {
 
   auto abort_if_duplicated_sequences(struct Seq_stats const & seq_stats) -> void {
     if (not seq_stats.has_duplicates) { return; }
-    fatal(error_prefix,
+    fatal(
           "some fasta entries have identical sequences.\n"
           "Swarm expects dereplicated fasta files.\n"
           "Such files can be produced with swarm or vsearch:\n"
@@ -555,7 +555,7 @@ namespace {
 
   auto abort_if_missing_abundance(struct Seq_stats const & seq_stats) -> void {
     if (seq_stats.missingabundance == 0) { return; }
-    fatal(error_prefix, "Abundance annotations not found for ",
+    fatal("Abundance annotations not found for ",
           seq_stats.missingabundance, " sequences, starting on line ",
           seq_stats.missingabundance_lineno, ".\n>",
           seq_stats.missingabundance_header, "\n",
@@ -627,7 +627,7 @@ namespace {
     auto const input_fp_handle = fopen_input(parameters.input_filename.c_str());
     if (not input_fp_handle)
       {
-        fatal(error_prefix, "Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
+        fatal("Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
       }
 
     auto const file_info = get_file_info(input_fp_handle.get(), parameters);
@@ -707,7 +707,7 @@ namespace {
     auto const headerlen_signed = static_cast<int>(a_sequence.header_view.size());
     if ((a_sequence.abundance_start == 0) and
         (a_sequence.abundance_end == headerlen_signed)) {
-      fatal(error_prefix, "Empty sequence identifier.");
+      fatal("Empty sequence identifier.");
     }
 
     int id_start {0};
@@ -745,7 +745,7 @@ namespace {
     while (not hdr_table[hdr_idx].empty()) {
       if (hdr_table[hdr_idx] == id_view) {
         std::string const id_str {id_view.data(), id_view.size()};
-        fatal(error_prefix, "Duplicated sequence identifier: ", id_str);
+        fatal("Duplicated sequence identifier: ", id_str);
       }
       hdr_idx = (hdr_idx + 1) % hdr_table_size;
     }

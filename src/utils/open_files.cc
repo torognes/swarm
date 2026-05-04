@@ -31,7 +31,7 @@ auto open_files(struct Parameters & parameters) -> void
   // special case (always '-')??
   parameters.outfile = fopen_output(parameters.opt_output_file.c_str());
   if (not parameters.outfile) {
-    fatal(error_prefix, "Unable to open output file for writing.");
+    fatal("Unable to open output file for writing.");
   }
 
   /* open files */
@@ -40,7 +40,7 @@ auto open_files(struct Parameters & parameters) -> void
     {
       parameters.logfile_handle = fopen_output(parameters.opt_log.c_str());
       if (not parameters.logfile_handle) {
-        fatal(error_prefix, "Unable to open log file for writing.");
+        fatal("Unable to open log file for writing.");
       }
       parameters.logfile = parameters.logfile_handle.get();
     }
@@ -49,7 +49,7 @@ auto open_files(struct Parameters & parameters) -> void
     {
       parameters.seeds_file = fopen_output(parameters.opt_seeds.c_str());
       if (not parameters.seeds_file) {
-        fatal(error_prefix, "Unable to open seeds file for writing.");
+        fatal("Unable to open seeds file for writing.");
       }
     }
 
@@ -57,7 +57,7 @@ auto open_files(struct Parameters & parameters) -> void
     {
       parameters.statsfile = fopen_output(parameters.opt_statistics_file.c_str());
       if (not parameters.statsfile) {
-        fatal(error_prefix, "Unable to open statistics file for writing.");
+        fatal("Unable to open statistics file for writing.");
       }
     }
 
@@ -65,7 +65,7 @@ auto open_files(struct Parameters & parameters) -> void
     {
       parameters.uclustfile = fopen_output(parameters.opt_uclust_file.c_str());
       if (not parameters.uclustfile) {
-        fatal(error_prefix, "Unable to open uclust file for writing.");
+        fatal("Unable to open uclust file for writing.");
       }
     }
 
@@ -73,7 +73,7 @@ auto open_files(struct Parameters & parameters) -> void
     {
       parameters.internal_structure_file = fopen_output(parameters.opt_internal_structure.c_str());
       if (not parameters.internal_structure_file) {
-        fatal(error_prefix, "Unable to open internal structure file for writing.");
+        fatal("Unable to open internal structure file for writing.");
       }
     }
 
@@ -81,7 +81,7 @@ auto open_files(struct Parameters & parameters) -> void
     {
       parameters.network_file = fopen_output(parameters.opt_network_file.c_str());
       if (not parameters.network_file) {
-        fatal(error_prefix, "Unable to open network file for writing.");
+        fatal("Unable to open network file for writing.");
       }
     }
 }

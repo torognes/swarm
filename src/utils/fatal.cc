@@ -29,3 +29,12 @@ auto fatal() -> void {
     std::cerr << '\n';
     std::exit(EXIT_FAILURE);
 }
+
+namespace fatal_detail {
+
+    [[noreturn]]
+    auto print_then_exit() -> void {
+        fatal();
+    }
+
+}  // namespace fatal_detail

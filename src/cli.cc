@@ -224,7 +224,7 @@ auto args_long(char const * str, const char * option) -> int64_t
   const bool out_of_range {errno == ERANGE};
   if (empty_input or trailing_garbage or out_of_range)
     {
-      fatal(error_prefix, "Invalid numeric argument for option ", option, ".\n\n",
+      fatal("Invalid numeric argument for option ", option, ".\n\n",
             "Frequent causes are:\n",
             " - a missing space between an argument and the next option,\n",
             " - a long option name not starting with a double dash\n",
@@ -325,7 +325,7 @@ auto fatal_duplicate_option(int const option_character) -> void {
       break;
     }
   }
-  fatal(error_prefix, "Option -", static_cast<char>(option_character),
+  fatal("Option -", static_cast<char>(option_character),
         " or --", long_name, " specified more than once.");
 }
 
@@ -523,7 +523,7 @@ auto set_alignment_scoring_system(struct Parameters & parameters) -> void {
 auto validate_threading(struct Parameters const & parameters) -> void {
   static constexpr unsigned int max_threads {512};
   if ((parameters.opt_threads < 1) or (parameters.opt_threads > max_threads)) {
-    fatal(error_prefix, "Illegal number of threads specified with "
+    fatal("Illegal number of threads specified with "
           "-t or --threads, must be in the range 1 to ", max_threads, ".");
   }
 }
@@ -532,7 +532,7 @@ auto validate_threading(struct Parameters const & parameters) -> void {
 auto validate_clustering(struct Parameters const & parameters) -> void {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   if ((parameters.opt_differences < 0) or (parameters.opt_differences > uint8_max)) {
-    fatal(error_prefix, "Illegal number of differences specified with -d or --differences, "
+    fatal("Illegal number of differences specified with -d or --differences, "
           "must be in the range 0 to ", uint8_max, ".");
   }
 }
@@ -546,37 +546,37 @@ auto validate_fastidious(UsedOptions const & used_options,
   static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
 
   if (parameters.opt_fastidious and (parameters.opt_differences != 1)) {
-    fatal(error_prefix, "Fastidious mode (specified with -f or --fastidious) only works "
+    fatal("Fastidious mode (specified with -f or --fastidious) only works "
           "when the resolution (specified with -d or --differences) is 1.");
   }
 
   if (not parameters.opt_fastidious)
     {
       if (used_options.boundary) {
-        fatal(error_prefix, "Option -b or --boundary specified without -f or --fastidious.");
+        fatal("Option -b or --boundary specified without -f or --fastidious.");
       }
       if (used_options.ceiling) {
-        fatal(error_prefix, "Option -c or --ceiling specified without -f or --fastidious.");
+        fatal("Option -c or --ceiling specified without -f or --fastidious.");
       }
       if (used_options.bloom_bits) {
-        fatal(error_prefix, "Option -y or --bloom-bits specified without -f or --fastidious.");
+        fatal("Option -y or --bloom-bits specified without -f or --fastidious.");
       }
     }
 
   if (parameters.opt_boundary < 2) {
-    fatal(error_prefix, "Illegal boundary specified with -b or --boundary, "
+    fatal("Illegal boundary specified with -b or --boundary, "
           "must be at least 2.");
   }
 
   if (used_options.ceiling and ((parameters.opt_ceiling < min_ceiling) or
                                 (parameters.opt_ceiling > max_ceiling))) {
-    fatal(error_prefix, "Illegal memory ceiling specified with -c or --ceiling, "
+    fatal("Illegal memory ceiling specified with -c or --ceiling, "
           "must be in the range 8 to 1,073,741,824 MB.");
   }
 
   if ((parameters.opt_bloom_bits < min_bits_per_entry) or
       (parameters.opt_bloom_bits > max_bits_per_entry)) {
-    fatal(error_prefix, "Illegal number of Bloom filter bits specified with -y or "
+    fatal("Illegal number of Bloom filter bits specified with -y or "
           "--bloom-bits, must be in the range 2 to 64.");
   }
 }
@@ -585,48 +585,48 @@ auto validate_fastidious(UsedOptions const & used_options,
 auto validate_alignment(UsedOptions const & used_options,
                         struct Parameters const & parameters) -> void {
   if (parameters.opt_disable_sse3 and (parameters.opt_differences < 2)) {
-    fatal(error_prefix, "Option --disable-sse3 or -x has no effect when d < 2 "
+    fatal("Option --disable-sse3 or -x has no effect when d < 2 "
           "(SSE3 instructions are only used when d > 1).");
   }
 
   if (parameters.opt_differences < 2)
     {
       if (used_options.match_reward) {
-        fatal(error_prefix, "Option -m or --match-reward specified when d < 2.");
+        fatal("Option -m or --match-reward specified when d < 2.");
       }
       if (used_options.mismatch_penalty) {
-        fatal(error_prefix, "Option -p or --mismatch-penalty specified when d < 2.");
+        fatal("Option -p or --mismatch-penalty specified when d < 2.");
       }
       if (used_options.gap_opening_penalty) {
-        fatal(error_prefix, "Option -g or --gap-opening-penalty specified when d < 2.");
+        fatal("Option -g or --gap-opening-penalty specified when d < 2.");
       }
       if (used_options.gap_extension_penalty) {
-        fatal(error_prefix, "Option -e or --gap-extension-penalty specified when d < 2.");
+        fatal("Option -e or --gap-extension-penalty specified when d < 2.");
       }
     }
 
   if (parameters.opt_gap_opening_penalty < 0) {
-    fatal(error_prefix, "Illegal gap opening penalty specified with -g or "
+    fatal("Illegal gap opening penalty specified with -g or "
           "--gap-opening-penalty, must not be negative.");
   }
 
   if (parameters.opt_gap_extension_penalty < 0) {
-    fatal(error_prefix, "Illegal gap extension penalty specified with -e or "
+    fatal("Illegal gap extension penalty specified with -e or "
           "--gap-extension-penalty, must not be negative.");
   }
 
   if ((parameters.opt_gap_opening_penalty + parameters.opt_gap_extension_penalty) < 1) {
-    fatal(error_prefix, "Illegal gap penalties specified, the sum of the gap open and "
+    fatal("Illegal gap penalties specified, the sum of the gap open and "
           "the gap extension penalty must be at least 1.");
   }
 
   if (parameters.opt_match_reward < 1) {
-    fatal(error_prefix, "Illegal match reward specified with -m or --match-reward, "
+    fatal("Illegal match reward specified with -m or --match-reward, "
           "must be at least 1.");
   }
 
   if (parameters.opt_mismatch_penalty < 1) {
-    fatal(error_prefix, "Illegal mismatch penalty specified with -p or --mismatch-penalty, "
+    fatal("Illegal mismatch penalty specified with -p or --mismatch-penalty, "
           "must be at least 1.");
   }
 }
@@ -635,12 +635,12 @@ auto validate_alignment(UsedOptions const & used_options,
 auto validate_io(UsedOptions const & used_options,
                  struct Parameters const & parameters) -> void {
   if (used_options.append_abundance and (parameters.opt_append_abundance < 1)) {
-    fatal(error_prefix, "Illegal abundance value specified with -a or --append-abundance, "
+    fatal("Illegal abundance value specified with -a or --append-abundance, "
           "must be at least 1.");
   }
 
   if ((not parameters.opt_network_file.empty()) and (parameters.opt_differences != 1)) {
-    fatal(error_prefix, "A network file can only written when d = 1.");
+    fatal("A network file can only written when d = 1.");
   }
 }
 
@@ -654,11 +654,11 @@ auto check_scoring_saturation(struct Parameters const & parameters) -> void {
                                               / parameters.penalty_gapextend);
 
   if (parameters.opt_differences > diff_saturation_16) {
-    fatal(error_prefix, "Resolution (d) too high for the given scoring system.");
+    fatal("Resolution (d) too high for the given scoring system.");
   }
 
   if (parameters.penalty_mismatch > uint8_max) {
-    fatal(error_prefix, "Alignment scoring system yielded a mismatch penalty greater than 255, "
+    fatal("Alignment scoring system yielded a mismatch penalty greater than 255, "
           "please use different parameter values.");
   }
 }

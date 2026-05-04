@@ -1140,7 +1140,7 @@ namespace {
       {
         if (static_cast<uint64_t>(parameters.opt_ceiling) * one_megabyte < memused)
           {
-            fatal(error_prefix, "Memory ceiling for Bloom filter is too low.");
+            fatal("Memory ceiling for Bloom filter is too low.");
           }
         assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
         const uint64_t memrest
@@ -1149,7 +1149,7 @@ namespace {
         if (new_bits < bits)
           {
             if (new_bits < 2) {
-              fatal(error_prefix, "Insufficient memory remaining for Bloom filter.");
+              fatal("Insufficient memory remaining for Bloom filter.");
             }
             std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
             bits = new_bits;

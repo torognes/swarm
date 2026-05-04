@@ -81,7 +81,7 @@ auto system_get_memtotal() -> uint64_t
   int64_t ram = 0;
   std::size_t length = sizeof(ram);
   if(sysctl(mib, 2, &ram, &length, nullptr, 0) != 0) {
-    fatal(error_prefix, "Cannot determine amount of RAM.");
+    fatal("Cannot determine amount of RAM.");
   }
   return static_cast<uint64_t>(ram);
 
@@ -90,7 +90,7 @@ auto system_get_memtotal() -> uint64_t
   const int64_t phys_pages = sysconf(_SC_PHYS_PAGES);
   const int64_t pagesize = sysconf(_SC_PAGESIZE);
   if ((phys_pages == -1) or (pagesize == -1)) {
-    fatal(error_prefix, "Cannot determine amount of RAM.");
+    fatal("Cannot determine amount of RAM.");
   }
   return static_cast<uint64_t>(pagesize * phys_pages);
 
@@ -98,7 +98,7 @@ auto system_get_memtotal() -> uint64_t
 
   struct sysinfo info;  // refactoring: add initializer '{}' (warning with GCC < 5)
   if (sysinfo(&info) != 0) {
-    fatal(error_prefix, "Cannot determine amount of RAM.");
+    fatal("Cannot determine amount of RAM.");
   }
   return info.totalram * info.mem_unit;
 
