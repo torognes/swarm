@@ -147,9 +147,9 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
 
 
 Line_buffer::Line_buffer(std::size_t const initial)
-  : data{static_cast<char *>(std::malloc(initial))}, capacity{initial}
+  : data_{static_cast<char *>(std::malloc(initial))}, capacity_{initial}
 {
-  if (data == nullptr) {
+  if (data_ == nullptr) {
     fatal("Unable to allocate enough memory.");
   }
 }
@@ -159,20 +159,19 @@ Line_buffer::~Line_buffer() noexcept { release(); }
 
 
 auto Line_buffer::release() noexcept -> void {
-  if (data != nullptr) {
-    std::free(data);
-    data = nullptr;
-    capacity = 0;
+  if (data_ != nullptr) {
+    std::free(data_);
+    data_ = nullptr;
+    capacity_ = 0;
   }
 }
 
 
-auto read_next_line(Line_buffer & line_buf, std::FILE * stream,
-                    uint64_t & filepos) -> void
+auto Line_buffer::read_next(std::FILE * stream, uint64_t & filepos) -> void
 {
-  auto const linelen = xgetline(& line_buf.data, & line_buf.capacity, stream);
+  auto const linelen = xgetline(&data_, &capacity_, stream);
   if (linelen < 0) {
-    *line_buf.data = '\0';
+    *data_ = '\0';
     return;
   }
   filepos += static_cast<unsigned long int>(linelen);

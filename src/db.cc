@@ -209,12 +209,12 @@ namespace {
                     uint64_t & datalen,
                     struct Seq_stats & seq_stats) -> void
   {
-    if (*line_buf.data != '>') {
+    if (line_buf.peek_first() != '>') {
       fatal("Illegal header line in fasta file.");
     }
 
     auto const headerlen = static_cast<unsigned int>
-      (std::strcspn(std::next(line_buf.data), " \r\n"));
+      (std::strcspn(std::next(line_buf.data()), " \r\n"));
 
     seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
@@ -223,7 +223,7 @@ namespace {
     }
 
     linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-    std::copy_n(std::next(line_buf.data), headerlen, &data_v[datalen]);
+    std::copy_n(std::next(line_buf.data()), headerlen, &data_v[datalen]);
     data_v[datalen + headerlen] = '\0';
     entry.header.offset = datalen;
     entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
@@ -252,9 +252,9 @@ namespace {
     auto length = 0U;
     entry.sequence.offset = datalen;
 
-    while ((*line_buf.data != 0) and (*line_buf.data != '>'))
+    while ((not line_buf.empty()) and (line_buf.peek_first() != '>'))
       {
-        auto * line_ptr = line_buf.data;
+        auto const * line_ptr = line_buf.data();
         unsigned char character {};
         while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
           {
@@ -284,7 +284,7 @@ namespace {
           fatal("Sequences longer than 67,108,861 symbols are not supported.");
         }
 
-        read_next_line(line_buf, stream, filepos);
+        line_buf.read_next(stream, filepos);
 
         ++lineno;
       }
@@ -593,9 +593,9 @@ namespace {
 
     Progress progress("Reading sequences:", file_info.filesize, parameters);
 
-    read_next_line(line_buf, input_fp_handle.get(), filepos);
+    line_buf.read_next(input_fp_handle.get(), filepos);
 
-    while (*line_buf.data != '\0')
+    while (not line_buf.empty())
       {
         /* read header */
         /* the header ends at a space, cr, lf or null character */
@@ -607,7 +607,7 @@ namespace {
 
         /* get next line */
 
-        read_next_line(line_buf, input_fp_handle.get(), filepos);
+        line_buf.read_next(input_fp_handle.get(), filepos);
 
         ++lineno;
 

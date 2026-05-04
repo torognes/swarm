@@ -33,10 +33,8 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
 // long lines, so the storage must come from std::malloc and the
 // destructor must call std::free. std::vector<char> or new[]/delete[]
 // would create an allocator mismatch and undefined behavior.
-struct Line_buffer {
-  char *      data {nullptr};
-  std::size_t capacity {0};
-
+class Line_buffer {
+public:
   explicit Line_buffer(std::size_t initial);
 
   // noexcept: std::free is noexcept and the nullptr guard performs
@@ -50,11 +48,21 @@ struct Line_buffer {
   auto operator=(Line_buffer const &) -> Line_buffer & = delete;
   Line_buffer(Line_buffer &&)                          = delete;
   auto operator=(Line_buffer &&)      -> Line_buffer & = delete;
+
+  // Read one line from `stream` into the buffer and bump `filepos`
+  // by the number of bytes consumed. On read failure, the buffer is
+  // left empty (first byte set to '\0'); callers can use empty() as
+  // the end-of-input sentinel.
+  auto read_next(std::FILE * stream, uint64_t & filepos) -> void;
+
+  auto data()       const noexcept -> char const * { return data_; }
+  auto empty()      const noexcept -> bool         { return *data_ == '\0'; }
+  auto peek_first() const noexcept -> char         { return *data_; }
+
+private:
+  // read_next() is the only writer to data_; it goes through the
+  // field directly. Keeping data() public-const-only means external
+  // callers cannot get a writable pointer into the buffer.
+  char *      data_     {nullptr};
+  std::size_t capacity_ {0};
 };
-
-
-// Read one line into line_buf and bump filepos by the number of bytes
-// consumed. On read failure, leave the buffer empty (first byte set
-// to '\0') so callers can use the same end-of-input sentinel.
-auto read_next_line(Line_buffer & line_buf, std::FILE * stream,
-                    uint64_t & filepos) -> void;
