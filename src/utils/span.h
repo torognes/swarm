@@ -56,9 +56,10 @@ public:
     assert(length <= max_ptrdiff);
   }
 
-  // Implicit conversion to read-only View<Type>: a Span can be
-  // passed to any API that consumes a View.
-  operator View<Type>() const noexcept {
+  // Explicit conversion to read-only View<Type>: callers wanting to
+  // hand a Span to a View-consuming API must opt in via
+  // static_cast<View<Type>>(span) or View<Type>{span}.
+  explicit operator View<Type>() const noexcept {
     return View<Type>{start_, length_};
   }
 
