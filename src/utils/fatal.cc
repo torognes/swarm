@@ -22,7 +22,7 @@
 */
 
 #include <cstdlib>
-#include <iostream>  // replace with std::printf for performance?
+#include <iostream>  // using std::printf produces a larger binary
 
 [[noreturn]]
 auto fatal() -> void {
