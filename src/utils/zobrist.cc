@@ -132,7 +132,7 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
   auto const bulk = View<char>{seq, n_complete_bytes};
   auto byte_idx = 0U;
   std::for_each(bulk.cbegin(), bulk.cend(),
-                [&](char const byte) {
+                [&](char const byte) -> void {
                   auto const a_byte = to_uchar(byte);
                   zobrist_hash ^= tab_byte_base_v_[byte_idx][a_byte];
                   ++byte_idx;
@@ -169,7 +169,7 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
 
   auto byte_idx = 0U;
   return std::accumulate(view.cbegin(), view.cend(), uint64_t{0},
-    [&](uint64_t acc, char const byte_value) {
+    [&](uint64_t acc, char const byte_value) -> uint64_t {
       auto offset = to_uchar(byte_value);
       auto const base_pos = nt_per_byte * byte_idx;
       ++byte_idx;

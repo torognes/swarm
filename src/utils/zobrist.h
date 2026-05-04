@@ -22,7 +22,7 @@
 */
 
 #include <array>
-#include <cstdint> // uint64_t
+#include <cstdint> // uint64_t, std::uint8_t
 #include <vector>
 
 
@@ -41,7 +41,7 @@ public:
   auto hash_insert_first(Sequence const & seq) const -> uint64_t;
 
 private:
-  enum struct First_base_op { remove, insert_gap };
+  enum struct First_base_op : std::uint8_t { remove, insert_gap };
   auto hash_first_shifted(Sequence const & seq, First_base_op op) const -> uint64_t;
 
   auto fill_rng_table(unsigned int zobrist_len) -> void;
