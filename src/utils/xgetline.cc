@@ -129,7 +129,7 @@ auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssiz
       *linep = newlinep;
       *linecapp = newlinecap;
       p = std::next(newlinep, static_cast<std::ptrdiff_t>(len));
-      e = std::next(p, static_cast<std::ptrdiff_t>(*linecapp - 1));
+      e = std::next(newlinep, static_cast<std::ptrdiff_t>(*linecapp - 1));
     }
 #endif
 }
