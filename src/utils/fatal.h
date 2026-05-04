@@ -25,7 +25,7 @@
 
 
 /* bare-exit form: terminate with a final newline (no error prefix) */
-auto fatal() -> void;
+[[noreturn]] auto fatal() -> void;
 
 
 /* message and exit with an error (variadic template with compile-time recursion) */
@@ -38,11 +38,11 @@ namespace fatal_detail {
 
     // recursion base case: defined out-of-line in fatal.cc to avoid
     // multiple-definitions at link time
-    auto print_then_exit() -> void;
+    [[noreturn]] auto print_then_exit() -> void;
 
     // recursive case: consume arguments one-by-one
     template<typename T, typename... Tail>
-    auto print_then_exit(T head, Tail... tail) -> void {
+    [[noreturn]] auto print_then_exit(T head, Tail... tail) -> void {
         std::cerr << head;
         print_then_exit(tail...);
     }
@@ -52,7 +52,7 @@ namespace fatal_detail {
 
 // public variadic: auto-prefix "\nError: " then forward
 template<typename T, typename... Tail>
-auto fatal(T head, Tail... tail) -> void {
+[[noreturn]] auto fatal(T head, Tail... tail) -> void {
     std::cerr << "\nError: ";
     fatal_detail::print_then_exit(head, tail...);
 }
