@@ -74,8 +74,8 @@ auto dprofile_shuffle8(BYTE * dprofile,
                        BYTE const * dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
-  auto * const sequence_db = cast_vector8(dseq_byte);
-  auto * const score_db = cast_vector8(score_matrix);
+  auto const * const sequence_db = cast_vector8(dseq_byte);
+  auto const * const score_db = cast_vector8(score_matrix);
   auto * const profile_db = cast_vector8(dprofile);    // output
   const auto seq_chunk0 = v_load8(std::next(sequence_db, 0));  // 16 nucleotides
   const auto seq_chunk1 = v_load8(std::next(sequence_db, 1));  // next 16
@@ -110,8 +110,8 @@ auto dprofile_shuffle16(WORD * dprofile,
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   auto * const profile_db = cast_vector16(dprofile);
-  auto * const score_db = cast_vector16(score_matrix);
-  auto * const sequence_db = cast_vector8(dseq_byte);
+  auto const * const score_db = cast_vector16(score_matrix);
+  auto const * const sequence_db = cast_vector8(dseq_byte);
   static constexpr int channels {8};  // does 8 represent the number of channels?
 
   const auto zero = v_zero();
