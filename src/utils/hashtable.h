@@ -29,8 +29,7 @@
 // (64-bit Zobrist hash -> amplicon id) lookups performed by algod1.cc.
 // Three flat buffers back the table: a packed bitset of occupancy, the
 // stored hash value at each slot, and the amplicon id at each slot.
-class Hashtable
-{
+class Hashtable {
 public:
 
   // Allocate buffers sized for `amplicons` entries; returns the resulting
