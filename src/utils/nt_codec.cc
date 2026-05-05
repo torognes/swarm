@@ -63,8 +63,7 @@ auto nt_extract(char const * compressed_sequence, uint64_t const position) -> un
 
 
 // round-up operation, compiler cleverly elimates the multiplication (8 is a power of 2)
-auto nt_bytelength(const unsigned int len) -> unsigned int
-{
+auto nt_bytelength(const unsigned int len) -> unsigned int {
   // Compute number of bytes used for compressed sequence of length len
   // (minimum result is 8 bytes)
   static constexpr auto max_nt_per_uint64 = 32U;  // 32 nt fit in 64 bits
