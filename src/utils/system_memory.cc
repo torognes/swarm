@@ -85,8 +85,8 @@ auto system_get_memtotal() -> uint64_t {
 
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
 
-  const int64_t phys_pages = sysconf(_SC_PHYS_PAGES);
-  const int64_t pagesize = sysconf(_SC_PAGESIZE);
+  int64_t const phys_pages = sysconf(_SC_PHYS_PAGES);
+  int64_t const pagesize = sysconf(_SC_PAGESIZE);
   if ((phys_pages == -1) or (pagesize == -1)) {
     fatal("Cannot determine amount of RAM.");
   }
