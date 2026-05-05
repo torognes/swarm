@@ -37,11 +37,8 @@ class Line_buffer {
 public:
   explicit Line_buffer(std::size_t initial);
 
-  // noexcept: std::free is noexcept and the nullptr guard performs
-  // only an integer comparison.
   ~Line_buffer() noexcept;
 
-  // noexcept: see destructor.
   auto release() noexcept -> void;
 
   Line_buffer(Line_buffer const &)                     = delete;
