@@ -64,7 +64,6 @@ private:
 
 
 public:
-
   // refactoring: heaptrack detects a memory leak of 640 bytes for
   // each thread created by this member function. Backtrace:
   // ThreadRunner::ThreadRunner(int, std::function<void(long)> const&)
