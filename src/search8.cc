@@ -149,10 +149,10 @@ inline auto dprofile_fill8(BYTE * dprofile,
   VECTORTYPE reg14;
   VECTORTYPE reg15;
 
-  for(auto j = 0U; j < cdepth; ++j)
+  for (auto j = 0U; j < cdepth; ++j)
     {
       std::array<unsigned int, channels> d {{}};  // refactoring: name?
-      for(auto i = 0U; i < channels; ++i) {
+      for (auto i = 0U; i < channels; ++i) {
         d[i] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + i))) << multiplier;
       }
 
@@ -516,7 +516,7 @@ auto align_cells_regular_8(VECTORTYPE * Sm,
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  for(auto pos = 0LL; pos < ql_signed; ++pos)
+  for (auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE const * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, (2 * pos) + 0);
@@ -587,7 +587,7 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  for(auto pos = 0LL; pos < ql_signed; ++pos)
+  for (auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE const * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, (2 * pos) + 0);
@@ -704,8 +704,8 @@ auto search8(Data const & data,
       if (easy) {
           // fill all channels
 
-          for(auto channel = 0U; channel < channels; ++channel) {
-              for(auto j = 0U; j < cdepth; ++j) {
+          for (auto channel = 0U; channel < channels; ++channel) {
+              for (auto j = 0U; j < cdepth; ++j) {
                   if (d_pos[channel] < d_length[channel]) {
                     dseq[(channels * j) + channel]
                       = 1 + nt_extract(d_address[channel], d_pos[channel]);
@@ -827,7 +827,7 @@ auto search8(Data const & data,
                       *std::next(reinterpret_cast<BYTE *>(&F0), channel) = static_cast<BYTE>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
 
                       // fill channel
-                      for(auto j = 0U; j < cdepth; ++j)
+                      for (auto j = 0U; j < cdepth; ++j)
                         {
                           if (d_pos[channel] < d_length[channel]) {
                             dseq[(channels * j) + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]);
@@ -848,7 +848,7 @@ auto search8(Data const & data,
                       d_address[channel] = nullptr;
                       d_pos[channel] = 0;
                       d_length[channel] = 0;
-                      for(auto j = 0U; j < cdepth; ++j) {
+                      for (auto j = 0U; j < cdepth; ++j) {
                         dseq[(channels * j) + channel] = 0;
                       }
                     }
