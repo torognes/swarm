@@ -31,8 +31,7 @@
 // zapped filter has all bits set to 1, set() clears the pattern's
 // bits, and get() returns true (possibly-present) when all of the
 // pattern's bits in the addressed word are zero.
-class BloomFilter
-{
+class BloomFilter {
 public:
 
   // bitmap_bytes is the requested bitmap size in bytes; it is rounded
