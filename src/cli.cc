@@ -534,7 +534,7 @@ namespace {
                            struct Parameters const & parameters) -> void {
     static constexpr auto min_bits_per_entry {2U};
     static constexpr auto max_bits_per_entry {64U};
-    static constexpr auto min_ceiling{40U};
+    static constexpr auto min_ceiling {40U};
     static constexpr auto max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
 
     if (parameters.opt_fastidious and (parameters.opt_differences != 1)) {
