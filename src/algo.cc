@@ -103,7 +103,7 @@ namespace {
 
   auto collect_seeds(struct Parameters const & parameters,
                      Data const & data,
-                     const uint64_t amplicons,
+                     uint64_t const amplicons,
                      std::vector<struct ampliconinfo_s> const & amps_v) -> std::vector<struct swarminfo_t> {
     Progress progress("Collecting seeds:    ", amplicons, parameters);
     assert(swarmed == amplicons);
@@ -234,7 +234,7 @@ namespace {
   }
 
 
-  auto write_representative_sequences(const uint64_t amplicons,
+  auto write_representative_sequences(uint64_t const amplicons,
                                       struct Parameters const & parameters,
                                       Data const & data,
                                       std::vector<struct ampliconinfo_s> const & amps_v) -> void {
@@ -244,7 +244,7 @@ namespace {
   }
 
 
-  auto write_swarms_default_format(const uint64_t amplicons,
+  auto write_swarms_default_format(uint64_t const amplicons,
                                    struct Parameters const & parameters,
                                    Data const & data,
                                    std::vector<struct ampliconinfo_s> const & amps_v) -> void {
@@ -257,7 +257,7 @@ namespace {
     int64_t previous_id = amps_v[0].swarmid;
 
     for (auto i = 1ULL; i < amplicons; ++i) {
-        const int64_t current_id = amps_v[i].swarmid;
+        int64_t const current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
           std::fputc(sepchar, parameters.outfile.get());
         }
@@ -272,8 +272,8 @@ namespace {
   }
 
 
-  auto write_swarms_mothur_format(const uint64_t amplicons,
-                                  const unsigned int swarmid,
+  auto write_swarms_mothur_format(uint64_t const amplicons,
+                                  unsigned int const swarmid,
                                   struct Parameters const & parameters,
                                   Data const & data,
                                   std::vector<struct ampliconinfo_s> const & amps_v) -> void {
@@ -288,7 +288,7 @@ namespace {
     int64_t previous_id = amps_v[0].swarmid;
 
     for (auto i = 1ULL; i < amplicons; ++i) {
-        const int64_t current_id = amps_v[i].swarmid;
+        int64_t const current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
           std::fputc(sep_amplicons, parameters.outfile.get());
         }
@@ -324,7 +324,7 @@ auto algo_run(struct Parameters const & parameters,
   uint64_t maxgenerations {0};
 
   auto const amplicons = data.sequence_count();
-  const uint64_t longestamplicon = data.longest_sequence();
+  uint64_t const longestamplicon = data.longest_sequence();
 
   auto const qgram_store = build_qgram_store(parameters, data);
 
@@ -383,7 +383,7 @@ auto algo_run(struct Parameters const & parameters,
 
       amps_v[seedindex].swarmid = swarmid;
 
-      const uint64_t seedampliconid = amps_v[seedindex].ampliconid;
+      uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
       hits[hitcount] = seedampliconid;
       ++hitcount;
 
@@ -490,7 +490,7 @@ auto algo_run(struct Parameters const & parameters,
               auto const subseedabundance = data.abundance(subseed.ampliconid);
               uint64_t subseedlistlen {0};
               for (auto i = swarmed; i < amplicons; ++i) {
-                  const uint64_t targetampliconid = amps_v[i].ampliconid;
+                  uint64_t const targetampliconid = amps_v[i].ampliconid;
                   if ((amps_v[i].diffestimate <=
                        subseed.radius + parameters.opt_differences) and
                       ((parameters.opt_no_cluster_breaking) or
