@@ -77,14 +77,12 @@ auto findqgrams(char const * seq, uint64_t seqlen,
   uint64_t qgram {0};
   unsigned int position {0};
 
-  while((position < qgramlength - 1) and (position < seqlen))
-  {
+  while ((position < qgramlength - 1) and (position < seqlen)) {
     qgram = (qgram << 2U) | nt_extract(seq, position);
     ++position;
   }
 
-  while(position < seqlen)
-  {
+  while (position < seqlen) {
     qgram = (qgram << 2U) | nt_extract(seq, position);
     assert((qgram & max_range) <= 7);
     assert(((qgram >> 3U) & (qgramvectorbytes - 1)) <= std::numeric_limits<std::ptrdiff_t>::max());
