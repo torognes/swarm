@@ -214,10 +214,10 @@ namespace {
 
 
   auto args_long(char const * str, char const * option) -> int64_t {
-    static constexpr int base_value {10};
+    static constexpr auto base_value {10};
     char * endptr {nullptr};
     errno = 0;
-    long long const number = std::strtoll(str, &endptr, base_value);
+    auto const number = std::strtoll(str, &endptr, base_value);
     bool const empty_input {endptr == str};
     bool const trailing_garbage {*endptr != '\0'};
     bool const out_of_range {errno == ERANGE};
