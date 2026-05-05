@@ -22,7 +22,8 @@
 */
 
 #include "input_output.h"
-#include <cstdio>  // FILE, fdopen
+#include <cassert>
+#include <cstdio>  // fopen, FILE, fdopen
 #include <cstring>  // strcmp
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
@@ -30,6 +31,7 @@
 namespace {
 
   auto is_dash(char const * filename) -> bool {
+    assert(filename != nullptr);
     return std::strcmp(filename, "-") == 0;
   }
 
