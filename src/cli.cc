@@ -325,7 +325,7 @@ namespace {
   }
 
 
-  auto args_init(int argc, char ** argv, struct Parameters & parameters) -> UsedOptions {
+  auto args_init(int const argc, char ** argv, struct Parameters & parameters) -> UsedOptions {
     static constexpr std::size_t alphabet_size {26};
     UsedOptions used_options {};
     std::bitset<alphabet_size> seen_options;  // duplicate detection keyed by short letter
@@ -667,7 +667,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto parse_command_line(int argc, char ** argv) -> Parameters {
+auto parse_command_line(int const argc, char ** argv) -> Parameters {
   Parameters parameters;
   auto const used_options = args_init(argc, argv, parameters);
   show_help_or_version_and_exit(parameters);
