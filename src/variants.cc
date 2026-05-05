@@ -28,10 +28,14 @@
 #include "variants.h"
 #include <algorithm>  // std::copy
 #include <cassert>  // assert
-#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
 #include <vector>
+
+#ifndef NDEBUG
+#include <cstddef>  // std::size_t
+#endif
+
 
 
 namespace {
