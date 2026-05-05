@@ -107,7 +107,7 @@ auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
   auto const * rhs_ptr = reinterpret_cast<uint8x16_t const *>(rhs);
   uint64_t count {0};
 
-  for(auto i = 0ULL; i < n_vector_lengths; ++i) {
+  for (auto i = 0ULL; i < n_vector_lengths; ++i) {
     count += vaddvq_u8(vcntq_u8(veorq_u8(*lhs_ptr, *rhs_ptr)));
     ++lhs_ptr;
     ++rhs_ptr;
@@ -127,7 +127,7 @@ auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
   auto const * rhs_ptr = reinterpret_cast<vector unsigned char const *>(rhs);
   vector unsigned long long count_vector = { 0, 0 };
 
-  for(auto i = 0ULL; i < n_vector_lengths; ++i) {
+  for (auto i = 0ULL; i < n_vector_lengths; ++i) {
     count_vector += vec_vpopcnt(reinterpret_cast<vector unsigned long long>(vec_xor(*lhs_ptr, *rhs_ptr)));
     ++lhs_ptr;
     ++rhs_ptr;
@@ -211,7 +211,7 @@ auto compareqgramvectors_128(unsigned char const * lhs, unsigned char const * rh
   auto const * rhs_ptr = reinterpret_cast<__m128i const *>(rhs);
   uint64_t count {0};
 
-  for(auto i = 0ULL; i < n_vector_lengths; ++i) {
+  for (auto i = 0ULL; i < n_vector_lengths; ++i) {
     count += popcount_128(_mm_xor_si128(*lhs_ptr, *rhs_ptr));
     lhs_ptr = std::next(lhs_ptr);
     rhs_ptr = std::next(rhs_ptr);
@@ -287,7 +287,7 @@ auto qgram_worker(Qgram_store const & store,
   auto * amplist = tip.amplist;
   auto * difflist = tip.difflist;
 
-  for(auto i = 0LL; i < listlen_signed; ++i) {
+  for (auto i = 0LL; i < listlen_signed; ++i) {
     auto & target_diff = *std::next(difflist, i);
     auto const target_amplicon = *std::next(amplist, i);
     target_diff = qgram_diff(store, seed, target_amplicon, cpu_features);
@@ -353,7 +353,7 @@ auto qgram_diff_fast(struct Parameters const & parameters,
       auto thrrest = static_cast<uint64_t>(parameters.opt_threads);
 
       /* distribute work */
-      for(auto & tip: thread_info_v) {
+      for (auto & tip: thread_info_v) {
           auto const chunk = (listrest + thrrest - 1) / thrrest;
           assert(chunk <= std::numeric_limits<std::ptrdiff_t>::max());
           auto const chunk_signed = static_cast<int64_t>(chunk);
