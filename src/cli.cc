@@ -310,8 +310,8 @@ auto args_show(struct Parameters const & parameters) -> void {
 
 auto fatal_duplicate_option(int const option_character) -> void {
   // Find the matching long option name to include in the error message.
-  const char * long_name = "";
-  for (const auto & long_option : long_options) {
+  char const * long_name = "";
+  for (auto const & long_option : long_options) {
     if (long_option.name == nullptr) {
       break;
     }
@@ -325,7 +325,7 @@ auto fatal_duplicate_option(int const option_character) -> void {
 }
 
 
-auto args_init(int argc, char **argv, struct Parameters & parameters) -> UsedOptions
+auto args_init(int argc, char ** argv, struct Parameters & parameters) -> UsedOptions
 {
   static constexpr std::size_t alphabet_size {26};
   UsedOptions used_options {};
@@ -334,7 +334,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> UsedOpt
   while (true)
   {
     int option_index {0};
-    const int option_character {getopt_long(argc, argv, short_options.c_str(), long_options.data(), &option_index)};
+    int const option_character {getopt_long(argc, argv, short_options.c_str(), long_options.data(), &option_index)};
 
     if (option_character == -1) {
       break;
@@ -343,7 +343,7 @@ auto args_init(int argc, char **argv, struct Parameters & parameters) -> UsedOpt
     /* check if any option is specified more than once */
     if ((option_character >= 'a') and (option_character <= 'z'))
       {
-        const auto bit = static_cast<std::size_t>(option_character - 'a');
+        auto const bit = static_cast<std::size_t>(option_character - 'a');
         if (seen_options.test(bit)) {
           fatal_duplicate_option(option_character);
         }
@@ -506,7 +506,7 @@ auto set_alignment_scoring_system(struct Parameters & parameters) -> void {
   parameters.penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
   parameters.penalty_gapextend = parameters.opt_match_reward + (2 * parameters.opt_gap_extension_penalty);
 
-  const int64_t penalty_factor {gcd(gcd(parameters.penalty_mismatch, parameters.penalty_gapopen), parameters.penalty_gapextend)};
+  int64_t const penalty_factor {gcd(gcd(parameters.penalty_mismatch, parameters.penalty_gapopen), parameters.penalty_gapextend)};
 
   // clang: risk of DivideZero, but that would require gcd(0, 0) which is not possible
   parameters.penalty_mismatch /= penalty_factor;
@@ -644,7 +644,7 @@ auto check_scoring_saturation(struct Parameters const & parameters) -> void {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
 
-  const int64_t diff_saturation_16 = std::min((uint16_max / parameters.penalty_mismatch),
+  int64_t const diff_saturation_16 = std::min((uint16_max / parameters.penalty_mismatch),
                                               (uint16_max - parameters.penalty_gapopen)
                                               / parameters.penalty_gapextend);
 
