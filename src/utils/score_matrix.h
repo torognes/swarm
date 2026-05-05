@@ -25,8 +25,11 @@
 #include <array>
 #include <cassert>
 #include <cstdint>  // int64_t, uint16_t
-#include <limits>
 #include <type_traits>
+
+#ifndef NDEBUG
+#include <limits>
+#endif
 
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
