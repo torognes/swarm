@@ -41,8 +41,7 @@
   available starting with the Intel Nehalem architecture in 2008.
 */
 
-auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const * rhs) -> uint64_t
-{
+auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const * rhs) -> uint64_t {
   /* Count number of different bits */
   /* requires a CPU with the POPCNT instruction */
 
@@ -51,7 +50,7 @@ auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const *
   auto const * rhs_ptr = reinterpret_cast<uint64_t const *>(rhs);
   uint64_t count {0};
 
-  for(auto i = 0ULL; i < n_vector_lengths; ++i) {
+  for (auto i = 0ULL; i < n_vector_lengths; ++i) {
     count += static_cast<uint64_t>(_mm_popcnt_u64(*lhs_ptr xor *rhs_ptr));  // C++20 refactoring: std::popcount
     std::advance(lhs_ptr, 1);
     std::advance(rhs_ptr, 1);
