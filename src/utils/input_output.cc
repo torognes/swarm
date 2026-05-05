@@ -27,12 +27,21 @@
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
 
+namespace {
+
+  auto is_dash(char const * filename) -> bool {
+    return std::strcmp(filename, "-") == 0;
+  }
+
+}  // end of anonymous namespace
+
+
 auto fopen_input(char const * filename) -> FileHandle {
   /* open the input stream given by filename, but use stdin if name is - */
-  std::FILE * input_stream = nullptr;
+  std::FILE * input_stream {nullptr};
 
-  if (std::strcmp(filename, "-") == 0) {
-    int const file_descriptor = dup(STDIN_FILENO);
+  if (is_dash(filename)) {
+    auto const file_descriptor = dup(STDIN_FILENO);
     input_stream = file_descriptor > 0 ? fdopen(file_descriptor, "rb") : nullptr;
   }
   else {
@@ -47,8 +56,8 @@ auto fopen_output(char const * filename) -> FileHandle {
   /* open the output stream given by filename, but use stdout if name is - */
   std::FILE * output_stream {nullptr};
 
-  if (std::strcmp(filename, "-") == 0) {
-    int const file_descriptor = dup(STDOUT_FILENO);
+  if (is_dash(filename)) {
+    auto const file_descriptor = dup(STDOUT_FILENO);
     output_stream = file_descriptor > 0 ? fdopen(file_descriptor, "w") : nullptr;
   }
   else {
