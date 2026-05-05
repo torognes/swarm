@@ -60,8 +60,7 @@ BloomFilter::BloomFilter(uint64_t const bitmap_bytes,
   , pattern_mask{pattern_count - 1}
   , pattern_k{n_hash_functions}
   , bitmap(size, std::numeric_limits<uint64_t>::max())
-  , patterns(pattern_count)
-{
+  , patterns(pattern_count) {
   generate_patterns();
 }
 
@@ -78,36 +77,31 @@ BloomFilter::BloomFilter(uint64_t const bitmap_bytes,
 // not, and would need its caller in algod1.cc to choose a rounding
 // policy compatible with the --ceiling / --bloom-bits memory budget.
 //
-auto BloomFilter::bitmap_index(uint64_t const hash) const noexcept -> uint64_t
-{
+auto BloomFilter::bitmap_index(uint64_t const hash) const noexcept -> uint64_t {
   auto const position = (hash >> pattern_shift) % size;
   assert(position < bitmap.size());
   return position;
 }
 
 
-auto BloomFilter::bit_pattern(uint64_t const hash) const noexcept -> uint64_t
-{
+auto BloomFilter::bit_pattern(uint64_t const hash) const noexcept -> uint64_t {
   auto const position = hash & pattern_mask;
   assert(position < patterns.size());
   return patterns[position];
 }
 
 
-auto BloomFilter::set(uint64_t const hash) noexcept -> void
-{
+auto BloomFilter::set(uint64_t const hash) noexcept -> void {
   bitmap[bitmap_index(hash)] &= compl bit_pattern(hash);
 }
 
 
-auto BloomFilter::get(uint64_t const hash) const noexcept -> bool
-{
+auto BloomFilter::get(uint64_t const hash) const noexcept -> bool {
   return (bitmap[bitmap_index(hash)] & bit_pattern(hash)) == 0U;
 }
 
 
-auto BloomFilter::zap() noexcept -> void
-{
+auto BloomFilter::zap() noexcept -> void {
   std::fill(bitmap.begin(), bitmap.end(), std::numeric_limits<uint64_t>::max());
 }
 
@@ -117,19 +111,16 @@ auto BloomFilter::zap() noexcept -> void
 // practice. Called only from the constructor, which is itself non-
 // noexcept (vector resize/construction can throw bad_alloc), so the
 // distinction is academic.
-auto BloomFilter::generate_patterns() -> void
-{
+auto BloomFilter::generate_patterns() -> void {
   static constexpr auto max_range = 63U;  // i & max_range = cap values to 63 max
-  for(auto & pattern : patterns)
-    {
-      assert(pattern == 0);  // value-initialized by the vector constructor
-      for(auto j = 0U; j < pattern_k; ++j)
-        {
-          uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
-          while ((pattern & onebit) != 0U) {
-            onebit = 1ULL << (rand_64() & max_range);
-          }
-          pattern |= onebit;
-        }
+  for (auto & pattern : patterns) {
+    assert(pattern == 0);  // value-initialized by the vector constructor
+    for (auto j = 0U; j < pattern_k; ++j) {
+      uint64_t onebit = 1ULL << (rand_64() & max_range);  // 0 <= shift <= 63
+      while ((pattern & onebit) != 0U) {
+        onebit = 1ULL << (rand_64() & max_range);
+      }
+      pattern |= onebit;
     }
+  }
 }
