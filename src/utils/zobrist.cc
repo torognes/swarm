@@ -45,15 +45,13 @@ namespace {
 
 // ----- class Zobrist -----
 
-Zobrist::Zobrist(unsigned int const n)
-{
+Zobrist::Zobrist(unsigned int const n) {
   fill_rng_table(n);
   fill_rng_byte_table(n);
 }
 
 
-auto Zobrist::fill_rng_table(unsigned int const zobrist_len) -> void
-{
+auto Zobrist::fill_rng_table(unsigned int const zobrist_len) -> void {
   /*
     Generate 4n random 64-bit numbers. They will represent the four
     different bases in any position (1 to n) of a sequence.  They will
@@ -87,8 +85,7 @@ auto Zobrist::fill_rng_table(unsigned int const zobrist_len) -> void
 }
 
 
-auto Zobrist::fill_rng_byte_table(unsigned int const zobrist_len) -> void
-{
+auto Zobrist::fill_rng_byte_table(unsigned int const zobrist_len) -> void {
   auto const n_byte_positions = zobrist_len / nt_per_byte;
 
   /* allocate byte table and combine into bytes for faster computations */
@@ -108,16 +105,14 @@ auto Zobrist::fill_rng_byte_table(unsigned int const zobrist_len) -> void
 }
 
 
-auto Zobrist::value(unsigned int const pos, unsigned char const offset) const -> uint64_t
-{
+auto Zobrist::value(unsigned int const pos, unsigned char const offset) const -> uint64_t {
   assert(not tab_base_v_.empty());
   assert(offset == 0 or offset == 1 or offset == 2 or offset == 3);
   return tab_base_v_[pos][offset];
 }
 
 
-auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
-{
+auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t {
   /* compute the Zobrist hash function of sequence seq of length len. */
   /* len is the actual number of bases in the sequence */
   /* it is encoded in (len + 3 ) / 4 bytes */
@@ -140,11 +135,9 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
 
   // Sub-byte residue: 0..3 nt that didn't fill a byte
   auto pos = n_complete_bytes * nt_per_byte;
-  if (pos < len)
-    {
+  if (pos < len) {
       auto last_byte = to_uchar(*std::next(seq, n_complete_bytes));
-      while (pos < len)
-        {
+      while (pos < len) {
           zobrist_hash ^= value(pos, last_byte & 3U);
           last_byte >>= 2U;
           ++pos;
@@ -156,8 +149,7 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t
 
 
 auto Zobrist::hash_first_shifted(Sequence const & seq,
-                                 First_base_op const op) const -> uint64_t
-{
+                                 First_base_op const op) const -> uint64_t {
   /* Shared body of hash_delete_first and hash_insert_first.
      remove:     skip the first input base, output position = input pos - 1.
      insert_gap: keep all input bases,     output position = input pos + 1. */
@@ -186,22 +178,19 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
 }
 
 
-auto Zobrist::hash(Sequence const & seq) const -> uint64_t
-{
+auto Zobrist::hash(Sequence const & seq) const -> uint64_t {
   return hash(seq.encoded.data(), seq.length);
 }
 
 
-auto Zobrist::hash_delete_first(Sequence const & seq) const -> uint64_t
-{
+auto Zobrist::hash_delete_first(Sequence const & seq) const -> uint64_t {
   /* compute the Zobrist hash function of sequence seq,
      but delete the first base */
   return hash_first_shifted(seq, First_base_op::remove);
 }
 
 
-auto Zobrist::hash_insert_first(Sequence const & seq) const -> uint64_t
-{
+auto Zobrist::hash_insert_first(Sequence const & seq) const -> uint64_t {
   /* compute the Zobrist hash function of sequence seq,
      but insert a gap (no value) before the first base */
   return hash_first_shifted(seq, First_base_op::insert_gap);
