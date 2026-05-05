@@ -512,8 +512,8 @@ namespace {
   }
 
 
-  auto validate_threading(struct Parameters const & parameters) -> void {
-    static constexpr unsigned int max_threads {512};
+  auto validate_threading(struct Parameters const &parameters) -> void {
+    static constexpr auto max_threads{512U};
     if ((parameters.opt_threads < 1) or (parameters.opt_threads > max_threads)) {
       fatal("Illegal number of threads specified with "
             "-t or --threads, must be in the range 1 to ", max_threads, ".");
@@ -532,10 +532,10 @@ namespace {
 
   auto validate_fastidious(UsedOptions const & used_options,
                            struct Parameters const & parameters) -> void {
-    static constexpr unsigned int min_bits_per_entry {2};
-    static constexpr unsigned int max_bits_per_entry {64};
-    static constexpr unsigned int min_ceiling {40};
-    static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
+    static constexpr auto min_bits_per_entry {2U};
+    static constexpr auto max_bits_per_entry {64U};
+    static constexpr auto min_ceiling{40U};
+    static constexpr auto max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
 
     if (parameters.opt_fastidious and (parameters.opt_differences != 1)) {
       fatal("Fastidious mode (specified with -f or --fastidious) only works "
