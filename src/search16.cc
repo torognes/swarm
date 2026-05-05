@@ -451,11 +451,9 @@ auto search16(Data const & data,
 
   uint64_t * dir = dirbuffer.data();
 
-  while(true)
-    {
+  while (true) {
 
-      if (easy)
-        {
+      if (easy) {
           // fill all channels
 
           for(auto channel = 0U; channel < channels; ++channel)
