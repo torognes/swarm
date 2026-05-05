@@ -30,8 +30,7 @@ namespace utils {
   // always call as: utils::make_unique<>() to avoid name overloads if compiled with C++17.
  
   template<typename Type, typename... Args>
-  auto make_unique(Args&&... args) -> std::unique_ptr<Type>
-  {
+  auto make_unique(Args&&... args) -> std::unique_ptr<Type> {
     return std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
   }
 
