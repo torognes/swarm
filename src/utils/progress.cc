@@ -39,8 +39,7 @@ Progress::Progress(char const * prompt_, uint64_t const size_,
     size(size_),
     chunk(size_ < progress_granularity ? 1 : size_ / progress_granularity),
     logfile(parameters.logfile),
-    silent(not parameters.opt_log.empty())
-{
+    silent(not parameters.opt_log.empty()) {
   if (silent) {
     std::fprintf(logfile, "%s", prompt);
   }
@@ -50,8 +49,7 @@ Progress::Progress(char const * prompt_, uint64_t const size_,
 }
 
 
-auto Progress::update(uint64_t const current) -> void
-{
+auto Progress::update(uint64_t const current) -> void {
   if (silent) { return; }  // no progress output if log is a file
   if (current < next) { return; }  // milestone not yet reached
   std::fprintf(logfile, "  \r%s %.0f%%", prompt,
@@ -62,15 +60,13 @@ auto Progress::update(uint64_t const current) -> void
 }
 
 
-auto Progress::update() -> void
-{
+auto Progress::update() -> void {
   ++counter;
   update(counter);
 }
 
 
-auto Progress::done() const -> void
-{
+auto Progress::done() const -> void {
   if (silent) {
     std::fprintf(logfile, " %.0f%%\n", 100.0);
   }
