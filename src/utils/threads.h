@@ -73,8 +73,8 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int thread_count,
-               const std::function<void(int64_t nth_thread)> & function) :
+  ThreadRunner(int const thread_count,
+               std::function<void(int64_t nth_thread)> const & function) :
       thread_array(static_cast<std::size_t>(thread_count)) {
     /* init and create worker threads */
     auto counter = 0LL;
@@ -94,7 +94,7 @@ public:
     for (auto & tip: thread_array) {
         /* tell worker to quit */
         {
-          const std::lock_guard<std::mutex> lock(tip.workmutex);
+          std::lock_guard<std::mutex> const lock(tip.workmutex);
           tip.work = -1;
           tip.workcond.notify_one();
         }
@@ -103,15 +103,15 @@ public:
     }
   }
 
-  ThreadRunner(const ThreadRunner&) = delete; // copy constructor
+  ThreadRunner(ThreadRunner const &) = delete; // copy constructor
   ThreadRunner(ThreadRunner&&) = delete; // move constructor
-  auto operator=(const ThreadRunner&) -> ThreadRunner& = delete; // copy assignment constructor
+  auto operator=(ThreadRunner const &) -> ThreadRunner& = delete; // copy assignment constructor
   auto operator=(ThreadRunner&&) -> ThreadRunner& = delete; // move assignment constructor
 
   auto run() -> void {
     /* wake up threads */
     for (auto & tip: thread_array) {
-        const std::lock_guard<std::mutex> lock(tip.workmutex);
+        std::lock_guard<std::mutex> const lock(tip.workmutex);
         tip.work = 1;
         tip.workcond.notify_one();
     }
