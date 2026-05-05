@@ -167,7 +167,7 @@ constexpr std::size_t args_usage_count {36};
 constexpr std::size_t args_usage_count {38};
 #endif
 
-const std::array<const char *, args_usage_count> args_usage_message {{
+std::array<char const *, args_usage_count> const args_usage_message {{
   /*0         1         2         3         4         5         6         7          */
   /*01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
    "Usage: swarm [OPTIONS] [FASTAFILE]\n",
@@ -217,10 +217,10 @@ auto args_long(char const * str, char const * option) -> int64_t {
   static constexpr int base_value {10};
   char * endptr {nullptr};
   errno = 0;
-  const long long number = std::strtoll(str, &endptr, base_value);
-  const bool empty_input {endptr == str};
-  const bool trailing_garbage {*endptr != '\0'};
-  const bool out_of_range {errno == ERANGE};
+  long long const number = std::strtoll(str, &endptr, base_value);
+  bool const empty_input {endptr == str};
+  bool const trailing_garbage {*endptr != '\0'};
+  bool const out_of_range {errno == ERANGE};
   if (empty_input or trailing_garbage or out_of_range)
     {
       fatal("Invalid numeric argument for option ", option, ".\n\n",
@@ -235,7 +235,7 @@ auto args_long(char const * str, char const * option) -> int64_t {
 
 
 template <std::size_t N>
-auto show(std::array<const char *, N> const & message,
+auto show(std::array<char const *, N> const & message,
           std::FILE * log_stream) -> void {
   for (char const * message_element : message) {
     std::fputs(message_element, log_stream);
