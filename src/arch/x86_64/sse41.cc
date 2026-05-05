@@ -130,8 +130,7 @@ auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  for(auto pos = 0LL; pos < ql_signed; ++pos)
-    {
+  for (auto pos = 0LL; pos < ql_signed; ++pos) {
       VECTORTYPE const * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, (2 * pos) + 0);
       E  = *std::next(hep, (2 * pos) + 1);
