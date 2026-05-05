@@ -43,7 +43,7 @@ struct CloseFileHandle {
 using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 
 
-auto fopen_input(const char * filename) -> FileHandle;
-auto fopen_output(const char * filename) -> FileHandle;
+auto fopen_input(char const * filename) -> FileHandle;
+auto fopen_output(char const * filename) -> FileHandle;
 
 #endif  // SWARM_UTILS_INPUT_OUTPUT_H
