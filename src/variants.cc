@@ -36,7 +36,10 @@
 
 namespace {
 
+#ifndef NDEBUG
+  // C++17 refactoring: [[maybe_unused]]
   constexpr std::size_t nt_per_byte = 4;  // 4 nucleotides packed per byte
+#endif
 
 
   inline auto nt_set(Span<char> const seq, unsigned int const pos, unsigned int const base) -> void
