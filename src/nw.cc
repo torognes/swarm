@@ -169,15 +169,13 @@ auto backtrack(char const * dseq,
         }
     }
 
-  while(column > 0)
-    {
+  while (column > 0) {
       ++alength;
       --column;
       raw_alignment.emplace_back('D');
     }
 
-  while(row > 0)
-    {
+  while (row > 0) {
       ++alength;
       --row;
       raw_alignment.emplace_back('I');
