@@ -28,8 +28,7 @@
 #include "hashtable_size.h"
 
 
-auto Hashtable::allocate(const uint64_t amplicons) -> uint64_t
-{
+auto Hashtable::allocate(const uint64_t amplicons) -> uint64_t {
   static constexpr int padding {63};  // make sure our final value is >= 64 / 8
   static constexpr int convert_to_bytes {8};
 
@@ -44,14 +43,12 @@ auto Hashtable::allocate(const uint64_t amplicons) -> uint64_t
 }
 
 
-auto Hashtable::clear() -> void
-{
+auto Hashtable::clear() -> void {
   std::fill(occupied.begin(), occupied.end(), 0U);
 }
 
 
-auto Hashtable::getindex(uint64_t hash) const noexcept -> uint64_t
-{
+auto Hashtable::getindex(uint64_t hash) const noexcept -> uint64_t {
   // Shift bits right to get independence from the simple Bloom filter hash
   static constexpr auto divider = 32U;  // drop the first 32 bits
   hash = hash >> divider;
@@ -59,14 +56,12 @@ auto Hashtable::getindex(uint64_t hash) const noexcept -> uint64_t
 }
 
 
-auto Hashtable::getnextindex(const uint64_t index) const noexcept -> uint64_t
-{
+auto Hashtable::getnextindex(const uint64_t index) const noexcept -> uint64_t {
   return (index + 1) & mask;
 }
 
 
-auto Hashtable::set_occupied(const uint64_t index) noexcept -> void
-{
+auto Hashtable::set_occupied(const uint64_t index) noexcept -> void {
   static constexpr auto divider = 3U;
   static constexpr auto max_range = 7U;  // 0000 0111
   auto const multiplier = index & max_range;  // mask all but the first 3 bits
@@ -78,8 +73,7 @@ auto Hashtable::set_occupied(const uint64_t index) noexcept -> void
 }
 
 
-auto Hashtable::is_occupied(const uint64_t index) const noexcept -> bool
-{
+auto Hashtable::is_occupied(const uint64_t index) const noexcept -> bool {
   static constexpr auto divider = 3U;
   static constexpr auto max_range = 7U;
   auto const multiplier = index & max_range;  // mask all but the first 3 bits
@@ -91,29 +85,25 @@ auto Hashtable::is_occupied(const uint64_t index) const noexcept -> bool
 }
 
 
-auto Hashtable::set_value(const uint64_t index, const uint64_t hash) noexcept -> void
-{
+auto Hashtable::set_value(const uint64_t index, const uint64_t hash) noexcept -> void {
   assert(index < values.size());
   values[index] = hash;
 }
 
 
-auto Hashtable::compare_value(const uint64_t index, const uint64_t hash) const noexcept -> bool
-{
+auto Hashtable::compare_value(const uint64_t index, const uint64_t hash) const noexcept -> bool {
   assert(index < values.size());
   return values[index] == hash;
 }
 
 
-auto Hashtable::get_data(const uint64_t index) const noexcept -> unsigned int
-{
+auto Hashtable::get_data(const uint64_t index) const noexcept -> unsigned int {
   assert(index < data.size());
   return data[index];
 }
 
 
-auto Hashtable::set_data(const uint64_t index, const unsigned int amplicon_id) noexcept -> void
-{
+auto Hashtable::set_data(const uint64_t index, const unsigned int amplicon_id) noexcept -> void {
   assert(index < data.size());
   data[index] = amplicon_id;
 }
