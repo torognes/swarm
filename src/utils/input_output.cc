@@ -27,8 +27,7 @@
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
 
-auto fopen_input(char const * filename) -> FileHandle
-{
+auto fopen_input(char const * filename) -> FileHandle {
   /* open the input stream given by filename, but use stdin if name is - */
   std::FILE * input_stream = nullptr;
 
@@ -44,8 +43,7 @@ auto fopen_input(char const * filename) -> FileHandle
 }
 
 
-auto fopen_output(char const * filename) -> FileHandle
-{
+auto fopen_output(char const * filename) -> FileHandle {
   /* open the output stream given by filename, but use stdout if name is - */
   std::FILE * output_stream {nullptr};
 
