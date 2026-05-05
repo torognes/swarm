@@ -1422,12 +1422,12 @@ auto algo_d1_run(struct Parameters const & parameters,
 
           /* find later generation matches */
           auto subseed = seed_info.next;
-          while(subseed != no_swarm)
+          while (subseed != no_swarm)
             {
               /* process all subseeds of this generation */
               global_hits_count = 0;
 
-              while(subseed != no_swarm)
+              while (subseed != no_swarm)
                 {
                   process_seed(data, subseed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
                   subseed = ampinfo_v[subseed].next;

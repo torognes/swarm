@@ -700,16 +700,12 @@ auto search8(Data const & data,
 
   uint64_t * dir = dirbuffer.data();
 
-  while(true)
-    {
-      if (easy)
-        {
+  while (true) {
+      if (easy) {
           // fill all channels
 
-          for(auto channel = 0U; channel < channels; ++channel)
-            {
-              for(auto j = 0U; j < cdepth; ++j)
-                {
+          for(auto channel = 0U; channel < channels; ++channel) {
+              for(auto j = 0U; j < cdepth; ++j) {
                   if (d_pos[channel] < d_length[channel]) {
                     dseq[(channels * j) + channel]
                       = 1 + nt_extract(d_address[channel], d_pos[channel]);
@@ -726,8 +722,7 @@ auto search8(Data const & data,
 
 #ifdef __x86_64__
 #ifdef __SSE3__
-          if (cpu_features.ssse3)
-            {
+          if (cpu_features.ssse3) {
               dprofile_shuffle8(dprofile.data(), score_matrix, dseq.data());
             }
           else
@@ -748,14 +743,11 @@ auto search8(Data const & data,
 
           M = v_zero8();
           T = T0;
-          for(auto channel = 0U; channel < channels; ++channel)
-            {
-              if (d_pos[channel] < d_length[channel])
-                {
+          for (auto channel = 0U; channel < channels; ++channel) {
+              if (d_pos[channel] < d_length[channel]) {
                   // this channel has more sequence
 
-                  for(auto j = 0U; j < cdepth; ++j)
-                    {
+                  for (auto j = 0U; j < cdepth; ++j) {
                       if (d_pos[channel] < d_length[channel]) {
                         dseq[(channels * j) + channel]
                           = 1 + nt_extract(d_address[channel], d_pos[channel]);
