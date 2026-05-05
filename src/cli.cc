@@ -213,7 +213,7 @@ const std::array<const char *, args_usage_count> args_usage_message {{
 }};
 
 
-auto args_long(char const * str, const char * option) -> int64_t {
+auto args_long(char const * str, char const * option) -> int64_t {
   static constexpr int base_value {10};
   char * endptr {nullptr};
   errno = 0;
@@ -235,9 +235,9 @@ auto args_long(char const * str, const char * option) -> int64_t {
 
 
 template <std::size_t N>
-auto show(const std::array<const char *, N> & message,
+auto show(std::array<const char *, N> const & message,
           std::FILE * log_stream) -> void {
-  for (const char * message_element : message) {
+  for (char const * message_element : message) {
     std::fputs(message_element, log_stream);
   }
 }
