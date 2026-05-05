@@ -78,7 +78,7 @@ auto system_get_memtotal() -> uint64_t {
   int mib [] = { CTL_HW, HW_MEMSIZE };
   int64_t ram = 0;
   std::size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, nullptr, 0) != 0) {
+  if (sysctl(mib, 2, &ram, &length, nullptr, 0) != 0) {
     fatal("Cannot determine amount of RAM.");
   }
   return static_cast<uint64_t>(ram);
