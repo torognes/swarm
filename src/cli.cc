@@ -242,14 +242,12 @@ auto show(std::array<const char *, N> const & message,
   }
 }
 
-auto show_header_message(std::FILE * log_stream) -> void
-{
+auto show_header_message(std::FILE * log_stream) -> void {
   show(header_message, log_stream);
 }
 
 
-auto show_help_or_version_and_exit(struct Parameters const & parameters) -> void
-{
+auto show_help_or_version_and_exit(struct Parameters const & parameters) -> void {
   if (parameters.opt_version) {
     show(header_message, parameters.logfile);
     std::exit(EXIT_SUCCESS);
@@ -262,8 +260,7 @@ auto show_help_or_version_and_exit(struct Parameters const & parameters) -> void
 }
 
 
-auto args_show(struct Parameters const & parameters) -> void
-{
+auto args_show(struct Parameters const & parameters) -> void {
 #ifdef __x86_64__
   cpu_features_show(parameters);
 #endif
