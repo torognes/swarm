@@ -89,7 +89,6 @@ public:
   ~ThreadRunner() {
     /* ask threads to quit */
     /* wait for them to join */
-
     for (auto & tip: thread_array) {
         /* tell worker to quit */
         {
@@ -102,10 +101,12 @@ public:
     }
   }
 
+
   ThreadRunner(ThreadRunner const &) = delete; // copy constructor
   ThreadRunner(ThreadRunner&&) = delete; // move constructor
   auto operator=(ThreadRunner const &) -> ThreadRunner& = delete; // copy assignment constructor
   auto operator=(ThreadRunner&&) -> ThreadRunner& = delete; // move assignment constructor
+
 
   auto run() -> void {
     /* wake up threads */
