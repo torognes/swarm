@@ -30,12 +30,10 @@
 #include <vector>
 
 
-class ThreadRunner
-{
+class ThreadRunner {
 private:
 
-  struct thread_s
-  {
+  struct thread_s {
     int64_t thread_id {0};
     std::function<void(int64_t)> fun;
     std::thread thread;
@@ -46,20 +44,17 @@ private:
 
   std::vector<struct thread_s> thread_array;
 
-  static auto worker(struct thread_s * tip) -> void
-  {
+  static auto worker(struct thread_s * tip) -> void {
     std::unique_lock<std::mutex> lock(tip->workmutex);
 
     /* loop until signalled to quit */
-    while (tip->work >= 0)
-      {
+    while (tip->work >= 0) {
         /* wait for work available */
         if (tip->work == 0) {
           tip->workcond.wait(lock);
         }
 
-        if (tip->work > 0)
-          {
+        if (tip->work > 0) {
             tip->fun(tip->thread_id);
             tip->work = 0;
             tip->workcond.notify_one();
@@ -80,11 +75,10 @@ public:
   //   calloc in ld-linux-x86-64.so.2
   ThreadRunner(int thread_count,
                const std::function<void(int64_t nth_thread)> & function) :
-      thread_array(static_cast<std::size_t>(thread_count))
-  {
+      thread_array(static_cast<std::size_t>(thread_count)) {
     /* init and create worker threads */
     auto counter = 0LL;
-    for(auto& tip: thread_array) {
+    for (auto & tip: thread_array) {
         tip.thread_id = counter;
         tip.fun = function;
         tip.thread = std::thread(worker, &tip);
@@ -93,12 +87,11 @@ public:
   }
 
 
-  ~ThreadRunner()
-  {
+  ~ThreadRunner() {
     /* ask threads to quit */
     /* wait for them to join */
 
-    for(auto& tip: thread_array) {
+    for (auto & tip: thread_array) {
         /* tell worker to quit */
         {
           const std::lock_guard<std::mutex> lock(tip.workmutex);
@@ -117,14 +110,14 @@ public:
 
   auto run() -> void {
     /* wake up threads */
-    for(auto& tip: thread_array) {
+    for (auto & tip: thread_array) {
         const std::lock_guard<std::mutex> lock(tip.workmutex);
         tip.work = 1;
         tip.workcond.notify_one();
     }
 
     /* wait for threads to finish their work */
-    for(auto& tip: thread_array) {
+    for (auto & tip: thread_array) {
         std::unique_lock<std::mutex> lock(tip.workmutex);
         tip.workcond.wait(lock, [&tip]() -> bool { return tip.work <= 0; });
     }
