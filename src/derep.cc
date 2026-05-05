@@ -89,7 +89,7 @@ namespace {
                         Data const & data,
                         std::vector<struct bucket> const & hashtable) -> void {
     Progress progress("Writing stats:    ", hashtable.size(), parameters);
-    for(auto const & cluster: hashtable) {
+    for (auto const & cluster: hashtable) {
       std::fprintf(parameters.statsfile.get(), "%u\t%" PRIu64 "\t", cluster.size, cluster.mass);
       data.fprint_id_noabundance(parameters.statsfile.get(), cluster.seqno_first, parameters.opt_usearch_abundance);
       std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
@@ -108,7 +108,7 @@ namespace {
     Progress progress("Writing structure:", hashtable.size(), parameters);
     auto counter = 0UL;
 
-    for(auto const & cluster: hashtable) {
+    for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
@@ -133,7 +133,7 @@ namespace {
     Progress progress("Writing UCLUST:   ", hashtable.size(), parameters);
     auto counter = 0U;
 
-    for(auto const & cluster: hashtable) {
+    for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
 
       std::fprintf(parameters.uclustfile.get(), "C\t%u\t%u\t*\t*\t*\t*\t*\t",
@@ -174,7 +174,7 @@ namespace {
                                       Data const & data,
                                       std::vector<struct bucket> const & hashtable) -> void {
     Progress progress("Writing seeds:    ", hashtable.size(), parameters);
-    for(auto const & cluster: hashtable) {
+    for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
       std::fprintf(parameters.seeds_file.get(), ">");
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, cluster.mass, parameters.opt_usearch_abundance);
@@ -198,7 +198,7 @@ namespace {
     std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%lu", parameters.opt_differences, hashtable.size());
 #endif
 
-    for(auto const & cluster: hashtable) {
+    for (auto const & cluster: hashtable) {
       // print cluster seed
       auto const seed = cluster.seqno_first;
       std::fputc('\t', parameters.outfile.get());
@@ -228,7 +228,7 @@ namespace {
     static constexpr char sepchar {' '};
     Progress progress("Writing swarms:   ", hashtable.size(), parameters);
 
-    for(auto const & cluster: hashtable) {
+    for (auto const & cluster: hashtable) {
       // print cluster seed
       auto const seed = cluster.seqno_first;
       data.fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
@@ -261,7 +261,7 @@ namespace {
          const uint64_t derep_hash_mask = hashtable.size() - 1;
          auto const & zobrist = data.zobrist();
 
-         for(auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
+         for (auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
            {
              auto const seq = data.sequence_view(seqno);
 
