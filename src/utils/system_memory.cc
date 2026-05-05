@@ -38,8 +38,7 @@
 #endif
 
 
-auto system_get_memused() -> uint64_t
-{
+auto system_get_memused() -> uint64_t {
 #ifdef _WIN32
 
   PROCESS_MEMORY_COUNTERS pmc;
@@ -66,8 +65,7 @@ auto system_get_memused() -> uint64_t
 }
 
 
-auto system_get_memtotal() -> uint64_t
-{
+auto system_get_memtotal() -> uint64_t {
 #ifdef _WIN32
 
   MEMORYSTATUSEX memory_status;
