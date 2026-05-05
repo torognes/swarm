@@ -252,21 +252,17 @@ namespace {
     auto length = 0U;
     entry.sequence.offset = datalen;
 
-    while ((not line_buf.empty()) and (line_buf.peek_first() != '>'))
-      {
+    while ((not line_buf.empty()) and (line_buf.peek_first() != '>')) {
         auto const * line_ptr = line_buf.data();
         unsigned char character {};
-        while ((character = static_cast<unsigned char>(*line_ptr)) != null_char)
-          {
+        while ((character = static_cast<unsigned char>(*line_ptr)) != null_char) {
             line_ptr = std::next(line_ptr);
             auto const category = classify[character];
-            if (category < Nt_class::skip)
-              {
+            if (category < Nt_class::skip) {
                 packer.push(static_cast<uint8_t>(category), data_v, datalen);
                 ++length;
               }
-            else if (category == Nt_class::illegal)
-              {
+            else if (category == Nt_class::illegal) {
                 if ((character >= start_chars_range) and (character <= end_chars_range)) {
                   fatal("Illegal character '", character,
                         "' in sequence on line ", lineno, ".");
@@ -293,8 +289,7 @@ namespace {
 
     entry.sequence.length = length;
 
-    if (length == 0)
-      {
+    if (length == 0) {
         fatal("Empty sequence found on line ", lineno - 1, ".");
       }
 
@@ -385,8 +380,7 @@ namespace {
     auto const * const header_end   = header_view.cend();
     auto const * search_from = header_begin;
 
-    while (search_from != header_end)
-      {
+    while (search_from != header_end) {
         auto const * const match = std::search(search_from, header_end,
                                                std::begin(attribute),
                                                std::next(std::begin(attribute), alen));
@@ -407,8 +401,7 @@ namespace {
         bool const right_ok = (digits_end == header_end)
                            or (*digits_end == ';');
 
-        if (left_ok and (n_digits > 0) and right_ok)
-          {
+        if (left_ok and (n_digits > 0) and right_ok) {
             auto const match_offset = std::distance(header_begin, match);
             assert(match_offset >= 0);
             assert(match_offset <= std::numeric_limits<int>::max());
@@ -455,8 +448,7 @@ namespace {
     int start = match.start;
     int end   = match.end;
 
-    if (match.found)
-      {
+    if (match.found) {
         if (match.number <= 0) {
           fatal("Illegal abundance value on line ", lineno, ":\n",
                 header_view.data(), "\nAbundance values should be positive integers.");
@@ -475,8 +467,7 @@ namespace {
           {
             ++seq_stats.missingabundance;
             // record the position of the first missing abundance entry
-            if (seq_stats.missingabundance == 1)
-              {
+            if (seq_stats.missingabundance == 1) {
                 seq_stats.missingabundance_lineno = lineno;
                 seq_stats.missingabundance_header = header_view.data();
               }
@@ -519,9 +510,8 @@ namespace {
                              std::vector<struct seqinfo_s> & seqindex_v) -> void {
     Progress const progress("Abundance sorting:", 1, parameters);
 
-    auto compare_entries = [](struct seqinfo_s const& lhs,
-                              struct seqinfo_s const& rhs) -> bool
-    {
+    auto compare_entries = [](struct seqinfo_s const & lhs,
+                              struct seqinfo_s const & rhs) -> bool {
       // sort by decreasing abundance
       if (lhs.abundance > rhs.abundance) {
         return true;
@@ -558,8 +548,7 @@ namespace {
 
 
   auto parse_fasta(struct Parameters const & parameters,
-                   std::vector<char> & data_v) -> struct Parse_result
-  {
+                   std::vector<char> & data_v) -> struct Parse_result {
     static constexpr unsigned int linealloc {2048};
 
     auto const classify = make_nt_classifier();
@@ -573,8 +562,7 @@ namespace {
     assert(parameters.input_filename.c_str() != nullptr);  // filename is set to '-' (stdin) by default
 
     auto const input_fp_handle = fopen_input(parameters.input_filename.c_str());
-    if (not input_fp_handle)
-      {
+    if (not input_fp_handle) {
         fatal("Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
       }
 
@@ -595,8 +583,7 @@ namespace {
 
     line_buf.read_next(input_fp_handle.get(), filepos);
 
-    while (not line_buf.empty())
-      {
+    while (not line_buf.empty()) {
         /* read header */
         /* the header ends at a space, cr, lf or null character */
 
@@ -637,8 +624,7 @@ namespace {
   // parsed Entry into its destination seqinfo slot.
   auto populate_views_from_entry(struct seqinfo_s & a_sequence,
                                  struct Entry const & entry,
-                                 std::vector<char> const & data_v) -> void
-  {
+                                 std::vector<char> const & data_v) -> void {
     a_sequence.header_view = View<char>{
       &data_v[entry.header.offset],
       entry.header.length};
@@ -650,8 +636,7 @@ namespace {
   // Compute the identifier subview within header_view, given the
   // abundance range already filled in by find_abundance(). Aborts if
   // the identifier would be empty.
-  auto compute_identifier_view(struct seqinfo_s const & a_sequence) -> View<char>
-  {
+  auto compute_identifier_view(struct seqinfo_s const & a_sequence) -> View<char> {
     auto const headerlen_signed = static_cast<int>(a_sequence.header_view.size());
     if ((a_sequence.abundance_start == 0) and
         (a_sequence.abundance_end == headerlen_signed)) {
@@ -660,8 +645,7 @@ namespace {
 
     int id_start {0};
     int id_len {0};
-    if (a_sequence.abundance_start > 0)
-      {
+    if (a_sequence.abundance_start > 0) {
         /* id first, then abundance (e.g. >name;size=1 or >name_1) */
         id_start = 0;
         id_len = a_sequence.abundance_start;
@@ -685,8 +669,7 @@ namespace {
   // constructed View<char> marks unused slots (a real identifier
   // cannot be empty - the caller has already aborted on those).
   auto register_unique_identifier(std::vector<View<char>> & hdr_table,
-                                  View<char> const id_view) -> void
-  {
+                                  View<char> const id_view) -> void {
     GenericHash<fnv1a> const hdr_hasher;
     auto const hdr_table_size = hdr_table.size();
     auto hdr_idx = hdr_hasher(id_view) % hdr_table_size;
@@ -707,13 +690,11 @@ namespace {
   // otherwise records a_sequence at the probed slot and returns false.
   auto is_duplicate_sequence(std::vector<struct seqinfo_s *> & seqhashtable,
                              uint64_t const seqhashsize,
-                             struct seqinfo_s & a_sequence) -> bool
-  {
+                             struct seqinfo_s & a_sequence) -> bool {
     uint64_t seqhashindex = a_sequence.seqhash % seqhashsize;
     struct seqinfo_s const * seqfound {nullptr};
 
-    while ((seqfound = seqhashtable[seqhashindex]) != nullptr)
-      {
+    while ((seqfound = seqhashtable[seqhashindex]) != nullptr) {
         if ((seqfound->seqhash == a_sequence.seqhash) and
             (seqfound->seqlen == a_sequence.seqlen) and
             std::equal(seqfound->seq,
@@ -737,8 +718,7 @@ namespace {
                      std::vector<char> const & data_v,
                      std::vector<struct Entry> const & entries,
                      struct Seq_stats & seq_stats,
-                     std::vector<struct seqinfo_s> & seqindex_v) -> void
-  {
+                     std::vector<struct seqinfo_s> & seqindex_v) -> void {
     Progress progress_hdr("Indexing headers:  ", seq_stats.n_sequences, parameters);
     auto entry_it = entries.cbegin();
     for (auto & a_sequence: seqindex_v) {
@@ -767,8 +747,7 @@ namespace {
   // empty identifier (compute_identifier_view() catches the latter).
   auto detect_duplicate_identifiers(struct Seq_stats const & seq_stats,
                                     std::vector<struct seqinfo_s> const & seqindex_v,
-                                    struct Parameters const & parameters) -> void
-  {
+                                    struct Parameters const & parameters) -> void {
     auto const hdr_table_size = uint64_t{2} * seq_stats.n_sequences;
     std::vector<View<char>> hdr_table(hdr_table_size);
 
@@ -787,8 +766,7 @@ namespace {
   auto compute_sequence_hashes(Zobrist const & zobrist,
                                struct Seq_stats const & seq_stats,
                                std::vector<struct seqinfo_s> & seqindex_v,
-                               struct Parameters const & parameters) -> void
-  {
+                               struct Parameters const & parameters) -> void {
     Progress progress_hash("Indexing sequences:", seq_stats.n_sequences, parameters);
     for (auto & a_sequence: seqindex_v) {
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
@@ -804,15 +782,13 @@ namespace {
   // abort_if_duplicated_sequences() afterwards.
   auto detect_duplicate_sequences(struct Seq_stats & seq_stats,
                                   std::vector<struct seqinfo_s> & seqindex_v,
-                                  struct Parameters const & parameters) -> void
-  {
+                                  struct Parameters const & parameters) -> void {
     auto const seqhashsize = uint64_t{2} * seq_stats.n_sequences;
     std::vector<struct seqinfo_s *> seqhashtable(seqhashsize);
 
     Progress progress_dup("Checking duplicates:", seq_stats.n_sequences, parameters);
     for (auto & a_sequence: seqindex_v) {
-        if (is_duplicate_sequence(seqhashtable, seqhashsize, a_sequence))
-          {
+        if (is_duplicate_sequence(seqhashtable, seqhashsize, a_sequence)) {
             seq_stats.has_duplicates = true;
             break;
           }
@@ -829,8 +805,7 @@ namespace {
                    std::vector<char> const & data_v,
                    std::vector<struct Entry> const & entries,
                    struct Seq_stats & seq_stats,
-                   std::vector<struct seqinfo_s> & seqindex_v) -> void
-  {
+                   std::vector<struct seqinfo_s> & seqindex_v) -> void {
     seqindex_v.resize(seq_stats.n_sequences);
 
     index_headers(parameters, data_v, entries, seq_stats, seqindex_v);
@@ -852,8 +827,7 @@ namespace {
 
 // ----- class Data -----
 
-Data::Data(struct Parameters const & parameters)
-{
+Data::Data(struct Parameters const & parameters) {
   auto parse_result = parse_fasta(parameters, data_);
 
   // Construct the Zobrist tables now that parse_fasta has determined
@@ -868,8 +842,7 @@ Data::Data(struct Parameters const & parameters)
 }
 
 
-auto Data::info(uint64_t const seqno) const -> struct seqinfo_s const &
-{
+auto Data::info(uint64_t const seqno) const -> struct seqinfo_s const & {
   assert(not seqindex_.empty());  // db_read() / Data ctor must run first
   // bound-check is redundant with -D_GLIBCXX_DEBUG (operator[] is
   // already checked under libstdc++ debug mode), kept here so the
@@ -879,27 +852,23 @@ auto Data::info(uint64_t const seqno) const -> struct seqinfo_s const &
 }
 
 
-auto Data::sequence_view(uint64_t const seqno) const -> Sequence
-{
+auto Data::sequence_view(uint64_t const seqno) const -> Sequence {
   auto const & rec = info(seqno);
   return {View<char>{rec.seq, nt_bytelength(rec.seqlen)}, rec.seqlen};
 }
 
 
-auto Data::sequence_hash(uint64_t const seqno) const -> uint64_t
-{
+auto Data::sequence_hash(uint64_t const seqno) const -> uint64_t {
   return info(seqno).seqhash;
 }
 
 
-auto Data::header_view(uint64_t const seqno) const -> View<char>
-{
+auto Data::header_view(uint64_t const seqno) const -> View<char> {
   return info(seqno).header_view;
 }
 
 
-auto Data::abundance(uint64_t const seqno) const -> uint64_t
-{
+auto Data::abundance(uint64_t const seqno) const -> uint64_t {
   return info(seqno).abundance;
 }
 
@@ -914,8 +883,7 @@ auto Data::abundance(uint64_t const seqno) const -> uint64_t
 //   buffer[len] = '\0';  //
 //   std::fprintf(fastaout_fp, "%.*s\n", len, buffer.c_str());
 // benchmarck to check which way is faster
-auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
-{
+auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void {
   static constexpr std::array<char, 32> sym_nt =
     {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -936,8 +904,7 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
 
 auto Data::fprint_id(std::FILE * stream, uint64_t const seqno,
                      bool const opt_usearch_abundance,
-                     int64_t const opt_append_abundance) const -> void
-{
+                     int64_t const opt_append_abundance) const -> void {
   auto const & seqinfo = info(seqno);
   auto const * hdrstr = seqinfo.header_view.data();
   auto const hdrlen = static_cast<int>(seqinfo.header_view.size());
@@ -959,21 +926,18 @@ auto Data::fprint_id(std::FILE * stream, uint64_t const seqno,
 
 
 auto Data::fprint_id_noabundance(std::FILE * stream, uint64_t const seqno,
-                                 bool const opt_usearch_abundance) const -> void
-{
+                                 bool const opt_usearch_abundance) const -> void {
   auto const & seqinfo = info(seqno);
   auto const * hdrstr = seqinfo.header_view.data();
   auto const hdrlen = static_cast<int>(seqinfo.header_view.size());
   auto const abundance_start = seqinfo.abundance_start;
   auto const abundance_end = seqinfo.abundance_end;
 
-  if (abundance_start < abundance_end)
-    {
+  if (abundance_start < abundance_end) {
       /* print start of header */
       std::fprintf(stream, "%.*s", abundance_start, hdrstr);
 
-      if (opt_usearch_abundance)
-        {
+      if (opt_usearch_abundance) {
           /* print semicolon if the abundance is not at either end */
           if ((abundance_start > 0) and (abundance_end < hdrlen)) {
             std::fprintf(stream, ";");
@@ -992,8 +956,7 @@ auto Data::fprint_id_noabundance(std::FILE * stream, uint64_t const seqno,
 auto Data::fprint_id_with_new_abundance(std::FILE * stream,
                                         uint64_t const seqno,
                                         uint64_t const new_abundance,
-                                        bool const opt_usearch_abundance) const -> void
-{
+                                        bool const opt_usearch_abundance) const -> void {
   auto const & seqinfo = info(seqno);
 
   auto const * const hdrstr = seqinfo.header_view.data();
@@ -1017,5 +980,4 @@ auto Data::fprint_id_with_new_abundance(std::FILE * stream,
                  new_abundance);
   }
 }
-
 
