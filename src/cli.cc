@@ -140,7 +140,7 @@ namespace {
   std::string const short_options = build_short_options();
 
 
-  std::array<const char *, 18> const header_message {{
+  std::array<char const *, 18> const header_message {{
       "Swarm ", swarm_version,
       "\n",
       "Copyright (C) 2012-2026 Torbjorn Rognes and Frederic Mahe\n",
