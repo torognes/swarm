@@ -47,8 +47,7 @@
 
 namespace {
 
-  struct ampliconinfo_s
-  {
+  struct ampliconinfo_s {
     unsigned int ampliconid {0};
     unsigned int diffestimate {0}; /* lower bound estimate of dist from initial seed */
     unsigned int swarmid {0};
@@ -58,8 +57,7 @@ namespace {
 
   uint64_t swarmed = 0;  // refactoring: reduce scope to algo()?
 
-  struct swarminfo_t
-  {
+  struct swarminfo_t {
     uint64_t mass {0};
     unsigned int seed {0};
     int dummy {0}; /* alignment padding only */
@@ -115,11 +113,9 @@ namespace {
     auto previous_id = amps_v[0].swarmid;
     auto seed = amps_v[0].ampliconid;
     mass += data.abundance(seed);
-    for (auto i = 1ULL; i < amplicons; ++i)
-      {
+    for (auto i = 1ULL; i < amplicons; ++i) {
         auto const current_id = amps_v[i].swarmid;
-        if (current_id != previous_id)
-          {
+        if (current_id != previous_id) {
             seeds[swarmcount].seed = seed;  // update previous
             seeds[swarmcount].mass = mass;
             ++swarmcount;
@@ -260,8 +256,7 @@ namespace {
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
-    for (auto i = 1ULL; i < amplicons; ++i)
-      {
+    for (auto i = 1ULL; i < amplicons; ++i) {
         const int64_t current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
           std::fputc(sepchar, parameters.outfile.get());
@@ -292,8 +287,7 @@ namespace {
               parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     int64_t previous_id = amps_v[0].swarmid;
 
-    for (auto i = 1ULL; i < amplicons; ++i)
-      {
+    for (auto i = 1ULL; i < amplicons; ++i) {
         const int64_t current_id = amps_v[i].swarmid;
         if (current_id == previous_id) {
           std::fputc(sep_amplicons, parameters.outfile.get());
@@ -312,8 +306,7 @@ namespace {
 
 
 auto algo_run(struct Parameters const & parameters,
-              Data const & data) -> void
-{
+              Data const & data) -> void {
   auto const score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
 
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
@@ -370,8 +363,7 @@ auto algo_run(struct Parameters const & parameters,
   auto swarmid = 0U;
 
   Progress progress("Clustering:       ", amplicons, parameters);
-  while (seeded < amplicons)
-    {
+  while (seeded < amplicons) {
 
       /* process each initial seed */
 
@@ -423,31 +415,26 @@ auto algo_run(struct Parameters const & parameters,
       qgram_diff_fast(parameters, qgram_store, seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
 
 
-      for (auto i = 0ULL; i < listlen; ++i)
-        {
+      for (auto i = 0ULL; i < listlen; ++i) {
           auto const poolampliconid = qgramamps_v[i];
           auto const diff = qgramdiffs_v[i];
           assert(diff <= std::numeric_limits<unsigned int>::max());
           amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
-          if (diff <= static_cast<uint64_t>(parameters.opt_differences))
-            {
+          if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
               targetindices[targetcount] = swarmed + i;
               targetampliconids[targetcount] = poolampliconid;
               ++targetcount;
             }
         }
 
-      if (targetcount > 0)
-        {
+      if (targetcount > 0) {
           search_do(parameters, data, search_state, seedampliconid, targetcount, targetampliconids.data(),
                     scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
-          for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
-            {
+          for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
               auto const diff = diffs_v[target_id];
 
-              if (diff <= static_cast<uint64_t>(parameters.opt_differences))
-                {
+              if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
                   auto const target = targetindices[target_id];
 
                   /* move the 'target' to the position ('swarmed')
@@ -464,8 +451,7 @@ auto algo_run(struct Parameters const & parameters,
                   hits[hitcount] = poolampliconid;
                   ++hitcount;
 
-                  if (not parameters.opt_internal_structure.empty())
-                    {
+                  if (not parameters.opt_internal_structure.empty()) {
                       data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                                             seedampliconid, parameters.opt_usearch_abundance);
                       std::fprintf(parameters.internal_structure_file.get(), "\t");
@@ -491,8 +477,7 @@ auto algo_run(struct Parameters const & parameters,
             }
 
 
-          while (seeded < swarmed)
-            {
+          while (seeded < swarmed) {
 
               /* process each subseed */
 
@@ -504,15 +489,13 @@ auto algo_run(struct Parameters const & parameters,
 
               auto const subseedabundance = data.abundance(subseed.ampliconid);
               uint64_t subseedlistlen {0};
-              for (auto i = swarmed; i < amplicons; ++i)
-                {
+              for (auto i = swarmed; i < amplicons; ++i) {
                   const uint64_t targetampliconid = amps_v[i].ampliconid;
                   if ((amps_v[i].diffestimate <=
                        subseed.radius + parameters.opt_differences) and
                       ((parameters.opt_no_cluster_breaking) or
                        (data.abundance(targetampliconid)
-                        <= subseedabundance)))
-                    {
+                        <= subseedabundance))) {
                       qgramamps_v[subseedlistlen] = targetampliconid;
                       qgramindices_v[subseedlistlen] = i;
                       ++subseedlistlen;
@@ -523,12 +506,11 @@ auto algo_run(struct Parameters const & parameters,
                               qgramdiffs_v.data(), thread_info_v);
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {
-                if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences))
-                  {
-                    targetindices[targetcount] = qgramindices_v[i];
-                    targetampliconids[targetcount] = qgramamps_v[i];
-                    ++targetcount;
-                  }
+                if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
+                  targetindices[targetcount] = qgramindices_v[i];
+                  targetampliconids[targetcount] = qgramamps_v[i];
+                  ++targetcount;
+                }
               }
 
               if (targetcount == 0) { continue; }
@@ -536,8 +518,7 @@ auto algo_run(struct Parameters const & parameters,
               search_do(parameters, data, search_state, subseed.ampliconid, targetcount, targetampliconids.data(),
                         scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
 
-              for (auto target_id = 0ULL; target_id < targetcount; ++target_id)
-                {
+              for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
                   auto const diff = diffs_v[target_id];
 
                   if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
@@ -563,20 +544,19 @@ auto algo_run(struct Parameters const & parameters,
                   hits[hitcount] = poolampliconid;
                   ++hitcount;
 
-                  if (not parameters.opt_internal_structure.empty())
-                    {
-                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                                            subseed.ampliconid,
-                                            parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file.get(), "\t");
-                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                                            poolampliconid,
-                                            parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
-                      std::fprintf(parameters.internal_structure_file.get(),
-                                   "\t%u\t%u\n",
-                                   swarmid, subseed.generation + 1);
-                    }
+                  if (not parameters.opt_internal_structure.empty()) {
+                    data.fprint_id_noabundance(parameters.internal_structure_file.get(),
+                                               subseed.ampliconid,
+                                               parameters.opt_usearch_abundance);
+                    std::fprintf(parameters.internal_structure_file.get(), "\t");
+                    data.fprint_id_noabundance(parameters.internal_structure_file.get(),
+                                               poolampliconid,
+                                               parameters.opt_usearch_abundance);
+                    std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
+                    std::fprintf(parameters.internal_structure_file.get(),
+                                 "\t%u\t%u\n",
+                                 swarmid, subseed.generation + 1);
+                  }
 
                   abundance = data.abundance(poolampliconid);
                   amplicons_copies += abundance;
@@ -607,60 +587,56 @@ auto algo_run(struct Parameters const & parameters,
           std::fprintf(parameters.uclustfile.get(), "\t*\n");
           std::fflush(parameters.uclustfile.get());
 
-          for (auto i = 1ULL; i < hitcount; ++i)
-            {
-              auto const hit = hits[i];
+          for (auto i = 1ULL; i < hitcount; ++i) {
+            auto const hit = hits[i];
+            auto const hit_seq = data.sequence_view(hit);
+            auto const seed_seq = data.sequence_view(seedampliconid);
 
-              auto const hit_seq = data.sequence_view(hit);
-              auto const seed_seq = data.sequence_view(seedampliconid);
+            uint64_t nwdiff {0};
 
-              uint64_t nwdiff {0};
+            nw(hit_seq.encoded.data(), hit_seq.length, seed_seq.encoded.data(), seed_seq.length,
+               score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
+               static_cast<unsigned long int>(parameters.penalty_gapextend),
+               nwdiff, directions, hearray, raw_alignment);
 
-              nw(hit_seq.encoded.data(), hit_seq.length, seed_seq.encoded.data(), seed_seq.length,
-                 score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
-                 static_cast<unsigned long int>(parameters.penalty_gapextend),
-                 nwdiff, directions, hearray, raw_alignment);
+            // backtracking produces a reversed alignment (starting from the end)
+            std::reverse(raw_alignment.begin(), raw_alignment.end());
+            compress_alignment_to_cigar(raw_alignment, cigar_string);
 
-              // backtracking produces a reversed alignment (starting from the end)
-              std::reverse(raw_alignment.begin(), raw_alignment.end());
-              compress_alignment_to_cigar(raw_alignment, cigar_string);
+            // loosing precision when converting raw_alignment.size() and
+            // nwdiff to double is not an issue, no need to add assertions
+            auto const nwalignmentlength = static_cast<double>(raw_alignment.size());
+            auto const differences = static_cast<double>(nwdiff);
+            auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
 
-              // loosing precision when converting raw_alignment.size() and
-              // nwdiff to double is not an issue, no need to add assertions
-              auto const nwalignmentlength = static_cast<double>(raw_alignment.size());
-              auto const differences = static_cast<double>(nwdiff);
-              auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
+            std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                         swarmid - 1, hit_seq.length, percentid,
+                         nwdiff > 0 ? cigar_string.data() : "=");
 
-              std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                      swarmid - 1, hit_seq.length, percentid,
-                      nwdiff > 0 ? cigar_string.data() : "=");
+            data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+            std::fprintf(parameters.uclustfile.get(), "\t");
+            data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+            std::fprintf(parameters.uclustfile.get(), "\n");
+            std::fflush(parameters.uclustfile.get());
 
-              data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(parameters.uclustfile.get(), "\t");
-              data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-              std::fprintf(parameters.uclustfile.get(), "\n");
-              std::fflush(parameters.uclustfile.get());
-
-              raw_alignment.clear();
-              cigar_string.clear();
-            }
-
+            raw_alignment.clear();
+            cigar_string.clear();
+          }
         }
 
 
-      if (parameters.statsfile.get() != nullptr)
-        {
-          abundance = data.abundance(seedampliconid);
+      if (parameters.statsfile.get() != nullptr) {
+        abundance = data.abundance(seedampliconid);
 
-          std::fprintf(parameters.statsfile.get(), "%" PRIu64 "\t%" PRIu64 "\t",
-                  swarmsize, amplicons_copies);
-          data.fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
-          std::fprintf(parameters.statsfile.get(),
-                  "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
-                  abundance, singletons, maxgen, maxradius);
-        }
+        std::fprintf(parameters.statsfile.get(), "%" PRIu64 "\t%" PRIu64 "\t",
+                     swarmsize, amplicons_copies);
+        data.fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
+        std::fprintf(parameters.statsfile.get(),
+                     "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
+                     abundance, singletons, maxgen, maxradius);
+      }
       progress.update(seeded);
-    }
+  }
   progress.done();
 
   /* output swarms */
