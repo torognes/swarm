@@ -29,7 +29,7 @@
 #include "derep.h"
 
 
-auto main(int argc, char ** argv) -> int {
+auto main(int const argc, char * const * argv) -> int {
   // initialization and checks
   auto const parameters = parse_command_line(argc, argv);
 
