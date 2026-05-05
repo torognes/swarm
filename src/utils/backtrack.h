@@ -57,8 +57,7 @@ auto backtrack(char const * qseq,
                uint64_t offset,
                uint64_t channel,
                uint64_t * alignmentlengthp,
-               const uint64_t longestdbsequence) -> uint64_t
-{
+               const uint64_t longestdbsequence) -> uint64_t {
   static constexpr uint8_t bits8 {8};
   static constexpr uint8_t bits16 {16};
   static_assert(n_bits == bits8 or n_bits == bits16, "n_bits must be 8 or 16");
@@ -80,8 +79,7 @@ auto backtrack(char const * qseq,
   uint64_t matches {0};
   auto operation = Alignment::Unknown;  // Insertion, Deletion or Match
 
-  while ((column >= 0) and (row >= 0))
-    {
+  while ((column >= 0) and (row >= 0)) {
       ++aligned;
 
       const auto direction
@@ -91,24 +89,20 @@ auto backtrack(char const * qseq,
                      + (static_cast<uint64_t>(row) & 3U)
                      ) % dirbuffer.size()];
 
-      if ((operation == Alignment::Insertion) and ((direction & maskextleft) == 0U))
-        {
-          --row;
-        }
-      else if ((operation == Alignment::Deletion) and ((direction & maskextup) == 0U))
-        {
-          --column;
-        }
-      else if ((direction & maskleft) != 0U)
-        {
-          --row;
-          operation = Alignment::Insertion;
-        }
-      else if ((direction & maskup) == 0U)
-        {
-          --column;
-          operation = Alignment::Deletion;
-        }
+      if ((operation == Alignment::Insertion) and ((direction & maskextleft) == 0U)) {
+        --row;
+      }
+      else if ((operation == Alignment::Deletion) and ((direction & maskextup) == 0U)) {
+        --column;
+      }
+      else if ((direction & maskleft) != 0U) {
+        --row;
+        operation = Alignment::Insertion;
+      }
+      else if ((direction & maskup) == 0U) {
+        --column;
+        operation = Alignment::Deletion;
+      }
       else
         {
           if (nt_extract(qseq, static_cast<uint64_t>(column)) ==
@@ -121,17 +115,15 @@ auto backtrack(char const * qseq,
         }
     }
 
-  while (column >= 0)
-    {
-      ++aligned;
-      --column;
-    }
+  while (column >= 0) {
+    ++aligned;
+    --column;
+  }
 
-  while (row >= 0)
-    {
-      ++aligned;
-      --row;
-    }
+  while (row >= 0) {
+    ++aligned;
+    --row;
+  }
 
   * alignmentlengthp = aligned;
   return aligned - matches;
