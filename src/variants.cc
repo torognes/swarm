@@ -70,7 +70,7 @@ namespace {
     /* copy part of the compressed sequence b to a */
     assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
     assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
-    for(auto i = 0U; i < length; ++i) {
+    for (auto i = 0U; i < length; ++i) {
       nt_set(seq_a, a_start + i, nt_extract(seq_b.data(), b_start + i));
     }
   }
@@ -86,7 +86,7 @@ namespace {
     /* return false if different, true if identical */
     assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
     assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
-    for(auto i = 0U; i < length; ++i) {
+    for (auto i = 0U; i < length; ++i) {
       if (nt_extract(seq_a.data(), a_start + i) != nt_extract(seq_b.data(), b_start + i)) {
         return false;
       }
@@ -217,11 +217,11 @@ auto generate_variants(Zobrist const & zobrist,
   auto variant_count = 0U;
   /* substitutions */
 
-  for(auto position = 0U; position < seqlen; ++position)
+  for (auto position = 0U; position < seqlen; ++position)
     {
       const auto current_base = nt_extract(sequence, position);
       const auto hash1 = hash ^ zobrist.value(position, current_base);
-      for(unsigned char base = 0; base < 4; ++base) {
+      for (unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
@@ -238,7 +238,7 @@ auto generate_variants(Zobrist const & zobrist,
   hash = zobrist.hash_delete_first(seq);
   add_variant(hash, Variant_type::deletion, 0, 0, variant_list, variant_count);
   auto previous_base = nt_extract(sequence, 0);
-  for(auto offset = 1U; offset < seqlen; ++offset)
+  for (auto offset = 1U; offset < seqlen; ++offset)
     {
       const auto current_base = nt_extract(sequence, offset);
       if (current_base == previous_base) {
@@ -253,17 +253,17 @@ auto generate_variants(Zobrist const & zobrist,
 
   hash = zobrist.hash_insert_first(seq);
   // insert before the first position in the sequence
-  for(unsigned char base = 0; base < 4; ++base)
+  for (unsigned char base = 0; base < 4; ++base)
     {
       const auto hash1 = hash ^ zobrist.value(0, base);
       add_variant(hash1, Variant_type::insertion, 0, base, variant_list, variant_count);
     }
   // insert after each position in the sequence
-  for(auto position = 0U; position < seqlen; ++position)
+  for (auto position = 0U; position < seqlen; ++position)
     {
       const auto current_base = nt_extract(sequence, position);
       hash ^= zobrist.value(position, current_base) ^ zobrist.value(position + 1, current_base);
-      for(unsigned char base = 0; base < 4; ++base) {
+      for (unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
