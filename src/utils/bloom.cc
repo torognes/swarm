@@ -51,9 +51,9 @@ namespace {
 
 // Constructor is non-noexcept: the two vector resizes / construction
 // from (count, value) can throw std::bad_alloc.
-BloomFilter::BloomFilter(const uint64_t bitmap_bytes,
-                         const unsigned int shift,
-                         const unsigned int n_hash_functions)
+BloomFilter::BloomFilter(uint64_t const bitmap_bytes,
+                         unsigned int const shift,
+                         unsigned int const n_hash_functions)
   : size{std::max(bitmap_bytes, bytes_per_word) >> 3U}
   , pattern_shift{shift}
   , pattern_count{uint64_t{1} << shift}
@@ -78,7 +78,7 @@ BloomFilter::BloomFilter(const uint64_t bitmap_bytes,
 // not, and would need its caller in algod1.cc to choose a rounding
 // policy compatible with the --ceiling / --bloom-bits memory budget.
 //
-auto BloomFilter::bitmap_index(const uint64_t hash) const noexcept -> uint64_t
+auto BloomFilter::bitmap_index(uint64_t const hash) const noexcept -> uint64_t
 {
   auto const position = (hash >> pattern_shift) % size;
   assert(position < bitmap.size());
@@ -86,7 +86,7 @@ auto BloomFilter::bitmap_index(const uint64_t hash) const noexcept -> uint64_t
 }
 
 
-auto BloomFilter::bit_pattern(const uint64_t hash) const noexcept -> uint64_t
+auto BloomFilter::bit_pattern(uint64_t const hash) const noexcept -> uint64_t
 {
   auto const position = hash & pattern_mask;
   assert(position < patterns.size());
@@ -94,13 +94,13 @@ auto BloomFilter::bit_pattern(const uint64_t hash) const noexcept -> uint64_t
 }
 
 
-auto BloomFilter::set(const uint64_t hash) noexcept -> void
+auto BloomFilter::set(uint64_t const hash) noexcept -> void
 {
   bitmap[bitmap_index(hash)] &= compl bit_pattern(hash);
 }
 
 
-auto BloomFilter::get(const uint64_t hash) const noexcept -> bool
+auto BloomFilter::get(uint64_t const hash) const noexcept -> bool
 {
   return (bitmap[bitmap_index(hash)] & bit_pattern(hash)) == 0U;
 }
