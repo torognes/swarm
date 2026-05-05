@@ -21,8 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-// Parse argv, validate the parsed options, derive the alignment
-// scoring system, open the input/output files, and print the header
-// banner. Returns a fully-initialised Parameters ready to be consumed
-// by the clustering algorithms.
+// Parse and validate options, derive the alignment scoring system,
+// open the input/output files, and print the header banner
 auto parse_command_line(int argc, char ** argv) -> struct Parameters;
