@@ -136,13 +136,13 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t {
   // Sub-byte residue: 0..3 nt that didn't fill a byte
   auto pos = n_complete_bytes * nt_per_byte;
   if (pos < len) {
-      auto last_byte = to_uchar(*std::next(seq, n_complete_bytes));
-      while (pos < len) {
-          zobrist_hash ^= value(pos, last_byte & 3U);
-          last_byte >>= 2U;
-          ++pos;
-        }
+    auto last_byte = to_uchar(*std::next(seq, n_complete_bytes));
+    while (pos < len) {
+      zobrist_hash ^= value(pos, last_byte & 3U);
+      last_byte >>= 2U;
+      ++pos;
     }
+  }
 
   return zobrist_hash;
 }
