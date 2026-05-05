@@ -44,13 +44,12 @@ constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 
 
 auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v,
-                                     const uint64_t longestdbsequence) -> void
-{
+                                     const uint64_t longestdbsequence) -> void {
   static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
   const uint64_t dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
 
-  for(auto& thread_data: search_data_v) {
+  for (auto & thread_data: search_data_v) {
     thread_data.qtable_v.resize(longestdbsequence);
     thread_data.qtable_w_v.resize(longestdbsequence);
     thread_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
@@ -62,13 +61,11 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 
 
 auto search_init(struct Search_data & thread_data,
-                 struct queryinfo const & query) -> void
-{
+                 struct queryinfo const & query) -> void {
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
 
-  for(auto i = 0U; i < query.len; ++i)
-  {
+  for (auto i = 0U; i < query.len; ++i) {
     const auto nt_value = nt_extract(query.seq, i) + 1U;  // 1,  2,   3, or   4
     const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
     const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
@@ -84,8 +81,7 @@ auto search_chunk(struct Parameters const & parameters,
                   Data const & data,
                   struct Search_data & thread_data,
                   struct Search_state const & state,
-                  const int64_t bits) -> void
-{
+                  const int64_t bits) -> void {
   static constexpr auto sixteen_bytes = 16;
   alignas(sixteen_bytes) static auto score_matrix_8 = create_score_matrix<unsigned char>(parameters.penalty_mismatch);
   alignas(sixteen_bytes) static auto score_matrix_16 = create_score_matrix<unsigned short>(parameters.penalty_mismatch);
@@ -139,8 +135,7 @@ auto search_chunk(struct Parameters const & parameters,
 
 
 auto search_getwork(struct Search_state & state,
-                    uint64_t & countref, uint64_t & firstref) -> bool
-{
+                    uint64_t & countref, uint64_t & firstref) -> bool {
   // countref = how many sequences to search
   // firstref = index into master_targets/scores/diffs where thread should start
 
@@ -148,18 +143,17 @@ auto search_getwork(struct Search_state & state,
 
   std::lock_guard<std::mutex> const lock(state.scan_mutex);
 
-  if (state.master_next < state.master_length)
-    {
-      const uint64_t chunksize =
-        ((state.master_length - state.master_next + state.remainingchunks - 1) / state.remainingchunks);
+  if (state.master_next < state.master_length) {
+    const uint64_t chunksize =
+      ((state.master_length - state.master_next + state.remainingchunks - 1) / state.remainingchunks);
 
-      countref = chunksize;
-      firstref = state.master_next;
+    countref = chunksize;
+    firstref = state.master_next;
 
-      state.master_next += chunksize;
-      --state.remainingchunks;
-      status = true;
-    }
+    state.master_next += chunksize;
+    --state.remainingchunks;
+    status = true;
+  }
 
   return status;
 }
@@ -170,7 +164,7 @@ auto search_worker_core(struct Parameters const & parameters,
                         const int64_t thread_id, struct Search_state & state) -> void {
   auto & thread_data = *std::next(state.search_data, thread_id);
   search_init(thread_data, state.query);
-  while(search_getwork(state, thread_data.target_count, thread_data.target_index)) {
+  while (search_getwork(state, thread_data.target_count, thread_data.target_index)) {
     search_chunk(parameters, data, thread_data, state, state.master_bits);
   }
 }
@@ -222,8 +216,7 @@ auto search_do(struct Parameters const & parameters,
                uint64_t * diffs,
                uint64_t * alignlengths,
                const int bits,
-               ThreadRunner * search_threads) -> void
-{
+               ThreadRunner * search_threads) -> void {
   auto query_len = 0U;
   state.query.qno = query_no;
   auto const & info = data.info(query_no);
@@ -258,8 +251,7 @@ auto search_do(struct Parameters const & parameters,
 auto search_begin(struct Parameters const & parameters,
                   Data const & data,
                   struct Search_state & state,
-                  std::vector<struct Search_data> & search_data_v) -> void
-{
+                  std::vector<struct Search_data> & search_data_v) -> void {
   state.search_data = search_data_v.data();
 
   allocate_per_thread_search_data(search_data_v, data.longest_sequence());
