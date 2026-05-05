@@ -32,7 +32,7 @@ auto fopen_input(char const * filename) -> FileHandle {
   std::FILE * input_stream = nullptr;
 
   if (std::strcmp(filename, "-") == 0) {
-    const int file_descriptor = dup(STDIN_FILENO);
+    int const file_descriptor = dup(STDIN_FILENO);
     input_stream = file_descriptor > 0 ? fdopen(file_descriptor, "rb") : nullptr;
   }
   else {
@@ -48,7 +48,7 @@ auto fopen_output(char const * filename) -> FileHandle {
   std::FILE * output_stream {nullptr};
 
   if (std::strcmp(filename, "-") == 0) {
-    const int file_descriptor = dup(STDOUT_FILENO);
+    int const file_descriptor = dup(STDOUT_FILENO);
     output_stream = file_descriptor > 0 ? fdopen(file_descriptor, "w") : nullptr;
   }
   else {
