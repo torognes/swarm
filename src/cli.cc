@@ -136,11 +136,11 @@ namespace {
   }
 
 
-  const std::array<struct option, option_specs.size() + 1> long_options = build_long_options();
-  const std::string short_options = build_short_options();
+  std::array<struct option, option_specs.size() + 1> const long_options = build_long_options();
+  std::string const short_options = build_short_options();
 
 
-  const std::array<const char *, 18> header_message {{
+  std::array<const char *, 18> const header_message {{
       "Swarm ", swarm_version,
       "\n",
       "Copyright (C) 2012-2026 Torbjorn Rognes and Frederic Mahe\n",
