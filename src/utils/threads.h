@@ -49,17 +49,17 @@ private:
 
     /* loop until signalled to quit */
     while (tip->work >= 0) {
-        /* wait for work available */
-        if (tip->work == 0) {
-          tip->workcond.wait(lock);
-        }
-
-        if (tip->work > 0) {
-            tip->fun(tip->thread_id);
-            tip->work = 0;
-            tip->workcond.notify_one();
-          }
+      /* wait for work available */
+      if (tip->work == 0) {
+        tip->workcond.wait(lock);
       }
+
+      if (tip->work > 0) {
+        tip->fun(tip->thread_id);
+        tip->work = 0;
+        tip->workcond.notify_one();
+      }
+    }
   }
 
 
