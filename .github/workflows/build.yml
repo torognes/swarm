@@ -45,7 +45,7 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install valgrind
         export PATH=$PWD/bin:$PATH
-        git clone https://github.com/frederic-mahe/swarm-tests
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
         cd swarm-tests
         bash ./run_all_tests.sh
 
@@ -66,7 +66,7 @@ jobs:
     - name: Install and run tests
       run: |
         export PATH=$PWD/bin:$PATH
-        git clone https://github.com/frederic-mahe/swarm-tests
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
         cd swarm-tests
         bash ./run_all_tests.sh
 
@@ -87,7 +87,7 @@ jobs:
     - name: Install and run tests
       run: |
         export PATH=$PWD/bin:$PATH
-        git clone https://github.com/frederic-mahe/swarm-tests
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
         cd swarm-tests
         bash ./run_all_tests.sh
 
@@ -111,6 +111,6 @@ jobs:
           gmake RELEASE=1
           bin/swarm -v
           export PATH=$PWD/bin:$PATH
-          git clone https://github.com/frederic-mahe/swarm-tests
+          git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
           cd swarm-tests
           bash ./run_all_tests.sh
