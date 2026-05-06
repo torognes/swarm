@@ -105,7 +105,7 @@ jobs:
         release: "14.2"
         usesh: true
         prepare: |
-          pkg install -y gmake bash
+          pkg install -y gmake bash git
         run: |
           gmake clean
           gmake RELEASE=1
