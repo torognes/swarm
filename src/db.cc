@@ -31,7 +31,7 @@
 #include "utils/progress.h"
 #include "utils/seq_index.h"
 #include "utils/view.h"
-#include "utils/xgetline.h"
+#include "utils/line_buffer.h"
 #include <algorithm>  // std::all_of() std::copy_n() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
 #include <array>
 #include <cassert>  // assert()

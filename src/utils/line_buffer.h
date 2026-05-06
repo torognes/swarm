@@ -25,10 +25,7 @@
 #include <cstdio>  // size_t
 
 
-auto xgetline(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssize_t;
-
-
-// RAII wrapper for the line buffer passed to xgetline(). POSIX
+// RAII wrapper for the line buffer used by read_next(). POSIX
 // getline() owns the buffer's lifetime: it may std::realloc() it on
 // long lines, so the storage must come from std::malloc and the
 // destructor must call std::free. std::vector<char> or new[]/delete[]
