@@ -22,6 +22,7 @@
 */
 
 #include <iostream>
+#include <utility>
 
 
 /* bare-exit form: terminate with a final newline (no error prefix) */
@@ -40,19 +41,21 @@ namespace fatal_detail {
     // multiple-definitions at link time
     [[noreturn]] auto print_then_exit() -> void;
 
-    // recursive case: consume arguments one-by-one
-    template<typename T, typename... Tail>
-    [[noreturn]] auto print_then_exit(T head, Tail... tail) -> void {
-        std::cerr << head;
-        print_then_exit(tail...);
+    // recursive case: consume arguments one-by-one (forwarding
+    // references avoid per-level copies of std::string and friends)
+    template<typename Head, typename... Tail>
+    [[noreturn]] auto print_then_exit(Head && head, Tail &&... tail) -> void {
+        std::cerr << std::forward<Head>(head);
+        print_then_exit(std::forward<Tail>(tail)...);
     }
 
 }  // namespace fatal_detail
 
 
 // public variadic: auto-prefix "\nError: " then forward
-template<typename T, typename... Tail>
-[[noreturn]] auto fatal(T head, Tail... tail) -> void {
+template<typename Head, typename... Tail>
+[[noreturn]] auto fatal(Head && head, Tail &&... tail) -> void {
     std::cerr << "\nError: ";
-    fatal_detail::print_then_exit(head, tail...);
+    fatal_detail::print_then_exit(std::forward<Head>(head),
+                                  std::forward<Tail>(tail)...);
 }
