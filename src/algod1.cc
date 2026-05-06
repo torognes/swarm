@@ -105,19 +105,28 @@ struct Graft_state
   int64_t candidates {0};
 };
 
-static unsigned int current_swarm_tail {0};
+/* overall statistics, accumulated across all swarms */
+struct Overall_stats
+{
+  uint64_t swarmcount_adjusted {0};
+  unsigned int maxgen {0};
+  unsigned int largest {0};
+};
 
-/* overall statistics */
-static unsigned int maxgen {0};
-static unsigned int largest {0};
-static uint64_t swarmcount_adjusted {0};
+/* per-swarm statistics, reset before each new swarm and copied into
+   the corresponding swarminfo_s entry once the swarm is closed */
+struct Active_swarm_stats
+{
+  uint64_t abundance_sum {0};  /* = mass */
+  uint64_t sumlen {0};
+  unsigned int tail {0};
+  unsigned int size {0};
+  unsigned int maxgen {0};
+  unsigned int singletons {0};
+};
 
-/* per swarm statistics */
-static unsigned int singletons {0};
-static uint64_t abundance_sum {0}; /* = mass */
-static unsigned int swarmsize {0};
-static unsigned int swarm_maxgen {0};
-static uint64_t swarm_sumlen {0};
+static Overall_stats overall_stats {};
+static Active_swarm_stats current_swarm {};
 
 static unsigned int * global_hits_data {nullptr};
 
@@ -217,9 +226,9 @@ namespace {
     light_swarm.attached = true;
 
     // Update overall stats
-    largest = std::max(heavy_swarm.size, largest);
+    overall_stats.largest = std::max(heavy_swarm.size, overall_stats.largest);
 
-    --swarmcount_adjusted;
+    --overall_stats.swarmcount_adjusted;
   }
 
 
@@ -691,14 +700,14 @@ namespace {
     /* update swarm stats */
     auto const & seed_info = ampinfo_v[seed];
 
-    ++swarmsize;
-    swarm_maxgen = std::max(seed_info.generation, swarm_maxgen);
+    ++current_swarm.size;
+    current_swarm.maxgen = std::max(seed_info.generation, current_swarm.maxgen);
     const auto abundance = data.abundance(seed);
-    abundance_sum += abundance;
+    current_swarm.abundance_sum += abundance;
     if (abundance == 1) {
-      ++singletons;
+      ++current_swarm.singletons;
     }
-    swarm_sumlen += data.sequence_view(seed).length;
+    current_swarm.sumlen += data.sequence_view(seed).length;
 
     const auto link_start = ampinfo_v[seed].link_start;
     const auto link_count = ampinfo_v[seed].link_count;
@@ -735,8 +744,8 @@ namespace {
                                std::vector<struct ampinfo_s> & ampinfo_v) -> void
   {
     /* add to swarm */
-    ampinfo_v[current_swarm_tail].next = amp;
-    current_swarm_tail = amp;
+    ampinfo_v[current_swarm.tail].next = amp;
+    current_swarm.tail = amp;
   }
 
 
@@ -812,7 +821,7 @@ namespace {
     Progress progress("Writing swarms:   ", swarminfo_v.size(), parameters);
 
     std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%" PRIu64,
-                 parameters.opt_differences, swarmcount_adjusted);
+                 parameters.opt_differences, overall_stats.swarmcount_adjusted);
 
     for (auto i = 0U; i < swarminfo_v.size(); ++i) {
       assert(not swarminfo_v[i].attached);
@@ -1263,7 +1272,7 @@ namespace {
     std::fprintf(parameters.logfile, "\n");
     std::fprintf(parameters.logfile, "Results before fastidious processing:\n");
     std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmcount);
-    std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
+    std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
     std::fprintf(parameters.logfile, "\n");
 
     auto const stats = count_cluster_stats(parameters, swarminfo_v);
@@ -1396,15 +1405,10 @@ auto algo_d1_run(struct Parameters const & parameters,
           seed_info.parent = no_swarm;
           seed_info.next = no_swarm;
 
-          /* link up this initial seed in the list of swarms */
-          current_swarm_tail = seed;
-
-          /* initialize swarm stats */
-          swarmsize = 0;
-          swarm_maxgen = 0;
-          abundance_sum = 0;
-          singletons = 0;
-          swarm_sumlen = 0;
+          /* initialize swarm stats and link up this initial seed in
+             the list of swarms */
+          current_swarm = Active_swarm_stats {};
+          current_swarm.tail = seed;
 
           /* init list */
           auto global_hits_count = 0U;
@@ -1461,17 +1465,17 @@ auto algo_d1_run(struct Parameters const & parameters,
           auto & swarm_info = swarminfo_v[swarmcount];
 
           swarm_info.seed = seed;
-          swarm_info.size = swarmsize;
-          swarm_info.mass = abundance_sum;
-          swarm_info.sumlen = swarm_sumlen;
-          swarm_info.singletons = singletons;
-          swarm_info.maxgen = swarm_maxgen;
-          swarm_info.last = current_swarm_tail;
+          swarm_info.size = current_swarm.size;
+          swarm_info.mass = current_swarm.abundance_sum;
+          swarm_info.sumlen = current_swarm.sumlen;
+          swarm_info.singletons = current_swarm.singletons;
+          swarm_info.maxgen = current_swarm.maxgen;
+          swarm_info.last = current_swarm.tail;
           swarm_info.attached = false;
 
           /* update overall stats */
-          largest = std::max(swarmsize, largest);
-          maxgen = std::max(swarm_maxgen, maxgen);
+          overall_stats.largest = std::max(current_swarm.size, overall_stats.largest);
+          overall_stats.maxgen = std::max(current_swarm.maxgen, overall_stats.maxgen);
 
           ++swarmcount;
         }
@@ -1484,7 +1488,7 @@ auto algo_d1_run(struct Parameters const & parameters,
   network_state.network_v.clear();
   network_state.network_v.shrink_to_fit();
 
-  swarmcount_adjusted = swarmcount;
+  overall_stats.swarmcount_adjusted = swarmcount;
 
   /* fastidious */
   if (parameters.opt_fastidious) {
@@ -1499,7 +1503,7 @@ auto algo_d1_run(struct Parameters const & parameters,
   output_results(parameters, data, ampinfo_v, swarminfo_v);
 
   std::fprintf(parameters.logfile, "\n");
-  std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", swarmcount_adjusted);
-  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", largest);
-  std::fprintf(parameters.logfile, "Max generations:   %u\n", maxgen);
+  std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
+  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
+  std::fprintf(parameters.logfile, "Max generations:   %u\n", overall_stats.maxgen);
 }
