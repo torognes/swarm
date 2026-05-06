@@ -161,8 +161,8 @@ auto search_getwork(struct Search_state & state,
 
 auto search_worker_core(struct Parameters const & parameters,
                         Data const & data,
-                        const int64_t thread_id, struct Search_state & state) -> void {
-  auto & thread_data = *std::next(state.search_data, thread_id);
+                        const uint64_t thread_id, struct Search_state & state) -> void {
+  auto & thread_data = *std::next(state.search_data, static_cast<std::ptrdiff_t>(thread_id));
   search_init(thread_data, state.query);
   while (search_getwork(state, thread_data.target_count, thread_data.target_index)) {
     search_chunk(parameters, data, thread_data, state, state.master_bits);

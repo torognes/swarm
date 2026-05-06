@@ -457,7 +457,7 @@ namespace {
                           Hashtable const & hash_table,
                           BloomFilter const & bloom_a,
                           BloomFilter const & bloom_f,
-                          int64_t nth_thread,
+                          uint64_t nth_thread,
                           struct Heavy_state & heavy_state,
                           struct Graft_state & graft_state,
                           Progress & progress) -> void
@@ -534,7 +534,7 @@ namespace {
                          Hashtable & hash_table,
                          BloomFilter & bloom_a,
                          BloomFilter & bloom_f,
-                         int64_t nth_thread,
+                         uint64_t nth_thread,
                          struct Light_state & state,
                          Progress & progress) -> void
   {
@@ -648,7 +648,7 @@ namespace {
                       std::vector<struct ampinfo_s> & ampinfo_v,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
-                      int64_t nth_thread,
+                      uint64_t nth_thread,
                       struct Network_state & state,
                       Progress & progress) -> void
   {
@@ -1213,10 +1213,9 @@ namespace {
     light_state.amplicon_count = amplicons_in_small_clusters;
     light_state.amplicon = amplicons - 1;
     {
-      assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const light_tr = utils::make_unique<ThreadRunner>(
-          static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](int64_t nth_thread) -> void {
+          static_cast<std::size_t>(parameters.opt_threads),
+          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](uint64_t nth_thread) -> void {
             mark_light_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
           });
       light_tr->run();
@@ -1248,10 +1247,9 @@ namespace {
     struct Heavy_state heavy_state;
     heavy_state.amplicon_count = amplicons_in_large_clusters;
     {
-      assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const heavy_tr = utils::make_unique<ThreadRunner>(
-          static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](int64_t nth_thread) -> void {
+          static_cast<std::size_t>(parameters.opt_threads),
+          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](uint64_t nth_thread) -> void {
             check_heavy_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
           });
       heavy_tr->run();
@@ -1368,10 +1366,9 @@ auto algo_d1_run(struct Parameters const & parameters,
 
     Progress progress_network("Building network: ", amplicons, parameters);
     {
-      assert(parameters.opt_threads <= std::numeric_limits<int>::max());
       auto const network_tr = utils::make_unique<ThreadRunner>(
-          static_cast<int>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](int64_t nth_thread) -> void {
+          static_cast<std::size_t>(parameters.opt_threads),
+          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t nth_thread) -> void {
             network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
           });
       network_tr->run();

@@ -313,10 +313,9 @@ auto algo_run(struct Parameters const & parameters,
   struct Search_state search_state;
   search_begin(parameters, data, search_state, search_data_v);
   /* start threads */
-  assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   auto const search_threads = utils::make_unique<ThreadRunner>(
-      static_cast<int>(parameters.opt_threads),
-      [&parameters, &data, &search_state](int64_t thread_id) -> void {
+      static_cast<std::size_t>(parameters.opt_threads),
+      [&parameters, &data, &search_state](uint64_t thread_id) -> void {
         search_worker_core(parameters, data, thread_id, search_state);
       });
 

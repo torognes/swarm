@@ -274,11 +274,11 @@ inline auto qgram_diff(Qgram_store const & store,
 
 
 auto qgram_worker(Qgram_store const & store,
-                  int64_t const nth_thread,
+                  uint64_t const nth_thread,
                   std::vector<struct thread_info_s> const & thread_info_v,
                   Cpu_features const & cpu_features) -> void
 {
-  auto const & tip = *std::next(thread_info_v.begin(), nth_thread);
+  auto const & tip = *std::next(thread_info_v.begin(), static_cast<std::ptrdiff_t>(nth_thread));
 
   const auto seed = tip.seed;
   const auto listlen = tip.listlen;
@@ -301,15 +301,14 @@ auto qgram_diff_init(struct Parameters const & parameters,
 {
   /* allocate memory for thread info */
   thread_info_v.resize(static_cast<uint64_t>(parameters.opt_threads));
-  assert(parameters.opt_threads <= std::numeric_limits<int>::max());
   Cpu_features const cpu_features {
     parameters.ssse3_present != 0,
     parameters.sse41_present != 0,
     parameters.popcnt_present != 0
   };
   qgram_threads
-    = new ThreadRunner(static_cast<int>(parameters.opt_threads),
-                       [&store, &thread_info_v, cpu_features](int64_t nth_thread) -> void {
+    = new ThreadRunner(static_cast<std::size_t>(parameters.opt_threads),
+                       [&store, &thread_info_v, cpu_features](uint64_t nth_thread) -> void {
                          qgram_worker(store, nth_thread, thread_info_v, cpu_features);
                        });
 }

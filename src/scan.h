@@ -67,4 +67,4 @@ auto search_begin(struct Parameters const & parameters,
 auto search_end(struct Search_state & state) -> void;
 auto search_worker_core(struct Parameters const & parameters,
                         Data const & data,
-                        int64_t thread_id, struct Search_state & state) -> void;
+                        uint64_t thread_id, struct Search_state & state) -> void;

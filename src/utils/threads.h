@@ -33,31 +33,33 @@
 class ThreadRunner {
 private:
 
+  enum struct Work_state : int { wait = 0, work = 1, quit = -1 };
+
   struct thread_s {
-    int64_t thread_id {0};
-    std::function<void(int64_t)> fun;
+    uint64_t thread_id {0};
+    std::function<void(uint64_t)> fun;
     std::thread thread;
     std::mutex workmutex;
     std::condition_variable workcond;
-    int64_t work {0}; /* 1: work available, 0: wait, -1: quit */
+    Work_state work {Work_state::wait};
   };
 
   std::vector<struct thread_s> thread_array;
 
-  static auto worker(struct thread_s * tip) -> void {
-    std::unique_lock<std::mutex> lock(tip->workmutex);
+  static auto worker(struct thread_s & tip) -> void {
+    std::unique_lock<std::mutex> lock(tip.workmutex);
 
     /* loop until signalled to quit */
-    while (tip->work >= 0) {
+    while (tip.work != Work_state::quit) {
       /* wait for work available */
-      if (tip->work == 0) {
-        tip->workcond.wait(lock);
+      if (tip.work == Work_state::wait) {
+        tip.workcond.wait(lock);
       }
 
-      if (tip->work > 0) {
-        tip->fun(tip->thread_id);
-        tip->work = 0;
-        tip->workcond.notify_one();
+      if (tip.work == Work_state::work) {
+        tip.fun(tip.thread_id);
+        tip.work = Work_state::wait;
+        tip.workcond.notify_one();
       }
     }
   }
@@ -72,15 +74,20 @@ public:
   //   __GI__dl_allocate_tls in ld-linux-x86-64.so.2
   //   allocate_dtv in ld-linux-x86-64.so.2
   //   calloc in ld-linux-x86-64.so.2
-  ThreadRunner(int const thread_count,
-               std::function<void(int64_t nth_thread)> const & function) :
-      thread_array(static_cast<std::size_t>(thread_count)) {
+  ThreadRunner(std::size_t const thread_count,
+               std::function<void(uint64_t nth_thread)> const & function) :
+      thread_array(thread_count) {
     /* init and create worker threads */
-    auto counter = 0LL;
+    // std::ref is required: std::thread decays its arguments by
+    // default, so passing `tip` directly would copy thread_s — which
+    // contains non-copyable members (std::mutex, std::condition_variable,
+    // std::thread) and would fail to compile. std::ref preserves the
+    // reference semantics so worker() receives the live thread_s.
+    uint64_t counter {0};
     for (auto & tip: thread_array) {
         tip.thread_id = counter;
         tip.fun = function;
-        tip.thread = std::thread(worker, &tip);
+        tip.thread = std::thread(worker, std::ref(tip));
         ++counter;
       }
   }
@@ -93,7 +100,7 @@ public:
         /* tell worker to quit */
         {
           std::lock_guard<std::mutex> const lock(tip.workmutex);
-          tip.work = -1;
+          tip.work = Work_state::quit;
           tip.workcond.notify_one();
         }
         /* wait for worker to quit */
@@ -112,14 +119,14 @@ public:
     /* wake up threads */
     for (auto & tip: thread_array) {
         std::lock_guard<std::mutex> const lock(tip.workmutex);
-        tip.work = 1;
+        tip.work = Work_state::work;
         tip.workcond.notify_one();
     }
 
     /* wait for threads to finish their work */
     for (auto & tip: thread_array) {
         std::unique_lock<std::mutex> lock(tip.workmutex);
-        tip.workcond.wait(lock, [&tip]() -> bool { return tip.work <= 0; });
+        tip.workcond.wait(lock, [&tip]() -> bool { return tip.work != Work_state::work; });
     }
   }
 };
