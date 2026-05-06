@@ -152,6 +152,9 @@ else ifneq (,$(findstring mingw, $(TARGET_TRIPLE)))
 else ifneq (,$(findstring darwin, $(TARGET_TRIPLE)))
 	OS_DIR := os/macos
 	BIN = swarm
+else ifneq (,$(findstring freebsd, $(TARGET_TRIPLE)))
+	OS_DIR := os/freebsd
+	BIN = swarm
 else
 	BIN = swarm
 endif

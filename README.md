@@ -127,6 +127,12 @@ make
 make CC="clang-9" CXX="clang++-9"
 ```
 
+The `Makefile` uses GNU `make` syntax. On BSD systems (where the
+default `make` is `bmake`), install the `gmake` package and substitute
+`gmake` for `make` in the commands above. FreeBSD native builds are
+supported; OpenBSD and NetBSD should work with the same recipe but
+are not regularly tested.
+
 If you have administrator privileges, you can make **swarm**
 accessible for all users. Simply copy the binary `./bin/swarm` to
 `/usr/local/bin/` or to `/usr/bin/`. The man page can be installed
@@ -421,6 +427,8 @@ swarm 3.1.6:
 
 swarm 3.2.0:
 - swarm can be compiled natively on a BSD or a Windows system
+  (FreeBSD support added; Windows native build still pending — only
+  cross-compilation via `mingw` is currently exercised)
 
 swarm 4.0.0:
 - rename option `-n` to `--no-cluster-breaking` (API change),
