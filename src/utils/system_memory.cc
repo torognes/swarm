@@ -31,10 +31,12 @@
 #elif defined _WIN32
 #include <windows.h>
 #include <psapi.h>
-#else
+#elif defined __linux__
 #include <sys/resource.h>  // Linux: getrusage
 // #include <bits/types/struct_rusage.h>  // rusage (since 2017)
 #include <sys/sysinfo.h>  // sysinfo
+#else
+#error "swarm: unsupported operating system (expected __APPLE__, _WIN32 or __linux__)"
 #endif
 
 
