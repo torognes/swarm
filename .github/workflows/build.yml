@@ -92,7 +92,7 @@ jobs:
         bash ./run_all_tests.sh
 
 
-  freebsd:
+  freebsd-x86_64:
     runs-on: ubuntu-latest
 
     steps:
