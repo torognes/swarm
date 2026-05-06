@@ -134,14 +134,29 @@ endif
 ARCH_OBJS := $(patsubst %.cc, %.o, $(wildcard $(ARCH_DIR)/*.cc))
 
 
-# OS specific (Windows vs. others)
-ifneq (,$(findstring mingw, $(TARGET_TRIPLE)))
+# Machine OS specific
+#
+# OS_DIR points at the per-OS folder under src/os/ that supplies the
+# implementations of host-OS-specific helpers (e.g. system_memory.cc).
+# The TARGET_TRIPLE substring (linux / mingw / darwin) selects the
+# right folder; every .cc in that folder is compiled into the binary
+# (see OS_OBJS below). Mirrors the ARCH_DIR pattern used above.
+ifneq (,$(findstring linux, $(TARGET_TRIPLE)))
+	OS_DIR := os/linux
+	BIN = swarm
+else ifneq (,$(findstring mingw, $(TARGET_TRIPLE)))
+	OS_DIR := os/windows
 	LIBS += -lpsapi
 	LINKOPT += -static
 	BIN = swarm.exe
+else ifneq (,$(findstring darwin, $(TARGET_TRIPLE)))
+	OS_DIR := os/macos
+	BIN = swarm
 else
 	BIN = swarm
 endif
+
+OS_OBJS := $(patsubst %.cc, %.o, $(wildcard $(OS_DIR)/*.cc))
 
 
 LINKFLAGS = $(COMMON) $(LINKOPT)
@@ -156,7 +171,7 @@ INSTALLED := ../bin/$(BIN)
 OBJS = algo.o algod1.o cli.o db.o derep.o \
 	nw.o qgram.o scan.o search16.o search8.o \
 	swarm.o variants.o \
-	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(ARCH_OBJS)
+	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(ARCH_OBJS) $(OS_OBJS)
 
 DEPFILES = $(OBJS:.o=.d)
 
@@ -178,7 +193,8 @@ $(INSTALLED) : $(PROG) | ../bin
 clean :
 	rm -f $(PROG) $(OBJS) $(DEPFILES) *~ gmon.out *.gcno *.gcda *.gcov \
 	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov \
-	./arch/*/*.gcno ./arch/*/*.gcda ./arch/*/*.gcov
+	./arch/*/*.gcno ./arch/*/*.gcda ./arch/*/*.gcov \
+	./os/*/*.gcno ./os/*/*.gcda ./os/*/*.gcov
 	rm -rf ../bin/
 
 %.o : %.cc Makefile

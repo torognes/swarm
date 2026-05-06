@@ -21,71 +21,27 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "fatal.h"
+#include "../../utils/fatal.h"
+#include "../../utils/system_memory.h"
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio> // size_t
-
-#ifdef __APPLE__
-#include <sys/resource.h>
-#include <sys/sysctl.h>
-#elif defined _WIN32
-#include <windows.h>
-#include <psapi.h>
-#elif defined __linux__
+#include <cstdio>  // size_t
 #include <sys/resource.h>  // Linux: getrusage
 // #include <bits/types/struct_rusage.h>  // rusage (since 2017)
 #include <sys/sysinfo.h>  // sysinfo
-#else
-#error "swarm: unsupported operating system (expected __APPLE__, _WIN32 or __linux__)"
-#endif
+#include <unistd.h>  // sysconf, _SC_PHYS_PAGES, _SC_PAGESIZE
 
 
 auto system_get_memused() -> uint64_t {
-#ifdef _WIN32
-
-  PROCESS_MEMORY_COUNTERS pmc;
-  GetProcessMemoryInfo(GetCurrentProcess(),
-                       &pmc,
-                       sizeof(PROCESS_MEMORY_COUNTERS));
-  return pmc.PeakWorkingSetSize;
-
-#else
-
   struct rusage r_usage;  // refactoring: add initializer '{}' (warning with GCC < 5)
   getrusage(RUSAGE_SELF, & r_usage);
-
-# ifdef __APPLE__
-  /* Mac: ru_maxrss gives the size in bytes */
-  return static_cast<uint64_t>(r_usage.ru_maxrss);
-# else
   /* Linux: ru_maxrss gives the size in kilobytes  */
   static constexpr unsigned int one_kilobyte {1U << 10U};
   return static_cast<uint64_t>(r_usage.ru_maxrss * one_kilobyte);
-# endif
-
-#endif
 }
 
 
 auto system_get_memtotal() -> uint64_t {
-#ifdef _WIN32
-
-  MEMORYSTATUSEX memory_status;
-  memory_status.dwLength = sizeof(MEMORYSTATUSEX);
-  GlobalMemoryStatusEx(&memory_status);
-  return memory_status.ullTotalPhys;
-
-#elif defined(__APPLE__)
-
-  int mib [] = { CTL_HW, HW_MEMSIZE };
-  int64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if (sysctl(mib, 2, &ram, &length, nullptr, 0) != 0) {
-    fatal("Cannot determine amount of RAM.");
-  }
-  return static_cast<uint64_t>(ram);
-
-#elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
+#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
 
   int64_t const phys_pages = sysconf(_SC_PHYS_PAGES);
   int64_t const pagesize = sysconf(_SC_PAGESIZE);
