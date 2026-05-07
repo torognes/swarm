@@ -36,7 +36,6 @@ struct seqinfo_s
   uint64_t abundance {0};
   uint64_t seqhash {0};
   unsigned int seqlen {0};
-  unsigned int clusterid {0};
   int abundance_start {0};
   int abundance_end {0};
 };
