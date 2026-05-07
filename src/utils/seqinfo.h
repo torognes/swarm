@@ -32,11 +32,11 @@
 struct seqinfo_s
 {
   View<char> header_view;
-  char const * seq;
-  uint64_t abundance;
-  uint64_t seqhash;
-  unsigned int seqlen;
-  unsigned int clusterid;
-  int abundance_start;
-  int abundance_end;
+  char const * seq {nullptr};
+  uint64_t abundance {0};
+  uint64_t seqhash {0};
+  unsigned int seqlen {0};
+  unsigned int clusterid {0};
+  int abundance_start {0};
+  int abundance_end {0};
 };
