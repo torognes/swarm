@@ -33,7 +33,7 @@
 class ThreadRunner {
 private:
 
-  enum struct Work_state : int { wait = 0, work = 1, quit = -1 };
+  enum struct Work_state : std::int8_t { wait = 0, work = 1, quit = -1 };
 
   struct thread_s {
     uint64_t thread_id {0};
