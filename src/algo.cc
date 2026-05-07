@@ -106,8 +106,7 @@ namespace {
                      uint64_t const amplicons,
                      std::vector<struct ampliconinfo_s> const & amps_v) -> std::vector<struct swarminfo_t> {
     Progress progress("Collecting seeds:    ", amplicons, parameters);
-    assert(swarmed == amplicons);
-    std::vector<struct swarminfo_t> seeds(swarmed);  // swarmed == amplicons! Discard swarmed?
+    std::vector<struct swarminfo_t> seeds(amplicons);
     auto swarmcount = 0UL;
     uint64_t mass = 0;
     auto previous_id = amps_v[0].swarmid;
