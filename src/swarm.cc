@@ -26,7 +26,7 @@
 #include "algod1.h"
 #include "cli.h"  // parse_command_line()
 #include "db.h"  // class Data
-#include "derep.h"
+#include "dereplicate.h"
 
 
 auto main(int const argc, char * const * argv) -> int {
