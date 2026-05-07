@@ -57,123 +57,123 @@
 #include <vector>
 
 
-constexpr unsigned int one_kilobyte {1U << 10U};  // 1,024 bytes
-constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
-constexpr unsigned int no_swarm {std::numeric_limits<unsigned int>::max()};
-
-
-/* Information about each amplicon */
-
-struct ampinfo_s
-{
-  unsigned int swarmid {no_swarm};
-  unsigned int parent {0U};
-  unsigned int generation {0U};
-  unsigned int next {no_swarm};        /* amp id of next amplicon in swarm */
-  unsigned int graft_cand {no_swarm};  /* amp id of potential grafting parent (fastid.) */
-  unsigned int link_start {0U};
-  unsigned int link_count {0U};
-};
-
-/* Information about each swarm (cluster) */
-
-struct swarminfo_s
-{
-  uint64_t mass {0}; /* the sum of abundances of amplicons in this swarm */
-  uint64_t sumlen {0}; /* sum of length of amplicons in swarm */
-  unsigned int seed {0}; /* amplicon id of the initial seed of this swarm */
-  unsigned int last {0}; /* amplicon id of the last seed in this swarm */
-  unsigned int size {0}; /* total number of amplicons in this swarm */
-  unsigned int singletons {0}; /* number of amplicons with abundance 1 */
-  unsigned int maxgen {0}; /* the generation of the amplicon farthest from seed */
-  bool attached {false}; /* this is a small swarm attached to a large (fastidious) */
-  char dummy_1 = '\0'; /* alignment padding only */
-  char dummy_2 = '\0'; /* alignment padding only */
-  char dummy_3 = '\0'; /* alignment padding only */
-};  // total of 40 bytes (five 64-bit machine words)
-
-struct graft_cand
-{
-  unsigned int parent;
-  unsigned int child;
-};
-
-/* Information about potential grafts */
-struct Graft_state
-{
-  std::mutex mutex;
-  int64_t candidates {0};
-};
-
-/* overall statistics, accumulated across all swarms */
-struct Overall_stats
-{
-  uint64_t swarmcount_adjusted {0};
-  unsigned int maxgen {0};
-  unsigned int largest {0};
-};
-
-/* per-swarm statistics, reset before each new swarm and copied into
-   the corresponding swarminfo_s entry once the swarm is closed */
-struct Active_swarm_stats
-{
-  uint64_t abundance_sum {0};  /* = mass */
-  uint64_t sumlen {0};
-  unsigned int tail {0};
-  unsigned int size {0};
-  unsigned int maxgen {0};
-  unsigned int singletons {0};
-};
-
-static Overall_stats overall_stats {};
-static Active_swarm_stats current_swarm {};
-
-static unsigned int * global_hits_data {nullptr};
-
-static unsigned int amplicons {0};
-
-struct Heavy_state
-{
-  std::mutex mutex;
-  uint64_t variants {0};
-  uint64_t progress {0};
-  uint64_t amplicon_count {0};
-  unsigned int amplicon {0};
-};
-
-struct Light_state
-{
-  std::mutex mutex;
-  uint64_t variants {0};
-  uint64_t progress {0};
-  uint64_t amplicon_count {0};
-  unsigned int amplicon {0};
-};
-
-struct Network_state
-{
-  std::mutex mutex;
-  unsigned int amp {0};
-  unsigned int count {0};
-  std::vector<unsigned int> network_v;
-};
-
-struct Cluster_stats
-{
-  uint64_t small_clusters {0};
-  uint64_t large_clusters {0};
-  uint64_t amplicons_in_small_clusters {0};
-  uint64_t amplicons_in_large_clusters {0};
-  uint64_t nucleotides_in_small_clusters {0};
-};
-
-struct Bloom_geometry
-{
-  uint64_t n_bytes {0};
-  unsigned int n_hash_functions {0};
-};
-
 namespace {
+
+  constexpr unsigned int one_kilobyte {1U << 10U};  // 1,024 bytes
+  constexpr unsigned int one_megabyte {one_kilobyte * one_kilobyte};
+  constexpr unsigned int no_swarm {std::numeric_limits<unsigned int>::max()};
+
+
+  /* Information about each amplicon */
+
+  struct ampinfo_s
+  {
+    unsigned int swarmid {no_swarm};
+    unsigned int parent {0U};
+    unsigned int generation {0U};
+    unsigned int next {no_swarm};        /* amp id of next amplicon in swarm */
+    unsigned int graft_cand {no_swarm};  /* amp id of potential grafting parent (fastid.) */
+    unsigned int link_start {0U};
+    unsigned int link_count {0U};
+  };
+
+  /* Information about each swarm (cluster) */
+
+  struct swarminfo_s
+  {
+    uint64_t mass {0}; /* the sum of abundances of amplicons in this swarm */
+    uint64_t sumlen {0}; /* sum of length of amplicons in swarm */
+    unsigned int seed {0}; /* amplicon id of the initial seed of this swarm */
+    unsigned int last {0}; /* amplicon id of the last seed in this swarm */
+    unsigned int size {0}; /* total number of amplicons in this swarm */
+    unsigned int singletons {0}; /* number of amplicons with abundance 1 */
+    unsigned int maxgen {0}; /* the generation of the amplicon farthest from seed */
+    bool attached {false}; /* this is a small swarm attached to a large (fastidious) */
+    char dummy_1 = '\0'; /* alignment padding only */
+    char dummy_2 = '\0'; /* alignment padding only */
+    char dummy_3 = '\0'; /* alignment padding only */
+  };  // total of 40 bytes (five 64-bit machine words)
+
+  struct graft_cand
+  {
+    unsigned int parent;
+    unsigned int child;
+  };
+
+  /* Information about potential grafts */
+  struct Graft_state
+  {
+    std::mutex mutex;
+    int64_t candidates {0};
+  };
+
+  /* overall statistics, accumulated across all swarms */
+  struct Overall_stats
+  {
+    uint64_t swarmcount_adjusted {0};
+    unsigned int maxgen {0};
+    unsigned int largest {0};
+  };
+
+  /* per-swarm statistics, reset before each new swarm and copied into
+     the corresponding swarminfo_s entry once the swarm is closed */
+  struct Active_swarm_stats
+  {
+    uint64_t abundance_sum {0};  /* = mass */
+    uint64_t sumlen {0};
+    unsigned int tail {0};
+    unsigned int size {0};
+    unsigned int maxgen {0};
+    unsigned int singletons {0};
+  };
+
+  Overall_stats overall_stats {};
+  Active_swarm_stats current_swarm {};
+
+  unsigned int * global_hits_data {nullptr};
+
+  unsigned int amplicons {0};
+
+  struct Heavy_state
+  {
+    std::mutex mutex;
+    uint64_t variants {0};
+    uint64_t progress {0};
+    uint64_t amplicon_count {0};
+    unsigned int amplicon {0};
+  };
+
+  struct Light_state
+  {
+    std::mutex mutex;
+    uint64_t variants {0};
+    uint64_t progress {0};
+    uint64_t amplicon_count {0};
+    unsigned int amplicon {0};
+  };
+
+  struct Network_state
+  {
+    std::mutex mutex;
+    unsigned int amp {0};
+    unsigned int count {0};
+    std::vector<unsigned int> network_v;
+  };
+
+  struct Cluster_stats
+  {
+    uint64_t small_clusters {0};
+    uint64_t large_clusters {0};
+    uint64_t amplicons_in_small_clusters {0};
+    uint64_t amplicons_in_large_clusters {0};
+    uint64_t nucleotides_in_small_clusters {0};
+  };
+
+  struct Bloom_geometry
+  {
+    uint64_t n_bytes {0};
+    unsigned int n_hash_functions {0};
+  };
 
   /* Bloom filter shape used for the per-amplicon hashtable + bloom_a
      in both the d=1 phase and the fastidious phase. */
