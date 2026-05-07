@@ -294,6 +294,25 @@ namespace {
   }
 
 
+  auto write_stats_line(uint64_t const swarmsize,
+                        uint64_t const amplicons_copies,
+                        uint64_t const singletons,
+                        uint64_t const maxgen,
+                        uint64_t const maxradius,
+                        uint64_t const seedampliconid,
+                        struct Parameters const & parameters,
+                        Data const & data) -> void {
+    auto const abundance = data.abundance(seedampliconid);
+
+    std::fprintf(parameters.statsfile.get(), "%" PRIu64 "\t%" PRIu64 "\t",
+                 swarmsize, amplicons_copies);
+    data.fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
+    std::fprintf(parameters.statsfile.get(),
+                 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
+                 abundance, singletons, maxgen, maxradius);
+  }
+
+
   auto write_uclust_cluster(unsigned int const swarmid,
                             uint64_t const swarmsize,
                             uint64_t const seedampliconid,
@@ -671,14 +690,8 @@ auto algo_run(struct Parameters const & parameters,
 
 
       if (parameters.statsfile.get() != nullptr) {
-        abundance = data.abundance(seedampliconid);
-
-        std::fprintf(parameters.statsfile.get(), "%" PRIu64 "\t%" PRIu64 "\t",
-                     swarmsize, amplicons_copies);
-        data.fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
-        std::fprintf(parameters.statsfile.get(),
-                     "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
-                     abundance, singletons, maxgen, maxradius);
+        write_stats_line(swarmsize, amplicons_copies, singletons, maxgen, maxradius,
+                         seedampliconid, parameters, data);
       }
       progress.update(seeded);
   }
