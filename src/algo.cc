@@ -292,6 +292,44 @@ namespace {
 
     std::fputc('\n', parameters.outfile.get());
   }
+
+
+  auto finalize_algo_run(uint64_t const amplicons,
+                         unsigned int const swarmid,
+                         uint64_t const largestswarm,
+                         uint64_t const maxgenerations,
+                         struct Parameters const & parameters,
+                         Data const & data,
+                         std::vector<struct ampliconinfo_s> const & amps_v,
+                         struct Search_state & search_state) -> void {
+    /* output swarms */
+    if (amplicons != 0) {
+      if (parameters.opt_mothur) {
+        write_swarms_mothur_format(amplicons, swarmid, parameters, data, amps_v);
+      }
+      else {
+        write_swarms_default_format(amplicons, parameters, data, amps_v);
+      }
+    }
+
+
+    /* dump seeds in fasta format with sum of abundances */
+    if ((not parameters.opt_seeds.empty()) and (amplicons != 0)) {
+      write_representative_sequences(amplicons, parameters, data, amps_v);
+    }
+
+    qgram_diff_done();
+
+    std::fprintf(parameters.logfile, "\n");
+
+    std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmid);
+
+    std::fprintf(parameters.logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
+
+    std::fprintf(parameters.logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
+
+    search_end(search_state);
+  }
 } // namespace
 
 
@@ -629,32 +667,7 @@ auto algo_run(struct Parameters const & parameters,
   }
   progress.done();
 
-  /* output swarms */
-  if (amplicons != 0) {
-    if (parameters.opt_mothur) {
-      write_swarms_mothur_format(amplicons, swarmid, parameters, data, amps_v);
-    }
-    else {
-      write_swarms_default_format(amplicons, parameters, data, amps_v);
-    }
-  }
-
-
-  /* dump seeds in fasta format with sum of abundances */
-  if ((not parameters.opt_seeds.empty()) and (amplicons != 0)) {
-    write_representative_sequences(amplicons, parameters, data, amps_v);
-  }
-
-  qgram_diff_done();
-
-  std::fprintf(parameters.logfile, "\n");
-
-  std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmid);
-
-  std::fprintf(parameters.logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
-
-  std::fprintf(parameters.logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
-
-  search_end(search_state);
+  finalize_algo_run(amplicons, swarmid, largestswarm, maxgenerations,
+                    parameters, data, amps_v, search_state);
 }
 
