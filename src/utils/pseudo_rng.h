@@ -21,11 +21,23 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cstdint>
 #include <random>
 
 // pseudo random number generator:
 // Mersenne Twister uint64 uniform distribution
 // (initialized only once for reproducibility,
 //  then each call produces a distinct uint64 value)
+//
+// The engine lives in a function-local static, which
+//   - sidesteps cppcoreguidelines-avoid-non-const-global-variables
+//     (the rule only flags namespace-scope mutable variables),
+//   - preserves the previous "one independent seed=1 stream per
+//     translation unit" semantic: 'static' on the function gives it
+//     internal linkage, so every TU that includes this header keeps
+//     its own engine state.
 constexpr static unsigned int seed {1};
-static std::mt19937_64 rand_64(seed);
+static auto rand_64() -> uint64_t {
+  static std::mt19937_64 engine(seed);
+  return engine();
+}
