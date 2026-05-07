@@ -47,7 +47,10 @@ DEBUG_SANITIZER = -fsanitize=undefined,address -fno-omit-frame-pointer
 # -dumpversion to query the actual compiler being used, not the host
 # /usr/bin/gcc.
 IS_CLANG := $(shell $(CXX) -x c++ -E -dM - < /dev/null 2>/dev/null | grep -c '__clang__')
-CXX_VERSION_MAJOR := $(shell $(CXX) -dumpversion 2>/dev/null | cut -d. -f1)
+# Some toolchains report a suffixed major version (e.g. mingw's gcc
+# emits '13-win32'); keep only the leading digit run so the numeric
+# comparison further down ('-ge 12') stays well-formed.
+CXX_VERSION_MAJOR := $(shell $(CXX) -dumpversion 2>/dev/null | sed -E 's/[^0-9].*//')
 CXX_VERSION_MAJOR := $(or $(CXX_VERSION_MAJOR),0)
 
 # Pick the right extra-warning set for the detected compiler.
