@@ -264,7 +264,7 @@ namespace {
               }
             else if (category == Nt_class::illegal) {
                 if ((character >= start_chars_range) and (character <= end_chars_range)) {
-                  fatal("Illegal character '", character,
+                  fatal("Illegal character '", static_cast<char>(character),
                         "' in sequence on line ", lineno, ".");
                 }
                 else {
