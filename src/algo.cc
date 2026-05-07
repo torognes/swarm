@@ -294,6 +294,67 @@ namespace {
   }
 
 
+  auto write_uclust_cluster(unsigned int const swarmid,
+                            uint64_t const swarmsize,
+                            uint64_t const seedampliconid,
+                            uint64_t const hitcount,
+                            std::vector<uint64_t> const & hits,
+                            std::array<int64_t, n_cells_ * n_cells_> const & score_matrix,
+                            std::vector<unsigned char> & directions,
+                            std::vector<uint64_t> & hearray,
+                            std::vector<char> & raw_alignment,
+                            std::string & cigar_string,
+                            struct Parameters const & parameters,
+                            Data const & data) -> void {
+    std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
+            swarmid - 1, swarmsize);
+    data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(parameters.uclustfile.get(), "\t*\n");
+
+    std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
+            swarmid - 1, data.sequence_view(seedampliconid).length);
+    data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    std::fprintf(parameters.uclustfile.get(), "\t*\n");
+    std::fflush(parameters.uclustfile.get());
+
+    for (auto i = 1ULL; i < hitcount; ++i) {
+      auto const hit = hits[i];
+      auto const hit_seq = data.sequence_view(hit);
+      auto const seed_seq = data.sequence_view(seedampliconid);
+
+      uint64_t nwdiff {0};
+
+      nw(hit_seq.encoded.data(), hit_seq.length, seed_seq.encoded.data(), seed_seq.length,
+         score_matrix, static_cast<unsigned long int>(parameters.penalty_gapopen),
+         static_cast<unsigned long int>(parameters.penalty_gapextend),
+         nwdiff, directions, hearray, raw_alignment);
+
+      // backtracking produces a reversed alignment (starting from the end)
+      std::reverse(raw_alignment.begin(), raw_alignment.end());
+      compress_alignment_to_cigar(raw_alignment, cigar_string);
+
+      // loosing precision when converting raw_alignment.size() and
+      // nwdiff to double is not an issue, no need to add assertions
+      auto const nwalignmentlength = static_cast<double>(raw_alignment.size());
+      auto const differences = static_cast<double>(nwdiff);
+      auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
+
+      std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
+                   swarmid - 1, hit_seq.length, percentid,
+                   nwdiff > 0 ? cigar_string.data() : "=");
+
+      data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      std::fprintf(parameters.uclustfile.get(), "\t");
+      data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      std::fprintf(parameters.uclustfile.get(), "\n");
+      std::fflush(parameters.uclustfile.get());
+
+      raw_alignment.clear();
+      cigar_string.clear();
+    }
+  }
+
+
   auto finalize_algo_run(uint64_t const amplicons,
                          unsigned int const swarmid,
                          uint64_t const largestswarm,
@@ -602,55 +663,11 @@ auto algo_run(struct Parameters const & parameters,
       largestswarm = std::max(swarmsize, largestswarm);
       maxgenerations = std::max(maxgen, maxgenerations);
 
-      if (parameters.uclustfile.get() != nullptr)
-        {
-          std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
-                  swarmid - 1, swarmsize);
-          data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(parameters.uclustfile.get(), "\t*\n");
-
-          std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                  swarmid - 1, data.sequence_view(seedampliconid).length);
-          data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(parameters.uclustfile.get(), "\t*\n");
-          std::fflush(parameters.uclustfile.get());
-
-          for (auto i = 1ULL; i < hitcount; ++i) {
-            auto const hit = hits[i];
-            auto const hit_seq = data.sequence_view(hit);
-            auto const seed_seq = data.sequence_view(seedampliconid);
-
-            uint64_t nwdiff {0};
-
-            nw(hit_seq.encoded.data(), hit_seq.length, seed_seq.encoded.data(), seed_seq.length,
-               score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
-               static_cast<unsigned long int>(parameters.penalty_gapextend),
-               nwdiff, directions, hearray, raw_alignment);
-
-            // backtracking produces a reversed alignment (starting from the end)
-            std::reverse(raw_alignment.begin(), raw_alignment.end());
-            compress_alignment_to_cigar(raw_alignment, cigar_string);
-
-            // loosing precision when converting raw_alignment.size() and
-            // nwdiff to double is not an issue, no need to add assertions
-            auto const nwalignmentlength = static_cast<double>(raw_alignment.size());
-            auto const differences = static_cast<double>(nwdiff);
-            auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
-
-            std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                         swarmid - 1, hit_seq.length, percentid,
-                         nwdiff > 0 ? cigar_string.data() : "=");
-
-            data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-            std::fprintf(parameters.uclustfile.get(), "\t");
-            data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-            std::fprintf(parameters.uclustfile.get(), "\n");
-            std::fflush(parameters.uclustfile.get());
-
-            raw_alignment.clear();
-            cigar_string.clear();
-          }
-        }
+      if (parameters.uclustfile.get() != nullptr) {
+        write_uclust_cluster(swarmid, swarmsize, seedampliconid, hitcount, hits,
+                             score_matrix_63, directions, hearray, raw_alignment,
+                             cigar_string, parameters, data);
+      }
 
 
       if (parameters.statsfile.get() != nullptr) {
