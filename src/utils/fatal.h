@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <cstddef>  // std::size_t
 #include <iostream>
 #include <utility>
 
@@ -41,11 +42,25 @@ namespace fatal_detail {
     // multiple-definitions at link time
     [[noreturn]] auto print_then_exit() -> void;
 
+    // Explicit array-to-pointer conversion used right before streaming.
+    // Without it, every fatal("...", ...) call site triggers the
+    // cppcoreguidelines-pro-bounds-array-to-pointer-decay check at the
+    // ostream operator<<, since string literals reach this template as
+    // 'char const (&)[N]'.
+    template<typename Type>
+    auto explicit_decay(Type && value) noexcept -> Type && {
+        return std::forward<Type>(value);
+    }
+    template<typename Type, std::size_t Size>
+    auto explicit_decay(Type const (&array)[Size]) noexcept -> Type const * {
+        return array;
+    }
+
     // recursive case: consume arguments one-by-one (forwarding
     // references avoid per-level copies of std::string and friends)
     template<typename Head, typename... Tail>
     [[noreturn]] auto print_then_exit(Head && head, Tail &&... tail) -> void {
-        std::cerr << std::forward<Head>(head);
+        std::cerr << explicit_decay(std::forward<Head>(head));
         print_then_exit(std::forward<Tail>(tail)...);
     }
 
