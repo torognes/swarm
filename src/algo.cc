@@ -55,8 +55,6 @@ namespace {
     unsigned int radius {0}; /* actual diff from initial seed */
   };
 
-  uint64_t swarmed = 0;  // refactoring: reduce scope to algo()?
-
   struct swarminfo_t {
     uint64_t mass {0};
     unsigned int seed {0};
@@ -357,6 +355,7 @@ auto algo_run(struct Parameters const & parameters,
   auto const bits = set_bit_mode(parameters);
 
   uint64_t seeded = 0;
+  uint64_t swarmed = 0;
 
   auto swarmid = 0U;
 
