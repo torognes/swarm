@@ -377,9 +377,11 @@ namespace {
     const auto hash = data.zobrist().hash(seq);
     const auto variant_count = generate_variants(data.zobrist(), seq, hash, variant_list);
 
-    for (auto i = 0U; i < variant_count; ++i) {
-      if (bloom_a.get(variant_list[i].hash) and
-          hash_check_attach(data, ampinfo_v, hash_table, seq, variant_list[i], seed, graft_state)) {
+    // variant_list is pre-sized to an upper bound; only the first
+    // variant_count entries are valid for this call.
+    for (auto const & var : View<var_s>{variant_list.data(), variant_count}) {
+      if (bloom_a.get(var.hash) and
+          hash_check_attach(data, ampinfo_v, hash_table, seq, var, seed, graft_state)) {
         ++matches;
       }
     }
