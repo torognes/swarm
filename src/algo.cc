@@ -294,6 +294,25 @@ namespace {
   }
 
 
+  auto write_internal_structure_line(uint64_t const parent_id,
+                                     uint64_t const child_id,
+                                     uint64_t const diff,
+                                     unsigned int const swarmid,
+                                     unsigned int const generation,
+                                     struct Parameters const & parameters,
+                                     Data const & data) -> void {
+    data.fprint_id_noabundance(parameters.internal_structure_file.get(),
+                               parent_id, parameters.opt_usearch_abundance);
+    std::fprintf(parameters.internal_structure_file.get(), "\t");
+    data.fprint_id_noabundance(parameters.internal_structure_file.get(),
+                               child_id, parameters.opt_usearch_abundance);
+    std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
+    std::fprintf(parameters.internal_structure_file.get(),
+                 "\t%u\t%u\n",
+                 swarmid, generation);
+  }
+
+
   auto write_stats_line(uint64_t const swarmsize,
                         uint64_t const amplicons_copies,
                         uint64_t const singletons,
@@ -560,17 +579,9 @@ auto algo_run(struct Parameters const & parameters,
                   ++hitcount;
 
                   if (not parameters.opt_internal_structure.empty()) {
-                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                                            seedampliconid, parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file.get(), "\t");
-                      data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                                            poolampliconid, parameters.opt_usearch_abundance);
-                      std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
-                      std::fprintf(parameters.internal_structure_file.get(),
-                              "\t%u\t1",
-                              swarmid);
-                      std::fprintf(parameters.internal_structure_file.get(), "\n");
-                    }
+                    write_internal_structure_line(seedampliconid, poolampliconid, diff,
+                                                  swarmid, 1U, parameters, data);
+                  }
 
                   abundance = data.abundance(poolampliconid);
                   amplicons_copies += abundance;
@@ -653,17 +664,9 @@ auto algo_run(struct Parameters const & parameters,
                   ++hitcount;
 
                   if (not parameters.opt_internal_structure.empty()) {
-                    data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                                               subseed.ampliconid,
-                                               parameters.opt_usearch_abundance);
-                    std::fprintf(parameters.internal_structure_file.get(), "\t");
-                    data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                                               poolampliconid,
-                                               parameters.opt_usearch_abundance);
-                    std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
-                    std::fprintf(parameters.internal_structure_file.get(),
-                                 "\t%u\t%u\n",
-                                 swarmid, subseed.generation + 1);
+                    write_internal_structure_line(subseed.ampliconid, poolampliconid, diff,
+                                                  swarmid, subseed.generation + 1,
+                                                  parameters, data);
                   }
 
                   abundance = data.abundance(poolampliconid);
