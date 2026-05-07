@@ -58,7 +58,11 @@ auto nt_extract(char const * compressed_sequence, uint64_t const position) -> un
   auto const divider = target_pair_of_bits << 1U;  // left-shift by 0, 2, 4, or 6 (same as dividing by 0, 4, 16, or 64)
 
   // outputs four possible values: 0, 1, 2 or 3
-  return (compressed_byte >> divider) & keep_first_two_bits;
+  // (cast to unsigned int avoids the integer promotion that would
+  //  otherwise apply the right shift to a signed int and trip the
+  //  hicpp-signed-bitwise check)
+  return static_cast<unsigned char>(
+      (static_cast<unsigned int>(compressed_byte) >> divider) & keep_first_two_bits);
 }
 
 
