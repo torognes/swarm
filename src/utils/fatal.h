@@ -51,9 +51,14 @@ namespace fatal_detail {
     auto explicit_decay(Type && value) noexcept -> Type && {
         return std::forward<Type>(value);
     }
+    // The C-array parameter is intentional: string literals reach this
+    // overload as 'char const (&)[N]', and the whole point of the helper
+    // is to turn that into a pointer explicitly. std::array can't match
+    // a string literal, so the C-array parameter can't be avoided.
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
     template<typename Type, std::size_t Size>
     auto explicit_decay(Type const (&array)[Size]) noexcept -> Type const * {
-        return array;
+        return static_cast<Type const *>(array);
     }
 
     // recursive case: consume arguments one-by-one (forwarding
