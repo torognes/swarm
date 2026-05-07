@@ -369,8 +369,7 @@ namespace {
       in the header string.
     */
 
-    static constexpr char attribute[] {"size="};
-    static constexpr std::size_t alen {sizeof(attribute) - 1};  // exclude trailing '\0'
+    static constexpr std::array<char, 5> attribute {{'s', 'i', 'z', 'e', '='}};
 
     auto const is_digit = [](char const character) noexcept -> bool {
       return (character >= '0') and (character <= '9');
@@ -382,13 +381,13 @@ namespace {
 
     while (search_from != header_end) {
         auto const * const match = std::search(search_from, header_end,
-                                               std::begin(attribute),
-                                               std::next(std::begin(attribute), alen));
+                                               attribute.cbegin(),
+                                               attribute.cend());
         if (match == header_end) {
           return Abundance_match{};
         }
 
-        auto const * const digits_begin = std::next(match, alen);
+        auto const * const digits_begin = std::next(match, attribute.size());
 
         /* left context: start of header or ';' */
         bool const left_ok = (match == header_begin)
