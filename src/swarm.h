@@ -27,32 +27,24 @@
 #include <string>
 
 
-/* constants */
-
-// C++17 refactor: use 'inline constexpr' in header files
-
-// At file scope, constexpr implies const, and const implies
-// static. So plain constexpr variables in headers will be duplicated
-// in all cpp files that include them, and because they have internal
-// linkage, they wont be de-duplicated.  'inline constexpr' variables
-// will be de-duplicated by the linker.
-// (source: https://www.youtube.com/watch?v=QVHwOOrSh3w)
-
-constexpr char dash_filename {'-'};
-constexpr unsigned int opt_differences_default {1};
-constexpr unsigned int ceiling_default {0};
-constexpr auto boundary_default = 3;
-constexpr unsigned int append_abundance_default {0};
-constexpr unsigned int mismatch_penalty_default {4};
-constexpr unsigned int match_reward_default {5};
-constexpr auto gap_opening_penalty_default = 12L;
-constexpr unsigned int gap_extension_penalty_default {4};
-constexpr unsigned int bloom_bits_default {16};
-
-
 /* common data */
 
 struct Parameters {
+  // Defaults are scoped to Parameters: every reference is from inside
+  // the struct, so an inner home avoids polluting the global namespace
+  // and side-steps the file-scope constexpr ODR question entirely
+  // (static constexpr class members have no duplication issue).
+  static constexpr char dash_filename {'-'};
+  static constexpr unsigned int opt_differences_default {1};
+  static constexpr unsigned int ceiling_default {0};
+  static constexpr auto boundary_default = 3;
+  static constexpr unsigned int append_abundance_default {0};
+  static constexpr unsigned int mismatch_penalty_default {4};
+  static constexpr unsigned int match_reward_default {5};
+  static constexpr auto gap_opening_penalty_default = 12L;
+  static constexpr unsigned int gap_extension_penalty_default {4};
+  static constexpr unsigned int bloom_bits_default {16};
+
   int64_t opt_threads {1};
   int64_t opt_bloom_bits {bloom_bits_default};
   int64_t opt_differences {opt_differences_default};
