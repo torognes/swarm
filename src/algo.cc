@@ -218,16 +218,9 @@ namespace {
     }
     amplicons[position] = temp;
 
-    // refactoring: replace with std::rotate (rorate rigth by one unit) (reverted: 2x slower)
-    // compute reverse iterators starting from the vector's end
-    // auto const ssize = static_cast<ptrdiff_t>(amplicons.size());
-    // auto const sposition = static_cast<ptrdiff_t>(position);
-    // auto const starget = static_cast<ptrdiff_t>(target);
-    // auto const first = std::next(amplicons.rbegin(),
-    //                              ssize - starget - 1);  // - 1 to include target
-    // auto const middle = std::next(first);
-    // auto const last = std::next(amplicons.rbegin(), ssize - sposition);
-    // std::rotate(first, middle, last);
+    // Do not refactor with std::rotate: both reverse-iterator (2x slower,
+    // reverted in commit 8662a4d) and forward-iterator (1.2x slower on
+    // d=2 18SV9) variants regressed performance versus the raw loop.
   }
 
 
