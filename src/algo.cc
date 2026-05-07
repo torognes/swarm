@@ -323,6 +323,42 @@ namespace {
   }
 
 
+  auto include_amplicon_in_cluster(uint64_t const position,
+                                   uint64_t const diff,
+                                   unsigned int const swarmid,
+                                   struct ampliconinfo_s const & parent,
+                                   std::vector<struct ampliconinfo_s> & amps_v,
+                                   std::vector<uint64_t> & hits,
+                                   Cluster_state & state,
+                                   struct Parameters const & parameters,
+                                   Data const & data) -> void {
+    amps_v[position].swarmid = swarmid;
+    assert(parent.generation <= std::numeric_limits<unsigned int>::max() - 1);
+    amps_v[position].generation = parent.generation + 1;
+    state.maxgen = std::max<uint64_t>(state.maxgen, amps_v[position].generation);
+    assert(parent.radius <= std::numeric_limits<unsigned int>::max() - diff);
+    amps_v[position].radius = static_cast<unsigned int>(parent.radius + diff);
+    state.maxradius = std::max<uint64_t>(amps_v[position].radius, state.maxradius);
+
+    auto const poolampliconid = amps_v[position].ampliconid;
+    hits[state.hitcount] = poolampliconid;
+    ++state.hitcount;
+
+    if (not parameters.opt_internal_structure.empty()) {
+      write_internal_structure_line(parent.ampliconid, poolampliconid, diff,
+                                    swarmid, amps_v[position].generation,
+                                    parameters, data);
+    }
+
+    auto const abundance = data.abundance(poolampliconid);
+    state.amplicons_copies += abundance;
+    if (abundance == 1) {
+      ++state.singletons;
+    }
+    ++state.swarmsize;
+  }
+
+
   auto write_stats_line(uint64_t const swarmsize,
                         uint64_t const amplicons_copies,
                         uint64_t const singletons,
@@ -519,7 +555,7 @@ auto algo_run(struct Parameters const & parameters,
       hits[state.hitcount] = seedampliconid;
       ++state.hitcount;
 
-      auto abundance = data.abundance(seedampliconid);
+      auto const abundance = data.abundance(seedampliconid);
       state.amplicons_copies += abundance;
       if (abundance == 1) {
         ++state.singletons;
@@ -573,29 +609,9 @@ auto algo_run(struct Parameters const & parameters,
                      of the first unswarmed amplicon in the pool */
                   move_target_to_first_unswarmed_position(swarmed, target, amps_v);
 
-                  amps_v[swarmed].swarmid = swarmid;
-                  amps_v[swarmed].generation = 1;
-                  assert(diff <= std::numeric_limits<unsigned int>::max());
-                  amps_v[swarmed].radius = static_cast<unsigned int>(diff);
-                  state.maxradius = std::max(diff, state.maxradius);
-
-                  auto const poolampliconid = amps_v[swarmed].ampliconid;
-                  hits[state.hitcount] = poolampliconid;
-                  ++state.hitcount;
-
-                  if (not parameters.opt_internal_structure.empty()) {
-                    write_internal_structure_line(seedampliconid, poolampliconid, diff,
-                                                  swarmid, 1U, parameters, data);
-                  }
-
-                  abundance = data.abundance(poolampliconid);
-                  state.amplicons_copies += abundance;
-                  if (abundance == 1) {
-                    ++state.singletons;
-                  }
-
-                  ++state.swarmsize;
-
+                  include_amplicon_in_cluster(swarmed, diff, swarmid,
+                                              amps_v[seedindex], amps_v, hits,
+                                              state, parameters, data);
                   ++swarmed;
                 }
             }
@@ -655,33 +671,9 @@ auto algo_run(struct Parameters const & parameters,
 
                   move_target_to_first_unswarmed_position(pos, target, amps_v);
 
-                  amps_v[pos].swarmid = swarmid;
-                  assert(subseed.generation <= std::numeric_limits<unsigned int>::max() - 1);
-                  amps_v[pos].generation = subseed.generation + 1;
-                  state.maxgen = std::max<uint64_t>(state.maxgen, amps_v[pos].generation);
-                  assert(subseed.radius <= std::numeric_limits<unsigned int>::max() - diff);
-                  amps_v[pos].radius =
-                    static_cast<unsigned int>(subseed.radius + diff);
-                  state.maxradius = std::max<uint64_t>(amps_v[pos].radius, state.maxradius);
-
-                  auto const poolampliconid = amps_v[pos].ampliconid;
-                  hits[state.hitcount] = poolampliconid;
-                  ++state.hitcount;
-
-                  if (not parameters.opt_internal_structure.empty()) {
-                    write_internal_structure_line(subseed.ampliconid, poolampliconid, diff,
-                                                  swarmid, subseed.generation + 1,
-                                                  parameters, data);
-                  }
-
-                  abundance = data.abundance(poolampliconid);
-                  state.amplicons_copies += abundance;
-                  if (abundance == 1) {
-                    ++state.singletons;
-                  }
-
-                  ++state.swarmsize;
-
+                  include_amplicon_in_cluster(pos, diff, swarmid, subseed,
+                                              amps_v, hits, state,
+                                              parameters, data);
                   ++swarmed;
                 }
             }
