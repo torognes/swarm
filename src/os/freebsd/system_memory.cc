@@ -34,6 +34,11 @@ auto system_get_memused() -> uint64_t {
   getrusage(RUSAGE_SELF, & r_usage);
   /* FreeBSD: ru_maxrss is in kilobytes (same as Linux) */
   static constexpr unsigned int one_kilobyte {1U << 10U};
+  // ru_maxrss is the POSIX-specified 'long' field; libc may nest it
+  // in an anonymous union for kernel-ABI flexibility, so this is not
+  // a discriminated-union access despite what
+  // cppcoreguidelines-pro-type-union-access infers.
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
   return static_cast<uint64_t>(r_usage.ru_maxrss * one_kilobyte);
 }
 
