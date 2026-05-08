@@ -72,6 +72,31 @@ namespace {
   };
 
 
+  struct Cluster_workspace {
+    std::vector<uint64_t> targetampliconids;
+    std::vector<uint64_t> targetindices;
+    std::vector<uint64_t> scores_v;
+    std::vector<uint64_t> diffs_v;
+    std::vector<uint64_t> alignlengths;
+    std::vector<uint64_t> qgramamps_v;
+    std::vector<uint64_t> qgramdiffs_v;
+    std::vector<uint64_t> qgramindices_v;
+    std::vector<uint64_t> hits;
+
+    explicit Cluster_workspace(uint64_t const amplicons)
+      : targetampliconids(amplicons),
+        targetindices(amplicons),
+        scores_v(amplicons),
+        diffs_v(amplicons),
+        alignlengths(amplicons),
+        qgramdiffs_v(amplicons),
+        qgramindices_v(amplicons),
+        hits(amplicons) {
+      qgramamps_v.reserve(amplicons);
+    }
+  };
+
+
   auto set_amplicon_ids(std::vector<struct ampliconinfo_s> & amplicons) -> void {
     // a simple id based on input order
     auto index = 0U;
@@ -504,20 +529,11 @@ auto algo_run(struct Parameters const & parameters,
   qgram_diff_init(parameters, qgram_store, thread_info_v);
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
-  std::vector<uint64_t> targetampliconids(amplicons);
-  std::vector<uint64_t> targetindices(amplicons);
-  std::vector<uint64_t> scores_v(amplicons);
-  std::vector<uint64_t> diffs_v(amplicons);
-  std::vector<uint64_t> alignlengths(amplicons);
-  std::vector<uint64_t> qgramamps_v;
-  std::vector<uint64_t> qgramdiffs_v(amplicons);
-  std::vector<uint64_t> qgramindices_v(amplicons);
-  std::vector<uint64_t> hits(amplicons);
+  Cluster_workspace ws(amplicons);
   std::vector<unsigned char> directions;
   std::vector<uint64_t> hearray;
   std::vector<char> raw_alignment;
   std::string cigar_string;
-  qgramamps_v.reserve(amplicons);
   raw_alignment.reserve(2 * longestamplicon);
   cigar_string.reserve(2 * longestamplicon);
 
@@ -541,7 +557,7 @@ auto algo_run(struct Parameters const & parameters,
       /* process each initial seed */
 
       ++swarmid;
-      qgramamps_v.clear();
+      ws.qgramamps_v.clear();
 
       Cluster_state state;
       uint64_t seedindex {0};
@@ -552,7 +568,7 @@ auto algo_run(struct Parameters const & parameters,
       amps_v[seedindex].swarmid = swarmid;
 
       uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
-      hits[state.hitcount] = seedampliconid;
+      ws.hits[state.hitcount] = seedampliconid;
       ++state.hitcount;
 
       auto const abundance = data.abundance(seedampliconid);
@@ -570,47 +586,47 @@ auto algo_run(struct Parameters const & parameters,
 
       // set_list_of_remaining_amplicons
       std::for_each(std::next(amps_v.cbegin(), static_cast<long int>(swarmed)), amps_v.cend(),
-          [&parameters, &data, abundance, &qgramamps_v](
+          [&parameters, &data, abundance, &ws](
               struct ampliconinfo_s const & amplicon) -> void {
             auto const ampliconid = amplicon.ampliconid;
             if ((parameters.opt_no_cluster_breaking) or
                 (data.abundance(ampliconid) <= abundance)) {
-              qgramamps_v.push_back(ampliconid);
+              ws.qgramamps_v.push_back(ampliconid);
             }
           });
-      uint64_t const listlen = qgramamps_v.size();  // temporary refactoring
+      uint64_t const listlen = ws.qgramamps_v.size();  // temporary refactoring
 
-      qgram_diff_fast(parameters, qgram_store, seedampliconid, listlen, qgramamps_v.data(), qgramdiffs_v.data(), thread_info_v);
+      qgram_diff_fast(parameters, qgram_store, seedampliconid, listlen, ws.qgramamps_v.data(), ws.qgramdiffs_v.data(), thread_info_v);
 
 
       for (auto i = 0ULL; i < listlen; ++i) {
-          auto const poolampliconid = qgramamps_v[i];
-          auto const diff = qgramdiffs_v[i];
+          auto const poolampliconid = ws.qgramamps_v[i];
+          auto const diff = ws.qgramdiffs_v[i];
           assert(diff <= std::numeric_limits<unsigned int>::max());
           amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
-              targetindices[targetcount] = swarmed + i;
-              targetampliconids[targetcount] = poolampliconid;
+              ws.targetindices[targetcount] = swarmed + i;
+              ws.targetampliconids[targetcount] = poolampliconid;
               ++targetcount;
             }
         }
 
       if (targetcount > 0) {
-          search_do(parameters, data, search_state, seedampliconid, targetcount, targetampliconids.data(),
-                    scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
+          search_do(parameters, data, search_state, seedampliconid, targetcount, ws.targetampliconids.data(),
+                    ws.scores_v.data(), ws.diffs_v.data(), ws.alignlengths.data(), bits, search_threads.get());
 
           for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
-              auto const diff = diffs_v[target_id];
+              auto const diff = ws.diffs_v[target_id];
 
               if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
-                  auto const target = targetindices[target_id];
+                  auto const target = ws.targetindices[target_id];
 
                   /* move the 'target' to the position ('swarmed')
                      of the first unswarmed amplicon in the pool */
                   move_target_to_first_unswarmed_position(swarmed, target, amps_v);
 
                   include_amplicon_in_cluster(swarmed, diff, swarmid,
-                                              amps_v[seedindex], amps_v, hits,
+                                              amps_v[seedindex], amps_v, ws.hits,
                                               state, parameters, data);
                   ++swarmed;
                 }
@@ -636,33 +652,33 @@ auto algo_run(struct Parameters const & parameters,
                       ((parameters.opt_no_cluster_breaking) or
                        (data.abundance(targetampliconid)
                         <= subseedabundance))) {
-                      qgramamps_v[subseedlistlen] = targetampliconid;
-                      qgramindices_v[subseedlistlen] = i;
+                      ws.qgramamps_v[subseedlistlen] = targetampliconid;
+                      ws.qgramindices_v[subseedlistlen] = i;
                       ++subseedlistlen;
                     }
                 }
 
-              qgram_diff_fast(parameters, qgram_store, subseed.ampliconid, subseedlistlen, qgramamps_v.data(),
-                              qgramdiffs_v.data(), thread_info_v);
+              qgram_diff_fast(parameters, qgram_store, subseed.ampliconid, subseedlistlen, ws.qgramamps_v.data(),
+                              ws.qgramdiffs_v.data(), thread_info_v);
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {
-                if (qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
-                  targetindices[targetcount] = qgramindices_v[i];
-                  targetampliconids[targetcount] = qgramamps_v[i];
+                if (ws.qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
+                  ws.targetindices[targetcount] = ws.qgramindices_v[i];
+                  ws.targetampliconids[targetcount] = ws.qgramamps_v[i];
                   ++targetcount;
                 }
               }
 
               if (targetcount == 0) { continue; }
 
-              search_do(parameters, data, search_state, subseed.ampliconid, targetcount, targetampliconids.data(),
-                        scores_v.data(), diffs_v.data(), alignlengths.data(), bits, search_threads.get());
+              search_do(parameters, data, search_state, subseed.ampliconid, targetcount, ws.targetampliconids.data(),
+                        ws.scores_v.data(), ws.diffs_v.data(), ws.alignlengths.data(), bits, search_threads.get());
 
               for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
-                  auto const diff = diffs_v[target_id];
+                  auto const diff = ws.diffs_v[target_id];
 
                   if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
-                  auto const target = targetindices[target_id];
+                  auto const target = ws.targetindices[target_id];
 
                   /* find correct position in list */
 
@@ -672,7 +688,7 @@ auto algo_run(struct Parameters const & parameters,
                   move_target_to_first_unswarmed_position(pos, target, amps_v);
 
                   include_amplicon_in_cluster(pos, diff, swarmid, subseed,
-                                              amps_v, hits, state,
+                                              amps_v, ws.hits, state,
                                               parameters, data);
                   ++swarmed;
                 }
@@ -683,7 +699,7 @@ auto algo_run(struct Parameters const & parameters,
       maxgenerations = std::max(state.maxgen, maxgenerations);
 
       if (parameters.uclustfile.get() != nullptr) {
-        write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, state.hitcount, hits,
+        write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, state.hitcount, ws.hits,
                              score_matrix_63, directions, hearray, raw_alignment,
                              cigar_string, parameters, data);
       }
