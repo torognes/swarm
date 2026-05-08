@@ -348,6 +348,51 @@ namespace {
   }
 
 
+  auto build_remaining_amplicons_list(uint64_t const swarmed,
+                                      uint64_t const seed_abundance,
+                                      struct Parameters const & parameters,
+                                      Data const & data,
+                                      std::vector<struct ampliconinfo_s> const & amps_v,
+                                      Cluster_workspace & ws) -> uint64_t {
+    ws.qgramamps_v.clear();
+    std::for_each(std::next(amps_v.cbegin(), static_cast<long int>(swarmed)), amps_v.cend(),
+        [&parameters, &data, seed_abundance, &ws](
+            struct ampliconinfo_s const & amplicon) -> void {
+          auto const ampliconid = amplicon.ampliconid;
+          if ((parameters.opt_no_cluster_breaking) or
+              (data.abundance(ampliconid) <= seed_abundance)) {
+            ws.qgramamps_v.push_back(ampliconid);
+          }
+        });
+    return ws.qgramamps_v.size();
+  }
+
+
+  auto build_subseed_candidate_list(uint64_t const swarmed,
+                                    uint64_t const amplicons,
+                                    struct ampliconinfo_s const & subseed,
+                                    struct Parameters const & parameters,
+                                    Data const & data,
+                                    std::vector<struct ampliconinfo_s> const & amps_v,
+                                    Cluster_workspace & ws) -> uint64_t {
+    auto const subseed_abundance = data.abundance(subseed.ampliconid);
+    uint64_t subseedlistlen {0};
+    for (auto i = swarmed; i < amplicons; ++i) {
+      uint64_t const targetampliconid = amps_v[i].ampliconid;
+      if ((amps_v[i].diffestimate <=
+           subseed.radius + parameters.opt_differences) and
+          ((parameters.opt_no_cluster_breaking) or
+           (data.abundance(targetampliconid)
+            <= subseed_abundance))) {
+        ws.qgramamps_v[subseedlistlen] = targetampliconid;
+        ws.qgramindices_v[subseedlistlen] = i;
+        ++subseedlistlen;
+      }
+    }
+    return subseedlistlen;
+  }
+
+
   auto include_amplicon_in_cluster(uint64_t const position,
                                    uint64_t const diff,
                                    unsigned int const swarmid,
@@ -584,17 +629,9 @@ auto algo_run(struct Parameters const & parameters,
 
       uint64_t targetcount = 0;
 
-      // set_list_of_remaining_amplicons
-      std::for_each(std::next(amps_v.cbegin(), static_cast<long int>(swarmed)), amps_v.cend(),
-          [&parameters, &data, abundance, &ws](
-              struct ampliconinfo_s const & amplicon) -> void {
-            auto const ampliconid = amplicon.ampliconid;
-            if ((parameters.opt_no_cluster_breaking) or
-                (data.abundance(ampliconid) <= abundance)) {
-              ws.qgramamps_v.push_back(ampliconid);
-            }
-          });
-      uint64_t const listlen = ws.qgramamps_v.size();  // temporary refactoring
+      uint64_t const listlen = build_remaining_amplicons_list(swarmed, abundance,
+                                                              parameters, data,
+                                                              amps_v, ws);
 
       qgram_diff_fast(parameters, qgram_store, seedampliconid, listlen, ws.qgramamps_v.data(), ws.qgramdiffs_v.data(), thread_info_v);
 
@@ -643,20 +680,9 @@ auto algo_run(struct Parameters const & parameters,
 
               targetcount = 0;
 
-              auto const subseedabundance = data.abundance(subseed.ampliconid);
-              uint64_t subseedlistlen {0};
-              for (auto i = swarmed; i < amplicons; ++i) {
-                  uint64_t const targetampliconid = amps_v[i].ampliconid;
-                  if ((amps_v[i].diffestimate <=
-                       subseed.radius + parameters.opt_differences) and
-                      ((parameters.opt_no_cluster_breaking) or
-                       (data.abundance(targetampliconid)
-                        <= subseedabundance))) {
-                      ws.qgramamps_v[subseedlistlen] = targetampliconid;
-                      ws.qgramindices_v[subseedlistlen] = i;
-                      ++subseedlistlen;
-                    }
-                }
+              auto const subseedlistlen = build_subseed_candidate_list(swarmed, amplicons,
+                                                                       subseed, parameters,
+                                                                       data, amps_v, ws);
 
               qgram_diff_fast(parameters, qgram_store, subseed.ampliconid, subseedlistlen, ws.qgramamps_v.data(),
                               ws.qgramdiffs_v.data(), thread_info_v);
