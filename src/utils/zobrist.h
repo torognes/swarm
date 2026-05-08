@@ -42,7 +42,7 @@ public:
 
 private:
   enum struct First_base_op : std::uint8_t { remove, insert_gap };
-  auto hash_first_shifted(Sequence const & seq, First_base_op op) const -> uint64_t;
+  auto hash_first_shifted(Sequence const & seq, First_base_op operation) const -> uint64_t;
 
   auto fill_rng_table(unsigned int zobrist_len) -> void;
   auto fill_rng_byte_table(unsigned int zobrist_len) -> void;

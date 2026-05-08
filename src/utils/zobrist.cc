@@ -149,7 +149,7 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t {
 
 
 auto Zobrist::hash_first_shifted(Sequence const & seq,
-                                 First_base_op const op) const -> uint64_t {
+                                 First_base_op const operation) const -> uint64_t {
   /* Shared body of hash_delete_first and hash_insert_first.
      remove:     skip the first input base, output position = input pos - 1.
      insert_gap: keep all input bases,     output position = input pos + 1. */
@@ -157,7 +157,7 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
   auto const len = seq.length;
   auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
   auto const view = seq.encoded.first(n_bytes);
-  auto const start = (op == First_base_op::remove) ? 1U : 0U;
+  auto const start = (operation == First_base_op::remove) ? 1U : 0U;
 
   auto byte_idx = 0U;
   return std::accumulate(view.cbegin(), view.cend(), uint64_t{0},
@@ -168,7 +168,7 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
       for (auto k = 0U; k < nt_per_byte; ++k) {
         auto const pos = base_pos + k;
         if (pos >= start and pos < len) {
-          auto const out_pos = (op == First_base_op::remove) ? pos - 1U : pos + 1U;
+          auto const out_pos = (operation == First_base_op::remove) ? pos - 1U : pos + 1U;
           acc ^= value(out_pos, offset & 3U);
         }
         offset >>= 2U;
