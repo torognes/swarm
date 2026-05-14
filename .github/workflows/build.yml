@@ -106,11 +106,13 @@ jobs:
         prepare: |
           pkg update -f
           pkg install -y gmake bash git
+          pw useradd -n runner -m -s /usr/local/bin/bash
         run: |
           gmake clean
           gmake RELEASE=1
           bin/swarm -v
-          export PATH=$PWD/bin:$PATH
           git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
-          cd swarm-tests
-          bash ./run_all_tests.sh
+          chown -R runner swarm-tests
+          # root bypasses POSIX permission checks, so the "file not
+          # readable/writable" tests need an unprivileged user
+          su -m runner -c "cd swarm-tests && PATH=$PWD/bin:\$PATH bash ./run_all_tests.sh"
