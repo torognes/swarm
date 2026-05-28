@@ -307,23 +307,28 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const -> void
 
 auto QgramDiffer::fast(uint64_t seed,
                        uint64_t listlen,
-                       uint64_t * amplist,
-                       uint64_t * difflist) -> void
+                       std::vector<uint64_t> const & amplist,
+                       std::vector<uint64_t> & difflist) -> void
 {
+  // `listlen` is not always equal to amplist.size(): the second caller in
+  // algo.cc reuses qgramamps_v in place with indexed assignment, so the
+  // vector can be larger than the actual work range. Bounds-check both.
+  assert(listlen <= amplist.size());
+  assert(listlen <= difflist.size());
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
   if (listlen <= uint8_max)
     {
       auto & tip = thread_info_v_[0];
       tip.seed = seed;
       tip.listlen = listlen;
-      tip.amplist = amplist;
-      tip.difflist = difflist;
+      tip.amplist = amplist.data();
+      tip.difflist = difflist.data();
       worker(0);
     }
   else
     {
-      auto * next_amplist = amplist;
-      auto * next_difflist = difflist;
+      auto const * next_amplist = amplist.data();
+      auto * next_difflist = difflist.data();
       auto listrest = listlen;
       auto thrrest = thread_info_v_.size();
 

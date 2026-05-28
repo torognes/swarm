@@ -55,15 +55,15 @@ public:
 
   auto fast(uint64_t seed,
             uint64_t listlen,
-            uint64_t * amplist,
-            uint64_t * difflist) -> void;
+            std::vector<uint64_t> const & amplist,
+            std::vector<uint64_t> & difflist) -> void;
 
 private:
   struct thread_info_s {
     uint64_t seed;
     uint64_t listlen;
-    uint64_t * amplist;
-    uint64_t * difflist;
+    uint64_t const * amplist;   // input: read-only inside worker()
+    uint64_t * difflist;        // output: written by worker()
   };
 
   auto worker(uint64_t nth_thread) const -> void;
