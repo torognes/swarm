@@ -30,7 +30,6 @@
 #include "utils/qgram_threadinfo.h"
 #include "utils/progress.h"
 #include "utils/search_data.h"
-#include "utils/score_matrix.h"
 #include <algorithm>  // std::min(), std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -452,7 +451,6 @@ namespace {
                             uint64_t const seedampliconid,
                             uint64_t const hitcount,
                             std::vector<uint64_t> const & hits,
-                            std::array<int64_t, n_cells * n_cells> const & score_matrix,
                             NwAligner & aligner,
                             struct Parameters const & parameters,
                             Data const & data) -> void {
@@ -474,10 +472,7 @@ namespace {
 
       auto const result = aligner.align(
         hit_seq.encoded.data(), hit_seq.length,
-        seed_seq.encoded.data(), seed_seq.length,
-        score_matrix,
-        static_cast<unsigned long int>(parameters.penalty_gapopen),
-        static_cast<unsigned long int>(parameters.penalty_gapextend));
+        seed_seq.encoded.data(), seed_seq.length);
 
       std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                    swarmid - 1, hit_seq.length, result.percent_id,
@@ -533,8 +528,6 @@ namespace {
 
 auto algo_run(struct Parameters const & parameters,
               Data const & data) -> void {
-  auto const score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-
   std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
   struct Search_state search_state;
   search_begin(parameters, data, search_state, search_data_v);
@@ -561,9 +554,14 @@ auto algo_run(struct Parameters const & parameters,
 
   // NwAligner is only needed when UCLUST output is requested; its
   // scratch buffers grow with longestamplicon^2, so allocate lazily.
+  // The score matrix is built inside the constructor as well.
   std::unique_ptr<NwAligner> aligner;
   if (parameters.uclustfile.get() != nullptr) {
-    aligner = utils::make_unique<NwAligner>(longestamplicon);
+    aligner = utils::make_unique<NwAligner>(
+        longestamplicon,
+        parameters.penalty_mismatch,
+        static_cast<unsigned long int>(parameters.penalty_gapopen),
+        static_cast<unsigned long int>(parameters.penalty_gapextend));
   }
 
   set_amplicon_ids(amps_v);
@@ -704,7 +702,7 @@ auto algo_run(struct Parameters const & parameters,
 
       if (parameters.uclustfile.get() != nullptr) {
         write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, state.hitcount, workspace.hits,
-                             score_matrix_63, *aligner, parameters, data);
+                             *aligner, parameters, data);
       }
 
 

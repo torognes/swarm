@@ -31,10 +31,13 @@
 /*
   Needleman/Wunsch/Sellers aligner
 
-  Owns the scratch buffers (directions, hearray, raw_alignment) and the
-  cigar output buffer, so callers don't have to allocate or clear them
+  Owns the scratch buffers (directions, hearray, raw_alignment), the
+  cigar output buffer, and the 32x32 int64 score matrix derived from
+  the mismatch penalty. Callers don't have to allocate or clear them
   between calls. Sized once at construction with the longest sequence
-  length; subsequent align() calls reuse the storage.
+  length; subsequent align() calls reuse the storage and the same
+  scoring configuration (matrix + gap penalties), so they take only
+  the sequence pair.
 
   align() returns a small Result aggregating the four values consumers
   need: cigar string, number of differences, alignment length, and
@@ -51,17 +54,20 @@ public:
     double              percent_id;
   };
 
-  explicit NwAligner(uint64_t longest_sequence);
+  NwAligner(uint64_t longest_sequence,
+            int64_t penalty_mismatch,
+            uint64_t gapopen,
+            uint64_t gapextend);
 
   auto align(char const * dseq, uint64_t dlen,
-             char const * qseq, uint64_t qlen,
-             std::array<int64_t, n_cells * n_cells> const & score_matrix,
-             uint64_t gapopen,
-             uint64_t gapextend) -> Result;
+             char const * qseq, uint64_t qlen) -> Result;
 
 private:
-  std::vector<unsigned char> directions_;
-  std::vector<uint64_t>      hearray_;
-  std::vector<char>          raw_alignment_;
-  std::string                cigar_string_;
+  std::vector<unsigned char>             directions_;
+  std::vector<uint64_t>                  hearray_;
+  std::vector<char>                      raw_alignment_;
+  std::string                            cigar_string_;
+  std::array<int64_t, n_cells * n_cells> score_matrix_;
+  uint64_t                               gapopen_;
+  uint64_t                               gapextend_;
 };

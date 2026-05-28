@@ -191,9 +191,15 @@ auto backtrack(char const * dseq,
 }  // unnamed namespace
 
 
-NwAligner::NwAligner(uint64_t const longest_sequence)
+NwAligner::NwAligner(uint64_t const longest_sequence,
+                     int64_t const penalty_mismatch,
+                     uint64_t const gapopen,
+                     uint64_t const gapextend)
   : directions_(longest_sequence * longest_sequence),
-    hearray_(2 * longest_sequence)
+    hearray_(2 * longest_sequence),
+    score_matrix_(create_score_matrix<int64_t>(penalty_mismatch)),
+    gapopen_(gapopen),
+    gapextend_(gapextend)
 {
   raw_alignment_.reserve(2 * longest_sequence);
   cigar_string_.reserve(2 * longest_sequence);
@@ -224,13 +230,17 @@ NwAligner::NwAligner(uint64_t const longest_sequence)
   gapopen: 4
   gapextend: 3
 
-  input
+  input (per align() call)
 
   dseq: pointer to start of database sequence
   dlen: database sequence length
   qseq: pointer to start of query sequence
   qlen: query sequence length
+
+  scoring configuration (set once at NwAligner construction)
+
   score_matrix: 32x32 matrix of longs with scores for aligning two symbols
+                (derived from penalty_mismatch)
   gapopen: positive number indicating penalty for opening a gap of length zero
   gapextend: positive number indicating penalty for extending a gap
 
@@ -245,18 +255,15 @@ NwAligner::NwAligner(uint64_t const longest_sequence)
 */
 
 auto NwAligner::align(char const * dseq, uint64_t const dlen,
-                      char const * qseq, uint64_t const qlen,
-                      std::array<int64_t, n_cells * n_cells> const & score_matrix,
-                      uint64_t const gapopen,
-                      uint64_t const gapextend) -> NwAligner::Result
+                      char const * qseq, uint64_t const qlen) -> NwAligner::Result
 {
   static constexpr auto one_hundred = 100.0;
 
   raw_alignment_.clear();
   cigar_string_.clear();
 
-  fill_matrix(dseq, dlen, qseq, qlen, score_matrix,
-              gapopen, gapextend, directions_, hearray_);
+  fill_matrix(dseq, dlen, qseq, qlen, score_matrix_,
+              gapopen_, gapextend_, directions_, hearray_);
 
   uint64_t nwdiff {0};
   backtrack(dseq, dlen, qseq, qlen, nwdiff, directions_, raw_alignment_);

@@ -38,7 +38,6 @@
 #include "utils/make_unique.h"
 #include "utils/nt_codec.h"
 #include "utils/progress.h"
-#include "utils/score_matrix.h"
 #include "utils/threads.h"
 #include "utils/view.h"
 #include <algorithm>  // std::sort(), std::max()
@@ -855,8 +854,10 @@ namespace {
                                   std::vector<struct ampinfo_s> const & ampinfo_v,
                                   std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     auto cluster_no = 0U;
-    const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-    NwAligner aligner(data.longest_sequence());
+    NwAligner aligner(data.longest_sequence(),
+                      parameters.penalty_mismatch,
+                      static_cast<unsigned long int>(parameters.penalty_gapopen),
+                      static_cast<unsigned long int>(parameters.penalty_gapextend));
 
     Progress progress("Writing UCLUST:   ", swarminfo_v.size(), parameters);
 
@@ -888,10 +889,7 @@ namespace {
 
           auto const result = aligner.align(
             amp_seq.encoded.data(), amp_seq.length,
-            seed_seq.encoded.data(), seed_seq.length,
-            score_matrix_63,
-            static_cast<unsigned long int>(parameters.penalty_gapopen),
-            static_cast<unsigned long int>(parameters.penalty_gapextend));
+            seed_seq.encoded.data(), seed_seq.length);
 
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
