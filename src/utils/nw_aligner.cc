@@ -25,7 +25,7 @@
 #include "../db.h"  // struct Sequence
 #include "cigar.h"
 #include "nt_codec.h"
-#include <algorithm>  // std::min(), std::fill(), std::reverse()
+#include <algorithm>  // std::min(), std::reverse()
 #include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
@@ -269,13 +269,13 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
   raw_alignment_.clear();
   cigar_string_.clear();
 
+  // fill_matrix() writes every directions[i] for i in [0, dlen*qlen),
+  // so the buffer's content on entry doesn't matter.
   fill_matrix(dseq_data, dlen, qseq_data, qlen, score_matrix_,
               gapopen_, gapextend_, directions_, hearray_);
 
   uint64_t nwdiff {0};
   backtrack(dseq_data, dlen, qseq_data, qlen, nwdiff, directions_, raw_alignment_);
-
-  std::fill(directions_.begin(), directions_.end(), '\0');  // reset the alignment matrix
 
   // backtracking produces a reversed alignment (starting from the end)
   std::reverse(raw_alignment_.begin(), raw_alignment_.end());
