@@ -21,6 +21,9 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_SCORE_MATRIX_H
+#define SWARM_UTILS_SCORE_MATRIX_H
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -122,3 +125,5 @@ auto create_score_matrix(const std::int64_t mismatch_penalty)
 // 29 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 // 30 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 // 31 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+
+#endif  // SWARM_UTILS_SCORE_MATRIX_H

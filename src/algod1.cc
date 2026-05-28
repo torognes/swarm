@@ -856,7 +856,7 @@ namespace {
                                   std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     auto cluster_no = 0U;
     const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-    Alignment aligner(data.longest_sequence());
+    NwAligner aligner(data.longest_sequence());
 
     Progress progress("Writing UCLUST:   ", swarminfo_v.size(), parameters);
 

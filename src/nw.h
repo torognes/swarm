@@ -21,14 +21,11 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "utils/score_matrix.h"  // n_cells
 #include <array>
 #include <cstdint>  // int64_t
 #include <string>
 #include <vector>
-
-
-// refactor: 'n_cells' is already defined in 'score_matrix.h'
-constexpr auto n_cells_ = 32ULL;  // number of chars in sym_nt
 
 
 /*
@@ -41,11 +38,11 @@ constexpr auto n_cells_ = 32ULL;  // number of chars in sym_nt
 
   align() returns a small Result aggregating the four values consumers
   need: cigar string, number of differences, alignment length, and
-  percent identity. The cigar_string reference lives in this Alignment
+  percent identity. The cigar_string reference lives in this NwAligner
   object's internal buffer and is only valid until the next align()
   call on the same object.
 */
-class Alignment {
+class NwAligner {
 public:
   struct Result {
     std::string const & cigar_string;
@@ -54,11 +51,11 @@ public:
     double              percent_id;
   };
 
-  explicit Alignment(uint64_t longest_sequence);
+  explicit NwAligner(uint64_t longest_sequence);
 
   auto align(char const * dseq, uint64_t dlen,
              char const * qseq, uint64_t qlen,
-             std::array<int64_t, n_cells_ * n_cells_> const & score_matrix,
+             std::array<int64_t, n_cells * n_cells> const & score_matrix,
              uint64_t gapopen,
              uint64_t gapextend) -> Result;
 

@@ -44,7 +44,7 @@ auto fill_matrix(char const * dseq,
                  const uint64_t dlen,
                  char const * qseq,
                  const uint64_t qlen,
-                 const std::array<int64_t, n_cells_ * n_cells_> & score_matrix,
+                 const std::array<int64_t, n_cells * n_cells> & score_matrix,
                  const uint64_t gapopen,
                  const uint64_t gapextend,
                  std::vector<unsigned char> & directions,
@@ -191,7 +191,7 @@ auto backtrack(char const * dseq,
 }  // unnamed namespace
 
 
-Alignment::Alignment(uint64_t const longest_sequence)
+NwAligner::NwAligner(uint64_t const longest_sequence)
   : directions_(longest_sequence * longest_sequence),
     hearray_(2 * longest_sequence)
 {
@@ -234,7 +234,7 @@ Alignment::Alignment(uint64_t const longest_sequence)
   gapopen: positive number indicating penalty for opening a gap of length zero
   gapextend: positive number indicating penalty for extending a gap
 
-  output (carried in Alignment::Result)
+  output (carried in NwAligner::Result)
 
   nwscore: the global alignment score
   nwdiff: number of non-identical nucleotides in one optimal global alignment
@@ -244,11 +244,11 @@ Alignment::Alignment(uint64_t const longest_sequence)
 
 */
 
-auto Alignment::align(char const * dseq, uint64_t const dlen,
+auto NwAligner::align(char const * dseq, uint64_t const dlen,
                       char const * qseq, uint64_t const qlen,
-                      std::array<int64_t, n_cells_ * n_cells_> const & score_matrix,
+                      std::array<int64_t, n_cells * n_cells> const & score_matrix,
                       uint64_t const gapopen,
-                      uint64_t const gapextend) -> Alignment::Result
+                      uint64_t const gapextend) -> NwAligner::Result
 {
   static constexpr auto one_hundred = 100.0;
 

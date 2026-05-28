@@ -452,8 +452,8 @@ namespace {
                             uint64_t const seedampliconid,
                             uint64_t const hitcount,
                             std::vector<uint64_t> const & hits,
-                            std::array<int64_t, n_cells_ * n_cells_> const & score_matrix,
-                            Alignment & aligner,
+                            std::array<int64_t, n_cells * n_cells> const & score_matrix,
+                            NwAligner & aligner,
                             struct Parameters const & parameters,
                             Data const & data) -> void {
     std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
@@ -559,11 +559,11 @@ auto algo_run(struct Parameters const & parameters,
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   Cluster_workspace workspace(amplicons);
 
-  // Alignment is only needed when UCLUST output is requested; its
+  // NwAligner is only needed when UCLUST output is requested; its
   // scratch buffers grow with longestamplicon^2, so allocate lazily.
-  std::unique_ptr<Alignment> aligner;
+  std::unique_ptr<NwAligner> aligner;
   if (parameters.uclustfile.get() != nullptr) {
-    aligner = utils::make_unique<Alignment>(longestamplicon);
+    aligner = utils::make_unique<NwAligner>(longestamplicon);
   }
 
   set_amplicon_ids(amps_v);
