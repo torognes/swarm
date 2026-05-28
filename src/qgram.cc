@@ -51,7 +51,6 @@
 #include "utils/cpu_features.h"
 #include "utils/progress.h"
 #include "utils/qgram_array.h"
-#include "utils/qgram_threadinfo.h"
 #include "utils/nt_codec.h"
 #include "utils/threads.h"
 #include <cassert>
@@ -61,9 +60,6 @@
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>
-
-
-static ThreadRunner * qgram_threads = nullptr;
 
 
 auto findqgrams(char const * seq, uint64_t seqlen,
@@ -274,106 +270,6 @@ inline auto qgram_diff(Qgram_store const & store,
 }
 
 
-auto qgram_worker(Qgram_store const & store,
-                  uint64_t const nth_thread,
-                  std::vector<struct thread_info_s> const & thread_info_v,
-                  Cpu_features const & cpu_features) -> void
-{
-  auto const & tip = *std::next(thread_info_v.begin(), static_cast<std::ptrdiff_t>(nth_thread));
-
-  const auto seed = tip.seed;
-  const auto listlen = tip.listlen;
-  assert(listlen <= std::numeric_limits<std::ptrdiff_t>::max());
-  const auto listlen_signed = static_cast<int64_t>(listlen);
-  auto * amplist = tip.amplist;
-  auto * difflist = tip.difflist;
-
-  for (auto i = 0LL; i < listlen_signed; ++i) {
-    auto & target_diff = *std::next(difflist, i);
-    auto const target_amplicon = *std::next(amplist, i);
-    target_diff = qgram_diff(store, seed, target_amplicon, cpu_features);
-  }
-}
-
-
-auto qgram_diff_init(struct Parameters const & parameters,
-                     Qgram_store const & store,
-                     std::vector<struct thread_info_s>& thread_info_v) -> void
-{
-  /* allocate memory for thread info */
-  thread_info_v.resize(static_cast<uint64_t>(parameters.opt_threads));
-  Cpu_features const cpu_features {
-    parameters.ssse3_present != 0,
-    parameters.sse41_present != 0,
-    parameters.popcnt_present != 0
-  };
-  qgram_threads
-    = new ThreadRunner(static_cast<std::size_t>(parameters.opt_threads),
-                       [&store, &thread_info_v, cpu_features](uint64_t nth_thread) -> void {
-                         qgram_worker(store, nth_thread, thread_info_v, cpu_features);
-                       });
-}
-
-
-auto qgram_diff_done() -> void
-{
-  delete qgram_threads;
-  qgram_threads = nullptr;
-}
-
-
-auto qgram_diff_fast(struct Parameters const & parameters,
-                     Qgram_store const & store,
-                     uint64_t seed,
-                     uint64_t listlen,
-                     uint64_t * amplist,
-                     uint64_t * difflist,
-                     std::vector<struct thread_info_s>& thread_info_v) -> void
-{
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  Cpu_features const cpu_features {
-    parameters.ssse3_present != 0,
-    parameters.sse41_present != 0,
-    parameters.popcnt_present != 0
-  };
-  if (listlen <= uint8_max)
-    {
-      auto & tip = thread_info_v[0];
-      tip.seed = seed;
-      tip.listlen = listlen;
-      tip.amplist = amplist;
-      tip.difflist = difflist;
-      qgram_worker(store, 0, thread_info_v, cpu_features);
-    }
-  else
-    {
-      auto * next_amplist = amplist;
-      auto * next_difflist = difflist;
-      auto listrest = listlen;
-      auto thrrest = static_cast<uint64_t>(parameters.opt_threads);
-
-      /* distribute work */
-      for (auto & tip: thread_info_v) {
-          auto const chunk = (listrest + thrrest - 1) / thrrest;
-          assert(chunk <= std::numeric_limits<std::ptrdiff_t>::max());
-          auto const chunk_signed = static_cast<int64_t>(chunk);
-
-          tip.seed = seed;
-          tip.listlen = chunk;
-          tip.amplist = next_amplist;
-          tip.difflist = next_difflist;
-
-          next_amplist = std::next(next_amplist, chunk_signed);
-          next_difflist = std::next(next_difflist, chunk_signed);
-          listrest -= chunk;
-          --thrrest;
-        }
-
-      qgram_threads->run();
-    }
-}
-
-
 QgramDiffer::QgramDiffer(struct Parameters const & parameters,
                          Qgram_store const & store)
   : store_(store),
@@ -385,9 +281,28 @@ QgramDiffer::QgramDiffer(struct Parameters const & parameters,
     thread_info_v_(static_cast<uint64_t>(parameters.opt_threads)),
     threads_(static_cast<std::size_t>(parameters.opt_threads),
              [this](uint64_t nth_thread) -> void {
-               qgram_worker(store_, nth_thread, thread_info_v_, cpu_features_);
+               worker(nth_thread);
              })
 { }
+
+
+auto QgramDiffer::worker(uint64_t const nth_thread) const -> void
+{
+  auto const & tip = *std::next(thread_info_v_.begin(), static_cast<std::ptrdiff_t>(nth_thread));
+
+  const auto seed = tip.seed;
+  const auto listlen = tip.listlen;
+  assert(listlen <= std::numeric_limits<std::ptrdiff_t>::max());
+  const auto listlen_signed = static_cast<int64_t>(listlen);
+  auto * amplist = tip.amplist;
+  auto * difflist = tip.difflist;
+
+  for (auto i = 0LL; i < listlen_signed; ++i) {
+    auto & target_diff = *std::next(difflist, i);
+    auto const target_amplicon = *std::next(amplist, i);
+    target_diff = qgram_diff(store_, seed, target_amplicon, cpu_features_);
+  }
+}
 
 
 auto QgramDiffer::fast(uint64_t seed,
@@ -403,7 +318,7 @@ auto QgramDiffer::fast(uint64_t seed,
       tip.listlen = listlen;
       tip.amplist = amplist;
       tip.difflist = difflist;
-      qgram_worker(store_, 0, thread_info_v_, cpu_features_);
+      worker(0);
     }
   else
     {

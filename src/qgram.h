@@ -23,7 +23,6 @@
 
 #include "utils/cpu_features.h"  // Cpu_features
 #include "utils/qgram_array.h"  // Qgram_store
-#include "utils/qgram_threadinfo.h"  // thread_info_s
 #include "utils/threads.h"  // ThreadRunner
 #include <cstdint>  // uint64_t
 #include <vector>
@@ -36,23 +35,12 @@ auto findqgrams(char const * seq, uint64_t seqlen,
                 unsigned char * qgramvector) -> void;
 auto build_qgram_store(struct Parameters const & parameters,
                        Data const & data) -> Qgram_store;
-auto qgram_diff_fast(struct Parameters const & parameters,
-                     Qgram_store const & store,
-                     uint64_t seed,
-                     uint64_t listlen,
-                     uint64_t * amplist,
-                     uint64_t * difflist,
-                     std::vector<struct thread_info_s>& thread_info_v) -> void;
-auto qgram_diff_init(struct Parameters const & parameters,
-                     Qgram_store const & store,
-                     std::vector<struct thread_info_s>& thread_info_v) -> void;
-auto qgram_diff_done() -> void;
 
 
 // RAII wrapper around the per-seed qgram-distance dispatch: owns the
-// worker ThreadRunner, the per-thread thread_info_s scratch vector,
-// and the cached Cpu_features. The destructor joins the worker
-// threads, replacing the qgram_diff_init / qgram_diff_done pair.
+// worker ThreadRunner, a per-thread scratch vector, and the cached
+// Cpu_features. The destructor joins the worker threads — no explicit
+// teardown call needed.
 class QgramDiffer {
 public:
   QgramDiffer(struct Parameters const & parameters,
@@ -71,8 +59,17 @@ public:
             uint64_t * difflist) -> void;
 
 private:
-  Qgram_store const &              store_;
-  Cpu_features const               cpu_features_;
-  std::vector<struct thread_info_s> thread_info_v_;
-  ThreadRunner                     threads_;  // last: its lambda touches the members above
+  struct thread_info_s {
+    uint64_t seed;
+    uint64_t listlen;
+    uint64_t * amplist;
+    uint64_t * difflist;
+  };
+
+  auto worker(uint64_t nth_thread) const -> void;
+
+  Qgram_store const &        store_;
+  Cpu_features const         cpu_features_;
+  std::vector<thread_info_s> thread_info_v_;
+  ThreadRunner               threads_;  // last: its lambda touches the members above
 };
