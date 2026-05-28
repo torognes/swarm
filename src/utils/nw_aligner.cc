@@ -85,7 +85,7 @@ auto fill_matrix(char const * dseq,
           auto const index             = (qlen * row) + column;
           auto const previous_diagonal = hearray[he_index];
           auto left                    = hearray[he_index + 1];
-          unsigned char flags          = 0;
+          unsigned char flags          = '\0';
 
           diagonal += static_cast<uint64_t>(
               score_matrix[row_offset + nt_extract(qseq, column) + 1U]);
