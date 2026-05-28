@@ -21,7 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "utils/cpu_features.h"  // Cpu_features
 #include "utils/qgram_array.h"  // Qgram_store
+#include "utils/qgram_threadinfo.h"  // thread_info_s
+#include "utils/threads.h"  // ThreadRunner
 #include <cstdint>  // uint64_t
 #include <vector>
 
@@ -44,3 +47,32 @@ auto qgram_diff_init(struct Parameters const & parameters,
                      Qgram_store const & store,
                      std::vector<struct thread_info_s>& thread_info_v) -> void;
 auto qgram_diff_done() -> void;
+
+
+// RAII wrapper around the per-seed qgram-distance dispatch: owns the
+// worker ThreadRunner, the per-thread thread_info_s scratch vector,
+// and the cached Cpu_features. The destructor joins the worker
+// threads, replacing the qgram_diff_init / qgram_diff_done pair.
+class QgramDiffer {
+public:
+  QgramDiffer(struct Parameters const & parameters,
+              Qgram_store const & store);
+
+  // Non-copyable, non-movable: the ThreadRunner's lambda captures
+  // `this`, so the object must keep a stable address.
+  QgramDiffer(QgramDiffer const &) = delete;
+  QgramDiffer(QgramDiffer &&) = delete;
+  auto operator=(QgramDiffer const &) -> QgramDiffer & = delete;
+  auto operator=(QgramDiffer &&) -> QgramDiffer & = delete;
+
+  auto fast(uint64_t seed,
+            uint64_t listlen,
+            uint64_t * amplist,
+            uint64_t * difflist) -> void;
+
+private:
+  Qgram_store const &              store_;
+  Cpu_features const               cpu_features_;
+  std::vector<struct thread_info_s> thread_info_v_;
+  ThreadRunner                     threads_;  // last: its lambda touches the members above
+};

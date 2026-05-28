@@ -45,6 +45,7 @@
 
 #endif
 
+#include "qgram.h"
 #include "db.h"
 #include "swarm.h"
 #include "utils/cpu_features.h"
@@ -369,5 +370,65 @@ auto qgram_diff_fast(struct Parameters const & parameters,
         }
 
       qgram_threads->run();
+    }
+}
+
+
+QgramDiffer::QgramDiffer(struct Parameters const & parameters,
+                         Qgram_store const & store)
+  : store_(store),
+    cpu_features_{
+      parameters.ssse3_present != 0,
+      parameters.sse41_present != 0,
+      parameters.popcnt_present != 0
+    },
+    thread_info_v_(static_cast<uint64_t>(parameters.opt_threads)),
+    threads_(static_cast<std::size_t>(parameters.opt_threads),
+             [this](uint64_t nth_thread) -> void {
+               qgram_worker(store_, nth_thread, thread_info_v_, cpu_features_);
+             })
+{ }
+
+
+auto QgramDiffer::fast(uint64_t seed,
+                       uint64_t listlen,
+                       uint64_t * amplist,
+                       uint64_t * difflist) -> void
+{
+  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+  if (listlen <= uint8_max)
+    {
+      auto & tip = thread_info_v_[0];
+      tip.seed = seed;
+      tip.listlen = listlen;
+      tip.amplist = amplist;
+      tip.difflist = difflist;
+      qgram_worker(store_, 0, thread_info_v_, cpu_features_);
+    }
+  else
+    {
+      auto * next_amplist = amplist;
+      auto * next_difflist = difflist;
+      auto listrest = listlen;
+      auto thrrest = thread_info_v_.size();
+
+      /* distribute work */
+      for (auto & tip: thread_info_v_) {
+          auto const chunk = (listrest + thrrest - 1) / thrrest;
+          assert(chunk <= std::numeric_limits<std::ptrdiff_t>::max());
+          auto const chunk_signed = static_cast<int64_t>(chunk);
+
+          tip.seed = seed;
+          tip.listlen = chunk;
+          tip.amplist = next_amplist;
+          tip.difflist = next_difflist;
+
+          next_amplist = std::next(next_amplist, chunk_signed);
+          next_difflist = std::next(next_difflist, chunk_signed);
+          listrest -= chunk;
+          --thrrest;
+        }
+
+      threads_.run();
     }
 }
