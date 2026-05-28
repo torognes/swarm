@@ -49,7 +49,7 @@ auto fill_matrix(char const * dseq,
                  const uint64_t gapopen,
                  const uint64_t gapextend,
                  std::vector<unsigned char> & directions,
-                 std::vector<uint64_t> & hearray) -> void
+                 std::vector<NwAligner::HECell> & hearray) -> void
 {
   // alignment priority when backtracking (from lower right corner):
   // 1. left/insert/e (gap in query sequence (qseq))
@@ -64,27 +64,25 @@ auto fill_matrix(char const * dseq,
   auto const new_gap = gapopen + gapextend;
 
   assert(directions.size() >= qlen * dlen);
-  assert(hearray.size() >= 2 * qlen);
+  assert(hearray.size() >= qlen);
 
   // hearray: per-column carry of (H, E) updated as rows advance.
-  // H is the best alignment cost ending at the cell; E is the best
-  // cost ending with a gap in dseq. This loop seeds the row-0
-  // boundary; subsequent rows overwrite in place.
+  // This loop seeds the row-0 boundary; subsequent rows overwrite in
+  // place.
   for (auto column = 0UL; column < qlen; ++column) {
-    hearray[2 * column]       = gapopen + ((column + 1) * gapextend);       // H
-    hearray[(2 * column) + 1] = (2 * gapopen) + ((column + 2) * gapextend); // E
+    hearray[column].h_score = gapopen + ((column + 1) * gapextend);
+    hearray[column].e_score = (2 * gapopen) + ((column + 2) * gapextend);
   }
 
   for (auto row = 0UL; row < dlen; ++row) {
-      auto he_index = 0UL;
       auto top = (2 * gapopen) + ((row + 2) * gapextend);
       uint64_t diagonal = (row == 0) ? 0 : (gapopen + (row * gapextend));
       auto const row_offset = (nt_extract(dseq, row) + 1U) << multiplier;
 
       for (auto column = 0UL; column < qlen; ++column) {
           auto const index             = (qlen * row) + column;
-          auto const previous_diagonal = hearray[he_index];
-          auto left                    = hearray[he_index + 1];
+          auto const previous_diagonal = hearray[column].h_score;
+          auto left                    = hearray[column].e_score;
           unsigned char flags          = '\0';
 
           diagonal += static_cast<uint64_t>(
@@ -94,7 +92,7 @@ auto fill_matrix(char const * dseq,
           diagonal = std::min({diagonal, top, left});
           flags |= (left == diagonal) ? maskleft : 0U;
 
-          hearray[he_index] = diagonal;
+          hearray[column].h_score = diagonal;
 
           diagonal += new_gap;
           left += gapextend;
@@ -105,10 +103,9 @@ auto fill_matrix(char const * dseq,
           top  = std::min(diagonal, top);
           left = std::min(diagonal, left);
 
-          directions[index]     = flags;
-          hearray[he_index + 1] = left;
-          diagonal              = previous_diagonal;
-          he_index += 2;
+          directions[index]       = flags;
+          hearray[column].e_score = left;
+          diagonal                = previous_diagonal;
         }
     }
 }
@@ -186,7 +183,7 @@ NwAligner::NwAligner(uint64_t const longest_sequence,
                      uint64_t const gapopen,
                      uint64_t const gapextend)
   : directions_(longest_sequence * longest_sequence),
-    hearray_(2 * longest_sequence),
+    hearray_(longest_sequence),
     score_matrix_(create_score_matrix<int64_t>(penalty_mismatch)),
     gapopen_(gapopen),
     gapextend_(gapextend)

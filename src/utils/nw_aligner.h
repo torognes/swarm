@@ -50,6 +50,14 @@ struct Sequence;  // defined in db.h
 */
 class NwAligner {
 public:
+  // per-column carry of the DP recurrence:
+  // h_score is the best alignment cost ending at the cell,
+  // e_score is the best cost ending with a gap in dseq.
+  struct HECell {
+    uint64_t h_score;
+    uint64_t e_score;
+  };
+
   struct Result {
     std::string const & cigar_string;
     uint64_t            differences;
@@ -66,7 +74,7 @@ public:
 
 private:
   std::vector<unsigned char>             directions_;
-  std::vector<uint64_t>                  hearray_;
+  std::vector<HECell>                    hearray_;
   std::vector<char>                      raw_alignment_;
   std::string                            cigar_string_;
   std::array<int64_t, n_cells * n_cells> score_matrix_;
