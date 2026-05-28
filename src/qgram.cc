@@ -242,21 +242,23 @@ inline auto db_getqgramvector(Qgram_store const & store, uint64_t const seqno) -
 }
 
 
-auto build_qgram_store(struct Parameters const & parameters,
-                       Data const & data) -> Qgram_store
-{
-  auto const n_sequences = data.sequence_count();
-  Qgram_store store(n_sequences);
+namespace {
+  auto build_qgram_store(struct Parameters const & parameters,
+                         Data const & data) -> Qgram_store
+  {
+    auto const n_sequences = data.sequence_count();
+    Qgram_store store(n_sequences);
 
-  Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
-  for (auto counter = 0U; counter < n_sequences; ++counter) {
-    auto const seq = data.sequence_view(counter);
-    findqgrams(seq.encoded.data(), seq.length, store[counter].data());
-    progress_qg.update(counter);
+    Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
+    for (auto counter = 0U; counter < n_sequences; ++counter) {
+      auto const seq = data.sequence_view(counter);
+      findqgrams(seq.encoded.data(), seq.length, store[counter].data());
+      progress_qg.update(counter);
+    }
+    progress_qg.done();
+    return store;
   }
-  progress_qg.done();
-  return store;
-}
+}  // namespace
 
 
 inline auto qgram_diff(Qgram_store const & store,
@@ -271,8 +273,8 @@ inline auto qgram_diff(Qgram_store const & store,
 
 
 QgramDiffer::QgramDiffer(struct Parameters const & parameters,
-                         Qgram_store const & store)
-  : store_(store),
+                         Data const & data)
+  : store_(build_qgram_store(parameters, data)),
     cpu_features_{
       parameters.ssse3_present != 0,
       parameters.sse41_present != 0,

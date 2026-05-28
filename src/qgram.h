@@ -33,18 +33,17 @@ class Data;          // defined in db.h
 
 auto findqgrams(char const * seq, uint64_t seqlen,
                 unsigned char * qgramvector) -> void;
-auto build_qgram_store(struct Parameters const & parameters,
-                       Data const & data) -> Qgram_store;
 
 
-// RAII wrapper around the per-seed qgram-distance dispatch: owns the
-// worker ThreadRunner, a per-thread scratch vector, and the cached
+// RAII wrapper around the per-seed qgram-distance dispatch: builds the
+// per-sequence qgram store, owns it together with the worker
+// ThreadRunner, a per-thread scratch vector, and the cached
 // Cpu_features. The destructor joins the worker threads — no explicit
 // teardown call needed.
 class QgramDiffer {
 public:
   QgramDiffer(struct Parameters const & parameters,
-              Qgram_store const & store);
+              Data const & data);
 
   // Non-copyable, non-movable: the ThreadRunner's lambda captures
   // `this`, so the object must keep a stable address.
@@ -69,7 +68,7 @@ private:
 
   auto worker(uint64_t nth_thread) const -> void;
 
-  Qgram_store const &        store_;
+  Qgram_store const          store_;        // owned (built in the ctor)
   Cpu_features const         cpu_features_;
   std::vector<thread_info_s> thread_info_v_;
   ThreadRunner               threads_;  // last: its lambda touches the members above

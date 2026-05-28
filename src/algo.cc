@@ -539,10 +539,9 @@ auto algo_run(struct Parameters const & parameters,
   auto const amplicons = data.sequence_count();
   uint64_t const longestamplicon = data.longest_sequence();
 
-  auto const qgram_store = build_qgram_store(parameters, data);
-
-  // RAII: ThreadRunner is destroyed (workers joined) at end of algo_run scope.
-  QgramDiffer qgram_differ(parameters, qgram_store);
+  // RAII: builds the qgram store, ThreadRunner is destroyed (workers
+  // joined) at end of algo_run scope.
+  QgramDiffer qgram_differ(parameters, data);
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   Cluster_workspace workspace(amplicons);
