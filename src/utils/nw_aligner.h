@@ -28,6 +28,9 @@
 #include <vector>
 
 
+struct Sequence;  // defined in db.h
+
+
 /*
   Needleman/Wunsch/Sellers aligner
 
@@ -59,8 +62,7 @@ public:
             uint64_t gapopen,
             uint64_t gapextend);
 
-  auto align(char const * dseq, uint64_t dlen,
-             char const * qseq, uint64_t qlen) -> Result;
+  auto align(Sequence const & dseq, Sequence const & qseq) -> Result;
 
 private:
   std::vector<unsigned char>             directions_;

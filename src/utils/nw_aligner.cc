@@ -22,6 +22,7 @@
 */
 
 #include "nw_aligner.h"
+#include "../db.h"  // struct Sequence
 #include "cigar.h"
 #include "nt_codec.h"
 #include <algorithm>  // std::min(), std::fill(), std::reverse()
@@ -232,10 +233,8 @@ NwAligner::NwAligner(uint64_t const longest_sequence,
 
   input (per align() call)
 
-  dseq: pointer to start of database sequence
-  dlen: database sequence length
-  qseq: pointer to start of query sequence
-  qlen: query sequence length
+  dseq: database sequence (packed bytes + nucleotide length)
+  qseq: query sequence    (packed bytes + nucleotide length)
 
   scoring configuration (set once at NwAligner construction)
 
@@ -254,19 +253,26 @@ NwAligner::NwAligner(uint64_t const longest_sequence,
 
 */
 
-auto NwAligner::align(char const * dseq, uint64_t const dlen,
-                      char const * qseq, uint64_t const qlen) -> NwAligner::Result
+auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner::Result
 {
   static constexpr auto one_hundred = 100.0;
+
+  // Sequence::length is the nucleotide count (not encoded.size(), which
+  // is the packed-byte count); nt_extract() and the inner loops below
+  // both work in nucleotide units.
+  auto const * const dseq_data = dseq.encoded.data();
+  auto const * const qseq_data = qseq.encoded.data();
+  auto const dlen = static_cast<uint64_t>(dseq.length);
+  auto const qlen = static_cast<uint64_t>(qseq.length);
 
   raw_alignment_.clear();
   cigar_string_.clear();
 
-  fill_matrix(dseq, dlen, qseq, qlen, score_matrix_,
+  fill_matrix(dseq_data, dlen, qseq_data, qlen, score_matrix_,
               gapopen_, gapextend_, directions_, hearray_);
 
   uint64_t nwdiff {0};
-  backtrack(dseq, dlen, qseq, qlen, nwdiff, directions_, raw_alignment_);
+  backtrack(dseq_data, dlen, qseq_data, qlen, nwdiff, directions_, raw_alignment_);
 
   std::fill(directions_.begin(), directions_.end(), '\0');  // reset the alignment matrix
 
