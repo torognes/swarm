@@ -118,9 +118,8 @@ auto backtrack(char const * dseq,
                const uint64_t dlen,
                char const * qseq,
                const uint64_t qlen,
-               uint64_t & nwdiff,
                std::vector<unsigned char> const & directions,
-               std::vector<char> & raw_alignment) -> void
+               std::vector<char> & raw_alignment) -> uint64_t
 {
   /* backtrack: count differences and save alignment in cigar string */
 
@@ -186,8 +185,8 @@ auto backtrack(char const * dseq,
       raw_alignment.emplace_back('I');
     }
 
-  nwdiff = alength - matches;
   assert(raw_alignment.size() == alength);
+  return alength - matches;
 }
 
 }  // unnamed namespace
@@ -274,8 +273,8 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
   fill_matrix(dseq_data, dlen, qseq_data, qlen, score_matrix_,
               gapopen_, gapextend_, directions_, hearray_);
 
-  uint64_t nwdiff {0};
-  backtrack(dseq_data, dlen, qseq_data, qlen, nwdiff, directions_, raw_alignment_);
+  auto const nwdiff = backtrack(dseq_data, dlen, qseq_data, qlen,
+                                directions_, raw_alignment_);
 
   // backtracking produces a reversed alignment (starting from the end)
   std::reverse(raw_alignment_.begin(), raw_alignment_.end());
