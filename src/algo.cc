@@ -470,9 +470,7 @@ namespace {
       auto const hit_seq = data.sequence_view(hit);
       auto const seed_seq = data.sequence_view(seedampliconid);
 
-      auto const result = aligner.align(
-        hit_seq.encoded.data(), hit_seq.length,
-        seed_seq.encoded.data(), seed_seq.length);
+      auto const result = aligner.align(hit_seq, seed_seq);
 
       std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                    swarmid - 1, hit_seq.length, result.percent_id,

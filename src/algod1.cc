@@ -887,9 +887,7 @@ namespace {
           auto const amp_seq = data.sequence_view(amp_id);
           auto const seed_seq = data.sequence_view(seed);  // refactoring: can be moved outside of this loop!
 
-          auto const result = aligner.align(
-            amp_seq.encoded.data(), amp_seq.length,
-            seed_seq.encoded.data(), seed_seq.length);
+          auto const result = aligner.align(amp_seq, seed_seq);
 
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
