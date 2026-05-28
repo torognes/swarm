@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "utils/score_matrix.h"  // n_cells
+#include "score_matrix.h"  // n_cells
 #include <array>
 #include <cstdint>  // int64_t
 #include <string>

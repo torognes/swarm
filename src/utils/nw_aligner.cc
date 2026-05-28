@@ -21,9 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "nw.h"
-#include "utils/cigar.h"
-#include "utils/nt_codec.h"
+#include "nw_aligner.h"
+#include "cigar.h"
+#include "nt_codec.h"
 #include <algorithm>  // std::min(), std::fill(), std::reverse()
 #include <array>
 #include <cassert>  // assert()

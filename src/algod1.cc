@@ -32,7 +32,7 @@
 #include "utils/bloom.h"
 #include "db.h"
 #include "utils/hashtable.h"
-#include "nw.h"
+#include "utils/nw_aligner.h"
 #include "variants.h"
 #include "utils/fatal.h"
 #include "utils/make_unique.h"

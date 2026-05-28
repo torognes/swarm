@@ -24,7 +24,7 @@
 #include "swarm.h"
 #include "db.h"
 #include "qgram.h"
-#include "nw.h"
+#include "utils/nw_aligner.h"
 #include "scan.h"
 #include "utils/make_unique.h"
 #include "utils/qgram_threadinfo.h"
