@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_QGRAM_THREADINFO_H
+#define SWARM_UTILS_QGRAM_THREADINFO_H
+
 #include <cstdint>  // uint64_t
 
 
@@ -31,3 +34,5 @@ struct thread_info_s
   uint64_t * amplist;
   uint64_t * difflist;
 };
+
+#endif

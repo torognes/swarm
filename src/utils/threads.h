@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_THREADS_H
+#define SWARM_UTILS_THREADS_H
+
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
@@ -130,3 +133,5 @@ public:
     }
   }
 };
+
+#endif

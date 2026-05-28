@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_QGRAM_ARRAY_H
+#define SWARM_UTILS_QGRAM_ARRAY_H
+
 #include <array>
 #include <vector>
 
@@ -31,3 +34,5 @@ constexpr unsigned int qgramvectorbytes {qgramvectorbits / 8};  // 128
 
 using Qgram_vector = std::array<unsigned char, qgramvectorbytes>;
 using Qgram_store  = std::vector<Qgram_vector>;
+
+#endif
