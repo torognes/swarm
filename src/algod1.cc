@@ -34,7 +34,6 @@
 #include "utils/hashtable.h"
 #include "nw.h"
 #include "variants.h"
-#include "utils/cigar.h"
 #include "utils/fatal.h"
 #include "utils/make_unique.h"
 #include "utils/nt_codec.h"
@@ -42,7 +41,7 @@
 #include "utils/score_matrix.h"
 #include "utils/threads.h"
 #include "utils/view.h"
-#include <algorithm>  // std::sort(), std::reverse(), std::max()
+#include <algorithm>  // std::sort(), std::max()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::ptrdiff_t
@@ -855,15 +854,9 @@ namespace {
                                   Data const & data,
                                   std::vector<struct ampinfo_s> const & ampinfo_v,
                                   std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
-    static constexpr auto one_hundred = 100.0;
     auto cluster_no = 0U;
     const auto score_matrix_63 = create_score_matrix<int64_t>(parameters.penalty_mismatch);
-    std::vector<unsigned char> directions(1UL * data.longest_sequence() * data.longest_sequence());
-    std::vector<uint64_t> hearray(2UL * data.longest_sequence());
-    std::vector<char> raw_alignment;
-    std::string cigar_string;
-    raw_alignment.reserve(2UL * data.longest_sequence());
-    cigar_string.reserve(2UL * data.longest_sequence());
+    Alignment aligner(data.longest_sequence());
 
     Progress progress("Writing UCLUST:   ", swarminfo_v.size(), parameters);
 
@@ -893,37 +886,24 @@ namespace {
           auto const amp_seq = data.sequence_view(amp_id);
           auto const seed_seq = data.sequence_view(seed);  // refactoring: can be moved outside of this loop!
 
-          uint64_t nwdiff = 0;  // refactoring: nw() -> uint64_t?
-
-          nw(amp_seq.encoded.data(), amp_seq.length, seed_seq.encoded.data(), seed_seq.length,
-             score_matrix_63, static_cast<unsigned long int>(parameters.penalty_gapopen),
-             static_cast<unsigned long int>(parameters.penalty_gapextend),
-             nwdiff, directions, hearray, raw_alignment);
-
-          // backtracking produces a reversed alignment (starting from the end)
-          std::reverse(raw_alignment.begin(), raw_alignment.end());
-          compress_alignment_to_cigar(raw_alignment, cigar_string);
-
-          // loosing precision when converting raw_alignment.size() and
-          // nwdiff to double is not an issue, no need to add assertions
-          const auto nwalignmentlength = static_cast<double>(raw_alignment.size());
-          const auto differences = static_cast<double>(nwdiff);
-          const auto percentid = one_hundred * (nwalignmentlength - differences) / nwalignmentlength;
+          auto const result = aligner.align(
+            amp_seq.encoded.data(), amp_seq.length,
+            seed_seq.encoded.data(), seed_seq.length,
+            score_matrix_63,
+            static_cast<unsigned long int>(parameters.penalty_gapopen),
+            static_cast<unsigned long int>(parameters.penalty_gapextend));
 
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                        cluster_no,
                        amp_seq.length,
-                       percentid,
-                       nwdiff > 0 ? cigar_string.data() : "=");
+                       result.percent_id,
+                       result.differences > 0 ? result.cigar_string.data() : "=");
 
           data.fprint_id(parameters.uclustfile.get(), amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\t");
           data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\n");
-
-          raw_alignment.clear();
-          cigar_string.clear();
         }
 
       ++cluster_no;
