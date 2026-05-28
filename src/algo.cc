@@ -604,7 +604,7 @@ auto algo_run(struct Parameters const & parameters,
                                                               parameters, data,
                                                               amps_v, workspace);
 
-      qgram_differ.fast(seedampliconid, listlen, workspace.qgramamps_v, workspace.qgramdiffs_v);
+      qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
 
 
       for (auto i = 0ULL; i < listlen; ++i) {
@@ -655,7 +655,7 @@ auto algo_run(struct Parameters const & parameters,
                                                                        subseed, parameters,
                                                                        data, amps_v, workspace);
 
-              qgram_differ.fast(subseed.ampliconid, subseedlistlen,
+              qgram_differ.fast(subseed.ampliconid,
                                 workspace.qgramamps_v, workspace.qgramdiffs_v);
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {

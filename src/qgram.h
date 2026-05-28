@@ -53,8 +53,9 @@ public:
   auto operator=(QgramDiffer const &) -> QgramDiffer & = delete;
   auto operator=(QgramDiffer &&) -> QgramDiffer & = delete;
 
+  // amplist.size() entries are read from amplist; the same number of
+  // entries are written to the front of difflist.
   auto fast(uint64_t seed,
-            uint64_t listlen,
             std::vector<uint64_t> const & amplist,
             std::vector<uint64_t> & difflist) -> void;
 
