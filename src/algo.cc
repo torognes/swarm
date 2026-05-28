@@ -26,13 +26,12 @@
 #include "qgram.h"
 #include "nw.h"
 #include "scan.h"
-#include "utils/cigar.h"
 #include "utils/make_unique.h"
 #include "utils/qgram_threadinfo.h"
 #include "utils/progress.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
-#include <algorithm>  // std::min(), std::reverse(), std::for_each
+#include <algorithm>  // std::min(), std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -454,10 +453,7 @@ namespace {
                             uint64_t const hitcount,
                             std::vector<uint64_t> const & hits,
                             std::array<int64_t, n_cells_ * n_cells_> const & score_matrix,
-                            std::vector<unsigned char> & directions,
-                            std::vector<uint64_t> & hearray,
-                            std::vector<char> & raw_alignment,
-                            std::string & cigar_string,
+                            Alignment & aligner,
                             struct Parameters const & parameters,
                             Data const & data) -> void {
     std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
@@ -476,35 +472,22 @@ namespace {
       auto const hit_seq = data.sequence_view(hit);
       auto const seed_seq = data.sequence_view(seedampliconid);
 
-      uint64_t nwdiff {0};
-
-      nw(hit_seq.encoded.data(), hit_seq.length, seed_seq.encoded.data(), seed_seq.length,
-         score_matrix, static_cast<unsigned long int>(parameters.penalty_gapopen),
-         static_cast<unsigned long int>(parameters.penalty_gapextend),
-         nwdiff, directions, hearray, raw_alignment);
-
-      // backtracking produces a reversed alignment (starting from the end)
-      std::reverse(raw_alignment.begin(), raw_alignment.end());
-      compress_alignment_to_cigar(raw_alignment, cigar_string);
-
-      // loosing precision when converting raw_alignment.size() and
-      // nwdiff to double is not an issue, no need to add assertions
-      auto const nwalignmentlength = static_cast<double>(raw_alignment.size());
-      auto const differences = static_cast<double>(nwdiff);
-      auto const percentid = 100.0 * (nwalignmentlength - differences) / nwalignmentlength;
+      auto const result = aligner.align(
+        hit_seq.encoded.data(), hit_seq.length,
+        seed_seq.encoded.data(), seed_seq.length,
+        score_matrix,
+        static_cast<unsigned long int>(parameters.penalty_gapopen),
+        static_cast<unsigned long int>(parameters.penalty_gapextend));
 
       std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                   swarmid - 1, hit_seq.length, percentid,
-                   nwdiff > 0 ? cigar_string.data() : "=");
+                   swarmid - 1, hit_seq.length, result.percent_id,
+                   result.differences > 0 ? result.cigar_string.data() : "=");
 
       data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t");
       data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\n");
       std::fflush(parameters.uclustfile.get());
-
-      raw_alignment.clear();
-      cigar_string.clear();
     }
   }
 
@@ -575,18 +558,13 @@ auto algo_run(struct Parameters const & parameters,
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   Cluster_workspace workspace(amplicons);
-  std::vector<unsigned char> directions;
-  std::vector<uint64_t> hearray;
-  std::vector<char> raw_alignment;
-  std::string cigar_string;
-  raw_alignment.reserve(2 * longestamplicon);
-  cigar_string.reserve(2 * longestamplicon);
 
-  if (parameters.uclustfile.get() != nullptr)
-    {
-      directions.resize(longestamplicon * longestamplicon);
-      hearray.resize(2 * longestamplicon);
-    }
+  // Alignment is only needed when UCLUST output is requested; its
+  // scratch buffers grow with longestamplicon^2, so allocate lazily.
+  std::unique_ptr<Alignment> aligner;
+  if (parameters.uclustfile.get() != nullptr) {
+    aligner = utils::make_unique<Alignment>(longestamplicon);
+  }
 
   set_amplicon_ids(amps_v);
   auto const bits = set_bit_mode(parameters);
@@ -726,8 +704,7 @@ auto algo_run(struct Parameters const & parameters,
 
       if (parameters.uclustfile.get() != nullptr) {
         write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, state.hitcount, workspace.hits,
-                             score_matrix_63, directions, hearray, raw_alignment,
-                             cigar_string, parameters, data);
+                             score_matrix_63, *aligner, parameters, data);
       }
 
 
