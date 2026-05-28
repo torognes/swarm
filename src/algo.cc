@@ -87,9 +87,9 @@ namespace {
         diffs_v(amplicons),
         alignlengths(amplicons),
         qgramdiffs_v(amplicons),
-        qgramindices_v(amplicons),
         hits(amplicons) {
       qgramamps_v.reserve(amplicons);
+      qgramindices_v.reserve(amplicons);
     }
   };
 
@@ -373,7 +373,8 @@ namespace {
                                     std::vector<struct ampliconinfo_s> const & amps_v,
                                     Cluster_workspace & workspace) -> uint64_t {
     auto const subseed_abundance = data.abundance(subseed.ampliconid);
-    uint64_t subseedlistlen {0};
+    workspace.qgramamps_v.clear();
+    workspace.qgramindices_v.clear();
     for (auto i = swarmed; i < amplicons; ++i) {
       uint64_t const targetampliconid = amps_v[i].ampliconid;
       if ((amps_v[i].diffestimate <=
@@ -381,12 +382,11 @@ namespace {
           ((parameters.opt_no_cluster_breaking) or
            (data.abundance(targetampliconid)
             <= subseed_abundance))) {
-        workspace.qgramamps_v[subseedlistlen] = targetampliconid;
-        workspace.qgramindices_v[subseedlistlen] = i;
-        ++subseedlistlen;
+        workspace.qgramamps_v.push_back(targetampliconid);
+        workspace.qgramindices_v.push_back(i);
       }
     }
-    return subseedlistlen;
+    return workspace.qgramamps_v.size();
   }
 
 
