@@ -29,26 +29,26 @@
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // snprintf
-#include <string>
 #include <vector>
 
 
-constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
+namespace {
+
 constexpr unsigned char maskup      = 1;
 constexpr unsigned char maskleft    = 2;
 constexpr unsigned char maskextup   = 4;
 constexpr unsigned char maskextleft = 8;
 
 
-auto align(char const * dseq,
-           const uint64_t dlen,
-           char const * qseq,
-           const uint64_t qlen,
-           const std::array<int64_t, n_cells * n_cells> & score_matrix,
-           const uint64_t gapopen,
-           const uint64_t gapextend,
-           std::vector<unsigned char> & directions,
-           std::vector<uint64_t> & hearray) -> void
+auto fill_matrix(char const * dseq,
+                 const uint64_t dlen,
+                 char const * qseq,
+                 const uint64_t qlen,
+                 const std::array<int64_t, n_cells_ * n_cells_> & score_matrix,
+                 const uint64_t gapopen,
+                 const uint64_t gapextend,
+                 std::vector<unsigned char> & directions,
+                 std::vector<uint64_t> & hearray) -> void
 {
   // alignment priority when backtracking (from lower right corner):
   // 1. left/insert/e (gap in query sequence (qseq))
@@ -188,6 +188,17 @@ auto backtrack(char const * dseq,
   assert(raw_alignment.size() == alength);
 }
 
+}  // unnamed namespace
+
+
+Alignment::Alignment(uint64_t const longest_sequence)
+  : directions_(longest_sequence * longest_sequence),
+    hearray_(2 * longest_sequence)
+{
+  raw_alignment_.reserve(2 * longest_sequence);
+  cigar_string_.reserve(2 * longest_sequence);
+}
+
 
 /*
 
@@ -223,44 +234,15 @@ auto backtrack(char const * dseq,
   gapopen: positive number indicating penalty for opening a gap of length zero
   gapextend: positive number indicating penalty for extending a gap
 
-  output
+  output (carried in Alignment::Result)
 
   nwscore: the global alignment score
   nwdiff: number of non-identical nucleotides in one optimal global alignment
-  nwalignmentlength: the length of one optimal alignment
-  nwalignment: cigar string with one optimal alignment
+          (Result::differences)
+  nwalignmentlength: the length of one optimal alignment (Result::length)
+  nwalignment: cigar string with one optimal alignment (Result::cigar_string)
 
 */
-
-auto nw(char const * dseq,
-        const uint64_t dlen,
-        char const * qseq,
-        const uint64_t qlen,
-        const std::array<int64_t, n_cells * n_cells> & score_matrix,
-        const uint64_t gapopen,
-        const uint64_t gapextend,
-        uint64_t & nwdiff,
-        std::vector<unsigned char> & directions,
-        std::vector<uint64_t> & hearray,
-        std::vector<char> & raw_alignment) -> void
-{
-  align(dseq, dlen, qseq, qlen, score_matrix,
-          gapopen, gapextend, directions, hearray);
-
-  backtrack(dseq, dlen, qseq, qlen, nwdiff, directions, raw_alignment);
-
-  std::fill(directions.begin(), directions.end(), '\0');  // reset the alignment matrix
-}
-
-
-Alignment::Alignment(uint64_t const longest_sequence)
-  : directions_(longest_sequence * longest_sequence),
-    hearray_(2 * longest_sequence)
-{
-  raw_alignment_.reserve(2 * longest_sequence);
-  cigar_string_.reserve(2 * longest_sequence);
-}
-
 
 auto Alignment::align(char const * dseq, uint64_t const dlen,
                       char const * qseq, uint64_t const qlen,
@@ -273,10 +255,13 @@ auto Alignment::align(char const * dseq, uint64_t const dlen,
   raw_alignment_.clear();
   cigar_string_.clear();
 
+  fill_matrix(dseq, dlen, qseq, qlen, score_matrix,
+              gapopen, gapextend, directions_, hearray_);
+
   uint64_t nwdiff {0};
-  nw(dseq, dlen, qseq, qlen, score_matrix,
-     gapopen, gapextend,
-     nwdiff, directions_, hearray_, raw_alignment_);
+  backtrack(dseq, dlen, qseq, qlen, nwdiff, directions_, raw_alignment_);
+
+  std::fill(directions_.begin(), directions_.end(), '\0');  // reset the alignment matrix
 
   // backtracking produces a reversed alignment (starting from the end)
   std::reverse(raw_alignment_.begin(), raw_alignment_.end());

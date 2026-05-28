@@ -30,18 +30,6 @@
 // refactor: 'n_cells' is already defined in 'score_matrix.h'
 constexpr auto n_cells_ = 32ULL;  // number of chars in sym_nt
 
-auto nw(char const * dseq,
-        uint64_t dlen,
-        char const * qseq,
-        uint64_t qlen,
-        const std::array<int64_t, n_cells_ * n_cells_> & score_matrix,
-        uint64_t gapopen,
-        uint64_t gapextend,
-        uint64_t & nwdiff,
-        std::vector<unsigned char> & directions,
-        std::vector<uint64_t> & hearray,
-        std::vector<char> & raw_alignment) -> void;
-
 
 /*
   Needleman/Wunsch/Sellers aligner
