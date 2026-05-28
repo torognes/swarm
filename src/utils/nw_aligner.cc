@@ -123,7 +123,6 @@ auto backtrack(char const * dseq,
 {
   /* backtrack: count differences and save alignment in cigar string */
 
-  uint64_t alength {0};  // refactoring: eliminate variable
   uint64_t matches {0};
 
   auto operation = '\0';
@@ -134,8 +133,6 @@ auto backtrack(char const * dseq,
   while ((column > 0) and (row > 0))
     {
       const auto cell = directions[(qlen * (row - 1)) + (column - 1)];
-
-      ++alength;
 
       if ((operation == 'I') and ((cell & maskextleft) != 0))
         {
@@ -174,19 +171,16 @@ auto backtrack(char const * dseq,
     }
 
   while (column > 0) {
-      ++alength;
       --column;
       raw_alignment.emplace_back('D');
     }
 
   while (row > 0) {
-      ++alength;
       --row;
       raw_alignment.emplace_back('I');
     }
 
-  assert(raw_alignment.size() == alength);
-  return alength - matches;
+  return raw_alignment.size() - matches;
 }
 
 }  // unnamed namespace
