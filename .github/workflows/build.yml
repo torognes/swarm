@@ -7,8 +7,41 @@ on:
     branches: [ "master", "dev" ]
 
 jobs:
-  linux:
+  linux-x86_64:
     runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Build for Linux x86_64
+      run: |
+        make clean
+        make RELEASE=1
+        bin/swarm -v
+
+    - name: Install and run tests
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install valgrind
+        export PATH=$PWD/bin:$PATH
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
+        cd swarm-tests
+        bash ./run_all_tests.sh
+
+
+  cross-build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: windows-x86_64, cxx: x86_64-w64-mingw32-g++,    pkg: mingw-w64 }
+          - { name: linux-aarch64,  cxx: aarch64-linux-gnu-g++,     pkg: g++-aarch64-linux-gnu }
+          - { name: linux-ppc64le,  cxx: powerpc64le-linux-gnu-g++, pkg: g++-powerpc64le-linux-gnu }
+
+    name: cross-build (${{ matrix.target.name }})
 
     steps:
     - name: Checkout
@@ -17,37 +50,12 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get -y install make mingw-w64 g++-x86-64-linux-gnu g++-aarch64-linux-gnu g++-powerpc64le-linux-gnu
+        sudo apt-get -y install make ${{ matrix.target.pkg }}
 
-    - name: Build for Windows x86_64
+    - name: Build for ${{ matrix.target.name }}
       run: |
         make clean
-        make CXX="x86_64-w64-mingw32-g++" RELEASE=1
-
-    - name: Build for Linux aarch64
-      run: |
-        make clean
-        make CXX="aarch64-linux-gnu-g++" RELEASE=1
-
-    - name: Build for Linux powerpc64le
-      run: |
-        make clean
-        make CXX="powerpc64le-linux-gnu-g++" RELEASE=1
-
-    - name: Build for Linux x86_64
-      run: |
-        make clean
-        make CXX="x86_64-linux-gnu-g++" RELEASE=1
-        bin/swarm -v
-
-    - name: Install and run tests, for Linux x86_64 only
-      run: |
-        sudo apt-get update
-        sudo apt-get -y install valgrind
-        export PATH=$PWD/bin:$PATH
-        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
-        cd swarm-tests
-        bash ./run_all_tests.sh
+        make CXX="${{ matrix.target.cxx }}" RELEASE=1
 
 
   macos-arm64:
