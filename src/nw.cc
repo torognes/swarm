@@ -21,12 +21,15 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "nw.h"
+#include "utils/cigar.h"
 #include "utils/nt_codec.h"
-#include <algorithm>  // std::min(), std::fill()
+#include <algorithm>  // std::min(), std::fill(), std::reverse()
 #include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // snprintf
+#include <string>
 #include <vector>
 
 
@@ -247,4 +250,43 @@ auto nw(char const * dseq,
   backtrack(dseq, dlen, qseq, qlen, nwdiff, directions, raw_alignment);
 
   std::fill(directions.begin(), directions.end(), '\0');  // reset the alignment matrix
+}
+
+
+Alignment::Alignment(uint64_t const longest_sequence)
+  : directions_(longest_sequence * longest_sequence),
+    hearray_(2 * longest_sequence)
+{
+  raw_alignment_.reserve(2 * longest_sequence);
+  cigar_string_.reserve(2 * longest_sequence);
+}
+
+
+auto Alignment::align(char const * dseq, uint64_t const dlen,
+                      char const * qseq, uint64_t const qlen,
+                      std::array<int64_t, n_cells_ * n_cells_> const & score_matrix,
+                      uint64_t const gapopen,
+                      uint64_t const gapextend) -> Alignment::Result
+{
+  static constexpr auto one_hundred = 100.0;
+
+  raw_alignment_.clear();
+  cigar_string_.clear();
+
+  uint64_t nwdiff {0};
+  nw(dseq, dlen, qseq, qlen, score_matrix,
+     gapopen, gapextend,
+     nwdiff, directions_, hearray_, raw_alignment_);
+
+  // backtracking produces a reversed alignment (starting from the end)
+  std::reverse(raw_alignment_.begin(), raw_alignment_.end());
+  compress_alignment_to_cigar(raw_alignment_, cigar_string_);
+
+  // loosing precision when converting raw_alignment_.size() and nwdiff
+  // to double is not an issue, no need to add assertions
+  auto const length = raw_alignment_.size();
+  auto const percent_id =
+    one_hundred * static_cast<double>(length - nwdiff) / static_cast<double>(length);
+
+  return Result{cigar_string_, nwdiff, length, percent_id};
 }
