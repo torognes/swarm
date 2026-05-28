@@ -27,7 +27,6 @@
 #include "utils/nw_aligner.h"
 #include "scan.h"
 #include "utils/make_unique.h"
-#include "utils/qgram_threadinfo.h"
 #include "utils/progress.h"
 #include "utils/search_data.h"
 #include <algorithm>  // std::min(), std::for_each
@@ -509,8 +508,6 @@ namespace {
       write_representative_sequences(amplicons, parameters, data, amps_v);
     }
 
-    qgram_diff_done();
-
     std::fprintf(parameters.logfile, "\n");
 
     std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmid);
@@ -544,8 +541,8 @@ auto algo_run(struct Parameters const & parameters,
 
   auto const qgram_store = build_qgram_store(parameters, data);
 
-  std::vector<struct thread_info_s> thread_info_v;
-  qgram_diff_init(parameters, qgram_store, thread_info_v);
+  // RAII: ThreadRunner is destroyed (workers joined) at end of algo_run scope.
+  QgramDiffer qgram_differ(parameters, qgram_store);
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   Cluster_workspace workspace(amplicons);
@@ -607,7 +604,7 @@ auto algo_run(struct Parameters const & parameters,
                                                               parameters, data,
                                                               amps_v, workspace);
 
-      qgram_diff_fast(parameters, qgram_store, seedampliconid, listlen, workspace.qgramamps_v.data(), workspace.qgramdiffs_v.data(), thread_info_v);
+      qgram_differ.fast(seedampliconid, listlen, workspace.qgramamps_v.data(), workspace.qgramdiffs_v.data());
 
 
       for (auto i = 0ULL; i < listlen; ++i) {
@@ -658,8 +655,8 @@ auto algo_run(struct Parameters const & parameters,
                                                                        subseed, parameters,
                                                                        data, amps_v, workspace);
 
-              qgram_diff_fast(parameters, qgram_store, subseed.ampliconid, subseedlistlen, workspace.qgramamps_v.data(),
-                              workspace.qgramdiffs_v.data(), thread_info_v);
+              qgram_differ.fast(subseed.ampliconid, subseedlistlen, workspace.qgramamps_v.data(),
+                                workspace.qgramdiffs_v.data());
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {
                 if (workspace.qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
