@@ -170,15 +170,10 @@ auto backtrack(char const * dseq,
         }
     }
 
-  while (column > 0) {
-      --column;
-      raw_alignment.emplace_back('D');
-    }
-
-  while (row > 0) {
-      --row;
-      raw_alignment.emplace_back('I');
-    }
+  // emit the remaining boundary: any unconsumed qseq columns become
+  // deletions, any unconsumed dseq rows become insertions
+  raw_alignment.insert(raw_alignment.end(), column, 'D');
+  raw_alignment.insert(raw_alignment.end(), row,    'I');
 
   return raw_alignment.size() - matches;
 }
