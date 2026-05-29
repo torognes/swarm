@@ -81,13 +81,6 @@ namespace {
 
 namespace {
 
-inline auto db_getqgramvector(Qgram_store const & store, uint64_t const seqno) -> unsigned char const *
-{
-  assert(seqno < store.size());
-  return store[seqno].data();
-}
-
-
 auto build_qgram_store(struct Parameters const & parameters,
                        Data const & data) -> Qgram_store
 {
@@ -109,8 +102,10 @@ inline auto qgram_diff(Qgram_store const & store,
                        uint64_t seqno_a, uint64_t seqno_b,
                        Cpu_features const & cpu_features) -> uint64_t
 {
-  const uint64_t diffqgrams = compareqgramvectors(db_getqgramvector(store, seqno_a),
-                                                  db_getqgramvector(store, seqno_b),
+  assert(seqno_a < store.size());
+  assert(seqno_b < store.size());
+  const uint64_t diffqgrams = compareqgramvectors(store[seqno_a].data(),
+                                                  store[seqno_b].data(),
                                                   cpu_features);
   return (diffqgrams + (2ULL * qgramlength) - 1) / (2ULL * qgramlength);  // mindiff
 }
