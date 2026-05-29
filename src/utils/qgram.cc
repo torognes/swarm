@@ -40,6 +40,7 @@
 
 
 namespace {
+
   auto findqgrams(Sequence const & sequence,
                   Qgram_vector & qgramvector) noexcept -> void
   {
@@ -67,42 +68,39 @@ namespace {
       ++position;
     }
   }
-}  // namespace
 
 
-namespace {
+  auto build_qgram_store(struct Parameters const & parameters,
+                         Data const & data) -> Qgram_store
+  {
+    auto const n_sequences = data.sequence_count();
+    Qgram_store store(n_sequences);
 
-auto build_qgram_store(struct Parameters const & parameters,
-                       Data const & data) -> Qgram_store
-{
-  auto const n_sequences = data.sequence_count();
-  Qgram_store store(n_sequences);
-
-  Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
-  for (auto counter = 0U; counter < n_sequences; ++counter) {
-    findqgrams(data.sequence_view(counter), store[counter]);
-    progress_qg.update(counter);
+    Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
+    for (auto counter = 0U; counter < n_sequences; ++counter) {
+      findqgrams(data.sequence_view(counter), store[counter]);
+      progress_qg.update(counter);
+    }
+    progress_qg.done();
+    return store;
   }
-  progress_qg.done();
-  return store;
-}
 
 
-inline auto qgram_diff(Qgram_store const & store,
-                       uint64_t seqno_a, uint64_t seqno_b,
-                       Cpu_features const & cpu_features) noexcept -> uint64_t
-{
-  assert(seqno_a < store.size());
-  assert(seqno_b < store.size());
-  const uint64_t diffqgrams = compareqgramvectors(store[seqno_a].data(),
-                                                  store[seqno_b].data(),
-                                                  cpu_features);
-  // Each mismatch flips up to 2*qgramlength bits in the qgram XOR
-  // vector (q bits leave, q bits arrive). Dividing the bit-difference
-  // count by that upper bound gives a lower bound on edit distance.
-  static constexpr uint64_t max_bits_per_mismatch {qgramlength + qgramlength};
-  return ceil_divide(diffqgrams, max_bits_per_mismatch);  // mindiff
-}
+  inline auto qgram_diff(Qgram_store const & store,
+                         uint64_t seqno_a, uint64_t seqno_b,
+                         Cpu_features const & cpu_features) noexcept -> uint64_t
+  {
+    assert(seqno_a < store.size());
+    assert(seqno_b < store.size());
+    const uint64_t diffqgrams = compareqgramvectors(store[seqno_a].data(),
+                                                    store[seqno_b].data(),
+                                                    cpu_features);
+    // Each mismatch flips up to 2*qgramlength bits in the qgram XOR
+    // vector (q bits leave, q bits arrive). Dividing the bit-difference
+    // count by that upper bound gives a lower bound on edit distance.
+    static constexpr uint64_t max_bits_per_mismatch {qgramlength + qgramlength};
+    return ceil_divide(diffqgrams, max_bits_per_mismatch);  // mindiff
+  }
 
 }  // namespace
 
