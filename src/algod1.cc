@@ -1106,7 +1106,7 @@ namespace {
           }
 
         ++cluster_no;
-        progress.update(swarmid);
+        progress.update(swarmid + 1);
       }
     progress.done();
   }
