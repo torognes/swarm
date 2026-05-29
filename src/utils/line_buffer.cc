@@ -23,6 +23,7 @@
 
 #include "fatal.h"
 #include "line_buffer.h"
+#include <cstdint>  // uint64_t
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // malloc, realloc, free
 
