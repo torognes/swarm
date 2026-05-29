@@ -749,6 +749,36 @@ namespace {
   }
 
 
+  auto process_generation(unsigned int subseed,
+                          Data const & data,
+                          std::vector<struct ampinfo_s> & ampinfo_v,
+                          std::vector<unsigned int> const & network_v,
+                          std::vector<unsigned int> & global_hits_v) -> unsigned int
+  {
+    /* process all subseeds of this generation */
+    auto global_hits_count = 0U;
+    while (subseed != no_swarm)
+      {
+        process_seed(data, subseed, ampinfo_v, network_v, global_hits_v, global_hits_count);
+        subseed = ampinfo_v[subseed].next;
+      }
+
+    /* sort all of this generation */
+    std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
+
+    /* add them to the swarm */
+    for (auto i = 0U; i < global_hits_count; ++i) {
+      add_amp_to_swarm(global_hits_v[i], ampinfo_v);
+    }
+
+    /* most abundant amplicon of next generation, or no_swarm if generation was empty */
+    if (global_hits_count != 0U) {
+      return global_hits_v[0];
+    }
+    return no_swarm;
+  }
+
+
   auto ensure_swarm_capacity(unsigned int const swarmcount,
                              std::vector<struct swarminfo_s> & swarminfo_v) -> void
   {
@@ -1419,48 +1449,15 @@ auto algo_d1_run(struct Parameters const & parameters,
           current_swarm = Active_swarm_stats {};
           current_swarm.tail = seed;
 
-          /* init list */
-          auto global_hits_count = 0U;
-
-          /* find the first generation matches */
-          process_seed(data, seed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
-
-          /* sort hits */
-          std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
-
-          /* add subseeds on list to current swarm */
-          for (auto i = 0U; i < global_hits_count; ++i) {
-            add_amp_to_swarm(global_hits_v[i], ampinfo_v);
-          }
-
-          /* find later generation matches */
-          auto subseed = seed_info.next;
+          /* walk generations: each call processes the .next chain
+             starting at subseed and returns the most abundant amplicon
+             of the next generation (or no_swarm when exhausted). The
+             first iteration starts from seed itself, whose .next is
+             no_swarm, so it processes only the initial seed. */
+          auto subseed = seed;
           while (subseed != no_swarm)
             {
-              /* process all subseeds of this generation */
-              global_hits_count = 0;
-
-              while (subseed != no_swarm)
-                {
-                  process_seed(data, subseed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
-                  subseed = ampinfo_v[subseed].next;
-                }
-
-              /* sort all of this generation */
-              std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
-
-              /* add them to the swarm */
-              for (auto i = 0U; i < global_hits_count; ++i) {
-                add_amp_to_swarm(global_hits_v[i], ampinfo_v);
-              }
-
-              /* start with most abundant amplicon of next generation */
-              if (global_hits_count != 0U) {
-                subseed = global_hits_v[0];
-              }
-              else {
-                subseed = no_swarm;
-              }
+              subseed = process_generation(subseed, data, ampinfo_v, network_state.network_v, global_hits_v);
             }
 
           ensure_swarm_capacity(swarmcount, swarminfo_v);
