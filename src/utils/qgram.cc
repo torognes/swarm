@@ -22,14 +22,14 @@
 */
 
 #include "qgram.h"
-#include "db.h"
-#include "swarm.h"
-#include "utils/cpu_features.h"
-#include "utils/progress.h"
-#include "utils/qgram_array.h"
-#include "utils/qgram_compare.h"  // compareqgramvectors (per-arch impl under arch/<isa>/)
-#include "utils/nt_codec.h"
-#include "utils/threads.h"
+#include "../db.h"
+#include "../swarm.h"
+#include "cpu_features.h"
+#include "progress.h"
+#include "qgram_array.h"
+#include "qgram_compare.h"  // compareqgramvectors (per-arch impl under arch/<isa>/)
+#include "nt_codec.h"
+#include "threads.h"
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t

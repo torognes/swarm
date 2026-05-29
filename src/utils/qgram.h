@@ -21,9 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "utils/cpu_features.h"  // Cpu_features
-#include "utils/qgram_array.h"  // Qgram_store
-#include "utils/threads.h"  // ThreadRunner
+#include "cpu_features.h"  // Cpu_features
+#include "qgram_array.h"  // Qgram_store
+#include "threads.h"  // ThreadRunner
 #include <cstdint>  // uint64_t
 #include <vector>
 
