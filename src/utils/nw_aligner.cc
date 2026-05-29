@@ -25,6 +25,7 @@
 #include "../db.h"  // struct Sequence
 #include "cigar.h"
 #include "nt_codec.h"
+#include "score_matrix.h"  // n_cells, create_score_matrix
 #include <algorithm>  // std::min(), std::reverse()
 #include <array>
 #include <cassert>  // assert()
