@@ -749,6 +749,19 @@ namespace {
   }
 
 
+  auto ensure_swarm_capacity(unsigned int const swarmcount,
+                             std::vector<struct swarminfo_s> & swarminfo_v) -> void
+  {
+    if (swarmcount >= swarminfo_v.size())
+      {
+        /* allocate memory for more swarms... */
+        // note: capacity doubles, as usual
+        // 1,024 times struct size (so at least 40,960 new bytes reserved)
+        swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
+      }
+  }
+
+
   auto finalize_swarm_info(unsigned int const seed,
                            unsigned int const swarmcount,
                            std::vector<struct swarminfo_s> & swarminfo_v) -> void
@@ -1450,13 +1463,7 @@ auto algo_d1_run(struct Parameters const & parameters,
               }
             }
 
-          if (swarmcount >= swarminfo_v.size())
-            {
-              /* allocate memory for more swarms... */
-              // note: capacity doubles, as usual
-              // 1,024 times struct size (so at least 40,960 new bytes reserved)
-              swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
-            }
+          ensure_swarm_capacity(swarmcount, swarminfo_v);
 
           finalize_swarm_info(seed, swarmcount, swarminfo_v);
 
