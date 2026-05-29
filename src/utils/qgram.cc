@@ -159,8 +159,8 @@ auto QgramDiffer::fast(uint64_t seed,
 {
   assert(amplist.size() <= difflist.size());
   auto const listlen = amplist.size();
-  static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  if (listlen <= uint8_max)
+  static constexpr auto single_threaded_threshold = std::numeric_limits<uint8_t>::max();
+  if (listlen <= single_threaded_threshold)
     {
       auto & tip = thread_info_v_[0];
       tip.seed = seed;
