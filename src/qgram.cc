@@ -101,6 +101,9 @@ namespace {
   }
 }  // namespace
 
+
+namespace {
+
 auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t;
 
@@ -253,23 +256,21 @@ inline auto db_getqgramvector(Qgram_store const & store, uint64_t const seqno) -
 }
 
 
-namespace {
-  auto build_qgram_store(struct Parameters const & parameters,
-                         Data const & data) -> Qgram_store
-  {
-    auto const n_sequences = data.sequence_count();
-    Qgram_store store(n_sequences);
+auto build_qgram_store(struct Parameters const & parameters,
+                       Data const & data) -> Qgram_store
+{
+  auto const n_sequences = data.sequence_count();
+  Qgram_store store(n_sequences);
 
-    Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
-    for (auto counter = 0U; counter < n_sequences; ++counter) {
-      auto const seq = data.sequence_view(counter);
-      findqgrams(seq.encoded.data(), seq.length, store[counter].data());
-      progress_qg.update(counter);
-    }
-    progress_qg.done();
-    return store;
+  Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
+  for (auto counter = 0U; counter < n_sequences; ++counter) {
+    auto const seq = data.sequence_view(counter);
+    findqgrams(seq.encoded.data(), seq.length, store[counter].data());
+    progress_qg.update(counter);
   }
-}  // namespace
+  progress_qg.done();
+  return store;
+}
 
 
 inline auto qgram_diff(Qgram_store const & store,
@@ -281,6 +282,8 @@ inline auto qgram_diff(Qgram_store const & store,
                                                   cpu_features);
   return (diffqgrams + (2ULL * qgramlength) - 1) / (2ULL * qgramlength);  // mindiff
 }
+
+}  // namespace
 
 
 QgramDiffer::QgramDiffer(struct Parameters const & parameters,
