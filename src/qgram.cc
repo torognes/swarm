@@ -109,6 +109,8 @@ auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
 
 #ifdef __aarch64__
 
+// C++20 refactoring: replace with a portable loop using std::popcount; on
+// aarch64 with -O3 the compiler auto-vectorizes to cnt + addv anyway.
 auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
@@ -129,6 +131,8 @@ auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
 
 #elif defined __PPC__
 
+// C++20 refactoring: replace with a portable loop using std::popcount; on
+// ppc64le the compiler emits vpopcntd for tight XOR + popcount loops.
 auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
@@ -150,6 +154,10 @@ auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
 #elif defined __x86_64__
 #ifdef __SSE2__
 
+// C++20 refactoring: this SSE2-without-POPCNT path exists only for pre-Nehalem
+// CPUs (before 2008). With std::popcount the dispatch (popcnt vs. SSE2 here)
+// collapses into a single portable loop that the compiler lowers to the best
+// available instruction for the target -march.
 auto v_add64(__m128i lhs, __m128i rhs) -> __m128i {
   // add 64-bit integers packed in lhs and rhs (SSE2)
   return _mm_add_epi64(lhs, rhs);
