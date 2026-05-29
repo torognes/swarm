@@ -137,6 +137,18 @@ endif
 ARCH_OBJS := $(patsubst %.cc, %.o, $(wildcard $(ARCH_DIR)/*.cc))
 
 
+# Opt-in portable qgram fallback. Replaces the per-ISA qgram_compare.o
+# with arch/portable/qgram_compare.o, a scalar __builtin_popcountll
+# loop. Intended as a building block when porting swarm to an
+# architecture that has no hand-written SIMD path yet — does NOT
+# replace the search8/search16 intrinsics, which still need per-ISA
+# implementations.
+ifdef SWARM_PORTABLE_FALLBACK
+	ARCH_OBJS := $(filter-out $(ARCH_DIR)/qgram_compare.o, $(ARCH_OBJS))
+	ARCH_OBJS += arch/portable/qgram_compare.o
+endif
+
+
 # Machine OS specific
 #
 # OS_DIR points at the per-OS folder under src/os/ that supplies the
