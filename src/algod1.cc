@@ -1398,7 +1398,7 @@ namespace {
                        network_v, global_hits_v);
             ++swarmcount;
           }
-        progress_cluster.update(seed + 1);
+        progress_cluster.update();
       }
     progress_cluster.done();
     return swarmcount;
