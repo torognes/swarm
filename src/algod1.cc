@@ -749,6 +749,27 @@ namespace {
   }
 
 
+  auto finalize_swarm_info(unsigned int const seed,
+                           unsigned int const swarmcount,
+                           std::vector<struct swarminfo_s> & swarminfo_v) -> void
+  {
+    auto & swarm_info = swarminfo_v[swarmcount];
+
+    swarm_info.seed = seed;
+    swarm_info.size = current_swarm.size;
+    swarm_info.mass = current_swarm.abundance_sum;
+    swarm_info.sumlen = current_swarm.sumlen;
+    swarm_info.singletons = current_swarm.singletons;
+    swarm_info.maxgen = current_swarm.maxgen;
+    swarm_info.last = current_swarm.tail;
+    swarm_info.attached = false;
+
+    /* update overall stats */
+    overall_stats.largest = std::max(current_swarm.size, overall_stats.largest);
+    overall_stats.maxgen = std::max(current_swarm.maxgen, overall_stats.maxgen);
+  }
+
+
   auto write_network_file(const unsigned int number_of_networks,
                           struct Parameters const & parameters,
                           Data const & data,
@@ -1437,20 +1458,7 @@ auto algo_d1_run(struct Parameters const & parameters,
               swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
             }
 
-          auto & swarm_info = swarminfo_v[swarmcount];
-
-          swarm_info.seed = seed;
-          swarm_info.size = current_swarm.size;
-          swarm_info.mass = current_swarm.abundance_sum;
-          swarm_info.sumlen = current_swarm.sumlen;
-          swarm_info.singletons = current_swarm.singletons;
-          swarm_info.maxgen = current_swarm.maxgen;
-          swarm_info.last = current_swarm.tail;
-          swarm_info.attached = false;
-
-          /* update overall stats */
-          overall_stats.largest = std::max(current_swarm.size, overall_stats.largest);
-          overall_stats.maxgen = std::max(current_swarm.maxgen, overall_stats.maxgen);
+          finalize_swarm_info(seed, swarmcount, swarminfo_v);
 
           ++swarmcount;
         }
