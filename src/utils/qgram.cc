@@ -48,7 +48,7 @@ namespace {
                 "qgramvectorbytes must equal 4^qgramlength / 8");
 
 
-  auto findqgrams(char const * seq, uint64_t seqlen,
+  auto findqgrams(Sequence const & sequence,
                   Qgram_vector & qgramvector) noexcept -> void
   {
     /* set qgram bit vector by xoring occurrences of qgrams in sequence */
@@ -57,6 +57,8 @@ namespace {
 
     qgramvector.fill(0);
 
+    auto const * const seq = sequence.encoded.data();
+    auto const seqlen = sequence.length;
     uint64_t qgram {0};
     unsigned int position {0};
 
@@ -86,8 +88,7 @@ auto build_qgram_store(struct Parameters const & parameters,
 
   Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
   for (auto counter = 0U; counter < n_sequences; ++counter) {
-    auto const seq = data.sequence_view(counter);
-    findqgrams(seq.encoded.data(), seq.length, store[counter]);
+    findqgrams(data.sequence_view(counter), store[counter]);
     progress_qg.update(counter);
   }
   progress_qg.done();
