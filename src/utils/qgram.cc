@@ -24,6 +24,7 @@
 #include "qgram.h"
 #include "../db.h"
 #include "../swarm.h"
+#include "ceil_divide.h"
 #include "cpu_features.h"
 #include "progress.h"
 #include "qgram_array.h"
@@ -96,7 +97,11 @@ inline auto qgram_diff(Qgram_store const & store,
   const uint64_t diffqgrams = compareqgramvectors(store[seqno_a].data(),
                                                   store[seqno_b].data(),
                                                   cpu_features);
-  return (diffqgrams + (2ULL * qgramlength) - 1) / (2ULL * qgramlength);  // mindiff
+  // Each mismatch flips up to 2*qgramlength bits in the qgram XOR
+  // vector (q bits leave, q bits arrive). Dividing the bit-difference
+  // count by that upper bound gives a lower bound on edit distance.
+  static constexpr uint64_t max_bits_per_mismatch {qgramlength + qgramlength};
+  return ceil_divide(diffqgrams, max_bits_per_mismatch);  // mindiff
 }
 
 }  // namespace
