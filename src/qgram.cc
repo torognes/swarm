@@ -70,36 +70,36 @@ namespace {
   constexpr unsigned int qgramvectorbits {1U << (2 * qgramlength)};  // 1,024
   static_assert(qgramvectorbytes == qgramvectorbits / 8,
                 "qgramvectorbytes must equal 4^qgramlength / 8");
+
+
+  auto findqgrams(char const * seq, uint64_t seqlen,
+                  unsigned char * qgramvector) -> void
+  {
+    /* set qgram bit vector by xoring occurrences of qgrams in sequence */
+
+    static constexpr unsigned int max_range {7};
+
+    std::memset(qgramvector, 0, qgramvectorbytes);
+
+    uint64_t qgram {0};
+    unsigned int position {0};
+
+    while ((position < qgramlength - 1) and (position < seqlen)) {
+      qgram = (qgram << 2U) | nt_extract(seq, position);
+      ++position;
+    }
+
+    while (position < seqlen) {
+      qgram = (qgram << 2U) | nt_extract(seq, position);
+      assert((qgram & max_range) <= 7);
+      assert(((qgram >> 3U) & (qgramvectorbytes - 1)) <= std::numeric_limits<std::ptrdiff_t>::max());
+      auto const signed_position = static_cast<std::ptrdiff_t>((qgram >> 3U) & (qgramvectorbytes - 1));
+      auto & target_qgram = *std::next(qgramvector, signed_position);
+      target_qgram ^= static_cast<unsigned char>(1U << (qgram & max_range));
+      ++position;
+    }
+  }
 }  // namespace
-
-
-auto findqgrams(char const * seq, uint64_t seqlen,
-                unsigned char * qgramvector) -> void
-{
-  /* set qgram bit vector by xoring occurrences of qgrams in sequence */
-
-  static constexpr unsigned int max_range {7};
-
-  std::memset(qgramvector, 0, qgramvectorbytes);
-
-  uint64_t qgram {0};
-  unsigned int position {0};
-
-  while ((position < qgramlength - 1) and (position < seqlen)) {
-    qgram = (qgram << 2U) | nt_extract(seq, position);
-    ++position;
-  }
-
-  while (position < seqlen) {
-    qgram = (qgram << 2U) | nt_extract(seq, position);
-    assert((qgram & max_range) <= 7);
-    assert(((qgram >> 3U) & (qgramvectorbytes - 1)) <= std::numeric_limits<std::ptrdiff_t>::max());
-    auto const signed_position = static_cast<std::ptrdiff_t>((qgram >> 3U) & (qgramvectorbytes - 1));
-    auto & target_qgram = *std::next(qgramvector, signed_position);
-    target_qgram ^= static_cast<unsigned char>(1U << (qgram & max_range));
-    ++position;
-  }
-}
 
 auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
                          Cpu_features const & cpu_features) -> uint64_t;

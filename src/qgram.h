@@ -31,9 +31,6 @@
 struct Parameters;  // defined in swarm.h
 class Data;          // defined in db.h
 
-auto findqgrams(char const * seq, uint64_t seqlen,
-                unsigned char * qgramvector) -> void;
-
 
 // RAII wrapper around the per-seed qgram-distance dispatch: builds the
 // per-sequence qgram store, owns it together with the worker
