@@ -748,6 +748,106 @@ namespace {
   }
 
 
+  auto process_generation(unsigned int subseed,
+                          Data const & data,
+                          std::vector<struct ampinfo_s> & ampinfo_v,
+                          std::vector<unsigned int> const & network_v,
+                          std::vector<unsigned int> & global_hits_v) -> unsigned int
+  {
+    /* process all subseeds of this generation */
+    auto global_hits_count = 0U;
+    while (subseed != no_swarm)
+      {
+        process_seed(data, subseed, ampinfo_v, network_v, global_hits_v, global_hits_count);
+        subseed = ampinfo_v[subseed].next;
+      }
+
+    /* sort all of this generation */
+    std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
+
+    /* add them to the swarm */
+    for (auto i = 0U; i < global_hits_count; ++i) {
+      add_amp_to_swarm(global_hits_v[i], ampinfo_v);
+    }
+
+    /* most abundant amplicon of next generation, or no_swarm if generation was empty */
+    if (global_hits_count != 0U) {
+      return global_hits_v[0];
+    }
+    return no_swarm;
+  }
+
+
+  auto ensure_swarm_capacity(unsigned int const swarmcount,
+                             std::vector<struct swarminfo_s> & swarminfo_v) -> void
+  {
+    if (swarmcount >= swarminfo_v.size())
+      {
+        /* allocate memory for more swarms... */
+        // note: capacity doubles, as usual
+        // 1,024 times struct size (so at least 40,960 new bytes reserved)
+        swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
+      }
+  }
+
+
+  auto finalize_swarm_info(unsigned int const seed,
+                           unsigned int const swarmcount,
+                           std::vector<struct swarminfo_s> & swarminfo_v) -> void
+  {
+    auto & swarm_info = swarminfo_v[swarmcount];
+
+    swarm_info.seed = seed;
+    swarm_info.size = current_swarm.size;
+    swarm_info.mass = current_swarm.abundance_sum;
+    swarm_info.sumlen = current_swarm.sumlen;
+    swarm_info.singletons = current_swarm.singletons;
+    swarm_info.maxgen = current_swarm.maxgen;
+    swarm_info.last = current_swarm.tail;
+    swarm_info.attached = false;
+
+    /* update overall stats */
+    overall_stats.largest = std::max(current_swarm.size, overall_stats.largest);
+    overall_stats.maxgen = std::max(current_swarm.maxgen, overall_stats.maxgen);
+  }
+
+
+  auto grow_swarm(unsigned int const seed,
+                  unsigned int const swarmcount,
+                  Data const & data,
+                  std::vector<struct ampinfo_s> & ampinfo_v,
+                  std::vector<struct swarminfo_s> & swarminfo_v,
+                  std::vector<unsigned int> const & network_v,
+                  std::vector<unsigned int> & global_hits_v) -> void
+  {
+    /* start a new swarm with a new initial seed */
+    auto & seed_info = ampinfo_v[seed];
+    seed_info.swarmid = swarmcount;
+    seed_info.generation = 0;
+    seed_info.parent = no_swarm;
+    seed_info.next = no_swarm;
+
+    /* initialize swarm stats and link up this initial seed in
+       the list of swarms */
+    current_swarm = Active_swarm_stats {};
+    current_swarm.tail = seed;
+
+    /* walk generations: each call processes the .next chain
+       starting at subseed and returns the most abundant amplicon
+       of the next generation (or no_swarm when exhausted). The
+       first iteration starts from seed itself, whose .next is
+       no_swarm, so it processes only the initial seed. */
+    auto subseed = seed;
+    while (subseed != no_swarm)
+      {
+        subseed = process_generation(subseed, data, ampinfo_v, network_v, global_hits_v);
+      }
+
+    ensure_swarm_capacity(swarmcount, swarminfo_v);
+    finalize_swarm_info(seed, swarmcount, swarminfo_v);
+  }
+
+
   auto write_network_file(const unsigned int number_of_networks,
                           struct Parameters const & parameters,
                           Data const & data,
@@ -1238,6 +1338,82 @@ namespace {
   }
 
 
+  auto build_amplicon_network(struct Parameters const & parameters,
+                              Data const & data,
+                              std::vector<struct ampinfo_s> & ampinfo_v,
+                              struct Network_state & network_state) -> void
+  {
+    /* d=1 hashtable and Bloom filter live in this function's scope so
+       their backing storage is released before run_fastidious_pass()
+       allocates its own fresh pair. */
+
+    /* populate the d=1 hash table and Bloom filter with the amplicon
+       hashes precomputed in db.cc */
+    Hashtable hash_table;
+    const auto hashtablesize = hash_table.allocate(amplicons);
+    BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
+                        amplicon_n_hash_functions);
+
+    Progress progress_hash("Building hashtable:", amplicons, parameters);
+
+    for (auto k = 0U; k < amplicons; ++k)
+      {
+        hash_insert(data, hash_table, bloom_a, k);
+        progress_hash.update(k);
+      }
+
+    progress_hash.done();
+
+
+    Progress progress_network("Building network: ", amplicons, parameters);
+    {
+      auto const network_tr = utils::make_unique<ThreadRunner>(
+          static_cast<std::size_t>(parameters.opt_threads),
+          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t nth_thread) -> void {
+            network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
+          });
+      network_tr->run();
+    }
+
+    progress_network.done();
+  }
+
+
+  auto run_clustering(struct Parameters const & parameters,
+                      Data const & data,
+                      std::vector<struct ampinfo_s> & ampinfo_v,
+                      std::vector<struct swarminfo_s> & swarminfo_v,
+                      std::vector<unsigned int> const & network_v,
+                      std::vector<unsigned int> & global_hits_v) -> unsigned int
+  {
+    /* for each non-swarmed amplicon look for subseeds ... */
+    auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
+    Progress progress_cluster("Clustering:       ", amplicons, parameters);
+
+    for (auto seed = 0U; seed < amplicons; ++seed)
+      {
+        if (ampinfo_v[seed].swarmid == no_swarm)
+          {
+            grow_swarm(seed, swarmcount, data, ampinfo_v, swarminfo_v,
+                       network_v, global_hits_v);
+            ++swarmcount;
+          }
+        progress_cluster.update(seed + 1);
+      }
+    progress_cluster.done();
+    return swarmcount;
+  }
+
+
+  auto log_swarm_summary(struct Parameters const & parameters) -> void
+  {
+    std::fprintf(parameters.logfile, "\n");
+    std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
+    std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
+    std::fprintf(parameters.logfile, "Max generations:   %u\n", overall_stats.maxgen);
+  }
+
+
   auto run_fastidious_pass(struct Parameters const & parameters,
                            Data const & data,
                            unsigned int const swarmcount,
@@ -1319,40 +1495,7 @@ auto algo_d1_run(struct Parameters const & parameters,
   struct Network_state network_state;
   network_state.network_v.resize(one_megabyte);
 
-  /* d=1 hashtable and Bloom filter live in their own scope so their
-     backing storage is released before run_fastidious_pass() allocates
-     its own fresh pair. */
-  {
-    /* populate the d=1 hash table and Bloom filter with the amplicon
-       hashes precomputed in db.cc */
-    Hashtable hash_table;
-    const auto hashtablesize = hash_table.allocate(amplicons);
-    BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
-                        amplicon_n_hash_functions);
-
-    Progress progress_hash("Building hashtable:", amplicons, parameters);
-
-    for (auto k = 0U; k < amplicons; ++k)
-      {
-        hash_insert(data, hash_table, bloom_a, k);
-        progress_hash.update(k);
-      }
-
-    progress_hash.done();
-
-
-    Progress progress_network("Building network: ", amplicons, parameters);
-    {
-      auto const network_tr = utils::make_unique<ThreadRunner>(
-          static_cast<std::size_t>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t nth_thread) -> void {
-            network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
-          });
-      network_tr->run();
-    }
-
-    progress_network.done();
-  }
+  build_amplicon_network(parameters, data, ampinfo_v, network_state);
 
 
   /* dump network to file */
@@ -1361,101 +1504,8 @@ auto algo_d1_run(struct Parameters const & parameters,
   }
 
 
-  /* for each non-swarmed amplicon look for subseeds ... */
-
-  auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
-  Progress progress_cluster("Clustering:       ", amplicons, parameters);
-
-  for (auto seed = 0U; seed < amplicons; ++seed)
-    {
-      auto & seed_info = ampinfo_v[seed];
-
-      if (seed_info.swarmid == no_swarm)
-        {
-          /* start a new swarm with a new initial seed */
-
-          seed_info.swarmid = swarmcount;
-          seed_info.generation = 0;
-          seed_info.parent = no_swarm;
-          seed_info.next = no_swarm;
-
-          /* initialize swarm stats and link up this initial seed in
-             the list of swarms */
-          current_swarm = Active_swarm_stats {};
-          current_swarm.tail = seed;
-
-          /* init list */
-          auto global_hits_count = 0U;
-
-          /* find the first generation matches */
-          process_seed(data, seed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
-
-          /* sort hits */
-          std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
-
-          /* add subseeds on list to current swarm */
-          for (auto i = 0U; i < global_hits_count; ++i) {
-            add_amp_to_swarm(global_hits_v[i], ampinfo_v);
-          }
-
-          /* find later generation matches */
-          auto subseed = seed_info.next;
-          while (subseed != no_swarm)
-            {
-              /* process all subseeds of this generation */
-              global_hits_count = 0;
-
-              while (subseed != no_swarm)
-                {
-                  process_seed(data, subseed, ampinfo_v, network_state.network_v, global_hits_v, global_hits_count);
-                  subseed = ampinfo_v[subseed].next;
-                }
-
-              /* sort all of this generation */
-              std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
-
-              /* add them to the swarm */
-              for (auto i = 0U; i < global_hits_count; ++i) {
-                add_amp_to_swarm(global_hits_v[i], ampinfo_v);
-              }
-
-              /* start with most abundant amplicon of next generation */
-              if (global_hits_count != 0U) {
-                subseed = global_hits_v[0];
-              }
-              else {
-                subseed = no_swarm;
-              }
-            }
-
-          if (swarmcount >= swarminfo_v.size())
-            {
-              /* allocate memory for more swarms... */
-              // note: capacity doubles, as usual
-              // 1,024 times struct size (so at least 40,960 new bytes reserved)
-              swarminfo_v.resize(swarminfo_v.size() + one_kilobyte);
-            }
-
-          auto & swarm_info = swarminfo_v[swarmcount];
-
-          swarm_info.seed = seed;
-          swarm_info.size = current_swarm.size;
-          swarm_info.mass = current_swarm.abundance_sum;
-          swarm_info.sumlen = current_swarm.sumlen;
-          swarm_info.singletons = current_swarm.singletons;
-          swarm_info.maxgen = current_swarm.maxgen;
-          swarm_info.last = current_swarm.tail;
-          swarm_info.attached = false;
-
-          /* update overall stats */
-          overall_stats.largest = std::max(current_swarm.size, overall_stats.largest);
-          overall_stats.maxgen = std::max(current_swarm.maxgen, overall_stats.maxgen);
-
-          ++swarmcount;
-        }
-      progress_cluster.update(seed + 1);
-    }
-  progress_cluster.done();
+  auto const swarmcount = run_clustering(parameters, data, ampinfo_v, swarminfo_v,
+                                         network_state.network_v, global_hits_v);
 
   global_hits_data = nullptr;
 
@@ -1476,8 +1526,5 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   output_results(parameters, data, ampinfo_v, swarminfo_v);
 
-  std::fprintf(parameters.logfile, "\n");
-  std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
-  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
-  std::fprintf(parameters.logfile, "Max generations:   %u\n", overall_stats.maxgen);
+  log_swarm_summary(parameters);
 }
