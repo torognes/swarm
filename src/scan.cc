@@ -29,6 +29,7 @@
 #include "utils/nt_codec.h"
 #include "utils/search_data.h"
 #include "utils/score_matrix.h"
+#include "utils/threads.h"  // ThreadRunner
 #include <cassert>  // assert()
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t

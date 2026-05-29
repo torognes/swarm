@@ -29,6 +29,7 @@
 #include "utils/make_unique.h"
 #include "utils/progress.h"
 #include "utils/search_data.h"
+#include "utils/threads.h"  // ThreadRunner
 #include <algorithm>  // std::min(), std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
