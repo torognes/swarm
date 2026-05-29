@@ -1339,6 +1339,47 @@ namespace {
   }
 
 
+  auto build_amplicon_network(struct Parameters const & parameters,
+                              Data const & data,
+                              std::vector<struct ampinfo_s> & ampinfo_v,
+                              struct Network_state & network_state) -> void
+  {
+    /* d=1 hashtable and Bloom filter live in this function's scope so
+       their backing storage is released before run_fastidious_pass()
+       allocates its own fresh pair. */
+
+    /* populate the d=1 hash table and Bloom filter with the amplicon
+       hashes precomputed in db.cc */
+    Hashtable hash_table;
+    const auto hashtablesize = hash_table.allocate(amplicons);
+    BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
+                        amplicon_n_hash_functions);
+
+    Progress progress_hash("Building hashtable:", amplicons, parameters);
+
+    for (auto k = 0U; k < amplicons; ++k)
+      {
+        hash_insert(data, hash_table, bloom_a, k);
+        progress_hash.update(k);
+      }
+
+    progress_hash.done();
+
+
+    Progress progress_network("Building network: ", amplicons, parameters);
+    {
+      auto const network_tr = utils::make_unique<ThreadRunner>(
+          static_cast<std::size_t>(parameters.opt_threads),
+          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t nth_thread) -> void {
+            network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
+          });
+      network_tr->run();
+    }
+
+    progress_network.done();
+  }
+
+
   auto log_swarm_summary(struct Parameters const & parameters) -> void
   {
     std::fprintf(parameters.logfile, "\n");
@@ -1429,40 +1470,7 @@ auto algo_d1_run(struct Parameters const & parameters,
   struct Network_state network_state;
   network_state.network_v.resize(one_megabyte);
 
-  /* d=1 hashtable and Bloom filter live in their own scope so their
-     backing storage is released before run_fastidious_pass() allocates
-     its own fresh pair. */
-  {
-    /* populate the d=1 hash table and Bloom filter with the amplicon
-       hashes precomputed in db.cc */
-    Hashtable hash_table;
-    const auto hashtablesize = hash_table.allocate(amplicons);
-    BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
-                        amplicon_n_hash_functions);
-
-    Progress progress_hash("Building hashtable:", amplicons, parameters);
-
-    for (auto k = 0U; k < amplicons; ++k)
-      {
-        hash_insert(data, hash_table, bloom_a, k);
-        progress_hash.update(k);
-      }
-
-    progress_hash.done();
-
-
-    Progress progress_network("Building network: ", amplicons, parameters);
-    {
-      auto const network_tr = utils::make_unique<ThreadRunner>(
-          static_cast<std::size_t>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t nth_thread) -> void {
-            network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
-          });
-      network_tr->run();
-    }
-
-    progress_network.done();
-  }
+  build_amplicon_network(parameters, data, ampinfo_v, network_state);
 
 
   /* dump network to file */
