@@ -1380,6 +1380,32 @@ namespace {
   }
 
 
+  auto run_clustering(struct Parameters const & parameters,
+                      Data const & data,
+                      std::vector<struct ampinfo_s> & ampinfo_v,
+                      std::vector<struct swarminfo_s> & swarminfo_v,
+                      std::vector<unsigned int> const & network_v,
+                      std::vector<unsigned int> & global_hits_v) -> unsigned int
+  {
+    /* for each non-swarmed amplicon look for subseeds ... */
+    auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
+    Progress progress_cluster("Clustering:       ", amplicons, parameters);
+
+    for (auto seed = 0U; seed < amplicons; ++seed)
+      {
+        if (ampinfo_v[seed].swarmid == no_swarm)
+          {
+            grow_swarm(seed, swarmcount, data, ampinfo_v, swarminfo_v,
+                       network_v, global_hits_v);
+            ++swarmcount;
+          }
+        progress_cluster.update(seed + 1);
+      }
+    progress_cluster.done();
+    return swarmcount;
+  }
+
+
   auto log_swarm_summary(struct Parameters const & parameters) -> void
   {
     std::fprintf(parameters.logfile, "\n");
@@ -1479,22 +1505,8 @@ auto algo_d1_run(struct Parameters const & parameters,
   }
 
 
-  /* for each non-swarmed amplicon look for subseeds ... */
-
-  auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
-  Progress progress_cluster("Clustering:       ", amplicons, parameters);
-
-  for (auto seed = 0U; seed < amplicons; ++seed)
-    {
-      if (ampinfo_v[seed].swarmid == no_swarm)
-        {
-          grow_swarm(seed, swarmcount, data, ampinfo_v, swarminfo_v,
-                     network_state.network_v, global_hits_v);
-          ++swarmcount;
-        }
-      progress_cluster.update(seed + 1);
-    }
-  progress_cluster.done();
+  auto const swarmcount = run_clustering(parameters, data, ampinfo_v, swarminfo_v,
+                                         network_state.network_v, global_hits_v);
 
   global_hits_data = nullptr;
 
