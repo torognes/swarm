@@ -1359,7 +1359,7 @@ namespace {
     for (auto k = 0U; k < amplicons; ++k)
       {
         hash_insert(data, hash_table, bloom_a, k);
-        progress_hash.update(k);
+        progress_hash.update(k + 1);
       }
 
     progress_hash.done();
