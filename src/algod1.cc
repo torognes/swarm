@@ -813,6 +813,42 @@ namespace {
   }
 
 
+  auto grow_swarm(unsigned int const seed,
+                  unsigned int const swarmcount,
+                  Data const & data,
+                  std::vector<struct ampinfo_s> & ampinfo_v,
+                  std::vector<struct swarminfo_s> & swarminfo_v,
+                  std::vector<unsigned int> const & network_v,
+                  std::vector<unsigned int> & global_hits_v) -> void
+  {
+    /* start a new swarm with a new initial seed */
+    auto & seed_info = ampinfo_v[seed];
+    seed_info.swarmid = swarmcount;
+    seed_info.generation = 0;
+    seed_info.parent = no_swarm;
+    seed_info.next = no_swarm;
+
+    /* initialize swarm stats and link up this initial seed in
+       the list of swarms */
+    current_swarm = Active_swarm_stats {};
+    current_swarm.tail = seed;
+
+    /* walk generations: each call processes the .next chain
+       starting at subseed and returns the most abundant amplicon
+       of the next generation (or no_swarm when exhausted). The
+       first iteration starts from seed itself, whose .next is
+       no_swarm, so it processes only the initial seed. */
+    auto subseed = seed;
+    while (subseed != no_swarm)
+      {
+        subseed = process_generation(subseed, data, ampinfo_v, network_v, global_hits_v);
+      }
+
+    ensure_swarm_capacity(swarmcount, swarminfo_v);
+    finalize_swarm_info(seed, swarmcount, swarminfo_v);
+  }
+
+
   auto write_network_file(const unsigned int number_of_networks,
                           struct Parameters const & parameters,
                           Data const & data,
@@ -1433,37 +1469,10 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   for (auto seed = 0U; seed < amplicons; ++seed)
     {
-      auto & seed_info = ampinfo_v[seed];
-
-      if (seed_info.swarmid == no_swarm)
+      if (ampinfo_v[seed].swarmid == no_swarm)
         {
-          /* start a new swarm with a new initial seed */
-
-          seed_info.swarmid = swarmcount;
-          seed_info.generation = 0;
-          seed_info.parent = no_swarm;
-          seed_info.next = no_swarm;
-
-          /* initialize swarm stats and link up this initial seed in
-             the list of swarms */
-          current_swarm = Active_swarm_stats {};
-          current_swarm.tail = seed;
-
-          /* walk generations: each call processes the .next chain
-             starting at subseed and returns the most abundant amplicon
-             of the next generation (or no_swarm when exhausted). The
-             first iteration starts from seed itself, whose .next is
-             no_swarm, so it processes only the initial seed. */
-          auto subseed = seed;
-          while (subseed != no_swarm)
-            {
-              subseed = process_generation(subseed, data, ampinfo_v, network_state.network_v, global_hits_v);
-            }
-
-          ensure_swarm_capacity(swarmcount, swarminfo_v);
-
-          finalize_swarm_info(seed, swarmcount, swarminfo_v);
-
+          grow_swarm(seed, swarmcount, data, ampinfo_v, swarminfo_v,
+                     network_state.network_v, global_hits_v);
           ++swarmcount;
         }
       progress_cluster.update(seed + 1);
