@@ -131,7 +131,8 @@ QgramDiffer::QgramDiffer(struct Parameters const & parameters,
 
 auto QgramDiffer::worker(uint64_t const nth_thread) const -> void
 {
-  auto const & tip = *std::next(thread_info_v_.begin(), static_cast<std::ptrdiff_t>(nth_thread));
+  assert(nth_thread < thread_info_v_.size());
+  auto const & tip = thread_info_v_[nth_thread];
 
   const auto seed = tip.seed;
   const auto listlen = tip.listlen;
