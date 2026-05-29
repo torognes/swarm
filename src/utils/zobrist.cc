@@ -23,6 +23,7 @@
 
 #include "../db.h"  // brings in zobrist.h transitively, plus the Sequence definition
 #include "pseudo_rng.h"
+#include "view.h"  // View<>
 #include <algorithm> // std::for_each
 #include <array>
 #include <cassert>
