@@ -33,7 +33,6 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstring>  // memset
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>
@@ -50,13 +49,13 @@ namespace {
 
 
   auto findqgrams(char const * seq, uint64_t seqlen,
-                  unsigned char * qgramvector) -> void
+                  Qgram_vector & qgramvector) noexcept -> void
   {
     /* set qgram bit vector by xoring occurrences of qgrams in sequence */
 
     static constexpr unsigned int max_range {7};
 
-    std::memset(qgramvector, 0, qgramvectorbytes);
+    qgramvector.fill(0);
 
     uint64_t qgram {0};
     unsigned int position {0};
@@ -69,10 +68,8 @@ namespace {
     while (position < seqlen) {
       qgram = (qgram << 2U) | nt_extract(seq, position);
       assert((qgram & max_range) <= 7);
-      assert(((qgram >> 3U) & (qgramvectorbytes - 1)) <= std::numeric_limits<std::ptrdiff_t>::max());
-      auto const signed_position = static_cast<std::ptrdiff_t>((qgram >> 3U) & (qgramvectorbytes - 1));
-      auto & target_qgram = *std::next(qgramvector, signed_position);
-      target_qgram ^= static_cast<unsigned char>(1U << (qgram & max_range));
+      auto const index = (qgram >> 3U) & (qgramvectorbytes - 1);
+      qgramvector[index] ^= static_cast<unsigned char>(1U << (qgram & max_range));
       ++position;
     }
   }
@@ -90,7 +87,7 @@ auto build_qgram_store(struct Parameters const & parameters,
   Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
   for (auto counter = 0U; counter < n_sequences; ++counter) {
     auto const seq = data.sequence_view(counter);
-    findqgrams(seq.encoded.data(), seq.length, store[counter].data());
+    findqgrams(seq.encoded.data(), seq.length, store[counter]);
     progress_qg.update(counter);
   }
   progress_qg.done();
