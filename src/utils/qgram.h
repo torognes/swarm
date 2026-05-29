@@ -48,6 +48,7 @@ public:
   QgramDiffer(QgramDiffer &&) = delete;
   auto operator=(QgramDiffer const &) -> QgramDiffer & = delete;
   auto operator=(QgramDiffer &&) -> QgramDiffer & = delete;
+  ~QgramDiffer() = default;
 
   // amplist.size() entries are read from amplist; the same number of
   // entries are written to the front of difflist.

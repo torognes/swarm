@@ -130,7 +130,7 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
   const auto listlen = tip.listlen;
   assert(listlen <= std::numeric_limits<std::ptrdiff_t>::max());
   const auto listlen_signed = static_cast<int64_t>(listlen);
-  auto * amplist = tip.amplist;
+  auto const * amplist = tip.amplist;
   auto * difflist = tip.difflist;
 
   for (auto i = 0LL; i < listlen_signed; ++i) {
