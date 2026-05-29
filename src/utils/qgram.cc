@@ -39,15 +39,6 @@
 
 
 namespace {
-  // The q in q-gram, and the intermediate bit count derived from it.
-  // qgramvectorbytes (= qgramvectorbits / 8) is the public constant in
-  // utils/qgram_array.h; the static_assert below catches any drift.
-  constexpr unsigned int qgramlength     {5};
-  constexpr unsigned int qgramvectorbits {1U << (2 * qgramlength)};  // 1,024
-  static_assert(qgramvectorbytes == qgramvectorbits / 8,
-                "qgramvectorbytes must equal 4^qgramlength / 8");
-
-
   auto findqgrams(Sequence const & sequence,
                   Qgram_vector & qgramvector) noexcept -> void
   {

@@ -29,9 +29,9 @@
 
 
 // 128 bytes = 1,024 bits, one bit per possible 5-mer (4^5 = 1,024).
-// The qgram length (5) and the intermediate bit count (1,024) live in
-// qgram.cc; a static_assert there keeps these values in sync.
-constexpr unsigned int qgramvectorbytes {128};
+// qgramvectorbytes is derived from qgramlength below.
+constexpr unsigned int qgramlength     {5};
+constexpr unsigned int qgramvectorbytes {(1U << (2 * qgramlength)) / 8};
 
 using Qgram_vector = std::array<unsigned char, qgramvectorbytes>;
 using Qgram_store  = std::vector<Qgram_vector>;
