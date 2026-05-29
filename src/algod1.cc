@@ -1339,6 +1339,15 @@ namespace {
   }
 
 
+  auto log_swarm_summary(struct Parameters const & parameters) -> void
+  {
+    std::fprintf(parameters.logfile, "\n");
+    std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
+    std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
+    std::fprintf(parameters.logfile, "Max generations:   %u\n", overall_stats.maxgen);
+  }
+
+
   auto run_fastidious_pass(struct Parameters const & parameters,
                            Data const & data,
                            unsigned int const swarmcount,
@@ -1498,8 +1507,5 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   output_results(parameters, data, ampinfo_v, swarminfo_v);
 
-  std::fprintf(parameters.logfile, "\n");
-  std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
-  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
-  std::fprintf(parameters.logfile, "Max generations:   %u\n", overall_stats.maxgen);
+  log_swarm_summary(parameters);
 }
