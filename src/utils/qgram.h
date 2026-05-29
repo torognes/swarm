@@ -63,7 +63,7 @@ private:
     uint64_t * difflist;        // output: written by worker()
   };
 
-  auto worker(uint64_t nth_thread) const -> void;
+  auto worker(uint64_t nth_thread) const noexcept -> void;
 
   Qgram_store const          store_;        // owned (built in the ctor)
   Cpu_features const         cpu_features_;

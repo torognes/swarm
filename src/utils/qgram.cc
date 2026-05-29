@@ -100,7 +100,7 @@ auto build_qgram_store(struct Parameters const & parameters,
 
 inline auto qgram_diff(Qgram_store const & store,
                        uint64_t seqno_a, uint64_t seqno_b,
-                       Cpu_features const & cpu_features) -> uint64_t
+                       Cpu_features const & cpu_features) noexcept -> uint64_t
 {
   assert(seqno_a < store.size());
   assert(seqno_b < store.size());
@@ -129,7 +129,7 @@ QgramDiffer::QgramDiffer(struct Parameters const & parameters,
 { }
 
 
-auto QgramDiffer::worker(uint64_t const nth_thread) const -> void
+auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
 {
   assert(nth_thread < thread_info_v_.size());
   auto const & tip = thread_info_v_[nth_thread];
