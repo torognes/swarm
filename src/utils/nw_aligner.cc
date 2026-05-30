@@ -132,25 +132,26 @@ auto backtrack(char const * dseq,
     {
       const auto cell = directions[(qlen * (row - 1)) + (column - 1)];
 
-      if ((operation == 'I') and ((cell & maskextleft) != 0))
+      const bool cell_extends_left = (cell & maskextleft) != 0;
+      const bool cell_extends_up   = (cell & maskextup)   != 0;
+      const bool cell_opens_left   = (cell & maskleft)    != 0;
+      const bool cell_opens_up     = (cell & maskup)      != 0;
+
+      // Priority: extending an ongoing gap (sticky) beats opening a
+      // new one; among fresh openings, insert beats delete; otherwise
+      // take the diagonal (match/mismatch).
+      const bool extend_insert = (operation == 'I') and cell_extends_left;
+      const bool extend_delete = (operation == 'D') and cell_extends_up;
+      const bool is_insert     = extend_insert or (not extend_delete and cell_opens_left);
+      const bool is_delete     = extend_delete or cell_opens_up;
+
+      if (is_insert)
         {
           --row;
           raw_alignment.emplace_back('I');
           operation = 'I';
         }
-      else if ((operation == 'D') and ((cell & maskextup) != 0))
-        {
-          --column;
-          raw_alignment.emplace_back('D');
-          operation = 'D';
-        }
-      else if ((cell & maskleft) != 0)
-        {
-          --row;
-          raw_alignment.emplace_back('I');
-          operation = 'I';
-        }
-      else if ((cell & maskup) != 0)
+      else if (is_delete)
         {
           --column;
           raw_alignment.emplace_back('D');
