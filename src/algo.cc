@@ -474,7 +474,7 @@ namespace {
 
       std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
                    swarmid - 1, hit_seq.length, result.percent_id,
-                   result.differences > 0 ? result.cigar_string.data() : "=");
+                   result.differences > 0 ? result.cigar_string : "=");
 
       data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t");

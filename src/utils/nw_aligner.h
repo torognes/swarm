@@ -44,7 +44,7 @@ struct Sequence;  // defined in db.h
 
   align() returns a small Result aggregating the four values consumers
   need: cigar string, number of differences, alignment length, and
-  percent identity. The cigar_string reference lives in this NwAligner
+  percent identity. The cigar_string pointer lives in this NwAligner
   object's internal buffer and is only valid until the next align()
   call on the same object.
 */
@@ -59,10 +59,10 @@ public:
   };
 
   struct Result {
-    std::string const & cigar_string;
-    uint64_t            differences;
-    uint64_t            length;       // == nwalignmentlength
-    double              percent_id;
+    char const * cigar_string;
+    uint64_t     differences;
+    uint64_t     length;       // == nwalignmentlength
+    double       percent_id;
   };
 
   NwAligner(uint64_t longest_sequence,

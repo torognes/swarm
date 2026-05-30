@@ -993,7 +993,7 @@ namespace {
                        cluster_no,
                        amp_seq.length,
                        result.percent_id,
-                       result.differences > 0 ? result.cigar_string.data() : "=");
+                       result.differences > 0 ? result.cigar_string : "=");
 
           data.fprint_id(parameters.uclustfile.get(), amp_id, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           std::fprintf(parameters.uclustfile.get(), "\t");
