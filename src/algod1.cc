@@ -127,8 +127,6 @@ namespace {
   Overall_stats overall_stats {};
   Active_swarm_stats current_swarm {};
 
-  unsigned int * global_hits_data {nullptr};
-
   unsigned int amplicons {0};
 
   struct Heavy_state
@@ -718,7 +716,6 @@ namespace {
           global_hits_alloc += 4UL * one_kilobyte;
         }
         global_hits_v.resize(global_hits_alloc);
-        global_hits_data = global_hits_v.data();
       }
 
     for (auto offset = 0U; offset < link_count; ++offset)
@@ -1488,7 +1485,6 @@ auto algo_d1_run(struct Parameters const & parameters,
   static constexpr auto offset = 4U;
   const auto global_hits_alloc = (multiplier * data.longest_sequence()) + offset + 1;
   std::vector<unsigned int> global_hits_v(global_hits_alloc);
-  global_hits_data = global_hits_v.data();
 
 
   /* for all amplicons, generate list of matching amplicons */
@@ -1506,8 +1502,6 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   auto const swarmcount = run_clustering(parameters, data, ampinfo_v, swarminfo_v,
                                          network_state.network_v, global_hits_v);
-
-  global_hits_data = nullptr;
 
   network_state.network_v.clear();
   network_state.network_v.shrink_to_fit();
