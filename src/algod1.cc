@@ -125,7 +125,6 @@ namespace {
   };
 
   Overall_stats overall_stats {};
-  Active_swarm_stats current_swarm {};
 
   struct Heavy_state
   {
@@ -692,7 +691,8 @@ namespace {
                     std::vector<struct ampinfo_s> & ampinfo_v,
                     std::vector<unsigned int> const & network_v,
                     std::vector<unsigned int> & global_hits_v,
-                    unsigned int & global_hits_count) -> void
+                    unsigned int & global_hits_count,
+                    Active_swarm_stats & current_swarm) -> void
   {
     /* update swarm stats */
     auto const & seed_info = ampinfo_v[seed];
@@ -737,7 +737,8 @@ namespace {
 
 
   inline auto add_amp_to_swarm(unsigned int const amp,
-                               std::vector<struct ampinfo_s> & ampinfo_v) -> void
+                               std::vector<struct ampinfo_s> & ampinfo_v,
+                               Active_swarm_stats & current_swarm) -> void
   {
     /* add to swarm */
     ampinfo_v[current_swarm.tail].next = amp;
@@ -749,13 +750,14 @@ namespace {
                           Data const & data,
                           std::vector<struct ampinfo_s> & ampinfo_v,
                           std::vector<unsigned int> const & network_v,
-                          std::vector<unsigned int> & global_hits_v) -> unsigned int
+                          std::vector<unsigned int> & global_hits_v,
+                          Active_swarm_stats & current_swarm) -> unsigned int
   {
     /* process all subseeds of this generation */
     auto global_hits_count = 0U;
     while (subseed != no_swarm)
       {
-        process_seed(data, subseed, ampinfo_v, network_v, global_hits_v, global_hits_count);
+        process_seed(data, subseed, ampinfo_v, network_v, global_hits_v, global_hits_count, current_swarm);
         subseed = ampinfo_v[subseed].next;
       }
 
@@ -764,7 +766,7 @@ namespace {
 
     /* add them to the swarm */
     for (auto i = 0U; i < global_hits_count; ++i) {
-      add_amp_to_swarm(global_hits_v[i], ampinfo_v);
+      add_amp_to_swarm(global_hits_v[i], ampinfo_v, current_swarm);
     }
 
     /* most abundant amplicon of next generation, or no_swarm if generation was empty */
@@ -790,7 +792,8 @@ namespace {
 
   auto finalize_swarm_info(unsigned int const seed,
                            unsigned int const swarmcount,
-                           std::vector<struct swarminfo_s> & swarminfo_v) -> void
+                           std::vector<struct swarminfo_s> & swarminfo_v,
+                           Active_swarm_stats const & current_swarm) -> void
   {
     auto & swarm_info = swarminfo_v[swarmcount];
 
@@ -826,7 +829,7 @@ namespace {
 
     /* initialize swarm stats and link up this initial seed in
        the list of swarms */
-    current_swarm = Active_swarm_stats {};
+    Active_swarm_stats current_swarm {};
     current_swarm.tail = seed;
 
     /* walk generations: each call processes the .next chain
@@ -837,11 +840,11 @@ namespace {
     auto subseed = seed;
     while (subseed != no_swarm)
       {
-        subseed = process_generation(subseed, data, ampinfo_v, network_v, global_hits_v);
+        subseed = process_generation(subseed, data, ampinfo_v, network_v, global_hits_v, current_swarm);
       }
 
     ensure_swarm_capacity(swarmcount, swarminfo_v);
-    finalize_swarm_info(seed, swarmcount, swarminfo_v);
+    finalize_swarm_info(seed, swarmcount, swarminfo_v, current_swarm);
   }
 
 
