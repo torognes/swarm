@@ -239,15 +239,12 @@ namespace {
   }
 
 
-  // C++17 refactoring: replace with std::count_if()
   auto count_pairs(std::vector<struct ampinfo_s> const & ampinfo_v) -> unsigned int {
-    auto counter = 0U;
-    for (auto const & info : ampinfo_v) {
-      if (info.graft_cand != no_swarm) {
-        ++counter;
-      }
-    }
-    return counter;
+    return static_cast<unsigned int>(
+      std::count_if(ampinfo_v.cbegin(), ampinfo_v.cend(),
+                    [](struct ampinfo_s const & info) {
+                      return info.graft_cand != no_swarm;
+                    }));
   }
 
 
