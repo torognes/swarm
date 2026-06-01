@@ -127,8 +127,6 @@ namespace {
   Overall_stats overall_stats {};
   Active_swarm_stats current_swarm {};
 
-  unsigned int amplicons {0};
-
   struct Heavy_state
   {
     std::mutex mutex;
@@ -470,6 +468,7 @@ namespace {
     const std::size_t size =
       sizeof(uint64_t) * ((data.longest_sequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
     std::vector<char> buffer1(size);
+    const auto amplicons = data.sequence_count();
     std::unique_lock<std::mutex> lock(heavy_state.mutex);
     while ((heavy_state.amplicon < amplicons) and
            (heavy_state.progress < heavy_state.amplicon_count))
@@ -658,6 +657,7 @@ namespace {
     std::vector<unsigned int> hits_data(n_items);
     std::vector<struct var_s> variant_list(n_items);
 
+    const auto amplicons = data.sequence_count();
     std::unique_lock<std::mutex> lock(state.mutex);
     while (state.amp < amplicons)
       {
@@ -853,7 +853,7 @@ namespace {
     // a network is a cluster with at least two sequences (no singletons)
     Progress progress("Dumping network:  ", number_of_networks, parameters);
 
-    assert(ampinfo_v.size() == amplicons);
+    assert(ampinfo_v.size() == data.sequence_count());
     auto counter = 0ULL;
     for (auto const& amplicon: ampinfo_v) {
       const auto link_start = amplicon.link_start;
@@ -1165,6 +1165,7 @@ namespace {
 
 
   auto count_cluster_stats(struct Parameters const & parameters,
+                           unsigned int const amplicon_count,
                            std::vector<struct swarminfo_s> const & swarminfo_v) -> Cluster_stats
   {
     Cluster_stats stats;
@@ -1184,7 +1185,7 @@ namespace {
       }
     progress_count.done();
 
-    stats.amplicons_in_large_clusters = amplicons - stats.amplicons_in_small_clusters;
+    stats.amplicons_in_large_clusters = amplicon_count - stats.amplicons_in_small_clusters;
     stats.large_clusters = swarminfo_v.size() - stats.small_clusters;
 
     return stats;
@@ -1285,7 +1286,7 @@ namespace {
 
     struct Light_state light_state;
     light_state.amplicon_count = amplicons_in_small_clusters;
-    light_state.amplicon = amplicons - 1;
+    light_state.amplicon = data.sequence_count() - 1;
     {
       auto const light_tr = utils::make_unique<ThreadRunner>(
           static_cast<std::size_t>(parameters.opt_threads),
@@ -1346,6 +1347,7 @@ namespace {
 
     /* populate the d=1 hash table and Bloom filter with the amplicon
        hashes precomputed in db.cc */
+    const auto amplicons = data.sequence_count();
     Hashtable hash_table;
     const auto hashtablesize = hash_table.allocate(amplicons);
     BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
@@ -1385,6 +1387,7 @@ namespace {
   {
     /* for each non-swarmed amplicon look for subseeds ... */
     auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
+    const auto amplicons = data.sequence_count();
     Progress progress_cluster("Clustering:       ", amplicons, parameters);
 
     for (auto seed = 0U; seed < amplicons; ++seed)
@@ -1417,13 +1420,15 @@ namespace {
                            std::vector<struct ampinfo_s> & ampinfo_v,
                            std::vector<struct swarminfo_s> & swarminfo_v) -> void
   {
+    const auto amplicons = data.sequence_count();
+
     std::fprintf(parameters.logfile, "\n");
     std::fprintf(parameters.logfile, "Results before fastidious processing:\n");
     std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmcount);
     std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
     std::fprintf(parameters.logfile, "\n");
 
-    auto const stats = count_cluster_stats(parameters, swarminfo_v);
+    auto const stats = count_cluster_stats(parameters, amplicons, swarminfo_v);
     auto const small_clusters = stats.small_clusters;
     auto const large_clusters = stats.large_clusters;
     auto const amplicons_in_small_clusters = stats.amplicons_in_small_clusters;
@@ -1474,7 +1479,7 @@ namespace {
 auto algo_d1_run(struct Parameters const & parameters,
                  Data const & data) -> void
 {
-  amplicons = data.sequence_count();
+  const auto amplicons = data.sequence_count();
 
   std::vector<struct ampinfo_s> ampinfo_v(amplicons);
 
