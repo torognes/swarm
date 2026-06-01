@@ -124,8 +124,6 @@ namespace {
     unsigned int singletons {0};
   };
 
-  Overall_stats overall_stats {};
-
   struct Heavy_state
   {
     std::mutex mutex;
@@ -196,7 +194,8 @@ namespace {
 
   auto attach(unsigned int seed, unsigned int amp,
               std::vector<struct ampinfo_s> & ampinfo_v,
-              std::vector<struct swarminfo_s> & swarminfo_v) -> void
+              std::vector<struct swarminfo_s> & swarminfo_v,
+              Overall_stats & overall_stats) -> void
   {
     /* graft light swarm (amp) on heavy swarm (seed) */
 
@@ -255,7 +254,8 @@ namespace {
   auto attach_candidates(struct Parameters const & parameters,
                          unsigned int amplicon_count,
                          std::vector<struct ampinfo_s> & ampinfo_v,
-                         std::vector<struct swarminfo_s> & swarminfo_v) -> unsigned int
+                         std::vector<struct swarminfo_s> & swarminfo_v,
+                         Overall_stats & overall_stats) -> unsigned int
   {
     auto const pair_count = count_pairs(ampinfo_v);
 
@@ -305,7 +305,7 @@ namespace {
       else
         {
           /* attach child to parent */
-          attach(parent, child, ampinfo_v, swarminfo_v);
+          attach(parent, child, ampinfo_v, swarminfo_v, overall_stats);
           ++grafts;
         }
       progress.update();
@@ -793,7 +793,8 @@ namespace {
   auto finalize_swarm_info(unsigned int const seed,
                            unsigned int const swarmcount,
                            std::vector<struct swarminfo_s> & swarminfo_v,
-                           Active_swarm_stats const & current_swarm) -> void
+                           Active_swarm_stats const & current_swarm,
+                           Overall_stats & overall_stats) -> void
   {
     auto & swarm_info = swarminfo_v[swarmcount];
 
@@ -818,7 +819,8 @@ namespace {
                   std::vector<struct ampinfo_s> & ampinfo_v,
                   std::vector<struct swarminfo_s> & swarminfo_v,
                   std::vector<unsigned int> const & network_v,
-                  std::vector<unsigned int> & global_hits_v) -> void
+                  std::vector<unsigned int> & global_hits_v,
+                  Overall_stats & overall_stats) -> void
   {
     /* start a new swarm with a new initial seed */
     auto & seed_info = ampinfo_v[seed];
@@ -844,7 +846,7 @@ namespace {
       }
 
     ensure_swarm_capacity(swarmcount, swarminfo_v);
-    finalize_swarm_info(seed, swarmcount, swarminfo_v, current_swarm);
+    finalize_swarm_info(seed, swarmcount, swarminfo_v, current_swarm, overall_stats);
   }
 
 
@@ -916,7 +918,8 @@ namespace {
   auto write_swarms_mothur_format(struct Parameters const & parameters,
                                   Data const & data,
                                   std::vector<struct ampinfo_s> const & ampinfo_v,
-                                  std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
+                                  std::vector<struct swarminfo_s> const & swarminfo_v,
+                                  Overall_stats const & overall_stats) -> void {
     Progress progress("Writing swarms:   ", swarminfo_v.size(), parameters);
 
     std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%" PRIu64,
@@ -1136,10 +1139,11 @@ namespace {
   auto output_results(struct Parameters const & parameters,
                       Data const & data,
                       std::vector<struct ampinfo_s> const & ampinfo_v,
-                      std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
+                      std::vector<struct swarminfo_s> const & swarminfo_v,
+                      Overall_stats const & overall_stats) -> void {
     /* dump swarms */
     if (parameters.opt_mothur) {
-      write_swarms_mothur_format(parameters, data, ampinfo_v, swarminfo_v);
+      write_swarms_mothur_format(parameters, data, ampinfo_v, swarminfo_v, overall_stats);
     }
     else {
       write_swarms_default_format(parameters, data, ampinfo_v, swarminfo_v);
@@ -1386,7 +1390,8 @@ namespace {
                       std::vector<struct ampinfo_s> & ampinfo_v,
                       std::vector<struct swarminfo_s> & swarminfo_v,
                       std::vector<unsigned int> const & network_v,
-                      std::vector<unsigned int> & global_hits_v) -> unsigned int
+                      std::vector<unsigned int> & global_hits_v,
+                      Overall_stats & overall_stats) -> unsigned int
   {
     /* for each non-swarmed amplicon look for subseeds ... */
     auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
@@ -1398,7 +1403,7 @@ namespace {
         if (ampinfo_v[seed].swarmid == no_swarm)
           {
             grow_swarm(seed, swarmcount, data, ampinfo_v, swarminfo_v,
-                       network_v, global_hits_v);
+                       network_v, global_hits_v, overall_stats);
             ++swarmcount;
           }
         progress_cluster.update();
@@ -1408,7 +1413,8 @@ namespace {
   }
 
 
-  auto log_swarm_summary(struct Parameters const & parameters) -> void
+  auto log_swarm_summary(struct Parameters const & parameters,
+                         Overall_stats const & overall_stats) -> void
   {
     std::fprintf(parameters.logfile, "\n");
     std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
@@ -1421,7 +1427,8 @@ namespace {
                            Data const & data,
                            unsigned int const swarmcount,
                            std::vector<struct ampinfo_s> & ampinfo_v,
-                           std::vector<struct swarminfo_s> & swarminfo_v) -> void
+                           std::vector<struct swarminfo_s> & swarminfo_v,
+                           Overall_stats & overall_stats) -> void
   {
     const auto amplicons = data.sequence_count();
 
@@ -1471,7 +1478,7 @@ namespace {
         struct Graft_state graft_state;
         run_heavy_pass(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_large_clusters, graft_state);
 
-        auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v);
+        auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v, overall_stats);
         std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
         std::fprintf(parameters.logfile, "\n");
       }
@@ -1483,6 +1490,8 @@ auto algo_d1_run(struct Parameters const & parameters,
                  Data const & data) -> void
 {
   const auto amplicons = data.sequence_count();
+
+  Overall_stats overall_stats {};
 
   std::vector<struct ampinfo_s> ampinfo_v(amplicons);
 
@@ -1509,7 +1518,7 @@ auto algo_d1_run(struct Parameters const & parameters,
 
 
   auto const swarmcount = run_clustering(parameters, data, ampinfo_v, swarminfo_v,
-                                         network_state.network_v, global_hits_v);
+                                         network_state.network_v, global_hits_v, overall_stats);
 
   network_state.network_v.clear();
   network_state.network_v.shrink_to_fit();
@@ -1518,7 +1527,7 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   /* fastidious */
   if (parameters.opt_fastidious) {
-    run_fastidious_pass(parameters, data, swarmcount, ampinfo_v, swarminfo_v);
+    run_fastidious_pass(parameters, data, swarmcount, ampinfo_v, swarminfo_v, overall_stats);
   }
 
   // refactoring: trim vectors (remove allocated unused elements)
@@ -1526,7 +1535,7 @@ auto algo_d1_run(struct Parameters const & parameters,
   swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
   swarminfo_v.shrink_to_fit();
 
-  output_results(parameters, data, ampinfo_v, swarminfo_v);
+  output_results(parameters, data, ampinfo_v, swarminfo_v, overall_stats);
 
-  log_swarm_summary(parameters);
+  log_swarm_summary(parameters, overall_stats);
 }
