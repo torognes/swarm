@@ -38,6 +38,7 @@
 #include "utils/threads.h"
 #include "utils/view.h"
 #include "utils/algod1_internal.h"
+#include "utils/algod1_network.h"
 #include "utils/algod1_output.h"
 #include "utils/algod1_statistics.h"
 #include <algorithm>  // std::sort(), std::max()
@@ -53,24 +54,6 @@
 
 
 namespace {
-
-  inline auto hash_insert(Data const & data,
-                          Hashtable & hash_table,
-                          BloomFilter & bloom_a,
-                          unsigned int const amp) -> void {
-    /* find the first empty bucket */
-    const auto hash = data.sequence_hash(amp);
-    auto index = hash_table.getindex(hash);
-    while (hash_table.is_occupied(index)) {
-      index = hash_table.getnextindex(index);
-    }
-
-    hash_table.set_occupied(index);
-    hash_table.set_value(index, hash);
-    hash_table.set_data(index, amp);
-    bloom_a.set(hash);
-  }
-
 
   struct graft_cand
   {
@@ -487,128 +470,6 @@ namespace {
   /******************** FASTIDIOUS END ********************/
 
 
-  inline auto find_variant_matches(struct Parameters const & parameters,
-                                   Data const & data,
-                                   Hashtable const & hash_table,
-                                   BloomFilter const & bloom_a,
-                                   unsigned int seed,
-                                   struct var_s const & var,
-                                   std::vector<unsigned int>& hits_data,
-                                   unsigned int & hits_count) -> void
-  {
-    if (not bloom_a.get(var.hash)) {
-      return;
-    }
-
-    /* compute hash and corresponding hash table index */
-
-    auto index = hash_table.getindex(var.hash);
-
-    /* find matching buckets */
-
-    while (hash_table.is_occupied(index))
-      {
-        if (hash_table.compare_value(index, var.hash))
-          {
-            const auto amp = hash_table.get_data(index);
-
-            /* avoid self */
-            if (seed != amp) {
-              if ((parameters.opt_no_cluster_breaking) or
-                  (data.abundance(seed) >= data.abundance(amp)))
-                {
-                  auto const seed_seq = data.sequence_view(seed);
-                  auto const amp_seq = data.sequence_view(amp);
-
-                  if (check_variant(seed_seq, var, amp_seq))
-                    {
-                      hits_data[hits_count] = amp;
-                      ++hits_count;
-                      break;
-                    }
-                }
-            }
-          }
-        index = hash_table.getnextindex(index);
-      }
-  }
-
-
-  auto check_variants(struct Parameters const & parameters,
-                      Data const & data,
-                      Hashtable const & hash_table,
-                      BloomFilter const & bloom_a,
-                      unsigned int seed,
-                      std::vector<struct var_s> & variant_list,
-                      std::vector<unsigned int>& hits_data) -> unsigned int
-  {
-    auto hits_count = 0U;
-
-    auto const seed_seq = data.sequence_view(seed);
-    const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
-
-    // C++17 refactoring:
-    // std::for_each_n(variant_list.begin(), variant_count,
-    //                 [seed, &hits_data, &hits_count](auto& variant) {
-    //                   find_variant_matches(parameters, hash_table, bloom_a, seed, variant, hits_data, hits_count);
-    //                 });
-    for (auto i = 0U; i < variant_count; ++i) {
-      find_variant_matches(parameters, data, hash_table, bloom_a, seed, variant_list[i], hits_data, hits_count);
-    }
-
-    return hits_count;
-  }
-
-
-  auto network_thread(struct Parameters const & parameters,
-                      Data const & data,
-                      std::vector<struct ampinfo_s> & ampinfo_v,
-                      Hashtable const & hash_table,
-                      BloomFilter const & bloom_a,
-                      uint64_t nth_thread,
-                      struct Network_state & state,
-                      Progress & progress) -> void
-  {
-    static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
-    static constexpr auto offset = 4U;
-    std::size_t const n_items = (multiplier * data.longest_sequence()) + offset + 1;
-
-    (void) nth_thread;  // refactoring: unused?
-
-    std::vector<unsigned int> hits_data(n_items);
-    std::vector<struct var_s> variant_list(n_items);
-
-    const auto amplicons = data.sequence_count();
-    std::unique_lock<std::mutex> lock(state.mutex);
-    while (state.amp < amplicons)
-      {
-        const auto amp = state.amp;
-        ++state.amp;
-        progress.update(amp);
-
-        lock.unlock();
-
-        const auto hits_count = check_variants(parameters, data, hash_table, bloom_a, amp, variant_list, hits_data);
-        lock.lock();
-
-        auto & target_amplicon = ampinfo_v[amp];
-        target_amplicon.link_start = state.count;
-        target_amplicon.link_count = hits_count;
-
-        while (state.count + hits_count > state.network_v.size()) {
-          state.network_v.reserve(state.network_v.size() + one_megabyte);
-          state.network_v.resize(state.network_v.size() + one_megabyte);
-        }
-
-        for (auto k = 0U; k < hits_count; ++k) {
-          state.network_v[state.count] = hits_data[k];
-          ++state.count;
-        }
-      }
-  }
-
-
   auto process_seed(Data const & data,
                     unsigned int const seed,
                     std::vector<struct ampinfo_s> & ampinfo_v,
@@ -837,48 +698,6 @@ namespace {
 
     std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
     std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
-  }
-
-
-  auto build_amplicon_network(struct Parameters const & parameters,
-                              Data const & data,
-                              std::vector<struct ampinfo_s> & ampinfo_v,
-                              struct Network_state & network_state) -> void
-  {
-    /* d=1 hashtable and Bloom filter live in this function's scope so
-       their backing storage is released before run_fastidious_pass()
-       allocates its own fresh pair. */
-
-    /* populate the d=1 hash table and Bloom filter with the amplicon
-       hashes precomputed in db.cc */
-    const auto amplicons = data.sequence_count();
-    Hashtable hash_table;
-    const auto hashtablesize = hash_table.allocate(amplicons);
-    BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
-                        amplicon_n_hash_functions);
-
-    Progress progress_hash("Building hashtable:", amplicons, parameters);
-
-    for (auto k = 0U; k < amplicons; ++k)
-      {
-        hash_insert(data, hash_table, bloom_a, k);
-        progress_hash.update();
-      }
-
-    progress_hash.done();
-
-
-    Progress progress_network("Building network: ", amplicons, parameters);
-    {
-      auto const network_tr = utils::make_unique<ThreadRunner>(
-          static_cast<std::size_t>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t nth_thread) -> void {
-            network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
-          });
-      network_tr->run();
-    }
-
-    progress_network.done();
   }
 
 

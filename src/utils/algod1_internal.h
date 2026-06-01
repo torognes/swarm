@@ -32,6 +32,9 @@
   still agreeing on the layout of the amplicon and swarm records.
 */
 
+#include "../db.h"
+#include "bloom.h"
+#include "hashtable.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <limits>  // unsigned int max
 #include <mutex>  // std::mutex
@@ -108,5 +111,23 @@ struct Bloom_geometry
    in both the d=1 phase and the fastidious phase. */
 constexpr unsigned int amplicon_pattern_shift {10};
 constexpr unsigned int amplicon_n_hash_functions {8};
+
+
+inline auto hash_insert(Data const & data,
+                        Hashtable & hash_table,
+                        BloomFilter & bloom_a,
+                        unsigned int const amp) -> void {
+  /* find the first empty bucket */
+  const auto hash = data.sequence_hash(amp);
+  auto index = hash_table.getindex(hash);
+  while (hash_table.is_occupied(index)) {
+    index = hash_table.getnextindex(index);
+  }
+
+  hash_table.set_occupied(index);
+  hash_table.set_value(index, hash);
+  hash_table.set_data(index, amp);
+  bloom_a.set(hash);
+}
 
 #endif  // SWARM_UTILS_ALGOD1_INTERNAL_H

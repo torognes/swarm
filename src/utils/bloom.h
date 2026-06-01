@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_BLOOM_H
+#define SWARM_UTILS_BLOOM_H
+
 #include <cstdint>  // uint64_t
 #include <vector>
 
@@ -66,3 +69,5 @@ private:
   std::vector<uint64_t> bitmap;
   std::vector<uint64_t> patterns;
 };
+
+#endif  // SWARM_UTILS_BLOOM_H

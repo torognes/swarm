@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_DB_H
+#define SWARM_DB_H
+
 #include "utils/seqinfo.h"
 #include "utils/view.h"
 #include "utils/zobrist.h"
@@ -81,5 +84,7 @@ private:
   std::unique_ptr<Zobrist>      zobrist_p_;  // deferred: needs longest_sequence
   unsigned int                  longest_ {0};
 };
+
+#endif  // SWARM_DB_H
 
 
