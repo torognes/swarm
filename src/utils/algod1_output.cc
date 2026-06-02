@@ -27,10 +27,12 @@
 #include "algod1_internal.h"
 #include "nw_aligner.h"
 #include "progress.h"
+#include "view.h"
 #include <algorithm>  // std::sort()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdio>  // fputc(), fprintf()
+#include <iterator>  // std::next()
 #include <numeric>  // std::iota
 #include <vector>
 
@@ -53,13 +55,11 @@ auto write_network_file(const unsigned int number_of_networks,
     // then by header in db.cc, so a natural ascending sort here
     // emits neighbours in that ranking order. Earlier dereplication
     // guarantees indexes are distinct.
-    std::sort(network_v.begin() + link_start,
-              network_v.begin() + link_start + link_count);
+    auto const first = std::next(network_v.begin(), link_start);
+    std::sort(first, std::next(first, link_count));
 
-    // refactoring: std::vector<unsigned int> network_v(network_v.begin() + link_start, network_v.begin() + link_start + link_count);
-    for (auto link = 0U; link < link_count; ++link)
+    for (auto const neighbour : View<unsigned int>{std::next(network_v.data(), link_start), link_count})
       {
-        const auto neighbour = network_v[link_start + link];
         data.fprint_id(parameters.network_file.get(), counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         std::fprintf(parameters.network_file.get(), "\t");
         data.fprint_id(parameters.network_file.get(), neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
@@ -171,10 +171,10 @@ namespace {
       data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       std::fprintf(parameters.uclustfile.get(), "\t*\n");
 
+      auto const seed_seq = data.sequence_view(seed);
       for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
         {
           auto const amp_seq = data.sequence_view(amp_id);
-          auto const seed_seq = data.sequence_view(seed);  // refactoring: can be moved outside of this loop!
 
           auto const result = aligner.align(amp_seq, seed_seq);
 
