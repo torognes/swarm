@@ -181,6 +181,36 @@ swarm --version  # check
 ```
 
 
+## Shell auto-completion ##
+
+**swarm** ships with completion scripts for **bash** and **zsh** (in
+the [`completion/`](./completion) directory). Once installed, pressing
+the <kbd>Tab</kbd> key while typing a **swarm** command suggests the
+available options; options that expect a file name (e.g. `--output-file`)
+complete file names, and the positional FASTA argument completes file
+names too.
+
+The completion scripts are installed automatically by `make install`,
+in the standard locations (`$PREFIX/share/bash-completion/completions`
+and `$PREFIX/share/zsh/site-functions`). You can override these with
+the `BASH_COMPLETION_DIR` and `ZSH_COMPLETION_DIR` variables:
+
+```sh
+make install BASH_COMPLETION_DIR=/etc/bash_completion.d
+```
+
+To enable completion manually, without installing system-wide:
+
+```sh
+# bash (add to ~/.bashrc)
+source /path/to/swarm/completion/swarm.bash
+
+# zsh (add the directory to your $fpath, before `compinit`, in ~/.zshrc)
+fpath=(/path/to/swarm/completion $fpath)
+autoload -Uz compinit && compinit
+```
+
+
 ## Prepare amplicon fasta files ##
 
 To facilitate the use of **swarm**, we provide examples of shell

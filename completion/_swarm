@@ -1,0 +1,38 @@
+#compdef swarm
+#
+# zsh completion for swarm
+#
+# Installation (handled automatically by `make install`):
+#   copy this file (named `_swarm`) into a directory listed in your $fpath,
+#   e.g. /usr/share/zsh/site-functions, then restart zsh.
+
+_swarm() {
+    _arguments -s -S \
+        '(-h --help)'{-h,--help}'[display help and exit]' \
+        '(-v --version)'{-v,--version}'[display version information and exit]' \
+        '(-t --threads)'{-t,--threads}'[number of threads to use]:threads:' \
+        '(-d --differences)'{-d,--differences}'[resolution (number of differences)]:differences:' \
+        '(-n --no-otu-breaking)'{-n,--no-otu-breaking}'[never break clusters (not recommended!)]' \
+        '(-b --boundary)'{-b,--boundary}'[min mass of large clusters]:boundary:' \
+        '(-c --ceiling)'{-c,--ceiling}'[max memory in MB for Bloom filter]:ceiling:' \
+        '(-f --fastidious)'{-f,--fastidious}'[link nearby low-abundance swarms]' \
+        '(-y --bloom-bits)'{-y,--bloom-bits}'[bits used per Bloom filter entry]:bits:' \
+        '(-a --append-abundance)'{-a,--append-abundance}'[value to use when abundance is missing]:abundance:' \
+        '(-i --internal-structure)'{-i,--internal-structure}'[write internal cluster structure to file]:filename:_files' \
+        '(-j --network-file)'{-j,--network-file}'[dump sequence network to file]:filename:_files' \
+        '(-l --log)'{-l,--log}'[log to file, not to stderr]:filename:_files' \
+        '(-o --output-file)'{-o,--output-file}'[output result to file]:filename:_files' \
+        '(-r --mothur)'{-r,--mothur}'[output using mothur-like format]' \
+        '(-s --statistics-file)'{-s,--statistics-file}'[dump cluster statistics to file]:filename:_files' \
+        '(-u --uclust-file)'{-u,--uclust-file}'[output using UCLUST-like format to file]:filename:_files' \
+        '(-w --seeds)'{-w,--seeds}'[write cluster representatives to FASTA file]:filename:_files' \
+        '(-z --usearch-abundance)'{-z,--usearch-abundance}'[abundance annotation in usearch style]' \
+        '(-m --match-reward)'{-m,--match-reward}'[reward for nucleotide match]:reward:' \
+        '(-p --mismatch-penalty)'{-p,--mismatch-penalty}'[penalty for nucleotide mismatch]:penalty:' \
+        '(-g --gap-opening-penalty)'{-g,--gap-opening-penalty}'[gap open penalty]:penalty:' \
+        '(-e --gap-extension-penalty)'{-e,--gap-extension-penalty}'[gap extension penalty]:penalty:' \
+        '(-x --disable-sse3)'{-x,--disable-sse3}'[disable SSE3 and later x86 instructions]' \
+        '*:FASTA file:_files'
+}
+
+_swarm "$@"
