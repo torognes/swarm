@@ -27,7 +27,7 @@
 #include "algod1_internal.h"
 #include "nw_aligner.h"
 #include "progress.h"
-#include "view.h"
+#include "span.h"
 #include <algorithm>  // std::sort()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -51,14 +51,15 @@ auto write_network_file(const unsigned int number_of_networks,
     const auto link_start = amplicon.link_start;
     const auto link_count = amplicon.link_count;
 
+    auto const neighbours = Span<unsigned int>{std::next(network_v.data(), link_start), link_count};
+
     // amplicon indexes are already sorted by decreasing abundance
     // then by header in db.cc, so a natural ascending sort here
     // emits neighbours in that ranking order. Earlier dereplication
     // guarantees indexes are distinct.
-    auto const first = std::next(network_v.begin(), link_start);
-    std::sort(first, std::next(first, link_count));
+    std::sort(neighbours.begin(), neighbours.end());
 
-    for (auto const neighbour : View<unsigned int>{std::next(network_v.data(), link_start), link_count})
+    for (auto const neighbour : neighbours)
       {
         data.fprint_id(parameters.network_file.get(), counter, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         std::fprintf(parameters.network_file.get(), "\t");
