@@ -31,8 +31,11 @@
 #include "make_unique.h"
 #include "progress.h"
 #include "threads.h"
+#include "view.h"
+#include <algorithm>  // std::copy()
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
+#include <iterator>  // std::next()
 #include <mutex>  // std::unique_lock
 #include <vector>
 
@@ -100,13 +103,11 @@ namespace {
     const auto hash = data.sequence_hash(seed);
     const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
-    // C++17 refactoring:
-    // std::for_each_n(variant_list.begin(), variant_count,
-    //                 [seed, &hits_data, &hits_count](auto& variant) {
-    //                   find_variant_matches(parameters, hash_table, bloom_a, seed, variant, hits_data, hits_count);
-    //                 });
-    for (auto i = 0U; i < variant_count; ++i) {
-      find_variant_matches(parameters, data, hash_table, bloom_a, seed, variant_list[i], hits_data, hits_count);
+    // variant_list is pre-sized to an upper bound; only the first
+    // variant_count entries are valid for this call.
+    auto const variants = View<var_s>{variant_list.data(), variant_count};
+    for (auto const & var : variants) {
+      find_variant_matches(parameters, data, hash_table, bloom_a, seed, var, hits_data, hits_count);
     }
 
     return hits_count;
@@ -149,14 +150,13 @@ namespace {
         target_amplicon.link_count = hits_count;
 
         while (state.count + hits_count > state.network_v.size()) {
-          state.network_v.reserve(state.network_v.size() + one_megabyte);
           state.network_v.resize(state.network_v.size() + one_megabyte);
         }
 
-        for (auto k = 0U; k < hits_count; ++k) {
-          state.network_v[state.count] = hits_data[k];
-          ++state.count;
-        }
+        std::copy(hits_data.cbegin(),
+                  std::next(hits_data.cbegin(), hits_count),
+                  std::next(state.network_v.begin(), state.count));
+        state.count += hits_count;
       }
   }
 
