@@ -31,6 +31,7 @@
 #include <algorithm>  // std::sort()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstddef>  // std::size_t
 #include <cstdio>  // fputc(), fprintf()
 #include <iterator>  // std::next()
 #include <numeric>  // std::iota
@@ -50,6 +51,7 @@ auto write_network_file(const unsigned int number_of_networks,
   for (auto const& amplicon: ampinfo_v) {
     const auto link_start = amplicon.link_start;
     const auto link_count = amplicon.link_count;
+    assert(static_cast<std::size_t>(link_start) + link_count <= network_v.size());
 
     auto const neighbours = Span<unsigned int>{std::next(network_v.data(), link_start), link_count};
 
