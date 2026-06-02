@@ -24,6 +24,8 @@
 PROG := bin/swarm
 MAN  := man/swarm.1
 SRC  := src
+BASH_COMPLETION := completion/swarm.bash
+ZSH_COMPLETION  := completion/_swarm
 
 PREFIX ?= /usr/local
 exec_prefix := $(PREFIX)
@@ -31,6 +33,8 @@ datarootdir := $(PREFIX)/share
 bindir      := $(exec_prefix)/bin
 mandir      := $(datarootdir)/man
 man1dir     := $(mandir)/man1
+bashcompdir ?= $(datarootdir)/bash-completion/completions
+zshcompdir  ?= $(datarootdir)/zsh/site-functions
 
 INSTALL         ?= /usr/bin/install
 INSTALL_PROGRAM ?= $(INSTALL) -m 0755
@@ -38,7 +42,7 @@ INSTALL_DATA    ?= $(INSTALL) -m 0644
 MKDIR_P         ?= $(INSTALL) -d
 RM              ?= rm -f
 
-.PHONY: all swarm install uninstall clean distclean $(PROG)
+.PHONY: all swarm install install-completion uninstall clean distclean $(PROG)
 
 all: swarm
 
@@ -47,15 +51,23 @@ swarm: $(PROG)
 $(PROG):
 	$(MAKE) -C $(SRC)
 
-install: $(PROG) $(MAN)
+install: $(PROG) $(MAN) install-completion
 	$(MKDIR_P) $(DESTDIR)$(bindir)
 	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(bindir)
 	$(MKDIR_P) $(DESTDIR)$(man1dir)
 	$(INSTALL_DATA) $(MAN) $(DESTDIR)$(man1dir)
 
+install-completion: $(BASH_COMPLETION) $(ZSH_COMPLETION)
+	$(MKDIR_P) $(DESTDIR)$(bashcompdir)
+	$(INSTALL_DATA) $(BASH_COMPLETION) $(DESTDIR)$(bashcompdir)/swarm
+	$(MKDIR_P) $(DESTDIR)$(zshcompdir)
+	$(INSTALL_DATA) $(ZSH_COMPLETION) $(DESTDIR)$(zshcompdir)/_swarm
+
 uninstall:
 	$(RM) $(DESTDIR)$(bindir)/$(notdir $(PROG))
 	$(RM) $(DESTDIR)$(man1dir)/$(notdir $(MAN))
+	$(RM) $(DESTDIR)$(bashcompdir)/swarm
+	$(RM) $(DESTDIR)$(zshcompdir)/_swarm
 
 clean:
 	$(MAKE) -C $(SRC) clean
