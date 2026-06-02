@@ -79,14 +79,23 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
   assert(parameters.opt_bloom_bits <= 64);  // larger than expected
   assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
+
+  // bits_value is unsigned int (not uint64_t) to avoid a risky
+  // uint64 to double conversion warning in the multiplication
+  auto const hash_functions_for = [](unsigned int const bits_value) -> unsigned int {
+    return std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_value), 1U);
+  };
+  auto const bloom_bits_for = [nucleotides_in_small_clusters](uint64_t const bits_value) -> uint64_t {
+    return nucleotides_in_small_clusters * microvariants * bits_value;
+  };
+
   auto bits = static_cast<uint64_t>(parameters.opt_bloom_bits);
-  auto bits_uint = static_cast<unsigned int>(parameters.opt_bloom_bits);  // avoid risky conversion warning: uint64 to double
 
   // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
   // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
-  auto n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
+  auto n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
 
-  auto bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
+  auto bloom_length_in_bits = bloom_bits_for(bits);
 
   auto const memtotal = system_get_memtotal();
   auto const memused = system_get_memused();
@@ -108,9 +117,8 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
           }
           std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
           bits = new_bits;
-          bits_uint = static_cast<unsigned int>(new_bits);
-          n_hash_functions = std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_uint), 1U);
-          bloom_length_in_bits = nucleotides_in_small_clusters * microvariants * bits;
+          n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
+          bloom_length_in_bits = bloom_bits_for(bits);
         }
     }
 
