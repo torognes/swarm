@@ -36,8 +36,13 @@
 #include "utils/algod1_output.h"
 #include "utils/algod1_statistics.h"
 #include <algorithm>  // std::sort(), std::max()
+#include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
+
+#ifndef NDEBUG
+#include <limits>  // std::numeric_limits
+#endif
 
 
 namespace {
@@ -246,6 +251,16 @@ namespace {
     return swarmcount;
   }
 
+  // max number of microvariants = 7 * len + 4
+  auto compute_microvariant_buffer_size(unsigned int const longest_sequence) noexcept -> unsigned int
+  {
+    static constexpr auto multiplier = 7U;
+    static constexpr auto offset = 4U;
+    // guard against unsigned int overflow of 7 * len + 4 + 1
+    assert(longest_sequence <= (std::numeric_limits<unsigned int>::max() - offset - 1) / multiplier);
+    return (multiplier * longest_sequence) + offset + 1;
+  }
+
 } // namespace
 
 
@@ -260,10 +275,7 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   std::vector<struct swarminfo_s> swarminfo_v(one_kilobyte);
 
-  // max number of microvariants = 7 * len + 4
-  static constexpr auto multiplier = 7U;
-  static constexpr auto offset = 4U;
-  const auto global_hits_alloc = (multiplier * data.longest_sequence()) + offset + 1;
+  const auto global_hits_alloc = compute_microvariant_buffer_size(data.longest_sequence());
   std::vector<unsigned int> global_hits_v(global_hits_alloc);
 
 
