@@ -119,13 +119,10 @@ namespace {
                       std::vector<struct ampinfo_s> & ampinfo_v,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
-                      uint64_t nth_thread,
                       struct Network_state & state,
                       Progress & progress) -> void
   {
     std::size_t const n_items = compute_microvariant_buffer_size(data.longest_sequence());
-
-    (void) nth_thread;  // refactoring: unused?
 
     std::vector<unsigned int> hits_data(n_items);
     std::vector<struct var_s> variant_list(n_items);
@@ -193,8 +190,8 @@ auto build_amplicon_network(struct Parameters const & parameters,
   {
     auto const network_tr = utils::make_unique<ThreadRunner>(
         static_cast<std::size_t>(parameters.opt_threads),
-        [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t nth_thread) -> void {
-          network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, nth_thread, network_state, progress_network);
+        [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t /*nth_thread*/) -> void {
+          network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, network_state, progress_network);
         });
     network_tr->run();
   }

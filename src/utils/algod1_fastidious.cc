@@ -336,7 +336,6 @@ namespace {
                           Hashtable const & hash_table,
                           BloomFilter const & bloom_a,
                           BloomFilter const & bloom_f,
-                          uint64_t nth_thread,
                           struct Heavy_state & heavy_state,
                           struct Graft_state & graft_state,
                           Progress & progress) -> void
@@ -344,7 +343,6 @@ namespace {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
     static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
-    (void) nth_thread;  // refactoring: unused parameter, replace with function overload?
 
     std::vector<struct var_s> variant_list((multiplier * data.longest_sequence()) + offset);
     std::vector<struct var_s> variant_list2((multiplier * (data.longest_sequence() + 1)) + offset);
@@ -414,14 +412,11 @@ namespace {
                          Hashtable & hash_table,
                          BloomFilter & bloom_a,
                          BloomFilter & bloom_f,
-                         uint64_t nth_thread,
                          struct Light_state & state,
                          Progress & progress) -> void
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
-
-    (void) nth_thread;  // refactoring: unused?
 
     std::vector<struct var_s> variant_list((multiplier * data.longest_sequence()) + offset);
 
@@ -470,8 +465,8 @@ namespace {
     {
       auto const light_tr = utils::make_unique<ThreadRunner>(
           static_cast<std::size_t>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](uint64_t nth_thread) -> void {
-            mark_light_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, light_state, progress_light);
+          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](uint64_t /*nth_thread*/) -> void {
+            mark_light_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, light_state, progress_light);
           });
       light_tr->run();
     }
@@ -504,8 +499,8 @@ namespace {
     {
       auto const heavy_tr = utils::make_unique<ThreadRunner>(
           static_cast<std::size_t>(parameters.opt_threads),
-          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](uint64_t nth_thread) -> void {
-            check_heavy_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, nth_thread, heavy_state, graft_state, progress_heavy);
+          [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](uint64_t /*nth_thread*/) -> void {
+            check_heavy_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, heavy_state, graft_state, progress_heavy);
           });
       heavy_tr->run();
     }
