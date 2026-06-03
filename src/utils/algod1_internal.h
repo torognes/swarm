@@ -35,6 +35,7 @@
 #include "../db.h"
 #include "bloom.h"
 #include "hashtable.h"
+#include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <limits>  // unsigned int max
 #include <mutex>  // std::mutex
@@ -128,6 +129,15 @@ inline auto hash_insert(Data const & data,
   hash_table.set_value(index, hash);
   hash_table.set_data(index, amp);
   bloom_a.set(hash);
+}
+
+// max number of microvariants = 7 * len + 4
+inline auto compute_microvariant_buffer_size(unsigned int const longest_sequence) noexcept -> unsigned int {
+  static constexpr auto multiplier = 7U;
+  static constexpr auto offset = 4U;
+  // guard against unsigned int overflow of 7 * len + 4 + 1
+  assert(longest_sequence <= (std::numeric_limits<unsigned int>::max() - offset - 1) / multiplier);
+  return (multiplier * longest_sequence) + offset + 1;
 }
 
 #endif  // SWARM_UTILS_ALGOD1_INTERNAL_H

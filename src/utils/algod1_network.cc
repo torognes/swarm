@@ -123,9 +123,7 @@ namespace {
                       struct Network_state & state,
                       Progress & progress) -> void
   {
-    static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
-    static constexpr auto offset = 4U;
-    std::size_t const n_items = (multiplier * data.longest_sequence()) + offset + 1;
+    std::size_t const n_items = compute_microvariant_buffer_size(data.longest_sequence());
 
     (void) nth_thread;  // refactoring: unused?
 
