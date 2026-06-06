@@ -543,6 +543,167 @@ namespace {
 
     search_end(search_state);
   }
+
+
+  auto start_new_cluster(Pool_cursor & cursor,
+                         unsigned int const swarmid,
+                         std::vector<struct ampliconinfo_s> & amps_v,
+                         Cluster_state & state,
+                         Cluster_workspace & workspace,
+                         Data const & data) -> uint64_t {
+    /* process each initial seed */
+    workspace.qgramamps_v.clear();
+
+    auto const seedindex = cursor.seeded;
+    ++cursor.seeded;
+
+    amps_v[seedindex].swarmid = swarmid;
+
+    uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
+    workspace.hits[state.hitcount] = seedampliconid;
+    ++state.hitcount;
+
+    auto const abundance = data.abundance(seedampliconid);
+    state.amplicons_copies += abundance;
+    if (abundance == 1) {
+      ++state.singletons;
+    }
+
+    ++cursor.swarmed;
+
+    return seedampliconid;
+  }
+
+
+  auto seed_first_generation(Search_context const & ctx,
+                             Pool_cursor & cursor,
+                             unsigned int const swarmid,
+                             uint64_t const seedindex,
+                             std::vector<struct ampliconinfo_s> & amps_v,
+                             Cluster_workspace & workspace,
+                             Cluster_state & state) -> void {
+    /* find diff estimates between seed and each amplicon in pool */
+    uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
+    auto const seed_abundance = ctx.data.abundance(seedampliconid);
+
+    uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed, seed_abundance,
+                                                            ctx.parameters, ctx.data,
+                                                            amps_v, workspace);
+
+    ctx.qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
+
+    uint64_t targetcount = 0;
+    for (auto i = 0ULL; i < listlen; ++i) {
+      auto const poolampliconid = workspace.qgramamps_v[i];
+      auto const diff = workspace.qgramdiffs_v[i];
+      assert(diff <= std::numeric_limits<unsigned int>::max());
+      amps_v[cursor.swarmed + i].diffestimate = static_cast<unsigned int>(diff);
+      if (diff <= static_cast<uint64_t>(ctx.parameters.opt_differences)) {
+        workspace.targetindices[targetcount] = cursor.swarmed + i;
+        workspace.targetampliconids[targetcount] = poolampliconid;
+        ++targetcount;
+      }
+    }
+
+    if (targetcount == 0) { return; }
+
+    search_do(ctx.parameters, ctx.data, ctx.search_state, seedampliconid, targetcount, workspace.targetampliconids.data(),
+              workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
+
+    for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
+      auto const diff = workspace.diffs_v[target_id];
+
+      if (diff > static_cast<uint64_t>(ctx.parameters.opt_differences)) { continue; }
+      auto const target = workspace.targetindices[target_id];
+
+      /* move the 'target' to the position ('swarmed')
+         of the first unswarmed amplicon in the pool */
+      move_target_to_first_unswarmed_position(cursor.swarmed, target, amps_v);
+
+      include_amplicon_in_cluster(cursor.swarmed, diff, swarmid,
+                                  amps_v[seedindex], amps_v, workspace.hits,
+                                  state, ctx.parameters, ctx.data);
+      ++cursor.swarmed;
+    }
+  }
+
+
+  auto grow_cluster_from_subseeds(Search_context const & ctx,
+                                  Pool_cursor & cursor,
+                                  unsigned int const swarmid,
+                                  uint64_t const amplicons,
+                                  std::vector<struct ampliconinfo_s> & amps_v,
+                                  Cluster_workspace & workspace,
+                                  Cluster_state & state) -> void {
+    while (cursor.seeded < cursor.swarmed) {
+
+      /* process each subseed */
+
+      auto const & subseed = amps_v[cursor.seeded];
+
+      ++cursor.seeded;
+
+      uint64_t targetcount = 0;
+
+      auto const subseedlistlen = build_subseed_candidate_list(cursor.swarmed, amplicons,
+                                                               subseed, ctx.parameters,
+                                                               ctx.data, amps_v, workspace);
+
+      ctx.qgram_differ.fast(subseed.ampliconid,
+                            workspace.qgramamps_v, workspace.qgramdiffs_v);
+
+      for (auto i = 0ULL; i < subseedlistlen; ++i) {
+        if (workspace.qgramdiffs_v[i] <= static_cast<uint64_t>(ctx.parameters.opt_differences)) {
+          workspace.targetindices[targetcount] = workspace.qgramindices_v[i];
+          workspace.targetampliconids[targetcount] = workspace.qgramamps_v[i];
+          ++targetcount;
+        }
+      }
+
+      if (targetcount == 0) { continue; }
+
+      search_do(ctx.parameters, ctx.data, ctx.search_state, subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
+                workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
+
+      for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
+        auto const diff = workspace.diffs_v[target_id];
+
+        if (diff > static_cast<uint64_t>(ctx.parameters.opt_differences)) { continue; }
+        auto const target = workspace.targetindices[target_id];
+
+        /* find correct position in list */
+
+        auto const pos = find_correct_position_in_list(cursor.swarmed, target, cursor.seeded,
+                                                       subseed, amps_v);
+
+        move_target_to_first_unswarmed_position(pos, target, amps_v);
+
+        include_amplicon_in_cluster(pos, diff, swarmid, subseed,
+                                    amps_v, workspace.hits, state,
+                                    ctx.parameters, ctx.data);
+        ++cursor.swarmed;
+      }
+    }
+  }
+
+
+  auto write_cluster_outputs(unsigned int const swarmid,
+                             uint64_t const seedampliconid,
+                             Cluster_state const & state,
+                             std::vector<uint64_t> const & hits,
+                             NwAligner * const aligner,
+                             struct Parameters const & parameters,
+                             Data const & data) -> void {
+    if (parameters.uclustfile.get() != nullptr) {
+      write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, state.hitcount, hits,
+                           *aligner, parameters, data);
+    }
+
+    if (parameters.statsfile.get() != nullptr) {
+      write_stats_line(state.swarmsize, state.amplicons_copies, state.singletons,
+                       state.maxgen, state.maxradius, seedampliconid, parameters, data);
+    }
+  }
 } // namespace
 
 
@@ -596,141 +757,25 @@ auto algo_run(struct Parameters const & parameters,
   Progress progress("Clustering:       ", amplicons, parameters);
   while (cursor.seeded < amplicons) {
 
-      /* process each initial seed */
-
       ++swarmid;
-      workspace.qgramamps_v.clear();
-
       Cluster_state state;
-      uint64_t seedindex {0};
+      uint64_t const seedindex = cursor.seeded;
 
-      seedindex = cursor.seeded;
-      ++cursor.seeded;
+      uint64_t const seedampliconid = start_new_cluster(cursor, swarmid, amps_v,
+                                                        state, workspace, data);
 
-      amps_v[seedindex].swarmid = swarmid;
+      seed_first_generation(ctx, cursor, swarmid, seedindex,
+                            amps_v, workspace, state);
 
-      uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
-      workspace.hits[state.hitcount] = seedampliconid;
-      ++state.hitcount;
-
-      auto const abundance = data.abundance(seedampliconid);
-      state.amplicons_copies += abundance;
-      if (abundance == 1) {
-        ++state.singletons;
-      }
-
-      ++cursor.swarmed;
-
-
-      /* find diff estimates between seed and each amplicon in pool */
-
-      uint64_t targetcount = 0;
-
-      uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed, abundance,
-                                                              parameters, data,
-                                                              amps_v, workspace);
-
-      ctx.qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
-
-
-      for (auto i = 0ULL; i < listlen; ++i) {
-          auto const poolampliconid = workspace.qgramamps_v[i];
-          auto const diff = workspace.qgramdiffs_v[i];
-          assert(diff <= std::numeric_limits<unsigned int>::max());
-          amps_v[cursor.swarmed + i].diffestimate = static_cast<unsigned int>(diff);
-          if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
-              workspace.targetindices[targetcount] = cursor.swarmed + i;
-              workspace.targetampliconids[targetcount] = poolampliconid;
-              ++targetcount;
-            }
-        }
-
-      if (targetcount > 0) {
-          search_do(ctx.parameters, ctx.data, ctx.search_state, seedampliconid, targetcount, workspace.targetampliconids.data(),
-                    workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
-
-          for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
-              auto const diff = workspace.diffs_v[target_id];
-
-              if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
-                  auto const target = workspace.targetindices[target_id];
-
-                  /* move the 'target' to the position ('swarmed')
-                     of the first unswarmed amplicon in the pool */
-                  move_target_to_first_unswarmed_position(cursor.swarmed, target, amps_v);
-
-                  include_amplicon_in_cluster(cursor.swarmed, diff, swarmid,
-                                              amps_v[seedindex], amps_v, workspace.hits,
-                                              state, parameters, data);
-                  ++cursor.swarmed;
-                }
-            }
-
-
-          while (cursor.seeded < cursor.swarmed) {
-
-              /* process each subseed */
-
-              auto const & subseed = amps_v[cursor.seeded];
-
-              ++cursor.seeded;
-
-              targetcount = 0;
-
-              auto const subseedlistlen = build_subseed_candidate_list(cursor.swarmed, amplicons,
-                                                                       subseed, parameters,
-                                                                       data, amps_v, workspace);
-
-              ctx.qgram_differ.fast(subseed.ampliconid,
-                                    workspace.qgramamps_v, workspace.qgramdiffs_v);
-
-              for (auto i = 0ULL; i < subseedlistlen; ++i) {
-                if (workspace.qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
-                  workspace.targetindices[targetcount] = workspace.qgramindices_v[i];
-                  workspace.targetampliconids[targetcount] = workspace.qgramamps_v[i];
-                  ++targetcount;
-                }
-              }
-
-              if (targetcount == 0) { continue; }
-
-              search_do(ctx.parameters, ctx.data, ctx.search_state, subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
-                        workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
-
-              for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
-                  auto const diff = workspace.diffs_v[target_id];
-
-                  if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
-                  auto const target = workspace.targetindices[target_id];
-
-                  /* find correct position in list */
-
-                  auto const pos = find_correct_position_in_list(cursor.swarmed, target, cursor.seeded,
-                                                                 subseed, amps_v);
-
-                  move_target_to_first_unswarmed_position(pos, target, amps_v);
-
-                  include_amplicon_in_cluster(pos, diff, swarmid, subseed,
-                                              amps_v, workspace.hits, state,
-                                              parameters, data);
-                  ++cursor.swarmed;
-                }
-            }
-        }
+      grow_cluster_from_subseeds(ctx, cursor, swarmid, amplicons,
+                                 amps_v, workspace, state);
 
       largestswarm = std::max(state.swarmsize, largestswarm);
       maxgenerations = std::max(state.maxgen, maxgenerations);
 
-      if (parameters.uclustfile.get() != nullptr) {
-        write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, state.hitcount, workspace.hits,
-                             *aligner, parameters, data);
-      }
+      write_cluster_outputs(swarmid, seedampliconid, state, workspace.hits,
+                            aligner.get(), parameters, data);
 
-
-      if (parameters.statsfile.get() != nullptr) {
-        write_stats_line(state.swarmsize, state.amplicons_copies, state.singletons,
-                         state.maxgen, state.maxradius, seedampliconid, parameters, data);
-      }
       progress.update(cursor.seeded);
   }
   progress.done();
