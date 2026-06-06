@@ -70,6 +70,15 @@ namespace {
   };
 
 
+  // Cursors into the amplicon pool, shared across all clusters. Bundled
+  // into a struct so they are never passed as two swappable uint64_t
+  // arguments to the clustering helpers.
+  struct Pool_cursor {
+    uint64_t seeded {0};   // amplicons whose subseed expansion is complete
+    uint64_t swarmed {0};  // amplicons already assigned to a swarm
+  };
+
+
   struct Cluster_workspace {
     std::vector<uint64_t> targetampliconids;
     std::vector<uint64_t> targetindices;
@@ -562,13 +571,12 @@ auto algo_run(struct Parameters const & parameters,
   set_amplicon_ids(amps_v);
   auto const bits = set_bit_mode(parameters);
 
-  uint64_t seeded = 0;
-  uint64_t swarmed = 0;
+  Pool_cursor cursor;
 
   auto swarmid = 0U;
 
   Progress progress("Clustering:       ", amplicons, parameters);
-  while (seeded < amplicons) {
+  while (cursor.seeded < amplicons) {
 
       /* process each initial seed */
 
@@ -578,8 +586,8 @@ auto algo_run(struct Parameters const & parameters,
       Cluster_state state;
       uint64_t seedindex {0};
 
-      seedindex = seeded;
-      ++seeded;
+      seedindex = cursor.seeded;
+      ++cursor.seeded;
 
       amps_v[seedindex].swarmid = swarmid;
 
@@ -593,14 +601,14 @@ auto algo_run(struct Parameters const & parameters,
         ++state.singletons;
       }
 
-      ++swarmed;
+      ++cursor.swarmed;
 
 
       /* find diff estimates between seed and each amplicon in pool */
 
       uint64_t targetcount = 0;
 
-      uint64_t const listlen = build_remaining_amplicons_list(swarmed, abundance,
+      uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed, abundance,
                                                               parameters, data,
                                                               amps_v, workspace);
 
@@ -611,9 +619,9 @@ auto algo_run(struct Parameters const & parameters,
           auto const poolampliconid = workspace.qgramamps_v[i];
           auto const diff = workspace.qgramdiffs_v[i];
           assert(diff <= std::numeric_limits<unsigned int>::max());
-          amps_v[swarmed + i].diffestimate = static_cast<unsigned int>(diff);
+          amps_v[cursor.swarmed + i].diffestimate = static_cast<unsigned int>(diff);
           if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
-              workspace.targetindices[targetcount] = swarmed + i;
+              workspace.targetindices[targetcount] = cursor.swarmed + i;
               workspace.targetampliconids[targetcount] = poolampliconid;
               ++targetcount;
             }
@@ -631,27 +639,27 @@ auto algo_run(struct Parameters const & parameters,
 
                   /* move the 'target' to the position ('swarmed')
                      of the first unswarmed amplicon in the pool */
-                  move_target_to_first_unswarmed_position(swarmed, target, amps_v);
+                  move_target_to_first_unswarmed_position(cursor.swarmed, target, amps_v);
 
-                  include_amplicon_in_cluster(swarmed, diff, swarmid,
+                  include_amplicon_in_cluster(cursor.swarmed, diff, swarmid,
                                               amps_v[seedindex], amps_v, workspace.hits,
                                               state, parameters, data);
-                  ++swarmed;
+                  ++cursor.swarmed;
                 }
             }
 
 
-          while (seeded < swarmed) {
+          while (cursor.seeded < cursor.swarmed) {
 
               /* process each subseed */
 
-              auto const & subseed = amps_v[seeded];
+              auto const & subseed = amps_v[cursor.seeded];
 
-              ++seeded;
+              ++cursor.seeded;
 
               targetcount = 0;
 
-              auto const subseedlistlen = build_subseed_candidate_list(swarmed, amplicons,
+              auto const subseedlistlen = build_subseed_candidate_list(cursor.swarmed, amplicons,
                                                                        subseed, parameters,
                                                                        data, amps_v, workspace);
 
@@ -679,7 +687,7 @@ auto algo_run(struct Parameters const & parameters,
 
                   /* find correct position in list */
 
-                  auto const pos = find_correct_position_in_list(swarmed, target, seeded,
+                  auto const pos = find_correct_position_in_list(cursor.swarmed, target, cursor.seeded,
                                                                  subseed, amps_v);
 
                   move_target_to_first_unswarmed_position(pos, target, amps_v);
@@ -687,7 +695,7 @@ auto algo_run(struct Parameters const & parameters,
                   include_amplicon_in_cluster(pos, diff, swarmid, subseed,
                                               amps_v, workspace.hits, state,
                                               parameters, data);
-                  ++swarmed;
+                  ++cursor.swarmed;
                 }
             }
         }
@@ -705,7 +713,7 @@ auto algo_run(struct Parameters const & parameters,
         write_stats_line(state.swarmsize, state.amplicons_copies, state.singletons,
                          state.maxgen, state.maxradius, seedampliconid, parameters, data);
       }
-      progress.update(seeded);
+      progress.update(cursor.seeded);
   }
   progress.done();
 
