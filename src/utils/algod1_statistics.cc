@@ -33,6 +33,7 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>  // fprintf()
 #include <limits>  // unsigned int max
+#include <vector>  // std::vector
 
 
 auto count_cluster_stats(struct Parameters const & parameters,
