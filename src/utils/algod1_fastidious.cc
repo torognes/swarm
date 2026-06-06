@@ -193,7 +193,7 @@ namespace {
           attach(parent, child, ampinfo_v, swarminfo_v, overall_stats);
           ++grafts;
         }
-      progress.update();
+      progress.increment();
     }
     progress.done();
     return grafts;

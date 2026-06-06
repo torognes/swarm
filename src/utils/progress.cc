@@ -60,7 +60,7 @@ auto Progress::update(uint64_t const current) -> void {
 }
 
 
-auto Progress::update() -> void {
+auto Progress::increment() -> void {
   ++counter;
   update(counter);
 }

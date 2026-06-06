@@ -240,7 +240,7 @@ namespace {
                        network_v, global_hits_v, overall_stats);
             ++swarmcount;
           }
-        progress_cluster.update();
+        progress_cluster.increment();
       }
     progress_cluster.done();
     return swarmcount;

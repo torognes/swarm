@@ -111,7 +111,7 @@ namespace {
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
       std::fputc('\n', parameters.seeds_file.get());
       data.fprintseq(parameters.seeds_file.get(), swarm_seed);
-      progress.update();
+      progress.increment();
     }
     progress.done();
   }

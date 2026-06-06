@@ -41,11 +41,11 @@ public:
   // this method.
   auto update(uint64_t current) -> void;
 
-  // Convenience overload for single-threaded callers: increments the
+  // Convenience method for single-threaded callers: increments the
   // internal counter by one and reports the new value. Not safe to
   // call from multiple threads concurrently; multi-threaded callers
-  // must keep using the explicit-counter overload above.
-  auto update() -> void;
+  // must keep using the explicit-counter update() above.
+  auto increment() -> void;
 
   auto done() const -> void;
 

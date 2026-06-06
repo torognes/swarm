@@ -732,7 +732,7 @@ namespace {
         find_abundance(a_sequence, seq_stats, entry_it->lineno,
                        parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
-        progress_hdr.update();
+        progress_hdr.increment();
         ++entry_it;
       }
     progress_hdr.done();
@@ -758,7 +758,7 @@ namespace {
     Progress progress_dup("Checking identifiers:", seq_stats.n_sequences, parameters);
     for (auto const & a_sequence: seqindex_v) {
         register_unique_identifier(hdr_table, compute_identifier_view(a_sequence));
-        progress_dup.update();
+        progress_dup.increment();
       }
     progress_dup.done();
   }
@@ -774,7 +774,7 @@ namespace {
     Progress progress_hash("Indexing sequences:", seq_stats.n_sequences, parameters);
     for (auto & a_sequence: seqindex_v) {
         a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
-        progress_hash.update();
+        progress_hash.increment();
       }
     progress_hash.done();
   }
@@ -796,7 +796,7 @@ namespace {
             seq_stats.has_duplicates = true;
             break;
           }
-        progress_dup.update();
+        progress_dup.increment();
       }
     // Skip done() on the duplicate-detection break: the caller will
     // abort_if_duplicated_sequences() and printing 100% would be misleading.

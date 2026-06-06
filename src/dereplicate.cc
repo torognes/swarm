@@ -95,7 +95,7 @@ namespace {
       std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
                    data.abundance(cluster.seqno_first),
                    cluster.singletons, 0U, 0U);
-      progress.update();
+      progress.increment();
     }
     progress.done();
   }
@@ -180,7 +180,7 @@ namespace {
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, cluster.mass, parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
       data.fprintseq(parameters.seeds_file.get(), seed);
-      progress.update();
+      progress.increment();
     }
     progress.done();
   }
@@ -213,7 +213,7 @@ namespace {
           next_identical = nextseqtab[next_identical];
         }
 
-      progress.update();
+      progress.increment();
     }
     std::fputc('\n', parameters.outfile.get());
 
@@ -242,7 +242,7 @@ namespace {
           next_identical = nextseqtab[next_identical];
         }
       std::fputc('\n', parameters.outfile.get());
-      progress.update();
+      progress.increment();
     }
 
     progress.done();

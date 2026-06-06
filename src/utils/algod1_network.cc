@@ -180,7 +180,7 @@ auto build_amplicon_network(struct Parameters const & parameters,
   for (auto k = 0U; k < amplicons; ++k)
     {
       hash_insert(data, hash_table, bloom_a, k);
-      progress_hash.update();
+      progress_hash.increment();
     }
 
   progress_hash.done();

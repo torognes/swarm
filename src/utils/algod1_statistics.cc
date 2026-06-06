@@ -53,7 +53,7 @@ auto count_cluster_stats(struct Parameters const & parameters,
           stats.nucleotides_in_small_clusters += swarm_info.sumlen;
           ++stats.small_clusters;
         }
-      progress_count.update();
+      progress_count.increment();
     }
   progress_count.done();
 

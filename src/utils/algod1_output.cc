@@ -67,7 +67,7 @@ auto write_network_file(const unsigned int number_of_networks,
         std::fprintf(parameters.network_file.get(), "\t");
         data.fprint_id(parameters.network_file.get(), neighbour, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         std::fprintf(parameters.network_file.get(), "\n");
-        progress.update();
+        progress.increment();
       }
     ++counter;
   }
@@ -195,7 +195,7 @@ namespace {
         }
 
       ++cluster_no;
-      progress.update();
+      progress.increment();
     }
     progress.done();
   }
@@ -244,7 +244,7 @@ namespace {
                                    parameters.opt_usearch_abundance);
       std::fprintf(parameters.seeds_file.get(), "\n");
       data.fprintseq(parameters.seeds_file.get(), seed);
-      progress.update();
+      progress.increment();
     }
 
     progress.done();
@@ -320,7 +320,7 @@ namespace {
       std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
                    data.abundance(swarm_info.seed),
                    swarm_info.singletons, swarm_info.maxgen, swarm_info.maxgen);
-      progress.update();
+      progress.increment();
     }
     progress.done();
   }
