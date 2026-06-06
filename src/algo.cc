@@ -23,6 +23,7 @@
 
 #include "swarm.h"
 #include "db.h"
+#include "utils/algo_internal.h"
 #include "utils/qgram.h"
 #include "utils/nw_aligner.h"
 #include "scan.h"
@@ -44,80 +45,6 @@
 
 
 namespace {
-
-  struct ampliconinfo_s {
-    unsigned int ampliconid {0};
-    unsigned int diffestimate {0}; /* lower bound estimate of dist from initial seed */
-    unsigned int swarmid {0};
-    unsigned int generation {0};
-    unsigned int radius {0}; /* actual diff from initial seed */
-  };
-
-  struct swarminfo_t {
-    uint64_t mass {0};
-    unsigned int seed {0};
-    int dummy {0}; /* alignment padding only */
-  };
-
-
-  struct Cluster_state {
-    uint64_t swarmsize {1};         // a cluster cannot be empty
-    uint64_t amplicons_copies {0};  // total abundance of the cluster
-    uint64_t singletons {0};
-    uint64_t hitcount {0};
-    uint64_t maxradius {0};
-    uint64_t maxgen {1};            // a cluster can't contain less than 1 generation
-  };
-
-
-  // Cursors into the amplicon pool, shared across all clusters. Bundled
-  // into a struct so they are never passed as two swappable uint64_t
-  // arguments to the clustering helpers.
-  struct Pool_cursor {
-    uint64_t seeded {0};   // amplicons whose subseed expansion is complete
-    uint64_t swarmed {0};  // amplicons already assigned to a swarm
-  };
-
-
-  struct Cluster_workspace {
-    std::vector<uint64_t> targetampliconids;
-    std::vector<uint64_t> targetindices;
-    std::vector<uint64_t> scores_v;
-    std::vector<uint64_t> diffs_v;
-    std::vector<uint64_t> alignlengths;
-    std::vector<uint64_t> qgramamps_v;
-    std::vector<uint64_t> qgramdiffs_v;
-    std::vector<uint64_t> qgramindices_v;
-    std::vector<uint64_t> hits;
-
-    explicit Cluster_workspace(uint64_t const amplicons)
-      : targetampliconids(amplicons),
-        targetindices(amplicons),
-        scores_v(amplicons),
-        diffs_v(amplicons),
-        alignlengths(amplicons),
-        qgramdiffs_v(amplicons),
-        hits(amplicons) {
-      qgramamps_v.reserve(amplicons);
-      qgramindices_v.reserve(amplicons);
-    }
-  };
-
-
-  // Read-only bundle of the search machinery shared by every cluster:
-  // the qgram pre-filter, the alignment search engine and its worker
-  // threads. Holds references/pointers only, so it is cheap to pass and
-  // owns nothing. (search_state and qgram_differ are mutated through
-  // their references; the surrounding const only fixes the bindings.)
-  struct Search_context {
-    struct Parameters const & parameters;
-    Data const & data;
-    QgramDiffer & qgram_differ;
-    struct Search_state & search_state;
-    ThreadRunner * search_threads;
-    int bits;
-  };
-
 
   auto set_amplicon_ids(std::vector<struct ampliconinfo_s> & amplicons) -> void {
     // a simple id based on input order
