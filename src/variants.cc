@@ -28,13 +28,11 @@
 #include "variants.h"
 #include <algorithm>  // std::copy
 #include <cassert>  // assert
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // uint64_t
+#include <cstring>  // std::memcpy
 #include <iterator>  // std::next
 #include <vector>
-
-#ifndef NDEBUG
-#include <cstddef>  // std::size_t
-#endif
 
 
 
@@ -55,9 +53,19 @@ namespace {
     const auto whichlong = pos >> divider;
     const uint64_t shift = static_cast<uint64_t>(pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
     const uint64_t mask = compl (two_bits << shift);
-    auto & mutated_position = *std::next(reinterpret_cast<uint64_t *>(seq.data()), whichlong);
+    // read-modify-write the target 64-bit word. std::memcpy avoids the
+    // strict-aliasing undefined behaviour of punning a char buffer through
+    // a uint64_t* (see C++ Weekly #185); optimisers fold the round-trip
+    // back into a single load and store.
+    // C++20 refactoring: std::bit_cast
+    const auto byte_offset = static_cast<std::ptrdiff_t>(whichlong)
+                           * static_cast<std::ptrdiff_t>(sizeof(uint64_t));
+    char * const target_word = std::next(seq.data(), byte_offset);
+    uint64_t mutated_position {0};
+    std::memcpy(&mutated_position, target_word, sizeof(mutated_position));
     mutated_position &= mask;
     mutated_position |= (static_cast<uint64_t>(base)) << shift;
+    std::memcpy(target_word, &mutated_position, sizeof(mutated_position));
   }
 
 
