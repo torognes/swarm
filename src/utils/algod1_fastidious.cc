@@ -24,7 +24,7 @@
 #include "algod1_fastidious.h"
 #include "../swarm.h"
 #include "../db.h"
-#include "../variants.h"
+#include "variants.h"
 #include "algod1_internal.h"
 #include "algod1_statistics.h"
 #include "bloom.h"

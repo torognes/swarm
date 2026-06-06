@@ -21,10 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "db.h"
-#include "utils/nt_codec.h"
-#include "utils/span.h"
-#include "utils/view.h"
+#include "../db.h"
+#include "nt_codec.h"
+#include "span.h"
+#include "view.h"
 #include "variants.h"
 #include <algorithm>  // std::copy
 #include <cassert>  // assert

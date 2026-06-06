@@ -24,7 +24,7 @@
 #include "algod1_network.h"
 #include "../swarm.h"
 #include "../db.h"
-#include "../variants.h"
+#include "variants.h"
 #include "algod1_internal.h"
 #include "bloom.h"
 #include "hashtable.h"
