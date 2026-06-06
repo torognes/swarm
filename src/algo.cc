@@ -104,6 +104,21 @@ namespace {
   };
 
 
+  // Read-only bundle of the search machinery shared by every cluster:
+  // the qgram pre-filter, the alignment search engine and its worker
+  // threads. Holds references/pointers only, so it is cheap to pass and
+  // owns nothing. (search_state and qgram_differ are mutated through
+  // their references; the surrounding const only fixes the bindings.)
+  struct Search_context {
+    struct Parameters const & parameters;
+    Data const & data;
+    QgramDiffer & qgram_differ;
+    struct Search_state & search_state;
+    ThreadRunner * search_threads;
+    int bits;
+  };
+
+
   auto set_amplicon_ids(std::vector<struct ampliconinfo_s> & amplicons) -> void {
     // a simple id based on input order
     auto index = 0U;
@@ -571,6 +586,9 @@ auto algo_run(struct Parameters const & parameters,
   set_amplicon_ids(amps_v);
   auto const bits = set_bit_mode(parameters);
 
+  Search_context const ctx {parameters, data, qgram_differ,
+                            search_state, search_threads.get(), bits};
+
   Pool_cursor cursor;
 
   auto swarmid = 0U;
@@ -612,7 +630,7 @@ auto algo_run(struct Parameters const & parameters,
                                                               parameters, data,
                                                               amps_v, workspace);
 
-      qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
+      ctx.qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
 
 
       for (auto i = 0ULL; i < listlen; ++i) {
@@ -628,8 +646,8 @@ auto algo_run(struct Parameters const & parameters,
         }
 
       if (targetcount > 0) {
-          search_do(parameters, data, search_state, seedampliconid, targetcount, workspace.targetampliconids.data(),
-                    workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits, search_threads.get());
+          search_do(ctx.parameters, ctx.data, ctx.search_state, seedampliconid, targetcount, workspace.targetampliconids.data(),
+                    workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
 
           for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
               auto const diff = workspace.diffs_v[target_id];
@@ -663,8 +681,8 @@ auto algo_run(struct Parameters const & parameters,
                                                                        subseed, parameters,
                                                                        data, amps_v, workspace);
 
-              qgram_differ.fast(subseed.ampliconid,
-                                workspace.qgramamps_v, workspace.qgramdiffs_v);
+              ctx.qgram_differ.fast(subseed.ampliconid,
+                                    workspace.qgramamps_v, workspace.qgramdiffs_v);
 
               for (auto i = 0ULL; i < subseedlistlen; ++i) {
                 if (workspace.qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
@@ -676,8 +694,8 @@ auto algo_run(struct Parameters const & parameters,
 
               if (targetcount == 0) { continue; }
 
-              search_do(parameters, data, search_state, subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
-                        workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits, search_threads.get());
+              search_do(ctx.parameters, ctx.data, ctx.search_state, subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
+                        workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
 
               for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
                   auto const diff = workspace.diffs_v[target_id];
