@@ -107,9 +107,9 @@ namespace {
       auto const swarm_mass = seed.mass;
       auto const swarm_seed = seed.seed;
 
-      std::fprintf(parameters.seeds_file.get(), ">");
+      std::fputc('>', parameters.seeds_file.get());
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
-      std::fprintf(parameters.seeds_file.get(), "\n");
+      std::fputc('\n', parameters.seeds_file.get());
       data.fprintseq(parameters.seeds_file.get(), swarm_seed);
       progress.update();
     }
@@ -144,21 +144,22 @@ namespace {
                             NwAligner & aligner,
                             struct Parameters const & parameters,
                             Data const & data) -> void {
+    auto const seed_seq = data.sequence_view(seedampliconid);
+
     std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
             swarmid - 1, swarmsize);
     data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fprintf(parameters.uclustfile.get(), "\t*\n");
+    std::fputs("\t*\n", parameters.uclustfile.get());
 
     std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-            swarmid - 1, data.sequence_view(seedampliconid).length);
+            swarmid - 1, seed_seq.length);
     data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fprintf(parameters.uclustfile.get(), "\t*\n");
+    std::fputs("\t*\n", parameters.uclustfile.get());
     std::fflush(parameters.uclustfile.get());
 
     for (auto i = 1ULL; i < hitcount; ++i) {
       auto const hit = hits[i];
       auto const hit_seq = data.sequence_view(hit);
-      auto const seed_seq = data.sequence_view(seedampliconid);
 
       auto const result = aligner.align(hit_seq, seed_seq);
 
@@ -167,11 +168,40 @@ namespace {
                    result.differences > 0 ? result.cigar_string : "=");
 
       data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(parameters.uclustfile.get(), "\t");
+      std::fputc('\t', parameters.uclustfile.get());
       data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(parameters.uclustfile.get(), "\n");
+      std::fputc('\n', parameters.uclustfile.get());
       std::fflush(parameters.uclustfile.get());
     }
+  }
+
+
+  // Separators in a one-line-per-swarm listing: 'within' joins amplicons
+  // of the same swarm, 'between' starts the next swarm.
+  struct Swarm_separators {
+    char within;
+    char between;
+  };
+
+
+  auto write_swarm_listing(uint64_t const amplicons,
+                           Swarm_separators const separators,
+                           struct Parameters const & parameters,
+                           Data const & data,
+                           std::vector<struct ampliconinfo_s> const & amps_v) -> void {
+    data.fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
+                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    auto previous_id = amps_v[0].swarmid;
+
+    for (auto i = 1ULL; i < amplicons; ++i) {
+        auto const current_id = amps_v[i].swarmid;
+        std::fputc(current_id == previous_id ? separators.within : separators.between,
+                   parameters.outfile.get());
+        data.fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
+                       parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+        previous_id = current_id;
+      }
+    std::fputc('\n', parameters.outfile.get());
   }
 
 } // namespace
@@ -182,26 +212,8 @@ auto write_swarms_default_format(uint64_t const amplicons,
                                  Data const & data,
                                  std::vector<struct ampliconinfo_s> const & amps_v) -> void {
   /* native swarm output */
-  static constexpr char sepchar {' '};  /* usually a space */
-  static constexpr char sep_swarms {'\n'};
-
-  data.fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
-            parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-  int64_t previous_id = amps_v[0].swarmid;
-
-  for (auto i = 1ULL; i < amplicons; ++i) {
-      int64_t const current_id = amps_v[i].swarmid;
-      if (current_id == previous_id) {
-        std::fputc(sepchar, parameters.outfile.get());
-      }
-      else {
-        std::fputc(sep_swarms, parameters.outfile.get());
-      }
-      data.fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
-                parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      previous_id = current_id;
-    }
-  std::fputc('\n', parameters.outfile.get());
+  static constexpr Swarm_separators separators {' ' /* usually a space */, '\n'};
+  write_swarm_listing(amplicons, separators, parameters, data, amps_v);
 }
 
 
@@ -211,29 +223,9 @@ auto write_swarms_mothur_format(uint64_t const amplicons,
                                 Data const & data,
                                 std::vector<struct ampliconinfo_s> const & amps_v) -> void {
   /* mothur list file output */
-  static constexpr char sep_amplicons {','};
-  static constexpr char sep_swarms {'\t'};
-
+  static constexpr Swarm_separators separators {',', '\t'};
   std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
-
-  data.fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
-            parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-  int64_t previous_id = amps_v[0].swarmid;
-
-  for (auto i = 1ULL; i < amplicons; ++i) {
-      int64_t const current_id = amps_v[i].swarmid;
-      if (current_id == previous_id) {
-        std::fputc(sep_amplicons, parameters.outfile.get());
-      }
-      else {
-        std::fputc(sep_swarms, parameters.outfile.get());
-      }
-      data.fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
-                parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      previous_id = current_id;
-    }
-
-  std::fputc('\n', parameters.outfile.get());
+  write_swarm_listing(amplicons, separators, parameters, data, amps_v);
 }
 
 
@@ -246,7 +238,7 @@ auto write_internal_structure_line(uint64_t const parent_id,
                                    Data const & data) -> void {
   data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                              parent_id, parameters.opt_usearch_abundance);
-  std::fprintf(parameters.internal_structure_file.get(), "\t");
+  std::fputc('\t', parameters.internal_structure_file.get());
   data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                              child_id, parameters.opt_usearch_abundance);
   std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
