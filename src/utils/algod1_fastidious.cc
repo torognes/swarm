@@ -130,7 +130,7 @@ namespace {
   auto count_pairs(std::vector<struct ampinfo_s> const & ampinfo_v) -> unsigned int {
     return static_cast<unsigned int>(
       std::count_if(ampinfo_v.cbegin(), ampinfo_v.cend(),
-                    [](struct ampinfo_s const & info) {
+                    [](struct ampinfo_s const & info) -> bool {
                       return info.graft_cand != no_swarm;
                     }));
   }
