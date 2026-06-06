@@ -176,10 +176,6 @@ namespace {
   // flush() at end-of-sequence writes the partially-filled buffer
   // padded with zeros (so the on-disk layout is unchanged).
   struct Nt_packer {
-    uint64_t buffer {0};
-    unsigned int filled {0};
-    static constexpr unsigned int capacity {4 * sizeof(buffer)};  // 32 bases per uint64
-
     auto push(uint64_t const mapped_minus_one,
               std::vector<char> & data_v, uint64_t & datalen) -> void
     {
@@ -187,6 +183,17 @@ namespace {
       ++filled;
       if (filled == capacity) { flush(data_v, datalen); }
     }
+
+    // flush the partially-filled buffer at end-of-sequence, if any
+    auto finalize(std::vector<char> & data_v, uint64_t & datalen) -> void
+    {
+      if (filled > 0) { flush(data_v, datalen); }
+    }
+
+  private:
+    uint64_t buffer {0};
+    unsigned int filled {0};
+    static constexpr unsigned int capacity {4 * sizeof(buffer)};  // 32 bases per uint64
 
     auto flush(std::vector<char> & data_v, uint64_t & datalen) -> void
     {
@@ -299,9 +306,7 @@ namespace {
 
     /* save remaining padded 64-bit value with nt's, if any */
 
-    if (packer.filled > 0) {
-      packer.flush(data_v, datalen);
-    }
+    packer.finalize(data_v, datalen);
   }
 
 
