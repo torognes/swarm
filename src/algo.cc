@@ -63,7 +63,7 @@ namespace {
     static constexpr auto bit_mode_16 = 16;
 
 #ifdef __aarch64__
-#if !defined(DEBUG) || !defined(COVERAGE)
+#if !defined(DEBUG) && !defined(COVERAGE)
     /* always use 16-bit version on aarch64 because it is faster */
     return bit_mode_16;
 #endif

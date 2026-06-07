@@ -90,7 +90,7 @@ else ifdef DEBUG
 
 # Run "make COVERAGE=1" to compile for coverage tests
 else ifdef COVERAGE
-	COMMON += -fprofile-arcs -ftest-coverage -O0
+	COMMON += -DCOVERAGE -fprofile-arcs -ftest-coverage -O0
 	LINKOPT += --coverage
 	LIBS += -lgcov
 endif
