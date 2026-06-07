@@ -27,7 +27,9 @@
 #include "../search16.h"
 #include "../swarm.h"
 #include "nt_codec.h"
+#include "queryinfo.h"
 #include "score_matrix.h"
+#include "search_data.h"  // Search_data, BYTE, WORD
 #include "threads.h"  // ThreadRunner
 #include <array>
 #include <cassert>  // assert()
