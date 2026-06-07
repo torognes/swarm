@@ -30,8 +30,6 @@
 #include "scan.h"
 #include "utils/make_unique.h"
 #include "utils/progress.h"
-#include "utils/search_data.h"
-#include "utils/threads.h"  // ThreadRunner
 #include <algorithm>  // std::min(), std::for_each
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -220,8 +218,7 @@ namespace {
                          uint64_t const maxgenerations,
                          struct Parameters const & parameters,
                          Data const & data,
-                         std::vector<struct ampliconinfo_s> const & amps_v,
-                         struct Search_state & search_state) -> void {
+                         std::vector<struct ampliconinfo_s> const & amps_v) -> void {
     /* output swarms */
     if (amplicons != 0) {
       if (parameters.opt_mothur) {
@@ -245,8 +242,6 @@ namespace {
     std::fprintf(parameters.logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
 
     std::fprintf(parameters.logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
-
-    search_end(search_state);
   }
 
 
@@ -281,8 +276,7 @@ namespace {
   auto seed_first_generation(struct Parameters const & parameters,
                              Data const & data,
                              QgramDiffer & qgram_differ,
-                             struct Search_state & search_state,
-                             ThreadRunner * const search_threads,
+                             Scanner & scanner,
                              int const bits,
                              Pool_cursor & cursor,
                              unsigned int const swarmid,
@@ -315,8 +309,8 @@ namespace {
 
     if (targetcount == 0) { return; }
 
-    search_do(parameters, data, search_state, seedampliconid, targetcount, workspace.targetampliconids.data(),
-              workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits, search_threads);
+    scanner.run(seedampliconid, targetcount, workspace.targetampliconids.data(),
+                workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits);
 
     for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
       auto const diff = workspace.diffs_v[target_id];
@@ -339,8 +333,7 @@ namespace {
   auto grow_cluster_from_subseeds(struct Parameters const & parameters,
                                   Data const & data,
                                   QgramDiffer & qgram_differ,
-                                  struct Search_state & search_state,
-                                  ThreadRunner * const search_threads,
+                                  Scanner & scanner,
                                   int const bits,
                                   Pool_cursor & cursor,
                                   unsigned int const swarmid,
@@ -375,8 +368,8 @@ namespace {
 
       if (targetcount == 0) { continue; }
 
-      search_do(parameters, data, search_state, subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
-                workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits, search_threads);
+      scanner.run(subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
+                  workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits);
 
       for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
         auto const diff = workspace.diffs_v[target_id];
@@ -405,15 +398,10 @@ namespace {
 
 auto algo_run(struct Parameters const & parameters,
               Data const & data) -> void {
-  std::vector<struct Search_data> search_data_v(static_cast<uint64_t>(parameters.opt_threads));
-  struct Search_state search_state;
-  search_begin(parameters, data, search_state, search_data_v);
-  /* start threads */
-  auto const search_threads = utils::make_unique<ThreadRunner>(
-      static_cast<std::size_t>(parameters.opt_threads),
-      [&parameters, &data, &search_state](uint64_t thread_id) -> void {
-        search_worker_core(parameters, data, thread_id, search_state);
-      });
+  // RAII: allocates per-thread scratch buffers and starts the worker
+  // pool; threads are joined when the Scanner is destroyed at end of
+  // algo_run scope.
+  Scanner scanner(parameters, data);
 
   uint64_t largestswarm {0};
   uint64_t maxgenerations {0};
@@ -458,12 +446,12 @@ auto algo_run(struct Parameters const & parameters,
                                                         state, workspace, data);
 
       seed_first_generation(parameters, data, qgram_differ,
-                            search_state, search_threads.get(), bits,
+                            scanner, bits,
                             cursor, swarmid, seedindex,
                             amps_v, workspace, state);
 
       grow_cluster_from_subseeds(parameters, data, qgram_differ,
-                                 search_state, search_threads.get(), bits,
+                                 scanner, bits,
                                  cursor, swarmid, amplicons,
                                  amps_v, workspace, state);
 
@@ -478,6 +466,6 @@ auto algo_run(struct Parameters const & parameters,
   progress.done();
 
   finalize_algo_run(amplicons, swarmid, largestswarm, maxgenerations,
-                    parameters, data, amps_v, search_state);
+                    parameters, data, amps_v);
 }
 

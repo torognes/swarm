@@ -27,11 +27,11 @@
 #include "search16.h"
 #include "swarm.h"
 #include "utils/nt_codec.h"
-#include "utils/search_data.h"
 #include "utils/score_matrix.h"
 #include "utils/threads.h"  // ThreadRunner
+#include <array>
 #include <cassert>  // assert()
-#include <cstddef>  // std::ptrdiff_t
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <iterator>
 #include <mutex>  // std::lock_guard
@@ -57,116 +57,6 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
     thread_data.dprofile_w_v.resize(1 * one_kilobyte);  // 4 * 2 * 8 * 32
     thread_data.hearray_v.resize(longestdbsequence * nt_per_uint64);
     thread_data.dir_array_v.resize(dirbuffersize);
-  }
-}
-
-
-auto search_init(struct Search_data & thread_data,
-                 struct queryinfo const & query) -> void {
-  static constexpr auto byte_multiplier = 64U;
-  static constexpr auto word_multiplier = 32U;
-
-  for (auto i = 0U; i < query.len; ++i) {
-    const auto nt_value = nt_extract(query.seq, i) + 1U;  // 1,  2,   3, or   4
-    const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
-    const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
-
-    // refactoring: difficult to work directly on vectors (thread barrier)
-    thread_data.qtable_v[i]   = &thread_data.dprofile_v[byte_offset];
-    thread_data.qtable_w_v[i] = &thread_data.dprofile_w_v[word_offset];
-  }
-}
-
-
-auto search_chunk(struct Parameters const & parameters,
-                  Data const & data,
-                  struct Search_data & thread_data,
-                  struct Search_state const & state,
-                  const int64_t bits) -> void {
-  static constexpr auto sixteen_bytes = 16;
-  alignas(sixteen_bytes) static auto score_matrix_8 = create_score_matrix<unsigned char>(parameters.penalty_mismatch);
-  alignas(sixteen_bytes) static auto score_matrix_16 = create_score_matrix<unsigned short>(parameters.penalty_mismatch);
-  static constexpr auto bit_mode_16 = 16U;
-  assert(thread_data.target_index <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const target_index = static_cast<std::ptrdiff_t>(thread_data.target_index);
-
-  assert(thread_data.target_count != 0);
-  assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
-
-  if (bits == bit_mode_16) {
-    assert(parameters.penalty_gapopen <= std::numeric_limits<WORD>::max());
-    assert(parameters.penalty_gapextend <= std::numeric_limits<WORD>::max());
-    search16(data,
-             thread_data.qtable_w_v,
-             static_cast<WORD>(parameters.penalty_gapopen),
-             static_cast<WORD>(parameters.penalty_gapextend),
-             score_matrix_16.data(),
-             thread_data.dprofile_w_v,
-             reinterpret_cast<WORD *>(thread_data.hearray_v.data()),
-             thread_data.target_count,
-             std::next(state.master_targets, target_index),
-             std::next(state.master_scores, target_index),
-             std::next(state.master_diffs, target_index),
-             std::next(state.master_alignlengths, target_index),
-             state.query.seq,
-             static_cast<uint64_t>(state.query.len),
-             thread_data.dir_array_v,
-             thread_data.cpu_features);
-  } else {
-    assert(parameters.penalty_gapopen <= std::numeric_limits<BYTE>::max());
-    assert(parameters.penalty_gapextend <= std::numeric_limits<BYTE>::max());
-    search8(data,
-            thread_data.qtable_v,
-            static_cast<BYTE>(parameters.penalty_gapopen),
-            static_cast<BYTE>(parameters.penalty_gapextend),
-            score_matrix_8.data(),
-            thread_data.dprofile_v,
-            thread_data.hearray_v.data(),
-            thread_data.target_count,
-            std::next(state.master_targets, target_index),
-            std::next(state.master_scores, target_index),
-            std::next(state.master_diffs, target_index),
-            std::next(state.master_alignlengths, target_index),
-            state.query.seq,
-            static_cast<uint64_t>(state.query.len),
-            thread_data.dir_array_v,
-            thread_data.cpu_features);
-  }
-}
-
-
-auto search_getwork(struct Search_state & state,
-                    uint64_t & countref, uint64_t & firstref) -> bool {
-  // countref = how many sequences to search
-  // firstref = index into master_targets/scores/diffs where thread should start
-
-  bool status {false};
-
-  std::lock_guard<std::mutex> const lock(state.scan_mutex);
-
-  if (state.master_next < state.master_length) {
-    const uint64_t chunksize =
-      ((state.master_length - state.master_next + state.remainingchunks - 1) / state.remainingchunks);
-
-    countref = chunksize;
-    firstref = state.master_next;
-
-    state.master_next += chunksize;
-    --state.remainingchunks;
-    status = true;
-  }
-
-  return status;
-}
-
-
-auto search_worker_core(struct Parameters const & parameters,
-                        Data const & data,
-                        const uint64_t thread_id, struct Search_state & state) -> void {
-  auto & thread_data = *std::next(state.search_data, static_cast<std::ptrdiff_t>(thread_id));
-  search_init(thread_data, state.query);
-  while (search_getwork(state, thread_data.target_count, thread_data.target_index)) {
-    search_chunk(parameters, data, thread_data, state, state.master_bits);
   }
 }
 
@@ -207,57 +97,20 @@ auto adjust_thread_number(const int n_bits,
 // static_assert(adjust_thread_number(16, 17,  1) == 1);
 
 
-auto search_do(struct Parameters const & parameters,
-               Data const & data,
-               struct Search_state & state,
-               const uint64_t query_no,
-               const uint64_t listlength,
-               uint64_t * targets,
-               uint64_t * scores,
-               uint64_t * diffs,
-               uint64_t * alignlengths,
-               const int bits,
-               ThreadRunner * search_threads) -> void {
-  auto query_len = 0U;
-  state.query.qno = query_no;
-  auto const & info = data.info(query_no);
-  state.query.seq = info.seq;
-  query_len = info.seqlen;
-  state.query.len = query_len;
+Scanner::Scanner(struct Parameters const & parameters,
+                 Data const & data)
+  : data_(data),
+    gapopen_(parameters.penalty_gapopen),
+    gapextend_(parameters.penalty_gapextend),
+    score_matrix_8_(create_score_matrix<unsigned char>(parameters.penalty_mismatch)),
+    score_matrix_16_(create_score_matrix<unsigned short>(parameters.penalty_mismatch)),
+    n_threads_(static_cast<uint64_t>(parameters.opt_threads)),
+    search_data_v_(static_cast<uint64_t>(parameters.opt_threads)),
+    threads_(static_cast<std::size_t>(parameters.opt_threads),
+             [this](uint64_t thread_id) -> void { worker_core(thread_id); }) {
+  allocate_per_thread_search_data(search_data_v_, data.longest_sequence());
 
-  state.master_next = 0;
-  state.master_length = listlength;
-  state.master_targets = targets;
-  state.master_scores = scores;
-  state.master_diffs = diffs;
-  state.master_alignlengths = alignlengths;
-  state.master_bits = bits;
-
-  const auto thr =
-    adjust_thread_number(bits,
-                         state.master_length,
-                         static_cast<uint64_t>(parameters.opt_threads));
-
-  state.remainingchunks = thr;
-
-  if (thr == 1) {
-    search_worker_core(parameters, data, 0, state);
-  }
-  else {
-    search_threads->run();
-  }
-}
-
-
-auto search_begin(struct Parameters const & parameters,
-                  Data const & data,
-                  struct Search_state & state,
-                  std::vector<struct Search_data> & search_data_v) -> void {
-  state.search_data = search_data_v.data();
-
-  allocate_per_thread_search_data(search_data_v, data.longest_sequence());
-
-  for (auto & thread_data : search_data_v) {
+  for (auto & thread_data : search_data_v_) {
     thread_data.cpu_features.ssse3 = (parameters.ssse3_present != 0);
     thread_data.cpu_features.sse41 = (parameters.sse41_present != 0);
     thread_data.cpu_features.popcnt = (parameters.popcnt_present != 0);
@@ -265,9 +118,133 @@ auto search_begin(struct Parameters const & parameters,
 }
 
 
-auto search_end(struct Search_state & state) -> void
-{
-  /* finish and clean up worker threads */
+auto Scanner::init(struct Search_data & thread_data) -> void {
+  static constexpr auto byte_multiplier = 64U;
+  static constexpr auto word_multiplier = 32U;
 
-  state.search_data = nullptr;
+  for (auto i = 0U; i < query_.len; ++i) {
+    const auto nt_value = nt_extract(query_.seq, i) + 1U;  // 1,  2,   3, or   4
+    const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
+    const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
+
+    // refactoring: difficult to work directly on vectors (thread barrier)
+    thread_data.qtable_v[i]   = &thread_data.dprofile_v[byte_offset];
+    thread_data.qtable_w_v[i] = &thread_data.dprofile_w_v[word_offset];
+  }
+}
+
+
+auto Scanner::chunk(struct Search_data & thread_data, const int64_t bits) -> void {
+  static constexpr auto bit_mode_16 = 16U;
+  assert(thread_data.target_index <= std::numeric_limits<std::ptrdiff_t>::max());
+  auto const target_index = static_cast<std::ptrdiff_t>(thread_data.target_index);
+
+  assert(thread_data.target_count != 0);
+  assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
+
+  if (bits == bit_mode_16) {
+    assert(gapopen_ <= std::numeric_limits<WORD>::max());
+    assert(gapextend_ <= std::numeric_limits<WORD>::max());
+    search16(data_.get(),
+             thread_data.qtable_w_v,
+             static_cast<WORD>(gapopen_),
+             static_cast<WORD>(gapextend_),
+             score_matrix_16_.data(),
+             thread_data.dprofile_w_v,
+             reinterpret_cast<WORD *>(thread_data.hearray_v.data()),
+             thread_data.target_count,
+             std::next(master_targets_, target_index),
+             std::next(master_scores_, target_index),
+             std::next(master_diffs_, target_index),
+             std::next(master_alignlengths_, target_index),
+             query_.seq,
+             static_cast<uint64_t>(query_.len),
+             thread_data.dir_array_v,
+             thread_data.cpu_features);
+  } else {
+    assert(gapopen_ <= std::numeric_limits<BYTE>::max());
+    assert(gapextend_ <= std::numeric_limits<BYTE>::max());
+    search8(data_.get(),
+            thread_data.qtable_v,
+            static_cast<BYTE>(gapopen_),
+            static_cast<BYTE>(gapextend_),
+            score_matrix_8_.data(),
+            thread_data.dprofile_v,
+            thread_data.hearray_v.data(),
+            thread_data.target_count,
+            std::next(master_targets_, target_index),
+            std::next(master_scores_, target_index),
+            std::next(master_diffs_, target_index),
+            std::next(master_alignlengths_, target_index),
+            query_.seq,
+            static_cast<uint64_t>(query_.len),
+            thread_data.dir_array_v,
+            thread_data.cpu_features);
+  }
+}
+
+
+auto Scanner::getwork(uint64_t & countref, uint64_t & firstref) -> bool {
+  // countref = how many sequences to search
+  // firstref = index into master_targets/scores/diffs where thread should start
+
+  bool status {false};
+
+  std::lock_guard<std::mutex> const lock(scan_mutex_);
+
+  if (master_next_ < master_length_) {
+    const uint64_t chunksize =
+      ((master_length_ - master_next_ + remainingchunks_ - 1) / remainingchunks_);
+
+    countref = chunksize;
+    firstref = master_next_;
+
+    master_next_ += chunksize;
+    --remainingchunks_;
+    status = true;
+  }
+
+  return status;
+}
+
+
+auto Scanner::worker_core(const uint64_t thread_id) -> void {
+  auto & thread_data = search_data_v_[thread_id];
+  init(thread_data);
+  while (getwork(thread_data.target_count, thread_data.target_index)) {
+    chunk(thread_data, master_bits_);
+  }
+}
+
+
+auto Scanner::run(const uint64_t query_no,
+                  const uint64_t listlength,
+                  uint64_t * targets,
+                  uint64_t * scores,
+                  uint64_t * diffs,
+                  uint64_t * alignlengths,
+                  const int bits) -> void {
+  auto const & info = data_.get().info(query_no);
+  query_.qno = query_no;
+  query_.seq = info.seq;
+  query_.len = info.seqlen;
+
+  master_next_ = 0;
+  master_length_ = listlength;
+  master_targets_ = targets;
+  master_scores_ = scores;
+  master_diffs_ = diffs;
+  master_alignlengths_ = alignlengths;
+  master_bits_ = bits;
+
+  const auto thr = adjust_thread_number(bits, master_length_, n_threads_);
+
+  remainingchunks_ = thr;
+
+  if (thr == 1) {
+    worker_core(0);
+  }
+  else {
+    threads_.run();
+  }
 }

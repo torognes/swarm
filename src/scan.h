@@ -21,49 +21,79 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "db.h"  // Data (stored as reference_wrapper member)
 #include "utils/queryinfo.h"
-#include "utils/threads.h"
+#include "utils/score_matrix.h"  // create_score_matrix, n_cells
+#include "utils/search_data.h"  // Search_data, BYTE, WORD
+#include "utils/threads.h"  // ThreadRunner
+#include <array>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
+#include <functional>  // std::reference_wrapper
 #include <mutex>
 #include <vector>
 
 
-struct Search_data;  // defined in utils/search_data.h
 struct Parameters;  // defined in swarm.h
-class  Data;        // defined in db.h
 
-struct Search_state
-{
-  std::mutex scan_mutex;
-  struct Search_data * search_data {nullptr};
-  struct queryinfo query {0, 0, nullptr};
-  uint64_t master_next {0};
-  uint64_t master_length {0};
-  uint64_t remainingchunks {0};
-  uint64_t * master_targets {nullptr};
-  uint64_t * master_scores {nullptr};
-  uint64_t * master_diffs {nullptr};
-  uint64_t * master_alignlengths {nullptr};
-  int master_bits {0};
+
+// Aligns the score matrices used by the SIMD search kernels on 8- and
+// 16-bit channels respectively, fanning the per-query work out over a
+// pool of worker threads.
+class Scanner {
+public:
+  Scanner(struct Parameters const & parameters,
+          Data const & data);
+
+  // Non-copyable, non-movable: the ThreadRunner's lambda captures
+  // `this`, so the object must keep a stable address.
+  Scanner(Scanner const &) = delete;
+  Scanner(Scanner &&) = delete;
+  auto operator=(Scanner const &) -> Scanner & = delete;
+  auto operator=(Scanner &&) -> Scanner & = delete;
+  ~Scanner() = default;
+
+  // searches the query against listlength targets, writing scores,
+  // diffs and alignment lengths back to the caller-owned arrays
+  auto run(uint64_t query_no,
+           uint64_t listlength,
+           uint64_t * targets,
+           uint64_t * scores,
+           uint64_t * diffs,
+           uint64_t * alignlengths,
+           int bits) -> void;
+
+  // entry point for each worker thread (also called directly when a
+  // single thread suffices)
+  auto worker_core(uint64_t thread_id) -> void;
+
+private:
+  static constexpr std::size_t score_matrix_alignment {16};
+
+  auto init(struct Search_data & thread_data) -> void;
+  auto chunk(struct Search_data & thread_data, int64_t bits) -> void;
+  auto getwork(uint64_t & countref, uint64_t & firstref) -> bool;
+
+  std::reference_wrapper<Data const> data_;
+  int64_t gapopen_ {0};
+  int64_t gapextend_ {0};
+  alignas(score_matrix_alignment)
+    std::array<unsigned char, n_cells * n_cells> score_matrix_8_;
+  alignas(score_matrix_alignment)
+    std::array<unsigned short, n_cells * n_cells> score_matrix_16_;
+  uint64_t n_threads_ {0};
+
+  std::mutex scan_mutex_;
+  struct queryinfo query_ {0, 0, nullptr};
+  uint64_t master_next_ {0};
+  uint64_t master_length_ {0};
+  uint64_t remainingchunks_ {0};
+  uint64_t * master_targets_ {nullptr};
+  uint64_t * master_scores_ {nullptr};
+  uint64_t * master_diffs_ {nullptr};
+  uint64_t * master_alignlengths_ {nullptr};
+  int master_bits_ {0};
+
+  std::vector<struct Search_data> search_data_v_;
+  ThreadRunner threads_;  // last: its lambda touches the members above
 };
-
-
-auto search_do(struct Parameters const & parameters,
-               Data const & data,
-               struct Search_state & state,
-               uint64_t query_no,
-               uint64_t listlength,
-               uint64_t * targets,
-               uint64_t * scores,
-               uint64_t * diffs,
-               uint64_t * alignlengths,
-               int bits,
-               ThreadRunner * search_threads) -> void;
-auto search_begin(struct Parameters const & parameters,
-                  Data const & data,
-                  struct Search_state & state,
-                  std::vector<struct Search_data> & search_data_v) -> void;
-auto search_end(struct Search_state & state) -> void;
-auto search_worker_core(struct Parameters const & parameters,
-                        Data const & data,
-                        uint64_t thread_id, struct Search_state & state) -> void;
