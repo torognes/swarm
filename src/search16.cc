@@ -91,7 +91,6 @@ auto dprofile_fill16(WORD * dprofile_word,
                             WORD const * score_matrix,
                             BYTE const * dseq) -> void
 {
-  static constexpr auto s_channels = static_cast<int>(channels);
   static constexpr auto multiplier = 5U;
   static constexpr auto pos0 = 0;
   static constexpr auto pos1 = pos0 + 1;
@@ -137,7 +136,7 @@ auto dprofile_fill16(WORD * dprofile_word,
   assert(cdepth <= ((max_ptrdiff - channels) / channels));  // max 'd' offset
   assert(channels <= std::numeric_limits<long int>::max());
   assert(channels <= std::numeric_limits<unsigned int>::max());
-  assert((channels + pos7) * cdepth * channels + channels * cdepth <= max_ptrdiff);
+  assert((pos7 * cdepth * channels) + (channels * cdepth) <= max_ptrdiff);
   for (auto j = 0LL; j < cdepth; ++j)
     {
       std::array<unsigned int, channels> d {{}};   // refactoring: name?
@@ -145,53 +144,50 @@ auto dprofile_fill16(WORD * dprofile_word,
         d[z] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + z))) << multiplier;
       }
 
-      for (auto i = 0L; i < s_channels; i += s_channels)
-        {
-          reg0  = v_load16(cast_vector16(std::next(score_matrix, d[pos0] + i)));
-          reg1  = v_load16(cast_vector16(std::next(score_matrix, d[pos1] + i)));
-          reg2  = v_load16(cast_vector16(std::next(score_matrix, d[pos2] + i)));
-          reg3  = v_load16(cast_vector16(std::next(score_matrix, d[pos3] + i)));
-          reg4  = v_load16(cast_vector16(std::next(score_matrix, d[pos4] + i)));
-          reg5  = v_load16(cast_vector16(std::next(score_matrix, d[pos5] + i)));
-          reg6  = v_load16(cast_vector16(std::next(score_matrix, d[pos6] + i)));
-          reg7  = v_load16(cast_vector16(std::next(score_matrix, d[pos7] + i)));
+      reg0  = v_load16(cast_vector16(std::next(score_matrix, d[pos0])));
+      reg1  = v_load16(cast_vector16(std::next(score_matrix, d[pos1])));
+      reg2  = v_load16(cast_vector16(std::next(score_matrix, d[pos2])));
+      reg3  = v_load16(cast_vector16(std::next(score_matrix, d[pos3])));
+      reg4  = v_load16(cast_vector16(std::next(score_matrix, d[pos4])));
+      reg5  = v_load16(cast_vector16(std::next(score_matrix, d[pos5])));
+      reg6  = v_load16(cast_vector16(std::next(score_matrix, d[pos6])));
+      reg7  = v_load16(cast_vector16(std::next(score_matrix, d[pos7])));
 
-          reg8  = v_merge_lo_16(reg0,  reg1);
-          reg9  = v_merge_hi_16(reg0,  reg1);
-          reg10 = v_merge_lo_16(reg2,  reg3);
-          reg11 = v_merge_hi_16(reg2,  reg3);
-          reg12 = v_merge_lo_16(reg4,  reg5);
-          reg13 = v_merge_hi_16(reg4,  reg5);
-          reg14 = v_merge_lo_16(reg6,  reg7);
-          reg15 = v_merge_hi_16(reg6,  reg7);
+      reg8  = v_merge_lo_16(reg0,  reg1);
+      reg9  = v_merge_hi_16(reg0,  reg1);
+      reg10 = v_merge_lo_16(reg2,  reg3);
+      reg11 = v_merge_hi_16(reg2,  reg3);
+      reg12 = v_merge_lo_16(reg4,  reg5);
+      reg13 = v_merge_hi_16(reg4,  reg5);
+      reg14 = v_merge_lo_16(reg6,  reg7);
+      reg15 = v_merge_hi_16(reg6,  reg7);
 
-          reg16 = v_merge_lo_32(reg8,  reg10);
-          reg17 = v_merge_hi_32(reg8,  reg10);
-          reg18 = v_merge_lo_32(reg12, reg14);
-          reg19 = v_merge_hi_32(reg12, reg14);
-          reg20 = v_merge_lo_32(reg9,  reg11);
-          reg21 = v_merge_hi_32(reg9,  reg11);
-          reg22 = v_merge_lo_32(reg13, reg15);
-          reg23 = v_merge_hi_32(reg13, reg15);
+      reg16 = v_merge_lo_32(reg8,  reg10);
+      reg17 = v_merge_hi_32(reg8,  reg10);
+      reg18 = v_merge_lo_32(reg12, reg14);
+      reg19 = v_merge_hi_32(reg12, reg14);
+      reg20 = v_merge_lo_32(reg9,  reg11);
+      reg21 = v_merge_hi_32(reg9,  reg11);
+      reg22 = v_merge_lo_32(reg13, reg15);
+      reg23 = v_merge_hi_32(reg13, reg15);
 
-          reg24 = v_merge_lo_64(reg16, reg18);
-          reg25 = v_merge_hi_64(reg16, reg18);
-          reg26 = v_merge_lo_64(reg17, reg19);
-          reg27 = v_merge_hi_64(reg17, reg19);
-          reg28 = v_merge_lo_64(reg20, reg22);
-          reg29 = v_merge_hi_64(reg20, reg22);
-          reg30 = v_merge_lo_64(reg21, reg23);
-          reg31 = v_merge_hi_64(reg21, reg23);
+      reg24 = v_merge_lo_64(reg16, reg18);
+      reg25 = v_merge_hi_64(reg16, reg18);
+      reg26 = v_merge_lo_64(reg17, reg19);
+      reg27 = v_merge_hi_64(reg17, reg19);
+      reg28 = v_merge_lo_64(reg20, reg22);
+      reg29 = v_merge_hi_64(reg20, reg22);
+      reg30 = v_merge_lo_64(reg21, reg23);
+      reg31 = v_merge_hi_64(reg21, reg23);
 
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos0) * cdepth * channels) + (channels * j))), reg24);
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos1) * cdepth * channels) + (channels * j))), reg25);
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos2) * cdepth * channels) + (channels * j))), reg26);
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos3) * cdepth * channels) + (channels * j))), reg27);
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos4) * cdepth * channels) + (channels * j))), reg28);
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos5) * cdepth * channels) + (channels * j))), reg29);
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos6) * cdepth * channels) + (channels * j))), reg30);
-          v_store16(cast_vector16(std::next(dprofile_word, ((i + pos7) * cdepth * channels) + (channels * j))), reg31);
-        }
+      v_store16(cast_vector16(std::next(dprofile_word, (pos0 * cdepth * channels) + (channels * j))), reg24);
+      v_store16(cast_vector16(std::next(dprofile_word, (pos1 * cdepth * channels) + (channels * j))), reg25);
+      v_store16(cast_vector16(std::next(dprofile_word, (pos2 * cdepth * channels) + (channels * j))), reg26);
+      v_store16(cast_vector16(std::next(dprofile_word, (pos3 * cdepth * channels) + (channels * j))), reg27);
+      v_store16(cast_vector16(std::next(dprofile_word, (pos4 * cdepth * channels) + (channels * j))), reg28);
+      v_store16(cast_vector16(std::next(dprofile_word, (pos5 * cdepth * channels) + (channels * j))), reg29);
+      v_store16(cast_vector16(std::next(dprofile_word, (pos6 * cdepth * channels) + (channels * j))), reg30);
+      v_store16(cast_vector16(std::next(dprofile_word, (pos7 * cdepth * channels) + (channels * j))), reg31);
     }
 }
 
@@ -533,8 +529,6 @@ auto search16(Data const & data,
   auto Q = v_dup16(static_cast<short>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup16(static_cast<short>(gap_extend_penalty));
 
-  done = 0;
-
   auto * hep = reinterpret_cast<VECTORTYPE *>(hearray);
   auto * * qp = reinterpret_cast<VECTORTYPE * *>(q_start.data());
 
@@ -635,11 +629,11 @@ auto search16(Data const & data,
       H0 = v_sub16(F0, Q);
       F0 = v_add16(F0, R);
 
-      assert(4 * std::distance(q_start.begin(), q_start.end()) <= max_ptrdiff);
-      dir = std::next(dir, 4 * std::distance(q_start.begin(), q_start.end()));
-      auto const distance = std::distance(dirbuffer.begin(), dirbuffer.end());
-      if (dir >= std::next(dirbuffer.data(), distance)) {
-        dir = std::prev(dir, distance);
+      assert(4 * q_start.size() <= max_ptrdiff);
+      dir = std::next(dir, static_cast<std::ptrdiff_t>(4 * q_start.size()));
+      assert(dirbuffer.size() <= max_ptrdiff);
+      if (dir >= std::next(dirbuffer.data(), static_cast<std::ptrdiff_t>(dirbuffer.size()))) {
+        dir = std::prev(dir, static_cast<std::ptrdiff_t>(dirbuffer.size()));
       }
     }
 }

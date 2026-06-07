@@ -100,7 +100,6 @@ auto dprofile_fill8(BYTE * dprofile,
 {
   static constexpr auto multiplier = 5U;
   assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max());  // refactoring: static_assert?
-  static constexpr auto n_lanes = 16LL;  // refactoring: same as channels?
 
   static constexpr auto pos0  = 0U;
   static constexpr auto pos1  = pos0  + 1;
@@ -216,7 +215,7 @@ auto dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      std::ptrdiff_t const lane = n_lanes * j;  // refactoring: meaningful name?
+      std::ptrdiff_t const lane = static_cast<std::ptrdiff_t>(channels) * j;  // refactoring: meaningful name?
       v_store8(cast_vector8(std::next(dprofile, lane + line0)), reg0);
       v_store8(cast_vector8(std::next(dprofile, lane + line1)), reg3);
       v_store8(cast_vector8(std::next(dprofile, lane + line2)), reg2);
@@ -787,8 +786,6 @@ auto search8(Data const & data,
   assert(gap_extend_penalty <= std::numeric_limits<char>::max());
   auto Q = v_dup8(static_cast<char>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup8(static_cast<char>(gap_extend_penalty));
-
-  done = 0;
 
   // refactoring: can't remove reinterpret_cast, cast_vector8() is a nullop in Aarch64
   auto *hep = reinterpret_cast<VECTORTYPE*>(hearray);
