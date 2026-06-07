@@ -21,29 +21,21 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "utils/cpu_features.h"
+#include "utils/search_data.h"  // Search_data, WORD
 #include <cstdint>
-#include <vector>
 
 
 class Data;  // defined in db.h
 
 
-using WORD = unsigned short;
-
 auto search16(Data const & data,
-              std::vector<WORD *> & q_start,
+              Search_data & search_data,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
               WORD const * score_matrix,
-              std::vector<WORD> & dprofile,
-              WORD * hearray,
-              uint64_t sequences,
               uint64_t const * seqnos,
               uint64_t * scores,
               uint64_t * diffs,
               uint64_t * alignmentlengths,
               char const * qseq,
-              uint64_t qlen,
-              std::vector<uint64_t> & dirbuffer,
-              Cpu_features const & cpu_features) -> void;
+              uint64_t qlen) -> void;

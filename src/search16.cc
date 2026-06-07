@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "search16.h"
 #include "db.h"
 #include "utils/backtrack.h"
 #include "utils/cpu_features.h"
@@ -480,22 +481,25 @@ auto load_next_sequence_16(unsigned int const channel,
 // complexity from 95 to 39; the residual nesting is the per-channel
 // switch itself, which is intrinsic to the single-pass design.
 auto search16(Data const & data,
-              std::vector<WORD *> & q_start,
+              Search_data & search_data,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
               WORD const * score_matrix,
-              std::vector<WORD> & dprofile,
-              WORD * hearray,
-              uint64_t sequences,
               uint64_t const * seqnos,
               uint64_t * scores,
               uint64_t * diffs,
               uint64_t * alignmentlengths,
               char const * qseq,
-              uint64_t qlen,
-              std::vector<uint64_t> & dirbuffer,
-              Cpu_features const & cpu_features) -> void
+              uint64_t qlen) -> void
 {
+  // unpack the per-thread working set (see utils/search_data.h)
+  auto & q_start = search_data.qtable_w_v;
+  auto & dprofile = search_data.dprofile_w_v;
+  auto * const hearray = reinterpret_cast<WORD *>(search_data.hearray_v.data());
+  auto const sequences = search_data.target_count;
+  auto & dirbuffer = search_data.dir_array_v;
+  auto const & cpu_features = search_data.cpu_features;
+
   VECTORTYPE T;
   VECTORTYPE M;
   VECTORTYPE MQ;

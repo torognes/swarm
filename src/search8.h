@@ -21,29 +21,21 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "utils/cpu_features.h"
+#include "utils/search_data.h"  // Search_data, BYTE
 #include <cstdint>
-#include <vector>
 
 
 class Data;  // defined in db.h
 
 
-using BYTE = unsigned char;
-
 auto search8(Data const & data,
-             std::vector<BYTE *> & q_start,
+             Search_data & search_data,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE const * score_matrix,
-             std::vector<BYTE> & dprofile,
-             BYTE * hearray,
-             uint64_t sequences,
              uint64_t const * seqnos,
              uint64_t * scores,
              uint64_t * diffs,
              uint64_t * alignmentlengths,
              char const * qseq,
-             uint64_t qlen,
-             std::vector<uint64_t> & dirbuffer,
-             Cpu_features const & cpu_features) -> void;
+             uint64_t qlen) -> void;

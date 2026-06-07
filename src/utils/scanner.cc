@@ -150,40 +150,30 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
     assert(gapopen_ <= std::numeric_limits<WORD>::max());
     assert(gapextend_ <= std::numeric_limits<WORD>::max());
     search16(data_.get(),
-             thread_data.qtable_w_v,
+             thread_data,
              static_cast<WORD>(gapopen_),
              static_cast<WORD>(gapextend_),
              score_matrix_16_.data(),
-             thread_data.dprofile_w_v,
-             reinterpret_cast<WORD *>(thread_data.hearray_v.data()),
-             thread_data.target_count,
              std::next(master_targets_, target_index),
              std::next(master_scores_, target_index),
              std::next(master_diffs_, target_index),
              std::next(master_alignlengths_, target_index),
              query_.seq,
-             static_cast<uint64_t>(query_.len),
-             thread_data.dir_array_v,
-             thread_data.cpu_features);
+             static_cast<uint64_t>(query_.len));
   } else {
     assert(gapopen_ <= std::numeric_limits<BYTE>::max());
     assert(gapextend_ <= std::numeric_limits<BYTE>::max());
     search8(data_.get(),
-            thread_data.qtable_v,
+            thread_data,
             static_cast<BYTE>(gapopen_),
             static_cast<BYTE>(gapextend_),
             score_matrix_8_.data(),
-            thread_data.dprofile_v,
-            thread_data.hearray_v.data(),
-            thread_data.target_count,
             std::next(master_targets_, target_index),
             std::next(master_scores_, target_index),
             std::next(master_diffs_, target_index),
             std::next(master_alignlengths_, target_index),
             query_.seq,
-            static_cast<uint64_t>(query_.len),
-            thread_data.dir_array_v,
-            thread_data.cpu_features);
+            static_cast<uint64_t>(query_.len));
   }
 }
 
