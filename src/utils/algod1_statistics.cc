@@ -32,8 +32,13 @@
 #include <cinttypes>  // macro PRIu64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // fprintf()
-#include <limits>  // unsigned int max
 #include <vector>  // std::vector
+
+#ifndef NDEBUG
+// C++17 refactoring: [[maybe_unused]]
+#include <limits>
+constexpr auto uint_max = std::numeric_limits<unsigned int>::max();
+#endif
 
 
 auto count_cluster_stats(struct Parameters const & parameters,
@@ -77,7 +82,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   static constexpr double hash_functions_per_bit {4.0 / 10};
   static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
   static_assert(hash_functions_per_bit <= natural_log_of_2, "upper limit is log(2)");
-  assert(parameters.opt_bloom_bits <= std::numeric_limits<unsigned int>::max());
+  assert(parameters.opt_bloom_bits <= uint_max);
   assert(parameters.opt_bloom_bits <= 64);  // larger than expected
   assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
 
