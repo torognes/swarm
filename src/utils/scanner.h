@@ -79,7 +79,7 @@ public:
 private:
   static constexpr std::size_t score_matrix_alignment {16};
 
-  auto init(struct Search_data & thread_data) -> void;
+  auto init(struct Search_data & thread_data) const -> void;
   auto chunk(struct Search_data & thread_data, Bit_mode bits) -> void;
   auto getwork(uint64_t & countref, uint64_t & firstref) -> bool;
 

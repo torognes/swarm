@@ -26,6 +26,7 @@
 #include "../search8.h"
 #include "../search16.h"
 #include "../swarm.h"
+#include "cpu_features.h"  // Cpu_features
 #include "nt_codec.h"
 #include "queryinfo.h"
 #include "score_matrix.h"
@@ -123,7 +124,7 @@ Scanner::Scanner(struct Parameters const & parameters,
 }
 
 
-auto Scanner::init(struct Search_data & thread_data) -> void {
+auto Scanner::init(struct Search_data & thread_data) const -> void {
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
 
