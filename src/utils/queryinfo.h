@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_QUERYINFO_H
+#define SWARM_UTILS_QUERYINFO_H
+
 #include <cstdint>  // int64_t, uint64_t
 
 
@@ -30,3 +33,5 @@ struct queryinfo
   int64_t len;
   char const * seq;
 };
+
+#endif

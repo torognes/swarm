@@ -21,6 +21,9 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_SEARCH_DATA_H
+#define SWARM_UTILS_SEARCH_DATA_H
+
 #include "cpu_features.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
@@ -45,3 +48,5 @@ struct Search_data
 
   Cpu_features cpu_features {false, false, false};
 };
+
+#endif
