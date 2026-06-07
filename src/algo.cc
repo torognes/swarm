@@ -55,15 +55,13 @@ namespace {
   }
 
 
-  auto set_bit_mode(struct Parameters const & parameters) -> int {
+  auto set_bit_mode(struct Parameters const & parameters) -> Bit_mode {
     static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-    static constexpr auto bit_mode_8 = 8;
-    static constexpr auto bit_mode_16 = 16;
 
 #ifdef __aarch64__
 #if !defined(DEBUG) && !defined(COVERAGE)
     /* always use 16-bit version on aarch64 because it is faster */
-    return bit_mode_16;
+    return Bit_mode::bits_16;
 #endif
 #endif
 
@@ -76,9 +74,9 @@ namespace {
                                                     parameters.penalty_gapextend)));
 
     if (static_cast<uint64_t>(parameters.opt_differences) > diff_saturation) {
-      return bit_mode_16;
+      return Bit_mode::bits_16;
     }
-    return bit_mode_8;
+    return Bit_mode::bits_8;
   }
 
 
@@ -277,7 +275,7 @@ namespace {
                              Data const & data,
                              QgramDiffer & qgram_differ,
                              Scanner & scanner,
-                             int const bits,
+                             Bit_mode const bits,
                              Pool_cursor & cursor,
                              unsigned int const swarmid,
                              uint64_t const seedindex,
@@ -334,7 +332,7 @@ namespace {
                                   Data const & data,
                                   QgramDiffer & qgram_differ,
                                   Scanner & scanner,
-                                  int const bits,
+                                  Bit_mode const bits,
                                   Pool_cursor & cursor,
                                   unsigned int const swarmid,
                                   uint64_t const amplicons,

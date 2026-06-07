@@ -65,18 +65,16 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 }
 
 
-auto adjust_thread_number(const int n_bits,
+auto adjust_thread_number(const Bit_mode n_bits,
                           const uint64_t remaining_sequences,
                           uint64_t n_threads) -> uint64_t {
   static constexpr auto channels_8 = 8U;
   static constexpr auto channels_16 = 16U;
-  static constexpr auto bit_mode_16 = 16U;  // refactoring: should be an enum class
-  const auto channels = (n_bits == bit_mode_16) ? channels_8 : channels_16;
+  const auto channels = (n_bits == Bit_mode::bits_16) ? channels_8 : channels_16;
 
   assert(remaining_sequences != 0);
   assert(n_threads != 0);
   assert((n_threads - 1) <= (ullong_max / channels_8));
-  assert((n_bits == bit_mode_16) or (n_bits == bit_mode_16 / 2));
 
   while (remaining_sequences <= (n_threads - 1) * channels) {
     --n_threads;
@@ -86,19 +84,19 @@ auto adjust_thread_number(const int n_bits,
 }
 
 // arguments: bits, master_length, thr
-// static_assert(adjust_thread_number( 8, 32, 10) == 2);
-// static_assert(adjust_thread_number( 8, 32,  3) == 2);
-// static_assert(adjust_thread_number( 8, 31,  2) == 2);
-// static_assert(adjust_thread_number( 8, 17,  2) == 2);
-// static_assert(adjust_thread_number( 8, 16,  2) == 1);
-// static_assert(adjust_thread_number( 8,  1,  2) == 1);
-// static_assert(adjust_thread_number( 8, 32,  1) == 1);
-// static_assert(adjust_thread_number(16, 17, 10) == 3);
-// static_assert(adjust_thread_number(16, 17,  3) == 3);
-// static_assert(adjust_thread_number(16, 16,  3) == 2);
-// static_assert(adjust_thread_number(16, 15,  2) == 2);
-// static_assert(adjust_thread_number(16,  1,  3) == 1);
-// static_assert(adjust_thread_number(16, 17,  1) == 1);
+// static_assert(adjust_thread_number(Bit_mode::bits_8, 32, 10) == 2);
+// static_assert(adjust_thread_number(Bit_mode::bits_8, 32,  3) == 2);
+// static_assert(adjust_thread_number(Bit_mode::bits_8, 31,  2) == 2);
+// static_assert(adjust_thread_number(Bit_mode::bits_8, 17,  2) == 2);
+// static_assert(adjust_thread_number(Bit_mode::bits_8, 16,  2) == 1);
+// static_assert(adjust_thread_number(Bit_mode::bits_8,  1,  2) == 1);
+// static_assert(adjust_thread_number(Bit_mode::bits_8, 32,  1) == 1);
+// static_assert(adjust_thread_number(Bit_mode::bits_16, 17, 10) == 3);
+// static_assert(adjust_thread_number(Bit_mode::bits_16, 17,  3) == 3);
+// static_assert(adjust_thread_number(Bit_mode::bits_16, 16,  3) == 2);
+// static_assert(adjust_thread_number(Bit_mode::bits_16, 15,  2) == 2);
+// static_assert(adjust_thread_number(Bit_mode::bits_16,  1,  3) == 1);
+// static_assert(adjust_thread_number(Bit_mode::bits_16, 17,  1) == 1);
 
 }  // namespace
 
@@ -141,15 +139,13 @@ auto Scanner::init(struct Search_data & thread_data) -> void {
 }
 
 
-auto Scanner::chunk(struct Search_data & thread_data, const int64_t bits) -> void {
-  static constexpr auto bit_mode_16 = 16U;
+auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> void {
   assert(thread_data.target_index <= std::numeric_limits<std::ptrdiff_t>::max());
   auto const target_index = static_cast<std::ptrdiff_t>(thread_data.target_index);
 
   assert(thread_data.target_count != 0);
-  assert((bits == bit_mode_16) or (bits == bit_mode_16 / 2));
 
-  if (bits == bit_mode_16) {
+  if (bits == Bit_mode::bits_16) {
     assert(gapopen_ <= std::numeric_limits<WORD>::max());
     assert(gapextend_ <= std::numeric_limits<WORD>::max());
     search16(data_.get(),
@@ -230,7 +226,7 @@ auto Scanner::run(const uint64_t query_no,
                   uint64_t * scores,
                   uint64_t * diffs,
                   uint64_t * alignlengths,
-                  const int bits) -> void {
+                  const Bit_mode bits) -> void {
   auto const & info = data_.get().info(query_no);
   query_ = queryinfo{query_no, info.seqlen, info.seq};
 

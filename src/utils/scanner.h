@@ -40,6 +40,12 @@
 struct Parameters;  // defined in swarm.h
 
 
+// Selects which SIMD search kernel processes a chunk: search8 packs the
+// scores into 8-bit channels, search16 into 16-bit channels (chosen when
+// 8 bits cannot hold the score, see set_bit_mode).
+enum struct Bit_mode : std::uint8_t { bits_8, bits_16 };
+
+
 // Aligns the score matrices used by the SIMD search kernels on 8- and
 // 16-bit channels respectively, fanning the per-query work out over a
 // pool of worker threads.
@@ -64,7 +70,7 @@ public:
            uint64_t * scores,
            uint64_t * diffs,
            uint64_t * alignlengths,
-           int bits) -> void;
+           Bit_mode bits) -> void;
 
   // entry point for each worker thread (also called directly when a
   // single thread suffices)
@@ -74,7 +80,7 @@ private:
   static constexpr std::size_t score_matrix_alignment {16};
 
   auto init(struct Search_data & thread_data) -> void;
-  auto chunk(struct Search_data & thread_data, int64_t bits) -> void;
+  auto chunk(struct Search_data & thread_data, Bit_mode bits) -> void;
   auto getwork(uint64_t & countref, uint64_t & firstref) -> bool;
 
   std::reference_wrapper<Data const> data_;
@@ -95,7 +101,7 @@ private:
   uint64_t * master_scores_ {nullptr};
   uint64_t * master_diffs_ {nullptr};
   uint64_t * master_alignlengths_ {nullptr};
-  int master_bits_ {0};
+  Bit_mode master_bits_ {Bit_mode::bits_16};
 
   std::vector<struct Search_data> search_data_v_;
   ThreadRunner threads_;  // last: its lambda touches the members above
