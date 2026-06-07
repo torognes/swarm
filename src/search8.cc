@@ -24,6 +24,7 @@
 #include "db.h"
 #include "utils/backtrack.h"
 #include "utils/cpu_features.h"
+#include "utils/dseq_fill.h"
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
@@ -704,21 +705,7 @@ auto search8(Data const & data,
       if (easy) {
           // fill all channels
 
-          for (auto channel = 0U; channel < channels; ++channel) {
-              for (auto j = 0U; j < cdepth; ++j) {
-                  if (d_pos[channel] < d_length[channel]) {
-                    dseq[(channels * j) + channel]
-                      = 1 + nt_extract(d_address[channel], d_pos[channel]);
-                    ++d_pos[channel];
-                  }
-                  else {
-                    dseq[(channels * j) + channel] = 0;
-                  }
-                }
-              if (d_pos[channel] == d_length[channel]) {
-                easy = false;
-              }
-            }
+          easy = fill_all_channels<channels, cdepth>(dseq.data(), d_address, d_pos, d_length);
 
 #ifdef __x86_64__
 #ifdef __SSE3__
@@ -747,17 +734,7 @@ auto search8(Data const & data,
               if (d_pos[channel] < d_length[channel]) {
                   // this channel has more sequence
 
-                  for (auto j = 0U; j < cdepth; ++j) {
-                      if (d_pos[channel] < d_length[channel]) {
-                        dseq[(channels * j) + channel]
-                          = 1 + nt_extract(d_address[channel], d_pos[channel]);
-                        ++d_pos[channel];
-                      }
-                      else {
-                        dseq[(channels * j) + channel] = 0;
-                      }
-                    }
-                  if (d_pos[channel] == d_length[channel]) {
+                  if (fill_channel<channels, cdepth>(dseq.data(), channel, d_address, d_pos, d_length)) {
                     easy = false;
                   }
                 }
@@ -827,17 +804,7 @@ auto search8(Data const & data,
                       *std::next(reinterpret_cast<BYTE *>(&F0), channel) = static_cast<BYTE>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
 
                       // fill channel
-                      for (auto j = 0U; j < cdepth; ++j)
-                        {
-                          if (d_pos[channel] < d_length[channel]) {
-                            dseq[(channels * j) + channel] = 1 + nt_extract(d_address[channel], d_pos[channel]);
-                            ++d_pos[channel];
-                          }
-                          else {
-                            dseq[(channels * j) + channel] = 0;
-                          }
-                        }
-                      if (d_pos[channel] == d_length[channel]) {
+                      if (fill_channel<channels, cdepth>(dseq.data(), channel, d_address, d_pos, d_length)) {
                         easy = false;
                       }
                     }
@@ -848,9 +815,7 @@ auto search8(Data const & data,
                       d_address[channel] = nullptr;
                       d_pos[channel] = 0;
                       d_length[channel] = 0;
-                      for (auto j = 0U; j < cdepth; ++j) {
-                        dseq[(channels * j) + channel] = 0;
-                      }
+                      clear_channel<channels, cdepth>(dseq.data(), channel);
                     }
                 }
 

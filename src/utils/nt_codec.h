@@ -21,9 +21,14 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_NT_CODEC_H
+#define SWARM_UTILS_NT_CODEC_H
+
 #include <cstdint>  // uint64_t
 
 
 auto nt_extract(char const * seq, uint64_t pos) -> unsigned char;
 
 auto nt_bytelength(unsigned int len) -> unsigned int;
+
+#endif
