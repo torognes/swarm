@@ -39,6 +39,7 @@
 
 #include <arm_neon.h>
 #include "arch/aarch64/intrinsics_to_functions.h"
+#include "arch/aarch64/search_dispatch.h"
 using VECTORTYPE = uint8x16_t;
 
 #elif defined __x86_64__
@@ -51,7 +52,7 @@ using VECTORTYPE = __m128i;
 
 #endif
 
-#include "arch/x86_64/ssse3.h"
+#include "arch/x86_64/search_dispatch.h"
 
 #elif defined __PPC__
 
@@ -59,6 +60,7 @@ using VECTORTYPE = __m128i;
 
 #include <altivec.h>
 #include "arch/ppc/intrinsics_to_functions.h"
+#include "arch/ppc/search_dispatch.h"
 using VECTORTYPE = vector unsigned char;
 
 #else
@@ -92,7 +94,7 @@ auto compute_mask<n_bits>(uint64_t const channel,
 }
 
 // refactoring: objdump shows this function is not inlined
-inline auto dprofile_fill8(BYTE * dprofile,
+auto dprofile_fill8(BYTE * dprofile,
                            BYTE const * score_matrix,
                            BYTE const * dseq) -> void
 {
@@ -742,7 +744,6 @@ auto search8(Data const & data,
              std::vector<uint64_t> & dirbuffer,
              Cpu_features const & cpu_features) -> void
 {
-  static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE3__
   VECTORTYPE T;
   VECTORTYPE M;
   VECTORTYPE MQ;
@@ -769,17 +770,7 @@ auto search8(Data const & data,
   uint64_t next_id {0};
   uint64_t done {0};
 
-#ifdef __aarch64__
-  const VECTORTYPE T0 = { uint8_max, 0, 0, 0, 0, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 0, 0, 0 };
-#elif defined __x86_64__
-  const auto T0 = _mm_set_epi8(0, 0, 0, 0, 0, 0, 0, 0,
-                               0, 0, 0, 0, 0, 0, 0, -1);
-#elif defined __PPC__
-  static constexpr auto uchar_max = std::numeric_limits<unsigned char>::max();
-  const VECTORTYPE T0 = { uchar_max, 0, 0, 0, 0, 0, 0, 0,
-                                  0, 0, 0, 0, 0, 0, 0, 0 };
-#endif
+  const auto T0 = make_T0_8();
 
   assert(gap_open_penalty + gap_extend_penalty <= std::numeric_limits<char>::max());
   assert(gap_extend_penalty <= std::numeric_limits<char>::max());
@@ -805,17 +796,7 @@ auto search8(Data const & data,
 
           easy = fill_all_channels<channels, cdepth>(dseq.data(), d_address, d_pos, d_length);
 
-#ifdef __x86_64__
-#ifdef __SSE3__
-          if (cpu_features.ssse3) {
-              dprofile_shuffle8(dprofile.data(), score_matrix, dseq.data());
-            }
-          else
-#endif
-#endif
-            {
-              dprofile_fill8(dprofile.data(), score_matrix, dseq.data());
-            }
+          dispatch_dprofile8(cpu_features, dprofile.data(), score_matrix, dseq.data());
 
           align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
         }
@@ -881,18 +862,7 @@ auto search8(Data const & data,
             break;
           }
 
-#ifdef __x86_64__
-#ifdef __SSE3__
-          if (cpu_features.ssse3)
-            {
-              dprofile_shuffle8(dprofile.data(), score_matrix, dseq.data());
-            }
-          else
-#endif
-#endif
-            {
-              dprofile_fill8(dprofile.data(), score_matrix, dseq.data());
-            }
+          dispatch_dprofile8(cpu_features, dprofile.data(), score_matrix, dseq.data());
 
           MQ = v_and8(M, Q);
           MR = v_and8(M, R);

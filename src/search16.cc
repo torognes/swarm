@@ -39,6 +39,7 @@
 
 #include <arm_neon.h>
 #include "arch/aarch64/intrinsics_to_functions.h"
+#include "arch/aarch64/search_dispatch.h"
 using VECTORTYPE = uint16x8_t;
 
 #elif defined __x86_64__
@@ -51,17 +52,7 @@ using VECTORTYPE = __m128i;
 
 #endif
 
-#ifdef __SSE3__
-
-#include "arch/x86_64/ssse3.h"
-
-#endif
-
-#ifdef __SSE4_1__
-
-#include "arch/x86_64/sse41.h"
-
-#endif
+#include "arch/x86_64/search_dispatch.h"
 
 #elif defined __PPC__
 
@@ -69,6 +60,7 @@ using VECTORTYPE = __m128i;
 
 #include <altivec.h>
 #include "arch/ppc/intrinsics_to_functions.h"
+#include "arch/ppc/search_dispatch.h"
 using VECTORTYPE = vector unsigned short;
 
 #else
@@ -95,7 +87,7 @@ constexpr uint8_t n_bits {16};
 using BYTE = unsigned char;
 using WORD = unsigned short;  // refactoring: uint16_t?
 
-inline auto dprofile_fill16(WORD * dprofile_word,
+auto dprofile_fill16(WORD * dprofile_word,
                             WORD const * score_matrix,
                             BYTE const * dseq) -> void
 {
@@ -497,7 +489,6 @@ auto search16(Data const & data,
               std::vector<uint64_t> & dirbuffer,
               Cpu_features const & cpu_features) -> void
 {
-  static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE3__/__SSE4_1__
   VECTORTYPE T;
   VECTORTYPE M;
   VECTORTYPE MQ;
@@ -524,14 +515,7 @@ auto search16(Data const & data,
   uint64_t next_id {0};
   uint64_t done {0};
 
-#ifdef __aarch64__
-  const VECTORTYPE T0 = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
-#elif defined __x86_64__
-  const auto T0 = _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, -1);
-#elif defined __PPC__
-  static constexpr auto unsigned_short_max = std::numeric_limits<unsigned short>::max();
-  const VECTORTYPE T0 = { unsigned_short_max, 0, 0, 0, 0, 0, 0, 0 };
-#endif
+  const auto T0 = make_T0_16();
 
   assert((gap_open_penalty + gap_extend_penalty) <= std::numeric_limits<short>::max());
   assert(gap_extend_penalty <= std::numeric_limits<short>::max());
@@ -557,31 +541,9 @@ auto search16(Data const & data,
 
           easy = fill_all_channels<channels, cdepth>(dseq.data(), d_address, d_pos, d_length);
 
-#ifdef __x86_64__
-#ifdef __SSE3__
-          if (cpu_features.ssse3)
-            {
-              dprofile_shuffle16(dprofile.data(), score_matrix, dseq.data());
-            }
-          else
-#endif
-#endif
-            {
-              dprofile_fill16(dprofile.data(), score_matrix, dseq.data());
-            }
+          dispatch_dprofile16(cpu_features, dprofile.data(), score_matrix, dseq.data());
 
-#ifdef __x86_64__
-#ifdef __SSE4_1__
-          if (cpu_features.sse41)
-            {
-              align_cells_regular_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
-            }
-          else
-#endif
-#endif
-            {
-              align_cells_regular_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
-            }
+          dispatch_align_regular_16(cpu_features, S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
         }
       else
         {
@@ -647,35 +609,13 @@ auto search16(Data const & data,
             break;
           }
 
-#ifdef __x86_64__
-#ifdef __SSE3__
-          if (cpu_features.ssse3)
-            {
-              dprofile_shuffle16(dprofile.data(), score_matrix, dseq.data());
-            }
-          else
-#endif
-#endif
-            {
-              dprofile_fill16(dprofile.data(), score_matrix, dseq.data());
-            }
+          dispatch_dprofile16(cpu_features, dprofile.data(), score_matrix, dseq.data());
 
           MQ = v_and16(M, Q);
           MR = v_and16(M, R);
           MQ0 = MQ;
 
-#ifdef __x86_64__
-#ifdef __SSE4_1__
-          if (cpu_features.sse41)
-            {
-              align_cells_masked_16_sse41(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
-            }
-          else
-#endif
-#endif
-            {
-              align_cells_masked_16(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
-            }
+          dispatch_align_masked_16(cpu_features, S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
         }
 
       F0 = v_add16(F0, R);
