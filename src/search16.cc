@@ -381,6 +381,105 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
 }
 
 
+// Store the final score for the sequence that just ended in 'channel'
+// and, when the score fits in a WORD, recover its number of differences
+// by backtracking the alignment.
+static auto save_score_16(int64_t const cand_id,
+                          unsigned int const channel,
+                          VECTORTYPE const * const score_vectors,
+                          std::array<char const *, channels> const & d_address,
+                          std::array<uint64_t, channels> const & d_offset,
+                          std::array<uint64_t, channels> const & d_length,
+                          char const * const qseq,
+                          uint64_t const qlen,
+                          std::vector<uint64_t> & dirbuffer,
+                          uint64_t const q_start_size,
+                          uint64_t * const scores,
+                          uint64_t * const diffs,
+                          uint64_t * const alignmentlengths,
+                          uint64_t & done) -> void
+{
+  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
+
+  // save score
+
+  const uint64_t dbseqlen = d_length[channel];
+  const uint64_t z = (dbseqlen + 3) % 4;
+  assert(z * channels + channel <= max_ptrdiff);
+  const uint64_t score
+    = *std::next(reinterpret_cast<WORD const *>(score_vectors), static_cast<std::ptrdiff_t>((z * channels) + channel));
+  *std::next(scores, cand_id) = score;
+
+  uint64_t diff {0};
+
+  if (score < uint16_max)
+    {
+      char const * dbseq = d_address[channel];
+      const uint64_t offset = d_offset[channel];
+      diff = backtrack<n_bits>(qseq, dbseq, qlen, dbseqlen,
+                               dirbuffer,
+                               offset,
+                               channel,
+                               std::next(alignmentlengths, cand_id),
+                               q_start_size);
+    }
+  else
+    {
+      diff = uint16_max;
+    }
+
+  *std::next(diffs, cand_id) = diff;
+
+  ++done;
+}
+
+
+// Attach the next database sequence to 'channel': record its address and
+// length, reset the per-channel cursors, seed the H0/F0 lanes, and prime
+// the first block. Returns whether the channel already reached the end of
+// its (short) sequence, i.e. the next block is no longer "easy".
+static auto load_next_sequence_16(unsigned int const channel,
+                                  Data const & data,
+                                  uint64_t const * const seqnos,
+                                  uint64_t & next_id,
+                                  uint64_t const * const dirbuffer_begin,
+                                  uint64_t const * const dir,
+                                  WORD const gap_open_penalty,
+                                  WORD const gap_extend_penalty,
+                                  VECTORTYPE & H0,
+                                  VECTORTYPE & F0,
+                                  unsigned char * const dseq,
+                                  std::array<int64_t, channels> & seq_id,
+                                  std::array<char const *, channels> & d_address,
+                                  std::array<uint64_t, channels> & d_length,
+                                  std::array<uint64_t, channels> & d_pos,
+                                  std::array<uint64_t, channels> & d_offset) -> bool
+{
+  assert(next_id <= std::numeric_limits<int64_t>::max());
+  assert(next_id <= max_ptrdiff);
+  // get next sequence
+  seq_id[channel] = static_cast<int64_t>(next_id);
+  const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
+  auto const & info = data.info(seqno);
+  char const * address = info.seq;
+  unsigned int const length = info.seqlen;
+
+  d_address[channel] = address;
+  d_length[channel] = length;
+
+  d_pos[channel] = 0;
+  d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer_begin);
+  ++next_id;
+
+  assert(((2U * gap_open_penalty) + (2U * gap_extend_penalty)) <= std::numeric_limits<WORD>::max());
+  *std::next(reinterpret_cast<WORD *>(&H0), channel) = 0;
+  *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
+
+  // fill channel
+  return fill_channel<channels, cdepth>(dseq, channel, d_address, d_pos, d_length);
+}
+
+
 auto search16(Data const & data,
               std::vector<WORD *> & q_start,
               WORD gap_open_penalty,
@@ -399,7 +498,6 @@ auto search16(Data const & data,
               Cpu_features const & cpu_features) -> void
 {
   static_cast<void>(cpu_features);  // unused unless built with __x86_64__ and __SSE3__/__SSE4_1__
-  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
   VECTORTYPE T;
   VECTORTYPE M;
   VECTORTYPE MQ;
@@ -515,62 +613,19 @@ auto search16(Data const & data,
 
                   if (cand_id >= 0)
                     {
-                      // save score
-
-                      const uint64_t dbseqlen = d_length[channel];
-                      const uint64_t z = (dbseqlen + 3) % 4;
-                      assert(z * channels + channel <= max_ptrdiff);
-                      const uint64_t score
-                        = *std::next(reinterpret_cast<WORD*>(S), static_cast<std::ptrdiff_t>((z * channels) + channel));
-                      *std::next(scores, cand_id) = score;
-
-                      uint64_t diff {0};
-
-                      if (score < uint16_max)
-                        {
-                          char const * dbseq = d_address[channel];
-                          const uint64_t offset = d_offset[channel];
-                          diff = backtrack<n_bits>(qseq, dbseq, qlen, dbseqlen,
-                                                   dirbuffer,
-                                                   offset,
-                                                   channel,
-                                                   std::next(alignmentlengths, cand_id),
-                                                   q_start.size());
-                        }
-                      else
-                        {
-                          diff = uint16_max;
-                        }
-
-                      *std::next(diffs, cand_id) = diff;
-
-                      ++done;
+                      save_score_16(cand_id, channel, S,
+                                    d_address, d_offset, d_length,
+                                    qseq, qlen, dirbuffer, q_start.size(),
+                                    scores, diffs, alignmentlengths, done);
                     }
 
                   if (next_id < sequences)
                     {
-                      assert(next_id <= std::numeric_limits<int64_t>::max());
-                      assert(next_id <= max_ptrdiff);
-                      // get next sequence
-                      seq_id[channel] = static_cast<int64_t>(next_id);
-                      const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
-                      auto const & info = data.info(seqno);
-                      char const * address = info.seq;
-                      unsigned int const length = info.seqlen;
-
-                      d_address[channel] = address;
-                      d_length[channel] = length;
-
-                      d_pos[channel] = 0;
-                      d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer.data());
-                      ++next_id;
-
-                      assert(((2U * gap_open_penalty) + (2U * gap_extend_penalty)) <= std::numeric_limits<WORD>::max());
-                      *std::next(reinterpret_cast<WORD *>(&H0), channel) = 0;
-                      *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
-
-                      // fill channel
-                      if (fill_channel<channels, cdepth>(dseq.data(), channel, d_address, d_pos, d_length)) {
+                      if (load_next_sequence_16(channel, data, seqnos, next_id,
+                                                dirbuffer.data(), dir,
+                                                gap_open_penalty, gap_extend_penalty,
+                                                H0, F0, dseq.data(),
+                                                seq_id, d_address, d_length, d_pos, d_offset)) {
                         easy = false;
                       }
                     }
