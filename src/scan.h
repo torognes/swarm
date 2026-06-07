@@ -48,7 +48,6 @@ struct Search_state
 };
 
 
-auto search_all(uint64_t query_no) -> void;
 auto search_do(struct Parameters const & parameters,
                Data const & data,
                struct Search_state & state,
