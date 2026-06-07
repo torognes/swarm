@@ -218,15 +218,27 @@ inline auto onestep_16(VECTORTYPE & H,
 }
 
 
-auto align_cells_regular_16(VECTORTYPE * Sm,
-                            VECTORTYPE * hep,
-                            VECTORTYPE ** qp,
-                            VECTORTYPE const * Qm,
-                            VECTORTYPE const * Rm,
-                            uint64_t ql,
-                            VECTORTYPE const * F0,
-                            uint64_t * dir_long,
-                            VECTORTYPE const * H0) -> void
+namespace {
+
+// One block of cells, shared by the regular and masked kernels. The
+// masked variant differs only by a per-iteration adjustment of h4 and E
+// (consuming the Mm / MQ / MR / MQ0 vectors); 'masked' is a compile-time
+// flag, so the regular instantiation drops that block entirely and never
+// dereferences the (null) masking pointers.
+template <bool masked>
+auto align_cells_16(VECTORTYPE * Sm,
+                    VECTORTYPE * hep,
+                    VECTORTYPE ** qp,
+                    VECTORTYPE const * Qm,
+                    VECTORTYPE const * Rm,
+                    uint64_t ql,
+                    VECTORTYPE const * F0,
+                    uint64_t * dir_long,
+                    VECTORTYPE const * H0,
+                    VECTORTYPE const * Mm,
+                    VECTORTYPE * MQ,
+                    VECTORTYPE const * MR,
+                    VECTORTYPE const * MQ0) -> void
 {
   static constexpr auto step = 16;
   static constexpr auto offset0 = 0;
@@ -266,6 +278,22 @@ auto align_cells_regular_16(VECTORTYPE * Sm,
       VECTORTYPE const * x = *std::next(qp, pos + 0);
       h4 = *std::next(hep, (2 * pos) + 0);
       E  = *std::next(hep, (2 * pos) + 1);
+
+      if (masked)
+        {
+          /* mask h4 and E */
+          h4 = v_sub16(h4, *Mm);
+          E  = v_sub16(E,  *Mm);
+
+          /* init h4 and E */
+          h4 = v_add16(h4, *MQ);
+          E  = v_add16(E,  *MQ);
+          E  = v_add16(E,  *MQ0);
+
+          /* update MQ */
+          *MQ = v_add16(*MQ,  *MR);
+        }
+
       onestep_16(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
       onestep_16(h1, h6, f1, *std::next(x, 1), std::next(dir, (step * pos) + offset1), E, Q, R);
       onestep_16(h2, h7, f2, *std::next(x, 2), std::next(dir, (step * pos) + offset2), E, Q, R);
@@ -284,6 +312,23 @@ auto align_cells_regular_16(VECTORTYPE * Sm,
   *std::next(Sm, 3) = h8;
 }
 
+}  // namespace
+
+
+auto align_cells_regular_16(VECTORTYPE * Sm,
+                            VECTORTYPE * hep,
+                            VECTORTYPE ** qp,
+                            VECTORTYPE const * Qm,
+                            VECTORTYPE const * Rm,
+                            uint64_t ql,
+                            VECTORTYPE const * F0,
+                            uint64_t * dir_long,
+                            VECTORTYPE const * H0) -> void
+{
+  align_cells_16<false>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0,
+                        nullptr, nullptr, nullptr, nullptr);
+}
+
 
 auto align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
@@ -299,74 +344,7 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
                            VECTORTYPE const * MR,
                            VECTORTYPE const * MQ0) -> void
 {
-  static constexpr auto step = 16;
-  static constexpr auto offset0 = 0;
-  static constexpr auto offset1 = offset0 + 4;
-  static constexpr auto offset2 = offset1 + 4;
-  static constexpr auto offset3 = offset2 + 4;
-
-  VECTORTYPE E;
-  VECTORTYPE h4;
-
-  auto * dir = reinterpret_cast<WORD *>(dir_long);
-
-  const auto Q = *Qm;
-  const auto R = *Rm;
-
-  auto f0 = *F0;
-  auto f1 = v_add16(f0, R);
-  auto f2 = v_add16(f1, R);
-  auto f3 = v_add16(f2, R);
-
-  auto h0 = *H0;
-  auto h1 = v_sub16(f0, Q);
-  auto h2 = v_add16(h1, R);
-  auto h3 = v_add16(h2, R);
-
-  auto h5 = v_zero16();
-  auto h6 = v_zero16();
-  auto h7 = v_zero16();
-  auto h8 = v_zero16();
-
-  assert(ql <= max_ptrdiff);
-  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
-  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
-  auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  for (auto pos = 0LL; pos < ql_signed; ++pos)
-    {
-      h4 = *std::next(hep, (2 * pos) + 0);
-      E  = *std::next(hep, (2 * pos) + 1);
-      VECTORTYPE const * x = *std::next(qp, pos + 0);
-
-      /* mask h4 and E */
-      h4 = v_sub16(h4, *Mm);
-      E  = v_sub16(E,  *Mm);
-
-      /* init h4 and E */
-      h4 = v_add16(h4, *MQ);
-      E  = v_add16(E,  *MQ);
-      E  = v_add16(E,  *MQ0);
-
-      /* update MQ */
-      *MQ = v_add16(*MQ,  *MR);
-
-      onestep_16(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
-      onestep_16(h1, h6, f1, *std::next(x, 1), std::next(dir, (step * pos) + offset1), E, Q, R);
-      onestep_16(h2, h7, f2, *std::next(x, 2), std::next(dir, (step * pos) + offset2), E, Q, R);
-      onestep_16(h3, h8, f3, *std::next(x, 3), std::next(dir, (step * pos) + offset3), E, Q, R);
-      *std::next(hep, (2 * pos) + 0) = h8;
-      *std::next(hep, (2 * pos) + 1) = E;
-
-      h0 = h4;
-      h1 = h5;
-      h2 = h6;
-      h3 = h7;
-    }
-
-  *std::next(Sm, 0) = h5;
-  *std::next(Sm, 1) = h6;
-  *std::next(Sm, 2) = h7;
-  *std::next(Sm, 3) = h8;
+  align_cells_16<true>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
 }
 
 
