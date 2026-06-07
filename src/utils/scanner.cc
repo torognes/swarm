@@ -116,10 +116,11 @@ Scanner::Scanner(struct Parameters const & parameters,
              [this](uint64_t thread_id) -> void { worker_core(thread_id); }) {
   allocate_per_thread_search_data(search_data_v_, data.longest_sequence());
 
+  Cpu_features const features {parameters.ssse3_present != 0,
+                               parameters.sse41_present != 0,
+                               parameters.popcnt_present != 0};
   for (auto & thread_data : search_data_v_) {
-    thread_data.cpu_features.ssse3 = (parameters.ssse3_present != 0);
-    thread_data.cpu_features.sse41 = (parameters.sse41_present != 0);
-    thread_data.cpu_features.popcnt = (parameters.popcnt_present != 0);
+    thread_data.cpu_features = features;
   }
 }
 
@@ -231,9 +232,7 @@ auto Scanner::run(const uint64_t query_no,
                   uint64_t * alignlengths,
                   const int bits) -> void {
   auto const & info = data_.get().info(query_no);
-  query_.qno = query_no;
-  query_.seq = info.seq;
-  query_.len = info.seqlen;
+  query_ = queryinfo{query_no, info.seqlen, info.seq};
 
   master_next_ = 0;
   master_length_ = listlength;
