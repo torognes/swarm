@@ -209,7 +209,11 @@ $(INSTALLED) : $(PROG) | ../bin
 	mkdir -p $@
 
 clean :
-	rm -f $(PROG) $(OBJS) $(DEPFILES) *~ gmon.out *.gcno *.gcda *.gcov \
+	rm -f $(PROG) \
+	*.o *.d ./utils/*.o ./utils/*.d \
+	./arch/*/*.o ./arch/*/*.d \
+	./os/*/*.o ./os/*/*.d \
+	*~ gmon.out *.gcno *.gcda *.gcov \
 	./utils/*.gcno ./utils/*.gcda ./utils/*.gcov \
 	./arch/*/*.gcno ./arch/*/*.gcda ./arch/*/*.gcov \
 	./os/*/*.gcno ./os/*/*.gcda ./os/*/*.gcov
