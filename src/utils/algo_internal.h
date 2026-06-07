@@ -36,12 +36,6 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
 
-struct Parameters;    // defined in swarm.h
-class Data;           // defined in db.h
-class QgramDiffer;    // defined in utils/qgram.h
-struct Search_state;  // defined in scan.h
-class ThreadRunner;   // defined in utils/threads.h
-
 
 struct ampliconinfo_s {
   unsigned int ampliconid {0};
@@ -99,21 +93,6 @@ struct Cluster_workspace {
     qgramamps_v.reserve(amplicons);
     qgramindices_v.reserve(amplicons);
   }
-};
-
-
-// Read-only bundle of the search machinery shared by every cluster:
-// the qgram pre-filter, the alignment search engine and its worker
-// threads. Holds references/pointers only, so it is cheap to pass and
-// owns nothing. (search_state and qgram_differ are mutated through
-// their references; the surrounding const only fixes the bindings.)
-struct Search_context {
-  struct Parameters const & parameters;
-  Data const & data;
-  QgramDiffer & qgram_differ;
-  struct Search_state & search_state;
-  ThreadRunner * search_threads;
-  int bits;
 };
 
 #endif  // SWARM_UTILS_ALGO_INTERNAL_H

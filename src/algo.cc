@@ -278,7 +278,12 @@ namespace {
   }
 
 
-  auto seed_first_generation(Search_context const & ctx,
+  auto seed_first_generation(struct Parameters const & parameters,
+                             Data const & data,
+                             QgramDiffer & qgram_differ,
+                             struct Search_state & search_state,
+                             ThreadRunner * const search_threads,
+                             int const bits,
                              Pool_cursor & cursor,
                              unsigned int const swarmid,
                              uint64_t const seedindex,
@@ -287,13 +292,13 @@ namespace {
                              Cluster_state & state) -> void {
     /* find diff estimates between seed and each amplicon in pool */
     uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
-    auto const seed_abundance = ctx.data.abundance(seedampliconid);
+    auto const seed_abundance = data.abundance(seedampliconid);
 
     uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed, seed_abundance,
-                                                            ctx.parameters, ctx.data,
+                                                            parameters, data,
                                                             amps_v, workspace);
 
-    ctx.qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
+    qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
 
     uint64_t targetcount = 0;
     for (auto i = 0ULL; i < listlen; ++i) {
@@ -301,7 +306,7 @@ namespace {
       auto const diff = workspace.qgramdiffs_v[i];
       assert(diff <= std::numeric_limits<unsigned int>::max());
       amps_v[cursor.swarmed + i].diffestimate = static_cast<unsigned int>(diff);
-      if (diff <= static_cast<uint64_t>(ctx.parameters.opt_differences)) {
+      if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
         workspace.targetindices[targetcount] = cursor.swarmed + i;
         workspace.targetampliconids[targetcount] = poolampliconid;
         ++targetcount;
@@ -310,13 +315,13 @@ namespace {
 
     if (targetcount == 0) { return; }
 
-    search_do(ctx.parameters, ctx.data, ctx.search_state, seedampliconid, targetcount, workspace.targetampliconids.data(),
-              workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
+    search_do(parameters, data, search_state, seedampliconid, targetcount, workspace.targetampliconids.data(),
+              workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits, search_threads);
 
     for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
       auto const diff = workspace.diffs_v[target_id];
 
-      if (diff > static_cast<uint64_t>(ctx.parameters.opt_differences)) { continue; }
+      if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
       auto const target = workspace.targetindices[target_id];
 
       /* move the 'target' to the position ('swarmed')
@@ -325,13 +330,18 @@ namespace {
 
       include_amplicon_in_cluster(cursor.swarmed, diff, swarmid,
                                   amps_v[seedindex], amps_v, workspace.hits,
-                                  state, ctx.parameters, ctx.data);
+                                  state, parameters, data);
       ++cursor.swarmed;
     }
   }
 
 
-  auto grow_cluster_from_subseeds(Search_context const & ctx,
+  auto grow_cluster_from_subseeds(struct Parameters const & parameters,
+                                  Data const & data,
+                                  QgramDiffer & qgram_differ,
+                                  struct Search_state & search_state,
+                                  ThreadRunner * const search_threads,
+                                  int const bits,
                                   Pool_cursor & cursor,
                                   unsigned int const swarmid,
                                   uint64_t const amplicons,
@@ -349,14 +359,14 @@ namespace {
       uint64_t targetcount = 0;
 
       auto const subseedlistlen = build_subseed_candidate_list(cursor.swarmed, amplicons,
-                                                               subseed, ctx.parameters,
-                                                               ctx.data, amps_v, workspace);
+                                                               subseed, parameters,
+                                                               data, amps_v, workspace);
 
-      ctx.qgram_differ.fast(subseed.ampliconid,
-                            workspace.qgramamps_v, workspace.qgramdiffs_v);
+      qgram_differ.fast(subseed.ampliconid,
+                        workspace.qgramamps_v, workspace.qgramdiffs_v);
 
       for (auto i = 0ULL; i < subseedlistlen; ++i) {
-        if (workspace.qgramdiffs_v[i] <= static_cast<uint64_t>(ctx.parameters.opt_differences)) {
+        if (workspace.qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
           workspace.targetindices[targetcount] = workspace.qgramindices_v[i];
           workspace.targetampliconids[targetcount] = workspace.qgramamps_v[i];
           ++targetcount;
@@ -365,13 +375,13 @@ namespace {
 
       if (targetcount == 0) { continue; }
 
-      search_do(ctx.parameters, ctx.data, ctx.search_state, subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
-                workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), ctx.bits, ctx.search_threads);
+      search_do(parameters, data, search_state, subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
+                workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits, search_threads);
 
       for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
         auto const diff = workspace.diffs_v[target_id];
 
-        if (diff > static_cast<uint64_t>(ctx.parameters.opt_differences)) { continue; }
+        if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
         auto const target = workspace.targetindices[target_id];
 
         /* find correct position in list */
@@ -383,7 +393,7 @@ namespace {
 
         include_amplicon_in_cluster(pos, diff, swarmid, subseed,
                                     amps_v, workspace.hits, state,
-                                    ctx.parameters, ctx.data);
+                                    parameters, data);
         ++cursor.swarmed;
       }
     }
@@ -433,9 +443,6 @@ auto algo_run(struct Parameters const & parameters,
   set_amplicon_ids(amps_v);
   auto const bits = set_bit_mode(parameters);
 
-  Search_context const ctx {parameters, data, qgram_differ,
-                            search_state, search_threads.get(), bits};
-
   Pool_cursor cursor;
 
   auto swarmid = 0U;
@@ -450,10 +457,14 @@ auto algo_run(struct Parameters const & parameters,
       uint64_t const seedampliconid = start_new_cluster(cursor, swarmid, amps_v,
                                                         state, workspace, data);
 
-      seed_first_generation(ctx, cursor, swarmid, seedindex,
+      seed_first_generation(parameters, data, qgram_differ,
+                            search_state, search_threads.get(), bits,
+                            cursor, swarmid, seedindex,
                             amps_v, workspace, state);
 
-      grow_cluster_from_subseeds(ctx, cursor, swarmid, amplicons,
+      grow_cluster_from_subseeds(parameters, data, qgram_differ,
+                                 search_state, search_threads.get(), bits,
+                                 cursor, swarmid, amplicons,
                                  amps_v, workspace, state);
 
       largestswarm = std::max(state.swarmsize, largestswarm);
