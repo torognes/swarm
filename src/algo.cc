@@ -119,7 +119,7 @@ namespace {
     if (target <= position) { return; }
     // target > position
     // assert(target < amplicons.size());
-    auto const temp = amplicons[target];  // refactoring: static?
+    auto const temp = amplicons[target];
     for (auto i = target; i > position; --i) {
       amplicons[i] = amplicons[i - 1];
     }
@@ -138,7 +138,9 @@ namespace {
                                       std::vector<struct ampliconinfo_s> const & amps_v,
                                       Cluster_workspace & workspace) -> uint64_t {
     workspace.qgramamps_v.clear();
-    std::for_each(std::next(amps_v.cbegin(), static_cast<long int>(swarmed)), amps_v.cend(),
+    std::for_each(std::next(amps_v.cbegin(),
+                            static_cast<std::vector<struct ampliconinfo_s>::difference_type>(swarmed)),
+                  amps_v.cend(),
         [&parameters, &data, seed_abundance, &workspace](
             struct ampliconinfo_s const & amplicon) -> void {
           auto const ampliconid = amplicon.ampliconid;
@@ -255,8 +257,6 @@ namespace {
                          Cluster_workspace & workspace,
                          Data const & data) -> uint64_t {
     /* process each initial seed */
-    workspace.qgramamps_v.clear();
-
     auto const seedindex = cursor.seeded;
     ++cursor.seeded;
 
@@ -418,7 +418,7 @@ auto algo_run(struct Parameters const & parameters,
   uint64_t largestswarm {0};
   uint64_t maxgenerations {0};
 
-  auto const amplicons = data.sequence_count();
+  uint64_t const amplicons = data.sequence_count();
   uint64_t const longestamplicon = data.longest_sequence();
 
   // RAII: builds the qgram store, ThreadRunner is destroyed (workers
