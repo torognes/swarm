@@ -373,10 +373,12 @@ auto align_cells_masked_16(VECTORTYPE * Sm,
 }
 
 
+namespace {
+
 // Store the final score for the sequence that just ended in 'channel'
 // and, when the score fits in a WORD, recover its number of differences
 // by backtracking the alignment.
-static auto save_score_16(int64_t const cand_id,
+auto save_score_16(int64_t const cand_id,
                           unsigned int const channel,
                           VECTORTYPE const * const score_vectors,
                           std::array<char const *, channels> const & d_address,
@@ -431,7 +433,7 @@ static auto save_score_16(int64_t const cand_id,
 // the first block. Returns whether the channel already reached the end of
 // its (short) sequence, i.e. the next block is no longer "easy".
 template <std::size_t capacity>
-static auto load_next_sequence_16(unsigned int const channel,
+auto load_next_sequence_16(unsigned int const channel,
                                   Data const & data,
                                   uint64_t const * const seqnos,
                                   uint64_t & next_id,
@@ -472,7 +474,15 @@ static auto load_next_sequence_16(unsigned int const channel,
   return fill_channel<channels, cdepth>(dseq, channel, d_address, d_pos, d_length);
 }
 
+}  // namespace
 
+
+// search16 is an inherent streaming state machine: in a single pass it
+// fills the channels, dispatches the vectorised kernels, and swaps out
+// finished database sequences one channel at a time. Extracting the
+// fill, save-score and load-next-sequence steps already cut its cognitive
+// complexity from 95 to 39; the residual nesting is the per-channel
+// switch itself, which is intrinsic to the single-pass design.
 auto search16(Data const & data,
               std::vector<WORD *> & q_start,
               WORD gap_open_penalty,
