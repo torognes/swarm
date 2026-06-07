@@ -21,11 +21,14 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "db.h"  // Data (stored as reference_wrapper member)
-#include "utils/queryinfo.h"
-#include "utils/score_matrix.h"  // create_score_matrix, n_cells
-#include "utils/search_data.h"  // Search_data, BYTE, WORD
-#include "utils/threads.h"  // ThreadRunner
+#ifndef SWARM_UTILS_SCANNER_H
+#define SWARM_UTILS_SCANNER_H
+
+#include "../db.h"  // Data (stored as reference_wrapper member)
+#include "queryinfo.h"
+#include "score_matrix.h"  // create_score_matrix, n_cells
+#include "search_data.h"  // Search_data, BYTE, WORD
+#include "threads.h"  // ThreadRunner
 #include <array>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
@@ -97,3 +100,5 @@ private:
   std::vector<struct Search_data> search_data_v_;
   ThreadRunner threads_;  // last: its lambda touches the members above
 };
+
+#endif

@@ -21,14 +21,14 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include "db.h"
-#include "scan.h"
-#include "search8.h"
-#include "search16.h"
-#include "swarm.h"
-#include "utils/nt_codec.h"
-#include "utils/score_matrix.h"
-#include "utils/threads.h"  // ThreadRunner
+#include "../db.h"
+#include "scanner.h"
+#include "../search8.h"
+#include "../search16.h"
+#include "../swarm.h"
+#include "nt_codec.h"
+#include "score_matrix.h"
+#include "threads.h"  // ThreadRunner
 #include <array>
 #include <cassert>  // assert()
 #include <cstddef>  // std::ptrdiff_t, std::size_t

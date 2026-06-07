@@ -27,7 +27,7 @@
 #include "utils/algo_output.h"
 #include "utils/qgram.h"
 #include "utils/nw_aligner.h"
-#include "scan.h"
+#include "utils/scanner.h"
 #include "utils/make_unique.h"
 #include "utils/progress.h"
 #include <algorithm>  // std::min(), std::for_each

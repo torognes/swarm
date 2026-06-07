@@ -187,7 +187,7 @@ PROG := $(BIN)
 INSTALLED := ../bin/$(BIN)
 
 OBJS = algo.o algod1.o cli.o db.o dereplicate.o \
-	scan.o search16.o search8.o \
+	search16.o search8.o \
 	swarm.o \
 	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(ARCH_OBJS) $(OS_OBJS)
 
