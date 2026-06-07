@@ -30,7 +30,7 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t, uint8_t
-#include <iterator> // std::next, std::distance
+#include <iterator> // std::next
 #include <limits>
 #include <vector>
 
