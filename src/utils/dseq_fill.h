@@ -26,6 +26,7 @@
 
 #include "nt_codec.h"  // nt_extract
 #include <array>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 
 
@@ -36,17 +37,19 @@
 // the 'channels' (8 vs 16) and 'cdepth' constants, which are passed as
 // template arguments.
 //
-// 'dseq' is laid out as 'cdepth' blocks of 'channels' bytes each: the
-// nucleotide at depth j for a given channel lives at index
-// (channels * j) + channel.
+// 'dseq' is passed as its std::array (its capacity is deduced) rather
+// than as a raw pointer, so element access stays bounds-aware and free
+// of pointer arithmetic. It is laid out as 'cdepth' blocks of 'channels'
+// bytes each: the nucleotide at depth j for a given channel lives at
+// index (channels * j) + channel.
 
 
 // Fill the 'cdepth' depth-slots of a single channel from its database
 // sequence, advancing d_pos. Slots past the end of the sequence are
 // zero-filled. Returns true when the channel has reached the end of its
 // sequence (d_pos == d_length), i.e. the block is no longer "easy".
-template <unsigned int channels, unsigned int cdepth>
-inline auto fill_channel(unsigned char * dseq,
+template <unsigned int channels, unsigned int cdepth, std::size_t capacity>
+inline auto fill_channel(std::array<unsigned char, capacity> & dseq,
                          unsigned int const channel,
                          std::array<char const *, channels> const & d_address,
                          std::array<uint64_t, channels> & d_pos,
@@ -70,8 +73,8 @@ inline auto fill_channel(unsigned char * dseq,
 // Fill every channel (the "easy" block, where no channel switch is
 // pending). Returns whether the next block is still easy: false as soon
 // as any channel reaches the end of its sequence.
-template <unsigned int channels, unsigned int cdepth>
-inline auto fill_all_channels(unsigned char * dseq,
+template <unsigned int channels, unsigned int cdepth, std::size_t capacity>
+inline auto fill_all_channels(std::array<unsigned char, capacity> & dseq,
                               std::array<char const *, channels> const & d_address,
                               std::array<uint64_t, channels> & d_pos,
                               std::array<uint64_t, channels> const & d_length) -> bool
@@ -89,8 +92,8 @@ inline auto fill_all_channels(unsigned char * dseq,
 
 // Zero the 'cdepth' depth-slots of an empty channel (no more sequences
 // to process in that channel).
-template <unsigned int channels, unsigned int cdepth>
-inline auto clear_channel(unsigned char * dseq,
+template <unsigned int channels, unsigned int cdepth, std::size_t capacity>
+inline auto clear_channel(std::array<unsigned char, capacity> & dseq,
                           unsigned int const channel) -> void
 {
   for (auto j = 0U; j < cdepth; ++j) {

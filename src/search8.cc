@@ -685,6 +685,7 @@ static auto save_score_8(int64_t const cand_id,
 // length, reset the per-channel cursors, seed the H0/F0 lanes, and prime
 // the first block. Returns whether the channel already reached the end of
 // its (short) sequence, i.e. the next block is no longer "easy".
+template <std::size_t capacity>
 static auto load_next_sequence_8(unsigned int const channel,
                                  Data const & data,
                                  uint64_t const * const seqnos,
@@ -695,7 +696,7 @@ static auto load_next_sequence_8(unsigned int const channel,
                                  BYTE const gap_extend_penalty,
                                  VECTORTYPE & H0,
                                  VECTORTYPE & F0,
-                                 unsigned char * const dseq,
+                                 std::array<unsigned char, capacity> & dseq,
                                  std::array<int64_t, channels> & seq_id,
                                  std::array<char const *, channels> & d_address,
                                  std::array<uint64_t, channels> & d_length,
@@ -794,7 +795,7 @@ auto search8(Data const & data,
       if (easy) {
           // fill all channels
 
-          easy = fill_all_channels<channels, cdepth>(dseq.data(), d_address, d_pos, d_length);
+          easy = fill_all_channels<channels, cdepth>(dseq, d_address, d_pos, d_length);
 
           dispatch_dprofile8(cpu_features, dprofile.data(), score_matrix, dseq.data());
 
@@ -813,7 +814,7 @@ auto search8(Data const & data,
               if (d_pos[channel] < d_length[channel]) {
                   // this channel has more sequence
 
-                  if (fill_channel<channels, cdepth>(dseq.data(), channel, d_address, d_pos, d_length)) {
+                  if (fill_channel<channels, cdepth>(dseq, channel, d_address, d_pos, d_length)) {
                     easy = false;
                   }
                 }
@@ -839,7 +840,7 @@ auto search8(Data const & data,
                       if (load_next_sequence_8(channel, data, seqnos, next_id,
                                                dirbuffer.data(), dir,
                                                gap_open_penalty, gap_extend_penalty,
-                                               H0, F0, dseq.data(),
+                                               H0, F0, dseq,
                                                seq_id, d_address, d_length, d_pos, d_offset)) {
                         easy = false;
                       }
@@ -851,7 +852,7 @@ auto search8(Data const & data,
                       d_address[channel] = nullptr;
                       d_pos[channel] = 0;
                       d_length[channel] = 0;
-                      clear_channel<channels, cdepth>(dseq.data(), channel);
+                      clear_channel<channels, cdepth>(dseq, channel);
                     }
                 }
 
