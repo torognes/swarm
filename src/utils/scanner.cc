@@ -44,6 +44,8 @@ constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 #endif
 
 
+namespace {
+
 auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v,
                                      const uint64_t longestdbsequence) -> void {
   static constexpr auto one_kilobyte = 1024UL;
@@ -95,6 +97,8 @@ auto adjust_thread_number(const int n_bits,
 // static_assert(adjust_thread_number(16, 15,  2) == 2);
 // static_assert(adjust_thread_number(16,  1,  3) == 1);
 // static_assert(adjust_thread_number(16, 17,  1) == 1);
+
+}  // namespace
 
 
 Scanner::Scanner(struct Parameters const & parameters,
