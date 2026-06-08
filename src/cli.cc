@@ -161,7 +161,7 @@ namespace {
     }};
 
 
-#ifdef __WIN32
+#ifdef _WIN32
   constexpr std::size_t args_usage_count {36};
 #else
   constexpr std::size_t args_usage_count {38};
@@ -205,7 +205,7 @@ namespace {
       " -g, --gap-opening-penalty INTEGER   gap open penalty (12)\n",
       " -e, --gap-extension-penalty INTEGER gap extension penalty (4)\n",
       " -x, --disable-sse3                  disable SSE3 and later x86 instructions\n",
-#ifndef __WIN32
+#ifndef _WIN32
       "\n",
       "See 'man swarm' for more details.\n",
 #endif
