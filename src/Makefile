@@ -231,6 +231,17 @@ arch/x86_64/sse41.o : arch/x86_64/sse41.cc Makefile
 arch/x86_64/popcnt.o : arch/x86_64/popcnt.cc Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mpopcnt -c -o $@ $<
 
+# search_dispatch.cc selects between the SSE2 baseline kernels and the
+# SSSE3/SSE4.1 kernels at run time, but the optimized branches are guarded
+# by #ifdef __SSE3__ / __SSE4_1__. Those macros are undefined under the
+# generic -march=x86-64 baseline, so without these flags the whole runtime
+# dispatch is preprocessed away and the binary always uses the SSE2 path.
+# The flags only enable the macros (and the calls) in this dispatch TU; the
+# fallback kernels live in other TUs and stay at the SSE2 baseline, so the
+# binary still runs on any SSE2-only CPU.
+arch/x86_64/search_dispatch.o : arch/x86_64/search_dispatch.cc Makefile
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mssse3 -msse4.1 -mpopcnt -c -o $@ $<
+
 # Pull in the auto-generated header-dependency files. The leading "-"
 # silences the warning when a .d file does not yet exist.
 -include $(DEPFILES)
