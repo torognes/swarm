@@ -84,7 +84,7 @@ auto adjust_thread_number(const Bit_mode n_bits,
   return n_threads;
 }
 
-// arguments: bits, master_length, thr
+// arguments: bits, length, thr
 // static_assert(adjust_thread_number(Bit_mode::bits_8, 32, 10) == 2);
 // static_assert(adjust_thread_number(Bit_mode::bits_8, 32,  3) == 2);
 // static_assert(adjust_thread_number(Bit_mode::bits_8, 31,  2) == 2);
@@ -154,10 +154,10 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
              static_cast<WORD>(gapopen_),
              static_cast<WORD>(gapextend_),
              score_matrix_16_.data(),
-             std::next(master_targets_, target_index),
-             std::next(master_scores_, target_index),
-             std::next(master_diffs_, target_index),
-             std::next(master_alignlengths_, target_index),
+             std::next(targets_, target_index),
+             std::next(scores_, target_index),
+             std::next(diffs_, target_index),
+             std::next(alignlengths_, target_index),
              query_.seq,
              static_cast<uint64_t>(query_.len));
   } else {
@@ -168,10 +168,10 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
             static_cast<BYTE>(gapopen_),
             static_cast<BYTE>(gapextend_),
             score_matrix_8_.data(),
-            std::next(master_targets_, target_index),
-            std::next(master_scores_, target_index),
-            std::next(master_diffs_, target_index),
-            std::next(master_alignlengths_, target_index),
+            std::next(targets_, target_index),
+            std::next(scores_, target_index),
+            std::next(diffs_, target_index),
+            std::next(alignlengths_, target_index),
             query_.seq,
             static_cast<uint64_t>(query_.len));
   }
@@ -180,20 +180,20 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
 
 auto Scanner::getwork(uint64_t & countref, uint64_t & firstref) -> bool {
   // countref = how many sequences to search
-  // firstref = index into master_targets/scores/diffs where thread should start
+  // firstref = index into targets/scores/diffs where thread should start
 
   bool status {false};
 
   std::lock_guard<std::mutex> const lock(scan_mutex_);
 
-  if (master_next_ < master_length_) {
+  if (next_ < length_) {
     const uint64_t chunksize =
-      ((master_length_ - master_next_ + remainingchunks_ - 1) / remainingchunks_);
+      ((length_ - next_ + remainingchunks_ - 1) / remainingchunks_);
 
     countref = chunksize;
-    firstref = master_next_;
+    firstref = next_;
 
-    master_next_ += chunksize;
+    next_ += chunksize;
     --remainingchunks_;
     status = true;
   }
@@ -206,7 +206,7 @@ auto Scanner::worker_core(const uint64_t thread_id) -> void {
   auto & thread_data = search_data_v_[thread_id];
   init(thread_data);
   while (getwork(thread_data.target_count, thread_data.target_index)) {
-    chunk(thread_data, master_bits_);
+    chunk(thread_data, bits_);
   }
 }
 
@@ -221,15 +221,15 @@ auto Scanner::run(const uint64_t query_no,
   auto const & info = data_.get().info(query_no);
   query_ = queryinfo{query_no, info.seqlen, info.seq};
 
-  master_next_ = 0;
-  master_length_ = listlength;
-  master_targets_ = targets;
-  master_scores_ = scores;
-  master_diffs_ = diffs;
-  master_alignlengths_ = alignlengths;
-  master_bits_ = bits;
+  next_ = 0;
+  length_ = listlength;
+  targets_ = targets;
+  scores_ = scores;
+  diffs_ = diffs;
+  alignlengths_ = alignlengths;
+  bits_ = bits;
 
-  const auto thr = adjust_thread_number(bits, master_length_, n_threads_);
+  const auto thr = adjust_thread_number(bits, length_, n_threads_);
 
   remainingchunks_ = thr;
 
