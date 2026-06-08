@@ -94,14 +94,14 @@ private:
 
   std::mutex scan_mutex_;
   struct queryinfo query_ {0, 0, nullptr};
-  uint64_t master_next_ {0};
-  uint64_t master_length_ {0};
+  uint64_t next_ {0};
+  uint64_t length_ {0};
   uint64_t remainingchunks_ {0};
-  uint64_t * master_targets_ {nullptr};
-  uint64_t * master_scores_ {nullptr};
-  uint64_t * master_diffs_ {nullptr};
-  uint64_t * master_alignlengths_ {nullptr};
-  Bit_mode master_bits_ {Bit_mode::bits_16};
+  uint64_t * targets_ {nullptr};
+  uint64_t * scores_ {nullptr};
+  uint64_t * diffs_ {nullptr};
+  uint64_t * alignlengths_ {nullptr};
+  Bit_mode bits_ {Bit_mode::bits_16};
 
   std::vector<struct Search_data> search_data_v_;
   ThreadRunner threads_;  // last: its lambda touches the members above
