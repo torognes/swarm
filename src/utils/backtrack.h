@@ -38,8 +38,7 @@ auto compute_mask(uint64_t const channel,
   return (3ULL << ((2 * channel) + offset));
 }
 
-// refactoring: could 'Unknown' be eliminated?
-enum struct Alignment: unsigned char { Unknown, Insertion, Deletion, Match };
+enum struct Alignment: unsigned char { Insertion, Deletion, Match };
 
 // refactoring: replace pairs of {qseq, qlen} with a struct
 // struct Sequence_view {
@@ -77,7 +76,7 @@ auto backtrack(char const * qseq,
   auto row = static_cast<int64_t>(dlen) - 1;
   uint64_t aligned {0};
   uint64_t matches {0};
-  auto operation = Alignment::Unknown;  // Insertion, Deletion or Match
+  auto operation = Alignment::Match;  // no extension in progress yet
 
   while ((column >= 0) and (row >= 0)) {
       ++aligned;
