@@ -361,7 +361,8 @@ namespace {
         auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
         if (target_swarm.mass >= static_cast<uint64_t>(parameters.opt_boundary))
           {
-            progress.update(++heavy_state.progress);  // refactoring: separate operations?
+            ++heavy_state.progress;
+            progress.update(heavy_state.progress);
             lock.unlock();
             uint64_t number_of_matches {0};
             uint64_t number_of_variants {0};
@@ -429,7 +430,8 @@ namespace {
         auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
         if (target_swarm.mass < static_cast<uint64_t>(parameters.opt_boundary))
           {
-            progress.update(++state.progress);  // refactoring: separate operations?
+            ++state.progress;
+            progress.update(state.progress);
             lock.unlock();
             const auto variant_count = mark_light_var(data, hash_table, bloom_a, bloom_f,
                                                       light_amplicon_id,
