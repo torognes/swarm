@@ -274,7 +274,9 @@ alternative way to control the memory footprint.
 .BI \-a\fP,\fB\ \-\-append\-abundance\~ "positive integer"
 set abundance value to use when some or all amplicons in the input
 file lack abundance values (_\fIinteger\fR, or ;size=\fIinteger\fR;
-when using \-z). Warning, it is not recommended to use \fBswarm\fR on
+when using \-z). As with abundance annotations in the input, the value
+must not exceed 9223372036854775807 (the largest signed 64-bit
+integer). Warning, it is not recommended to use \fBswarm\fR on
 datasets where abundance values are all identical. We provide that
 option as a courtesy to advanced users, please use it
 carefully. \fBswarm\fR exits with an error message if abundance values
