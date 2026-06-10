@@ -312,9 +312,9 @@ namespace {
     // Find the matching long option name to include in the error message.
     char const * long_name = "";
     for (auto const & long_option : long_options) {
-      if (long_option.name == nullptr) {
-        break;
-      }
+      // the sentinel entry is never reached: option_character always
+      // matches a short option derived from option_specs
+      assert(long_option.name != nullptr);
       if (long_option.val == option_character) {
         long_name = long_option.name;
         break;
