@@ -40,12 +40,6 @@ auto compute_mask(uint64_t const channel,
 
 enum struct Alignment: unsigned char { Insertion, Deletion, Match };
 
-// refactoring: replace pairs of {qseq, qlen} with a struct
-// struct Sequence_view {
-//   char * start;
-//   uint64_t length;
-// };
-
 
 template <uint8_t n_bits>
 auto backtrack(char const * qseq,
