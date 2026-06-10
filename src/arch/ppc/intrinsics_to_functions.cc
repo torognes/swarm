@@ -73,12 +73,6 @@ auto cast_vector8(uint8_t const * ptr) -> uint8_t const * {
   return ptr;
 }
 
-// refactoring: overload not covered by our tests. Not needed?
-auto cast_vector8(v_u8_t * ptr) -> v_u8_t* {
-  // dummy function, needed to match x86-64 code
-  return ptr;
-}
-
 auto cast_vector8(v_u8_t const * ptr) -> v_u8_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;

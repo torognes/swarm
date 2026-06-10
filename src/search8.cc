@@ -100,7 +100,8 @@ auto dprofile_fill8(BYTE * dprofile,
                            BYTE const * dseq) -> void
 {
   static constexpr auto multiplier = 5U;
-  assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max());  // refactoring: static_assert?
+  static_assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max(),
+                "score-matrix byte offset must fit in an unsigned int");
 
   static constexpr auto pos0  = 0U;
   static constexpr auto pos1  = pos0  + 1;
@@ -154,28 +155,28 @@ auto dprofile_fill8(BYTE * dprofile,
 
   for (auto j = 0U; j < cdepth; ++j)
     {
-      std::array<unsigned int, channels> d {{}};  // refactoring: name?
+      std::array<unsigned int, channels> score_offsets {{}};
       for (auto i = 0U; i < channels; ++i) {
-        d[i] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + i))) << multiplier;
+        score_offsets[i] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + i))) << multiplier;
       }
 
-      reg0  = v_load_64(std::next(score_matrix, d[pos0]));
-      reg2  = v_load_64(std::next(score_matrix, d[pos2]));
-      reg4  = v_load_64(std::next(score_matrix, d[pos4]));
-      reg6  = v_load_64(std::next(score_matrix, d[pos6]));
-      reg8  = v_load_64(std::next(score_matrix, d[pos8]));
-      reg10 = v_load_64(std::next(score_matrix, d[pos10]));
-      reg12 = v_load_64(std::next(score_matrix, d[pos12]));
-      reg14 = v_load_64(std::next(score_matrix, d[pos14]));
+      reg0  = v_load_64(std::next(score_matrix, score_offsets[pos0]));
+      reg2  = v_load_64(std::next(score_matrix, score_offsets[pos2]));
+      reg4  = v_load_64(std::next(score_matrix, score_offsets[pos4]));
+      reg6  = v_load_64(std::next(score_matrix, score_offsets[pos6]));
+      reg8  = v_load_64(std::next(score_matrix, score_offsets[pos8]));
+      reg10 = v_load_64(std::next(score_matrix, score_offsets[pos10]));
+      reg12 = v_load_64(std::next(score_matrix, score_offsets[pos12]));
+      reg14 = v_load_64(std::next(score_matrix, score_offsets[pos14]));
 
-      reg0  = v_merge_lo_8(reg0,  *cast_vector8(std::next(score_matrix, d[pos1])));
-      reg2  = v_merge_lo_8(reg2,  *cast_vector8(std::next(score_matrix, d[pos3])));
-      reg4  = v_merge_lo_8(reg4,  *cast_vector8(std::next(score_matrix, d[pos5])));
-      reg6  = v_merge_lo_8(reg6,  *cast_vector8(std::next(score_matrix, d[pos7])));
-      reg8  = v_merge_lo_8(reg8,  *cast_vector8(std::next(score_matrix, d[pos9])));
-      reg10 = v_merge_lo_8(reg10, *cast_vector8(std::next(score_matrix, d[pos11])));
-      reg12 = v_merge_lo_8(reg12, *cast_vector8(std::next(score_matrix, d[pos13])));
-      reg14 = v_merge_lo_8(reg14, *cast_vector8(std::next(score_matrix, d[pos15])));
+      reg0  = v_merge_lo_8(reg0,  *cast_vector8(std::next(score_matrix, score_offsets[pos1])));
+      reg2  = v_merge_lo_8(reg2,  *cast_vector8(std::next(score_matrix, score_offsets[pos3])));
+      reg4  = v_merge_lo_8(reg4,  *cast_vector8(std::next(score_matrix, score_offsets[pos5])));
+      reg6  = v_merge_lo_8(reg6,  *cast_vector8(std::next(score_matrix, score_offsets[pos7])));
+      reg8  = v_merge_lo_8(reg8,  *cast_vector8(std::next(score_matrix, score_offsets[pos9])));
+      reg10 = v_merge_lo_8(reg10, *cast_vector8(std::next(score_matrix, score_offsets[pos11])));
+      reg12 = v_merge_lo_8(reg12, *cast_vector8(std::next(score_matrix, score_offsets[pos13])));
+      reg14 = v_merge_lo_8(reg14, *cast_vector8(std::next(score_matrix, score_offsets[pos15])));
 
       reg1 = reg0;
       reg0 = v_merge_lo_16(reg0, reg2);
@@ -216,7 +217,7 @@ auto dprofile_fill8(BYTE * dprofile,
       reg6  = v_merge_lo_64(reg6, reg14);
       reg15 = v_merge_hi_64(reg15, reg14);
 
-      std::ptrdiff_t const lane = static_cast<std::ptrdiff_t>(channels) * j;  // refactoring: meaningful name?
+      std::ptrdiff_t const lane = static_cast<std::ptrdiff_t>(channels) * j;
       v_store8(cast_vector8(std::next(dprofile, lane + line0)), reg0);
       v_store8(cast_vector8(std::next(dprofile, lane + line1)), reg3);
       v_store8(cast_vector8(std::next(dprofile, lane + line2)), reg2);
@@ -229,22 +230,22 @@ auto dprofile_fill8(BYTE * dprofile,
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
 
-      reg0  = v_load_64(std::next(score_matrix, offset8 + d[pos0]));
-      reg1  = v_load_64(std::next(score_matrix, offset8 + d[pos1]));
-      reg2  = v_load_64(std::next(score_matrix, offset8 + d[pos2]));
-      reg3  = v_load_64(std::next(score_matrix, offset8 + d[pos3]));
-      reg4  = v_load_64(std::next(score_matrix, offset8 + d[pos4]));
-      reg5  = v_load_64(std::next(score_matrix, offset8 + d[pos5]));
-      reg6  = v_load_64(std::next(score_matrix, offset8 + d[pos6]));
-      reg7  = v_load_64(std::next(score_matrix, offset8 + d[pos7]));
-      reg8  = v_load_64(std::next(score_matrix, offset8 + d[pos8]));
-      reg9  = v_load_64(std::next(score_matrix, offset8 + d[pos9]));
-      reg10 = v_load_64(std::next(score_matrix, offset8 + d[pos10]));
-      reg11 = v_load_64(std::next(score_matrix, offset8 + d[pos11]));
-      reg12 = v_load_64(std::next(score_matrix, offset8 + d[pos12]));
-      reg13 = v_load_64(std::next(score_matrix, offset8 + d[pos13]));
-      reg14 = v_load_64(std::next(score_matrix, offset8 + d[pos14]));
-      reg15 = v_load_64(std::next(score_matrix, offset8 + d[pos15]));
+      reg0  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos0]));
+      reg1  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos1]));
+      reg2  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos2]));
+      reg3  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos3]));
+      reg4  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos4]));
+      reg5  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos5]));
+      reg6  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos6]));
+      reg7  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos7]));
+      reg8  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos8]));
+      reg9  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos9]));
+      reg10 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos10]));
+      reg11 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos11]));
+      reg12 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos12]));
+      reg13 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos13]));
+      reg14 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos14]));
+      reg15 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos15]));
 
       reg0  = v_merge_lo_8(reg0,  reg1);
       reg2  = v_merge_lo_8(reg2,  reg3);
@@ -304,23 +305,23 @@ auto dprofile_fill8(BYTE * dprofile,
       v_store8(cast_vector8(std::next(dprofile, lane + line8 + line7)), reg15);
 
 
-      reg0  = v_load_64(std::next(score_matrix, offset16 + d[pos0]));
-      reg2  = v_load_64(std::next(score_matrix, offset16 + d[pos2]));
-      reg4  = v_load_64(std::next(score_matrix, offset16 + d[pos4]));
-      reg6  = v_load_64(std::next(score_matrix, offset16 + d[pos6]));
-      reg8  = v_load_64(std::next(score_matrix, offset16 + d[pos8]));
-      reg10 = v_load_64(std::next(score_matrix, offset16 + d[pos10]));
-      reg12 = v_load_64(std::next(score_matrix, offset16 + d[pos12]));
-      reg14 = v_load_64(std::next(score_matrix, offset16 + d[pos14]));
+      reg0  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos0]));
+      reg2  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos2]));
+      reg4  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos4]));
+      reg6  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos6]));
+      reg8  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos8]));
+      reg10 = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos10]));
+      reg12 = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos12]));
+      reg14 = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos14]));
 
-      reg0  = v_merge_lo_8(reg0,  *cast_vector8(std::next(score_matrix, offset16 + d[pos1])));
-      reg2  = v_merge_lo_8(reg2,  *cast_vector8(std::next(score_matrix, offset16 + d[pos3])));
-      reg4  = v_merge_lo_8(reg4,  *cast_vector8(std::next(score_matrix, offset16 + d[pos5])));
-      reg6  = v_merge_lo_8(reg6,  *cast_vector8(std::next(score_matrix, offset16 + d[pos7])));
-      reg8  = v_merge_lo_8(reg8,  *cast_vector8(std::next(score_matrix, offset16 + d[pos9])));
-      reg10 = v_merge_lo_8(reg10, *cast_vector8(std::next(score_matrix, offset16 + d[pos11])));
-      reg12 = v_merge_lo_8(reg12, *cast_vector8(std::next(score_matrix, offset16 + d[pos13])));
-      reg14 = v_merge_lo_8(reg14, *cast_vector8(std::next(score_matrix, offset16 + d[pos15])));
+      reg0  = v_merge_lo_8(reg0,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos1])));
+      reg2  = v_merge_lo_8(reg2,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos3])));
+      reg4  = v_merge_lo_8(reg4,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos5])));
+      reg6  = v_merge_lo_8(reg6,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos7])));
+      reg8  = v_merge_lo_8(reg8,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos9])));
+      reg10 = v_merge_lo_8(reg10, *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos11])));
+      reg12 = v_merge_lo_8(reg12, *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos13])));
+      reg14 = v_merge_lo_8(reg14, *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos15])));
 
       reg1 = reg0;
       reg0 = v_merge_lo_16(reg0, reg2);
@@ -373,22 +374,22 @@ auto dprofile_fill8(BYTE * dprofile,
 
       // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
 
-      reg0  = v_load_64(std::next(score_matrix, offset24 + d[pos0]));
-      reg1  = v_load_64(std::next(score_matrix, offset24 + d[pos1]));
-      reg2  = v_load_64(std::next(score_matrix, offset24 + d[pos2]));
-      reg3  = v_load_64(std::next(score_matrix, offset24 + d[pos3]));
-      reg4  = v_load_64(std::next(score_matrix, offset24 + d[pos4]));
-      reg5  = v_load_64(std::next(score_matrix, offset24 + d[pos5]));
-      reg6  = v_load_64(std::next(score_matrix, offset24 + d[pos6]));
-      reg7  = v_load_64(std::next(score_matrix, offset24 + d[pos7]));
-      reg8  = v_load_64(std::next(score_matrix, offset24 + d[pos8]));
-      reg9  = v_load_64(std::next(score_matrix, offset24 + d[pos9]));
-      reg10 = v_load_64(std::next(score_matrix, offset24 + d[pos10]));
-      reg11 = v_load_64(std::next(score_matrix, offset24 + d[pos11]));
-      reg12 = v_load_64(std::next(score_matrix, offset24 + d[pos12]));
-      reg13 = v_load_64(std::next(score_matrix, offset24 + d[pos13]));
-      reg14 = v_load_64(std::next(score_matrix, offset24 + d[pos14]));
-      reg15 = v_load_64(std::next(score_matrix, offset24 + d[pos15]));
+      reg0  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos0]));
+      reg1  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos1]));
+      reg2  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos2]));
+      reg3  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos3]));
+      reg4  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos4]));
+      reg5  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos5]));
+      reg6  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos6]));
+      reg7  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos7]));
+      reg8  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos8]));
+      reg9  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos9]));
+      reg10 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos10]));
+      reg11 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos11]));
+      reg12 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos12]));
+      reg13 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos13]));
+      reg14 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos14]));
+      reg15 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos15]));
 
       reg0  = v_merge_lo_8(reg0,  reg1);
       reg2  = v_merge_lo_8(reg2,  reg3);

@@ -86,7 +86,7 @@ constexpr unsigned int channels {8};
 constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {16};
 using BYTE = unsigned char;
-using WORD = unsigned short;  // refactoring: uint16_t?
+using WORD = uint16_t;
 
 auto dprofile_fill16(WORD * dprofile_word,
                             WORD const * score_matrix,
@@ -140,19 +140,19 @@ auto dprofile_fill16(WORD * dprofile_word,
   assert((pos7 * cdepth * channels) + (channels * cdepth) <= max_ptrdiff);
   for (auto j = 0LL; j < cdepth; ++j)
     {
-      std::array<unsigned int, channels> d {{}};   // refactoring: name?
+      std::array<unsigned int, channels> score_offsets {{}};
       for (auto z = 0U; z < channels; ++z) {
-        d[z] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + z))) << multiplier;
+        score_offsets[z] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + z))) << multiplier;
       }
 
-      reg0  = v_load16(cast_vector16(std::next(score_matrix, d[pos0])));
-      reg1  = v_load16(cast_vector16(std::next(score_matrix, d[pos1])));
-      reg2  = v_load16(cast_vector16(std::next(score_matrix, d[pos2])));
-      reg3  = v_load16(cast_vector16(std::next(score_matrix, d[pos3])));
-      reg4  = v_load16(cast_vector16(std::next(score_matrix, d[pos4])));
-      reg5  = v_load16(cast_vector16(std::next(score_matrix, d[pos5])));
-      reg6  = v_load16(cast_vector16(std::next(score_matrix, d[pos6])));
-      reg7  = v_load16(cast_vector16(std::next(score_matrix, d[pos7])));
+      reg0  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos0])));
+      reg1  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos1])));
+      reg2  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos2])));
+      reg3  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos3])));
+      reg4  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos4])));
+      reg5  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos5])));
+      reg6  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos6])));
+      reg7  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos7])));
 
       reg8  = v_merge_lo_16(reg0,  reg1);
       reg9  = v_merge_hi_16(reg0,  reg1);

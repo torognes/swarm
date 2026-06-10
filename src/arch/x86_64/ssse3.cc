@@ -117,7 +117,6 @@ auto dprofile_shuffle16(WORD * dprofile,
   const auto zero = v_zero();
   const auto one = v_dup16(1);
 
-  // refactoring: make lower_chunk and local_t const?
   auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
     auto lower_chunk = v_merge_lo_8(seq_chunk, zero);
     lower_chunk = v_shift_left(lower_chunk, 1);
