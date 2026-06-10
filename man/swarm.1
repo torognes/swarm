@@ -125,7 +125,10 @@ line, whichever comes first. Each header must end with an \fIabundance
 annotation\fR representing the amplicon copy number and defined as '_'
 followed by a positive integer. See option \-z for input data using
 usearch/vsearch's abundance annotation format
-(';size=\fIinteger\fR[;]'). Once stripped from the abundance
+(';size=\fIinteger\fR[;]'). In either format, the abundance value must
+not exceed 9223372036854775807 (the largest signed 64-bit integer);
+larger values are rejected with an error message. Once stripped from
+the abundance
 annotation, the remaining part of the header is called the
 \fIlabel\fR. In summary, using regular expression patterns:
 .PP
