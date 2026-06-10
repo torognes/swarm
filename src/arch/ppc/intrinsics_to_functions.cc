@@ -126,7 +126,9 @@ auto v_merge_lo_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 
 auto v_merge_lo_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a), (vector short)(b))
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u8_t>(
              vec_mergeh(reinterpret_cast<v_u16_t>(lhs),
                         reinterpret_cast<v_u16_t>(rhs))
@@ -139,7 +141,9 @@ auto v_merge_hi_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 
 auto v_merge_hi_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_hi_16(a, b) (VECTORTYPE)vec_mergel((vector short)(a), (vector short)(b))
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u8_t>(
              vec_mergel(reinterpret_cast<v_u16_t>(lhs),
                         reinterpret_cast<v_u16_t>(rhs))
@@ -149,7 +153,9 @@ auto v_merge_hi_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
 auto v_merge_lo_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u16_t>(
              vec_mergeh(reinterpret_cast<v_u32_t>(lhs),
                         reinterpret_cast<v_u32_t>(rhs))
@@ -159,7 +165,9 @@ auto v_merge_lo_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 auto v_merge_lo_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u8_t>(
              vec_mergeh(reinterpret_cast<v_u32_t>(lhs),
                         reinterpret_cast<v_u32_t>(rhs))
@@ -169,7 +177,9 @@ auto v_merge_lo_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
 auto v_merge_hi_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u16_t>(
              vec_mergel(reinterpret_cast<v_u32_t>(lhs),
                         reinterpret_cast<v_u32_t>(rhs))
@@ -179,7 +189,9 @@ auto v_merge_hi_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 auto v_merge_hi_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u8_t>(
              vec_mergel(reinterpret_cast<v_u32_t>(lhs),
                         reinterpret_cast<v_u32_t>(rhs))
@@ -189,7 +201,9 @@ auto v_merge_hi_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
 auto v_merge_lo_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_low)
   // decision: was casting to signed long long; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u16_t>(
              vec_perm(reinterpret_cast<v_u64_t>(lhs),
                       reinterpret_cast<v_u64_t>(rhs),
@@ -200,7 +214,9 @@ auto v_merge_lo_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 auto v_merge_lo_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_low)
   // decision: was casting to signed long long; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u8_t>(
              vec_perm(reinterpret_cast<v_u64_t>(lhs),
                       reinterpret_cast<v_u64_t>(rhs),
@@ -212,7 +228,9 @@ auto v_merge_lo_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
 auto v_merge_hi_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
   // search16: v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_high)
   // decision: was casting to signed long long; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u16_t>(
              vec_perm(reinterpret_cast<v_u64_t>(lhs),
                       reinterpret_cast<v_u64_t>(rhs),
@@ -223,7 +241,9 @@ auto v_merge_hi_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
 auto v_merge_hi_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
   // search8: v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_high)
   // decision: was casting to signed long long; I use unsigned
-  // refactoring: try without casting
+  // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
+  // and vec_perm are overloaded on element type, so casting to the wider
+  // element type performs the wider-lane merge while the data stays byte-typed
   return reinterpret_cast<v_u8_t>(
              vec_perm(reinterpret_cast<v_u64_t>(lhs),
                       reinterpret_cast<v_u64_t>(rhs),
@@ -312,7 +332,6 @@ auto v_mask_eq16(v_u16_t lhs, v_u16_t rhs) -> uint16_t {
   // - vec_cmpeq -> vector bool char
   // - permute (vec_bperm -> vector unsigned char)
   // - extract a uint16!?
-  // refactoring: should function return a uint8_t?
   // refactoring: vec_vbpermq is vec_bperm in the
   // documentation. Modify?
   static constexpr auto fifth_item = 4U;
@@ -329,7 +348,6 @@ auto v_mask_eq8(v_u8_t lhs, v_u8_t rhs) -> uint16_t {
   // - vec_cmpeq -> vector bool char
   // - permute (vec_bperm -> vector unsigned char)
   // - extract a uint16!?
-  // refactoring: should function return a uint8_t?
   // refactoring: vec_vbpermq is vec_bperm in the
   // documentation. Modify?
   static constexpr auto fifth_item = 4U;

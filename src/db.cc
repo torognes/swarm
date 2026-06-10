@@ -35,6 +35,7 @@
 #include <algorithm>  // std::all_of() std::copy_n() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
 #include <array>
 #include <cassert>  // assert()
+#include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
@@ -310,6 +311,23 @@ namespace {
   }
 
 
+  // Convert a validated, null-terminated run of decimal digits in
+  // [digits_begin, digits_end) into an int64_t abundance value. Returns
+  // false when the value overflows int64_t (errno == ERANGE) or when
+  // strtoll stops before digits_end (defensive: callers pre-validate the
+  // run with std::all_of(is_digit)).
+  auto parse_abundance_digits(char const * const digits_begin,
+                              char const * const digits_end,
+                              int64_t & number) -> bool
+  {
+    static constexpr int base_value {10};
+    char * end_ptr {nullptr};
+    errno = 0;
+    number = std::strtoll(digits_begin, &end_ptr, base_value);
+    return (errno != ERANGE) and (end_ptr == digits_end);
+  }
+
+
   auto find_swarm_abundance(View<char> const header_view) -> Abundance_match
   {
     /*
@@ -357,11 +375,11 @@ namespace {
     // strtoll still requires null-termination at the end of the digit run;
     // header_view points into Data::data_, where each header is followed
     // by a '\0' byte written at parse time.
-    // refactoring: capture strtoll's end pointer and check errno == ERANGE
-    // to detect overflow (n_digits is bounded above by max_digits = 20,
-    // which can exceed int64_t's 19-digit range).
-    static constexpr int base_value {10};
-    match.number = std::strtoll(digits_begin, nullptr, base_value);
+    // n_digits is bounded above by max_digits = 20, which can exceed
+    // int64_t's 19-digit range, so reject values that overflow.
+    if (not parse_abundance_digits(digits_begin, digits_end, match.number)) {
+      return Abundance_match{};
+    }
     match.found  = true;
     return match;
   }
@@ -424,8 +442,10 @@ namespace {
             // strtoll still requires null-termination at the end of the
             // digit run; the digit run is always followed by either ';'
             // or the '\0' at the end of the header in Data::data_.
-            static constexpr int base_value {10};
-            result.number = std::strtoll(digits_begin, nullptr, base_value);
+            // Reject values that overflow int64_t.
+            if (not parse_abundance_digits(digits_begin, digits_end, result.number)) {
+              return Abundance_match{};
+            }
             result.found  = true;
             return result;
           }

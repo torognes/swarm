@@ -151,7 +151,7 @@ namespace {
 
     /* fill in */
     assert(ampinfo_v.size() == amplicon_count);
-    auto ticker = 0U;  // refactoring: replace with a transform algorithm
+    auto ticker = 0U;
     for (auto i = 0U; i < amplicon_count; ++i) {
       if (ampinfo_v[i].graft_cand == no_swarm) { continue; }
       graft_array[ticker].parent = ampinfo_v[i].graft_cand;

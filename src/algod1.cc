@@ -290,8 +290,6 @@ auto algo_d1_run(struct Parameters const & parameters,
     run_fastidious_pass(parameters, data, swarmcount, ampinfo_v, swarminfo_v, overall_stats);
   }
 
-  // refactoring: trim vectors (remove allocated unused elements)
-  // could it be done before the fastidious phase?
   swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
   swarminfo_v.shrink_to_fit();
 
