@@ -42,16 +42,22 @@ constexpr unsigned char maskextup   = 4;
 constexpr unsigned char maskextleft = 8;
 
 
-auto fill_matrix(char const * dseq,
-                 const uint64_t dlen,
-                 char const * qseq,
-                 const uint64_t qlen,
+auto fill_matrix(Sequence const & dseq,
+                 Sequence const & qseq,
                  const std::array<int64_t, n_cells * n_cells> & score_matrix,
                  const uint64_t gapopen,
                  const uint64_t gapextend,
                  std::vector<unsigned char> & directions,
                  std::vector<NwAligner::HECell> & hearray) -> void
 {
+  // Sequence::length is the nucleotide count (not encoded.size(), which
+  // is the packed-byte count); nt_extract() and the inner loops below
+  // both work in nucleotide units.
+  auto const * const dseq_data = dseq.encoded.data();
+  auto const * const qseq_data = qseq.encoded.data();
+  auto const dlen = static_cast<uint64_t>(dseq.length);
+  auto const qlen = static_cast<uint64_t>(qseq.length);
+
   // alignment priority when backtracking (from lower right corner):
   // 1. left/insert/e (gap in query sequence (qseq))
   // 2. diagonal/align/h (match/mismatch)
@@ -78,7 +84,7 @@ auto fill_matrix(char const * dseq,
   for (auto row = 0UL; row < dlen; ++row) {
       auto top = (2 * gapopen) + ((row + 2) * gapextend);
       uint64_t diagonal = (row == 0) ? 0 : (gapopen + (row * gapextend));
-      auto const row_offset = (nt_extract(dseq, row) + 1U) << multiplier;
+      auto const row_offset = (nt_extract(dseq_data, row) + 1U) << multiplier;
 
       for (auto column = 0UL; column < qlen; ++column) {
           auto const index             = (qlen * row) + column;
@@ -87,7 +93,7 @@ auto fill_matrix(char const * dseq,
           unsigned char flags          = '\0';
 
           diagonal += static_cast<uint64_t>(
-              score_matrix[row_offset + nt_extract(qseq, column) + 1U]);
+              score_matrix[row_offset + nt_extract(qseq_data, column) + 1U]);
 
           flags |= (top < diagonal) ? maskup : 0U;
           diagonal = std::min({diagonal, top, left});
@@ -112,14 +118,17 @@ auto fill_matrix(char const * dseq,
 }
 
 
-auto backtrack(char const * dseq,
-               const uint64_t dlen,
-               char const * qseq,
-               const uint64_t qlen,
+auto backtrack(Sequence const & dseq,
+               Sequence const & qseq,
                std::vector<unsigned char> const & directions,
                std::vector<char> & raw_alignment) -> uint64_t
 {
   /* backtrack: count differences and save alignment in cigar string */
+
+  auto const * const dseq_data = dseq.encoded.data();
+  auto const * const qseq_data = qseq.encoded.data();
+  auto const dlen = static_cast<uint64_t>(dseq.length);
+  auto const qlen = static_cast<uint64_t>(qseq.length);
 
   uint64_t matches {0};
 
@@ -159,7 +168,7 @@ auto backtrack(char const * dseq,
         }
       else
         {
-          if (nt_extract(qseq, column - 1) == nt_extract(dseq, row - 1)) {
+          if (nt_extract(qseq_data, column - 1) == nt_extract(dseq_data, row - 1)) {
             ++matches;
           }
           --column;
@@ -245,24 +254,15 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
 {
   static constexpr auto one_hundred = 100.0;
 
-  // Sequence::length is the nucleotide count (not encoded.size(), which
-  // is the packed-byte count); nt_extract() and the inner loops below
-  // both work in nucleotide units.
-  auto const * const dseq_data = dseq.encoded.data();
-  auto const * const qseq_data = qseq.encoded.data();
-  auto const dlen = static_cast<uint64_t>(dseq.length);
-  auto const qlen = static_cast<uint64_t>(qseq.length);
-
   raw_alignment_.clear();
   cigar_string_.clear();
 
   // fill_matrix() writes every directions[i] for i in [0, dlen*qlen),
   // so the buffer's content on entry doesn't matter.
-  fill_matrix(dseq_data, dlen, qseq_data, qlen, score_matrix_,
+  fill_matrix(dseq, qseq, score_matrix_,
               gapopen_, gapextend_, directions_, hearray_);
 
-  auto const nwdiff = backtrack(dseq_data, dlen, qseq_data, qlen,
-                                directions_, raw_alignment_);
+  auto const nwdiff = backtrack(dseq, qseq, directions_, raw_alignment_);
 
   // backtracking produces a reversed alignment (starting from the end)
   std::reverse(raw_alignment_.begin(), raw_alignment_.end());
