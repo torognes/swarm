@@ -447,15 +447,11 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 > MINOR version when you add functionality in a backwards compatible manner, and
 > PATCH version when you make backwards compatible bug fixes.
 
-swarm 3.1.6:
-- use more C++11 and STL features,
-- replace `pthreads` with `std::thread`,
-- eliminate most of clang-tidy's warnings,
-- refactor to reduce cyclomatic complexity (simpler and shorter functions),
-- reduce/eliminate linuxisms to improve portability,
-- measure the effect of code modernization on run-time performances
+swarm 3.1.x:
+- reduce/eliminate linuxisms to improve portability
 
 swarm 3.2.0:
+- add support for the RISC-V architecture,
 - swarm can be compiled natively on a BSD or a Windows system
   (FreeBSD support added; Windows native build still pending — only
   cross-compilation via `mingw` is currently exercised)
@@ -470,6 +466,37 @@ swarm 4.0.0:
 
 
 ## Version history ##
+
+### version 3.1.7 ###
+
+**swarm** 3.1.7 is a maintenance release (509 commits). It improves
+performance, code quality and documentation, and eliminates static
+analysis warnings.
+
+changes:
+- add: `bash` and `zsh` shell auto-completion (commit 7359335)
+- add: initial support for FreeBSD/x86-64 (commit 7f026fb)
+- add: experimental support for GCC 16
+- fix: restore run-time SSSE3/SSE4.1 dispatch (SSE2-only regression
+  introduced with commit 924f484 in 2024) (commit 9afa5ad)
+- fix: out-of-bounds write in `WIN32` when working with sequences
+  longer than 2047 nucleotides (commit 6798a78)
+- fix: minor off-by-one error in a progress counter (commit 7e40d64)
+- fix: garbled number in fatal error messages
+- fix: help message on Windows (commit ad9ee49)
+- change: `--help` or `--version` now short-circuit any other option
+  (commit 5af7bad1)
+- update: copyright year (dbe8b67)
+- improve: eliminate duplicated Bloom filter code (issue #182, commits
+  df2d6f38 to 1abe04a5)
+- improve: replace low-level calls to `pthread` with `std::thread`
+  (commit 35466d8)
+- improve: eliminate all global variables (commits 47a54a5 to 5aa670d,
+  commits 5ceb7490 to 907b3d0, and commit 01201c0)
+- improve: GitHub Actions (compilation on different CPU architectures
+  and systems)
+- improve: swarm does not use C++ exceptions. Compiling with
+  `-fno-exceptions` yields 5% smaller binaries (commit 2b6d619)
 
 ### version 3.1.6 ###
 
