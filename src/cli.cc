@@ -64,7 +64,7 @@ namespace {
     bool bloom_bits {false};
   };
 
-  constexpr char const * swarm_version {"3.1.6"};
+  constexpr char const * swarm_version {"3.1.7"};
 
 
   /* file names and command line options */
