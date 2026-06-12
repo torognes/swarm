@@ -463,17 +463,17 @@ inline auto onestep_8(VECTORTYPE & H,
   H = v_add8(H, V);
   const auto W = H;
   H = v_min8(H, F);
-  *std::next(DIR, 0) = v_mask_eq8(W, H);
+  DIR[0] = v_mask_eq8(W, H);  // subscript, not std::next: hot loop, see align_cells
   H = v_min8(H, E);
-  *std::next(DIR, 1) = v_mask_eq8(H, E);
+  DIR[1] = v_mask_eq8(H, E);
   N = H;
   H = v_add8(H, QR);
   F = v_add8(F, R);
   E = v_add8(E, R);
   F = v_min8(H, F);
-  *std::next(DIR, 2) = v_mask_eq8(H, F);
+  DIR[2] = v_mask_eq8(H, F);
   E = v_min8(H, E);
-  *std::next(DIR, 3) = v_mask_eq8(H, E);
+  DIR[3] = v_mask_eq8(H, E);
 }
 
 
@@ -532,11 +532,14 @@ auto align_cells_8(VECTORTYPE * Sm,
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
+  // Performance: subscript / &dir[...] rather than std::next() in this hot loop
+  // (same regression as commit 8c6925f on the 16-bit kernel). Stays clang-tidy
+  // clean: pos is signed and operator[] is not pointer arithmetic.
   for (auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      VECTORTYPE const * x = *std::next(qp, pos + 0);
-      h4 = *std::next(hep, (2 * pos) + 0);
-      E  = *std::next(hep, (2 * pos) + 1);
+      VECTORTYPE const * x = qp[pos];
+      h4 = hep[(2 * pos) + 0];
+      E  = hep[(2 * pos) + 1];
 
       if (masked)
         {
@@ -553,22 +556,22 @@ auto align_cells_8(VECTORTYPE * Sm,
           *MQ = v_add8(*MQ,  *MR);
         }
 
-      onestep_8(h0, h5, f0, *std::next(x, 0), std::next(dir, (step * pos) + offset0), E, Q, R);
-      onestep_8(h1, h6, f1, *std::next(x, 1), std::next(dir, (step * pos) + offset1), E, Q, R);
-      onestep_8(h2, h7, f2, *std::next(x, 2), std::next(dir, (step * pos) + offset2), E, Q, R);
-      onestep_8(h3, h8, f3, *std::next(x, 3), std::next(dir, (step * pos) + offset3), E, Q, R);
-      *std::next(hep, (2 * pos) + 0) = h8;
-      *std::next(hep, (2 * pos) + 1) = E;
+      onestep_8(h0, h5, f0, x[0], &dir[(step * pos) + offset0], E, Q, R);
+      onestep_8(h1, h6, f1, x[1], &dir[(step * pos) + offset1], E, Q, R);
+      onestep_8(h2, h7, f2, x[2], &dir[(step * pos) + offset2], E, Q, R);
+      onestep_8(h3, h8, f3, x[3], &dir[(step * pos) + offset3], E, Q, R);
+      hep[(2 * pos) + 0] = h8;
+      hep[(2 * pos) + 1] = E;
       h0 = h4;
       h1 = h5;
       h2 = h6;
       h3 = h7;
     }
 
-  *std::next(Sm, 0) = h5;
-  *std::next(Sm, 1) = h6;
-  *std::next(Sm, 2) = h7;
-  *std::next(Sm, 3) = h8;
+  Sm[0] = h5;
+  Sm[1] = h6;
+  Sm[2] = h7;
+  Sm[3] = h8;
 }
 
 }  // namespace

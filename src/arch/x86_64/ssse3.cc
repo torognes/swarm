@@ -77,21 +77,23 @@ auto dprofile_shuffle8(BYTE * dprofile,
   auto const * const sequence_db = cast_vector8(dseq_byte);
   auto const * const score_db = cast_vector8(score_matrix);
   auto * const profile_db = cast_vector8(dprofile);    // output
-  const auto seq_chunk0 = v_load8(std::next(sequence_db, 0));  // 16 nucleotides
-  const auto seq_chunk1 = v_load8(std::next(sequence_db, 1));  // next 16
-  const auto seq_chunk2 = v_load8(std::next(sequence_db, 2));  // next 16
-  const auto seq_chunk3 = v_load8(std::next(sequence_db, 3));  // final 16 (total of 64)
+  // Performance: &arr[idx] rather than std::next() on this d>1 hot path
+  // (same regression as commit 8c6925f); subscript is clang-tidy clean.
+  const auto seq_chunk0 = v_load8(&sequence_db[0]);  // 16 nucleotides
+  const auto seq_chunk1 = v_load8(&sequence_db[1]);  // next 16
+  const auto seq_chunk2 = v_load8(&sequence_db[2]);  // next 16
+  const auto seq_chunk3 = v_load8(&sequence_db[3]);  // final 16 (total of 64)
 
   auto profline8 = [&](const long long int nuc) -> void {
     // scores: 16 scores from the score matrix, matching the
     // nucleotide 'nuc'; five different nucleotides (0, 1, 2, 3, 4),
     // so five possible rows of scores
-    const auto scores = v_load8(std::next(score_db, 2 * nuc));
+    const auto scores = v_load8(&score_db[2 * nuc]);
 
-    v_store8(std::next(profile_db, (4 * nuc) + 0), v_shuffle8(scores, seq_chunk0));
-    v_store8(std::next(profile_db, (4 * nuc) + 1), v_shuffle8(scores, seq_chunk1));
-    v_store8(std::next(profile_db, (4 * nuc) + 2), v_shuffle8(scores, seq_chunk2));
-    v_store8(std::next(profile_db, (4 * nuc) + 3), v_shuffle8(scores, seq_chunk3));
+    v_store8(&profile_db[(4 * nuc) + 0], v_shuffle8(scores, seq_chunk0));
+    v_store8(&profile_db[(4 * nuc) + 1], v_shuffle8(scores, seq_chunk1));
+    v_store8(&profile_db[(4 * nuc) + 2], v_shuffle8(scores, seq_chunk2));
+    v_store8(&profile_db[(4 * nuc) + 3], v_shuffle8(scores, seq_chunk3));
   };
 
   profline8(0);  // -/gap/no nucleotide (0)
@@ -133,21 +135,25 @@ auto dprofile_shuffle16(WORD * dprofile,
     return v_or(higher_chunk, local_t);
   };
 
-  const auto t0 = v_load8(std::next(sequence_db, 0));
+  // Performance: address the load/store targets with &arr[idx] rather than
+  // std::next(); this profile builder is on the d>1 hot path and the
+  // std::next() form regressed it (same issue as commit 8c6925f). &arr[idx]
+  // stays clang-tidy clean (subscript, not pointer arithmetic).
+  const auto t0 = v_load8(&sequence_db[0]);
   const auto m0 = transform_lower_seq_chunk(t0);
   const auto m1 = transform_higher_seq_chunk(t0);
 
-  const auto t3 = v_load8(std::next(sequence_db, 1));
+  const auto t3 = v_load8(&sequence_db[1]);
   const auto m2 = transform_lower_seq_chunk(t3);
   const auto m3 = transform_higher_seq_chunk(t3);
 
   auto profline16 = [&](const long long int nuc) -> void {
-    const auto scores = v_load16(std::next(score_db, 4 * nuc));
+    const auto scores = v_load16(&score_db[4 * nuc]);
 
-    v_store16(std::next(profile_db, (4 * nuc) + 0), v_shuffle8(scores, m0));
-    v_store16(std::next(profile_db, (4 * nuc) + 1), v_shuffle8(scores, m1));
-    v_store16(std::next(profile_db, (4 * nuc) + 2), v_shuffle8(scores, m2));
-    v_store16(std::next(profile_db, (4 * nuc) + 3), v_shuffle8(scores, m3));
+    v_store16(&profile_db[(4 * nuc) + 0], v_shuffle8(scores, m0));
+    v_store16(&profile_db[(4 * nuc) + 1], v_shuffle8(scores, m1));
+    v_store16(&profile_db[(4 * nuc) + 2], v_shuffle8(scores, m2));
+    v_store16(&profile_db[(4 * nuc) + 3], v_shuffle8(scores, m3));
   };
 
   profline16(0);  // -/gap/no nucleotide (0)
