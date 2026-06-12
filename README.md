@@ -477,6 +477,7 @@ changes:
 - add: `bash` and `zsh` shell auto-completion (commit 7359335)
 - add: initial support for FreeBSD/x86-64 (commit 7f026fb)
 - add: experimental support for GCC 16
+- fix: restore d > 1 performance (commits c178103 and 4c03036)
 - fix: restore run-time SSSE3/SSE4.1 dispatch (SSE2-only regression
   introduced with commit 924f484 in 2024) (commit 9afa5ad)
 - fix: out-of-bounds write in `WIN32` when working with sequences
