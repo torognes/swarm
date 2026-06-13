@@ -88,10 +88,10 @@ struct Cluster_workspace {
       scores_v(amplicons),
       diffs_v(amplicons),
       alignlengths(amplicons),
+      qgramamps_v(amplicons),
       qgramdiffs_v(amplicons),
+      qgramindices_v(amplicons),
       hits(amplicons) {
-    qgramamps_v.reserve(amplicons);
-    qgramindices_v.reserve(amplicons);
   }
 };
 

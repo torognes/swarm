@@ -50,9 +50,13 @@ public:
   auto operator=(QgramDiffer &&) -> QgramDiffer & = delete;
   ~QgramDiffer() = default;
 
-  // amplist.size() entries are read from amplist; the same number of
-  // entries are written to the front of difflist.
+  // listlen entries are read from the front of amplist; the same number
+  // of entries are written to the front of difflist. amplist and difflist
+  // are scratch buffers sized to the whole pool, so listlen (the number of
+  // candidates actually collected) is passed explicitly rather than read
+  // from amplist.size().
   auto fast(uint64_t seed,
+            uint64_t listlen,
             std::vector<uint64_t> const & amplist,
             std::vector<uint64_t> & difflist) -> void;
 

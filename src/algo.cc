@@ -133,19 +133,17 @@ namespace {
                                       Data const & data,
                                       std::vector<struct ampliconinfo_s> const & amps_v,
                                       Cluster_workspace & workspace) -> uint64_t {
-    workspace.qgramamps_v.clear();
-    std::for_each(std::next(amps_v.cbegin(),
-                            static_cast<std::vector<struct ampliconinfo_s>::difference_type>(swarmed)),
-                  amps_v.cend(),
-        [&parameters, &data, seed_abundance, &workspace](
-            struct ampliconinfo_s const & amplicon) -> void {
-          auto const ampliconid = amplicon.ampliconid;
-          if ((parameters.opt_no_cluster_breaking) or
-              (data.abundance(ampliconid) <= seed_abundance)) {
-            workspace.qgramamps_v.push_back(ampliconid);
-          }
-        });
-    return workspace.qgramamps_v.size();
+    auto const amplicons = amps_v.size();
+    uint64_t listlen {0};
+    for (auto i = swarmed; i < amplicons; ++i) {
+      auto const ampliconid = amps_v[i].ampliconid;
+      if ((parameters.opt_no_cluster_breaking) or
+          (data.abundance(ampliconid) <= seed_abundance)) {
+        workspace.qgramamps_v[listlen] = ampliconid;
+        ++listlen;
+      }
+    }
+    return listlen;
   }
 
 
@@ -157,8 +155,7 @@ namespace {
                                     std::vector<struct ampliconinfo_s> const & amps_v,
                                     Cluster_workspace & workspace) -> uint64_t {
     auto const subseed_abundance = data.abundance(subseed.ampliconid);
-    workspace.qgramamps_v.clear();
-    workspace.qgramindices_v.clear();
+    uint64_t subseedlistlen {0};
     for (auto i = swarmed; i < amplicons; ++i) {
       uint64_t const targetampliconid = amps_v[i].ampliconid;
       if ((amps_v[i].diffestimate <=
@@ -166,11 +163,12 @@ namespace {
           ((parameters.opt_no_cluster_breaking) or
            (data.abundance(targetampliconid)
             <= subseed_abundance))) {
-        workspace.qgramamps_v.push_back(targetampliconid);
-        workspace.qgramindices_v.push_back(i);
+        workspace.qgramamps_v[subseedlistlen] = targetampliconid;
+        workspace.qgramindices_v[subseedlistlen] = i;
+        ++subseedlistlen;
       }
     }
-    return workspace.qgramamps_v.size();
+    return subseedlistlen;
   }
 
 
@@ -290,7 +288,7 @@ namespace {
                                                             parameters, data,
                                                             amps_v, workspace);
 
-    qgram_differ.fast(seedampliconid, workspace.qgramamps_v, workspace.qgramdiffs_v);
+    qgram_differ.fast(seedampliconid, listlen, workspace.qgramamps_v, workspace.qgramdiffs_v);
 
     uint64_t targetcount = 0;
     for (auto i = 0ULL; i < listlen; ++i) {
@@ -353,7 +351,7 @@ namespace {
                                                                subseed, parameters,
                                                                data, amps_v, workspace);
 
-      qgram_differ.fast(subseed.ampliconid,
+      qgram_differ.fast(subseed.ampliconid, subseedlistlen,
                         workspace.qgramamps_v, workspace.qgramdiffs_v);
 
       for (auto i = 0ULL; i < subseedlistlen; ++i) {

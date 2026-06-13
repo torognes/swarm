@@ -142,11 +142,12 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
 
 
 auto QgramDiffer::fast(uint64_t seed,
+                       uint64_t const listlen,
                        std::vector<uint64_t> const & amplist,
                        std::vector<uint64_t> & difflist) -> void
 {
-  assert(amplist.size() <= difflist.size());
-  auto const listlen = amplist.size();
+  assert(listlen <= amplist.size());
+  assert(listlen <= difflist.size());
   static constexpr auto single_threaded_threshold = std::numeric_limits<uint8_t>::max();
   if (listlen <= single_threaded_threshold)
     {
