@@ -145,7 +145,7 @@ auto dprofile_fill16(WORD * dprofile_word,
   assert(cdepth <= ((max_ptrdiff - channels) / channels));  // max 'd' offset
   assert(channels <= std::numeric_limits<long int>::max());
   assert(channels <= std::numeric_limits<unsigned int>::max());
-  assert((pos7 * cdepth * channels) + (channels * cdepth) <= max_ptrdiff);
+  assert(offset7 + (static_cast<std::ptrdiff_t>(channels) * cdepth) <= max_ptrdiff);
   for (auto j = 0LL; j < cdepth; ++j)
     {
       std::array<unsigned int, channels> score_offsets {{}};
