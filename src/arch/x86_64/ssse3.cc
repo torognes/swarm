@@ -25,7 +25,6 @@
 #ifdef __SSE2__
 #include <emmintrin.h>  // SSE2 intrinsics
 #include "intrinsics_to_functions.h"
-#include <iterator>  // std::next
 #endif
 
 #ifdef __SSSE3__

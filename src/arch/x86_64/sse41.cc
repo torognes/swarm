@@ -27,7 +27,6 @@
 #include "intrinsics_to_functions.h"
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
-#include <iterator>  // std::next
 #endif
 
 #ifdef __SSE4_1__

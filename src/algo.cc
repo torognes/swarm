@@ -36,7 +36,6 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), fflush
 #include <cstdlib>  // qsort()
-#include <iterator> // std::next
 #include <limits>
 #include <memory>  // unique pointer
 #include <string>

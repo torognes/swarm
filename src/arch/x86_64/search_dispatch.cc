@@ -25,6 +25,8 @@
 #include "ssse3.h"  // dprofile_shuffle8/16 (only declared when __SSE3__)
 #include "sse41.h"  // align_cells_*_16_sse41 (only declared when __SSE4_1__)
 #include <emmintrin.h>  // _mm_set_epi8/16 (SSE2)
+#include "../../utils/cpu_features.h"  // Cpu_features
+#include <cstdint>  // uint64_t
 
 
 auto make_T0_16() -> VECTORTYPE16 {

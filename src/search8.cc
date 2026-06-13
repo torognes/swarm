@@ -24,7 +24,7 @@
 #include "search8.h"
 #include "db.h"
 #include "utils/backtrack.h"
-#include "utils/cpu_features.h"
+#include "utils/search_data.h"  // Search_data (pulls in Cpu_features)
 #include "utils/dseq_fill.h"
 #include <array>
 #include <cassert>

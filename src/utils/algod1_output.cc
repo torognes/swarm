@@ -31,8 +31,7 @@
 #include <algorithm>  // std::sort()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <cstddef>  // std::size_t
-#include <cstdio>  // fputc(), fprintf()
+#include <cstdio>  // fputc(), fprintf(), std::size_t
 #include <iterator>  // std::next()
 #include <numeric>  // std::iota
 #include <vector>
