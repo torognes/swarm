@@ -101,6 +101,14 @@ auto dprofile_fill16(WORD * dprofile_word,
   static constexpr auto pos5 = pos4 + 1;
   static constexpr auto pos6 = pos5 + 1;
   static constexpr auto pos7 = pos6 + 1;
+  static constexpr auto offset0 = pos0 * cdepth * channels;
+  static constexpr auto offset1 = pos1 * cdepth * channels;
+  static constexpr auto offset2 = pos2 * cdepth * channels;
+  static constexpr auto offset3 = pos3 * cdepth * channels;
+  static constexpr auto offset4 = pos4 * cdepth * channels;
+  static constexpr auto offset5 = pos5 * cdepth * channels;
+  static constexpr auto offset6 = pos6 * cdepth * channels;
+  static constexpr auto offset7 = pos7 * cdepth * channels;
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;
@@ -181,14 +189,15 @@ auto dprofile_fill16(WORD * dprofile_word,
       reg30 = v_merge_lo_64(reg21, reg23);
       reg31 = v_merge_hi_64(reg21, reg23);
 
-      v_store16(cast_vector16(std::next(dprofile_word, (pos0 * cdepth * channels) + (channels * j))), reg24);
-      v_store16(cast_vector16(std::next(dprofile_word, (pos1 * cdepth * channels) + (channels * j))), reg25);
-      v_store16(cast_vector16(std::next(dprofile_word, (pos2 * cdepth * channels) + (channels * j))), reg26);
-      v_store16(cast_vector16(std::next(dprofile_word, (pos3 * cdepth * channels) + (channels * j))), reg27);
-      v_store16(cast_vector16(std::next(dprofile_word, (pos4 * cdepth * channels) + (channels * j))), reg28);
-      v_store16(cast_vector16(std::next(dprofile_word, (pos5 * cdepth * channels) + (channels * j))), reg29);
-      v_store16(cast_vector16(std::next(dprofile_word, (pos6 * cdepth * channels) + (channels * j))), reg30);
-      v_store16(cast_vector16(std::next(dprofile_word, (pos7 * cdepth * channels) + (channels * j))), reg31);
+      std::ptrdiff_t const lane = static_cast<std::ptrdiff_t>(channels) * j;
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset0)), reg24);
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset1)), reg25);
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset2)), reg26);
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset3)), reg27);
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset4)), reg28);
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset5)), reg29);
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset6)), reg30);
+      v_store16(cast_vector16(std::next(dprofile_word, lane + offset7)), reg31);
     }
 }
 
