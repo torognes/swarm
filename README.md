@@ -469,7 +469,7 @@ swarm 4.0.0:
 
 ### version 3.1.7 ###
 
-**swarm** 3.1.7 is a maintenance release (509 commits). It improves
+**swarm** 3.1.7 is a maintenance release (517 commits). It improves
 performance, code quality and documentation, and eliminates static
 analysis warnings.
 
