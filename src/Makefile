@@ -73,7 +73,13 @@ ifdef RELEASE
 	ifneq ($(IS_CLANG), 0)
 		COMMON += -flto=full
 	else
-		ifeq ($(shell [ $(CXX_VERSION_MAJOR) -ge 12 ] && echo yes), yes)
+		# '-flto=auto' parallelises the LTRANS link-time passes (one per
+		# CPU) and silences the "using serial compilation of N LTRANS
+		# jobs" warning. The parallel passes multiply peak memory by the
+		# core count, which crashed compilation on a 1 GB ARM64 board with
+		# GCC 10.2, so GCC <= 10 stays on the memory-safe serial '-flto'.
+		# GCC 11 handles the parallel passes fine and gets '-flto=auto'.
+		ifeq ($(shell [ $(CXX_VERSION_MAJOR) -ge 11 ] && echo yes), yes)
 			COMMON += -flto=auto
 		else
 			COMMON += -flto
