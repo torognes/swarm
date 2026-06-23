@@ -189,7 +189,7 @@ auto build_amplicon_network(struct Parameters const & parameters,
   Progress progress_network("Building network: ", amplicons, parameters);
   {
     auto const network_tr = utils::make_unique<ThreadRunner>(
-        static_cast<std::size_t>(parameters.opt_threads),
+        parameters.opt_threads,
         [&parameters, &data, &ampinfo_v, &hash_table, &bloom_a, &network_state, &progress_network](uint64_t /*nth_thread*/) -> void {
           network_thread(parameters, data, ampinfo_v, hash_table, bloom_a, network_state, progress_network);
         });

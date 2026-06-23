@@ -109,9 +109,9 @@ Scanner::Scanner(struct Parameters const & parameters,
     gapextend_(parameters.penalty_gapextend),
     score_matrix_8_(create_score_matrix<unsigned char>(parameters.penalty_mismatch)),
     score_matrix_16_(create_score_matrix<unsigned short>(parameters.penalty_mismatch)),
-    n_threads_(static_cast<uint64_t>(parameters.opt_threads)),
-    search_data_v_(static_cast<uint64_t>(parameters.opt_threads)),
-    threads_(static_cast<std::size_t>(parameters.opt_threads),
+    n_threads_(parameters.opt_threads),
+    search_data_v_(parameters.opt_threads),
+    threads_(parameters.opt_threads,
              [this](uint64_t thread_id) -> void { worker_core(thread_id); }) {
   allocate_per_thread_search_data(search_data_v_, data.longest_sequence());
 

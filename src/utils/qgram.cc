@@ -113,8 +113,8 @@ QgramDiffer::QgramDiffer(struct Parameters const & parameters,
       parameters.sse41_present != 0,
       parameters.popcnt_present != 0
     },
-    thread_info_v_(static_cast<uint64_t>(parameters.opt_threads)),
-    threads_(static_cast<std::size_t>(parameters.opt_threads),
+    thread_info_v_(parameters.opt_threads),
+    threads_(parameters.opt_threads,
              [this](uint64_t nth_thread) -> void {
                worker(nth_thread);
              })

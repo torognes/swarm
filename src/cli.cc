@@ -280,7 +280,7 @@ namespace {
       std::fprintf(parameters.logfile, "Network file:      %s\n", parameters.opt_network_file.c_str());
     }
     std::fprintf(parameters.logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
-    std::fprintf(parameters.logfile, "Threads:           %" PRId64 "\n", parameters.opt_threads);
+    std::fprintf(parameters.logfile, "Threads:           %" PRIu32 "\n", parameters.opt_threads);
 
     if (parameters.opt_differences > 1)
       {
@@ -322,6 +322,22 @@ namespace {
     }
     fatal("Option -", static_cast<char>(option_character),
           " or --", long_name, " specified more than once.");
+  }
+
+
+  // Per-option validators: range-check the signed value returned by
+  // args_long() and narrow it to the type the option is stored as. They
+  // run at parse time, before the value is narrowed, so out-of-range or
+  // negative input is rejected before it can wrap around. Cross-option
+  // checks (e.g. option combinations) stay in the validate_* functions
+  // called later from args_check().
+  auto validate_threading(int64_t const threads) -> std::uint32_t {
+    static constexpr int64_t max_threads {512};
+    if ((threads < 1) or (threads > max_threads)) {
+      fatal("Illegal number of threads specified with "
+            "-t or --threads, must be in the range 1 to ", max_threads, ".");
+    }
+    return static_cast<std::uint32_t>(threads);
   }
 
 
@@ -443,7 +459,7 @@ namespace {
 
       case 't':
         /* threads */
-        parameters.opt_threads = args_long(optarg, "-t or --threads");
+        parameters.opt_threads = validate_threading(args_long(optarg, "-t or --threads"));
         break;
 
       case 'u':
@@ -537,15 +553,6 @@ namespace {
     parameters.penalty_mismatch /= penalty_factor;
     parameters.penalty_gapopen /= penalty_factor;
     parameters.penalty_gapextend /= penalty_factor;
-  }
-
-
-  auto validate_threading(struct Parameters const &parameters) -> void {
-    static constexpr unsigned int max_threads{512U};
-    if ((parameters.opt_threads < 1) or (parameters.opt_threads > max_threads)) {
-      fatal("Illegal number of threads specified with "
-            "-t or --threads, must be in the range 1 to ", max_threads, ".");
-    }
   }
 
 
@@ -683,7 +690,6 @@ namespace {
 
   auto args_check(UsedOptions const & used_options,
                   struct Parameters const & parameters) -> void {
-    validate_threading(parameters);
     validate_clustering(parameters);
     validate_fastidious(used_options, parameters);
     validate_alignment(used_options, parameters);

@@ -466,7 +466,7 @@ namespace {
     light_state.amplicon = data.sequence_count() - 1;
     {
       auto const light_tr = utils::make_unique<ThreadRunner>(
-          static_cast<std::size_t>(parameters.opt_threads),
+          parameters.opt_threads,
           [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &light_state, &progress_light](uint64_t /*nth_thread*/) -> void {
             mark_light_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, light_state, progress_light);
           });
@@ -500,7 +500,7 @@ namespace {
     heavy_state.amplicon_count = amplicons_in_large_clusters;
     {
       auto const heavy_tr = utils::make_unique<ThreadRunner>(
-          static_cast<std::size_t>(parameters.opt_threads),
+          parameters.opt_threads,
           [&parameters, &data, &ampinfo_v, &swarminfo_v, &hash_table, &bloom_a, &bloom_f, &heavy_state, &graft_state, &progress_heavy](uint64_t /*nth_thread*/) -> void {
             check_heavy_thread(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, heavy_state, graft_state, progress_heavy);
           });

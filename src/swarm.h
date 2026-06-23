@@ -45,7 +45,7 @@ struct Parameters {
   static constexpr unsigned int gap_extension_penalty_default {4};
   static constexpr unsigned int bloom_bits_default {16};
 
-  int64_t opt_threads {1};
+  std::uint32_t opt_threads {1};
   int64_t opt_bloom_bits {bloom_bits_default};
   int64_t opt_differences {opt_differences_default};
   int64_t opt_mismatch_penalty {mismatch_penalty_default};
