@@ -499,6 +499,34 @@ namespace {
 
 
   auto set_alignment_scoring_system(struct Parameters & parameters) -> void {
+    // Reject scoring parameters whose magnitude is large enough to
+    // overflow the conversion arithmetic below (signed overflow is
+    // undefined behaviour). The widest expression is (2 * reward) +
+    // (2 * penalty), so any operand within +/- (INT64_MAX / 4) is safe.
+    // This guard runs before args_check(): legitimate scoring values must
+    // fit an 8-bit score and are orders of magnitude smaller, so this only
+    // catches nonsensical input (e.g. values close to INT64_MAX) before it
+    // reaches the multiplication. Out-of-range-but-non-overflowing values
+    // are still rejected later by check_scoring_saturation().
+    static constexpr int64_t max_scoring_value {std::numeric_limits<int64_t>::max() / 4};
+    struct ScoringValue {
+      int64_t value;
+      char const * option;
+    };
+    std::array<ScoringValue, 4> const scoring_values {{
+        {parameters.opt_match_reward,          "-m or --match-reward"},
+        {parameters.opt_mismatch_penalty,      "-p or --mismatch-penalty"},
+        {parameters.opt_gap_opening_penalty,   "-g or --gap-opening-penalty"},
+        {parameters.opt_gap_extension_penalty, "-e or --gap-extension-penalty"}
+      }};
+    for (auto const & scoring_value : scoring_values) {
+      if ((scoring_value.value > max_scoring_value) or
+          (scoring_value.value < -max_scoring_value)) {
+        fatal("Scoring parameter specified with ", scoring_value.option,
+              " is too large.");
+      }
+    }
+
     parameters.penalty_mismatch = (2 * parameters.opt_match_reward) + (2 * parameters.opt_mismatch_penalty);
     parameters.penalty_gapopen = 2 * parameters.opt_gap_opening_penalty;
     parameters.penalty_gapextend = parameters.opt_match_reward + (2 * parameters.opt_gap_extension_penalty);
