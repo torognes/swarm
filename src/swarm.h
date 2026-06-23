@@ -47,7 +47,7 @@ struct Parameters {
 
   std::uint32_t opt_threads {1};
   int64_t opt_bloom_bits {bloom_bits_default};
-  int64_t opt_differences {opt_differences_default};
+  std::uint64_t opt_differences {opt_differences_default};
   int64_t opt_mismatch_penalty {mismatch_penalty_default};
   int64_t opt_match_reward {match_reward_default};
   int64_t opt_gap_opening_penalty {gap_opening_penalty_default};

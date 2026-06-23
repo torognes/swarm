@@ -279,7 +279,7 @@ namespace {
     if (not parameters.opt_network_file.empty()) {
       std::fprintf(parameters.logfile, "Network file:      %s\n", parameters.opt_network_file.c_str());
     }
-    std::fprintf(parameters.logfile, "Resolution (d):    %" PRId64 "\n", parameters.opt_differences);
+    std::fprintf(parameters.logfile, "Resolution (d):    %" PRIu64 "\n", parameters.opt_differences);
     std::fprintf(parameters.logfile, "Threads:           %" PRIu32 "\n", parameters.opt_threads);
 
     if (parameters.opt_differences > 1)
@@ -341,6 +341,16 @@ namespace {
   }
 
 
+  auto validate_clustering(int64_t const differences) -> std::uint64_t {
+    static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+    if ((differences < 0) or (differences > uint8_max)) {
+      fatal("Illegal number of differences specified with -d or --differences, "
+            "must be in the range 0 to ", static_cast<unsigned int>(uint8_max), ".");
+    }
+    return static_cast<std::uint64_t>(differences);
+  }
+
+
   auto args_init(int const argc, char * const * argv, struct Parameters & parameters) -> UsedOptions {
     static constexpr std::size_t alphabet_size {26};
     UsedOptions used_options {};
@@ -385,7 +395,7 @@ namespace {
 
       case 'd':
         /* differences (resolution) */
-        parameters.opt_differences = args_long(optarg, "-d or --differences");
+        parameters.opt_differences = validate_clustering(args_long(optarg, "-d or --differences"));
         break;
 
       case 'e':
@@ -556,15 +566,6 @@ namespace {
   }
 
 
-  auto validate_clustering(struct Parameters const & parameters) -> void {
-    static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-    if ((parameters.opt_differences < 0) or (parameters.opt_differences > uint8_max)) {
-      fatal("Illegal number of differences specified with -d or --differences, "
-            "must be in the range 0 to ", static_cast<unsigned int>(uint8_max), ".");
-    }
-  }
-
-
   auto validate_fastidious(UsedOptions const & used_options,
                            struct Parameters const & parameters) -> void {
     static constexpr unsigned int min_bits_per_entry {2U};
@@ -677,7 +678,11 @@ namespace {
                                                 (uint16_max - parameters.penalty_gapopen)
                                                 / parameters.penalty_gapextend);
 
-    if (parameters.opt_differences > diff_saturation_16) {
+    // diff_saturation_16 may be negative (its uint16_max - penalty_gapopen
+    // term underflows for large gap penalties), which means the scoring
+    // system is already saturated; compare as signed so opt_differences
+    // (0..255) correctly exceeds any negative saturation value.
+    if (static_cast<int64_t>(parameters.opt_differences) > diff_saturation_16) {
       fatal("Resolution (d) too high for the given scoring system.");
     }
 
@@ -690,7 +695,6 @@ namespace {
 
   auto args_check(UsedOptions const & used_options,
                   struct Parameters const & parameters) -> void {
-    validate_clustering(parameters);
     validate_fastidious(used_options, parameters);
     validate_alignment(used_options, parameters);
     validate_io(used_options, parameters);

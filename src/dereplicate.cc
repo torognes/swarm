@@ -193,9 +193,9 @@ namespace {
     Progress progress("Writing swarms:   ", hashtable.size(), parameters);
 
 #ifdef _WIN32
-    std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%llu", parameters.opt_differences, hashtable.size());
+    std::fprintf(parameters.outfile.get(), "swarm_%" PRIu64 "\t%llu", parameters.opt_differences, hashtable.size());
 #else
-    std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%lu", parameters.opt_differences, hashtable.size());
+    std::fprintf(parameters.outfile.get(), "swarm_%" PRIu64 "\t%lu", parameters.opt_differences, hashtable.size());
 #endif
 
     for (auto const & cluster: hashtable) {

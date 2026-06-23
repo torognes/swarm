@@ -72,7 +72,7 @@ namespace {
                                        uint8_max / (parameters.penalty_gapopen +
                                                     parameters.penalty_gapextend)));
 
-    if (static_cast<uint64_t>(parameters.opt_differences) > diff_saturation) {
+    if (parameters.opt_differences > diff_saturation) {
       return Bit_mode::bits_16;
     }
     return Bit_mode::bits_8;
@@ -295,7 +295,7 @@ namespace {
       auto const diff = workspace.qgramdiffs_v[i];
       assert(diff <= std::numeric_limits<unsigned int>::max());
       amps_v[cursor.swarmed + i].diffestimate = static_cast<unsigned int>(diff);
-      if (diff <= static_cast<uint64_t>(parameters.opt_differences)) {
+      if (diff <= parameters.opt_differences) {
         workspace.targetindices[targetcount] = cursor.swarmed + i;
         workspace.targetampliconids[targetcount] = poolampliconid;
         ++targetcount;
@@ -310,7 +310,7 @@ namespace {
     for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
       auto const diff = workspace.diffs_v[target_id];
 
-      if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
+      if (diff > parameters.opt_differences) { continue; }
       auto const target = workspace.targetindices[target_id];
 
       /* move the 'target' to the position ('swarmed')
@@ -354,7 +354,7 @@ namespace {
                         workspace.qgramamps_v, workspace.qgramdiffs_v);
 
       for (auto i = 0ULL; i < subseedlistlen; ++i) {
-        if (workspace.qgramdiffs_v[i] <= static_cast<uint64_t>(parameters.opt_differences)) {
+        if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {
           workspace.targetindices[targetcount] = workspace.qgramindices_v[i];
           workspace.targetampliconids[targetcount] = workspace.qgramamps_v[i];
           ++targetcount;
@@ -369,7 +369,7 @@ namespace {
       for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
         auto const diff = workspace.diffs_v[target_id];
 
-        if (diff > static_cast<uint64_t>(parameters.opt_differences)) { continue; }
+        if (diff > parameters.opt_differences) { continue; }
         auto const target = workspace.targetindices[target_id];
 
         /* find correct position in list */

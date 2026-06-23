@@ -111,7 +111,7 @@ namespace {
                                   Overall_stats const & overall_stats) -> void {
     Progress progress("Writing swarms:   ", swarminfo_v.size(), parameters);
 
-    std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%" PRIu64,
+    std::fprintf(parameters.outfile.get(), "swarm_%" PRIu64 "\t%" PRIu64,
                  parameters.opt_differences, overall_stats.swarmcount_adjusted);
 
     for (auto i = 0U; i < swarminfo_v.size(); ++i) {
