@@ -359,7 +359,7 @@ namespace {
         ++heavy_state.amplicon;
         auto const & target_amplicon = ampinfo_v[heavy_amplicon_id];
         auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
-        if (target_swarm.mass >= static_cast<uint64_t>(parameters.opt_boundary))
+        if (target_swarm.mass >= parameters.opt_boundary)
           {
             ++heavy_state.progress;
             progress.update(heavy_state.progress);
@@ -428,7 +428,7 @@ namespace {
         --state.amplicon;
         auto const & target_amplicon = ampinfo_v[light_amplicon_id];
         auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
-        if (target_swarm.mass < static_cast<uint64_t>(parameters.opt_boundary))
+        if (target_swarm.mass < parameters.opt_boundary)
           {
             ++state.progress;
             progress.update(state.progress);

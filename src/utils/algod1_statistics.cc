@@ -52,7 +52,7 @@ auto count_cluster_stats(struct Parameters const & parameters,
 
   for (auto const & swarm_info : swarminfo_v)
     {
-      if (swarm_info.mass < static_cast<uint64_t>(parameters.opt_boundary))
+      if (swarm_info.mass < parameters.opt_boundary)
         {
           stats.amplicons_in_small_clusters += swarm_info.size;
           stats.nucleotides_in_small_clusters += swarm_info.sumlen;
@@ -95,7 +95,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
     return nucleotides_in_small_clusters * microvariants * bits_value;
   };
 
-  auto bits = static_cast<uint64_t>(parameters.opt_bloom_bits);
+  auto bits = parameters.opt_bloom_bits;
 
   // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
   // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
@@ -108,13 +108,13 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 
   if (parameters.opt_ceiling != 0)
     {
-      if (static_cast<uint64_t>(parameters.opt_ceiling) * one_megabyte < memused)
+      if (parameters.opt_ceiling * one_megabyte < memused)
         {
           fatal("Memory ceiling for Bloom filter is too low.");
         }
-      assert(memused < one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling));
+      assert(memused < one_megabyte * parameters.opt_ceiling);
       const uint64_t memrest
-        = (one_megabyte * static_cast<uint64_t>(parameters.opt_ceiling)) - memused;
+        = (one_megabyte * parameters.opt_ceiling) - memused;
       auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
       if (new_bits < bits)
         {

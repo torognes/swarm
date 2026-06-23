@@ -46,15 +46,15 @@ struct Parameters {
   static constexpr unsigned int bloom_bits_default {16};
 
   std::uint32_t opt_threads {1};
-  int64_t opt_bloom_bits {bloom_bits_default};
+  std::uint64_t opt_bloom_bits {bloom_bits_default};
   std::uint64_t opt_differences {opt_differences_default};
   int64_t opt_mismatch_penalty {mismatch_penalty_default};
   int64_t opt_match_reward {match_reward_default};
   int64_t opt_gap_opening_penalty {gap_opening_penalty_default};
   int64_t opt_gap_extension_penalty {gap_extension_penalty_default};
-  int64_t opt_ceiling {ceiling_default};
+  std::uint64_t opt_ceiling {ceiling_default};
   int64_t opt_append_abundance {append_abundance_default};
-  int64_t opt_boundary {boundary_default};
+  std::uint64_t opt_boundary {boundary_default};
   int64_t mmx_present {0};
   int64_t sse42_present {0};
   int64_t sse_present {0};

@@ -298,7 +298,7 @@ namespace {
     std::fprintf(parameters.logfile, "Break clusters:    %s\n",
                  parameters.opt_no_cluster_breaking ? "No" : "Yes");
     if (parameters.opt_fastidious) {
-      std::fprintf(parameters.logfile, "Fastidious:        Yes, with boundary %" PRId64 "\n",
+      std::fprintf(parameters.logfile, "Fastidious:        Yes, with boundary %" PRIu64 "\n",
                    parameters.opt_boundary);
     }
     else {
@@ -351,6 +351,37 @@ namespace {
   }
 
 
+  auto validate_boundary(int64_t const boundary) -> std::uint64_t {
+    if (boundary < 2) {
+      fatal("Illegal boundary specified with -b or --boundary, "
+            "must be at least 2.");
+    }
+    return static_cast<std::uint64_t>(boundary);
+  }
+
+
+  auto validate_ceiling(int64_t const ceiling) -> std::uint64_t {
+    static constexpr int64_t min_ceiling {40};
+    static constexpr int64_t max_ceiling {int64_t{1} << 30};  // 1,073,741,824 (MiB of RAM)
+    if ((ceiling < min_ceiling) or (ceiling > max_ceiling)) {
+      fatal("Illegal memory ceiling specified with -c or --ceiling, "
+            "must be in the range 8 to 1,073,741,824 MB.");
+    }
+    return static_cast<std::uint64_t>(ceiling);
+  }
+
+
+  auto validate_bloom_bits(int64_t const bloom_bits) -> std::uint64_t {
+    static constexpr int64_t min_bits_per_entry {2};
+    static constexpr int64_t max_bits_per_entry {64};
+    if ((bloom_bits < min_bits_per_entry) or (bloom_bits > max_bits_per_entry)) {
+      fatal("Illegal number of Bloom filter bits specified with -y or "
+            "--bloom-bits, must be in the range 2 to 64.");
+    }
+    return static_cast<std::uint64_t>(bloom_bits);
+  }
+
+
   auto args_init(int const argc, char * const * argv, struct Parameters & parameters) -> UsedOptions {
     static constexpr std::size_t alphabet_size {26};
     UsedOptions used_options {};
@@ -384,13 +415,13 @@ namespace {
       case 'b':
         /* boundary */
         used_options.boundary = true;
-        parameters.opt_boundary = args_long(optarg, "-b or --boundary");
+        parameters.opt_boundary = validate_boundary(args_long(optarg, "-b or --boundary"));
         break;
 
       case 'c':
         /* ceiling */
         used_options.ceiling = true;
-        parameters.opt_ceiling = args_long(optarg, "-c or --ceiling");
+        parameters.opt_ceiling = validate_ceiling(args_long(optarg, "-c or --ceiling"));
         break;
 
       case 'd':
@@ -495,7 +526,7 @@ namespace {
       case 'y':
         /* bloom-bits */
         used_options.bloom_bits = true;
-        parameters.opt_bloom_bits = args_long(optarg, "-y or --bloom-bits");
+        parameters.opt_bloom_bits = validate_bloom_bits(args_long(optarg, "-y or --bloom-bits"));
         break;
 
       case 'z':
@@ -568,11 +599,9 @@ namespace {
 
   auto validate_fastidious(UsedOptions const & used_options,
                            struct Parameters const & parameters) -> void {
-    static constexpr unsigned int min_bits_per_entry {2U};
-    static constexpr unsigned int max_bits_per_entry {64U};
-    static constexpr unsigned int min_ceiling {40U};
-    static constexpr unsigned int max_ceiling {1U << 30U};  // 1,073,741,824 (MiB of RAM)
-
+    // Range checks for boundary, ceiling and bloom-bits run at parse time
+    // (validate_boundary/validate_ceiling/validate_bloom_bits). Only the
+    // cross-option checks remain here.
     if (parameters.opt_fastidious and (parameters.opt_differences != 1)) {
       fatal("Fastidious mode (specified with -f or --fastidious) only works "
             "when the resolution (specified with -d or --differences) is 1.");
@@ -588,23 +617,6 @@ namespace {
       if (used_options.bloom_bits) {
         fatal("Option -y or --bloom-bits specified without -f or --fastidious.");
       }
-    }
-
-    if (parameters.opt_boundary < 2) {
-      fatal("Illegal boundary specified with -b or --boundary, "
-            "must be at least 2.");
-    }
-
-    if (used_options.ceiling and ((parameters.opt_ceiling < min_ceiling) or
-                                  (parameters.opt_ceiling > max_ceiling))) {
-      fatal("Illegal memory ceiling specified with -c or --ceiling, "
-            "must be in the range 8 to 1,073,741,824 MB.");
-    }
-
-    if ((parameters.opt_bloom_bits < min_bits_per_entry) or
-        (parameters.opt_bloom_bits > max_bits_per_entry)) {
-      fatal("Illegal number of Bloom filter bits specified with -y or "
-            "--bloom-bits, must be in the range 2 to 64.");
     }
   }
 
