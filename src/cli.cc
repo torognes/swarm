@@ -590,7 +590,9 @@ namespace {
 
     int64_t const penalty_factor {gcd(gcd(parameters.penalty_mismatch, parameters.penalty_gapopen), parameters.penalty_gapextend)};
 
-    // clang: risk of DivideZero, but that would require gcd(0, 0) which is not possible
+    // penalty_factor cannot be zero: validate_alignment() runs before this
+    // function and guarantees a match reward and a mismatch penalty of at
+    // least 1, so penalty_mismatch is at least 4 and the gcd is at least 1.
     parameters.penalty_mismatch /= penalty_factor;
     parameters.penalty_gapopen /= penalty_factor;
     parameters.penalty_gapextend /= penalty_factor;
@@ -708,7 +710,6 @@ namespace {
   auto args_check(UsedOptions const & used_options,
                   struct Parameters const & parameters) -> void {
     validate_fastidious(used_options, parameters);
-    validate_alignment(used_options, parameters);
     validate_io(used_options, parameters);
     check_scoring_saturation(parameters);
   }
@@ -720,6 +721,7 @@ auto parse_command_line(int const argc, char * const * argv) -> Parameters {
   Parameters parameters;
   auto const used_options = args_init(argc, argv, parameters);
   show_help_or_version_and_exit(parameters);
+  validate_alignment(used_options, parameters);
   set_alignment_scoring_system(parameters);
   args_check(used_options, parameters);
   open_files(parameters);
