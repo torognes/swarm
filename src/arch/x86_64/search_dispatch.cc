@@ -22,7 +22,7 @@
 */
 
 #include "search_dispatch.h"
-#include "ssse3.h"  // dprofile_shuffle8/16 (only declared when __SSE3__)
+#include "ssse3.h"  // dprofile_shuffle8/16 (only declared when __SSSE3__)
 #include "sse41.h"  // align_cells_*_16_sse41 (only declared when __SSE4_1__)
 #include <emmintrin.h>  // _mm_set_epi8/16 (SSE2)
 #include "../../utils/cpu_features.h"  // Cpu_features
@@ -44,7 +44,7 @@ auto dispatch_dprofile16(Cpu_features const & cpu_features,
                          unsigned short const * score_matrix,
                          unsigned char const * dseq) -> void
 {
-#ifdef __SSE3__
+#ifdef __SSSE3__
   if (cpu_features.ssse3) {
     dprofile_shuffle16(dprofile, score_matrix, dseq);
     return;
@@ -60,7 +60,7 @@ auto dispatch_dprofile8(Cpu_features const & cpu_features,
                         unsigned char const * score_matrix,
                         unsigned char const * dseq) -> void
 {
-#ifdef __SSE3__
+#ifdef __SSSE3__
   if (cpu_features.ssse3) {
     dprofile_shuffle8(dprofile, score_matrix, dseq);
     return;

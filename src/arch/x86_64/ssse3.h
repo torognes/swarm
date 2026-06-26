@@ -21,7 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#ifdef __SSE3__
+#ifdef __SSSE3__
 
 using WORD = unsigned short;
 using BYTE = unsigned char;
