@@ -51,13 +51,15 @@ constexpr unsigned int no_swarm {std::numeric_limits<unsigned int>::max()};
 
 struct ampinfo_s
 {
+  // link_start is first so its 8-byte alignment does not pad the struct:
+  // placed mid-struct it would grow ampinfo_s to 40 bytes instead of 32.
+  uint64_t link_start {0U};            /* offset into network_v; total edges can exceed 2^32 */
   unsigned int swarmid {no_swarm};
   unsigned int parent {0U};
   unsigned int generation {0U};
   unsigned int next {no_swarm};        /* amp id of next amplicon in swarm */
   unsigned int graft_cand {no_swarm};  /* amp id of potential grafting parent (fastid.) */
-  uint64_t link_start {0U};      /* offset into network_v; total edges can exceed 2^32 */
-  unsigned int link_count {0U};  /* per-amplicon, bounded by the variant count */
+  unsigned int link_count {0U};        /* per-amplicon, bounded by the variant count */
 };
 
 /* Information about each swarm (cluster) */
