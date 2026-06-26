@@ -56,8 +56,8 @@ struct ampinfo_s
   unsigned int generation {0U};
   unsigned int next {no_swarm};        /* amp id of next amplicon in swarm */
   unsigned int graft_cand {no_swarm};  /* amp id of potential grafting parent (fastid.) */
-  unsigned int link_start {0U};
-  unsigned int link_count {0U};
+  uint64_t link_start {0U};      /* offset into network_v; total edges can exceed 2^32 */
+  unsigned int link_count {0U};  /* per-amplicon, bounded by the variant count */
 };
 
 /* Information about each swarm (cluster) */
@@ -89,7 +89,7 @@ struct Network_state
 {
   std::mutex mutex;
   unsigned int amp {0};
-  unsigned int count {0};
+  uint64_t count {0};  /* running total of network edges; index into network_v */
   std::vector<unsigned int> network_v;
 };
 

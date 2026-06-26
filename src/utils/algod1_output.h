@@ -36,7 +36,7 @@ struct Parameters;  // defined in swarm.h
 class Data;         // defined in db.h
 
 
-auto write_network_file(unsigned int number_of_networks,
+auto write_network_file(uint64_t number_of_networks,
                         struct Parameters const & parameters,
                         Data const & data,
                         std::vector<struct ampinfo_s> const & ampinfo_v,

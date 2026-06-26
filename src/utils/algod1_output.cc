@@ -37,7 +37,7 @@
 #include <vector>
 
 
-auto write_network_file(const unsigned int number_of_networks,
+auto write_network_file(const uint64_t number_of_networks,
                         struct Parameters const & parameters,
                         Data const & data,
                         std::vector<struct ampinfo_s> const & ampinfo_v,
@@ -52,7 +52,8 @@ auto write_network_file(const unsigned int number_of_networks,
     const auto link_count = amplicon.link_count;
     assert(static_cast<std::size_t>(link_start) + link_count <= network_v.size());
 
-    auto const neighbours = Span<unsigned int>{std::next(network_v.data(), link_start), link_count};
+    auto const neighbours = Span<unsigned int>{
+      std::next(network_v.data(), static_cast<std::ptrdiff_t>(link_start)), link_count};
 
     // amplicon indexes are already sorted by decreasing abundance
     // then by header in db.cc, so a natural ascending sort here

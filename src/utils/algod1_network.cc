@@ -150,7 +150,8 @@ namespace {
 
         std::copy(hits_data.cbegin(),
                   std::next(hits_data.cbegin(), hits_count),
-                  std::next(state.network_v.begin(), state.count));
+                  std::next(state.network_v.begin(),
+                            static_cast<std::ptrdiff_t>(state.count)));
         state.count += hits_count;
       }
   }
