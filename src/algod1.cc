@@ -285,13 +285,19 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   overall_stats.swarmcount_adjusted = swarmcount;
 
+  // swarminfo_v's size was grown in fixed-size chunks, so it can hold
+  // default-constructed padding entries beyond swarmcount. Trim them
+  // before the fastidious pass, which counts light swarms over the
+  // whole vector: padding entries have mass 0 and would otherwise be
+  // miscounted as light swarms (inflating the count and, with
+  // --ceiling, dividing by zero in compute_bloom_geometry).
+  swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
+  swarminfo_v.shrink_to_fit();
+
   /* fastidious */
   if (parameters.opt_fastidious) {
     run_fastidious_pass(parameters, data, swarmcount, ampinfo_v, swarminfo_v, overall_stats);
   }
-
-  swarminfo_v.resize(swarmcount);  // swarminfo_v's capacity can be twice too much
-  swarminfo_v.shrink_to_fit();
 
   output_results(parameters, data, ampinfo_v, swarminfo_v, overall_stats);
 

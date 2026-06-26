@@ -106,7 +106,11 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   auto const memtotal = system_get_memtotal();
   auto const memused = system_get_memused();
 
-  if (parameters.opt_ceiling != 0)
+  // nucleotides_in_small_clusters guards the division below: it is the
+  // denominator of new_bits. The caller only reaches this function when
+  // there is at least one light swarm, so it is non-zero in practice;
+  // the explicit check keeps the ceiling adjustment safe regardless.
+  if ((parameters.opt_ceiling != 0) and (nucleotides_in_small_clusters != 0))
     {
       if (parameters.opt_ceiling * one_megabyte < memused)
         {
