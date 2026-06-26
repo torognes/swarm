@@ -23,6 +23,7 @@
 
 #include "../../utils/fatal.h"
 #include "../../utils/system_memory.h"
+#include <array>  // std::array
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // size_t
 #include <sys/resource.h>
@@ -38,10 +39,11 @@ auto system_get_memused() -> uint64_t {
 
 
 auto system_get_memtotal() -> uint64_t {
-  int mib [] = { CTL_HW, HW_MEMSIZE };
+  std::array<int, 2> mib {{ CTL_HW, HW_MEMSIZE }};
   int64_t ram = 0;
   std::size_t length = sizeof(ram);
-  if (sysctl(mib, 2, &ram, &length, nullptr, 0) != 0) {
+  if (sysctl(mib.data(), static_cast<unsigned int>(mib.size()),
+             &ram, &length, nullptr, 0) != 0) {
     fatal("Cannot determine amount of RAM.");
   }
   return static_cast<uint64_t>(ram);

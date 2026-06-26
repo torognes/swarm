@@ -147,7 +147,7 @@ namespace {
   auto get_file_info(std::FILE * input_handle, struct Parameters const & parameters) -> struct File_info {
     // get file size and file type (regular or pipe)
     // refactoring: C++17 std::filesystem::file_size
-    struct File_info file_info;;
+    struct File_info file_info;
     struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
 
     if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // refactor: fstat and fileno are linuxisms
@@ -186,10 +186,10 @@ namespace {
   // flush() at end-of-sequence writes the partially-filled buffer
   // padded with zeros (so the on-disk layout is unchanged).
   struct Nt_packer {
-    auto push(uint64_t const mapped_minus_one,
+    auto push(uint64_t const nucleotide_code,
               std::vector<char> & data_v, uint64_t & datalen) -> void
     {
-      buffer |= mapped_minus_one << (2 * filled);
+      buffer |= nucleotide_code << (2 * filled);
       ++filled;
       if (filled == capacity) { flush(data_v, datalen); }
     }
