@@ -21,6 +21,7 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include <algorithm>  // std::max
 #include <cassert>
 #include <cstdint>
 #include <cmath>
@@ -37,8 +38,14 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
   static constexpr double divider {2.0};
   static_assert(numerator != 0, "Error: will result in a divide-by-zero");
   assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
+  // Scale in floating point: the same product computed in uint64_t,
+  // denominator * (sequence_count + 1), overflows for sequence_count
+  // above ~1.8e18, i.e. below the assert bound above.
+  auto const scaled =
+    static_cast<double>(denominator) * (static_cast<double>(sequence_count) + 1.0) / numerator;
   // GCC 6 to 9: std::log2 is not a member of std! (replace with log(x) / log(2.0) for now)
-  return static_cast<uint64_t>(std::pow(2, std::ceil(std::log(denominator * (sequence_count + 1) / numerator) / std::log(divider))));
+  auto const size = static_cast<uint64_t>(std::pow(divider, std::ceil(std::log(scaled) / std::log(divider))));
+  return std::max<uint64_t>(2, size);  // at least 2^1, as documented above
 }
 
 

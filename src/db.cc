@@ -230,14 +230,18 @@ namespace {
       fatal("Illegal header line in fasta file.");
     }
 
-    auto const headerlen = static_cast<unsigned int>
-      (std::strcspn(std::next(line_buf.data()), " \r\n"));
+    // strcspn returns size_t; check the untruncated length against
+    // max_header_length before narrowing to unsigned int, so a header
+    // longer than 4 GiB cannot wrap to a small value and slip through.
+    auto const headerlen_full = std::strcspn(std::next(line_buf.data()), " \r\n");
 
-    seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
-
-    if (seq_stats.longestheader > max_header_length) {
+    if (headerlen_full > max_header_length) {
       fatal("Headers longer than 16,777,215 symbols are not supported.");
     }
+
+    auto const headerlen = static_cast<unsigned int>(headerlen_full);
+
+    seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
     linear_resize_if_need_be(data_v, datalen + headerlen + 1);
     std::copy_n(std::next(line_buf.data()), headerlen, &data_v[datalen]);
