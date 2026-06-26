@@ -22,6 +22,28 @@ Each fix should be a small, self-contained commit with a
 
 ---
 
+## Decision log (selected 2026-06-26)
+
+| Point   | Selected option | Notes |
+|---------|-----------------|-------|
+| BUG 1   | **1A** reorder `validate_alignment` before scoring derivation | also fix the comment at `cli.cc:593` |
+| BUG 2   | **2A + 2C** resize before fastidious + guard division | fixes count *and* crash |
+| BUG 3   | **3A** `_mm_cvtsi128_si64` | x86_64-only, fine for swarm targets |
+| RISK 4  | **4B** named `invalid_fd {-1}` sentinel | |
+| RISK 5  | **5A** widen `count`/`link_start`/params to `uint64_t` | benchmark d=1 paths for memory regression first |
+| RISK 6  | **6A** reroute to 16-bit kernel when `2*(go+ge) > 255` | preserves exact scores |
+| RISK 7  | **7A** check return values + `fatal()`, zero-init structs | Windows; cross-OS parity |
+| RISK 8  | **8A** change guards to `#ifdef __SSSE3__` | re-run cross-compilers |
+| RISK 9  | **9A** fix all three (9a float scaling, 9b floor to 2, 9c narrow after guard) | |
+| RISK 10 | **10A** status enum from `parse_abundance_digits` | confirm exact internal signature before rippling to callers |
+| RISK 11 | verify upstream guard + add `assert(length != 0)` + comment | no hot-path branch in release |
+| E1      | **SKIPPED** | not fixed now; `pending_fixes.sh` E1 test stays red |
+| E2      | **SKIPPED** | currently safe; revisit if output is parallelised |
+| E3      | **E3A** full OSXSAVE/XGETBV check | |
+| E4      | **Apply all** | signedness asserts, `db.cc:141` `;;`, `db.cc:180` param name, macos `int mib[]` → `std::array` |
+
+---
+
 ## BUG 1 — CLI integer divide-by-zero (SIGFPE) in scoring setup
 
 - **Severity:** BUG (reproducible crash from the command line, exit 136).
