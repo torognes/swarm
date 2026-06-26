@@ -98,7 +98,7 @@ auto popcount_128(__m128i input_vector) -> uint64_t
 
   /* return low 64 bits: return value is always in range 0 to 128 */
 
-  return reinterpret_cast<uint64_t>(_mm_movepi64_pi64(vector_n));
+  return static_cast<uint64_t>(_mm_cvtsi128_si64(vector_n));
 }
 
 
