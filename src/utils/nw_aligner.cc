@@ -271,6 +271,10 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
   // loosing precision when converting raw_alignment_.size() and nwdiff
   // to double is not an issue, no need to add assertions
   auto const length = raw_alignment_.size();
+  // an empty alignment would make percent_id a 0/0 NaN below; swarm
+  // rejects empty input sequences upstream (db.cc, "Empty sequence
+  // found"), so the alignment of two non-empty sequences is non-empty.
+  assert(length != 0);
   auto const percent_id =
     one_hundred * static_cast<double>(length - nwdiff) / static_cast<double>(length);
 
