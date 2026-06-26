@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "../../utils/fatal.h"
 #include "../../utils/system_memory.h"
 #include <cstdint>  // uint64_t
 #include <windows.h>
@@ -28,17 +29,23 @@
 
 
 auto system_get_memused() -> uint64_t {
-  PROCESS_MEMORY_COUNTERS pmc;
-  GetProcessMemoryInfo(GetCurrentProcess(),
-                       &pmc,
-                       sizeof(PROCESS_MEMORY_COUNTERS));
+  PROCESS_MEMORY_COUNTERS pmc {};
+  // a zero return means failure; bail out as the POSIX backends do
+  // rather than returning the uninitialised struct's garbage.
+  if (GetProcessMemoryInfo(GetCurrentProcess(),
+                           &pmc,
+                           sizeof(PROCESS_MEMORY_COUNTERS)) == 0) {
+    fatal("Cannot determine amount of RAM.");
+  }
   return pmc.PeakWorkingSetSize;
 }
 
 
 auto system_get_memtotal() -> uint64_t {
-  MEMORYSTATUSEX memory_status;
+  MEMORYSTATUSEX memory_status {};
   memory_status.dwLength = sizeof(MEMORYSTATUSEX);
-  GlobalMemoryStatusEx(&memory_status);
+  if (GlobalMemoryStatusEx(&memory_status) == 0) {
+    fatal("Cannot determine amount of RAM.");
+  }
   return memory_status.ullTotalPhys;
 }
