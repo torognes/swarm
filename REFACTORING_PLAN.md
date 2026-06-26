@@ -47,9 +47,12 @@ fixes implemented as individual commits, each `cppcheck`-clean and
 cross-compiled for x86_64 / ARM64 / PPC64 / Win64. RISK 6 reverted
 (false positive). E1 and E2 skipped. Regression tests migrated into
 `swarm-tests/scripts/fixed_bugs.sh`; only the E1 test remains in
-`pending_fixes.sh`. Note for RISK 5: `ampinfo_s` grows 4 bytes/amplicon
-— a memory increase on the d=1 hot path; a `hyperfine` run on the large
-d=1 datasets is advisable before merge.
+`pending_fixes.sh`. RISK 5 was benchmarked on the d=1 datasets
+(18SV9 2.2M reads, 18SV4 3.9M reads, release, `-t 10`): widening
+`link_start` in place grew `ampinfo_s` 28→40 bytes and cost ~1%;
+reordering it to the front of the struct keeps it at 32 bytes and the
+runtime is then within noise of the pre-RISK-5 baseline (1.00 ± 0.01×).
+Output byte-identical.
 
 ---
 
