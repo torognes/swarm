@@ -30,6 +30,10 @@
 
 namespace {
 
+  // dup() returns -1 on failure; any non-negative value (including 0,
+  // when a standard descriptor has been closed) is a valid descriptor.
+  constexpr int invalid_fd {-1};
+
   auto is_dash(char const * filename) -> bool {
     assert(filename != nullptr);
     return std::strcmp(filename, "-") == 0;
@@ -44,7 +48,7 @@ auto fopen_input(char const * filename) -> FileHandle {
 
   if (is_dash(filename)) {
     auto const file_descriptor = dup(STDIN_FILENO);
-    input_stream = file_descriptor > 0 ? fdopen(file_descriptor, "rb") : nullptr;
+    input_stream = file_descriptor != invalid_fd ? fdopen(file_descriptor, "rb") : nullptr;
   }
   else {
     input_stream = std::fopen(filename, "rb");
@@ -60,7 +64,7 @@ auto fopen_output(char const * filename) -> FileHandle {
 
   if (is_dash(filename)) {
     auto const file_descriptor = dup(STDOUT_FILENO);
-    output_stream = file_descriptor > 0 ? fdopen(file_descriptor, "w") : nullptr;
+    output_stream = file_descriptor != invalid_fd ? fdopen(file_descriptor, "w") : nullptr;
   }
   else {
     output_stream = std::fopen(filename, "w");
