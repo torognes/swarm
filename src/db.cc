@@ -104,11 +104,20 @@ namespace {
   // Result of a successful abundance-annotation parse. 'found' is the
   // discriminator: when false, the other fields are meaningless.
   struct Abundance_match {
-    int     start  {0};
-    int     end    {0};
-    int64_t number {0};
-    bool    found  {false};
+    int     start    {0};
+    int     end      {0};
+    int64_t number   {0};
+    bool    found    {false};
+    bool    overflow {false};  // a digit run was matched but exceeds int64_t
   };
+
+
+  // Outcome of converting a matched digit run into an int64_t:
+  // ok        - parsed into a representable value
+  // overflow  - the digit run exceeds int64_t (errno == ERANGE)
+  // malformed - strtoll stopped before the end of the run (defensive:
+  //             callers pre-validate the run with std::all_of(is_digit))
+  enum struct Abundance_status : unsigned char { ok, overflow, malformed };
 
 
   auto make_nt_classifier() -> std::array<Nt_class, n_chars> {
@@ -312,19 +321,24 @@ namespace {
 
 
   // Convert a validated, null-terminated run of decimal digits in
-  // [digits_begin, digits_end) into an int64_t abundance value. Returns
-  // false when the value overflows int64_t (errno == ERANGE) or when
-  // strtoll stops before digits_end (defensive: callers pre-validate the
-  // run with std::all_of(is_digit)).
+  // [digits_begin, digits_end) into an int64_t abundance value. Reports
+  // overflow (errno == ERANGE) distinctly from a malformed run so the
+  // caller can tell "abundance too large" apart from "no annotation".
   auto parse_abundance_digits(char const * const digits_begin,
                               char const * const digits_end,
-                              int64_t & number) -> bool
+                              int64_t & number) -> Abundance_status
   {
     static constexpr int base_value {10};
     char * end_ptr {nullptr};
     errno = 0;
     number = std::strtoll(digits_begin, &end_ptr, base_value);
-    return (errno != ERANGE) and (end_ptr == digits_end);
+    if (errno == ERANGE) {
+      return Abundance_status::overflow;
+    }
+    if (end_ptr != digits_end) {
+      return Abundance_status::malformed;
+    }
+    return Abundance_status::ok;
   }
 
 
@@ -376,9 +390,15 @@ namespace {
     // header_view points into Data::data_, where each header is followed
     // by a '\0' byte written at parse time.
     // n_digits is bounded above by max_digits = 20, which can exceed
-    // int64_t's 19-digit range, so reject values that overflow.
-    if (not parse_abundance_digits(digits_begin, digits_end, match.number)) {
-      return Abundance_match{};
+    // int64_t's 19-digit range; flag values that overflow so the caller
+    // reports them as too large rather than as a missing annotation.
+    auto const status = parse_abundance_digits(digits_begin, digits_end, match.number);
+    if (status == Abundance_status::overflow) {
+      match.overflow = true;  // found stays false
+      return match;
+    }
+    if (status != Abundance_status::ok) {
+      return Abundance_match{};  // malformed run: treat as no annotation
     }
     match.found  = true;
     return match;
@@ -442,9 +462,15 @@ namespace {
             // strtoll still requires null-termination at the end of the
             // digit run; the digit run is always followed by either ';'
             // or the '\0' at the end of the header in Data::data_.
-            // Reject values that overflow int64_t.
-            if (not parse_abundance_digits(digits_begin, digits_end, result.number)) {
-              return Abundance_match{};
+            // Flag values that overflow int64_t so the caller reports
+            // them as too large rather than as a missing annotation.
+            auto const status = parse_abundance_digits(digits_begin, digits_end, result.number);
+            if (status == Abundance_status::overflow) {
+              result.overflow = true;  // found stays false
+              return result;
+            }
+            if (status != Abundance_status::ok) {
+              return Abundance_match{};  // malformed run: treat as no annotation
             }
             result.found  = true;
             return result;
@@ -478,6 +504,12 @@ namespace {
                 header_view.data(), "\nAbundance values should be positive integers.");
         }
         abundance = match.number;
+      }
+    else if (match.overflow)
+      {
+        fatal("Abundance value on line ", lineno, " is too large:\n",
+              header_view.data(),
+              "\nAbundance values must fit a 64-bit signed integer.");
       }
     else
       {
