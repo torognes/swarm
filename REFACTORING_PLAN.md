@@ -31,7 +31,7 @@ Each fix should be a small, self-contained commit with a
 | BUG 3   | **3A** `_mm_cvtsi128_si64` | x86_64-only, fine for swarm targets |
 | RISK 4  | **4B** named `invalid_fd {-1}` sentinel | |
 | RISK 5  | **5A** widen `count`/`link_start`/params to `uint64_t` | benchmark d=1 paths for memory regression first |
-| RISK 6  | **6A** reroute to 16-bit kernel when `2*(go+ge) > 255` | preserves exact scores |
+| RISK 6  | **none (false positive)** | unreachable: search8 runs only at d≥2, gap penalties need d≥2, and `diff_saturation` then forces `gapopen+gapextend ≤ 127`, so `2*(go+ge) ≤ 254`. `search8.cc:707` already asserts this. 6A would be dead code; reverted. |
 | RISK 7  | **7A** check return values + `fatal()`, zero-init structs | Windows; cross-OS parity |
 | RISK 8  | **8A** change guards to `#ifdef __SSSE3__` | re-run cross-compilers |
 | RISK 9  | **9A** fix all three (9a float scaling, 9b floor to 2, 9c narrow after guard) | |
@@ -40,7 +40,16 @@ Each fix should be a small, self-contained commit with a
 | E1      | **SKIPPED** | not fixed now; `pending_fixes.sh` E1 test stays red |
 | E2      | **SKIPPED** | currently safe; revisit if output is parallelised |
 | E3      | **E3A** full OSXSAVE/XGETBV check | |
-| E4      | **Apply all** | signedness asserts, `db.cc:141` `;;`, `db.cc:180` param name, macos `int mib[]` → `std::array` |
+| E4      | **Apply (3 of 4)** | applied: `db.cc` `;;`, `db.cc` param rename, macos `int mib[]` → `std::array`. NOT applied: search8/16 assert signedness — the signed `char`/`short` bound is the correct tight invariant given RISK 6's analysis (8-bit ⟹ `go+ge ≤ 127`); relaxing to unsigned would under-document. |
+
+**Implementation status (branch `tmp_20260626151239`):** all selected
+fixes implemented as individual commits, each `cppcheck`-clean and
+cross-compiled for x86_64 / ARM64 / PPC64 / Win64. RISK 6 reverted
+(false positive). E1 and E2 skipped. Regression tests migrated into
+`swarm-tests/scripts/fixed_bugs.sh`; only the E1 test remains in
+`pending_fixes.sh`. Note for RISK 5: `ampinfo_s` grows 4 bytes/amplicon
+— a memory increase on the d=1 hot path; a `hyperfine` run on the large
+d=1 datasets is advisable before merge.
 
 ---
 
