@@ -46,6 +46,18 @@ auto get_cpuid_count(unsigned int leaf,
   __cpuid_count(leaf, subleaf, eax, ebx, ecx, edx);
   return 1;
 }
+
+// Read the low 32 bits of XCR0 via XGETBV. Must only be called when
+// CPUID reports OSXSAVE, otherwise XGETBV raises #UD. cpu_features.cc is
+// compiled with the baseline target (no -mxsave), so the _xgetbv
+// intrinsic is unavailable; use the equivalent one-instruction asm.
+auto read_xcr0() noexcept -> unsigned int {
+  unsigned int xcr0_lo {0};
+  unsigned int xcr0_hi {0};
+  __asm__ __volatile__("xgetbv" : "=a"(xcr0_lo), "=d"(xcr0_hi) : "c"(0U));
+  static_cast<void>(xcr0_hi);
+  return xcr0_lo;
+}
 }  // namespace
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
@@ -68,7 +80,19 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   parameters.sse41_present  = ((ecx & bit_SSE4_1) != 0U) ? 1 : 0;
   parameters.sse42_present  = ((ecx & bit_SSE4_2) != 0U) ? 1 : 0;
   parameters.popcnt_present = ((ecx & bit_POPCNT) != 0U) ? 1 : 0;
-  parameters.avx_present    = ((ecx & bit_AVX)    != 0U) ? 1 : 0;
+
+  // AVX/AVX2 are only usable if the OS has enabled saving of the YMM
+  // register state: CPUID must report OSXSAVE and XCR0 (read via XGETBV)
+  // must have both the SSE (bit 1) and AVX (bit 2) state-enable bits set.
+  // Without this check an AVX-capable CPU on an old OS would be
+  // over-reported. Computed from leaf-1 ecx before it is overwritten by
+  // the leaf-7 query below.
+  static constexpr unsigned int bit_osxsave {0x08000000U};  // CPUID.1:ECX bit 27
+  static constexpr unsigned int xcr0_avx_state {0x6U};      // XMM | YMM
+  bool const avx_os_enabled =
+    ((ecx & bit_osxsave) != 0U) and ((read_xcr0() & xcr0_avx_state) == xcr0_avx_state);
+  parameters.avx_present =
+    (((ecx & bit_AVX) != 0U) and avx_os_enabled) ? 1 : 0;
 
   // leaf 7, sub-leaf 0: extended feature flags
   static constexpr unsigned int extended_features_leaf {7};
@@ -77,7 +101,8 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
                       eax, ebx, ecx, edx) == 0) {
     return;
   }
-  parameters.avx2_present   = ((ebx & bit_AVX2)   != 0U) ? 1 : 0;
+  parameters.avx2_present =
+    (((ebx & bit_AVX2) != 0U) and avx_os_enabled) ? 1 : 0;
 }
 
 auto cpu_features_test(struct Parameters & parameters) -> void {
