@@ -28,6 +28,7 @@
 #include "utils/qgram.h"
 #include "utils/nw_aligner.h"
 #include "utils/scanner.h"
+#include "utils/memory_budget.h"
 #include "utils/make_unique.h"
 #include "utils/progress.h"
 #include <algorithm>  // std::min(), std::for_each
@@ -416,6 +417,11 @@ auto algo_run(struct Parameters const & parameters,
   // The score matrix is built inside the constructor as well.
   std::unique_ptr<NwAligner> aligner;
   if (parameters.uclustfile.get() != nullptr) {
+    // NwAligner's direction matrix is O(longestamplicon^2); guard it like
+    // the search buffers so a pathological sequence length fails with a
+    // clear message instead of aborting inside operator new.
+    require_ram(longestamplicon * longestamplicon, 1,
+               "the UCLUST alignment matrix");
     aligner = utils::make_unique<NwAligner>(
         longestamplicon,
         parameters.penalty_mismatch,

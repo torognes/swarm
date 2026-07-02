@@ -27,6 +27,7 @@
 #include "../search16.h"
 #include "../swarm.h"
 #include "cpu_features.h"  // Cpu_features
+#include "memory_budget.h"  // require_ram
 #include "nt_codec.h"
 #include "queryinfo.h"
 #include "score_matrix.h"
@@ -54,6 +55,18 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
   static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
   const uint64_t dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
+
+  // dir_array_v dominates and grows as O(L^2) in the longest sequence
+  // length; fail early with a clear message instead of aborting inside
+  // operator new (see memory_budget.h).
+  static constexpr auto bytes_per_uint64 = uint64_t{8};
+  const uint64_t per_thread_bytes =
+      (dirbuffersize * bytes_per_uint64)                 // dir_array_v (dominant)
+    + (longestdbsequence * nt_per_uint64)                // hearray_v
+    + (longestdbsequence * 2 * sizeof(void *));          // qtable_v + qtable_w_v
+  require_ram(per_thread_bytes,
+             search_data_v.size(),
+             "the pairwise-alignment buffers");
 
   for (auto & thread_data: search_data_v) {
     thread_data.qtable_v.resize(longestdbsequence);
