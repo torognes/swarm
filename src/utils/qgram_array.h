@@ -33,7 +33,14 @@
 constexpr unsigned int qgramlength     {5};
 constexpr unsigned int qgramvectorbytes {(1U << (2 * qgramlength)) / 8};
 
-using Qgram_vector = std::array<unsigned char, qgramvectorbytes>;
+// alignas(16): the per-architecture qgram_compare kernels read these with
+// aligned SIMD loads (_mm_load_si128 on x86_64, and the NEON/VMX
+// equivalents), so each element must start on a 16-byte boundary. A bare
+// std::array has alignment 1; deriving an over-aligned type makes
+// std::vector<Qgram_vector> place its buffer -- and, since the 128-byte
+// element size is a multiple of 16, every element -- on a 16-byte
+// boundary. Mirrors the alignas(16) on the score matrices in scanner.h.
+struct alignas(16) Qgram_vector : std::array<unsigned char, qgramvectorbytes> {};
 using Qgram_store  = std::vector<Qgram_vector>;
 
 #endif
