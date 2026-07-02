@@ -79,9 +79,13 @@ namespace {
     const auto link_count = ampinfo_v[seed].link_count;
     auto global_hits_alloc = global_hits_v.size();
 
-    if (global_hits_count + link_count > global_hits_alloc)
+    // widen to uint64_t: global_hits_count + link_count is otherwise a
+    // 32-bit sum that could wrap and skip the resize, leading to an
+    // out-of-bounds write into global_hits_v below.
+    const uint64_t required = static_cast<uint64_t>(global_hits_count) + link_count;
+    if (required > global_hits_alloc)
       {
-        while (global_hits_count + link_count > global_hits_alloc) {
+        while (required > global_hits_alloc) {
           global_hits_alloc += 4UL * one_kilobyte;
         }
         global_hits_v.resize(global_hits_alloc);
