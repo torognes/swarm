@@ -895,6 +895,7 @@ Data::Data(struct Parameters const & parameters) {
   // for the variant enumeration in variants.cc.
   auto const & stats = parse_result.stats;
   longest_ = stats.longest_sequence;
+  decode_buffer_.assign(longest_ + 1, '\0');  // scratch reused by fprintseq()
   auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
   zobrist_p_.reset(new Zobrist(zobrist_len));
 
@@ -950,15 +951,14 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
   auto const seq = sequence_view(seqno);
-  static std::vector<char> buffer(longest_sequence() + 1, '\0');
 
   // decode to nucleotides (A, C, G and T)
   for (auto i = 0U; i < seq.length; ++i) {
-    buffer[i] = sym_nt[1 + nt_extract(seq.encoded.data(), i)];
+    decode_buffer_[i] = sym_nt[1 + nt_extract(seq.encoded.data(), i)];
   }
-  buffer[seq.length] = '\0';
+  decode_buffer_[seq.length] = '\0';
 
-  std::fprintf(stream, "%.*s\n", seq.length, buffer.data());
+  std::fprintf(stream, "%.*s\n", seq.length, decode_buffer_.data());
 }
 
 

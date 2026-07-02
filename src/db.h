@@ -83,6 +83,7 @@ private:
   std::vector<struct seqinfo_s> seqindex_;
   std::unique_ptr<Zobrist>      zobrist_p_;  // deferred: needs longest_sequence
   unsigned int                  longest_ {0};
+  mutable std::vector<char>     decode_buffer_;  // reusable scratch for fprintseq()
 };
 
 #endif  // SWARM_DB_H
