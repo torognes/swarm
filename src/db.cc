@@ -270,7 +270,7 @@ namespace {
     static constexpr int end_chars_range {126};
 
     Nt_packer packer;
-    auto length = 0U;
+    uint64_t length {0};
     entry.sequence.offset = datalen;
 
     while ((not line_buf.empty()) and (line_buf.peek_first() != '>')) {
@@ -315,7 +315,7 @@ namespace {
       }
 
     seq_stats.nucleotides += length;
-    seq_stats.longest_sequence = std::max(length, seq_stats.longest_sequence);
+    seq_stats.longest_sequence = std::max(static_cast<unsigned int>(length), seq_stats.longest_sequence);
 
 
     /* save remaining padded 64-bit value with nt's, if any */
