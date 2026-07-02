@@ -425,6 +425,12 @@ namespace {
     while (state.progress < state.amplicon_count)
       {
         const auto light_amplicon_id = state.amplicon;
+        // Invariant: amplicon_count equals the number of light-swarm
+        // amplicons in [0, sequence_count), so the loop stops before this
+        // unsigned cursor underflows. Assert it so a future change to the
+        // counting in count_cluster_stats() cannot silently become an
+        // out-of-bounds read here.
+        assert(light_amplicon_id < ampinfo_v.size());
         --state.amplicon;
         auto const & target_amplicon = ampinfo_v[light_amplicon_id];
         auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
