@@ -23,28 +23,26 @@
 
 #include "../../swarm.h"
 #include "../../utils/fatal.h"
-#include <cpuid.h>  // __get_cpuid, __get_cpuid_max, __cpuid_count, bit_* masks
+#include <cpuid.h>  // __cpuid_count, bit_* feature masks
 #include <cstdio>  // fprintf
 
 namespace {
-// __get_cpuid_count was only added to <cpuid.h> in GCC 7.0, so call sites
-// using it fail to build on GCC 4 and 5. Replicate the same logic locally
-// in terms of __get_cpuid_max and __cpuid_count, both of which have shipped
-// in <cpuid.h> since GCC 4.4. The behaviour matches the upstream helper:
-// returns 0 if the requested leaf is not supported by the CPU, 1 otherwise.
-auto get_cpuid_count(unsigned int leaf,
-                     unsigned int subleaf,
-                     unsigned int & eax,
-                     unsigned int & ebx,
-                     unsigned int & ecx,
-                     unsigned int & edx) noexcept -> int {
-  unsigned int const ext = leaf & 0x80000000U;
-  unsigned int const max_level = __get_cpuid_max(ext, nullptr);
-  if (max_level == 0 || max_level < leaf) {
-    return 0;
-  }
-  __cpuid_count(leaf, subleaf, eax, ebx, ecx, edx);
-  return 1;
+// Groups the four output registers of a CPUID query so each leaf can be
+// returned as one named, const result instead of reusing shared variables.
+struct cpuid_registers {
+  unsigned int eax {0};
+  unsigned int ebx {0};
+  unsigned int ecx {0};
+  unsigned int edx {0};
+};
+
+// All call sites query sub-leaf 0, so the sub-leaf is fixed here rather
+// than passed in (avoids two adjacent same-type parameters). __cpuid_count
+// has shipped in <cpuid.h> since GCC 4.4.
+auto get_cpuid(unsigned int const leaf) noexcept -> cpuid_registers {
+  cpuid_registers registers {};
+  __cpuid_count(leaf, 0U, registers.eax, registers.ebx, registers.ecx, registers.edx);
+  return registers;
 }
 
 // Read the low 32 bits of XCR0 via XGETBV. Must only be called when
@@ -62,47 +60,49 @@ auto read_xcr0() noexcept -> unsigned int {
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
 {
-  // CPU registers:
-  unsigned int eax {0};
-  unsigned int ebx {0};
-  unsigned int ecx {0};
-  unsigned int edx {0};
+  // Feature masks (bit_MMX, bit_SSE, ...) come from <cpuid.h>. bit_OSXSAVE
+  // is not defined by older <cpuid.h> versions (GCC 4.x), so spell it out.
+  static constexpr unsigned int basic_leaf_mask {0xffU};    // CPUID.0:EAX low byte
+  static constexpr unsigned int extended_features_leaf {7U};
+  static constexpr unsigned int bit_osxsave {0x08000000U};  // CPUID.1:ECX bit 27
+  static constexpr unsigned int xcr0_avx_state {0x6U};      // XMM | YMM
 
-  // leaf 1: standard feature flags
-  if (__get_cpuid(1, &eax, &ebx, &ecx, &edx) == 0) {
+  // leaf 0: highest supported standard leaf, used to gate the queries below
+  cpuid_registers const leaf0 = get_cpuid(0U);
+  unsigned int const max_level = leaf0.eax & basic_leaf_mask;
+  if (max_level < 1U) {
     return;
   }
-  parameters.mmx_present    = ((edx & bit_MMX)    != 0U) ? 1 : 0;
-  parameters.sse_present    = ((edx & bit_SSE)    != 0U) ? 1 : 0;
-  parameters.sse2_present   = ((edx & bit_SSE2)   != 0U) ? 1 : 0;
-  parameters.sse3_present   = ((ecx & bit_SSE3)   != 0U) ? 1 : 0;
-  parameters.ssse3_present  = ((ecx & bit_SSSE3)  != 0U) ? 1 : 0;
-  parameters.sse41_present  = ((ecx & bit_SSE4_1) != 0U) ? 1 : 0;
-  parameters.sse42_present  = ((ecx & bit_SSE4_2) != 0U) ? 1 : 0;
-  parameters.popcnt_present = ((ecx & bit_POPCNT) != 0U) ? 1 : 0;
+
+  // leaf 1: standard feature flags
+  cpuid_registers const leaf1 = get_cpuid(1U);
+  parameters.mmx_present    = ((leaf1.edx & bit_MMX)    != 0U) ? 1 : 0;
+  parameters.sse_present    = ((leaf1.edx & bit_SSE)    != 0U) ? 1 : 0;
+  parameters.sse2_present   = ((leaf1.edx & bit_SSE2)   != 0U) ? 1 : 0;
+  parameters.sse3_present   = ((leaf1.ecx & bit_SSE3)   != 0U) ? 1 : 0;
+  parameters.ssse3_present  = ((leaf1.ecx & bit_SSSE3)  != 0U) ? 1 : 0;
+  parameters.sse41_present  = ((leaf1.ecx & bit_SSE4_1) != 0U) ? 1 : 0;
+  parameters.sse42_present  = ((leaf1.ecx & bit_SSE4_2) != 0U) ? 1 : 0;
+  parameters.popcnt_present = ((leaf1.ecx & bit_POPCNT) != 0U) ? 1 : 0;
 
   // AVX/AVX2 are only usable if the OS has enabled saving of the YMM
   // register state: CPUID must report OSXSAVE and XCR0 (read via XGETBV)
   // must have both the SSE (bit 1) and AVX (bit 2) state-enable bits set.
   // Without this check an AVX-capable CPU on an old OS would be
-  // over-reported. Computed from leaf-1 ecx before it is overwritten by
-  // the leaf-7 query below.
-  static constexpr unsigned int bit_osxsave {0x08000000U};  // CPUID.1:ECX bit 27
-  static constexpr unsigned int xcr0_avx_state {0x6U};      // XMM | YMM
+  // over-reported.
   bool const avx_os_enabled =
-    ((ecx & bit_osxsave) != 0U) and ((read_xcr0() & xcr0_avx_state) == xcr0_avx_state);
+    ((leaf1.ecx & bit_osxsave) != 0U) and ((read_xcr0() & xcr0_avx_state) == xcr0_avx_state);
   parameters.avx_present =
-    (((ecx & bit_AVX) != 0U) and avx_os_enabled) ? 1 : 0;
+    (((leaf1.ecx & bit_AVX) != 0U) and avx_os_enabled) ? 1 : 0;
 
-  // leaf 7, sub-leaf 0: extended feature flags
-  static constexpr unsigned int extended_features_leaf {7};
-  static constexpr unsigned int extended_features_subleaf {0};
-  if (get_cpuid_count(extended_features_leaf, extended_features_subleaf,
-                      eax, ebx, ecx, edx) == 0) {
+  if (max_level < extended_features_leaf) {
     return;
   }
+
+  // leaf 7, sub-leaf 0: extended feature flags
+  cpuid_registers const leaf7 = get_cpuid(extended_features_leaf);
   parameters.avx2_present =
-    (((ebx & bit_AVX2) != 0U) and avx_os_enabled) ? 1 : 0;
+    (((leaf7.ebx & bit_AVX2) != 0U) and avx_os_enabled) ? 1 : 0;
 }
 
 auto cpu_features_test(struct Parameters & parameters) -> void {
