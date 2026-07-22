@@ -30,6 +30,43 @@ jobs:
         bash ./run_all_tests.sh
 
 
+  linux-gcc-legacy:
+    # Guard the documented minimum compiler (GCC 4.9). The gcc:4.9 image
+    # is Debian jessie, whose glibc (2.19) predates the glibc 2.28 the
+    # Node.js runtime behind JavaScript actions (actions/checkout and
+    # friends) needs, so this job uses no 'uses:' steps and fetches the
+    # sources by hand. It fetches github.ref -- a real ref (refs/heads/*
+    # for pushes, refs/pull/N/merge for pull requests) -- rather than a
+    # bare commit SHA, which the jessie-era git client (2.1) cannot fetch.
+    runs-on: ubuntu-latest
+    container: gcc:4.9
+
+    steps:
+    - name: Fetch swarm at the tested revision
+      run: |
+        git init -q .
+        git remote add origin "https://github.com/${{ github.repository }}.git"
+        git fetch --depth 1 origin "${{ github.ref }}"
+        git checkout -q --detach FETCH_HEAD
+
+    - name: Build for Linux x86_64 (GCC 4.9)
+      run: |
+        g++ --version
+        make clean
+        make RELEASE=1
+        bin/swarm -v
+
+    - name: Install and run tests
+      run: |
+        # Steps run as root inside the container, but the test-suite's
+        # "file not readable/writable" checks need an unprivileged user
+        # (root bypasses POSIX permission checks), as in the FreeBSD job.
+        useradd -m runner
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
+        chown -R runner swarm-tests
+        su runner -c "cd swarm-tests && PATH=$PWD/bin:\$PATH bash ./run_all_tests.sh"
+
+
   cross-build:
     runs-on: ubuntu-latest
 
