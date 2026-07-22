@@ -467,6 +467,13 @@ swarm 4.0.0:
 
 ## Version history ##
 
+### version 3.1.8 ###
+
+**swarm** 3.1.8 is a maintenance release (30 commits). It fixes
+several crashes on edge-case input and hardens integer handling across
+the command-line, database and input-output paths.
+
+
 ### version 3.1.7 ###
 
 **swarm** 3.1.7 is a maintenance release (517 commits). It improves
