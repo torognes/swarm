@@ -124,7 +124,7 @@ namespace {
     // every ascii byte falls into exactly one of: nucleotide (A/C/G/T/U,
     // case insensitive) -> packed 2-bit encoding; line terminator
     // (CR or LF) -> silently skipped; anything else -> fatal error
-    std::array<Nt_class, n_chars> table {};
+    std::array<Nt_class, n_chars> table;
     table.fill(Nt_class::illegal);
     table['A'] = Nt_class::a;  table['a'] = Nt_class::a;
     table['C'] = Nt_class::c;  table['c'] = Nt_class::c;
