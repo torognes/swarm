@@ -26,12 +26,12 @@ Each fix should be a small, self-contained commit with a
 
 | Point   | Selected option | Notes |
 |---------|-----------------|-------|
-| BUG 1   | **1A** reorder `validate_alignment` before scoring derivation | also fix the comment at `cli.cc:593` |
+| BUG 1   | **1A** reorder `validate_alignment` before scoring derivation | also fix the comment at `cli.cpp:593` |
 | BUG 2   | **2A + 2C** resize before fastidious + guard division | fixes count *and* crash |
 | BUG 3   | **3A** `_mm_cvtsi128_si64` | x86_64-only, fine for swarm targets |
 | RISK 4  | **4B** named `invalid_fd {-1}` sentinel | |
 | RISK 5  | **5A** widen `count`/`link_start`/params to `uint64_t` | benchmark d=1 paths for memory regression first |
-| RISK 6  | **none (false positive)** | unreachable: search8 runs only at d≥2, gap penalties need d≥2, and `diff_saturation` then forces `gapopen+gapextend ≤ 127`, so `2*(go+ge) ≤ 254`. `search8.cc:707` already asserts this. 6A would be dead code; reverted. |
+| RISK 6  | **none (false positive)** | unreachable: search8 runs only at d≥2, gap penalties need d≥2, and `diff_saturation` then forces `gapopen+gapextend ≤ 127`, so `2*(go+ge) ≤ 254`. `search8.cpp:707` already asserts this. 6A would be dead code; reverted. |
 | RISK 7  | **7A** check return values + `fatal()`, zero-init structs | Windows; cross-OS parity |
 | RISK 8  | **8A** change guards to `#ifdef __SSSE3__` | re-run cross-compilers |
 | RISK 9  | **9A** fix all three (9a float scaling, 9b floor to 2, 9c narrow after guard) | |
@@ -40,7 +40,7 @@ Each fix should be a small, self-contained commit with a
 | E1      | **SKIPPED** | not fixed now; `pending_fixes.sh` E1 test stays red |
 | E2      | **SKIPPED** | currently safe; revisit if output is parallelised |
 | E3      | **E3A** full OSXSAVE/XGETBV check | |
-| E4      | **Apply (3 of 4)** | applied: `db.cc` `;;`, `db.cc` param rename, macos `int mib[]` → `std::array`. NOT applied: search8/16 assert signedness — the signed `char`/`short` bound is the correct tight invariant given RISK 6's analysis (8-bit ⟹ `go+ge ≤ 127`); relaxing to unsigned would under-document. |
+| E4      | **Apply (3 of 4)** | applied: `db.cpp` `;;`, `db.cpp` param rename, macos `int mib[]` → `std::array`. NOT applied: search8/16 assert signedness — the signed `char`/`short` bound is the correct tight invariant given RISK 6's analysis (8-bit ⟹ `go+ge ≤ 127`); relaxing to unsigned would under-document. |
 
 **Implementation status (branch `tmp_20260626151239`):** all selected
 fixes implemented as individual commits, each `cppcheck`-clean and
@@ -59,15 +59,15 @@ Output byte-identical.
 ## BUG 1 — CLI integer divide-by-zero (SIGFPE) in scoring setup
 
 - **Severity:** BUG (reproducible crash from the command line, exit 136).
-- **Location:** `src/cli.cc:587-596` (`set_alignment_scoring_system`),
-  ordering in `parse_command_line` (`src/cli.cc:723-724`).
+- **Location:** `src/cli.cpp:587-596` (`set_alignment_scoring_system`),
+  ordering in `parse_command_line` (`src/cli.cpp:723-724`).
 - **Problem:** `set_alignment_scoring_system()` computes
   `penalty_factor = gcd(gcd(mismatch, gapopen), gapextend)` and divides
   the three penalties by it, **before** `args_check()` →
   `validate_alignment()` runs the positivity checks (match ≥ 1,
   mismatch ≥ 1, gaps ≥ 0, gap-sum ≥ 1). Scoring that drives all three
   penalties to zero makes `penalty_factor == 0` → integer division by
-  zero. The comment at `cli.cc:593` ("would require gcd(0,0) which is
+  zero. The comment at `cli.cpp:593` ("would require gcd(0,0) which is
   not possible") is incorrect.
 - **Repro:** `swarm -d 2 -m 0 -p 0 -e 0 -g 0 file.fa`
 - **Constraint:** `check_scoring_saturation()` (inside `args_check`)
@@ -102,7 +102,7 @@ Output byte-identical.
 
 **Recommendation: 1A.** It eliminates the class of bug (no derived
 value is ever computed from invalid parameters) without duplicating
-checks. In all cases, **fix the inaccurate comment at `cli.cc:593`**.
+checks. In all cases, **fix the inaccurate comment at `cli.cpp:593`**.
 
 - **Test:** red test ready — asserts the command exits with the
   validation error, not a floating-point exception (exit ≠ 136/139).
@@ -113,13 +113,13 @@ checks. In all cases, **fix the inaccurate comment at `cli.cc:593`**.
 
 - **Severity:** BUG (always-wrong logged statistic on most fastidious
   runs; crash when combined with `--ceiling`).
-- **Location:** `src/utils/algod1_statistics.cc:53-66` (counting) and
-  `:118` (division); root cause `src/algod1.cc:157,290,293`.
+- **Location:** `src/utils/algod1_statistics.cpp:53-66` (counting) and
+  `:118` (division); root cause `src/algod1.cpp:157,290,293`.
 - **Problem:** `ensure_swarm_capacity` grows `swarminfo_v` with
   `resize(size + 1024)`, so `swarminfo_v.size()` is `swarmcount` rounded
   up to a multiple of 1024, the extra entries default-constructed with
-  `mass == 0`. `run_fastidious_pass` runs (`algod1.cc:290`) **before**
-  the `swarminfo_v.resize(swarmcount)` at `algod1.cc:293`, so
+  `mass == 0`. `run_fastidious_pass` runs (`algod1.cpp:290`) **before**
+  the `swarminfo_v.resize(swarmcount)` at `algod1.cpp:293`, so
   `count_cluster_stats` iterates the padding entries. Each padding entry
   has `mass (0) < opt_boundary`, so it is miscounted as a light swarm:
   - The logged `Light swarms: N` is overstated by the padding count
@@ -127,9 +127,9 @@ checks. In all cases, **fix the inaccurate comment at `cli.cc:593`**.
     count beside it stays correct → inconsistent log.
   - When there are **zero genuine light swarms** but padding > 0 and at
     least one heavy swarm, the `small_clusters == 0` short-circuit
-    (`algod1_fastidious.cc:547`) is defeated, so `compute_bloom_geometry`
+    (`algod1_fastidious.cpp:547`) is defeated, so `compute_bloom_geometry`
     runs with `nucleotides_in_small_clusters == 0`; with `--ceiling`
-    set, `algod1_statistics.cc:118` divides by
+    set, `algod1_statistics.cpp:118` divides by
     `microvariants * nucleotides_in_small_clusters` → division by zero.
 - **Repro (crash):** `-f --ceiling N` on input where every swarm is
   heavy (e.g. raise abundances / lower `--boundary`) and `swarmcount`
@@ -139,7 +139,7 @@ checks. In all cases, **fix the inaccurate comment at `cli.cc:593`**.
 
 - **(2A) Resize `swarminfo_v` to `swarmcount` before fastidious.**
   Move the `swarminfo_v.resize(swarmcount); shrink_to_fit();`
-  (`algod1.cc:293`) to immediately after `run_clustering` /
+  (`algod1.cpp:293`) to immediately after `run_clustering` /
   `overall_stats.swarmcount_adjusted = swarmcount`, i.e. before the
   `if (opt_fastidious)` block. Grafting (`attach_candidates`) works by
   index and appends no swarms, so this is safe. *Pro:* fixes both the
@@ -174,7 +174,7 @@ optionally plus **2C** as defence-in-depth on `compute_bloom_geometry`.
 
 - **Severity:** BUG (UB on the no-POPCNT path; flagged by two
   reviewers). Trivial fix.
-- **Location:** `src/arch/x86_64/qgram_compare.cc:101`.
+- **Location:** `src/arch/x86_64/qgram_compare.cpp:101`.
 - **Problem:** `reinterpret_cast<uint64_t>(_mm_movepi64_pi64(vector_n))`.
   `_mm_movepi64_pi64` returns an `__m64` (MMX register): (a) the path
   enters MMX state with no following `_mm_empty()` (EMMS), so later
@@ -217,7 +217,7 @@ optionally plus **2C** as defence-in-depth on `compute_bloom_geometry`.
 ## RISK 4 — `dup()` success test rejects fd 0 and leaks it
 
 - **Severity:** RISK (mishandled error path / fd leak; edge case).
-- **Location:** `src/utils/input_output.cc:46-47` and `62-63`.
+- **Location:** `src/utils/input_output.cpp:46-47` and `62-63`.
 - **Problem:** `dup()` returns `-1` on failure; the code uses
   `file_descriptor > 0 ? fdopen(...) : nullptr`. If fd 0 (or 1) is
   closed, `dup()` legitimately returns 0, treated as failure and leaked
@@ -242,9 +242,9 @@ optionally plus **2C** as defence-in-depth on `compute_bloom_geometry`.
 ## RISK 5 — `unsigned int` overflow on total d=1 network edges
 
 - **Severity:** RISK (wrong clusters / OOB on very large d=1 datasets).
-- **Location:** `src/utils/algod1_internal.h:59,92`; written
-  `src/utils/algod1_network.cc:144,154`; indexed `src/algod1.cc:92`,
-  `src/utils/algod1_output.cc:53-55`.
+- **Location:** `src/utils/algod1_internal.hpp:59,92`; written
+  `src/utils/algod1_network.cpp:144,154`; indexed `src/algod1.cpp:92`,
+  `src/utils/algod1_output.cpp:53-55`.
 - **Problem:** `Network_state::count` accumulates the **total** number
   of network edges across all amplicons and `ampinfo_s::link_start`
   indexes `network_v` (a `std::vector`), both `unsigned int`. On a
@@ -278,8 +278,8 @@ optionally plus **2C** as defence-in-depth on `compute_bloom_geometry`.
 
 - **Severity:** RISK (wrong difference count with non-default,
   large gap penalties). **Touches bit-mode policy — needs a human call.**
-- **Location:** `src/search8.cc:708` (and analogously
-  `src/search16.cc:458`).
+- **Location:** `src/search8.cpp:708` (and analogously
+  `src/search16.cpp:458`).
 - **Problem:** the F0/H0 boundary seed is stored with a truncating cast
   `static_cast<BYTE>(2*(gapopen+gapextend))`. `set_bit_mode` only
   guarantees `d*(gapopen+gapextend) <= 255`, which permits
@@ -295,7 +295,7 @@ optionally plus **2C** as defence-in-depth on `compute_bloom_geometry`.
   fall through to the 16-bit kernel. *Pro:* preserves exact scores;
   no clamping of values. *Con:* shifts a few extreme-parameter inputs to
   the slower 16-bit path; need to verify the 16-bit seed bound likewise
-  holds (its analogous store at `search16.cc:458` uses a 16-bit `WORD`,
+  holds (its analogous store at `search16.cpp:458` uses a 16-bit `WORD`,
   which fits `2*(go+ge)` for all CLI-permitted values).
 
 - **(6B) Clamp the seed: `std::min<unsigned>(255, 2*(go+ge))`.**
@@ -325,7 +325,7 @@ exotic parameters) — but please confirm the desired behaviour for
 
 - **Severity:** RISK (wrong result on Windows; the POSIX backends
   `fatal()` on failure, Windows diverges).
-- **Location:** `src/os/windows/system_memory.cc:32-43`.
+- **Location:** `src/os/windows/system_memory.cpp:32-43`.
 - **Problem:** `GetProcessMemoryInfo` / `GlobalMemoryStatusEx` return
   values are discarded and the structs are not zero-initialised; on
   failure the function returns garbage feeding Bloom-filter sizing.
@@ -349,8 +349,8 @@ exotic parameters) — but please confirm the desired behaviour for
 
 - **Severity:** RISK (latent build/dispatch footgun; correct today only
   because of Makefile flags).
-- **Location:** `src/arch/x86_64/search_dispatch.cc:47,63`,
-  `src/arch/x86_64/ssse3.h:24`.
+- **Location:** `src/arch/x86_64/search_dispatch.cpp:47,63`,
+  `src/arch/x86_64/ssse3.hpp:24`.
 - **Problem:** `_mm_shuffle_epi8` is an SSSE3 (PSHUFB) instruction but
   is guarded by `__SSE3__`. Works because the Makefile compiles these
   TUs with `-mssse3` (which defines both macros); a `-msse3`-only build
@@ -378,13 +378,13 @@ Three independent, low-likelihood arithmetic issues, groupable into one
 "sizing hardening" commit.
 
 - **9a — `compute_hashtable_size` uint64 overflow before the assert.**
-  `src/utils/hashtable_size.cc:41`: `denominator * (sequence_count + 1)`
+  `src/utils/hashtable_size.cpp:41`: `denominator * (sequence_count + 1)`
   (denominator = 10) overflows uint64 at `sequence_count ≈ 1.84e18`,
   *below* the assert bound (~6.45e18).
 - **9b — `compute_hashtable_size(0)` returns 1**, not the documented
   ≥ 2; `mask == 0` → infinite insert loop if ever reached.
 - **9c — header length narrowed before the size check.**
-  `src/db.cc:224-230`: `strcspn` (returns `size_t`) is narrowed to
+  `src/db.cpp:224-230`: `strcspn` (returns `size_t`) is narrowed to
   `unsigned int` *before* the `max_header_length` comparison, so a
   > 4 GiB header would pass the guard truncated.
 
@@ -422,7 +422,7 @@ Three independent, low-likelihood arithmetic issues, groupable into one
 
 - **Severity:** RISK (confusing/wrong diagnostic on a pathological but
   real header).
-- **Location:** `src/db.cc:461-499`.
+- **Location:** `src/db.cpp:461-499`.
 - **Problem:** a 20-digit abundance exceeding `int64_t` makes
   `parse_abundance_digits` return `false` (ERANGE), which is
   indistinguishable from "no annotation present" → the user sees
@@ -457,8 +457,8 @@ internal-signature change (it is internal, not public API); otherwise
 
 - **Severity:** RISK (UB in release if reachable; likely guarded
   upstream).
-- **Location:** `src/utils/cigar.cc:31,60` (`input.back()` on an empty
-  vector), `src/utils/nw_aligner.cc:273` (`percent_id` → `0/0` → NaN).
+- **Location:** `src/utils/cigar.cpp:31,60` (`input.back()` on an empty
+  vector), `src/utils/nw_aligner.cpp:273` (`percent_id` → `0/0` → NaN).
 - **Problem:** if `backtrack()` ever returns an empty alignment, release
   builds invoke UB / produce NaN. Not confirmed reachable (empty input
   sequences appear to be rejected during parsing).
@@ -473,7 +473,7 @@ internal-signature change (it is internal, not public API); otherwise
   contained. *Con:* adds a branch to a hot path (negligible).
 
 **Recommendation: 11A first** (verify the parser rejects empty
-sequences — `db.cc:300`); add **11B** only if the invariant is not
+sequences — `db.cpp:300`); add **11B** only if the invariant is not
 firmly guaranteed.
 
 - **Test:** red/clarifying test ready (best-effort): feed a record with
@@ -487,7 +487,7 @@ firmly guaranteed.
 Group into one or two cleanup commits; none alter results.
 
 - **E1 — `-c/--ceiling` message contradicts the code.**
-  `src/cli.cc:364-368` enforces a minimum of 40 but the message says
+  `src/cli.cpp:364-368` enforces a minimum of 40 but the message says
   "range 8 to …". *Options:* (E1A) fix the message to interpolate
   `min_ceiling`/`max_ceiling`; (E1B) lower the enforced minimum back to
   8 to match the message *and* the older man page — **this is a
@@ -496,7 +496,7 @@ Group into one or two cleanup commits; none alter results.
   page). **Test: red test ready** — `swarm -c 20` error text must state
   the real lower bound (40).
 
-- **E2 — `db.cc:917` function-local `static std::vector<char> buffer`
+- **E2 — `db.cpp:917` function-local `static std::vector<char> buffer`
   in `fprintseq`.** Shared mutable state; safe only because output is
   single-threaded and one `Data` per run. *Options:* (E2A) make it a
   non-static local; (E2B) make it a per-`Data` member.
@@ -504,17 +504,17 @@ Group into one or two cleanup commits; none alter results.
   *Test:* not black-box testable.
 
 - **E3 — AVX/AVX2 reported without OSXSAVE/XGETBV check.**
-  `src/arch/x86_64/cpu_features.cc:71,80`. Cosmetic today (AVX never
+  `src/arch/x86_64/cpu_features.cpp:71,80`. Cosmetic today (AVX never
   gates a kernel). *Options:* (E3A) add the OSXSAVE+XGETBV check;
   (E3B) add a comment that the flags are display-only. *Recommendation:*
   E3B now, E3A only if an AVX kernel is ever added. *Test:* not
   black-box testable.
 
 - **E4 — Minor hygiene** (single small commit): signedness of the
-  gap-penalty asserts (`search8.cc:771`, `search16.cc:521`) using signed
+  gap-penalty asserts (`search8.cpp:771`, `search16.cpp:521`) using signed
   `numeric_limits<char/short>::max()` for unsigned `BYTE/WORD`;
-  `db.cc:141` stray `;;`; `db.cc:180` misleading parameter name
-  `mapped_minus_one`; `os/macos/system_memory.cc:41` C array
+  `db.cpp:141` stray `;;`; `db.cpp:180` misleading parameter name
+  `mapped_minus_one`; `os/macos/system_memory.cpp:41` C array
   `int mib[]` → `std::array`. *Recommendation:* fix all; pure cleanup.
   *Test:* not black-box testable.
 
