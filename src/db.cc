@@ -288,10 +288,8 @@ namespace {
                   fatal("Illegal character '", static_cast<char>(character),
                         "' in sequence on line ", lineno, ".");
                 }
-                else {
-                  fatal("Illegal character (ascii no ", static_cast<unsigned int>(character),
-                        ") in sequence on line ", lineno, ".");
-                }
+                fatal("Illegal character (ascii no ", static_cast<unsigned int>(character),
+                      ") in sequence on line ", lineno, ".");
               }
             // else: Nt_class::skip (CR or LF), silently ignored
           }
