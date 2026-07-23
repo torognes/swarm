@@ -71,8 +71,7 @@ public:
   }
   auto cbegin() const noexcept -> Type const * { return data(); }
   auto cend() const noexcept -> Type const * {
-    auto const distance = static_cast<std::ptrdiff_t>(size());
-    return std::next(static_cast<Type const *>(data()), distance);
+    return end();
   }
   auto rbegin() const noexcept -> std::reverse_iterator<Type *> {
     return std::reverse_iterator<Type *>(end());
