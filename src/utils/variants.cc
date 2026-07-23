@@ -179,34 +179,34 @@ auto check_variant(Sequence const & seed,
     {
     case Variant_type::substitution:
       equal = ((seed_seqlen == amp_seqlen) and
-               (seq_identical(seed.encoded, 0,
-                              amp.encoded, 0,
-                              var.pos)) and
+               seq_identical(seed.encoded, 0,
+                             amp.encoded, 0,
+                             var.pos) and
                (nt_extract(amp.encoded.data(), var.pos) == var.base) and
-               (seq_identical(seed.encoded, var.pos + 1,
-                              amp.encoded,  var.pos + 1,
-                              seed_seqlen - var.pos - 1)));
+               seq_identical(seed.encoded, var.pos + 1,
+                             amp.encoded,  var.pos + 1,
+                             seed_seqlen - var.pos - 1));
       break;
 
     case Variant_type::deletion:
       equal = (((seed_seqlen - 1) == amp_seqlen) and
-               (seq_identical(seed.encoded, 0,
-                              amp.encoded, 0,
-                              var.pos)) and
-               (seq_identical(seed.encoded, var.pos + 1,
-                              amp.encoded,  var.pos,
-                              seed_seqlen - var.pos - 1)));
+               seq_identical(seed.encoded, 0,
+                             amp.encoded, 0,
+                             var.pos) and
+               seq_identical(seed.encoded, var.pos + 1,
+                             amp.encoded,  var.pos,
+                             seed_seqlen - var.pos - 1));
       break;
 
     case Variant_type::insertion:
       equal = (((seed_seqlen + 1) == amp_seqlen) and
-               (seq_identical(seed.encoded, 0,
-                              amp.encoded, 0,
-                              var.pos)) and
+               seq_identical(seed.encoded, 0,
+                             amp.encoded, 0,
+                             var.pos) and
                (nt_extract(amp.encoded.data(), var.pos) == var.base) and
-               (seq_identical(seed.encoded, var.pos,
-                              amp.encoded,  var.pos + 1,
-                              seed_seqlen - var.pos)));
+               seq_identical(seed.encoded, var.pos,
+                             amp.encoded,  var.pos + 1,
+                             seed_seqlen - var.pos));
       break;
     }
 

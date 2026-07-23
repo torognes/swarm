@@ -69,7 +69,7 @@ namespace {
 
             /* avoid self */
             if ((seed != amp) and
-                ((parameters.opt_no_cluster_breaking) or
+                (parameters.opt_no_cluster_breaking or
                  (data.abundance(seed) >= data.abundance(amp))))
               {
                 auto const seed_seq = data.sequence_view(seed);

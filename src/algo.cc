@@ -137,7 +137,7 @@ namespace {
     uint64_t listlen {0};
     for (auto i = swarmed; i < amplicons; ++i) {
       auto const ampliconid = amps_v[i].ampliconid;
-      if ((parameters.opt_no_cluster_breaking) or
+      if (parameters.opt_no_cluster_breaking or
           (data.abundance(ampliconid) <= seed_abundance)) {
         workspace.qgramamps_v[listlen] = ampliconid;
         ++listlen;
@@ -160,7 +160,7 @@ namespace {
       uint64_t const targetampliconid = amps_v[i].ampliconid;
       if ((amps_v[i].diffestimate <=
            subseed.radius + parameters.opt_differences) and
-          ((parameters.opt_no_cluster_breaking) or
+          (parameters.opt_no_cluster_breaking or
            (data.abundance(targetampliconid)
             <= subseed_abundance))) {
         workspace.qgramamps_v[subseedlistlen] = targetampliconid;
