@@ -27,7 +27,7 @@
 #include <cstdint>  // uint64_t
 
 
-auto nt_extract(char const * seq, uint64_t pos) -> unsigned char;
+auto nt_extract(char const * compressed_sequence, uint64_t position) -> unsigned char;
 
 auto nt_bytelength(unsigned int len) -> unsigned int;
 

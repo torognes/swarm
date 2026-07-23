@@ -24,5 +24,5 @@
 #include <cstdint>
 
 
-auto compareqgramvectors_popcnt(unsigned char const * qgram_a, unsigned char const * qgram_b)
+auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const * rhs)
   -> uint64_t;
