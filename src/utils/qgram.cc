@@ -111,7 +111,7 @@ QgramDiffer::QgramDiffer(struct Parameters const & parameters,
     cpu_features_{
       parameters.ssse3_present != 0,
       parameters.sse41_present != 0,
-      parameters.popcnt_present != 0
+      parameters.popcnt_present != 0,
     },
     thread_info_v_(parameters.opt_threads),
     threads_(parameters.opt_threads,

@@ -947,7 +947,7 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
     {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
      ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
+     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',};
   auto const seq = sequence_view(seqno);
 
   // decode to nucleotides (A, C, G and T)

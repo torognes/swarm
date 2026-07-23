@@ -106,8 +106,8 @@ namespace {
       {'w', "seeds",                 true },
       {'x', "disable-sse3",          false},
       {'y', "bloom-bits",            true },
-      {'z', "usearch-abundance",     false}
-    }};
+      {'z', "usearch-abundance",     false},
+    },};
 
 
   auto build_long_options() -> std::array<struct option, option_specs.size() + 1> {
@@ -157,8 +157,8 @@ namespace {
       "Mahe F, Czech L, Stamatakis A, Quince C, de Vargas C, Dunthorn M, Rognes T (2022)\n",
       "Swarm v3: towards tera-scale amplicon clustering\n",
       "Bioinformatics 38:1, 267-269 https://doi.org/10.1093/bioinformatics/btab493\n",
-      "\n"
-    }};
+      "\n",
+    },};
 
 
 #ifdef _WIN32
@@ -209,8 +209,8 @@ namespace {
       "\n",
       "See 'man swarm' for more details.\n",
 #endif
-      "\n"
-    }};
+      "\n",
+    },};
 
 
   auto args_long(char const * str, char const * option) -> int64_t {
@@ -574,8 +574,8 @@ namespace {
         {parameters.opt_match_reward,          "-m or --match-reward"},
         {parameters.opt_mismatch_penalty,      "-p or --mismatch-penalty"},
         {parameters.opt_gap_opening_penalty,   "-g or --gap-opening-penalty"},
-        {parameters.opt_gap_extension_penalty, "-e or --gap-extension-penalty"}
-      }};
+        {parameters.opt_gap_extension_penalty, "-e or --gap-extension-penalty"},
+      },};
     for (auto const & scoring_value : scoring_values) {
       if ((scoring_value.value > max_scoring_value) or
           (scoring_value.value < -max_scoring_value)) {

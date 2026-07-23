@@ -130,7 +130,7 @@ Scanner::Scanner(struct Parameters const & parameters,
 
   Cpu_features const features {parameters.ssse3_present != 0,
                                parameters.sse41_present != 0,
-                               parameters.popcnt_present != 0};
+                               parameters.popcnt_present != 0,};
   for (auto & thread_data : search_data_v_) {
     thread_data.cpu_features = features;
   }
