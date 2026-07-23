@@ -119,7 +119,7 @@ endif
 # Machine specific
 #
 # ARCH_DIR points at the per-ISA folder under src/arch/ that supplies the
-# vector intrinsics and any other arch-only translation units. Every .cc
+# vector intrinsics and any other arch-only translation units. Every .cpp
 # in that folder gets compiled into the binary (see ARCH_OBJS below).
 ifeq ($(MACHINE), x86_64)
 	COMMON += -march=x86-64 -mtune=generic -std=c++11
@@ -136,11 +136,11 @@ else ifeq ($(MACHINE), ppc64le)
 	ARCH_DIR := arch/ppc
 endif
 
-# Auto-collect every .cc under the chosen ARCH_DIR. Per-flag overrides
+# Auto-collect every .cpp under the chosen ARCH_DIR. Per-flag overrides
 # (e.g. -mssse3 / -msse4.1 / -mpopcnt for the x86_64 dispatch helpers)
 # are attached as explicit target rules further down — those win over the
 # generic %.o pattern rule.
-ARCH_OBJS := $(patsubst %.cc, %.o, $(wildcard $(ARCH_DIR)/*.cc))
+ARCH_OBJS := $(patsubst %.cpp, %.o, $(wildcard $(ARCH_DIR)/*.cpp))
 
 
 # Opt-in portable qgram fallback. Replaces the per-ISA qgram_compare.o
@@ -158,9 +158,9 @@ endif
 # Machine OS specific
 #
 # OS_DIR points at the per-OS folder under src/os/ that supplies the
-# implementations of host-OS-specific helpers (e.g. system_memory.cc).
+# implementations of host-OS-specific helpers (e.g. system_memory.cpp).
 # The TARGET_TRIPLE substring (linux / mingw / darwin) selects the
-# right folder; every .cc in that folder is compiled into the binary
+# right folder; every .cpp in that folder is compiled into the binary
 # (see OS_OBJS below). Mirrors the ARCH_DIR pattern used above.
 ifneq (,$(findstring linux, $(TARGET_TRIPLE)))
 	OS_DIR := os/linux
@@ -180,7 +180,7 @@ else
 	BIN = swarm
 endif
 
-OS_OBJS := $(patsubst %.cc, %.o, $(wildcard $(OS_DIR)/*.cc))
+OS_OBJS := $(patsubst %.cpp, %.o, $(wildcard $(OS_DIR)/*.cpp))
 
 
 LINKFLAGS = $(COMMON) $(LINKOPT)
@@ -195,7 +195,7 @@ INSTALLED := ../bin/$(BIN)
 OBJS = algo.o algod1.o cli.o db.o dereplicate.o \
 	search16.o search8.o \
 	swarm.o \
-	$(patsubst %.cc, %.o, $(wildcard utils/*.cc)) $(ARCH_OBJS) $(OS_OBJS)
+	$(patsubst %.cpp, %.o, $(wildcard utils/*.cpp)) $(ARCH_OBJS) $(OS_OBJS)
 
 DEPFILES = $(OBJS:.o=.d)
 
@@ -225,19 +225,19 @@ clean :
 	./os/*/*.gcno ./os/*/*.gcda ./os/*/*.gcov
 	rm -rf ../bin/
 
-%.o : %.cc Makefile
+%.o : %.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -c -o $@ $<
 
-arch/x86_64/ssse3.o : arch/x86_64/ssse3.cc Makefile
+arch/x86_64/ssse3.o : arch/x86_64/ssse3.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mssse3 -c -o $@ $<
 
-arch/x86_64/sse41.o : arch/x86_64/sse41.cc Makefile
+arch/x86_64/sse41.o : arch/x86_64/sse41.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -msse4.1 -c -o $@ $<
 
-arch/x86_64/popcnt.o : arch/x86_64/popcnt.cc Makefile
+arch/x86_64/popcnt.o : arch/x86_64/popcnt.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mpopcnt -c -o $@ $<
 
-# search_dispatch.cc selects between the SSE2 baseline kernels and the
+# search_dispatch.cpp selects between the SSE2 baseline kernels and the
 # SSSE3/SSE4.1 kernels at run time, but the optimized branches are guarded
 # by #ifdef __SSE3__ / __SSE4_1__. Those macros are undefined under the
 # generic -march=x86-64 baseline, so without these flags the whole runtime
@@ -245,7 +245,7 @@ arch/x86_64/popcnt.o : arch/x86_64/popcnt.cc Makefile
 # The flags only enable the macros (and the calls) in this dispatch TU; the
 # fallback kernels live in other TUs and stay at the SSE2 baseline, so the
 # binary still runs on any SSE2-only CPU.
-arch/x86_64/search_dispatch.o : arch/x86_64/search_dispatch.cc Makefile
+arch/x86_64/search_dispatch.o : arch/x86_64/search_dispatch.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mssse3 -msse4.1 -mpopcnt -c -o $@ $<
 
 # Pull in the auto-generated header-dependency files. The leading "-"
