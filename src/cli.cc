@@ -362,7 +362,7 @@ namespace {
 
   auto validate_ceiling(int64_t const ceiling) -> std::uint64_t {
     static constexpr int64_t min_ceiling {40};
-    static constexpr int64_t max_ceiling {int64_t{1} << 30};  // 1,073,741,824 (MiB of RAM)
+    static constexpr int64_t max_ceiling {static_cast<int64_t>(std::uint64_t{1} << 30)};  // 1,073,741,824 (MiB of RAM)
     if ((ceiling < min_ceiling) or (ceiling > max_ceiling)) {
       fatal("Illegal memory ceiling specified with -c or --ceiling, "
             "must be in the range 8 to 1,073,741,824 MB.");
