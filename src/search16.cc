@@ -201,6 +201,8 @@ auto dprofile_fill16(WORD * dprofile_word,
     }
 }
 
+namespace {
+
 inline auto onestep_16(VECTORTYPE & H,
                        VECTORTYPE & N,
                        VECTORTYPE & F,
@@ -226,8 +228,6 @@ inline auto onestep_16(VECTORTYPE & H,
   DIR[3] = v_mask_eq16(H, E);
 }
 
-
-namespace {
 
 // One block of cells, shared by the regular and masked kernels. The
 // masked variant differs only by a per-iteration adjustment of h4 and E

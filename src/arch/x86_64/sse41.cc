@@ -55,6 +55,8 @@ constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 using VECTORTYPE = __m128i;
 using WORD = unsigned short;
 
+namespace {
+
 // refactoring: v_min16 exists and is more complicated
 auto v_min(VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
   return _mm_min_epu16(lhs, rhs);
@@ -86,8 +88,6 @@ inline auto onestep_16_sse41(VECTORTYPE & H,
   DIR[3] = v_mask_eq16(H, E);
 }
 
-
-namespace {
 
 // One block of cells, shared by the regular and masked SSE4.1 kernels.
 // The masked variant differs only by a per-iteration adjustment of h4

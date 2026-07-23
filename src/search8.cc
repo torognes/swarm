@@ -451,6 +451,8 @@ auto dprofile_fill8(BYTE * dprofile,
 }
 
 
+namespace {
+
 inline auto onestep_8(VECTORTYPE & H,
                       VECTORTYPE & N,
                       VECTORTYPE & F,
@@ -476,8 +478,6 @@ inline auto onestep_8(VECTORTYPE & H,
   DIR[3] = v_mask_eq8(H, E);
 }
 
-
-namespace {
 
 // One block of cells, shared by the regular and masked kernels. The
 // masked variant differs only by a per-iteration adjustment of h4 and E
@@ -577,6 +577,8 @@ auto align_cells_8(VECTORTYPE * Sm,
 }  // namespace
 
 
+namespace {
+
 auto align_cells_regular_8(VECTORTYPE * Sm,
                            VECTORTYPE * hep,
                            VECTORTYPE ** qp,
@@ -608,6 +610,8 @@ auto align_cells_masked_8(VECTORTYPE * Sm,
 {
   align_cells_8<true>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
 }
+
+}  // namespace
 
 
 namespace {

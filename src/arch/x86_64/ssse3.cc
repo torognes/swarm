@@ -46,6 +46,8 @@
 using WORD = unsigned short;
 using BYTE = unsigned char;
 
+namespace {
+
 auto v_shuffle8(__m128i lhs, __m128i mask) -> __m128i {
   // shuffle vector of bytes according to control mask
   return _mm_shuffle_epi8(lhs, mask);
@@ -65,6 +67,8 @@ auto v_zero() -> __m128i {
   // return vector with all elements set to zero
   return _mm_setzero_si128();
 }
+
+}  // namespace
 
 
 /* 8-bit version with 16 channels */
