@@ -672,6 +672,15 @@ namespace {
       }
     progress.done();
 
+    // data_v was grown with std::vector::resize, which doubles capacity
+    // on reallocation, so it can hold up to ~2x the datalen bytes really
+    // used. Reclaim that slack now: before build_index takes raw pointers
+    // into data_v (a later shrink would reallocate and dangle them), and
+    // before the memory-heavy clustering phase. shrink_to_fit reallocates
+    // down to size(), so lower size() to datalen first.
+    data_v.resize(datalen);
+    data_v.shrink_to_fit();
+
     // Line_buffer is destroyed on return; indexing/hashing in
     // build_index can use the released memory
     return result;
