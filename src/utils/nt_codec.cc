@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "nt_codec.h"
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next

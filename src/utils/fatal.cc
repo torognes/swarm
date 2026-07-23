@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "fatal.h"
 #include <cstdlib>
 #include <iostream>  // using std::printf produces a larger binary
 

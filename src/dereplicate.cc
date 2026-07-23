@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "dereplicate.h"
 #include "swarm.h"
 #include "db.h"
 #include "utils/hashtable_size.h"

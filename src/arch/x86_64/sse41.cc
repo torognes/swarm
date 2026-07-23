@@ -44,6 +44,7 @@
 
 #include <cstdint>  //uint64_t
 #include <smmintrin.h>  // _mm_min_epu16
+#include "sse41.h"
 
 #ifndef NDEBUG
 // C++17 refactoring: [[maybe_unused]]

@@ -33,6 +33,7 @@
 #endif
 
 #include <cstdint>  // uint64_t, uint16_t
+#include "intrinsics_to_functions.h"
 
 using v_u64_t = vector unsigned long long;
 using v_u32_t = vector unsigned int;

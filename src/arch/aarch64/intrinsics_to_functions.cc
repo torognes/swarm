@@ -34,6 +34,7 @@
 
 #include <cstdint>  // uint64_t, uint16_t
 #include <arm_neon.h>
+#include "intrinsics_to_functions.h"
 
 
 constexpr uint16x8_t neon_mask16 =

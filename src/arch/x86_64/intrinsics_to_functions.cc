@@ -30,6 +30,7 @@
 
 #include <cstdint>  // uint64_t
 #include <emmintrin.h>  // SSE2
+#include "intrinsics_to_functions.h"
 
 
 auto cast_vector16(uint16_t* ptr) -> __m128i* {

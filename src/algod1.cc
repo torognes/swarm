@@ -27,6 +27,7 @@
   with only one difference, where L is the length of the sequence.
 */
 
+#include "algod1.h"
 #include "swarm.h"
 #include "db.h"
 #include "utils/progress.h"

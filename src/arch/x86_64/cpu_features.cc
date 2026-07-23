@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "cpu_features.h"
 #include "../../swarm.h"
 #include "../../utils/fatal.h"
 #include <cpuid.h>  // __cpuid_count, bit_* feature masks

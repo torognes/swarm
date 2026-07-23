@@ -41,6 +41,7 @@
 */
 
 #include <tmmintrin.h>  // _mm_shuffle_epi8
+#include "ssse3.h"
 
 using WORD = unsigned short;
 using BYTE = unsigned char;

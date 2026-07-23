@@ -24,6 +24,7 @@
 
 #ifdef __POPCNT__
 
+#include "popcnt.h"
 #include <popcntintrin.h>  // POPCNT-only header; <immintrin.h> is the umbrella header for all Intel intrinsics
 #include "../../utils/qgram_array.h"  // qgramvectorbytes
 #include <cstdint>  // uint64_t
