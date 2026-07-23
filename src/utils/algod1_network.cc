@@ -68,21 +68,20 @@ namespace {
             const auto amp = hash_table.get_data(index);
 
             /* avoid self */
-            if (seed != amp) {
-              if ((parameters.opt_no_cluster_breaking) or
-                  (data.abundance(seed) >= data.abundance(amp)))
-                {
-                  auto const seed_seq = data.sequence_view(seed);
-                  auto const amp_seq = data.sequence_view(amp);
+            if ((seed != amp) and
+                ((parameters.opt_no_cluster_breaking) or
+                 (data.abundance(seed) >= data.abundance(amp))))
+              {
+                auto const seed_seq = data.sequence_view(seed);
+                auto const amp_seq = data.sequence_view(amp);
 
-                  if (check_variant(seed_seq, var, amp_seq))
-                    {
-                      hits_data[hits_count] = amp;
-                      ++hits_count;
-                      break;
-                    }
-                }
-            }
+                if (check_variant(seed_seq, var, amp_seq))
+                  {
+                    hits_data[hits_count] = amp;
+                    ++hits_count;
+                    break;
+                  }
+              }
           }
         index = hash_table.getnextindex(index);
       }
