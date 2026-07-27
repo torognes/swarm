@@ -365,7 +365,7 @@ namespace {
     static constexpr int64_t max_ceiling {int64_t{1} << 30};  // 1,073,741,824 (MiB of RAM)
     if ((ceiling < min_ceiling) or (ceiling > max_ceiling)) {
       fatal("Illegal memory ceiling specified with -c or --ceiling, "
-            "must be in the range 8 to 1,073,741,824 MB.");
+            "must be in the range ", static_cast<std::uint64_t>(min_ceiling)," to ", static_cast<std::uint64_t>(max_ceiling)," MB.");
     }
     return static_cast<std::uint64_t>(ceiling);
   }
@@ -376,7 +376,7 @@ namespace {
     static constexpr int64_t max_bits_per_entry {64};
     if ((bloom_bits < min_bits_per_entry) or (bloom_bits > max_bits_per_entry)) {
       fatal("Illegal number of Bloom filter bits specified with -y or "
-            "--bloom-bits, must be in the range 2 to 64.");
+            "--bloom-bits, must be in the range ", static_cast<std::uint64_t>(min_bits_per_entry)," to ", static_cast<std::uint64_t>(max_bits_per_entry),".");
     }
     return static_cast<std::uint64_t>(bloom_bits);
   }
