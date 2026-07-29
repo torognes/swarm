@@ -25,11 +25,13 @@
 #define SWARM_UTILS_SPAN_H
 
 
+#include "element_order.hpp"  // element_order, element_less
 #include "view.hpp"
-#include <algorithm>  // std::min
+#include <algorithm>  // std::equal, std::lexicographical_compare, std::min
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <iterator> // std::prev, std::next
+#include <type_traits>  // std::is_arithmetic, std::remove_cv
 
 #ifndef NDEBUG
 #include <limits>
@@ -63,6 +65,30 @@ public:
     return View<Type>{start_, length_};
   }
 
+  // Operators
+  //
+  // Same contract as View's (see view.hpp): restricted to arithmetic element
+  // types, and noexcept because of it. Provided so that a mutable buffer can
+  // be compared without first converting it to a View.
+  auto operator==(Span<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a Span requires an arithmetic element type");
+    return size() == other.size()
+      and std::equal(cbegin(), cend(), other.cbegin());
+  }
+  auto operator!=(Span<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a Span requires an arithmetic element type");
+    return not (*this == other);
+  }
+  // Ordering goes through element_order (see element_order.hpp), so that a
+  // Span<char> orders its bytes as unsigned char, like std::strcmp and
+  // std::string, rather than as a possibly-signed char.
+  auto operator<(Span<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a Span requires an arithmetic element type");
+    return std::lexicographical_compare(cbegin(), cend(),
+                                        other.cbegin(), other.cend(),
+                                        element_less<Type>{});
+  }
+
   // Iterators
   auto begin()  const noexcept -> Type * { return data(); }
   auto end() const noexcept -> Type * {
@@ -76,8 +102,14 @@ public:
   auto rbegin() const noexcept -> std::reverse_iterator<Type *> {
     return std::reverse_iterator<Type *>(end());
   }
+  auto crbegin() const noexcept -> std::reverse_iterator<Type const *> {
+    return std::reverse_iterator<Type const *>(cend());
+  }
   auto rend() const noexcept -> std::reverse_iterator<Type *> {
     return std::reverse_iterator<Type *>(begin());
+  }
+  auto crend() const noexcept -> std::reverse_iterator<Type const *> {
+    return std::reverse_iterator<Type const *>(cbegin());
   }
 
   // Element access
@@ -127,6 +159,12 @@ public:
   }
 
 private:
+  // Predicate behind the comparison members' static_assert above. remove_cv is
+  // needed because std::is_arithmetic<char const> is false, and Span<Type const>
+  // is an ordinary read-only instantiation that must stay comparable.
+  static constexpr bool comparable =
+    std::is_arithmetic<typename std::remove_cv<Type>::type>::value;
+
 #ifndef NDEBUG
   // C++17 refactoring: [[maybe_unused]]
   static constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
