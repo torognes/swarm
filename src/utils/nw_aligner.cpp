@@ -278,5 +278,6 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
   auto const percent_id =
     one_hundred * static_cast<double>(length - nwdiff) / static_cast<double>(length);
 
-  return Result{cigar_string_.data(), nwdiff, length, percent_id};
+  return Result{View<char>{cigar_string_.data(), cigar_string_.size()},
+                nwdiff, length, percent_id};
 }

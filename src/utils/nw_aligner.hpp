@@ -22,6 +22,7 @@
 */
 
 #include "score_matrix.hpp"  // n_cells
+#include "view.hpp"  // View<char>
 #include <array>
 #include <cstdint>  // int64_t
 #include <string>
@@ -44,7 +45,7 @@ struct Sequence;  // defined in db.hpp
 
   align() returns a small Result aggregating the four values consumers
   need: cigar string, number of differences, alignment length, and
-  percent identity. The cigar_string pointer lives in this NwAligner
+  percent identity. The cigar_string view borrows this NwAligner
   object's internal buffer and is only valid until the next align()
   call on the same object.
 */
@@ -59,10 +60,10 @@ public:
   };
 
   struct Result {
-    char const * cigar_string;
-    uint64_t     differences;
-    uint64_t     length;       // == nwalignmentlength
-    double       percent_id;
+    View<char> cigar_string;   // borrowed, valid until the next align()
+    uint64_t   differences;
+    uint64_t   length;         // == nwalignmentlength
+    double     percent_id;
   };
 
   NwAligner(uint64_t longest_sequence,

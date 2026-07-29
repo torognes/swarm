@@ -26,6 +26,7 @@
 #include "../swarm.hpp"
 #include "../db.hpp"
 #include "nw_aligner.hpp"
+#include "print_view.hpp"  // fprint
 #include "progress.hpp"
 #include <algorithm>  // std::sort
 #include <cassert>
@@ -168,9 +169,15 @@ namespace {
 
       auto const result = aligner.align(hit_seq, seed_seq);
 
-      std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                   swarmid - 1, hit_seq.length, result.percent_id,
-                   result.differences > 0 ? result.cigar_string : "=");
+      std::fprintf(parameters.uclustfile.get(), "H\t%u\t%u\t%.1f\t+\t0\t0\t",
+                   swarmid - 1, hit_seq.length, result.percent_id);
+      if (result.differences > 0) {
+        fprint(parameters.uclustfile.get(), result.cigar_string);
+      }
+      else {
+        static_cast<void>(std::fputc('=', parameters.uclustfile.get()));
+      }
+      static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
 
       data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
