@@ -55,8 +55,10 @@
 namespace {
 
   constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
-  constexpr auto int8_max = std::numeric_limits<int8_t>::max();
-  constexpr long unsigned int n_chars {int8_max + 1};  // 128 ascii chars
+  // the classifier below is indexed with an unsigned char, so it must
+  // cover the whole byte range and not just its 7-bit ascii half
+  constexpr auto uchar_max = std::numeric_limits<unsigned char>::max();
+  constexpr long unsigned int n_chars {uchar_max + 1};  // 256 byte values
   constexpr unsigned int max_header_length {16777216 - 1};  // 2^24 minus 1
   constexpr unsigned int max_sequence_length {67108861};  // (2^26 - 3)
   // for longer sequences, 'zobrist_tab_byte_base' is bigger than 8 x
@@ -64,7 +66,7 @@ namespace {
   // uint32 pointers, which leads to a segmentation fault
 
   // Nucleotide character classification: the lookup table built by
-  // make_nt_classifier() returns one of these for every ASCII byte.
+  // make_nt_classifier() returns one of these for every byte value.
   // The four nucleotide values are also the packed 2-bit encoding,
   // so they can be passed straight to Nt_packer::push() after a cast
   // to the underlying type. Ordering matters: bases < skip < illegal,
@@ -122,7 +124,7 @@ namespace {
 
 
   auto make_nt_classifier() -> std::array<Nt_class, n_chars> {
-    // every ascii byte falls into exactly one of: nucleotide (A/C/G/T/U,
+    // every byte value falls into exactly one of: nucleotide (A/C/G/T/U,
     // case insensitive) -> packed 2-bit encoding; line terminator
     // (CR or LF) -> silently skipped; anything else -> fatal error
     std::array<Nt_class, n_chars> table {};
