@@ -36,7 +36,7 @@
 #include <array>
 #include <cassert>  // assert()
 #include <cerrno>  // errno, ERANGE
-#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cinttypes>  // macro PRIu64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fileno, size_t // stdio.h: fdopen, ssize_t, getline

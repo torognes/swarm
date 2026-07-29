@@ -34,7 +34,7 @@
 #include "utils/progress.hpp"
 #include <algorithm>  // std::min(), std::for_each
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cinttypes>  // macro PRIu64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc(), fflush
 #include <cstdlib>  // qsort()

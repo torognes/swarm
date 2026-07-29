@@ -32,7 +32,7 @@
 #include <bitset>
 #include <cassert>
 #include <cerrno>  // errno, ERANGE
-#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cinttypes>  // macros PRIu32, PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE, fclose, stderr
 #include <cstdlib>  // std::exit, std::strtoll

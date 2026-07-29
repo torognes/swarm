@@ -30,7 +30,7 @@
 #include "span.hpp"
 #include <algorithm>  // std::sort()
 #include <cassert>  // assert()
-#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cinttypes>  // macro PRIu64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // fputc(), fprintf(), std::size_t
