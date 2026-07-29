@@ -28,8 +28,8 @@
 #include "utils/progress.hpp"
 #include <algorithm>  // sort
 #include <cassert>  // assert
-#include <cinttypes>  // macros PRIu64 and PRId64
-#include <cstdint>
+#include <cinttypes>  // macro PRIu64
+#include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fputc()
 #include <cstdlib>  // qsort()
 #include <iterator>  // std::next
@@ -107,7 +107,7 @@ namespace {
                             std::vector<struct bucket> const & hashtable,
                             std::vector<unsigned int> const & nextseqtab) -> void {
     Progress progress("Writing structure:", hashtable.size(), parameters);
-    auto counter = 0UL;
+    auto counter = uint64_t{0};
 
     for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
@@ -117,7 +117,7 @@ namespace {
           data.fprint_id_noabundance(parameters.internal_structure_file.get(), seed, parameters.opt_usearch_abundance);
           std::fprintf(parameters.internal_structure_file.get(), "\t");
           data.fprint_id_noabundance(parameters.internal_structure_file.get(), next_identical, parameters.opt_usearch_abundance);
-          std::fprintf(parameters.internal_structure_file.get(), "\t%d\t%lu\t%d\n", 0, counter + 1, 0);
+          std::fprintf(parameters.internal_structure_file.get(), "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
           next_identical = nextseqtab[next_identical];
         }
       ++counter;
@@ -193,11 +193,9 @@ namespace {
                                   std::vector<unsigned int> const & nextseqtab) -> void {
     Progress progress("Writing swarms:   ", hashtable.size(), parameters);
 
-#ifdef _WIN32
-    std::fprintf(parameters.outfile.get(), "swarm_%" PRIu64 "\t%llu", parameters.opt_differences, hashtable.size());
-#else
-    std::fprintf(parameters.outfile.get(), "swarm_%" PRIu64 "\t%lu", parameters.opt_differences, hashtable.size());
-#endif
+    uint64_t const number_of_clusters {hashtable.size()};
+    std::fprintf(parameters.outfile.get(), "swarm_%" PRIu64 "\t%" PRIu64,
+                 parameters.opt_differences, number_of_clusters);
 
     for (auto const & cluster: hashtable) {
       // print cluster seed
