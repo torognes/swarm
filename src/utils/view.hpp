@@ -25,12 +25,13 @@
 #define SWARM_UTILS_VIEW_H
 
 
+#include "element_order.hpp"  // element_order, element_less
 #include <algorithm>  // std::equal, std::lexicographical_compare, std::min
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // std::size_t
 #include <iterator> // std::prev, std::next
-#include <type_traits>  // std::is_arithmetic
+#include <type_traits>  // std::is_arithmetic, std::remove_cv
 
 #ifndef NDEBUG
 #include <limits>
@@ -67,18 +68,35 @@ public:
   }
 
   // Operators
+  //
+  // The three comparison members below are restricted to arithmetic element
+  // types, and are noexcept because of it: for an arithmetic Type the ordering
+  // bottoms out in a built-in comparison (see element_order.hpp), which cannot
+  // throw, whereas an arbitrary Type's operator< can. The restriction is what
+  // makes the promise honest.
+  //
+  // Deliberately checked per-member rather than at class scope: a member
+  // function of a class template is instantiated only when used, so a View
+  // over a non-arithmetic Type stays perfectly legal to declare, iterate and
+  // index -- View<var_s> in algod1_network.cpp does exactly that -- and only
+  // an attempt to *compare* such a view is an error.
   auto operator==(View<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a View requires an arithmetic element type");
     return size() == other.size()
       and std::equal(cbegin(), cend(), other.cbegin());
   }
   auto operator!=(View<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a View requires an arithmetic element type");
     return not (*this == other);
   }
+  // Ordering goes through element_order (see element_order.hpp), so that a
+  // View<char> orders its bytes as unsigned char, like std::strcmp and
+  // std::string, rather than as a possibly-signed char.
   auto operator<(View<Type> const & other) const noexcept -> bool {
-    static_assert(std::is_arithmetic<Type>::value,
-                  "View::operator< requires an arithmetic element type");
+    static_assert(comparable, "comparing a View requires an arithmetic element type");
     return std::lexicographical_compare(cbegin(), cend(),
-                                        other.cbegin(), other.cend());
+                                        other.cbegin(), other.cend(),
+                                        element_less<Type>{});
   }
 
   // Iterators
@@ -158,6 +176,12 @@ public:
   }
 
 private:
+  // Predicate behind the comparison members' static_assert above. remove_cv is
+  // needed because std::is_arithmetic<char const> is false, and View<Type const>
+  // is an ordinary read-only instantiation that must stay comparable.
+  static constexpr bool comparable =
+    std::is_arithmetic<typename std::remove_cv<Type>::type>::value;
+
 #ifndef NDEBUG
   // C++17 refactoring: [[maybe_unused]]
   static constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
