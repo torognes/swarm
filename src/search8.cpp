@@ -625,13 +625,12 @@ auto save_score_8(int64_t const cand_id,
                          std::array<char const *, channels> const & d_address,
                          std::array<uint64_t, channels> const & d_offset,
                          std::array<uint64_t, channels> const & d_length,
-                         char const * const qseq,
-                         uint64_t const qlen,
+                         Sequence const & query,
                          std::vector<uint64_t> const & dirbuffer,
                          uint64_t const q_start_size,
-                         uint64_t * const scores,
-                         uint64_t * const diffs,
-                         uint64_t * const alignmentlengths,
+                         Span<uint64_t> const scores,
+                         Span<uint64_t> const diffs,
+                         Span<uint64_t> const alignmentlengths,
                          uint64_t & done) -> void
 {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
@@ -643,7 +642,9 @@ auto save_score_8(int64_t const cand_id,
   assert(z * channels + channel <= max_ptrdiff);
   const uint64_t score
     = *std::next(reinterpret_cast<BYTE const *>(score_vectors), static_cast<std::ptrdiff_t>((z * channels) + channel));
-  *std::next(scores, cand_id) = score;
+  assert(cand_id >= 0);
+  auto const candidate = static_cast<std::size_t>(cand_id);
+  scores[candidate] = score;
 
   uint64_t diff {0};
 
@@ -651,11 +652,11 @@ auto save_score_8(int64_t const cand_id,
     {
       char const * dbseq = d_address[channel];
       const uint64_t offset = d_offset[channel];
-      diff = backtrack<n_bits>(qseq, dbseq, qlen, dbseqlen,
+      diff = backtrack<n_bits>(query.encoded.data(), dbseq, query.length, dbseqlen,
                                dirbuffer,
                                offset,
                                channel,
-                               std::next(alignmentlengths, cand_id),
+                               &alignmentlengths[candidate],
                                q_start_size);
     }
   else
@@ -663,7 +664,7 @@ auto save_score_8(int64_t const cand_id,
       diff = uint8_max;
     }
 
-  *std::next(diffs, cand_id) = diff;
+  diffs[candidate] = diff;
 
   ++done;
 }
@@ -676,7 +677,7 @@ auto save_score_8(int64_t const cand_id,
 template <std::size_t capacity>
 auto load_next_sequence_8(unsigned int const channel,
                                  Data const & data,
-                                 uint64_t const * const seqnos,
+                                 View<uint64_t> const seqnos,
                                  uint64_t & next_id,
                                  uint64_t const * const dirbuffer_begin,
                                  uint64_t const * const dir,
@@ -693,9 +694,8 @@ auto load_next_sequence_8(unsigned int const channel,
 {
   // get next sequence
   assert(next_id <= std::numeric_limits<int64_t>::max());
-  assert(next_id <= max_ptrdiff);
   seq_id[channel] = static_cast<int64_t>(next_id);
-  const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
+  const uint64_t seqno = seqnos[next_id];
   auto const sequence = data.sequence_view(seqno);
 
   d_address[channel] = sequence.encoded.data();
@@ -727,18 +727,25 @@ auto search8(Data const & data,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE const * score_matrix,
-             uint64_t const * seqnos,
-             uint64_t * scores,
-             uint64_t * diffs,
-             uint64_t * alignmentlengths,
-             char const * qseq,
-             uint64_t qlen) -> void
+             View<uint64_t> const seqnos,
+             Span<uint64_t> const scores,
+             Span<uint64_t> const diffs,
+             Span<uint64_t> const alignmentlengths,
+             Sequence const & query) -> void
 {
+  // the four target arrays are one window over the same candidate list,
+  // so they all carry its length; search_data.target_count is that same
+  // count, kept for the loop below to read as a number
+  assert(scores.size() == seqnos.size());
+  assert(diffs.size() == seqnos.size());
+  assert(alignmentlengths.size() == seqnos.size());
+
   // unpack the per-thread working set (see utils/search_data.hpp)
   auto & q_start = search_data.qtable_v;
   auto & dprofile = search_data.dprofile_v;
   auto * const hearray = search_data.hearray_v.data();
-  auto const sequences = search_data.target_count;
+  auto const sequences = seqnos.size();
+  auto const qlen = static_cast<uint64_t>(query.length);
   auto & dirbuffer = search_data.dir_array_v;
   auto const & cpu_features = search_data.cpu_features;
 
@@ -826,7 +833,7 @@ auto search8(Data const & data,
                     {
                       save_score_8(cand_id, channel, S,
                                    d_address, d_offset, d_length,
-                                   qseq, qlen, dirbuffer, q_start.size(),
+                                   query, dirbuffer, q_start.size(),
                                    scores, diffs, alignmentlengths, done);
                     }
 

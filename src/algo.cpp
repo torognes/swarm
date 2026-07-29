@@ -306,8 +306,13 @@ namespace {
 
     if (targetcount == 0) { return; }
 
-    scanner.run(seedampliconid, targetcount, workspace.targetampliconids.data(),
-                workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits);
+    // the candidate window inside the workspace: the first targetcount
+    // entries of the target list and of its three result columns
+    auto const targets = View<uint64_t>{workspace.targetampliconids.data(), targetcount};
+    auto const scores = Span<uint64_t>{workspace.scores_v.data(), targetcount};
+    auto const diffs = Span<uint64_t>{workspace.diffs_v.data(), targetcount};
+    auto const alignlengths = Span<uint64_t>{workspace.alignlengths.data(), targetcount};
+    scanner.run(seedampliconid, targets, scores, diffs, alignlengths, bits);
 
     for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
       auto const diff = workspace.diffs_v[target_id];
@@ -365,8 +370,12 @@ namespace {
 
       if (targetcount == 0) { continue; }
 
-      scanner.run(subseed.ampliconid, targetcount, workspace.targetampliconids.data(),
-                  workspace.scores_v.data(), workspace.diffs_v.data(), workspace.alignlengths.data(), bits);
+      // the candidate window inside the workspace, as above
+      auto const targets = View<uint64_t>{workspace.targetampliconids.data(), targetcount};
+      auto const scores = Span<uint64_t>{workspace.scores_v.data(), targetcount};
+      auto const diffs = Span<uint64_t>{workspace.diffs_v.data(), targetcount};
+      auto const alignlengths = Span<uint64_t>{workspace.alignlengths.data(), targetcount};
+      scanner.run(subseed.ampliconid, targets, scores, diffs, alignlengths, bits);
 
       for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
         auto const diff = workspace.diffs_v[target_id];

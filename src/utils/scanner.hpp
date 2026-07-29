@@ -24,11 +24,12 @@
 #ifndef SWARM_UTILS_SCANNER_H
 #define SWARM_UTILS_SCANNER_H
 
-#include "../db.hpp"  // Data (stored as reference_wrapper member)
-#include "queryinfo.hpp"
+#include "../db.hpp"  // Data (stored as reference_wrapper member), Sequence
 #include "score_matrix.hpp"  // create_score_matrix, n_cells
 #include "search_data.hpp"  // Search_data, BYTE, WORD
+#include "span.hpp"  // Span<uint64_t>
 #include "threads.hpp"  // ThreadRunner
+#include "view.hpp"  // View<uint64_t>
 #include <array>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
@@ -62,14 +63,15 @@ public:
   auto operator=(Scanner &&) -> Scanner & = delete;
   ~Scanner() = default;
 
-  // searches the query against listlength targets, writing scores,
-  // diffs and alignment lengths back to the caller-owned arrays
+  // Searches the query against the amplicons listed in 'targets',
+  // writing scores, diffs and alignment lengths back to the caller-owned
+  // windows. All four must be the same length: they are one candidate
+  // list and its three result columns, indexed in lockstep.
   auto run(uint64_t query_no,
-           uint64_t listlength,
-           uint64_t * targets,
-           uint64_t * scores,
-           uint64_t * diffs,
-           uint64_t * alignlengths,
+           View<uint64_t> targets,
+           Span<uint64_t> scores,
+           Span<uint64_t> diffs,
+           Span<uint64_t> alignlengths,
            Bit_mode bits) -> void;
 
   // entry point for each worker thread (also called directly when a
@@ -93,14 +95,15 @@ private:
   uint64_t n_threads_ {0};
 
   std::mutex scan_mutex_;
-  struct queryinfo query_ {0, 0, nullptr};
+  Sequence query_ {};
   uint64_t next_ {0};
-  uint64_t length_ {0};
   uint64_t remainingchunks_ {0};
-  uint64_t * targets_ {nullptr};
-  uint64_t * scores_ {nullptr};
-  uint64_t * diffs_ {nullptr};
-  uint64_t * alignlengths_ {nullptr};
+  // one candidate list and its three result columns; targets_.size() is
+  // the list length that used to be tracked separately in length_
+  View<uint64_t> targets_ {};
+  Span<uint64_t> scores_ {};
+  Span<uint64_t> diffs_ {};
+  Span<uint64_t> alignlengths_ {};
   Bit_mode bits_ {Bit_mode::bits_16};
 
   std::vector<struct Search_data> search_data_v_;

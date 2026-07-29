@@ -29,7 +29,6 @@
 #include "cpu_features.hpp"  // Cpu_features
 #include "memory_budget.hpp"  // require_ram
 #include "nt_codec.hpp"
-#include "queryinfo.hpp"
 #include "score_matrix.hpp"
 #include "search_data.hpp"  // Search_data, BYTE, WORD
 #include "threads.hpp"  // ThreadRunner
@@ -141,8 +140,8 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
 
-  for (auto i = 0U; i < query_.len; ++i) {
-    const auto nt_value = nt_extract(query_.seq, i) + 1U;  // 1,  2,   3, or   4
+  for (auto i = 0U; i < query_.length; ++i) {
+    const auto nt_value = nt_extract(query_.encoded.data(), i) + 1U;  // 1,  2,   3, or   4
     const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
     const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
 
@@ -154,10 +153,13 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
 
 
 auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> void {
-  assert(thread_data.target_index <= std::numeric_limits<std::ptrdiff_t>::max());
-  auto const target_index = static_cast<std::ptrdiff_t>(thread_data.target_index);
-
   assert(thread_data.target_count != 0);
+
+  // The window this thread was handed by getwork(), computed once here
+  // rather than as four unchecked pointer bumps: the subviews assert
+  // their own bounds against the caller's arrays in debug builds.
+  auto const first = thread_data.target_index;
+  auto const count = thread_data.target_count;
 
   if (bits == Bit_mode::bits_16) {
     assert(gapopen_ <= std::numeric_limits<WORD>::max());
@@ -167,12 +169,11 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
              static_cast<WORD>(gapopen_),
              static_cast<WORD>(gapextend_),
              score_matrix_16_.data(),
-             std::next(targets_, target_index),
-             std::next(scores_, target_index),
-             std::next(diffs_, target_index),
-             std::next(alignlengths_, target_index),
-             query_.seq,
-             static_cast<uint64_t>(query_.len));
+             targets_.subview(first, count),
+             scores_.subspan(first, count),
+             diffs_.subspan(first, count),
+             alignlengths_.subspan(first, count),
+             query_);
   } else {
     assert(gapopen_ <= std::numeric_limits<BYTE>::max());
     assert(gapextend_ <= std::numeric_limits<BYTE>::max());
@@ -181,12 +182,11 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
             static_cast<BYTE>(gapopen_),
             static_cast<BYTE>(gapextend_),
             score_matrix_8_.data(),
-            std::next(targets_, target_index),
-            std::next(scores_, target_index),
-            std::next(diffs_, target_index),
-            std::next(alignlengths_, target_index),
-            query_.seq,
-            static_cast<uint64_t>(query_.len));
+            targets_.subview(first, count),
+            scores_.subspan(first, count),
+            diffs_.subspan(first, count),
+            alignlengths_.subspan(first, count),
+            query_);
   }
 }
 
@@ -199,9 +199,10 @@ auto Scanner::getwork(uint64_t & countref, uint64_t & firstref) -> bool {
 
   std::lock_guard<std::mutex> const lock(scan_mutex_);
 
-  if (next_ < length_) {
+  auto const listlength = targets_.size();
+  if (next_ < listlength) {
     const uint64_t chunksize =
-      ((length_ - next_ + remainingchunks_ - 1) / remainingchunks_);
+      ((listlength - next_ + remainingchunks_ - 1) / remainingchunks_);
 
     countref = chunksize;
     firstref = next_;
@@ -225,24 +226,25 @@ auto Scanner::worker_core(const uint64_t thread_id) -> void {
 
 
 auto Scanner::run(const uint64_t query_no,
-                  const uint64_t listlength,
-                  uint64_t * targets,
-                  uint64_t * scores,
-                  uint64_t * diffs,
-                  uint64_t * alignlengths,
+                  View<uint64_t> const targets,
+                  Span<uint64_t> const scores,
+                  Span<uint64_t> const diffs,
+                  Span<uint64_t> const alignlengths,
                   const Bit_mode bits) -> void {
-  auto const & info = data_.get().info(query_no);
-  query_ = queryinfo{query_no, info.seqlen, info.seq};
+  assert(scores.size() == targets.size());
+  assert(diffs.size() == targets.size());
+  assert(alignlengths.size() == targets.size());
+
+  query_ = data_.get().sequence_view(query_no);
 
   next_ = 0;
-  length_ = listlength;
   targets_ = targets;
   scores_ = scores;
   diffs_ = diffs;
   alignlengths_ = alignlengths;
   bits_ = bits;
 
-  const auto thr = adjust_thread_number(bits, length_, n_threads_);
+  const auto thr = adjust_thread_number(bits, targets_.size(), n_threads_);
 
   remainingchunks_ = thr;
 

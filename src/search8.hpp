@@ -22,20 +22,25 @@
 */
 
 #include "utils/search_data.hpp"  // Search_data, BYTE
+#include "utils/span.hpp"  // Span<uint64_t>
+#include "utils/view.hpp"  // View<uint64_t>
 #include <cstdint>
 
 
-class Data;  // defined in db.hpp
+class Data;       // defined in db.hpp
+struct Sequence;  // defined in db.hpp
 
 
+// seqnos is the window of candidate amplicon indexes to align the query
+// against; scores, diffs and alignmentlengths are the caller's output
+// windows over the same candidates, so all four carry the same length.
 auto search8(Data const & data,
              Search_data & search_data,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
              BYTE const * score_matrix,
-             uint64_t const * seqnos,
-             uint64_t * scores,
-             uint64_t * diffs,
-             uint64_t * alignmentlengths,
-             char const * qseq,
-             uint64_t qlen) -> void;
+             View<uint64_t> seqnos,
+             Span<uint64_t> scores,
+             Span<uint64_t> diffs,
+             Span<uint64_t> alignmentlengths,
+             Sequence const & query) -> void;
