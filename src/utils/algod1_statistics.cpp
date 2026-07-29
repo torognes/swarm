@@ -31,7 +31,7 @@
 #include <cassert>  // assert()
 #include <cinttypes>  // macro PRIu64
 #include <cstdint>  // uint64_t
-#include <cstdio>  // fprintf()
+#include <cstdio>  // fprintf(), fputc(), fputs()
 #include <vector>  // std::vector
 
 #ifndef NDEBUG
@@ -125,7 +125,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
           if (new_bits < 2) {
             fatal("Insufficient memory remaining for Bloom filter.");
           }
-          std::fprintf(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
+          static_cast<void>(std::fputs("Reducing memory used for Bloom filter due to --ceiling option.\n", parameters.logfile));
           bits = new_bits;
           n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
           bloom_length_in_bits = bloom_bits_for(bits);
@@ -137,8 +137,8 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 
   if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
     {
-      std::fprintf(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
-      std::fprintf(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
+      static_cast<void>(std::fputs("WARNING: Memory usage will probably exceed total amount of memory available.\n", parameters.logfile));
+      static_cast<void>(std::fputs("Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n", parameters.logfile));
     }
 
   std::fprintf(parameters.logfile,
@@ -161,7 +161,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 auto log_swarm_summary(struct Parameters const & parameters,
                        Overall_stats const & overall_stats) -> void
 {
-  std::fprintf(parameters.logfile, "\n");
+  static_cast<void>(std::fputc('\n', parameters.logfile));
   std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
   std::fprintf(parameters.logfile, "Max generations:   %u\n", overall_stats.maxgen);

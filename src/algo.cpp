@@ -36,7 +36,7 @@
 #include <cassert>
 #include <cinttypes>  // macro PRIu64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fputc(), fflush
+#include <cstdio>  // fprintf(), fputc(), fflush
 #include <cstdlib>  // qsort()
 #include <limits>
 #include <memory>  // unique pointer
@@ -232,7 +232,7 @@ namespace {
       write_representative_sequences(amplicons, parameters, data, amps_v);
     }
 
-    std::fprintf(parameters.logfile, "\n");
+    static_cast<void>(std::fputc('\n', parameters.logfile));
 
     std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmid);
 

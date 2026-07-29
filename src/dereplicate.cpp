@@ -30,7 +30,7 @@
 #include <cassert>  // assert
 #include <cinttypes>  // macro PRIu64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fputc()
+#include <cstdio>  // fprintf(), fputc(), fputs()
 #include <cstdlib>  // qsort()
 #include <iterator>  // std::next
 #include <vector>
@@ -115,7 +115,7 @@ namespace {
       while (next_identical != 0U)
         {
           data.fprint_id_noabundance(parameters.internal_structure_file.get(), seed, parameters.opt_usearch_abundance);
-          std::fprintf(parameters.internal_structure_file.get(), "\t");
+          static_cast<void>(std::fputc('\t', parameters.internal_structure_file.get()));
           data.fprint_id_noabundance(parameters.internal_structure_file.get(), next_identical, parameters.opt_usearch_abundance);
           std::fprintf(parameters.internal_structure_file.get(), "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
           next_identical = nextseqtab[next_identical];
@@ -141,13 +141,13 @@ namespace {
                    counter,
                    cluster.size);
       data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(parameters.uclustfile.get(), "\t*\n");
+      static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
 
       std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
                    counter,
                    data.sequence_view(seed).length);
       data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fprintf(parameters.uclustfile.get(), "\t*\n");
+      static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
 
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
@@ -159,9 +159,9 @@ namespace {
                        100.0,
                        "=");
           data.fprint_id(parameters.uclustfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(parameters.uclustfile.get(), "\t");
+          static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
           data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          std::fprintf(parameters.uclustfile.get(), "\n");
+          static_cast<void>(std::fputc('\n', parameters.uclustfile.get()));
           next_identical = nextseqtab[next_identical];
         }
       ++counter;
@@ -177,9 +177,9 @@ namespace {
     Progress progress("Writing seeds:    ", hashtable.size(), parameters);
     for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
-      std::fprintf(parameters.seeds_file.get(), ">");
+      static_cast<void>(std::fputc('>', parameters.seeds_file.get()));
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), seed, cluster.mass, parameters.opt_usearch_abundance);
-      std::fprintf(parameters.seeds_file.get(), "\n");
+      static_cast<void>(std::fputc('\n', parameters.seeds_file.get()));
       data.fprintseq(parameters.seeds_file.get(), seed);
       progress.increment();
     }
@@ -200,21 +200,21 @@ namespace {
     for (auto const & cluster: hashtable) {
       // print cluster seed
       auto const seed = cluster.seqno_first;
-      std::fputc('\t', parameters.outfile.get());
+      static_cast<void>(std::fputc('\t', parameters.outfile.get()));
       data.fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       // print other cluster members
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
-          std::fputc(',', parameters.outfile.get());
+          static_cast<void>(std::fputc(',', parameters.outfile.get()));
           data.fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           next_identical = nextseqtab[next_identical];
         }
 
       progress.increment();
     }
-    std::fputc('\n', parameters.outfile.get());
+    static_cast<void>(std::fputc('\n', parameters.outfile.get()));
 
     progress.done();
   }
@@ -236,11 +236,11 @@ namespace {
       auto next_identical = nextseqtab[seed];
       while (next_identical != 0U)
         {
-          std::fputc(sepchar, parameters.outfile.get());
+          static_cast<void>(std::fputc(sepchar, parameters.outfile.get()));
           data.fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           next_identical = nextseqtab[next_identical];
         }
-      std::fputc('\n', parameters.outfile.get());
+      static_cast<void>(std::fputc('\n', parameters.outfile.get()));
       progress.increment();
     }
 
@@ -384,7 +384,7 @@ auto dereplicate(struct Parameters const & parameters,
 
   output_results(parameters, data, hashtable, nextseqtab);
 
-  std::fprintf(parameters.logfile, "\n");
+  static_cast<void>(std::fputc('\n', parameters.logfile));
   std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n",
                static_cast<uint64_t>(stats.swarmcount));
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", stats.maxsize);

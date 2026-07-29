@@ -34,7 +34,7 @@
 #include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macros PRIu32, PRIu64 and PRId64
 #include <cstdint>  // int64_t
-#include <cstdio>  // FILE, fclose, stderr
+#include <cstdio>  // FILE, fclose, fprintf(), fputc(), fputs(), stderr
 #include <cstdlib>  // std::exit, std::strtoll
 #include <getopt.h>  // getopt_long, optarg, optind, struct option
                      // (no_argument, required_argument)
@@ -238,7 +238,7 @@ namespace {
   auto show(std::array<char const *, N> const & message,
             std::FILE * log_stream) -> void {
     for (char const * message_element : message) {
-      std::fputs(message_element, log_stream);
+      static_cast<void>(std::fputs(message_element, log_stream));
     }
   }
 
@@ -302,9 +302,9 @@ namespace {
                    parameters.opt_boundary);
     }
     else {
-      std::fprintf(parameters.logfile, "Fastidious:        No\n");
+      static_cast<void>(std::fputs("Fastidious:        No\n", parameters.logfile));
     }
-    std::fprintf(parameters.logfile, "\n");
+    static_cast<void>(std::fputc('\n', parameters.logfile));
   }
 
 

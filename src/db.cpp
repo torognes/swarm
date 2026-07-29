@@ -41,7 +41,7 @@
 #include <cinttypes>  // macro PRIu64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fileno, size_t // stdio.h: fdopen, ssize_t, getline
+#include <cstdio>  // fileno, fprintf(), fputc(), size_t // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // qsort()
 #include <cstring>  // memcpy
 #include <iterator>  // std::next()
@@ -140,7 +140,7 @@ namespace {
 
   auto warn_if_file_is_not_regular(struct Parameters const & parameters, bool const is_regular) -> void {
     if (not is_regular) {
-      std::fprintf(parameters.logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
+      static_cast<void>(std::fputs("Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n", parameters.logfile));
     }
   }
 

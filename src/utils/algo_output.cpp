@@ -31,7 +31,7 @@
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fputc(), fflush
+#include <cstdio>  // fprintf(), fputc(), fputs(), fflush
 #include <iterator> // std::next
 #include <vector>
 
@@ -112,9 +112,9 @@ namespace {
       auto const swarm_mass = seed.mass;
       auto const swarm_seed = seed.seed;
 
-      std::fputc('>', parameters.seeds_file.get());
+      static_cast<void>(std::fputc('>', parameters.seeds_file.get()));
       data.fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
-      std::fputc('\n', parameters.seeds_file.get());
+      static_cast<void>(std::fputc('\n', parameters.seeds_file.get()));
       data.fprintseq(parameters.seeds_file.get(), swarm_seed);
       progress.increment();
     }
@@ -154,12 +154,12 @@ namespace {
     std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
             swarmid - 1, swarmsize);
     data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fputs("\t*\n", parameters.uclustfile.get());
+    static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
 
     std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
             swarmid - 1, seed_seq.length);
     data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    std::fputs("\t*\n", parameters.uclustfile.get());
+    static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
     std::fflush(parameters.uclustfile.get());
 
     for (auto i = 1ULL; i < hitcount; ++i) {
@@ -173,9 +173,9 @@ namespace {
                    result.differences > 0 ? result.cigar_string : "=");
 
       data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fputc('\t', parameters.uclustfile.get());
+      static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
       data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      std::fputc('\n', parameters.uclustfile.get());
+      static_cast<void>(std::fputc('\n', parameters.uclustfile.get()));
       std::fflush(parameters.uclustfile.get());
     }
   }
@@ -200,13 +200,13 @@ namespace {
 
     for (auto i = 1ULL; i < amplicons; ++i) {
         auto const current_id = amps_v[i].swarmid;
-        std::fputc(current_id == previous_id ? separators.within : separators.between,
-                   parameters.outfile.get());
+        static_cast<void>(std::fputc(current_id == previous_id ? separators.within : separators.between,
+                                     parameters.outfile.get()));
         data.fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
                        parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         previous_id = current_id;
       }
-    std::fputc('\n', parameters.outfile.get());
+    static_cast<void>(std::fputc('\n', parameters.outfile.get()));
   }
 
 } // namespace
@@ -243,7 +243,7 @@ auto write_internal_structure_line(uint64_t const parent_id,
                                    Data const & data) -> void {
   data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                              parent_id, parameters.opt_usearch_abundance);
-  std::fputc('\t', parameters.internal_structure_file.get());
+  static_cast<void>(std::fputc('\t', parameters.internal_structure_file.get()));
   data.fprint_id_noabundance(parameters.internal_structure_file.get(),
                              child_id, parameters.opt_usearch_abundance);
   std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);

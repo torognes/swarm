@@ -25,7 +25,7 @@
 #include "../../swarm.hpp"
 #include "../../utils/fatal.hpp"
 #include <cpuid.h>  // __cpuid_count, bit_* feature masks
-#include <cstdio>  // fprintf
+#include <cstdio>  // fputc(), fputs()
 
 namespace {
 // Groups the four output registers of a CPUID query so each leaf can be
@@ -125,36 +125,36 @@ auto cpu_features_test(struct Parameters & parameters) -> void {
 
 auto cpu_features_show(struct Parameters const & parameters) -> void
 {
-  std::fprintf(parameters.logfile, "CPU features:     ");
+  static_cast<void>(std::fputs("CPU features:     ", parameters.logfile));
   if (parameters.mmx_present != 0){
-    std::fprintf(parameters.logfile, " mmx");
+    static_cast<void>(std::fputs(" mmx", parameters.logfile));
   }
   if (parameters.sse_present != 0) {
-    std::fprintf(parameters.logfile, " sse");
+    static_cast<void>(std::fputs(" sse", parameters.logfile));
   }
   if (parameters.sse2_present != 0) {
-    std::fprintf(parameters.logfile, " sse2");
+    static_cast<void>(std::fputs(" sse2", parameters.logfile));
   }
   if (parameters.sse3_present != 0) {
-    std::fprintf(parameters.logfile, " sse3");
+    static_cast<void>(std::fputs(" sse3", parameters.logfile));
   }
   if (parameters.ssse3_present != 0) {
-    std::fprintf(parameters.logfile, " ssse3"); // Supplemental SSE3, introduced in 2006
+    static_cast<void>(std::fputs(" ssse3", parameters.logfile)); // Supplemental SSE3, introduced in 2006
   }
   if (parameters.sse41_present != 0) {
-    std::fprintf(parameters.logfile, " sse4.1");
+    static_cast<void>(std::fputs(" sse4.1", parameters.logfile));
   }
   if (parameters.sse42_present != 0) {
-    std::fprintf(parameters.logfile, " sse4.2");
+    static_cast<void>(std::fputs(" sse4.2", parameters.logfile));
   }
   if (parameters.popcnt_present != 0) {
-    std::fprintf(parameters.logfile, " popcnt");
+    static_cast<void>(std::fputs(" popcnt", parameters.logfile));
   }
   if (parameters.avx_present != 0) {
-    std::fprintf(parameters.logfile, " avx");
+    static_cast<void>(std::fputs(" avx", parameters.logfile));
   }
   if (parameters.avx2_present != 0) {
-    std::fprintf(parameters.logfile, " avx2");
+    static_cast<void>(std::fputs(" avx2", parameters.logfile));
   }
-  std::fprintf(parameters.logfile, "\n");
+  static_cast<void>(std::fputc('\n', parameters.logfile));
 }

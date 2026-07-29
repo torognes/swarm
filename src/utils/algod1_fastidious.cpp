@@ -39,7 +39,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fprintf()
+#include <cstdio>  // fprintf(), fputc(), fputs()
 #include <mutex>  // std::lock_guard, std::unique_lock
 #include <vector>
 
@@ -530,11 +530,11 @@ auto run_fastidious_pass(struct Parameters const & parameters,
 {
   const auto amplicons = data.sequence_count();
 
-  std::fprintf(parameters.logfile, "\n");
-  std::fprintf(parameters.logfile, "Results before fastidious processing:\n");
+  static_cast<void>(std::fputc('\n', parameters.logfile));
+  static_cast<void>(std::fputs("Results before fastidious processing:\n", parameters.logfile));
   std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmcount);
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
-  std::fprintf(parameters.logfile, "\n");
+  static_cast<void>(std::fputc('\n', parameters.logfile));
 
   auto const stats = count_cluster_stats(parameters, amplicons, swarminfo_v);
   auto const small_clusters = stats.small_clusters;
@@ -578,6 +578,6 @@ auto run_fastidious_pass(struct Parameters const & parameters,
 
       auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v, overall_stats);
       std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
-      std::fprintf(parameters.logfile, "\n");
+      static_cast<void>(std::fputc('\n', parameters.logfile));
     }
 }
