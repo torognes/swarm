@@ -30,6 +30,7 @@
    statistics and the amplicon network dump. */
 
 #include "algod1_internal.hpp"
+#include <cstdint>  // uint64_t
 #include <vector>
 
 struct Parameters;  // defined in swarm.hpp

@@ -23,6 +23,7 @@
 
 #include "search_dispatch.hpp"
 #include <altivec.h>
+#include <cstdint>  // uint64_t
 #include <limits>
 
 
