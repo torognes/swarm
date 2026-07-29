@@ -31,6 +31,7 @@
 #include "utils/progress.hpp"
 #include "utils/seq_index.hpp"
 #include "utils/view.hpp"
+#include "utils/view_stream.hpp"  // operator<<(std::ostream &, View<char>)
 #include "utils/line_buffer.hpp"
 #include <algorithm>  // std::all_of() std::copy_n() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
 #include <array>
@@ -45,7 +46,6 @@
 #include <iterator>  // std::next()
 #include <limits>
 #include <memory>  // std::unique_ptr
-#include <string>
 #include <sys/stat.h>  // fstat, S_ISREG, stat
 #include <vector>
 
@@ -88,7 +88,7 @@ namespace {
     unsigned int longestheader {0};
     int missingabundance {0};
     uint64_t missingabundance_lineno {0};
-    char const * missingabundance_header {nullptr};
+    View<char> missingabundance_header {};
     unsigned int n_sequences {0};
     unsigned int longest_sequence {0};
     bool has_duplicates {false};
@@ -527,7 +527,7 @@ namespace {
             // record the position of the first missing abundance entry
             if (seq_stats.missingabundance == 1) {
                 seq_stats.missingabundance_lineno = lineno;
-                seq_stats.missingabundance_header = header_view.data();
+                seq_stats.missingabundance_header = header_view;
               }
           }
       }
@@ -742,8 +742,7 @@ namespace {
     auto hdr_idx = hdr_hasher(id_view) % hdr_table_size;
     while (not hdr_table[hdr_idx].empty()) {
       if (hdr_table[hdr_idx] == id_view) {
-        std::string const id_str {id_view.data(), id_view.size()};
-        fatal("Duplicated sequence identifier: ", id_str);
+        fatal("Duplicated sequence identifier: ", id_view);
       }
       hdr_idx = (hdr_idx + 1) % hdr_table_size;
     }
