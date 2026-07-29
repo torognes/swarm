@@ -23,15 +23,15 @@
 
 #include "fatal.hpp"
 #include "line_buffer.hpp"
+#include <algorithm>  // std::find // _WIN32: std::min
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // FILE // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // malloc, realloc, free
+#include <iterator>  // std::distance, std::next
 
 #ifdef _WIN32
-#include <algorithm>  // std::min
 #include <cerrno>  // errno, EINVAL, EOVERFLOW
-#include <cstddef>  // std::ptrdiff_t
-#include <iterator>  // std::next
 #include <limits>  // std::numeric_limits
 #include <string>  // std::char_traits
 #endif
@@ -178,7 +178,26 @@ auto Line_buffer::read_next(std::FILE * stream, uint64_t & filepos) -> void
   auto const linelen = read_one_line(&data_, &capacity_, stream);
   if (linelen < 0) {
     *data_ = '\0';
+    length_ = 0;
     return;
   }
   filepos += static_cast<unsigned long int>(linelen);
+
+  // read_one_line() stores a NUL byte read from the input verbatim (see
+  // the _WIN32 branch above, and getline() likewise), so a line may
+  // contain one. The published length stops at the first such byte,
+  // which is where every consumer stopped when it walked to the '\0'
+  // sentinel itself: this keeps the truncation swarm has always
+  // performed rather than making the bytes after a NUL newly visible.
+  // filepos still counts the whole line, since it tracks the file
+  // position and not what was read out of the buffer.
+  //
+  // Whether such a line should be rejected outright instead of silently
+  // truncated is a separate, open question: an existing test asserts
+  // that it is accepted (test_input.sh, "ascii character 0 is allowed
+  // in sequences"), and the manual page says nothing about NUL bytes.
+  auto const * const line_begin = data_;
+  auto const * const line_end = std::next(line_begin, static_cast<std::ptrdiff_t>(linelen));
+  auto const * const first_nul = std::find(line_begin, line_end, '\0');
+  length_ = static_cast<std::size_t>(std::distance(line_begin, first_nul));
 }

@@ -230,10 +230,17 @@ namespace {
       fatal("Illegal header line in fasta file.");
     }
 
-    // strcspn returns size_t; check the untruncated length against
+    // The search returns size_t; check the untruncated length against
     // max_header_length before narrowing to unsigned int, so a header
     // longer than 4 GiB cannot wrap to a small value and slip through.
-    auto const headerlen_full = std::strcspn(std::next(line_buf.data()), " \r\n");
+    static constexpr std::array<char, 3> header_separators {{' ', '\r', '\n'}};
+    auto const header_line = line_buf.view().drop(1);  // drop the '>'
+    auto const * const separator = std::find_first_of(header_line.cbegin(),
+                                                      header_line.cend(),
+                                                      header_separators.cbegin(),
+                                                      header_separators.cend());
+    auto const headerlen_full =
+      static_cast<std::size_t>(std::distance(header_line.cbegin(), separator));
 
     if (headerlen_full > max_header_length) {
       fatal("Headers longer than 16,777,215 symbols are not supported.");
@@ -244,7 +251,7 @@ namespace {
     seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
     linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-    std::copy_n(std::next(line_buf.data()), headerlen, &data_v[datalen]);
+    std::copy_n(header_line.cbegin(), headerlen, &data_v[datalen]);
     data_v[datalen + headerlen] = '\0';
     entry.header.offset = datalen;
     entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
@@ -265,7 +272,6 @@ namespace {
                            struct Entry & entry,
                            struct Seq_stats & seq_stats) -> void
   {
-    static constexpr unsigned char null_char = '\0';
     static constexpr int start_chars_range {32};  // visible ascii chars: 32-126
     static constexpr int end_chars_range {126};
 
@@ -274,10 +280,8 @@ namespace {
     entry.sequence.offset = datalen;
 
     while ((not line_buf.empty()) and (line_buf.peek_first() != '>')) {
-        auto const * line_ptr = line_buf.data();
-        unsigned char character {};
-        while ((character = static_cast<unsigned char>(*line_ptr)) != null_char) {
-            line_ptr = std::next(line_ptr);
+        for (auto const byte : line_buf.view()) {
+            auto const character = static_cast<unsigned char>(byte);
             auto const category = classify[character];
             if (category < Nt_class::skip) {
                 packer.push(static_cast<uint8_t>(category), data_v, datalen);

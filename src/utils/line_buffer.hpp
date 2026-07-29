@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "view.hpp"  // View<char>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // size_t
 
@@ -50,8 +51,13 @@ public:
   auto read_next(std::FILE * stream, uint64_t & filepos) -> void;
 
   auto data()       const noexcept -> char const * { return data_; }
-  auto empty()      const noexcept -> bool         { return *data_ == '\0'; }
+  auto empty()      const noexcept -> bool         { return length_ == 0; }
   auto peek_first() const noexcept -> char         { return *data_; }
+
+  // The line as read, without the terminating '\0'. read_next() stores
+  // the length instead of discarding it, so consumers no longer have to
+  // re-derive it by scanning for the sentinel.
+  auto view() const noexcept -> View<char> { return View<char>{data_, length_}; }
 
 private:
   // read_next() is the only writer to data_; it goes through the
@@ -59,4 +65,5 @@ private:
   // callers cannot get a writable pointer into the buffer.
   char *      data_     {nullptr};
   std::size_t capacity_ {0};
+  std::size_t length_   {0};
 };
