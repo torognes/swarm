@@ -750,6 +750,16 @@ namespace {
   }
 
 
+  // The Sequence value for one index entry: the packed bytes viewed
+  // with their byte count, plus the nucleotide count. seqinfo_s stores
+  // the nucleotide count only, so the byte count is derived here rather
+  // than at each call site -- one place where
+  // encoded.size() == nt_bytelength(length) has to hold.
+  auto sequence_of(struct seqinfo_s const & entry) -> Sequence {
+    return {View<char>{entry.seq, nt_bytelength(entry.seqlen)}, entry.seqlen};
+  }
+
+
   // Open-addressed lookup over seqhashtable, used when d > 0
   // (d = 0 is the dereplication mode and accepts duplicates).
   // Returns true if an identical sequence was already inserted;
@@ -763,9 +773,7 @@ namespace {
     while ((seqfound = seqhashtable[seqhashindex]) != nullptr) {
         if ((seqfound->seqhash == a_sequence.seqhash) and
             (seqfound->seqlen == a_sequence.seqlen) and
-            std::equal(seqfound->seq,
-                       std::next(seqfound->seq, nt_bytelength(a_sequence.seqlen)),
-                       a_sequence.seq)) {
+            (sequence_of(*seqfound).encoded == sequence_of(a_sequence).encoded)) {
           return true;
         }
         seqhashindex = (seqhashindex + 1) % seqhashsize;
@@ -835,7 +843,7 @@ namespace {
                                struct Parameters const & parameters) -> void {
     Progress progress_hash("Indexing sequences:", seq_stats.n_sequences, parameters);
     for (auto & a_sequence: seqindex_v) {
-        a_sequence.seqhash = zobrist.hash(a_sequence.seq, a_sequence.seqlen);
+        a_sequence.seqhash = zobrist.hash(sequence_of(a_sequence));
         progress_hash.increment();
       }
     progress_hash.done();
@@ -920,8 +928,7 @@ auto Data::info(uint64_t const seqno) const -> struct seqinfo_s const & {
 
 
 auto Data::sequence_view(uint64_t const seqno) const -> Sequence {
-  auto const & rec = info(seqno);
-  return {View<char>{rec.seq, nt_bytelength(rec.seqlen)}, rec.seqlen};
+  return sequence_of(info(seqno));
 }
 
 

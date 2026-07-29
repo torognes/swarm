@@ -112,11 +112,12 @@ auto Zobrist::value(unsigned int const pos, unsigned char const offset) const ->
 }
 
 
-auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t {
-  /* compute the Zobrist hash function of sequence seq of length len. */
-  /* len is the actual number of bases in the sequence */
-  /* it is encoded in (len + 3 ) / 4 bytes */
+auto Zobrist::hash(Sequence const & seq) const -> uint64_t {
+  /* compute the Zobrist hash function of sequence seq. */
+  /* seq.length is the actual number of bases in the sequence */
+  /* it is encoded in (seq.length + 3 ) / 4 bytes */
 
+  auto const len = seq.length;
   uint64_t zobrist_hash = 0;
 
   // Bulk: hash all complete bytes via the precomputed byte-rate
@@ -124,7 +125,7 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t {
   // contiguous-iterator loop with a simple lambda body — easier to
   // autovectorize than a moving-pointer hand-rolled loop.
   auto const n_complete_bytes = len / nt_per_byte;
-  auto const bulk = View<char>{seq, n_complete_bytes};
+  auto const bulk = seq.encoded.first(n_complete_bytes);
   auto byte_idx = 0U;
   std::for_each(bulk.cbegin(), bulk.cend(),
                 [&](char const byte) -> void {
@@ -136,7 +137,7 @@ auto Zobrist::hash(char const * seq, unsigned int const len) const -> uint64_t {
   // Sub-byte residue: 0..3 nt that didn't fill a byte
   auto pos = n_complete_bytes * nt_per_byte;
   if (pos < len) {
-    auto last_byte = to_uchar(*std::next(seq, n_complete_bytes));
+    auto last_byte = to_uchar(seq.encoded[n_complete_bytes]);
     while (pos < len) {
       zobrist_hash ^= value(pos, last_byte & 3U);
       last_byte >>= 2U;
@@ -175,11 +176,6 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
       }
       return acc;
     });
-}
-
-
-auto Zobrist::hash(Sequence const & seq) const -> uint64_t {
-  return hash(seq.encoded.data(), seq.length);
 }
 
 

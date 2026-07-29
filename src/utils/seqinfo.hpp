@@ -25,9 +25,18 @@
 #include <cstdint>  // uint64_t
 
 // refactoring: header (char const *) + headerlen (int) merged into
-// header_view (View<char>); seq + seqlen could be similarly
-// merged in a follow-up, but the byte/nucleotide-count mismatch
-// (4 nt packed per byte) makes a clean swap less obvious.
+// header_view (View<char>). seq + seqlen are deliberately *not*
+// merged the same way, and the reason is not the byte/nucleotide-count
+// mismatch (4 nt packed per byte): struct Sequence in db.hpp already
+// expresses exactly that relation, and sequence_of() in db.cpp builds
+// one from this struct on demand.
+//
+// The reason is size. Sequence stores the nucleotide count and the byte
+// count, and the second is a function of the first, so storing it here
+// would take seqinfo_s from 56 to 64 bytes -- one per amplicon, i.e.
+// +800 MB on a 100-million-read input, 4 bytes of which are derived.
+// That trade is right for a transient value passed in registers, which
+// is every current use, and wrong for one stored per amplicon.
 
 struct seqinfo_s
 {

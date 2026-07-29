@@ -34,7 +34,6 @@ public:
   explicit Zobrist(unsigned int n);
 
   auto value(unsigned int pos, unsigned char offset) const -> uint64_t;
-  auto hash(char const * seq, unsigned int len) const -> uint64_t;
 
   auto hash(Sequence const & seq) const -> uint64_t;
   auto hash_delete_first(Sequence const & seq) const -> uint64_t;

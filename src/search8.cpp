@@ -696,12 +696,10 @@ auto load_next_sequence_8(unsigned int const channel,
   assert(next_id <= max_ptrdiff);
   seq_id[channel] = static_cast<int64_t>(next_id);
   const uint64_t seqno = *std::next(seqnos, static_cast<std::ptrdiff_t>(next_id));
-  auto const & info = data.info(seqno);
-  char const * address = info.seq;
-  unsigned int const length = info.seqlen;
+  auto const sequence = data.sequence_view(seqno);
 
-  d_address[channel] = address;
-  d_length[channel] = length;
+  d_address[channel] = sequence.encoded.data();
+  d_length[channel] = sequence.length;
 
   d_pos[channel] = 0;
   d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer_begin);
