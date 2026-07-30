@@ -295,7 +295,11 @@ namespace {
                   fatal("Illegal character '", static_cast<char>(character),
                         "' in sequence on line ", lineno, ".");
                 }
-                fatal("Illegal character (ascii no ", static_cast<unsigned int>(character),
+                // "byte value" rather than "ascii no": this branch reports
+                // every byte the branch above cannot print, which since the
+                // classifier covers the whole byte range includes 128 to 255,
+                // and those are not ascii character numbers
+                fatal("Illegal character (byte value ", static_cast<unsigned int>(character),
                       ") in sequence on line ", lineno, ".");
               }
             // else: Nt_class::skip (CR or LF), silently ignored
