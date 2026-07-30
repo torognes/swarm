@@ -289,7 +289,10 @@ namespace {
                                                             parameters, data,
                                                             amps_v, workspace);
 
-    qgram_differ.fast(seedampliconid, listlen, workspace.qgramamps_v, workspace.qgramdiffs_v);
+    // the collected candidates, not the pool-sized scratch behind them
+    qgram_differ.fast(seedampliconid,
+                      View<uint64_t>{workspace.qgramamps_v.data(), listlen},
+                      Span<uint64_t>{workspace.qgramdiffs_v.data(), listlen});
 
     uint64_t targetcount = 0;
     for (auto i = 0ULL; i < listlen; ++i) {
@@ -357,8 +360,10 @@ namespace {
                                                                subseed, parameters,
                                                                data, amps_v, workspace);
 
-      qgram_differ.fast(subseed.ampliconid, subseedlistlen,
-                        workspace.qgramamps_v, workspace.qgramdiffs_v);
+      // as above: the collected candidates, not the whole scratch buffer
+      qgram_differ.fast(subseed.ampliconid,
+                        View<uint64_t>{workspace.qgramamps_v.data(), subseedlistlen},
+                        Span<uint64_t>{workspace.qgramdiffs_v.data(), subseedlistlen});
 
       for (auto i = 0ULL; i < subseedlistlen; ++i) {
         if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {

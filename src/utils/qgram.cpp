@@ -32,9 +32,8 @@
 #include "nt_codec.hpp"
 #include "threads.hpp"
 #include <cassert>
-#include <cstddef>  // std::ptrdiff_t
-#include <cstdint>  // int64_t, uint64_t
-#include <iterator>  // std::next
+#include <cstddef>  // std::size_t
+#include <cstdint>  // uint64_t
 #include <limits>
 #include <vector>
 
@@ -127,57 +126,51 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
   auto const & tip = thread_info_v_[nth_thread];
 
   const auto seed = tip.seed;
-  const auto listlen = tip.listlen;
-  assert(listlen <= std::numeric_limits<std::ptrdiff_t>::max());
-  const auto listlen_signed = static_cast<int64_t>(listlen);
-  auto const * amplist = tip.amplist;
-  auto * difflist = tip.difflist;
+  auto const amplist = tip.amplist;
+  auto const difflist = tip.difflist;
 
-  for (auto i = 0LL; i < listlen_signed; ++i) {
-    auto & target_diff = *std::next(difflist, i);
-    auto const target_amplicon = *std::next(amplist, i);
-    target_diff = qgram_diff(store_, seed, target_amplicon, cpu_features_);
+  // one distance per candidate, so the chunk's two halves agree in length
+  assert(difflist.size() == amplist.size());
+  auto const listlen = amplist.size();
+
+  for (std::size_t i = 0; i < listlen; ++i) {
+    auto & target_diff = difflist[i];
+    target_diff = qgram_diff(store_, seed, amplist[i], cpu_features_);
   }
 }
 
 
 auto QgramDiffer::fast(uint64_t seed,
-                       uint64_t const listlen,
-                       std::vector<uint64_t> const & amplist,
-                       std::vector<uint64_t> & difflist) -> void
+                       View<uint64_t> const amplist,
+                       Span<uint64_t> const difflist) -> void
 {
-  assert(listlen <= amplist.size());
-  assert(listlen <= difflist.size());
+  assert(difflist.size() == amplist.size());
+  auto const listlen = amplist.size();
+
   static constexpr auto single_threaded_threshold = std::numeric_limits<uint8_t>::max();
   if (listlen <= single_threaded_threshold)
     {
       auto & tip = thread_info_v_[0];
       tip.seed = seed;
-      tip.listlen = listlen;
-      tip.amplist = amplist.data();
-      tip.difflist = difflist.data();
+      tip.amplist = amplist;
+      tip.difflist = difflist;
       worker(0);
     }
   else
     {
-      auto const * next_amplist = amplist.data();
-      auto * next_difflist = difflist.data();
+      std::size_t offset {0};
       auto listrest = listlen;
       auto thrrest = thread_info_v_.size();
 
       /* distribute work */
       for (auto & tip: thread_info_v_) {
           auto const chunk = (listrest + thrrest - 1) / thrrest;
-          assert(chunk <= std::numeric_limits<std::ptrdiff_t>::max());
-          auto const chunk_signed = static_cast<int64_t>(chunk);
 
           tip.seed = seed;
-          tip.listlen = chunk;
-          tip.amplist = next_amplist;
-          tip.difflist = next_difflist;
+          tip.amplist = amplist.subview(offset, chunk);
+          tip.difflist = difflist.subspan(offset, chunk);
 
-          next_amplist = std::next(next_amplist, chunk_signed);
-          next_difflist = std::next(next_difflist, chunk_signed);
+          offset += chunk;
           listrest -= chunk;
           --thrrest;
         }

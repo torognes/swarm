@@ -23,7 +23,9 @@
 
 #include "cpu_features.hpp"  // Cpu_features
 #include "qgram_array.hpp"  // Qgram_store
+#include "span.hpp"  // Span<uint64_t>
 #include "threads.hpp"  // ThreadRunner
+#include "view.hpp"  // View<uint64_t>
 #include <cstdint>  // uint64_t
 #include <vector>
 
@@ -50,22 +52,26 @@ public:
   auto operator=(QgramDiffer &&) -> QgramDiffer & = delete;
   ~QgramDiffer() = default;
 
-  // listlen entries are read from the front of amplist; the same number
-  // of entries are written to the front of difflist. amplist and difflist
-  // are scratch buffers sized to the whole pool, so listlen (the number of
-  // candidates actually collected) is passed explicitly rather than read
-  // from amplist.size().
+  // amplist is the candidate list; difflist receives one distance per
+  // candidate, so the two must carry the same length.
+  //
+  // The caller's underlying buffers are scratch sized to the whole pool,
+  // and only their first few entries hold this seed's candidates. That is
+  // why the length must come from the caller, who collected it, and not
+  // from the buffer: reading a container's size() here was what commit
+  // 799d763 did, and restoring the explicit length was half of the fix in
+  // e517c04. A View carries the length the caller means -- the view *is*
+  // the truncated list -- so the length stays explicit while travelling
+  // with its data instead of alongside it.
   auto fast(uint64_t seed,
-            uint64_t listlen,
-            std::vector<uint64_t> const & amplist,
-            std::vector<uint64_t> & difflist) -> void;
+            View<uint64_t> amplist,
+            Span<uint64_t> difflist) -> void;
 
 private:
   struct thread_info_s {
     uint64_t seed;
-    uint64_t listlen;
-    uint64_t const * amplist;   // input: read-only inside worker()
-    uint64_t * difflist;        // output: written by worker()
+    View<uint64_t> amplist;   // input: this thread's chunk, read-only in worker()
+    Span<uint64_t> difflist;  // output: the same extent, written by worker()
   };
 
   auto worker(uint64_t nth_thread) const noexcept -> void;
