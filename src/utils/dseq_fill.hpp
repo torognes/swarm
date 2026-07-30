@@ -24,6 +24,7 @@
 #ifndef SWARM_UTILS_DSEQ_FILL_H
 #define SWARM_UTILS_DSEQ_FILL_H
 
+#include "../db.hpp"  // Sequence
 #include "nt_codec.hpp"  // nt_extract
 #include <array>
 #include <cstddef>  // std::size_t
@@ -32,7 +33,7 @@
 
 // Channel-filling helpers shared by search8 and search16. These operate
 // only on the scalar 'dseq' staging buffer and the per-channel database
-// cursors (d_address / d_pos / d_length); they do not touch any SIMD
+// cursors (d_sequence / d_pos); they do not touch any SIMD
 // vector type, so they are identical for both search widths apart from
 // the 'channels' (8 vs 16) and 'cdepth' constants, which are passed as
 // template arguments.
@@ -47,26 +48,31 @@
 // Fill the 'cdepth' depth-slots of a single channel from its database
 // sequence, advancing d_pos. Slots past the end of the sequence are
 // zero-filled. Returns true when the channel has reached the end of its
-// sequence (d_pos == d_length), i.e. the block is no longer "easy".
+// sequence (d_pos == its length), i.e. the block is no longer "easy".
 template <unsigned int channels, unsigned int cdepth, std::size_t capacity>
 inline auto fill_channel(std::array<unsigned char, capacity> & dseq,
                          unsigned int const channel,
-                         std::array<char const *, channels> const & d_address,
-                         std::array<uint64_t, channels> & d_pos,
-                         std::array<uint64_t, channels> const & d_length) -> bool
+                         std::array<Sequence, channels> const & d_sequence,
+                         std::array<uint64_t, channels> & d_pos) -> bool
 {
+  // the channel's sequence, read once for the whole depth loop rather
+  // than re-indexed at every slot
+  auto const & sequence = d_sequence[channel];
+  auto const length = static_cast<uint64_t>(sequence.length);
+  auto const * const encoded = sequence.encoded.data();
+
   for (auto j = 0U; j < cdepth; ++j)
     {
-      if (d_pos[channel] < d_length[channel]) {
+      if (d_pos[channel] < length) {
         dseq[(channels * j) + channel]
-          = 1 + nt_extract(d_address[channel], d_pos[channel]);
+          = 1 + nt_extract(encoded, d_pos[channel]);
         ++d_pos[channel];
       }
       else {
         dseq[(channels * j) + channel] = 0;
       }
     }
-  return d_pos[channel] == d_length[channel];
+  return d_pos[channel] == length;
 }
 
 
@@ -75,14 +81,13 @@ inline auto fill_channel(std::array<unsigned char, capacity> & dseq,
 // as any channel reaches the end of its sequence.
 template <unsigned int channels, unsigned int cdepth, std::size_t capacity>
 inline auto fill_all_channels(std::array<unsigned char, capacity> & dseq,
-                              std::array<char const *, channels> const & d_address,
-                              std::array<uint64_t, channels> & d_pos,
-                              std::array<uint64_t, channels> const & d_length) -> bool
+                              std::array<Sequence, channels> const & d_sequence,
+                              std::array<uint64_t, channels> & d_pos) -> bool
 {
   bool easy {true};
   for (auto channel = 0U; channel < channels; ++channel)
     {
-      if (fill_channel<channels, cdepth>(dseq, channel, d_address, d_pos, d_length)) {
+      if (fill_channel<channels, cdepth>(dseq, channel, d_sequence, d_pos)) {
         easy = false;
       }
     }

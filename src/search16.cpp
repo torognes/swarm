@@ -368,9 +368,8 @@ namespace {
 auto save_score_16(int64_t const cand_id,
                           unsigned int const channel,
                           VECTORTYPE const * const score_vectors,
-                          std::array<char const *, channels> const & d_address,
+                          std::array<Sequence, channels> const & d_sequence,
                           std::array<uint64_t, channels> const & d_offset,
-                          std::array<uint64_t, channels> const & d_length,
                           Sequence const & query,
                           std::vector<uint64_t> const & dirbuffer,
                           uint64_t const q_start_size,
@@ -383,7 +382,8 @@ auto save_score_16(int64_t const cand_id,
 
   // save score
 
-  const uint64_t dbseqlen = d_length[channel];
+  auto const & dbseq = d_sequence[channel];
+  const uint64_t dbseqlen = dbseq.length;
   const uint64_t z = (dbseqlen + 3) % 4;
   assert(z * channels + channel <= max_ptrdiff);
   const uint64_t score
@@ -396,9 +396,8 @@ auto save_score_16(int64_t const cand_id,
 
   if (score < uint16_max)
     {
-      char const * dbseq = d_address[channel];
       const uint64_t offset = d_offset[channel];
-      diff = backtrack<n_bits>(query.encoded.data(), dbseq, query.length, dbseqlen,
+      diff = backtrack<n_bits>(query, dbseq,
                                dirbuffer,
                                offset,
                                channel,
@@ -433,8 +432,7 @@ auto load_next_sequence_16(unsigned int const channel,
                                   VECTORTYPE & F0,
                                   std::array<unsigned char, capacity> & dseq,
                                   std::array<int64_t, channels> & seq_id,
-                                  std::array<char const *, channels> & d_address,
-                                  std::array<uint64_t, channels> & d_length,
+                                  std::array<Sequence, channels> & d_sequence,
                                   std::array<uint64_t, channels> & d_pos,
                                   std::array<uint64_t, channels> & d_offset) -> bool
 {
@@ -444,8 +442,7 @@ auto load_next_sequence_16(unsigned int const channel,
   const uint64_t seqno = seqnos[next_id];
   auto const sequence = data.sequence_view(seqno);
 
-  d_address[channel] = sequence.encoded.data();
-  d_length[channel] = sequence.length;
+  d_sequence[channel] = sequence;
 
   d_pos[channel] = 0;
   d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer_begin);
@@ -456,7 +453,7 @@ auto load_next_sequence_16(unsigned int const channel,
   *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
 
   // fill channel
-  return fill_channel<channels, cdepth>(dseq, channel, d_address, d_pos, d_length);
+  return fill_channel<channels, cdepth>(dseq, channel, d_sequence, d_pos);
 }
 
 }  // namespace
@@ -505,8 +502,7 @@ auto search16(Data const & data,
   // nullptr for pointers, etc)
   std::array<uint64_t, channels> d_pos {{}};
   std::array<uint64_t, channels> d_offset {{}};
-  std::array<char const *, channels> d_address {{}};
-  std::array<uint64_t, channels> d_length {{}};
+  std::array<Sequence, channels> d_sequence {{}};
   std::array<int64_t, channels> seq_id {{}};
   seq_id.fill(-1);
 
@@ -543,7 +539,7 @@ auto search16(Data const & data,
       if (easy) {
           // fill all channels
 
-          easy = fill_all_channels<channels, cdepth>(dseq, d_address, d_pos, d_length);
+          easy = fill_all_channels<channels, cdepth>(dseq, d_sequence, d_pos);
 
           dispatch_dprofile16(cpu_features, dprofile.data(), score_matrix, dseq.data());
 
@@ -560,11 +556,11 @@ auto search16(Data const & data,
           T = T0;
           for (auto channel = 0U; channel < channels; ++channel)
             {
-              if (d_pos[channel] < d_length[channel])
+              if (d_pos[channel] < d_sequence[channel].length)
                 {
                   // this channel has more sequence
 
-                  if (fill_channel<channels, cdepth>(dseq, channel, d_address, d_pos, d_length)) {
+                  if (fill_channel<channels, cdepth>(dseq, channel, d_sequence, d_pos)) {
                     easy = false;
                   }
                 }
@@ -580,7 +576,7 @@ auto search16(Data const & data,
                   if (cand_id >= 0)
                     {
                       save_score_16(cand_id, channel, S,
-                                    d_address, d_offset, d_length,
+                                    d_sequence, d_offset,
                                     query, dirbuffer, q_start.size(),
                                     scores, diffs, alignmentlengths, done);
                     }
@@ -591,7 +587,7 @@ auto search16(Data const & data,
                                                 dirbuffer.data(), dir,
                                                 gap_open_penalty, gap_extend_penalty,
                                                 H0, F0, dseq,
-                                                seq_id, d_address, d_length, d_pos, d_offset)) {
+                                                seq_id, d_sequence, d_pos, d_offset)) {
                         easy = false;
                       }
                     }
@@ -599,9 +595,8 @@ auto search16(Data const & data,
                     {
                       // no more sequences, empty channel
                       seq_id[channel] = -1;
-                      d_address[channel] = nullptr;
+                      d_sequence[channel] = Sequence{};
                       d_pos[channel] = 0;
-                      d_length[channel] = 0;
                       clear_channel<channels, cdepth>(dseq, channel);
                     }
                 }

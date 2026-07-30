@@ -21,6 +21,7 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "../db.hpp"  // Sequence
 #include "nt_codec.hpp"
 #include <cassert>
 #include <cstdint>  // uint64_t
@@ -41,11 +42,12 @@ auto compute_mask(uint64_t const channel,
 enum struct Alignment: unsigned char { Insertion, Deletion, Match };
 
 
+// qseq and dseq each carry their own nucleotide count, so there is no
+// way to pair one sequence's data with the other's length: the two
+// parameters used to be four, adjacent and same-typed.
 template <uint8_t n_bits>
-auto backtrack(char const * qseq,
-               char const * dseq,
-               uint64_t qlen,
-               uint64_t dlen,
+auto backtrack(Sequence const & qseq,
+               Sequence const & dseq,
                std::vector<uint64_t> const & dirbuffer,
                uint64_t offset,
                uint64_t channel,
@@ -64,6 +66,9 @@ auto backtrack(char const * qseq,
   auto const maskextup   = compute_mask<n_bits>(channel, offset2);
   auto const maskextleft = compute_mask<n_bits>(channel, offset3);
 
+  // nucleotide counts; the packed bytes below are walked by nt_extract
+  auto const qlen = static_cast<uint64_t>(qseq.length);
+  auto const dlen = static_cast<uint64_t>(dseq.length);
   assert(qlen <= std::numeric_limits<int64_t>::max());
   assert(dlen <= std::numeric_limits<int64_t>::max());
   auto column = static_cast<int64_t>(qlen) - 1;
@@ -98,8 +103,8 @@ auto backtrack(char const * qseq,
       }
       else
         {
-          if (nt_extract(qseq, static_cast<uint64_t>(column)) ==
-              nt_extract(dseq, static_cast<uint64_t>(row))) {
+          if (nt_extract(qseq.encoded.data(), static_cast<uint64_t>(column)) ==
+              nt_extract(dseq.encoded.data(), static_cast<uint64_t>(row))) {
             ++matches;
           }
           --column;
