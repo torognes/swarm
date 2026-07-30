@@ -49,18 +49,17 @@ namespace {
 
     qgramvector.fill(0);
 
-    auto const * const seq = sequence.encoded.data();
     auto const seqlen = sequence.length;
     uint64_t qgram {0};
     unsigned int position {0};
 
     while ((position < qgramlength - 1) and (position < seqlen)) {
-      qgram = (qgram << 2U) | nt_extract(seq, position);
+      qgram = (qgram << 2U) | nucleotide_at(sequence, position);
       ++position;
     }
 
     while (position < seqlen) {
-      qgram = (qgram << 2U) | nt_extract(seq, position);
+      qgram = (qgram << 2U) | nucleotide_at(sequence, position);
       assert((qgram & max_range) <= 7);
       auto const index = (qgram >> 3U) & (qgramvectorbytes - 1);
       qgramvector[index] ^= static_cast<unsigned char>(1U << (qgram & max_range));

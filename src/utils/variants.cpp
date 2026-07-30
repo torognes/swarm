@@ -79,7 +79,7 @@ namespace {
     assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
     assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
     for (auto i = 0U; i < length; ++i) {
-      nt_set(seq_a, a_start + i, nt_extract(seq_b.data(), b_start + i));
+      nt_set(seq_a, a_start + i, nt_extract(seq_b[nt_byte_index(b_start + i)], b_start + i));
     }
   }
 
@@ -95,7 +95,7 @@ namespace {
     assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
     assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
     for (auto i = 0U; i < length; ++i) {
-      if (nt_extract(seq_a.data(), a_start + i) != nt_extract(seq_b.data(), b_start + i)) {
+      if (nt_extract(seq_a[nt_byte_index(a_start + i)], a_start + i) != nt_extract(seq_b[nt_byte_index(b_start + i)], b_start + i)) {
         return false;
       }
     }
@@ -182,7 +182,7 @@ auto check_variant(Sequence const & seed,
                seq_identical(seed.encoded, 0,
                              amp.encoded, 0,
                              var.pos) and
-               (nt_extract(amp.encoded.data(), var.pos) == var.base) and
+               (nucleotide_at(amp, var.pos) == var.base) and
                seq_identical(seed.encoded, var.pos + 1,
                              amp.encoded,  var.pos + 1,
                              seed_seqlen - var.pos - 1));
@@ -203,7 +203,7 @@ auto check_variant(Sequence const & seed,
                seq_identical(seed.encoded, 0,
                              amp.encoded, 0,
                              var.pos) and
-               (nt_extract(amp.encoded.data(), var.pos) == var.base) and
+               (nucleotide_at(amp, var.pos) == var.base) and
                seq_identical(seed.encoded, var.pos,
                              amp.encoded,  var.pos + 1,
                              seed_seqlen - var.pos));
@@ -219,7 +219,6 @@ auto generate_variants(Zobrist const & zobrist,
                        uint64_t hash,
                        std::vector<struct var_s>& variant_list) -> unsigned int
 {
-  auto const * sequence = seq.encoded.data();
   auto const seqlen = seq.length;
 
   auto variant_count = 0U;
@@ -227,7 +226,7 @@ auto generate_variants(Zobrist const & zobrist,
 
   for (auto position = 0U; position < seqlen; ++position)
     {
-      const auto current_base = nt_extract(sequence, position);
+      const auto current_base = nucleotide_at(seq, position);
       const auto hash1 = hash ^ zobrist.value(position, current_base);
       for (unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
@@ -245,10 +244,10 @@ auto generate_variants(Zobrist const & zobrist,
 
   hash = zobrist.hash_delete_first(seq);
   add_variant(hash, Variant_type::deletion, 0, 0, variant_list, variant_count);
-  auto previous_base = nt_extract(sequence, 0);
+  auto previous_base = nucleotide_at(seq, 0);
   for (auto offset = 1U; offset < seqlen; ++offset)
     {
-      const auto current_base = nt_extract(sequence, offset);
+      const auto current_base = nucleotide_at(seq, offset);
       if (current_base == previous_base) {
         continue;
       }
@@ -269,7 +268,7 @@ auto generate_variants(Zobrist const & zobrist,
   // insert after each position in the sequence
   for (auto position = 0U; position < seqlen; ++position)
     {
-      const auto current_base = nt_extract(sequence, position);
+      const auto current_base = nucleotide_at(seq, position);
       hash ^= zobrist.value(position, current_base) ^ zobrist.value(position + 1, current_base);
       for (unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {

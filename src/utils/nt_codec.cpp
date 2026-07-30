@@ -23,48 +23,12 @@
 
 #include "nt_codec.hpp"
 #include <cassert>
-#include <cstdint>  // uint64_t
-#include <iterator>  // std::next
 
 #ifndef NDEBUG
 // C++17 refactoring: [[maybe_unused]]
 #include <limits>
 constexpr auto uint_max = std::numeric_limits<unsigned int>::max();
 #endif
-
-
-auto nt_extract(char const * compressed_sequence, uint64_t const position) -> unsigned char {
-  // Extract a given position from a compressed sequence
-  //
-  // example: extract nucleotide at position 34
-  //  - (note: coordinates are zero-based),
-  //  - (note: 4 nucleotides stored per byte),
-  //  - 34 / 4 -> 8
-  //    (nucleotide is stored in the byte at position 8 in the compressed
-  //    sequence),
-  //  - 34 & mask_upper_bits -> 2
-  //    (nucleotide is stored in the pair of bits at position 2 in the
-  //    compressed byte),
-  //  - left-shift compressed byte 2 times (equivalent to dividing by 4),
-  //  - the pair of bits we are looking for is now at the start of the byte,
-  //  - mask upper bits to keep only the encoded nucleotide (-> 0, 1, 2, or 3)
-  //
-  static constexpr auto divide_by_4 = 2U;
-  assert((position >> divide_by_4) <= std::numeric_limits<long long int>::max());
-  auto const target_byte = static_cast<long long int>(position >> divide_by_4);  // same as int{pos / 4}
-  auto const compressed_byte = static_cast<unsigned char>(*std::next(compressed_sequence, target_byte));
-  static constexpr auto max_nt_per_byte = 4U; // 4 nt fit in 8 bits
-  static constexpr auto keep_first_two_bits = max_nt_per_byte - 1; // 0000'0011 (mask all upper bits)
-  auto const target_pair_of_bits = position & keep_first_two_bits;  // same as pos & 4 (remainder): 0, 1, 2, or 3
-  auto const divider = target_pair_of_bits << 1U;  // left-shift by 0, 2, 4, or 6 (same as dividing by 0, 4, 16, or 64)
-
-  // outputs four possible values: 0, 1, 2 or 3
-  // (cast to unsigned int avoids the integer promotion that would
-  //  otherwise apply the right shift to a signed int and trip the
-  //  hicpp-signed-bitwise check)
-  return static_cast<unsigned char>(
-      (static_cast<unsigned int>(compressed_byte) >> divider) & keep_first_two_bits);
-}
 
 
 // round-up operation, compiler cleverly elimates the multiplication (8 is a power of 2)

@@ -103,8 +103,8 @@ auto backtrack(Sequence const & qseq,
       }
       else
         {
-          if (nt_extract(qseq.encoded.data(), static_cast<uint64_t>(column)) ==
-              nt_extract(dseq.encoded.data(), static_cast<uint64_t>(row))) {
+          if (nucleotide_at(qseq, static_cast<uint64_t>(column)) ==
+              nucleotide_at(dseq, static_cast<uint64_t>(row))) {
             ++matches;
           }
           --column;

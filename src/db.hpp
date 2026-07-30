@@ -24,9 +24,11 @@
 #ifndef SWARM_DB_H
 #define SWARM_DB_H
 
+#include "utils/nt_codec.hpp"  // nt_byte_index, nt_extract
 #include "utils/seqinfo.hpp"
 #include "utils/view.hpp"
 #include "utils/zobrist.hpp"
+#include <cassert>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <memory>  // std::unique_ptr
@@ -47,6 +49,20 @@ struct Sequence {
   View<char> encoded;
   unsigned int length;
 };
+
+
+// The nucleotide at 'position' (a nucleotide index, zero-based).
+//
+// This is the checked way to read a packed sequence, and the check is
+// stronger than what a caller can express on its own: 'position' is
+// verified against the nucleotide count, where nt_extract() and the
+// hand-written bounds it used to need could only see the packed byte
+// count -- which also admits the padding nucleotides inside the last
+// byte. The View subscript then re-checks the byte index.
+inline auto nucleotide_at(Sequence const & sequence, uint64_t const position) -> unsigned char {
+  assert(position < sequence.length);
+  return nt_extract(sequence.encoded[nt_byte_index(position)], position);
+}
 
 
 class Data {

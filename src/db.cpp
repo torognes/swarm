@@ -978,7 +978,7 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
 
   // decode to nucleotides (A, C, G and T)
   for (auto i = 0U; i < seq.length; ++i) {
-    decode_buffer_[i] = sym_nt[1 + nt_extract(seq.encoded.data(), i)];
+    decode_buffer_[i] = sym_nt[1 + nucleotide_at(seq, i)];
   }
 
   fprint(stream, View<char>{decode_buffer_.data(), seq.length});

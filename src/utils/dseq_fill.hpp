@@ -59,13 +59,12 @@ inline auto fill_channel(std::array<unsigned char, capacity> & dseq,
   // than re-indexed at every slot
   auto const & sequence = d_sequence[channel];
   auto const length = static_cast<uint64_t>(sequence.length);
-  auto const * const encoded = sequence.encoded.data();
 
   for (auto j = 0U; j < cdepth; ++j)
     {
       if (d_pos[channel] < length) {
         dseq[(channels * j) + channel]
-          = 1 + nt_extract(encoded, d_pos[channel]);
+          = 1 + nucleotide_at(sequence, d_pos[channel]);
         ++d_pos[channel];
       }
       else {

@@ -141,7 +141,7 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
   static constexpr auto word_multiplier = 32U;
 
   for (auto i = 0U; i < query_.length; ++i) {
-    const auto nt_value = nt_extract(query_.encoded.data(), i) + 1U;  // 1,  2,   3, or   4
+    const auto nt_value = nucleotide_at(query_, i) + 1U;  // 1,  2,   3, or   4
     const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
     const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
 

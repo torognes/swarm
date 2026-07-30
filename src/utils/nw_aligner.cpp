@@ -53,8 +53,6 @@ auto fill_matrix(Sequence const & dseq,
   // Sequence::length is the nucleotide count (not encoded.size(), which
   // is the packed-byte count); nt_extract() and the inner loops below
   // both work in nucleotide units.
-  auto const * const dseq_data = dseq.encoded.data();
-  auto const * const qseq_data = qseq.encoded.data();
   auto const dlen = static_cast<uint64_t>(dseq.length);
   auto const qlen = static_cast<uint64_t>(qseq.length);
 
@@ -84,7 +82,7 @@ auto fill_matrix(Sequence const & dseq,
   for (auto row = 0UL; row < dlen; ++row) {
       auto top = (2 * gapopen) + ((row + 2) * gapextend);
       uint64_t diagonal = (row == 0) ? 0 : (gapopen + (row * gapextend));
-      auto const row_offset = (nt_extract(dseq_data, row) + 1U) << multiplier;
+      auto const row_offset = (nucleotide_at(dseq, row) + 1U) << multiplier;
 
       for (auto column = 0UL; column < qlen; ++column) {
           auto const index             = (qlen * row) + column;
@@ -93,7 +91,7 @@ auto fill_matrix(Sequence const & dseq,
           unsigned char flags          = '\0';
 
           diagonal += static_cast<uint64_t>(
-              score_matrix[row_offset + nt_extract(qseq_data, column) + 1U]);
+              score_matrix[row_offset + nucleotide_at(qseq, column) + 1U]);
 
           flags |= (top < diagonal) ? maskup : 0U;
           diagonal = std::min({diagonal, top, left});
@@ -125,8 +123,6 @@ auto backtrack(Sequence const & dseq,
 {
   /* backtrack: count differences and save alignment in cigar string */
 
-  auto const * const dseq_data = dseq.encoded.data();
-  auto const * const qseq_data = qseq.encoded.data();
   auto const dlen = static_cast<uint64_t>(dseq.length);
   auto const qlen = static_cast<uint64_t>(qseq.length);
 
@@ -168,7 +164,7 @@ auto backtrack(Sequence const & dseq,
         }
       else
         {
-          if (nt_extract(qseq_data, column - 1) == nt_extract(dseq_data, row - 1)) {
+          if (nucleotide_at(qseq, column - 1) == nucleotide_at(dseq, row - 1)) {
             ++matches;
           }
           --column;
