@@ -26,6 +26,7 @@
 #include "cigar.hpp"
 #include "nt_codec.hpp"
 #include "score_matrix.hpp"  // n_cells, create_score_matrix
+#include "span.hpp"  // Span, make_span
 #include "view.hpp"  // View, make_view
 #include <algorithm>  // std::min(), std::reverse()
 #include <array>
@@ -48,8 +49,8 @@ auto fill_matrix(Sequence const & dseq,
                  const std::array<int64_t, n_cells * n_cells> & score_matrix,
                  const uint64_t gapopen,
                  const uint64_t gapextend,
-                 std::vector<unsigned char> & directions,
-                 std::vector<NwAligner::HECell> & hearray) -> void
+                 Span<unsigned char> const directions,
+                 Span<NwAligner::HECell> const hearray) -> void
 {
   // Sequence::length is the nucleotide count (not encoded.size(), which
   // is the packed-byte count); nt_extract() and the inner loops below
@@ -85,8 +86,12 @@ auto fill_matrix(Sequence const & dseq,
       uint64_t diagonal = (row == 0) ? 0 : (gapopen + (row * gapextend));
       auto const row_offset = (nucleotide_at(dseq, row) + 1U) << multiplier;
 
+      // this row of the direction matrix, so the inner loop indexes a row
+      // rather than recomputing (qlen * row) + column into the whole
+      // matrix, and its writes are bounds-checked against the row
+      auto const row_directions = directions.subspan(qlen * row, qlen);
+
       for (auto column = 0UL; column < qlen; ++column) {
-          auto const index             = (qlen * row) + column;
           auto const previous_diagonal = hearray[column].h_score;
           auto left                    = hearray[column].e_score;
           unsigned char flags          = '\0';
@@ -109,7 +114,7 @@ auto fill_matrix(Sequence const & dseq,
           top  = std::min(diagonal, top);
           left = std::min(diagonal, left);
 
-          directions[index]       = flags;
+          row_directions[column]  = flags;
           hearray[column].e_score = left;
           diagonal                = previous_diagonal;
         }
@@ -117,9 +122,12 @@ auto fill_matrix(Sequence const & dseq,
 }
 
 
+// directions is indexed flat here rather than a row at a time: the walk
+// moves up and left, so it leaves a row as often as it stays in one, and a
+// per-step subview would cost more than the multiplication it saves.
 auto backtrack(Sequence const & dseq,
                Sequence const & qseq,
-               std::vector<unsigned char> const & directions,
+               View<unsigned char> const directions,
                std::vector<char> & raw_alignment) -> uint64_t
 {
   /* backtrack: count differences and save alignment in cigar string */
@@ -257,9 +265,10 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
   // fill_matrix() writes every directions[i] for i in [0, dlen*qlen),
   // so the buffer's content on entry doesn't matter.
   fill_matrix(dseq, qseq, score_matrix_,
-              gapopen_, gapextend_, directions_, hearray_);
+              gapopen_, gapextend_,
+              make_span(directions_), make_span(hearray_));
 
-  auto const nwdiff = backtrack(dseq, qseq, directions_, raw_alignment_);
+  auto const nwdiff = backtrack(dseq, qseq, make_view(directions_), raw_alignment_);
 
   // backtracking produces a reversed alignment (starting from the end)
   std::reverse(raw_alignment_.begin(), raw_alignment_.end());
