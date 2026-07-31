@@ -32,10 +32,9 @@
 #include <algorithm>  // std::sort()
 #include <cassert>  // assert()
 #include <cinttypes>  // macro PRIu64
-#include <cstddef>  // std::ptrdiff_t
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // fprintf(), fputc(), fputs(), std::size_t
-#include <iterator>  // std::next()
 #include <numeric>  // std::iota
 #include <vector>
 
@@ -53,10 +52,11 @@ auto write_network_file(const uint64_t number_of_networks,
   for (auto const& amplicon: ampinfo_v) {
     const auto link_start = amplicon.link_start;
     const auto link_count = amplicon.link_count;
-    assert(static_cast<std::size_t>(link_start) + link_count <= network_v.size());
 
-    auto const neighbours = Span<unsigned int>{
-      std::next(network_v.data(), static_cast<std::ptrdiff_t>(link_start)), link_count};
+    // subspan() carries the bounds assertions this used to spell out
+    // before offsetting network_v.data() by hand
+    auto const neighbours = make_span(network_v)
+      .subspan(static_cast<std::size_t>(link_start), link_count);
 
     // amplicon indexes are already sorted by decreasing abundance
     // then by header in db.cpp, so a natural ascending sort here

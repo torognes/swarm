@@ -361,7 +361,7 @@ namespace {
   // int, so a char argument would first have to be cast to unsigned char
   // to avoid undefined behaviour on the negative values a signed char can
   // hold.
-  auto is_digit(char const character) noexcept -> bool {
+  constexpr auto is_digit(char const character) noexcept -> bool {
     return (character >= '0') and (character <= '9');
   }
 
@@ -706,9 +706,8 @@ namespace {
   auto populate_views_from_entry(struct seqinfo_s & a_sequence,
                                  struct Entry const & entry,
                                  std::vector<char> const & data_v) -> void {
-    a_sequence.header_view = View<char>{
-      &data_v[entry.header.offset],
-      entry.header.length};
+    a_sequence.header_view = make_view(data_v)
+      .subview(static_cast<std::size_t>(entry.header.offset), entry.header.length);
     a_sequence.seqlen = static_cast<unsigned int>(entry.sequence.length);
     a_sequence.seq    = &data_v[entry.sequence.offset];
   }
@@ -984,7 +983,7 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
     decode_buffer_[i] = sym_nt[1 + nucleotide_at(seq, i)];
   }
 
-  fprint(stream, View<char>{decode_buffer_.data(), seq.length});
+  fprint(stream, make_view(decode_buffer_).first(seq.length));
   static_cast<void>(std::fputc('\n', stream));
 }
 

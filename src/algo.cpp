@@ -32,6 +32,8 @@
 #include "utils/memory_budget.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/progress.hpp"
+#include "utils/span.hpp"  // Span, make_span
+#include "utils/view.hpp"  // View, make_view
 #include <algorithm>  // std::min(), std::for_each
 #include <cassert>
 #include <cinttypes>  // macro PRIu64
@@ -290,8 +292,8 @@ namespace {
 
     // the collected candidates, not the pool-sized scratch behind them
     qgram_differ.fast(seedampliconid,
-                      View<uint64_t>{workspace.qgramamps_v.data(), listlen},
-                      Span<uint64_t>{workspace.qgramdiffs_v.data(), listlen});
+                      make_view(workspace.qgramamps_v).first(listlen),
+                      make_span(workspace.qgramdiffs_v).first(listlen));
 
     uint64_t targetcount = 0;
     for (auto i = 0ULL; i < listlen; ++i) {
@@ -310,10 +312,10 @@ namespace {
 
     // the candidate window inside the workspace: the first targetcount
     // entries of the target list and of its three result columns
-    auto const targets = View<uint64_t>{workspace.targetampliconids.data(), targetcount};
-    auto const scores = Span<uint64_t>{workspace.scores_v.data(), targetcount};
-    auto const diffs = Span<uint64_t>{workspace.diffs_v.data(), targetcount};
-    auto const alignlengths = Span<uint64_t>{workspace.alignlengths.data(), targetcount};
+    auto const targets = make_view(workspace.targetampliconids).first(targetcount);
+    auto const scores = make_span(workspace.scores_v).first(targetcount);
+    auto const diffs = make_span(workspace.diffs_v).first(targetcount);
+    auto const alignlengths = make_span(workspace.alignlengths).first(targetcount);
     scanner.run(seedampliconid, targets, scores, diffs, alignlengths, bits);
 
     for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
@@ -361,8 +363,8 @@ namespace {
 
       // as above: the collected candidates, not the whole scratch buffer
       qgram_differ.fast(subseed.ampliconid,
-                        View<uint64_t>{workspace.qgramamps_v.data(), subseedlistlen},
-                        Span<uint64_t>{workspace.qgramdiffs_v.data(), subseedlistlen});
+                        make_view(workspace.qgramamps_v).first(subseedlistlen),
+                        make_span(workspace.qgramdiffs_v).first(subseedlistlen));
 
       for (auto i = 0ULL; i < subseedlistlen; ++i) {
         if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {
@@ -375,10 +377,10 @@ namespace {
       if (targetcount == 0) { continue; }
 
       // the candidate window inside the workspace, as above
-      auto const targets = View<uint64_t>{workspace.targetampliconids.data(), targetcount};
-      auto const scores = Span<uint64_t>{workspace.scores_v.data(), targetcount};
-      auto const diffs = Span<uint64_t>{workspace.diffs_v.data(), targetcount};
-      auto const alignlengths = Span<uint64_t>{workspace.alignlengths.data(), targetcount};
+      auto const targets = make_view(workspace.targetampliconids).first(targetcount);
+      auto const scores = make_span(workspace.scores_v).first(targetcount);
+      auto const diffs = make_span(workspace.diffs_v).first(targetcount);
+      auto const alignlengths = make_span(workspace.alignlengths).first(targetcount);
       scanner.run(subseed.ampliconid, targets, scores, diffs, alignlengths, bits);
 
       for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {

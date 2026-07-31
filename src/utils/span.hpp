@@ -180,4 +180,18 @@ private:
 };
 
 
+// A Span over a whole container; see make_view() in view.hpp for the
+// rationale, and for why a prefix or a slice composes from the existing
+// members (first(), subspan()) instead of an overload here.
+//
+// The container is taken by non-const reference on purpose: a const
+// container then fails to compile rather than quietly yielding a mutable
+// span over data it does not own the right to modify.
+template <typename Container>
+auto make_span(Container & container) noexcept
+  -> Span<typename Container::value_type> {
+  return Span<typename Container::value_type>{container.data(), container.size()};
+}
+
+
 #endif // SWARM_UTILS_SPAN_H

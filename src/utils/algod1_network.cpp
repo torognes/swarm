@@ -104,7 +104,7 @@ namespace {
 
     // variant_list is pre-sized to an upper bound; only the first
     // variant_count entries are valid for this call.
-    auto const variants = View<var_s>{variant_list.data(), variant_count};
+    auto const variants = make_view(variant_list).first(variant_count);
     for (auto const & var : variants) {
       find_variant_matches(parameters, data, hash_table, bloom_a, seed, var, hits_data, hits_count);
     }

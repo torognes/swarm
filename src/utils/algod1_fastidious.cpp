@@ -256,7 +256,7 @@ namespace {
 
     // variant_list is pre-sized to an upper bound; only the first
     // variant_count entries are valid for this call.
-    for (auto const & var : View<var_s>{variant_list.data(), variant_count}) {
+    for (auto const & var : make_view(variant_list).first(variant_count)) {
       if (bloom_a.get(var.hash) and
           hash_check_attach(data, ampinfo_v, hash_table, seq, var, seed, graft_state)) {
         ++matches;
@@ -314,7 +314,7 @@ namespace {
           {
             auto varlen = 0U;
             generate_variant_sequence(seed_seq, var, varseq, varlen);
-            auto const var_seq = Sequence{View<char>{varseq.data(), nt_bytelength(varlen)}, varlen};
+            auto const var_seq = Sequence{make_view(varseq).first(nt_bytelength(varlen)), varlen};
             matches += check_heavy_var_2(data, ampinfo_v, hash_table,
                                          bloom_a,
                                          var_seq,

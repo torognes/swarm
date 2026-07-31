@@ -26,6 +26,7 @@
 #include "cigar.hpp"
 #include "nt_codec.hpp"
 #include "score_matrix.hpp"  // n_cells, create_score_matrix
+#include "view.hpp"  // View, make_view
 #include <algorithm>  // std::min(), std::reverse()
 #include <array>
 #include <cassert>  // assert()
@@ -274,6 +275,5 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
   auto const percent_id =
     one_hundred * static_cast<double>(length - nwdiff) / static_cast<double>(length);
 
-  return Result{View<char>{cigar_string_.data(), cigar_string_.size()},
-                nwdiff, length, percent_id};
+  return Result{make_view(cigar_string_), nwdiff, length, percent_id};
 }

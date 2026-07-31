@@ -129,7 +129,7 @@ auto generate_variant_sequence(Sequence const & seed,
   /* generate the actual sequence of a variant */
 
   auto const seed_seqlen = seed.length;
-  auto const seq_span = Span<char>{seq.data(), seq.size()};
+  auto const seq_span = make_span(seq);
 
   switch (var.type)
     {
