@@ -21,6 +21,7 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "view.hpp"  // View
 #include <cstdint>
 #include <vector>
 
@@ -50,7 +51,12 @@ auto check_variant(Sequence const & seed,
                    struct var_s const & var,
                    Sequence const & amp) -> bool;
 
+// The microvariants of seq, written into the caller's variant_list and
+// returned as the window that was filled. variant_list is sized to the
+// 7L+4 upper bound once per thread, so the return value is what says how
+// much of it this call made valid -- previously a count that every caller
+// had to pair with the buffer again.
 auto generate_variants(Zobrist const & zobrist,
                        Sequence const & seq,
                        uint64_t hash,
-                       std::vector<struct var_s> & variant_list) -> unsigned int;
+                       std::vector<struct var_s> & variant_list) -> View<struct var_s>;

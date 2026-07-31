@@ -252,11 +252,12 @@ namespace {
     uint64_t matches = 0;
 
     const auto hash = data.zobrist().hash(seq);
-    const auto variant_count = generate_variants(data.zobrist(), seq, hash, variant_list);
+    auto const variants = generate_variants(data.zobrist(), seq, hash, variant_list);
 
-    // variant_list is pre-sized to an upper bound; only the first
-    // variant_count entries are valid for this call.
-    for (auto const & var : make_view(variant_list).first(variant_count)) {
+    // Not std::count_if, which cppcheck suggests here: hash_check_attach()
+    // is what records the graft, so counting through it would hide a
+    // mutating call inside a predicate.
+    for (auto const & var : variants) {
       if (bloom_a.get(var.hash) and
           hash_check_attach(data, ampinfo_v, hash_table, seq, var, seed, graft_state)) {
         ++matches;
@@ -305,11 +306,10 @@ namespace {
 
     auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
+    auto const variants = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
-    for (auto i = 0U; i < variant_count; ++i)
+    for (auto const & var : variants)
       {
-        struct var_s const & var = variant_list[i];
         if (bloom_f.get(var.hash))
           {
             auto varlen = 0U;
@@ -325,7 +325,7 @@ namespace {
       }
 
     number_of_matches = matches;
-    number_of_variants = variant_count;
+    number_of_variants = variants.size();
   }
 
 
@@ -396,13 +396,13 @@ namespace {
 
     auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
+    auto const variants = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
-    for (auto i = 0U; i < variant_count; ++i) {
-      bloom_f.set(variant_list[i].hash);
+    for (auto const & var : variants) {
+      bloom_f.set(var.hash);
     }
 
-    return variant_count;
+    return variants.size();
   }
 
 

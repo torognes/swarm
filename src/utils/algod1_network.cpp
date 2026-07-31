@@ -100,11 +100,8 @@ namespace {
 
     auto const seed_seq = data.sequence_view(seed);
     const auto hash = data.sequence_hash(seed);
-    const auto variant_count = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
+    auto const variants = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
-    // variant_list is pre-sized to an upper bound; only the first
-    // variant_count entries are valid for this call.
-    auto const variants = make_view(variant_list).first(variant_count);
     for (auto const & var : variants) {
       find_variant_matches(parameters, data, hash_table, bloom_a, seed, var, hits_data, hits_count);
     }

@@ -217,7 +217,7 @@ auto check_variant(Sequence const & seed,
 auto generate_variants(Zobrist const & zobrist,
                        Sequence const & seq,
                        uint64_t hash,
-                       std::vector<struct var_s>& variant_list) -> unsigned int
+                       std::vector<struct var_s>& variant_list) -> View<struct var_s>
 {
   auto const seqlen = seq.length;
 
@@ -280,5 +280,5 @@ auto generate_variants(Zobrist const & zobrist,
       }
     }
 
-  return variant_count;
+  return make_view(variant_list).first(variant_count);
 }
