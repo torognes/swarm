@@ -397,15 +397,17 @@ auto save_score_16(int64_t const cand_id,
   if (score < uint16_max)
     {
       const uint64_t offset = d_offset[channel];
-      diff = backtrack<n_bits>(query, dbseq,
-                               dirbuffer,
-                               offset,
-                               channel,
-                               &alignmentlengths[candidate],
-                               q_start_size);
+      auto const alignment = backtrack<n_bits>(query, dbseq,
+                                               make_view(dirbuffer),
+                                               offset,
+                                               channel,
+                                               q_start_size);
+      diff = alignment.differences;
+      alignmentlengths[candidate] = alignment.length;
     }
   else
     {
+      // as before: a saturated score leaves alignmentlengths untouched
       diff = uint16_max;
     }
 
