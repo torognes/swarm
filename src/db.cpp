@@ -355,6 +355,17 @@ namespace {
   }
 
 
+  // Predicate for the digit run of an abundance annotation, shared by the
+  // two annotation formats below. The range is spelled out rather than
+  // delegated to std::isdigit(), which is locale-dependent and takes an
+  // int, so a char argument would first have to be cast to unsigned char
+  // to avoid undefined behaviour on the negative values a signed char can
+  // hold.
+  auto is_digit(char const character) noexcept -> bool {
+    return (character >= '0') and (character <= '9');
+  }
+
+
   auto find_swarm_abundance(View<char> const header_view) -> Abundance_match
   {
     /*
@@ -363,10 +374,6 @@ namespace {
     */
 
     static constexpr std::size_t max_digits {20};  // 20 digits at most (abundance > 10^20)
-
-    auto const is_digit = [](char const character) noexcept -> bool {
-      return (character >= '0') and (character <= '9');
-    };
 
     // Find the last '_' via reverse scan over the header view.
     auto const r_underscore = std::find(header_view.crbegin(),
@@ -426,10 +433,6 @@ namespace {
     */
 
     static constexpr std::array<char, 5> attribute {{'s', 'i', 'z', 'e', '='}};
-
-    auto const is_digit = [](char const character) noexcept -> bool {
-      return (character >= '0') and (character <= '9');
-    };
 
     auto const * const header_begin = header_view.cbegin();
     auto const * const header_end   = header_view.cend();
