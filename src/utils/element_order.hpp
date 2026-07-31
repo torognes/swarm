@@ -59,7 +59,7 @@
 
 template <typename Type>
 struct element_order {
-  static auto less(Type const & lhs, Type const & rhs) -> bool {
+  static constexpr auto less(Type const & lhs, Type const & rhs) -> bool {
     return lhs < rhs;
   }
 
@@ -67,6 +67,8 @@ struct element_order {
   // first, positive if rhs does, zero if the two are equivalent. Expressed with
   // two less() calls because the primary template can assume nothing beyond a
   // strict weak ordering.
+  // C++14 refactoring: constexpr (C++11 allows a single return statement
+  // only, which neither compare() can express without losing its shape)
   static auto compare(Type const & lhs, Type const & rhs) -> int {
     if (less(lhs, rhs)) { return -1; }
     if (less(rhs, lhs)) { return +1; }
@@ -76,7 +78,7 @@ struct element_order {
 
 template <>
 struct element_order<char> {
-  static auto less(char const lhs, char const rhs) -> bool {
+  static constexpr auto less(char const lhs, char const rhs) -> bool {
     return static_cast<unsigned char>(lhs) < static_cast<unsigned char>(rhs);
   }
 

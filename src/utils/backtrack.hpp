@@ -34,8 +34,8 @@
 
 // default template (16 bits)
 template <uint8_t n_bits>
-auto compute_mask(uint64_t const channel,
-                  unsigned int const offset) -> uint64_t {
+constexpr auto compute_mask(uint64_t const channel,
+                            unsigned int const offset) -> uint64_t {
   return (3ULL << ((2 * channel) + offset));
 }
 
