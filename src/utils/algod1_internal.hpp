@@ -34,6 +34,7 @@
 
 #include "../db.hpp"
 #include "bloom.hpp"
+#include "chain_range.hpp"  // Chain_range
 #include "hashtable.hpp"
 #include "span.hpp"  // Span, make_span
 #include "view.hpp"  // View, make_view
@@ -64,6 +65,33 @@ struct ampinfo_s
   unsigned int graft_cand {no_swarm};  /* amp id of potential grafting parent (fastid.) */
   unsigned int link_count {0U};        /* per-amplicon, bounded by the variant count */
 };
+
+
+// The amplicons of one cluster are a chain through ampinfo_s::next, ending
+// at no_swarm (see chain_range.hpp).
+struct Next_cluster_member {
+  static auto next(std::vector<struct ampinfo_s> const & ampinfo_v,
+                   unsigned int const amp_id) -> unsigned int {
+    return ampinfo_v[amp_id].next;
+  }
+};
+
+using Cluster_chain = Chain_range<std::vector<struct ampinfo_s>, Next_cluster_member>;
+
+// The cluster seeded by `seed`, seed included. Consumers that print a
+// separator before every member except the first still compare against the
+// seed themselves; the chain only supplies the order.
+inline auto cluster_members(std::vector<struct ampinfo_s> const & ampinfo_v,
+                            unsigned int const seed) -> Cluster_chain {
+  return Cluster_chain{ampinfo_v, seed, no_swarm};
+}
+
+// The same cluster without its seed, for the consumers that report the seed
+// separately and then walk the rest.
+inline auto cluster_members_after_seed(std::vector<struct ampinfo_s> const & ampinfo_v,
+                                       unsigned int const seed) -> Cluster_chain {
+  return Cluster_chain{ampinfo_v, ampinfo_v[seed].next, no_swarm};
+}
 
 
 // One amplicon's slice of the flat network: its (link_start, link_count)

@@ -87,7 +87,7 @@ namespace {
       }
 
       const auto seed = swarminfo_v[i].seed;
-      for (auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
+      for (auto const amp_id : cluster_members(ampinfo_v, seed)) {
         if (amp_id != seed) {
           static_cast<void>(std::fputc(sepchar, parameters.outfile.get()));
         }
@@ -119,7 +119,7 @@ namespace {
       }
 
       const auto seed = swarminfo_v[i].seed;
-      for (auto amp_id = seed; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next) {
+      for (auto const amp_id : cluster_members(ampinfo_v, seed)) {
         if (amp_id == seed) {
           static_cast<void>(std::fputc('\t', parameters.outfile.get()));
         }
@@ -157,8 +157,6 @@ namespace {
 
       const auto seed = swarm_info.seed;
 
-      auto const & seed_info = ampinfo_v[seed];
-
       std::fprintf(parameters.uclustfile.get(), "C\t%u\t%u\t*\t*\t*\t*\t*\t",
                    cluster_no,
                    swarm_info.size);
@@ -172,7 +170,7 @@ namespace {
       static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
 
       auto const seed_seq = data.sequence_view(seed);
-      for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
+      for (auto const amp_id : cluster_members_after_seed(ampinfo_v, seed))
         {
           auto const amp_seq = data.sequence_view(amp_id);
 
@@ -269,9 +267,7 @@ namespace {
         }
         const auto seed = swarminfo_v[swarmid].seed;
 
-        auto const & seed_info = ampinfo_v[seed];
-
-        for (auto amp_id = seed_info.next; amp_id != no_swarm; amp_id = ampinfo_v[amp_id].next)
+        for (auto const amp_id : cluster_members_after_seed(ampinfo_v, seed))
           {
             const auto graft_parent = ampinfo_v[amp_id].graft_cand;
             if (graft_parent != no_swarm)

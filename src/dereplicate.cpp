@@ -24,6 +24,7 @@
 #include "dereplicate.hpp"
 #include "swarm.hpp"
 #include "db.hpp"
+#include "utils/chain_range.hpp"  // Chain_range
 #include "utils/hashtable_size.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // sort
@@ -54,6 +55,26 @@ namespace {
     uint64_t maxmass = 0;
     unsigned int maxsize = 0U;
   };
+
+
+  // The sequences identical to a cluster's seed are a chain through
+  // nextseqtab, ending at 0 (see utils/chain_range.hpp).
+  struct Next_identical
+  {
+    static auto next(std::vector<unsigned int> const & nextseqtab,
+                     unsigned int const seqno) -> unsigned int {
+      return nextseqtab[seqno];
+    }
+  };
+
+  using Identical_chain = Chain_range<std::vector<unsigned int>, Next_identical>;
+
+  // The copies of `seed`, seed excluded: every consumer reports the seed
+  // itself first and then walks the copies.
+  inline auto identical_copies_of(std::vector<unsigned int> const & nextseqtab,
+                                  unsigned int const seed) -> Identical_chain {
+    return Identical_chain{nextseqtab, nextseqtab[seed], 0U};
+  }
 
 
   auto sort_seeds(struct Parameters const & parameters,
@@ -115,14 +136,12 @@ namespace {
 
     for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
-      auto next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
+      for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
           data.fprint_id_noabundance(parameters.internal_structure_file.get(), seed, parameters.opt_usearch_abundance);
           static_cast<void>(std::fputc('\t', parameters.internal_structure_file.get()));
           data.fprint_id_noabundance(parameters.internal_structure_file.get(), next_identical, parameters.opt_usearch_abundance);
           std::fprintf(parameters.internal_structure_file.get(), "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
-          next_identical = nextseqtab[next_identical];
         }
       ++counter;
       progress.update(counter);
@@ -153,8 +172,7 @@ namespace {
       data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
 
-      auto next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
+      for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
           std::fprintf(parameters.uclustfile.get(),
                        "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
@@ -166,7 +184,6 @@ namespace {
           static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
           data.fprint_id(parameters.uclustfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           static_cast<void>(std::fputc('\n', parameters.uclustfile.get()));
-          next_identical = nextseqtab[next_identical];
         }
       ++counter;
       progress.update(counter);
@@ -208,12 +225,10 @@ namespace {
       data.fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       // print other cluster members
-      auto next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
+      for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
           static_cast<void>(std::fputc(',', parameters.outfile.get()));
           data.fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          next_identical = nextseqtab[next_identical];
         }
 
       progress.increment();
@@ -237,12 +252,10 @@ namespace {
       data.fprint_id(parameters.outfile.get(), seed, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       // print other cluster members
-      auto next_identical = nextseqtab[seed];
-      while (next_identical != 0U)
+      for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
           static_cast<void>(std::fputc(sepchar, parameters.outfile.get()));
           data.fprint_id(parameters.outfile.get(), next_identical, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          next_identical = nextseqtab[next_identical];
         }
       static_cast<void>(std::fputc('\n', parameters.outfile.get()));
       progress.increment();
