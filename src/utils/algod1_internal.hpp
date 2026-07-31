@@ -35,7 +35,10 @@
 #include "../db.hpp"
 #include "bloom.hpp"
 #include "hashtable.hpp"
+#include "span.hpp"  // Span, make_span
+#include "view.hpp"  // View, make_view
 #include <cassert>  // assert()
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <limits>  // unsigned int max
 #include <mutex>  // std::mutex
@@ -61,6 +64,29 @@ struct ampinfo_s
   unsigned int graft_cand {no_swarm};  /* amp id of potential grafting parent (fastid.) */
   unsigned int link_count {0U};        /* per-amplicon, bounded by the variant count */
 };
+
+
+// One amplicon's slice of the flat network: its (link_start, link_count)
+// pair resolved against network_v. Written once here rather than at each
+// consumer, so that neither the offset nor the count can be applied to
+// the wrong buffer, and so that the
+// link_start + link_count <= network_v.size() bound is asserted (by
+// subview/subspan) in every debug build instead of at one call site.
+//
+// Overloaded on the constness of network_v: the network writer sorts an
+// amplicon's neighbours in place and needs a Span, while the cluster
+// growth only reads them and takes a View.
+inline auto neighbours_of(std::vector<unsigned int> const & network_v,
+                          struct ampinfo_s const & amplicon) noexcept -> View<unsigned int> {
+  return make_view(network_v).subview(static_cast<std::size_t>(amplicon.link_start),
+                                     amplicon.link_count);
+}
+
+inline auto neighbours_of(std::vector<unsigned int> & network_v,
+                          struct ampinfo_s const & amplicon) noexcept -> Span<unsigned int> {
+  return make_span(network_v).subspan(static_cast<std::size_t>(amplicon.link_start),
+                                     amplicon.link_count);
+}
 
 /* Information about each swarm (cluster) */
 

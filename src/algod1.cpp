@@ -76,14 +76,13 @@ namespace {
     }
     current_swarm.sumlen += data.sequence_view(seed).length;
 
-    const auto link_start = ampinfo_v[seed].link_start;
-    const auto link_count = ampinfo_v[seed].link_count;
+    auto const neighbours = neighbours_of(network_v, seed_info);
     auto global_hits_alloc = global_hits_v.size();
 
     // widen to uint64_t: global_hits_count + link_count is otherwise a
     // 32-bit sum that could wrap and skip the resize, leading to an
     // out-of-bounds write into global_hits_v below.
-    const uint64_t required = static_cast<uint64_t>(global_hits_count) + link_count;
+    const uint64_t required = static_cast<uint64_t>(global_hits_count) + neighbours.size();
     if (required > global_hits_alloc)
       {
         while (required > global_hits_alloc) {
@@ -92,10 +91,8 @@ namespace {
         global_hits_v.resize(global_hits_alloc);
       }
 
-    for (auto offset = 0U; offset < link_count; ++offset)
+    for (auto const amp : neighbours)
       {
-        const auto amp = network_v[link_start + offset];
-
         if (ampinfo_v[amp].swarmid == no_swarm)
           {
             global_hits_v[global_hits_count] = amp;

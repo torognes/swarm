@@ -50,13 +50,7 @@ auto write_network_file(const uint64_t number_of_networks,
   assert(ampinfo_v.size() == data.sequence_count());
   auto counter = 0ULL;
   for (auto const& amplicon: ampinfo_v) {
-    const auto link_start = amplicon.link_start;
-    const auto link_count = amplicon.link_count;
-
-    // subspan() carries the bounds assertions this used to spell out
-    // before offsetting network_v.data() by hand
-    auto const neighbours = make_span(network_v)
-      .subspan(static_cast<std::size_t>(link_start), link_count);
+    auto const neighbours = neighbours_of(network_v, amplicon);
 
     // amplicon indexes are already sorted by decreasing abundance
     // then by header in db.cpp, so a natural ascending sort here
