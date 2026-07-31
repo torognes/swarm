@@ -41,25 +41,25 @@ namespace {
 
   auto collect_seeds(struct Parameters const & parameters,
                      Data const & data,
-                     uint64_t const amplicons,
-                     std::vector<struct ampliconinfo_s> const & amps_v) -> std::vector<struct swarminfo_t> {
+                     View<struct ampliconinfo_s> const amps) -> std::vector<struct swarminfo_t> {
+    auto const amplicons = amps.size();
     Progress progress("Collecting seeds:    ", amplicons, parameters);
     std::vector<struct swarminfo_t> seeds(amplicons);
     auto swarmcount = 0UL;
     uint64_t mass = 0;
-    auto previous_id = amps_v[0].swarmid;
-    auto seed = amps_v[0].ampliconid;
+    auto previous_id = amps.front().swarmid;
+    auto seed = amps.front().ampliconid;
     mass += data.abundance(seed);
     for (auto i = 1ULL; i < amplicons; ++i) {
-        auto const current_id = amps_v[i].swarmid;
+        auto const current_id = amps[i].swarmid;
         if (current_id != previous_id) {
             seeds[swarmcount].seed = seed;  // update previous
             seeds[swarmcount].mass = mass;
             ++swarmcount;
             mass = 0;
-            seed = amps_v[i].ampliconid;
+            seed = amps[i].ampliconid;
           }
-        mass += data.abundance(amps_v[i].ampliconid);
+        mass += data.abundance(amps[i].ampliconid);
         previous_id = current_id;
         progress.update(i);
       }
@@ -139,8 +139,7 @@ namespace {
   auto write_uclust_cluster(unsigned int const swarmid,
                             uint64_t const swarmsize,
                             uint64_t const seedampliconid,
-                            uint64_t const hitcount,
-                            std::vector<uint64_t> const & hits,
+                            View<uint64_t> const hits,
                             NwAligner & aligner,
                             struct Parameters const & parameters,
                             Data const & data) -> void {
@@ -159,7 +158,7 @@ namespace {
 
     // the cluster's members except its seed, which the S line above
     // already reported
-    for (auto const hit : make_view(hits).first(hitcount).drop(1)) {
+    for (auto const hit : hits.drop(1)) {
       auto const hit_seq = data.sequence_view(hit);
 
       auto const result = aligner.align(hit_seq, seed_seq);
@@ -191,17 +190,16 @@ namespace {
   };
 
 
-  auto write_swarm_listing(uint64_t const amplicons,
-                           Swarm_separators const separators,
+  auto write_swarm_listing(Swarm_separators const separators,
                            struct Parameters const & parameters,
                            Data const & data,
-                           std::vector<struct ampliconinfo_s> const & amps_v) -> void {
-    data.fprint_id(parameters.outfile.get(), amps_v[0].ampliconid,
+                           View<struct ampliconinfo_s> const amps) -> void {
+    data.fprint_id(parameters.outfile.get(), amps.front().ampliconid,
                    parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-    auto previous_id = amps_v[0].swarmid;
+    auto previous_id = amps.front().swarmid;
 
-    // amps_v[0] is printed above, so the loop covers the rest
-    for (auto const & amplicon : make_view(amps_v).first(amplicons).drop(1)) {
+    // the first amplicon is printed above, so the loop covers the rest
+    for (auto const & amplicon : amps.drop(1)) {
         auto const current_id = amplicon.swarmid;
         static_cast<void>(std::fputc(current_id == previous_id ? separators.within : separators.between,
                                      parameters.outfile.get()));
@@ -215,25 +213,23 @@ namespace {
 } // namespace
 
 
-auto write_swarms_default_format(uint64_t const amplicons,
-                                 struct Parameters const & parameters,
+auto write_swarms_default_format(struct Parameters const & parameters,
                                  Data const & data,
-                                 std::vector<struct ampliconinfo_s> const & amps_v) -> void {
+                                 View<struct ampliconinfo_s> const amps) -> void {
   /* native swarm output */
   static constexpr Swarm_separators separators {' ' /* usually a space */, '\n'};
-  write_swarm_listing(amplicons, separators, parameters, data, amps_v);
+  write_swarm_listing(separators, parameters, data, amps);
 }
 
 
-auto write_swarms_mothur_format(uint64_t const amplicons,
-                                unsigned int const swarmid,
+auto write_swarms_mothur_format(unsigned int const swarmid,
                                 struct Parameters const & parameters,
                                 Data const & data,
-                                std::vector<struct ampliconinfo_s> const & amps_v) -> void {
+                                View<struct ampliconinfo_s> const amps) -> void {
   /* mothur list file output */
   static constexpr Swarm_separators separators {',', '\t'};
   std::fprintf(parameters.outfile.get(), "swarm_%" PRId64 "\t%u\t", parameters.opt_differences, swarmid);
-  write_swarm_listing(amplicons, separators, parameters, data, amps_v);
+  write_swarm_listing(separators, parameters, data, amps);
 }
 
 
@@ -256,11 +252,10 @@ auto write_internal_structure_line(uint64_t const parent_id,
 }
 
 
-auto write_representative_sequences(uint64_t const amplicons,
-                                    struct Parameters const & parameters,
+auto write_representative_sequences(struct Parameters const & parameters,
                                     Data const & data,
-                                    std::vector<struct ampliconinfo_s> const & amps_v) -> void {
-  auto seeds = collect_seeds(parameters, data, amplicons, amps_v);
+                                    View<struct ampliconinfo_s> const amps) -> void {
+  auto seeds = collect_seeds(parameters, data, amps);
   sort_seeds(parameters, data, seeds);
   write_seeds(parameters, data, seeds);
 }
@@ -269,12 +264,12 @@ auto write_representative_sequences(uint64_t const amplicons,
 auto write_cluster_outputs(unsigned int const swarmid,
                            uint64_t const seedampliconid,
                            Cluster_state const & state,
-                           std::vector<uint64_t> const & hits,
+                           View<uint64_t> const hits,
                            NwAligner * const aligner,
                            struct Parameters const & parameters,
                            Data const & data) -> void {
   if (parameters.uclustfile.get() != nullptr) {
-    write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, state.hitcount, hits,
+    write_uclust_cluster(swarmid, state.swarmsize, seedampliconid, hits,
                          *aligner, parameters, data);
   }
 

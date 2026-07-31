@@ -210,27 +210,26 @@ namespace {
   }
 
 
-  auto finalize_algo_run(uint64_t const amplicons,
-                         unsigned int const swarmid,
+  auto finalize_algo_run(unsigned int const swarmid,
                          uint64_t const largestswarm,
                          uint64_t const maxgenerations,
                          struct Parameters const & parameters,
                          Data const & data,
-                         std::vector<struct ampliconinfo_s> const & amps_v) -> void {
+                         View<struct ampliconinfo_s> const amps) -> void {
     /* output swarms */
-    if (amplicons != 0) {
+    if (not amps.empty()) {
       if (parameters.opt_mothur) {
-        write_swarms_mothur_format(amplicons, swarmid, parameters, data, amps_v);
+        write_swarms_mothur_format(swarmid, parameters, data, amps);
       }
       else {
-        write_swarms_default_format(amplicons, parameters, data, amps_v);
+        write_swarms_default_format(parameters, data, amps);
       }
     }
 
 
     /* dump seeds in fasta format with sum of abundances */
-    if ((not parameters.opt_seeds.empty()) and (amplicons != 0)) {
-      write_representative_sequences(amplicons, parameters, data, amps_v);
+    if ((not parameters.opt_seeds.empty()) and (not amps.empty())) {
+      write_representative_sequences(parameters, data, amps);
     }
 
     static_cast<void>(std::fputc('\n', parameters.logfile));
@@ -477,14 +476,17 @@ auto algo_run(struct Parameters const & parameters,
       largestswarm = std::max(state.swarmsize, largestswarm);
       maxgenerations = std::max(state.maxgen, maxgenerations);
 
-      write_cluster_outputs(swarmid, seedampliconid, state, workspace.hits,
+      // the cluster's members, seed first: the filled part of the hit
+      // buffer, not the pool-sized buffer behind it
+      write_cluster_outputs(swarmid, seedampliconid, state,
+                            make_view(workspace.hits).first(state.hitcount),
                             aligner.get(), parameters, data);
 
       progress.update(cursor.seeded);
   }
   progress.done();
 
-  finalize_algo_run(amplicons, swarmid, largestswarm, maxgenerations,
-                    parameters, data, amps_v);
+  finalize_algo_run(swarmid, largestswarm, maxgenerations,
+                    parameters, data, make_view(amps_v));
 }
 

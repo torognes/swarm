@@ -30,24 +30,25 @@
    fasta format, and the per-swarm uclust and statistics records. */
 
 #include "algo_internal.hpp"  // ampliconinfo_s, Cluster_state
+#include "view.hpp"         // View
 #include <cstdint>          // uint64_t
-#include <vector>
 
 struct Parameters;  // defined in swarm.hpp
 class Data;         // defined in db.hpp
 class NwAligner;    // defined in utils/nw_aligner.hpp
 
 
-auto write_swarms_default_format(uint64_t amplicons,
-                                 struct Parameters const & parameters,
+// amps is the whole amplicon pool, in cluster order. It carries its own
+// length, so there is no separate amplicon count that a later edit could
+// leave disagreeing with it.
+auto write_swarms_default_format(struct Parameters const & parameters,
                                  Data const & data,
-                                 std::vector<struct ampliconinfo_s> const & amps_v) -> void;
+                                 View<struct ampliconinfo_s> amps) -> void;
 
-auto write_swarms_mothur_format(uint64_t amplicons,
-                                unsigned int swarmid,
+auto write_swarms_mothur_format(unsigned int swarmid,
                                 struct Parameters const & parameters,
                                 Data const & data,
-                                std::vector<struct ampliconinfo_s> const & amps_v) -> void;
+                                View<struct ampliconinfo_s> amps) -> void;
 
 auto write_internal_structure_line(uint64_t parent_id,
                                    uint64_t child_id,
@@ -57,15 +58,16 @@ auto write_internal_structure_line(uint64_t parent_id,
                                    struct Parameters const & parameters,
                                    Data const & data) -> void;
 
-auto write_representative_sequences(uint64_t amplicons,
-                                    struct Parameters const & parameters,
+auto write_representative_sequences(struct Parameters const & parameters,
                                     Data const & data,
-                                    std::vector<struct ampliconinfo_s> const & amps_v) -> void;
+                                    View<struct ampliconinfo_s> amps) -> void;
 
+// hits is the cluster's members, seed first: the filled part of the
+// caller's hit buffer, not the pool-sized buffer behind it.
 auto write_cluster_outputs(unsigned int swarmid,
                            uint64_t seedampliconid,
                            Cluster_state const & state,
-                           std::vector<uint64_t> const & hits,
+                           View<uint64_t> hits,
                            NwAligner * aligner,
                            struct Parameters const & parameters,
                            Data const & data) -> void;
