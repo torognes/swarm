@@ -81,9 +81,26 @@ public:
 private:
   static constexpr std::size_t score_matrix_alignment {16};
 
+  // A thread's share of the target list: `count` entries starting at
+  // `first`. Returned as one value rather than written through two
+  // adjacent uint64_t references, which a caller could fill in either
+  // order. An empty window (count == 0) means the list is exhausted.
+  //
+  // No default member initializers: under C++11 they would make this a
+  // non-aggregate, and next_window() returns Work_window{first, count}.
+  // Work_window{} value-initializes both members, which is the empty
+  // window; there is no uninitialized declaration of this type.
+  // C++14 refactoring: add {0} initializers, aggregates may have them
+  struct Work_window {
+    uint64_t first;
+    uint64_t count;
+
+    auto empty() const noexcept -> bool { return count == 0; }
+  };
+
   auto init(struct Search_data & thread_data) const -> void;
   auto chunk(struct Search_data & thread_data, Bit_mode bits) -> void;
-  auto getwork(uint64_t & countref, uint64_t & firstref) -> bool;
+  auto next_window() -> Work_window;
 
   std::reference_wrapper<Data const> data_;
   int64_t gapopen_ {0};

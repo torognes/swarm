@@ -155,7 +155,7 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
 auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> void {
   assert(thread_data.target_count != 0);
 
-  // The window this thread was handed by getwork(), computed once here
+  // The window this thread was handed by next_window(), computed once here
   // rather than as four unchecked pointer bumps: the subviews assert
   // their own bounds against the caller's arrays in debug builds.
   auto const first = thread_data.target_index;
@@ -191,35 +191,31 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
 }
 
 
-auto Scanner::getwork(uint64_t & countref, uint64_t & firstref) -> bool {
-  // countref = how many sequences to search
-  // firstref = index into targets/scores/diffs where thread should start
-
-  bool status {false};
-
+auto Scanner::next_window() -> Scanner::Work_window {
   std::lock_guard<std::mutex> const lock(scan_mutex_);
 
   auto const listlength = targets_.size();
-  if (next_ < listlength) {
-    const uint64_t chunksize =
-      ((listlength - next_ + remainingchunks_ - 1) / remainingchunks_);
-
-    countref = chunksize;
-    firstref = next_;
-
-    next_ += chunksize;
-    --remainingchunks_;
-    status = true;
+  if (next_ >= listlength) {
+    return Work_window{};  // exhausted
   }
 
-  return status;
+  const uint64_t chunksize =
+    ((listlength - next_ + remainingchunks_ - 1) / remainingchunks_);
+  Work_window const window {next_, chunksize};
+
+  next_ += chunksize;
+  --remainingchunks_;
+
+  return window;
 }
 
 
 auto Scanner::worker_core(const uint64_t thread_id) -> void {
   auto & thread_data = search_data_v_[thread_id];
   init(thread_data);
-  while (getwork(thread_data.target_count, thread_data.target_index)) {
+  for (auto window = next_window(); not window.empty(); window = next_window()) {
+    thread_data.target_index = window.first;
+    thread_data.target_count = window.count;
     chunk(thread_data, bits_);
   }
 }
