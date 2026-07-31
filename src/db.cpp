@@ -42,7 +42,7 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fileno, fprintf(), fputc(), size_t // stdio.h: fdopen, ssize_t, getline
-#include <cstdlib>  // qsort()
+#include <cstdlib>  // std::strtoll()
 #include <cstring>  // memcpy
 #include <iterator>  // std::next()
 #include <limits>
