@@ -187,8 +187,9 @@ private:
 // The container is taken by non-const reference on purpose: a const
 // container then fails to compile rather than quietly yielding a mutable
 // span over data it does not own the right to modify.
+// constexpr for the same reason as make_view(): see the note there.
 template <typename Container>
-auto make_span(Container & container) noexcept
+constexpr auto make_span(Container & container) noexcept
   -> Span<typename Container::value_type> {
   return Span<typename Container::value_type>{container.data(), container.size()};
 }

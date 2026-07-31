@@ -216,8 +216,17 @@ private:
 // std::string) all have noexcept data() and size(), so the only other
 // operation left is View's noexcept constructor. A container whose
 // accessors can throw is not a supported argument.
+//
+// constexpr: what C++11 requires of a constexpr function is the shape of
+// the declaration, not that every call can be folded -- one return
+// statement, a literal return type (View has an implicitly constexpr
+// defaulted default constructor and two literal members), and literal
+// parameter types (a reference type is one). No standard container has a
+// constexpr data() before C++17, so under C++11 the specializations used
+// here are simply not constant expressions; the keyword costs nothing and
+// starts working the day the standard level moves.
 template <typename Container>
-auto make_view(Container const & container) noexcept
+constexpr auto make_view(Container const & container) noexcept
   -> View<typename Container::value_type> {
   return View<typename Container::value_type>{container.data(), container.size()};
 }
