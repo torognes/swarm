@@ -28,6 +28,7 @@
 #include "nw_aligner.hpp"
 #include "print_view.hpp"  // fprint
 #include "progress.hpp"
+#include "view.hpp"  // View, make_view
 #include <algorithm>  // std::sort
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -156,8 +157,9 @@ namespace {
     static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
     std::fflush(parameters.uclustfile.get());
 
-    for (auto i = 1ULL; i < hitcount; ++i) {
-      auto const hit = hits[i];
+    // the cluster's members except its seed, which the S line above
+    // already reported
+    for (auto const hit : make_view(hits).first(hitcount).drop(1)) {
       auto const hit_seq = data.sequence_view(hit);
 
       auto const result = aligner.align(hit_seq, seed_seq);
@@ -198,11 +200,12 @@ namespace {
                    parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     auto previous_id = amps_v[0].swarmid;
 
-    for (auto i = 1ULL; i < amplicons; ++i) {
-        auto const current_id = amps_v[i].swarmid;
+    // amps_v[0] is printed above, so the loop covers the rest
+    for (auto const & amplicon : make_view(amps_v).first(amplicons).drop(1)) {
+        auto const current_id = amplicon.swarmid;
         static_cast<void>(std::fputc(current_id == previous_id ? separators.within : separators.between,
                                      parameters.outfile.get()));
-        data.fprint_id(parameters.outfile.get(), amps_v[i].ampliconid,
+        data.fprint_id(parameters.outfile.get(), amplicon.ampliconid,
                        parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         previous_id = current_id;
       }
