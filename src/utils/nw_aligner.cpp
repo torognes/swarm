@@ -263,7 +263,7 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
 
   // backtracking produces a reversed alignment (starting from the end)
   std::reverse(raw_alignment_.begin(), raw_alignment_.end());
-  compress_alignment_to_cigar(raw_alignment_, cigar_string_);
+  compress_alignment_to_cigar(make_view(raw_alignment_), cigar_string_);
 
   // loosing precision when converting raw_alignment_.size() and nwdiff
   // to double is not an issue, no need to add assertions

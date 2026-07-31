@@ -21,9 +21,13 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#include "view.hpp"  // View<char>
 #include <string>
-#include <vector>
 
 
-auto compress_alignment_to_cigar(std::vector<char> const & input,
+// input is the raw alignment, one 'M'/'I'/'D' per aligned position; the
+// run-length encoding is appended to destination. A View rather than a
+// vector: the encoder only reads a contiguous run of characters, so it
+// need not know which container holds them.
+auto compress_alignment_to_cigar(View<char> input,
                                  std::string & destination) -> void;

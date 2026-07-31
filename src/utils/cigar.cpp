@@ -22,43 +22,36 @@
 */
 
 #include "cigar.hpp"
+#include "view.hpp"  // View<char>
+#include <algorithm>  // std::find_if
 #include <cassert>
+#include <iterator>  // std::distance
 #include <string>
-#include <vector>
 
 
-auto compress_alignment_to_cigar(std::vector<char> const & input,
+auto compress_alignment_to_cigar(View<char> const input,
                                  std::string & destination) -> void {
   assert(not input.empty());
 
-  // run-length encoding (RLE) algorithm
-  auto is_first = true;
-  auto previous_char = '\0';
-  auto count = 0UL;
-  for (const auto current_char: input) {
-    if (is_first) {
-      previous_char = current_char;
-      ++count;
-      is_first = false;
-      continue;
+  // run-length encoding (RLE) algorithm: walk from one run boundary to the
+  // next, rather than tracking the previous character and its count across
+  // iterations. The final run needs no special case, since it ends at
+  // input.cend() like every other one.
+  auto run_begin = input.cbegin();
+  while (run_begin != input.cend()) {
+    auto const operation = *run_begin;
+    auto const * const run_end =
+      std::find_if(run_begin, input.cend(),
+                   [operation](char const current_char) noexcept -> bool {
+                     return current_char != operation;
+                   });
+    auto const length = std::distance(run_begin, run_end);
+    if (length > 1) {
+      destination.append(std::to_string(length));
     }
-    if (current_char == previous_char) {
-      ++count;
-      continue;
-    }
-    if (count > 1) {
-      destination.append(std::to_string(count));
-      count = 1;
-    }
-    destination.push_back(previous_char);
-    previous_char = current_char;
+    destination.push_back(operation);
+    run_begin = run_end;
   }
-  
-  // last item
-  if (count > 1) {
-    destination.append(std::to_string(count));
-  }
-  destination.push_back(input.back());
 }
 
 
