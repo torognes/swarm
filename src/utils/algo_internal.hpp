@@ -33,6 +33,9 @@
   records.
 */
 
+#include "span.hpp"  // Span, make_span
+#include "view.hpp"  // View, make_view
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
 
@@ -76,7 +79,7 @@ struct Cluster_workspace {
   std::vector<uint64_t> targetindices;
   std::vector<uint64_t> scores_v;
   std::vector<uint64_t> diffs_v;
-  std::vector<uint64_t> alignlengths;
+  std::vector<uint64_t> alignlengths_v;
   std::vector<uint64_t> qgramamps_v;
   std::vector<uint64_t> qgramdiffs_v;
   std::vector<uint64_t> qgramindices_v;
@@ -87,11 +90,39 @@ struct Cluster_workspace {
       targetindices(amplicons),
       scores_v(amplicons),
       diffs_v(amplicons),
-      alignlengths(amplicons),
+      alignlengths_v(amplicons),
       qgramamps_v(amplicons),
       qgramdiffs_v(amplicons),
       qgramindices_v(amplicons),
       hits(amplicons) {
+  }
+
+  // Every buffer above is allocated for the whole amplicon pool, while the
+  // clustering code works on the first `count` entries of several of them
+  // at once: the q-gram candidate list and its distances, then the target
+  // list and its three result columns. The accessors below hand out those
+  // windows, so a count is no longer paired with a buffer by hand at each
+  // call site, and first() checks the window against the allocation.
+  //
+  // The read-only windows are const members; the ones the searches write
+  // through are not, because a Span cannot come from a const container.
+  auto qgram_candidates(std::size_t const count) const noexcept -> View<uint64_t> {
+    return make_view(qgramamps_v).first(count);
+  }
+  auto qgram_diffs(std::size_t const count) noexcept -> Span<uint64_t> {
+    return make_span(qgramdiffs_v).first(count);
+  }
+  auto targets(std::size_t const count) const noexcept -> View<uint64_t> {
+    return make_view(targetampliconids).first(count);
+  }
+  auto scores(std::size_t const count) noexcept -> Span<uint64_t> {
+    return make_span(scores_v).first(count);
+  }
+  auto diffs(std::size_t const count) noexcept -> Span<uint64_t> {
+    return make_span(diffs_v).first(count);
+  }
+  auto alignlengths(std::size_t const count) noexcept -> Span<uint64_t> {
+    return make_span(alignlengths_v).first(count);
   }
 };
 

@@ -292,8 +292,8 @@ namespace {
 
     // the collected candidates, not the pool-sized scratch behind them
     qgram_differ.fast(seedampliconid,
-                      make_view(workspace.qgramamps_v).first(listlen),
-                      make_span(workspace.qgramdiffs_v).first(listlen));
+                      workspace.qgram_candidates(listlen),
+                      workspace.qgram_diffs(listlen));
 
     uint64_t targetcount = 0;
     for (auto i = 0ULL; i < listlen; ++i) {
@@ -312,11 +312,12 @@ namespace {
 
     // the candidate window inside the workspace: the first targetcount
     // entries of the target list and of its three result columns
-    auto const targets = make_view(workspace.targetampliconids).first(targetcount);
-    auto const scores = make_span(workspace.scores_v).first(targetcount);
-    auto const diffs = make_span(workspace.diffs_v).first(targetcount);
-    auto const alignlengths = make_span(workspace.alignlengths).first(targetcount);
-    scanner.run(seedampliconid, targets, scores, diffs, alignlengths, bits);
+    scanner.run(seedampliconid,
+                workspace.targets(targetcount),
+                workspace.scores(targetcount),
+                workspace.diffs(targetcount),
+                workspace.alignlengths(targetcount),
+                bits);
 
     for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
       auto const diff = workspace.diffs_v[target_id];
@@ -363,8 +364,8 @@ namespace {
 
       // as above: the collected candidates, not the whole scratch buffer
       qgram_differ.fast(subseed.ampliconid,
-                        make_view(workspace.qgramamps_v).first(subseedlistlen),
-                        make_span(workspace.qgramdiffs_v).first(subseedlistlen));
+                        workspace.qgram_candidates(subseedlistlen),
+                        workspace.qgram_diffs(subseedlistlen));
 
       for (auto i = 0ULL; i < subseedlistlen; ++i) {
         if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {
@@ -377,11 +378,12 @@ namespace {
       if (targetcount == 0) { continue; }
 
       // the candidate window inside the workspace, as above
-      auto const targets = make_view(workspace.targetampliconids).first(targetcount);
-      auto const scores = make_span(workspace.scores_v).first(targetcount);
-      auto const diffs = make_span(workspace.diffs_v).first(targetcount);
-      auto const alignlengths = make_span(workspace.alignlengths).first(targetcount);
-      scanner.run(subseed.ampliconid, targets, scores, diffs, alignlengths, bits);
+      scanner.run(subseed.ampliconid,
+                  workspace.targets(targetcount),
+                  workspace.scores(targetcount),
+                  workspace.diffs(targetcount),
+                  workspace.alignlengths(targetcount),
+                  bits);
 
       for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
         auto const diff = workspace.diffs_v[target_id];
