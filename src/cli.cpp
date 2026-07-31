@@ -27,7 +27,7 @@
 #include "utils/gcd.hpp"
 #include "utils/open_files.hpp"
 #include "arch/x86_64/cpu_features.hpp"
-#include <algorithm>  // std::min()
+#include <algorithm>  // std::min(), std::transform()
 #include <array>
 #include <bitset>
 #include <cassert>
@@ -112,13 +112,18 @@ namespace {
 
   auto build_long_options() -> std::array<struct option, option_specs.size() + 1> {
     std::array<struct option, option_specs.size() + 1> result {{}};
-    for (std::size_t idx = 0; idx < option_specs.size(); ++idx) {
-      result[idx].name    = option_specs[idx].long_name;
-      result[idx].has_arg = option_specs[idx].needs_arg ? required_argument : no_argument;
-      result[idx].flag    = nullptr;
-      result[idx].val     = static_cast<unsigned char>(option_specs[idx].short_name);
-    }
-    // last slot is the {nullptr, 0, nullptr, 0} sentinel (value-initialised above)
+    std::transform(option_specs.cbegin(), option_specs.cend(), result.begin(),
+                   [](OptionSpec const & spec) -> struct option {
+                     struct option converted {};
+                     converted.name    = spec.long_name;
+                     converted.has_arg = spec.needs_arg ? required_argument : no_argument;
+                     converted.flag    = nullptr;
+                     converted.val     = static_cast<unsigned char>(spec.short_name);
+                     return converted;
+                   });
+    // last slot is the {nullptr, 0, nullptr, 0} sentinel (value-initialised
+    // above, and left untouched: transform writes one entry per spec, and
+    // result is one longer than option_specs)
     return result;
   }
 
