@@ -315,7 +315,6 @@ namespace {
                 workspace.targets(targetcount),
                 workspace.scores(targetcount),
                 workspace.diffs(targetcount),
-                workspace.alignlengths(targetcount),
                 bits);
 
     for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
@@ -381,7 +380,6 @@ namespace {
                   workspace.targets(targetcount),
                   workspace.scores(targetcount),
                   workspace.diffs(targetcount),
-                  workspace.alignlengths(targetcount),
                   bits);
 
       for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {

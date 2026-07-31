@@ -32,8 +32,8 @@ struct Sequence;  // defined in db.hpp
 
 
 // seqnos is the window of candidate amplicon indexes to align the query
-// against; scores, diffs and alignmentlengths are the caller's output
-// windows over the same candidates, so all four carry the same length.
+// against; scores and diffs are the caller's output windows over the same
+// candidates, so all three carry the same length.
 auto search8(Data const & data,
              Search_data & search_data,
              BYTE gap_open_penalty,
@@ -42,5 +42,4 @@ auto search8(Data const & data,
              View<uint64_t> seqnos,
              Span<uint64_t> scores,
              Span<uint64_t> diffs,
-             Span<uint64_t> alignmentlengths,
              Sequence const & query) -> void;

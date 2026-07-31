@@ -64,14 +64,13 @@ public:
   ~Scanner() = default;
 
   // Searches the query against the amplicons listed in 'targets',
-  // writing scores, diffs and alignment lengths back to the caller-owned
-  // windows. All four must be the same length: they are one candidate
-  // list and its three result columns, indexed in lockstep.
+  // writing scores and diffs back to the caller-owned windows. All three
+  // must be the same length: they are one candidate list and its two
+  // result columns, indexed in lockstep.
   auto run(uint64_t query_no,
            View<uint64_t> targets,
            Span<uint64_t> scores,
            Span<uint64_t> diffs,
-           Span<uint64_t> alignlengths,
            Bit_mode bits) -> void;
 
   // entry point for each worker thread (also called directly when a
@@ -115,12 +114,11 @@ private:
   Sequence query_ {};
   uint64_t next_ {0};
   uint64_t remainingchunks_ {0};
-  // one candidate list and its three result columns; targets_.size() is
+  // one candidate list and its two result columns; targets_.size() is
   // the list length that used to be tracked separately in length_
   View<uint64_t> targets_ {};
   Span<uint64_t> scores_ {};
   Span<uint64_t> diffs_ {};
-  Span<uint64_t> alignlengths_ {};
   Bit_mode bits_ {Bit_mode::bits_16};
 
   std::vector<struct Search_data> search_data_v_;

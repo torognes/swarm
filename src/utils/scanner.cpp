@@ -156,7 +156,7 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
   assert(thread_data.target_count != 0);
 
   // The window this thread was handed by next_window(), computed once here
-  // rather than as four unchecked pointer bumps: the subviews assert
+  // rather than as three unchecked pointer bumps: the subviews assert
   // their own bounds against the caller's arrays in debug builds.
   auto const first = thread_data.target_index;
   auto const count = thread_data.target_count;
@@ -172,7 +172,6 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
              targets_.subview(first, count),
              scores_.subspan(first, count),
              diffs_.subspan(first, count),
-             alignlengths_.subspan(first, count),
              query_);
   } else {
     assert(gapopen_ <= std::numeric_limits<BYTE>::max());
@@ -185,7 +184,6 @@ auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> vo
             targets_.subview(first, count),
             scores_.subspan(first, count),
             diffs_.subspan(first, count),
-            alignlengths_.subspan(first, count),
             query_);
   }
 }
@@ -225,11 +223,9 @@ auto Scanner::run(const uint64_t query_no,
                   View<uint64_t> const targets,
                   Span<uint64_t> const scores,
                   Span<uint64_t> const diffs,
-                  Span<uint64_t> const alignlengths,
                   const Bit_mode bits) -> void {
   assert(scores.size() == targets.size());
   assert(diffs.size() == targets.size());
-  assert(alignlengths.size() == targets.size());
 
   query_ = data_.get().sequence_view(query_no);
 
@@ -237,7 +233,6 @@ auto Scanner::run(const uint64_t query_no,
   targets_ = targets;
   scores_ = scores;
   diffs_ = diffs;
-  alignlengths_ = alignlengths;
   bits_ = bits;
 
   const auto thr = adjust_thread_number(bits, targets_.size(), n_threads_);

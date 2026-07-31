@@ -45,29 +45,20 @@ constexpr auto compute_mask(uint64_t const channel,
 enum struct Alignment: unsigned char { Insertion, Deletion, Match };
 
 
-// What one backtrack produces: the number of differences in the optimal
-// alignment and its length. Returned together, where the length used to
-// travel back through a uint64_t out-pointer.
-//
-// No default member initializers, so that this stays a C++11 aggregate and
-// can be brace-initialized with both values below.
-// C++14 refactoring: add {0} initializers, aggregates may have them
-struct Backtrack_result {
-  uint64_t differences;
-  uint64_t length;
-};
-
-
 // qseq and dseq each carry their own nucleotide count, so there is no
 // way to pair one sequence's data with the other's length: the two
 // parameters used to be four, adjacent and same-typed.
+//
+// Returns the number of differences in the optimal alignment. The
+// alignment's length is computed on the way (it is what the difference
+// count is derived from) but not reported: no caller reads it.
 template <uint8_t n_bits>
 auto backtrack(Sequence const & qseq,
                Sequence const & dseq,
                View<uint64_t> const dirbuffer,
                uint64_t offset,
                uint64_t channel,
-               const uint64_t longestdbsequence) -> Backtrack_result {
+               const uint64_t longestdbsequence) -> uint64_t {
   static constexpr uint8_t bits8 {8};
   static constexpr uint8_t bits16 {16};
   static_assert(n_bits == bits8 or n_bits == bits16, "n_bits must be 8 or 16");
@@ -134,7 +125,7 @@ auto backtrack(Sequence const & qseq,
   if (column >= 0) { aligned += static_cast<uint64_t>(column) + 1; }
   if (row >= 0)    { aligned += static_cast<uint64_t>(row) + 1; }
 
-  return Backtrack_result{aligned - matches, aligned};
+  return aligned - matches;
 }
 
 #endif  // SWARM_UTILS_BACKTRACK_H
