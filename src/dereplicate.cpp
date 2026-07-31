@@ -29,6 +29,7 @@
 #include <algorithm>  // sort
 #include <cassert>  // assert
 #include <cinttypes>  // macro PRIu64
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fprintf(), fputc(), fputs()
 #include <iterator>  // std::next
@@ -79,9 +80,13 @@ namespace {
 
   auto release_unused_memory(std::vector<struct bucket>& hashtable,
                              int64_t const swarmcount) -> void {
-    hashtable.erase(hashtable.begin() + swarmcount, hashtable.end());
+    auto const cluster_count = static_cast<std::size_t>(swarmcount);
+    // resize() lengthens a vector that is too short, so shrinking is the
+    // caller's invariant rather than something resize() enforces:
+    // swarmcount counts occupied buckets and cannot exceed the table.
+    assert(cluster_count <= hashtable.size());
+    hashtable.resize(cluster_count);
     hashtable.shrink_to_fit();
-    assert(hashtable.size() == static_cast<uint64_t>(swarmcount));
   }
 
 

@@ -33,14 +33,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // fprintf(), fputc(), fputs(), fflush
-#include <iterator> // std::next
 #include <vector>
-
-#ifndef NDEBUG
-// C++17 refactoring: [[maybe_unused]]
-#include <limits>
-constexpr auto long_max = std::numeric_limits<long int>::max();
-#endif
 
 
 namespace {
@@ -74,8 +67,8 @@ namespace {
     ++swarmcount;
 
     // free some memory
-    assert(swarmcount <= long_max);
-    seeds.erase(std::next(seeds.begin(), static_cast<long int>(swarmcount)), seeds.end());
+    assert(swarmcount <= seeds.size());  // resize() would lengthen, not shrink
+    seeds.resize(swarmcount);
     seeds.shrink_to_fit();
 
     return seeds;
