@@ -45,14 +45,18 @@ public:
   auto operator=(Line_buffer &&)      -> Line_buffer & = delete;
 
   // Read one line from `stream` into the buffer and bump `filepos`
-  // by the number of bytes consumed. On read failure, the buffer is
-  // left empty (first byte set to '\0'); callers can use empty() as
-  // the end-of-input sentinel.
+  // by the number of bytes consumed. On read failure the buffer is left
+  // empty and at_end() becomes true.
   auto read_next(std::FILE * stream, uint64_t & filepos) -> void;
 
   auto data()       const noexcept -> char const * { return data_; }
-  auto empty()      const noexcept -> bool         { return length_ == 0; }
   auto peek_first() const noexcept -> char         { return *data_; }
+
+  // True once the stream is exhausted. Deliberately distinct from "this
+  // line has no content": a line that begins with a null byte has zero
+  // visible length (see read_next) without the input being over, and
+  // conflating the two made swarm discard the rest of the file.
+  auto at_end() const noexcept -> bool { return at_end_; }
 
   // The line as read, without the terminating '\0'. read_next() stores
   // the length instead of discarding it, so consumers no longer have to
@@ -66,4 +70,5 @@ private:
   char *      data_     {nullptr};
   std::size_t capacity_ {0};
   std::size_t length_   {0};
+  bool        at_end_   {false};
 };

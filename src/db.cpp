@@ -282,7 +282,7 @@ namespace {
     uint64_t length {0};
     entry.sequence.offset = datalen;
 
-    while ((not line_buf.empty()) and (line_buf.peek_first() != '>')) {
+    while ((not line_buf.at_end()) and (line_buf.peek_first() != '>')) {
         for (auto const byte : line_buf.view()) {
             auto const character = static_cast<unsigned char>(byte);
             auto const category = classify[character];
@@ -652,7 +652,7 @@ namespace {
 
     line_buf.read_next(input_fp_handle.get(), filepos);
 
-    while (not line_buf.empty()) {
+    while (not line_buf.at_end()) {
         /* read header */
         /* the header ends at a space, cr, lf or null character */
 

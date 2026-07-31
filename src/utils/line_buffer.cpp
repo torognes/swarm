@@ -179,6 +179,7 @@ auto Line_buffer::read_next(std::FILE * stream, uint64_t & filepos) -> void
   if (linelen < 0) {
     *data_ = '\0';
     length_ = 0;
+    at_end_ = true;
     return;
   }
   filepos += static_cast<unsigned long int>(linelen);
@@ -192,10 +193,13 @@ auto Line_buffer::read_next(std::FILE * stream, uint64_t & filepos) -> void
   // filepos still counts the whole line, since it tracks the file
   // position and not what was read out of the buffer.
   //
-  // Whether such a line should be rejected outright instead of silently
-  // truncated is a separate, open question: an existing test asserts
-  // that it is accepted (test_input.sh, "ascii character 0 is allowed
-  // in sequences"), and the manual page says nothing about NUL bytes.
+  // Whether a null byte *inside* a line should be rejected outright
+  // rather than silently truncating it is a separate, open question: an
+  // existing test asserts that it is accepted (test_input.sh, "ascii
+  // character 0 is allowed in sequences"). The manual page documents the
+  // truncation. A null byte at the *start* of a line is a different
+  // matter and is handled: it yields a zero-length line, not end of
+  // input, so the rest of the file is still read.
   auto const * const line_begin = data_;
   auto const * const line_end = std::next(line_begin, static_cast<std::ptrdiff_t>(linelen));
   auto const * const first_nul = std::find(line_begin, line_end, '\0');
