@@ -184,23 +184,81 @@ namespace {
   }
 
 
+  // The database byte buffer while parsing: the storage, plus how much of
+  // it is in use. The vector's own size() is not that number -- it is the
+  // allocated length, grown in memchunk steps -- so the two had to travel
+  // together, as a (data_v, datalen) argument pair through eight parsing
+  // helpers, each writing through &data_v[datalen] after its own growth
+  // call. Growth, the used length and the writes live here instead.
+  //
+  // Holds a reference rather than owning the vector: the caller keeps the
+  // storage, because build_index() later takes raw pointers into it.
+  class Byte_sink {
+  public:
+    explicit Byte_sink(std::vector<char> & storage) noexcept
+      : storage_ (storage) {
+    }
+
+    // Bytes written so far, and the offset the next append will land on.
+    auto size() const noexcept -> uint64_t { return used_; }
+
+    // The in-RAM form cannot be smaller than a quarter of the on-disk
+    // form, so reserve that much up front for a regular file.
+    auto reserve_for_file(uint64_t const filesize) -> void {
+      initial_allocation(storage_, filesize);
+    }
+
+    auto append(View<char> const bytes) -> void {
+      linear_resize_if_need_be(storage_, used_ + bytes.size());
+      std::copy_n(bytes.cbegin(), bytes.size(),
+                  std::next(storage_.begin(), static_cast<std::ptrdiff_t>(used_)));
+      used_ += bytes.size();
+    }
+
+    auto append_byte(char const value) -> void {
+      linear_resize_if_need_be(storage_, used_ + 1);
+      storage_[used_] = value;
+      ++used_;
+    }
+
+    // One packed 64-bit word, copied rather than punned: see Nt_packer.
+    auto append_word(uint64_t const value) -> void {
+      linear_resize_if_need_be(storage_, used_ + sizeof(value));
+      std::memcpy(&storage_[used_], &value, sizeof(value));
+      used_ += sizeof(value);
+    }
+
+    // Reclaim the slack the growth steps left, before anything takes raw
+    // pointers into the storage (a later shrink would reallocate and
+    // dangle them). shrink_to_fit reallocates down to size(), so lower
+    // size() to the used length first.
+    auto shrink_to_used() -> void {
+      storage_.resize(used_);
+      storage_.shrink_to_fit();
+    }
+
+  private:
+    std::vector<char> & storage_;
+    uint64_t used_ {0};
+  };
+
+
   // Pack 4 nucleotides per byte into a 64-bit accumulator and flush
   // it to data_v as a fixed-size memcpy whenever it fills up. A final
   // flush() at end-of-sequence writes the partially-filled buffer
   // padded with zeros (so the on-disk layout is unchanged).
   struct Nt_packer {
-    auto push(uint64_t const nucleotide_code,
-              std::vector<char> & data_v, uint64_t & datalen) -> void
+    auto push(uint64_t const nucleotide_code, Byte_sink & sink) -> void
     {
       buffer |= nucleotide_code << (2 * filled);
       ++filled;
-      if (filled == capacity) { flush(data_v, datalen); }
+      if (filled == capacity) { flush(sink); }
     }
 
     // flush the partially-filled buffer at end-of-sequence, if any
-    auto finalize(std::vector<char> & data_v, uint64_t & datalen) -> void
+    auto finalize(Byte_sink & sink) -> void
     {
-      if (filled > 0) { flush(data_v, datalen); }
+      if (filled > 0) { flush(sink); }
     }
 
   private:
@@ -208,11 +266,9 @@ namespace {
     unsigned int filled {0};
     static constexpr unsigned int capacity {4 * sizeof(buffer)};  // 32 bases per uint64
 
-    auto flush(std::vector<char> & data_v, uint64_t & datalen) -> void
+    auto flush(Byte_sink & sink) -> void
     {
-      linear_resize_if_need_be(data_v, datalen + sizeof(buffer));
-      std::memcpy(&data_v[datalen], &buffer, sizeof(buffer));
-      datalen += sizeof(buffer);
+      sink.append_word(buffer);
       buffer = 0;
       filled = 0;
     }
@@ -225,8 +281,7 @@ namespace {
   // max_header_length is exceeded.
   auto store_header(Line_buffer const & line_buf,
                     struct Entry & entry,
-                    std::vector<char> & data_v,
-                    uint64_t & datalen,
+                    Byte_sink & sink,
                     struct Seq_stats & seq_stats) -> void
   {
     if (line_buf.peek_first() != '>') {
@@ -253,12 +308,10 @@ namespace {
 
     seq_stats.longestheader = std::max(headerlen, seq_stats.longestheader);
 
-    linear_resize_if_need_be(data_v, datalen + headerlen + 1);
-    std::copy_n(header_line.cbegin(), headerlen, &data_v[datalen]);
-    data_v[datalen + headerlen] = '\0';
-    entry.header.offset = datalen;
+    entry.header.offset = sink.size();
     entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
-    datalen += headerlen + 1;
+    sink.append(header_line.first(headerlen));
+    sink.append_byte('\0');
   }
 
 
@@ -270,7 +323,7 @@ namespace {
   // line that broke the loop ('>' or '\0').
   auto parse_sequence_body(Line_buffer & line_buf, std::FILE * stream,
                            std::array<Nt_class, n_chars> const & classify,
-                           std::vector<char> & data_v, uint64_t & datalen,
+                           Byte_sink & sink,
                            uint64_t & filepos, unsigned int & lineno,
                            struct Entry & entry,
                            struct Seq_stats & seq_stats) -> void
@@ -280,14 +333,14 @@ namespace {
 
     Nt_packer packer;
     uint64_t length {0};
-    entry.sequence.offset = datalen;
+    entry.sequence.offset = sink.size();
 
     while ((not line_buf.at_end()) and (line_buf.peek_first() != '>')) {
         for (auto const byte : line_buf.view()) {
             auto const character = static_cast<unsigned char>(byte);
             auto const category = classify[character];
             if (category < Nt_class::skip) {
-                packer.push(static_cast<uint8_t>(category), data_v, datalen);
+                packer.push(static_cast<uint8_t>(category), sink);
                 ++length;
               }
             else if (category == Nt_class::illegal) {
@@ -329,7 +382,7 @@ namespace {
 
     /* save remaining padded 64-bit value with nt's, if any */
 
-    packer.finalize(data_v, datalen);
+    packer.finalize(sink);
   }
 
 
@@ -627,7 +680,7 @@ namespace {
     struct Parse_result result;
     auto & seq_stats = result.stats;
     auto & entries = result.entries;
-    uint64_t datalen {0};
+    Byte_sink sink {data_v};
 
     /* open input file or stream */
 
@@ -642,7 +695,7 @@ namespace {
     warn_if_file_is_not_regular(parameters, file_info.is_regular);
 
     /* allocate space */
-    initial_allocation(data_v, file_info.filesize);
+    sink.reserve_for_file(file_info.filesize);
 
     uint64_t filepos = 0;
 
@@ -662,7 +715,7 @@ namespace {
         struct Entry entry;
         entry.lineno = lineno;
 
-        store_header(line_buf, entry, data_v, datalen, seq_stats);
+        store_header(line_buf, entry, sink, seq_stats);
 
         /* get next line */
 
@@ -674,7 +727,7 @@ namespace {
         /* read and store sequence */
 
         parse_sequence_body(line_buf, input_fp_handle.get(), classify,
-                            data_v, datalen, filepos, lineno,
+                            sink, filepos, lineno,
                             entry, seq_stats);
 
         ++seq_stats.n_sequences;
@@ -687,13 +740,10 @@ namespace {
     progress.done();
 
     // data_v was grown with std::vector::resize, which doubles capacity
-    // on reallocation, so it can hold up to ~2x the datalen bytes really
-    // used. Reclaim that slack now: before build_index takes raw pointers
-    // into data_v (a later shrink would reallocate and dangle them), and
-    // before the memory-heavy clustering phase. shrink_to_fit reallocates
-    // down to size(), so lower size() to datalen first.
-    data_v.resize(datalen);
-    data_v.shrink_to_fit();
+    // on reallocation, so it can hold up to ~2x the bytes really used.
+    // Reclaim that slack now: before build_index takes raw pointers into
+    // data_v, and before the memory-heavy clustering phase.
+    sink.shrink_to_used();
 
     // Line_buffer is destroyed on return; indexing/hashing in
     // build_index can use the released memory
