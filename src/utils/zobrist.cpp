@@ -28,8 +28,9 @@
 #include <array>
 #include <cassert>
 #include <cstdint>  // uint64_t
+#include <functional>  // std::bit_xor
 #include <iterator>  // std::next
-#include <numeric>  // std::accumulate
+#include <numeric>  // std::accumulate, std::inner_product
 #include <vector>
 
 
@@ -120,19 +121,20 @@ auto Zobrist::hash(Sequence const & seq) const -> uint64_t {
   auto const len = seq.length;
   uint64_t zobrist_hash = 0;
 
-  // Bulk: hash all complete bytes via the precomputed byte-rate
-  // table. std::for_each over a View gives the compiler a tight,
-  // contiguous-iterator loop with a simple lambda body — easier to
-  // autovectorize than a moving-pointer hand-rolled loop.
+  // Bulk: hash all complete bytes via the precomputed byte-rate table.
+  // Each byte is folded with the table row for its own position, so the
+  // encoded bytes and the table advance together -- which is the zip that
+  // std::inner_product expresses, over two contiguous ranges and with no
+  // captured counter walking the second one by hand.
   auto const n_complete_bytes = len / nt_per_byte;
   auto const bulk = seq.encoded.first(n_complete_bytes);
-  auto byte_idx = 0U;
-  std::for_each(bulk.cbegin(), bulk.cend(),
-                [&](char const byte) -> void {
-                  auto const a_byte = to_uchar(byte);
-                  zobrist_hash ^= tab_byte_base_v_[byte_idx][a_byte];
-                  ++byte_idx;
-                });
+  assert(n_complete_bytes <= tab_byte_base_v_.size());
+  zobrist_hash = std::inner_product(bulk.cbegin(), bulk.cend(),
+                                    tab_byte_base_v_.cbegin(), zobrist_hash,
+                                    std::bit_xor<uint64_t>{},
+                                    [](char const byte, Byte_row const & row) noexcept -> uint64_t {
+                                      return row[to_uchar(byte)];
+                                    });
 
   // Sub-byte residue: 0..3 nt that didn't fill a byte
   auto pos = n_complete_bytes * nt_per_byte;

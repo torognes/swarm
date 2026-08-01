@@ -49,11 +49,15 @@ private:
   static constexpr auto nt_per_byte = 4U;     // 4 nucleotides packed per encoded byte
   static constexpr auto byte_range = 256U;    // 8-bit byte values: 256 possibilities
 
+  // one row of tab_byte_base_v_ below: named so that hash() can spell the
+  // element type of the range it zips the encoded bytes against
+  using Byte_row = std::array<uint64_t, byte_range>;
+
   // tab_base_v_[pos]      : 4 RNG values, one per nucleotide A/C/G/T
   // tab_byte_base_v_[bpos]: 256 precomputed XOR-folds, one per possible byte value,
   //                         where bpos is the byte position in the encoded buffer
   std::vector<std::array<uint64_t, nt_per_byte>>  tab_base_v_;
-  std::vector<std::array<uint64_t, byte_range>>   tab_byte_base_v_;
+  std::vector<Byte_row>                           tab_byte_base_v_;
 };
 
 
