@@ -76,6 +76,18 @@ namespace {
                        unsigned int length) -> void
   {
     /* copy part of the compressed sequence b to a */
+    //
+    // One read-modify-write of a whole word per nucleotide, which looks
+    // like the write-side counterpart of seq_identical below and is not:
+    // writing a destination word per iteration instead, with nt_window()
+    // for the source and a mask for the partial first and last words,
+    // was built and measured 4.5 % slower at -d 1 -f (18SV9 10%, user
+    // CPU, single-threaded, five alternating pairs: +3.29, +1.91, +3.02,
+    // +3.02, +1.15 s on a 53.4 s baseline, both orders agreeing). It
+    // does thirty times less work in the loop and still loses: inlined
+    // into the fastidious worker it added 664 bytes to it, the same way
+    // the packed-byte block cost search8 and search16 (see fill_channel
+    // in dseq_fill.hpp). seq_identical is where that machinery pays.
     assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
     assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
     for (auto i = 0U; i < length; ++i) {
