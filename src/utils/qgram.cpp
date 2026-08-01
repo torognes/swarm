@@ -31,6 +31,7 @@
 #include "qgram_compare.hpp"  // compareqgramvectors (per-arch impl under arch/<isa>/)
 #include "nt_codec.hpp"
 #include "threads.hpp"
+#include <algorithm>  // std::transform
 #include <cassert>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
@@ -130,12 +131,11 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
 
   // one distance per candidate, so the chunk's two halves agree in length
   assert(difflist.size() == amplist.size());
-  auto const listlen = amplist.size();
 
-  for (std::size_t i = 0; i < listlen; ++i) {
-    auto & target_diff = difflist[i];
-    target_diff = qgram_diff(store_, seed, amplist[i], cpu_features_);
-  }
+  std::transform(amplist.cbegin(), amplist.cend(), difflist.begin(),
+                 [this, seed](uint64_t const candidate) noexcept -> uint64_t {
+                   return qgram_diff(store_, seed, candidate, cpu_features_);
+                 });
 }
 
 
