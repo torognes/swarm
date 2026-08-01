@@ -158,6 +158,9 @@ namespace {
       graft_array[ticker].child = i;  // so two children cannot have the same uint value
       ++ticker;
     }
+    // count_pairs() counted exactly the entries this loop writes, so the
+    // array is full: an unfilled tail would graft the default {0, 0} pair
+    assert(ticker == pair_count);
 
     /* sort */
     auto compare_grafts = [](struct graft_cand const& lhs,
@@ -169,8 +172,17 @@ namespace {
       if (lhs.parent > rhs.parent) {
         return false;
       }
-      // ...then ties are sorted by child index (lowest index first)
-      assert(lhs.child >= rhs.child); // refactoring: child indices are sorted by descending order?
+      // ...then ties are sorted by child index (lowest index first).
+      //
+      // The question this line used to ask -- whether the child indices
+      // arrive in descending order -- is answered by the fill loop
+      // above: they arrive ascending, and unique. It must not be
+      // asserted here, though, and used to be: std::sort hands a
+      // comparator its two arguments in whichever order suits it, and
+      // above the 16-element insertion-sort threshold the median-of-three
+      // compares two entries in array order, so lhs is then the *lower*
+      // child. Asserting otherwise aborted every debug-build fastidious
+      // run with more than 16 graft candidates sharing a parent.
       return lhs.child < rhs.child;
     };
 
