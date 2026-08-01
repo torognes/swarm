@@ -27,6 +27,7 @@
 #include "../db.hpp"  // Sequence
 #include "nt_codec.hpp"  // nt_extract
 #include <array>
+#include <cassert>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 
@@ -55,6 +56,22 @@ inline auto fill_channel(std::array<unsigned char, capacity> & dseq,
                          std::array<Sequence, channels> const & d_sequence,
                          std::array<uint64_t, channels> & d_pos) -> bool
 {
+  // A block's cdepth slots are the cdepth nucleotide fields of one
+  // packed byte: d_pos[channel] starts at zero (load_next_sequence in
+  // search8 and search16) and every call either advances it by cdepth
+  // or leaves it at the end of the sequence, after which the caller
+  // switches that channel to another sequence.
+  //
+  // Loading that byte once and decoding the four fields from it was
+  // measured 8 % slower at d=2 (six alternating pairs, single-threaded,
+  // both orders agreeing), and grows search8 by 226 bytes and search16
+  // by 146: the extra live value costs more spill code in the inlined
+  // caller than the three L1 loads it saves. Do not re-attempt without
+  // reading that measurement.
+  static constexpr unsigned int nt_per_byte {4};  // nt_codec.hpp packs 4 nt per byte
+  static_assert(cdepth == nt_per_byte, "a block covers exactly one packed byte");
+  assert(d_pos[channel] % cdepth == 0);
+
   // the channel's sequence, read once for the whole depth loop rather
   // than re-indexed at every slot
   auto const & sequence = d_sequence[channel];
