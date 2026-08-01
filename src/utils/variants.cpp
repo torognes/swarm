@@ -84,6 +84,54 @@ namespace {
   }
 
 
+  constexpr unsigned int bits_per_nt = 2;   // 2-bit fields
+  constexpr unsigned int nt_per_word = 32;  // 32 nucleotides in a uint64_t
+  constexpr unsigned int bits_per_word = bits_per_nt * nt_per_word;
+
+
+  // The 64-bit word at 'word_index' of a packed sequence. Every packed
+  // sequence occupies a whole number of these: nt_bytelength() rounds
+  // the byte count up to a multiple of 8, so a word read stays inside
+  // the view for any nucleotide position the view covers.
+  //
+  // std::memcpy avoids the strict-aliasing undefined behaviour of
+  // punning a char buffer through a uint64_t* (see nt_set above);
+  // optimisers fold it back into a single load.
+  // C++20 refactoring: std::bit_cast
+  inline auto packed_word(View<char> const seq, uint64_t const word_index) -> uint64_t
+  {
+    assert(seq.size() % sizeof(uint64_t) == 0);
+    assert((word_index + 1) * sizeof(uint64_t) <= seq.size());
+    auto const byte_offset = static_cast<std::ptrdiff_t>(word_index * sizeof(uint64_t));
+    uint64_t word {0};
+    std::memcpy(&word, std::next(seq.data(), byte_offset), sizeof(word));
+    return word;
+  }
+
+
+  // The 32 nucleotides starting at 'position', packed lowest field
+  // first. A variant sits anywhere in the sequence, so 'position' is
+  // not word-aligned in general and the window is assembled from the
+  // word holding it and, when it straddles two, the one after.
+  inline auto nt_window(View<char> const seq, uint64_t const position) -> uint64_t
+  {
+    auto const word_index = position / nt_per_word;
+    auto const shift = bits_per_nt * (position % nt_per_word);
+    auto const word = packed_word(seq, word_index) >> shift;
+
+    // an aligned window is already complete, and shifting a 64-bit
+    // value by 64 is undefined; a window opening in the last word has
+    // no successor to draw its high fields from, and does not need one
+    // (they lie past the end of the sequence, so no caller compares
+    // them -- see the mask in seq_identical)
+    auto const has_next_word = ((word_index + 2) * sizeof(uint64_t)) <= seq.size();
+    if ((shift == 0) or (not has_next_word)) {
+      return word;
+    }
+    return word | (packed_word(seq, word_index + 1) << (bits_per_word - shift));
+  }
+
+
   inline auto seq_identical(View<char> seq_a,
                             unsigned int a_start,
                             View<char> seq_b,
@@ -94,8 +142,26 @@ namespace {
     /* return false if different, true if identical */
     assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
     assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
-    for (auto i = 0U; i < length; ++i) {
-      if (nt_extract(seq_a[nt_byte_index(a_start + i)], a_start + i) != nt_extract(seq_b[nt_byte_index(b_start + i)], b_start + i)) {
+
+    // 32 nucleotides per iteration. The two windows carry the same
+    // nucleotides at the same field positions whatever a_start and
+    // b_start are -- equal for a substitution, one apart for an
+    // insertion or a deletion -- so one xor compares all 32.
+    for (auto compared = 0U; compared < length; compared += nt_per_word) {
+      auto const difference = nt_window(seq_a, a_start + compared)
+                            ^ nt_window(seq_b, b_start + compared);
+
+      // The final window is partial. Its fields past 'length' are
+      // padding: zero in a parsed sequence, but stale in the variant
+      // buffer, which generate_variant_sequence rewrites in place and
+      // which the fastidious path passes here. They are masked out
+      // rather than compared.
+      auto const remaining = length - compared;
+      if (remaining < nt_per_word) {
+        auto const mask = (uint64_t {1} << (bits_per_nt * remaining)) - 1;
+        return (difference & mask) == 0;
+      }
+      if (difference != 0) {
         return false;
       }
     }
