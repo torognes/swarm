@@ -50,18 +50,21 @@ namespace {
     auto previous_id = amps.front().swarmid;
     auto seed = amps.front().ampliconid;
     mass += data.abundance(seed);
-    for (auto i = 1ULL; i < amplicons; ++i) {
-        auto const current_id = amps[i].swarmid;
+    // the first amplicon is accounted for above, so the loop covers the
+    // rest. progress.increment() replaces update(i): it counts from one on
+    // its first call, which is where the index loop started.
+    for (auto const & amplicon : amps.drop(1)) {
+        auto const current_id = amplicon.swarmid;
         if (current_id != previous_id) {
             seeds[swarmcount].seed = seed;  // update previous
             seeds[swarmcount].mass = mass;
             ++swarmcount;
             mass = 0;
-            seed = amps[i].ampliconid;
+            seed = amplicon.ampliconid;
           }
-        mass += data.abundance(amps[i].ampliconid);
+        mass += data.abundance(amplicon.ampliconid);
         previous_id = current_id;
-        progress.update(i);
+        progress.increment();
       }
     seeds[swarmcount].seed = seed;
     seeds[swarmcount].mass = mass;
