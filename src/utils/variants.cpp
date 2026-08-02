@@ -201,18 +201,18 @@ namespace {
 
 auto generate_variant_sequence(Sequence const & seed,
                                struct var_s const & var,
-                               std::vector<char>& seq,
-                               unsigned int & seqlen) -> void
+                               std::vector<char> & buffer) -> Sequence
 {
   /* generate the actual sequence of a variant */
 
   auto const seed_seqlen = seed.length;
-  auto const seq_span = make_span(seq);
+  auto const seq_span = make_span(buffer);
+  auto seqlen = 0U;
 
   switch (var.type)
     {
     case Variant_type::substitution:
-      std::copy(seed.encoded.cbegin(), seed.encoded.cend(), seq.begin());
+      std::copy(seed.encoded.cbegin(), seed.encoded.cend(), buffer.begin());
       nt_set(seq_span, var.pos, var.base);
       seqlen = seed_seqlen;
       break;
@@ -238,6 +238,11 @@ auto generate_variant_sequence(Sequence const & seed,
       seqlen = seed_seqlen + 1;
       break;
     }
+
+  // a view of the caller's buffer, not of storage this function owns:
+  // see the note on the declaration
+  assert(seqlen != 0);
+  return Sequence{make_view(buffer).first(nt_bytelength(seqlen)), seqlen};
 }
 
 

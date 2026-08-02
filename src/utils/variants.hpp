@@ -42,10 +42,15 @@ struct var_s
   unsigned short dummy; /* for alignment padding only */
 };
 
+// The sequence of one microvariant of seed, written into the caller's
+// buffer and returned as a view of it -- previously a length handed back
+// through an out-parameter, which every caller had to pair with the
+// buffer again to rebuild exactly this value. The buffer is sized once
+// per thread (longest sequence plus one insertion) and reused for every
+// variant, so the returned Sequence is valid only until the next call.
 auto generate_variant_sequence(Sequence const & seed,
                                struct var_s const & var,
-                               std::vector<char> & seq,
-                               unsigned int & seqlen) -> void;
+                               std::vector<char> & buffer) -> Sequence;
 
 auto check_variant(Sequence const & seed,
                    struct var_s const & var,

@@ -30,10 +30,8 @@
 #include "bloom.hpp"
 #include "hashtable.hpp"
 #include "make_unique.hpp"
-#include "nt_codec.hpp"
 #include "progress.hpp"
 #include "threads.hpp"
-#include "view.hpp"
 #include <algorithm>  // std::sort(), std::max(), std::count_if()
 #include <cassert>  // assert()
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -324,9 +322,7 @@ namespace {
       {
         if (bloom_f.get(var.hash))
           {
-            auto varlen = 0U;
-            generate_variant_sequence(seed_seq, var, varseq, varlen);
-            auto const var_seq = Sequence{make_view(varseq).first(nt_bytelength(varlen)), varlen};
+            auto const var_seq = generate_variant_sequence(seed_seq, var, varseq);
             matches += check_heavy_var_2(data, ampinfo_v, hash_table,
                                          bloom_a,
                                          var_seq,
