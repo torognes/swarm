@@ -23,6 +23,7 @@
 
 #include "swarm.hpp"
 #include "db.hpp"
+#include "utils/ceil_divide.hpp"  // ceil_divide
 #include "utils/fatal.hpp"
 #include "utils/hasher_fnv1a.hpp"
 #include "utils/hasher_generic.hpp"
@@ -55,6 +56,7 @@
 namespace {
 
   constexpr unsigned int memchunk {1U << 20U};  // 1 megabyte
+  constexpr unsigned int nt_per_byte {4};  // 2-bit fields, four per byte
   // the classifier below is indexed with an unsigned char, so it must
   // cover the whole byte range and not just its 7-bit ascii half
   constexpr auto uchar_max = std::numeric_limits<unsigned char>::max();
@@ -138,6 +140,40 @@ namespace {
     table['\r'] = Nt_class::skip;
     return table;
   }
+
+
+  // The four nucleotides of every possible packed byte, as the ascii
+  // characters fprintseq() prints, so that decoding a byte is one lookup
+  // and one 4-character copy instead of four shift-mask-lookup-store
+  // rounds. 1 KB, read only where the next thing to happen is a stdio
+  // write.
+  //
+  // Nucleotides are packed lowest field first, so the byte 0x01 spells
+  // "CAAA" and not "AAAC". The groups are therefore computed from
+  // nt_extract() rather than written out as literals: transcribing 1024
+  // characters by hand is precisely where that order gets reversed, and
+  // deriving them cannot drift from the packing they decode.
+  auto make_nt_quartets() -> std::array<char, nt_per_byte * n_chars> {
+    static constexpr std::array<char, 32> sym_nt =
+      {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
+       ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+       ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+       ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',};
+    std::array<char, nt_per_byte * n_chars> table {};
+    for (auto value = 0UL; value < n_chars; ++value) {
+      for (auto field = 0U; field < nt_per_byte; ++field) {
+        table[(nt_per_byte * value) + field] =
+          sym_nt[1 + nt_extract(static_cast<char>(value), field)];
+      }
+    }
+    return table;
+  }
+
+  // Deliberately here and not a function-local static in fprintseq():
+  // there, GCC -O3 unrolls the initialiser into the function itself
+  // (133 -> 2680 bytes, plus a guard variable tested on every call).
+  // At namespace scope the initialiser runs once, before main().
+  auto const nt_quartets = make_nt_quartets();
 
 
   auto warn_if_file_is_not_regular(struct Parameters const & parameters, bool const is_regular) -> void {
@@ -972,7 +1008,11 @@ Data::Data(struct Parameters const & parameters) {
   // for the variant enumeration in variants.cpp.
   auto const & stats = parse_result.stats;
   longest_ = stats.longest_sequence;
-  decode_buffer_.assign(longest_, '\0');  // scratch reused by fprintseq()
+  // rounded up to a whole 4-character group: fprintseq() decodes a
+  // packed byte at a time, so the last group of the longest sequence can
+  // write up to three characters past its length
+  decode_buffer_.assign(nt_per_byte * ceil_divide(longest_, nt_per_byte),
+                        '\0');  // scratch reused by fprintseq()
   auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
   zobrist_p_.reset(new Zobrist(zobrist_len));
 
@@ -1010,27 +1050,31 @@ auto Data::abundance(uint64_t const seqno) const -> uint64_t {
 }
 
 
-// refactoring: decompress sequence (4 nt at a time)
-// - need a const vector<string> byte_decode = { "AAAA", "AAAC", "AAAG", ...
-// - need a std::string buffer of capacity = length + 3 + 1,
-// - for each compressed byte in the view of length (len + 3) % 4 bytes,
-//   for (auto const compressed_byte : compressed_bytes) {
-//       auto const s_compressed_byte = static_cast<unsigned char>(compressed_byte);
-//       buffer += byte_decode[s_compressed_byte];
-//   buffer[len] = '\0';  //
-//   std::fprintf(fastaout_fp, "%.*s\n", len, buffer.c_str());
-// benchmarck to check which way is faster
+// Only reached under -w, once per cluster. The quartet table was
+// expected to be neutral for that reason and is not: decoding a whole
+// packed byte at a time makes a "-d 0 -t 1 -z -w" run of 3.9 M V4 reads
+// 10 % faster in user CPU (4.55 -> 4.08 s, twelve alternating runs each,
+// ranges not overlapping), because at d = 0 every sequence is written
+// and the decode is a sixth of the run. Under -d 1 the same work is a
+// fraction of a percent, and unmeasurable.
 auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void {
-  static constexpr std::array<char, 32> sym_nt =
-    {'-', 'A', 'C', 'G', 'T', ' ', ' ', ' ',
-     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',};
   auto const seq = sequence_view(seqno);
 
-  // decode to nucleotides (A, C, G and T)
-  for (auto i = 0U; i < seq.length; ++i) {
-    decode_buffer_[i] = sym_nt[1 + nucleotide_at(seq, i)];
+  // decode to nucleotides (A, C, G and T), four at a time. The bytes
+  // beyond the sequence's own are not read: nt_bytelength() rounds
+  // encoded up to a multiple of eight. The last byte read does
+  // contribute a whole group, so up to three padding characters land
+  // past the sequence's length -- decode_buffer_ is sized for them (see
+  // the constructor) and the print below trims them.
+  auto const packed = seq.encoded.first(ceil_divide(seq.length, nt_per_byte));
+  assert(decode_buffer_.size() >= nt_per_byte * packed.size());
+  auto destination = decode_buffer_.begin();
+  for (auto const packed_byte : packed) {
+    // char may be signed; the table is indexed by the byte's value
+    auto const byte_value = static_cast<unsigned char>(packed_byte);
+    auto const group = std::next(nt_quartets.cbegin(),
+                                 static_cast<std::ptrdiff_t>(nt_per_byte * byte_value));
+    destination = std::copy_n(group, nt_per_byte, destination);
   }
 
   fprint(stream, make_view(decode_buffer_).first(seq.length));
