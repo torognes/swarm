@@ -37,7 +37,25 @@
 // function of one byte and one position. The caller does the lookup, which
 // is where the bound is known -- and where a loop walking a sequence in
 // order can load one byte and decode four nucleotides from it instead of
-// re-loading the same byte four times.
+// re-loading the same byte four times. Whether that last trade pays is a
+// question for the caller and not for this header: fill_channel()
+// (dseq_fill.hpp) tried it and measured slower.
+//
+// The same field order describes the buffer at word granularity, which
+// matters more than it looks: nucleotide 'position' occupies bits
+// [2 * position, 2 * position + 2) of the packed bytes read as a
+// little-endian bit array, so the byte view above and a 64-bit word view
+// agree with no conversion between them. That is what lets
+// seq_identical() (variants.cpp) compare 32 nucleotides with a single
+// xor, and nt_bytelength() below rounds every sequence up to a whole
+// multiple of 8 bytes, so such a word read always stays inside it.
+//
+// Do not flip the field order to make a packed byte read left to right.
+// Reversing it inside the byte alone breaks the agreement between those
+// two views, and the order is baked into the packer (db.cpp), nt_set()
+// and the window helpers (variants.cpp), and the precomputed byte-rate
+// table in zobrist.cpp: a site left out of step changes hashes, and
+// therefore clusters, without failing.
 //
 // Callers holding a Sequence should prefer nucleotide_at() (db.hpp), which
 // does both steps and checks the position against the sequence's
