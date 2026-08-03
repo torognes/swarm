@@ -26,6 +26,7 @@
 #include "db.hpp"
 #include "utils/chain_range.hpp"  // Chain_range
 #include "utils/hashtable_size.hpp"
+#include "utils/print_view.hpp"  // fprint, fprint_integer
 #include "utils/progress.hpp"
 #include <algorithm>  // sort
 #include <cassert>  // assert
@@ -134,14 +135,21 @@ namespace {
     Progress progress("Writing structure:", hashtable.size(), parameters);
     auto counter = uint64_t{0};
 
+    auto * const structure_file = parameters.internal_structure_file.get();
+
     for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
       for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
-          data.fprint_id_noabundance(parameters.internal_structure_file.get(), seed, parameters.opt_usearch_abundance);
-          static_cast<void>(std::fputc('\t', parameters.internal_structure_file.get()));
-          data.fprint_id_noabundance(parameters.internal_structure_file.get(), next_identical, parameters.opt_usearch_abundance);
-          std::fprintf(parameters.internal_structure_file.get(), "\t%d\t%" PRIu64 "\t%d\n", 0, counter + 1, 0);
+          data.fprint_id_noabundance(structure_file, seed, parameters.opt_usearch_abundance);
+          fprint(structure_file, '\t');
+          data.fprint_id_noabundance(structure_file, next_identical, parameters.opt_usearch_abundance);
+          // Columns 3 and 5 are the number of differences and the number of
+          // steps from the seed. At d = 0 the two amplicons are identical, so
+          // both are zero for every pair and go in as literal text.
+          fprint(structure_file, "\t0\t");
+          fprint_integer(structure_file, counter + 1);
+          fprint(structure_file, "\t0\n");
         }
       ++counter;
       progress.update(counter);

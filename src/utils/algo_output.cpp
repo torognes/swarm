@@ -241,15 +241,20 @@ auto write_internal_structure_line(uint64_t const parent_id,
                                    unsigned int const generation,
                                    struct Parameters const & parameters,
                                    Data const & data) -> void {
-  data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                             parent_id, parameters.opt_usearch_abundance);
-  static_cast<void>(std::fputc('\t', parameters.internal_structure_file.get()));
-  data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                             child_id, parameters.opt_usearch_abundance);
-  std::fprintf(parameters.internal_structure_file.get(), "\t%" PRIu64, diff);
-  std::fprintf(parameters.internal_structure_file.get(),
-               "\t%u\t%u\n",
-               swarmid, generation);
+  // hoisted: the handle is named eleven times below, and .get() on a
+  // unique_ptr that is not reassigned here yields the same pointer each time
+  auto * const structure_file = parameters.internal_structure_file.get();
+
+  data.fprint_id_noabundance(structure_file, parent_id, parameters.opt_usearch_abundance);
+  fprint(structure_file, '\t');
+  data.fprint_id_noabundance(structure_file, child_id, parameters.opt_usearch_abundance);
+  fprint(structure_file, '\t');
+  fprint_integer(structure_file, diff);
+  fprint(structure_file, '\t');
+  fprint_integer(structure_file, swarmid);
+  fprint(structure_file, '\t');
+  fprint_integer(structure_file, generation);
+  fprint(structure_file, '\n');
 }
 
 

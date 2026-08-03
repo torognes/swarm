@@ -260,6 +260,17 @@ namespace {
 
     Progress progress("Writing structure:", swarminfo_v.size(), parameters);
 
+    // Column 3 of the internal-structure file is the number of differences
+    // between the two amplicons (man swarm, --internal-structure). It is a
+    // constant per link kind rather than a computed value: a fastidious
+    // graft joins amplicons two differences apart, an ordinary link one.
+    // Named because "1" and "2" in adjacent printf arguments are exactly
+    // the pair a reader cannot tell apart.
+    static constexpr unsigned int graft_differences {2};
+    static constexpr unsigned int link_differences {1};
+
+    auto * const structure_file = parameters.internal_structure_file.get();
+
     for (auto swarmid = 0U; swarmid < swarminfo_v.size(); ++swarmid)
       {
         if (swarminfo_v[swarmid].attached) {
@@ -272,28 +283,32 @@ namespace {
             const auto graft_parent = ampinfo_v[amp_id].graft_cand;
             if (graft_parent != no_swarm)
               {
-                data.fprint_id_noabundance(parameters.internal_structure_file.get(),
-                                      graft_parent, parameters.opt_usearch_abundance);
-                static_cast<void>(std::fputc('\t', parameters.internal_structure_file.get()));
-                data.fprint_id_noabundance(parameters.internal_structure_file.get(), amp_id, parameters.opt_usearch_abundance);
-                std::fprintf(parameters.internal_structure_file.get(),
-                             "\t%d\t%u\t%u\n",
-                             2,
-                             cluster_no + 1,
-                             ampinfo_v[graft_parent].generation + 1);
+                data.fprint_id_noabundance(structure_file, graft_parent,
+                                           parameters.opt_usearch_abundance);
+                fprint(structure_file, '\t');
+                data.fprint_id_noabundance(structure_file, amp_id, parameters.opt_usearch_abundance);
+                fprint(structure_file, '\t');
+                fprint_integer(structure_file, graft_differences);
+                fprint(structure_file, '\t');
+                fprint_integer(structure_file, cluster_no + 1);
+                fprint(structure_file, '\t');
+                fprint_integer(structure_file, ampinfo_v[graft_parent].generation + 1);
+                fprint(structure_file, '\n');
               }
 
             const auto parent = ampinfo_v[amp_id].parent;
             if (parent != no_swarm)
               {
-                data.fprint_id_noabundance(parameters.internal_structure_file.get(), parent, parameters.opt_usearch_abundance);
-                static_cast<void>(std::fputc('\t', parameters.internal_structure_file.get()));
-                data.fprint_id_noabundance(parameters.internal_structure_file.get(), amp_id, parameters.opt_usearch_abundance);
-                std::fprintf(parameters.internal_structure_file.get(),
-                             "\t%u\t%u\t%u\n",
-                             1U,
-                             cluster_no + 1,
-                             ampinfo_v[amp_id].generation);
+                data.fprint_id_noabundance(structure_file, parent, parameters.opt_usearch_abundance);
+                fprint(structure_file, '\t');
+                data.fprint_id_noabundance(structure_file, amp_id, parameters.opt_usearch_abundance);
+                fprint(structure_file, '\t');
+                fprint_integer(structure_file, link_differences);
+                fprint(structure_file, '\t');
+                fprint_integer(structure_file, cluster_no + 1);
+                fprint(structure_file, '\t');
+                fprint_integer(structure_file, ampinfo_v[amp_id].generation);
+                fprint(structure_file, '\n');
               }
           }
 
