@@ -25,6 +25,7 @@
 #define SWARM_UTILS_PRINT_VIEW_H
 
 
+#include "decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "view.hpp"  // View<char>
 #include <cstddef>  // std::size_t
 #include <cstdio>  // std::FILE, std::fwrite
@@ -64,6 +65,28 @@ inline auto fprint(std::FILE * output_handle, View<char> const text) -> void
   // reader, not about a platform where it could differ.
   static constexpr std::size_t element_size = sizeof(char);
   static_cast<void>(std::fwrite(text.data(), element_size, text.size(), output_handle));
+}
+
+
+// Emit one integer, in decimal, to a stream: what an "%u" or a "%" PRIu64
+// conversion was used for. The digits come from decimal_digits.hpp, so this
+// is the same fwrite as above with a locally-produced view.
+//
+// Deliberately not a batching writer. A tab-separated run of numbers could
+// be accumulated in a fixed buffer and emitted with a single fwrite, which
+// measures faster in isolation -- but std::FILE * already buffers, so the
+// only thing such a buffer saves is stdio call count, i.e. the stream lock.
+// Measured over 2.19 M links of a "-d 1 -i" run the whole difference is
+// 0.13 % of the runtime, against a second buffer in front of stdio's, its
+// zero-initialisation on every construction, and a lifetime to manage at
+// every call site. Not worth it; the note is here so the idea is not
+// re-proposed. (putc_unlocked would beat both, and is a POSIX-ism that
+// MinGW spells differently, so it is out.)
+template <typename Integer>
+auto fprint_integer(std::FILE * output_handle, Integer const value) -> void
+{
+  decimal::Buffer buffer {};
+  fprint(output_handle, decimal::to_decimal(buffer, value));
 }
 
 #endif // SWARM_UTILS_PRINT_VIEW_H
