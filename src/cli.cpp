@@ -220,6 +220,12 @@ namespace {
     },};
 
 
+  // std::strtoll rather than std::stoll: stoll reports failure by throwing,
+  // and swarm handles no exceptions. std::from_chars is C++17. So the C
+  // function with errno checked around it is the only correct option at
+  // this standard level, not a leftover -- hence the errno = 0 before the
+  // call and the three conditions after it.
+  // C++17 refactoring: std::from_chars
   auto args_long(char const * str, char const * option) -> int64_t {
     static constexpr int base_value {10};
     char * endptr {nullptr};

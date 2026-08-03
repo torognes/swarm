@@ -426,6 +426,11 @@ namespace {
   // [digits_begin, digits_end) into an int64_t abundance value. Reports
   // overflow (errno == ERANGE) distinctly from a malformed run so the
   // caller can tell "abundance too large" apart from "no annotation".
+  //
+  // std::strtoll rather than std::stoll: stoll reports failure by throwing,
+  // and swarm handles no exceptions -- and the distinction above is exactly
+  // what an exception would flatten. std::from_chars is C++17.
+  // C++17 refactoring: std::from_chars
   auto parse_abundance_digits(char const * const digits_begin,
                               char const * const digits_end,
                               int64_t & number) -> Abundance_status

@@ -50,6 +50,11 @@ auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
   uint64_t lhs_word {0};
   uint64_t rhs_word {0};
 
+  // std::memcpy avoids the strict-aliasing undefined behaviour of punning
+  // an unsigned char buffer through a uint64_t* (same reasoning as
+  // variants.cpp nt_set); optimisers fold each one back into a single
+  // load, so this is not a copy at run time.
+  // C++20 refactoring: std::bit_cast
   for (auto i = 0ULL; i < n_words; ++i) {
     std::memcpy(&lhs_word, lhs + (i * sizeof(uint64_t)), sizeof(uint64_t));
     std::memcpy(&rhs_word, rhs + (i * sizeof(uint64_t)), sizeof(uint64_t));
