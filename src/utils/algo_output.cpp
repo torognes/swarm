@@ -33,7 +33,7 @@
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fprintf(), fputc(), fputs(), fflush
+#include <cstdio>  // fprintf(), fputc(), fputs()
 #include <vector>
 
 
@@ -157,7 +157,6 @@ namespace {
             swarmid - 1, seed_seq.length);
     data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
-    std::fflush(parameters.uclustfile.get());
 
     // the cluster's members except its seed, which the S line above
     // already reported
@@ -180,7 +179,6 @@ namespace {
       static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
       data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       static_cast<void>(std::fputc('\n', parameters.uclustfile.get()));
-      std::fflush(parameters.uclustfile.get());
     }
   }
 
