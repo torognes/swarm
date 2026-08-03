@@ -22,9 +22,8 @@
 */
 
 #include "input_output.hpp"
-#include <cassert>
 #include <cstdio>  // fopen, FILE, fdopen
-#include <cstring>  // strcmp
+#include <string>  // std::string
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 
 
@@ -34,15 +33,14 @@ namespace {
   // when a standard descriptor has been closed) is a valid descriptor.
   constexpr int invalid_fd {-1};
 
-  auto is_dash(char const * filename) -> bool {
-    assert(filename != nullptr);
-    return std::strcmp(filename, "-") == 0;
+  auto is_dash(std::string const & filename) -> bool {
+    return filename == "-";
   }
 
 }  // end of anonymous namespace
 
 
-auto fopen_input(char const * filename) -> FileHandle {
+auto fopen_input(std::string const & filename) -> FileHandle {
   /* open the input stream given by filename, but use stdin if name is - */
   std::FILE * input_stream {nullptr};
 
@@ -51,14 +49,14 @@ auto fopen_input(char const * filename) -> FileHandle {
     input_stream = file_descriptor != invalid_fd ? fdopen(file_descriptor, "rb") : nullptr;
   }
   else {
-    input_stream = std::fopen(filename, "rb");
+    input_stream = std::fopen(filename.c_str(), "rb");
   }
 
   return FileHandle{input_stream};
 }
 
 
-auto fopen_output(char const * filename) -> FileHandle {
+auto fopen_output(std::string const & filename) -> FileHandle {
   /* open the output stream given by filename, but use stdout if name is - */
   std::FILE * output_stream {nullptr};
 
@@ -67,7 +65,7 @@ auto fopen_output(char const * filename) -> FileHandle {
     output_stream = file_descriptor != invalid_fd ? fdopen(file_descriptor, "w") : nullptr;
   }
   else {
-    output_stream = std::fopen(filename, "w");
+    output_stream = std::fopen(filename.c_str(), "w");
   }
 
   return FileHandle{output_stream};

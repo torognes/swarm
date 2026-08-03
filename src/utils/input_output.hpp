@@ -26,6 +26,7 @@
 
 #include <cstdio>  // FILE, fclose
 #include <memory>  // unique_ptr
+#include <string>  // std::string
 
 
 // RAII wrapper for std::FILE *: the deleter calls std::fclose, so a
@@ -43,7 +44,10 @@ struct CloseFileHandle {
 using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 
 
-auto fopen_input(char const * filename) -> FileHandle;
-auto fopen_output(char const * filename) -> FileHandle;
+// Both take the filename by reference rather than as a char const *: every
+// caller holds a std::string, and a reference cannot be null, so the
+// null-pointer contract these used to assert is now carried by the type.
+auto fopen_input(std::string const & filename) -> FileHandle;
+auto fopen_output(std::string const & filename) -> FileHandle;
 
 #endif  // SWARM_UTILS_INPUT_OUTPUT_H

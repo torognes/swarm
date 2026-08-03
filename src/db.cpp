@@ -727,7 +727,7 @@ namespace {
 
     assert(parameters.input_filename.c_str() != nullptr);  // filename is set to '-' (stdin) by default
 
-    auto const input_fp_handle = fopen_input(parameters.input_filename.c_str());
+    auto const input_fp_handle = fopen_input(parameters.input_filename);
     if (not input_fp_handle) {
         fatal("Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
       }
