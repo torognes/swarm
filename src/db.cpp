@@ -1013,11 +1013,6 @@ Data::Data(struct Parameters const & parameters) {
   // for the variant enumeration in variants.cpp.
   auto const & stats = parse_result.stats;
   longest_ = stats.longest_sequence;
-  // rounded up to a whole 4-character group: fprintseq() decodes a
-  // packed byte at a time, so the last group of the longest sequence can
-  // write up to three characters past its length
-  decode_buffer_.assign(nt_per_byte * ceil_divide(longest_, nt_per_byte),
-                        '\0');  // scratch reused by fprintseq()
   auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
   zobrist_p_.reset(new Zobrist(zobrist_len));
 
@@ -1062,9 +1057,15 @@ auto Data::abundance(uint64_t const seqno) const -> uint64_t {
 // ranges not overlapping), because at d = 0 every sequence is written
 // and the decode is a sixth of the run. Under -d 1 the same work is a
 // fraction of a percent, and unmeasurable.
-auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void {
-  auto const seq = sequence_view(seqno);
+Sequence_printer::Sequence_printer(unsigned int const longest_sequence)
+  // rounded up to a whole 4-character group: print() decodes a packed byte
+  // at a time, so the last group of the longest sequence can write up to
+  // three characters past its length
+  : decode_buffer_(nt_per_byte * ceil_divide(longest_sequence, nt_per_byte), '\0')
+{}
 
+
+auto Sequence_printer::print(std::FILE * stream, Sequence const & seq) const -> void {
   // decode to nucleotides (A, C, G and T), four at a time. The bytes
   // beyond the sequence's own are not read: nt_bytelength() rounds
   // encoded up to a multiple of eight. The last byte read does
@@ -1087,10 +1088,9 @@ auto Data::fprintseq(std::FILE * stream, unsigned int const seqno) const -> void
 }
 
 
-auto Data::fprint_id(std::FILE * stream, uint64_t const seqno,
-                     bool const opt_usearch_abundance,
-                     int64_t const opt_append_abundance) const -> void {
-  auto const & seqinfo = info(seqno);
+auto fprint_id(std::FILE * stream, struct seqinfo_s const & seqinfo,
+               bool const opt_usearch_abundance,
+               int64_t const opt_append_abundance) -> void {
   auto const abundance_value = seqinfo.abundance;
 
   fprint(stream, seqinfo.header_view);
@@ -1107,9 +1107,8 @@ auto Data::fprint_id(std::FILE * stream, uint64_t const seqno,
 }
 
 
-auto Data::fprint_id_noabundance(std::FILE * stream, uint64_t const seqno,
-                                 bool const opt_usearch_abundance) const -> void {
-  auto const & seqinfo = info(seqno);
+auto fprint_id_noabundance(std::FILE * stream, struct seqinfo_s const & seqinfo,
+                           bool const opt_usearch_abundance) -> void {
   auto const header = seqinfo.header_view;
   auto const abundance_start = static_cast<std::size_t>(seqinfo.abundance_start);
   auto const abundance_end = static_cast<std::size_t>(seqinfo.abundance_end);
@@ -1134,12 +1133,10 @@ auto Data::fprint_id_noabundance(std::FILE * stream, uint64_t const seqno,
 }
 
 
-auto Data::fprint_id_with_new_abundance(std::FILE * stream,
-                                        uint64_t const seqno,
-                                        uint64_t const new_abundance,
-                                        bool const opt_usearch_abundance) const -> void {
-  auto const & seqinfo = info(seqno);
-
+auto fprint_id_with_new_abundance(std::FILE * stream,
+                                  struct seqinfo_s const & seqinfo,
+                                  uint64_t const new_abundance,
+                                  bool const opt_usearch_abundance) -> void {
   auto const header = seqinfo.header_view;
   auto const abundance_start = static_cast<std::size_t>(seqinfo.abundance_start);
 

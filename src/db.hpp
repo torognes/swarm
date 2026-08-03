@@ -81,25 +81,72 @@ public:
   auto header_view(uint64_t seqno)     const -> View<char>;
   auto abundance(uint64_t seqno)       const -> uint64_t;
 
-  auto fprintseq(std::FILE * stream, unsigned int seqno) const -> void;
-  auto fprint_id(std::FILE * stream,
-                 uint64_t seqno,
-                 bool opt_usearch_abundance,
-                 int64_t opt_append_abundance) const -> void;
-  auto fprint_id_noabundance(std::FILE * stream,
-                             uint64_t seqno,
-                             bool opt_usearch_abundance) const -> void;
-  auto fprint_id_with_new_abundance(std::FILE * stream,
-                                    uint64_t seqno,
-                                    uint64_t new_abundance,
-                                    bool opt_usearch_abundance) const -> void;
-
 private:
   std::vector<char>             data_;
   std::vector<struct seqinfo_s> seqindex_;
   std::unique_ptr<Zobrist>      zobrist_p_;  // deferred: needs longest_sequence
   unsigned int                  longest_ {0};
-  mutable std::vector<char>     decode_buffer_;  // reusable scratch for fprintseq()
+};
+
+
+// Writing amplicon labels and sequences used to be four Data member
+// functions. They are free now, because none of them ever needed anything
+// private: the three label printers read only the four seqinfo_s fields
+// that describe the abundance annotation, which info() already hands out,
+// and the sequence printer needed a scratch buffer that it can own itself.
+// Data is left owning and indexing the database, and no longer writes.
+//
+// They stay in this translation unit rather than moving to utils/, because
+// the annotation format is exactly what the parser here already knows: the
+// parser writes abundance_start and abundance_end, and these three read
+// them back to strip or replace the annotation. Splitting the two halves
+// of one format across two files would cost more than it buys.
+
+
+// The label as it appeared in the input, with the abundance annotation
+// appended when the input carried none and the caller asked for one.
+auto fprint_id(std::FILE * stream,
+               struct seqinfo_s const & seqinfo,
+               bool opt_usearch_abundance,
+               int64_t opt_append_abundance) -> void;
+
+// The label with its abundance annotation removed.
+auto fprint_id_noabundance(std::FILE * stream,
+                           struct seqinfo_s const & seqinfo,
+                           bool opt_usearch_abundance) -> void;
+
+// The label with its abundance annotation replaced by 'new_abundance'.
+auto fprint_id_with_new_abundance(std::FILE * stream,
+                                  struct seqinfo_s const & seqinfo,
+                                  uint64_t new_abundance,
+                                  bool opt_usearch_abundance) -> void;
+
+
+// Decodes packed nucleotides to ascii and writes them, one FASTA sequence
+// line per call.
+//
+// A class rather than a free function because the decode needs scratch
+// space, and that space needs a size rule the callers should not have to
+// know: a packed byte decodes to a whole group of four characters, so the
+// last group of a sequence whose length is not a multiple of four runs up
+// to three characters past it. Sizing the buffer from longest_sequence()
+// *without* rounding up wrote out of bounds on the very first -w run.
+// Owning the buffer keeps that rule next to the code that depends on it,
+// and replaces a mutable member of Data -- a const member function that
+// quietly wrote to its own object.
+//
+// Construct once per output file and reuse, as the seeds writers do with
+// NwAligner; the buffer is sized for the longest sequence in the database.
+class Sequence_printer {
+public:
+  explicit Sequence_printer(unsigned int longest_sequence);
+
+  // Named print(), not fprint(): a member named fprint would hide the free
+  // fprint() overloads inside this class, and the body below calls one.
+  auto print(std::FILE * stream, Sequence const & sequence) const -> void;
+
+private:
+  mutable std::vector<char> decode_buffer_;
 };
 
 #endif  // SWARM_DB_H

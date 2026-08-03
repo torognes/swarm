@@ -106,14 +106,19 @@ namespace {
                    Data const & data,
                    std::vector<struct swarminfo_t> const & seeds) -> void {
     Progress progress("Writing seeds:    ", seeds.size(), parameters);
+    auto * const seeds_file = parameters.seeds_file.get();
+    // one scratch buffer for the whole file, as with NwAligner below
+    Sequence_printer const sequence_printer {data.longest_sequence()};
+
     for (auto const& seed: seeds) {
       auto const swarm_mass = seed.mass;
       auto const swarm_seed = seed.seed;
 
-      static_cast<void>(std::fputc('>', parameters.seeds_file.get()));
-      data.fprint_id_with_new_abundance(parameters.seeds_file.get(), swarm_seed, swarm_mass, parameters.opt_usearch_abundance);
-      static_cast<void>(std::fputc('\n', parameters.seeds_file.get()));
-      data.fprintseq(parameters.seeds_file.get(), swarm_seed);
+      static_cast<void>(std::fputc('>', seeds_file));
+      fprint_id_with_new_abundance(seeds_file, data.info(swarm_seed), swarm_mass,
+                                   parameters.opt_usearch_abundance);
+      static_cast<void>(std::fputc('\n', seeds_file));
+      sequence_printer.print(seeds_file, data.sequence_view(swarm_seed));
       progress.increment();
     }
     progress.done();
@@ -132,7 +137,7 @@ namespace {
 
     std::fprintf(parameters.statsfile.get(), "%" PRIu64 "\t%" PRIu64 "\t",
                  swarmsize, amplicons_copies);
-    data.fprint_id_noabundance(parameters.statsfile.get(), seedampliconid, parameters.opt_usearch_abundance);
+    fprint_id_noabundance(parameters.statsfile.get(), data.info(seedampliconid), parameters.opt_usearch_abundance);
     std::fprintf(parameters.statsfile.get(),
                  "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\n",
                  abundance, singletons, maxgen, maxradius);
@@ -150,12 +155,12 @@ namespace {
 
     std::fprintf(parameters.uclustfile.get(), "C\t%u\t%" PRIu64 "\t*\t*\t*\t*\t*\t",
             swarmid - 1, swarmsize);
-    data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    fprint_id(parameters.uclustfile.get(), data.info(seedampliconid), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
 
     std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
             swarmid - 1, seed_seq.length);
-    data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    fprint_id(parameters.uclustfile.get(), data.info(seedampliconid), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
 
     // the cluster's members except its seed, which the S line above
@@ -175,9 +180,9 @@ namespace {
       }
       static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
 
-      data.fprint_id(parameters.uclustfile.get(), hit, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      fprint_id(parameters.uclustfile.get(), data.info(hit), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
-      data.fprint_id(parameters.uclustfile.get(), seedampliconid, parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      fprint_id(parameters.uclustfile.get(), data.info(seedampliconid), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       static_cast<void>(std::fputc('\n', parameters.uclustfile.get()));
     }
   }
@@ -195,8 +200,8 @@ namespace {
                            struct Parameters const & parameters,
                            Data const & data,
                            View<struct ampliconinfo_s> const amps) -> void {
-    data.fprint_id(parameters.outfile.get(), amps.front().ampliconid,
-                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+    fprint_id(parameters.outfile.get(), data.info(amps.front().ampliconid),
+              parameters.opt_usearch_abundance, parameters.opt_append_abundance);
     auto previous_id = amps.front().swarmid;
 
     // the first amplicon is printed above, so the loop covers the rest
@@ -204,7 +209,7 @@ namespace {
         auto const current_id = amplicon.swarmid;
         static_cast<void>(std::fputc(current_id == previous_id ? separators.within : separators.between,
                                      parameters.outfile.get()));
-        data.fprint_id(parameters.outfile.get(), amplicon.ampliconid,
+        fprint_id(parameters.outfile.get(), data.info(amplicon.ampliconid),
                        parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         previous_id = current_id;
       }
@@ -245,9 +250,9 @@ auto write_internal_structure_line(uint64_t const parent_id,
   // unique_ptr that is not reassigned here yields the same pointer each time
   auto * const structure_file = parameters.internal_structure_file.get();
 
-  data.fprint_id_noabundance(structure_file, parent_id, parameters.opt_usearch_abundance);
+  fprint_id_noabundance(structure_file, data.info(parent_id), parameters.opt_usearch_abundance);
   fprint(structure_file, '\t');
-  data.fprint_id_noabundance(structure_file, child_id, parameters.opt_usearch_abundance);
+  fprint_id_noabundance(structure_file, data.info(child_id), parameters.opt_usearch_abundance);
   fprint(structure_file, '\t');
   fprint_integer(structure_file, diff);
   fprint(structure_file, '\t');
