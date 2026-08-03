@@ -298,7 +298,7 @@ amplicon A label (header without abundance annotations).
 .IP \n+[step].
 amplicon B label (header without abundance annotations).
 .IP \n+[step].
-number of differences between amplicons A and B (\fIpositive
+number of differences between amplicons A and B (\fInon-negative
 integer\fR).
 .IP \n+[step].
 cluster number (\fIpositive integer\fR). Clusters are numbered in
@@ -306,7 +306,7 @@ their order of delineation, starting from 1. All pairs of amplicons
 belonging to the same cluster will receive the same number.
 .IP \n+[step].
 cumulated number of steps from the cluster seed to amplicon B
-(\fIpositive integer\fR). When using the option \-\-fastidious (\-f),
+(\fInon-negative integer\fR). When using the option \-\-fastidious (\-f),
 the actual number of steps between grafted amplicons and the cluster
 seed cannot be re-computed efficiently and is always set to 2 for the
 amplicon pair linking the small cluster to the large
