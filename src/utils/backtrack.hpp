@@ -25,6 +25,7 @@
 #define SWARM_UTILS_BACKTRACK_H
 
 #include "../db.hpp"  // Sequence
+#include "ceil_divide.hpp"  // ceil_divide
 #include "nt_codec.hpp"
 #include "view.hpp"  // View
 #include <cassert>
@@ -83,15 +84,46 @@ auto backtrack(Sequence const & qseq,
   uint64_t matches {0};
   auto operation = Alignment::Match;  // no extension in progress yet
 
+  // The aligner computes four rows per block, so the direction buffer
+  // holds each block as 'longestdbsequence' columns of four sub-rows;
+  // the same 4 spells the block's height, the column stride and the
+  // sub-row within it.
+  static constexpr uint64_t rows_per_block {4};
+
+  // That buffer is a ring: the aligner advances its write cursor by one
+  // block per iteration and wraps it by subtracting the size once
+  // (search8.cpp:876-878, search16.cpp:624-626). The read below wraps the
+  // same way, which is exact only while every index stays under twice the
+  // size:
+  //  - 'offset' is a cursor position, recorded before that cursor's own
+  //    wrap, so it is inside the buffer;
+  //  - the largest cell this loop can address is the one for the last row
+  //    and the last column, which is below
+  //    rows_per_block * longestdbsequence * ceil(dlen / rows_per_block) --
+  //    and scanner.cpp:56 allocates exactly that with both lengths at
+  //    their maximum, since a query and a database sequence are both
+  //    database sequences.
+  // Their sum is therefore below twice the size. Wrapping with '%' instead
+  // would be a 64-bit hardware division on every iteration of this loop,
+  // which is the most expensive thing in it by an order of magnitude.
+  auto const ring_size = dirbuffer.size();
+  assert(offset < ring_size);
+  assert(qlen <= longestdbsequence);
+  assert(dlen <= longestdbsequence);
+  assert(rows_per_block * longestdbsequence * ceil_divide(dlen, rows_per_block)
+         <= ring_size);
+
   while ((column >= 0) and (row >= 0)) {
       ++aligned;
 
-      const auto direction
-        = dirbuffer[(offset
-                     + (longestdbsequence * 4 * static_cast<uint64_t>(row / 4))
-                     + (4 * static_cast<uint64_t>(column))
-                     + (static_cast<uint64_t>(row) & 3U)
-                     ) % dirbuffer.size()];
+      auto const row_index = static_cast<uint64_t>(row);
+      auto const cell
+        = (longestdbsequence * rows_per_block * (row_index / rows_per_block))
+        + (rows_per_block * static_cast<uint64_t>(column))
+        + (row_index % rows_per_block);
+      auto index = offset + cell;
+      if (index >= ring_size) { index -= ring_size; }
+      const auto direction = dirbuffer[index];
 
       if ((operation == Alignment::Insertion) and ((direction & maskextleft) == 0U)) {
         --row;
