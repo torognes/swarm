@@ -23,7 +23,7 @@
 
 #include "../swarm.hpp"
 #include "progress.hpp"
-#include <cstdio>  // fflush, fprintf
+#include <cstdio>  // fflush, fprintf, fputs
 #include <cstdint>  // uint64_t
 
 
@@ -40,11 +40,12 @@ Progress::Progress(char const * prompt_, uint64_t const size_,
     chunk(size_ < progress_granularity ? 1 : size_ / progress_granularity),
     logfile(parameters.logfile),
     silent(not parameters.opt_log.empty()) {
-  if (silent) {
-    std::fprintf(logfile, "%s", prompt);
-  }
-  else {
-    std::fprintf(logfile, "%s %.0f%%", prompt, 0.0);
+  // Both branches open with the prompt; only the percentage differs, and
+  // "%.0f" of the literal 0.0 is always the one character '0', so there is
+  // nothing here for a format string to decide.
+  static_cast<void>(std::fputs(prompt, logfile));
+  if (not silent) {
+    static_cast<void>(std::fputs(" 0%", logfile));
   }
 }
 
@@ -67,11 +68,13 @@ auto Progress::increment() -> void {
 
 
 auto Progress::done() const -> void {
-  if (silent) {
-    std::fprintf(logfile, " %.0f%%\n", 100.0);
+  // Same shape as the constructor: the percentage is the literal 100.0, so
+  // "%.0f" always yields "100". The non-silent branch additionally rewinds
+  // over the partial line update() left behind.
+  if (not silent) {
+    static_cast<void>(std::fputs("  \r", logfile));
+    static_cast<void>(std::fputs(prompt, logfile));
   }
-  else {
-    std::fprintf(logfile, "  \r%s %.0f%%\n", prompt, 100.0);
-  }
+  static_cast<void>(std::fputs(" 100%\n", logfile));
   std::fflush(logfile);
 }
