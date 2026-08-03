@@ -27,8 +27,9 @@
 
 #include "decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "view.hpp"  // View<char>
+#include <cassert>
 #include <cstddef>  // std::size_t
-#include <cstdio>  // std::FILE, std::fwrite
+#include <cstdio>  // std::FILE, std::fputc, std::fwrite
 
 
 // Emit the bytes of a View to a stream.
@@ -68,6 +69,51 @@ inline auto fprint(std::FILE * output_handle, View<char> const text) -> void
 }
 
 
+// Emit one character: what std::fputc was used for.
+//
+// The only thing this adds over the call it wraps is that the discarded
+// return value is dealt with once, here, instead of at every call site --
+// swarm had 45 'static_cast<void>(std::fputc(...))' spellings. Verified to
+// compile to the identical 'jmp fputc' at -O3.
+inline auto fprint(std::FILE * output_handle, char const character) -> void
+{
+  static_cast<void>(std::fputc(character, output_handle));
+}
+
+
+// Emit a string literal: what std::fputs was used for.
+//
+// std::fwrite with the array's own bound, not std::fputs, so the length is a
+// compile-time constant by construction rather than by optimisation. GCC does
+// fold fputs of a literal into exactly this fwrite -- and does so even under
+// _FORTIFY_SOURCE, and even through this wrapper, all three checked in the
+// disassembly -- but that is a property of one compiler, and spelling it out
+// costs nothing. (It is fprintf that fortify stops GCC from folding, which is
+// why the fprintf calls elsewhere are worth replacing and these are not.)
+//
+// The parameter is a reference to an array so that Size arrives with it; a
+// char const * would have to be walked at run time. The C array is therefore
+// deliberate, as in fatal.hpp's explicit_decay.
+//
+// Intended for literals, and the contract is the array's bound, not a
+// terminator: passing a partially-filled 'char buf[64]' would emit all 63
+// bytes, not the string inside it. swarm declares no char arrays, and the
+// assert catches the unterminated case; a filled-then-truncated buffer is
+// the gap the assert cannot close, hence this note.
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+template <std::size_t Size>
+auto fprint(std::FILE * output_handle, char const (&literal)[Size]) -> void
+{
+  static_assert(Size > 0, "a string literal always carries its terminator");
+  assert(literal[Size - 1] == '\0');
+  // Size counts the terminating NUL, which is not part of the output. An
+  // empty literal leaves count 0, which fwrite accepts: unlike the View
+  // overload above, the pointer here cannot be null.
+  static constexpr std::size_t element_size = sizeof(char);
+  static_cast<void>(std::fwrite(literal, element_size, Size - 1, output_handle));
+}
+
+
 // Emit one integer, in decimal, to a stream: what an "%u" or a "%" PRIu64
 // conversion was used for. The digits come from decimal_digits.hpp, so this
 // is the same fwrite as above with a locally-produced view.
@@ -88,5 +134,26 @@ auto fprint_integer(std::FILE * output_handle, Integer const value) -> void
   decimal::Buffer buffer {};
   fprint(output_handle, decimal::to_decimal(buffer, value));
 }
+
+
+// tests:
+//
+// Four overloads share the name 'fprint', so which one a call picks is the
+// part worth pinning down. Checked by capturing the bytes written to a
+// std::tmpfile():
+//
+// fprint(stream, '\t')             -> "\t"        the char overload
+// fprint(stream, "\t*\n")          -> "\t*\n"     the literal overload
+// fprint(stream, "")               -> ""          count 0, pointer not null
+// fprint(stream, View<char>{d, 3}) -> "abc"       the View overload
+// fprint(stream, View<char>{})     -> ""          returns before fwrite
+// fprint_integer(stream, 4294967295U) -> "4294967295"
+//
+// No call is ambiguous: a char and a char-array reference are each an exact
+// match for their own overload, and View's two-argument constructor is
+// explicit, so a literal cannot reach the View overload instead. The
+// non-template View overload also outranks the array template for a View
+// argument. Verified at -O3 that the char and literal wrappers emit the
+// byte-identical instruction stream to the fputc/fputs calls they replace.
 
 #endif // SWARM_UTILS_PRINT_VIEW_H
