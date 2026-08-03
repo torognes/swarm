@@ -143,7 +143,7 @@ namespace {
 
 
   // The four nucleotides of every possible packed byte, as the ascii
-  // characters fprintseq() prints, so that decoding a byte is one lookup
+  // characters Sequence_printer::print() writes, so that decoding a byte is one lookup
   // and one 4-character copy instead of four shift-mask-lookup-store
   // rounds. 1 KB, read only where the next thing to happen is a stdio
   // write.
@@ -169,7 +169,7 @@ namespace {
     return table;
   }
 
-  // Deliberately here and not a function-local static in fprintseq():
+  // Deliberately here and not a function-local static in print():
   // there, GCC -O3 unrolls the initialiser into the function itself
   // (133 -> 2680 bytes, plus a guard variable tested on every call).
   // At namespace scope the initialiser runs once, before main().
@@ -1098,10 +1098,13 @@ auto fprint_id(std::FILE * stream, struct seqinfo_s const & seqinfo,
   // if abundance is missing and if user says that a missing abundance is ok, then...
   if ((opt_append_abundance != 0) and (seqinfo.abundance_start == seqinfo.abundance_end)) {
     if (opt_usearch_abundance) {
-      static_cast<void>(std::fprintf(stream, ";size=%" PRIu64 ";", abundance_value));
+      fprint(stream, ";size=");
+      fprint_integer(stream, abundance_value);
+      fprint(stream, ';');
     }
     else {
-      static_cast<void>(std::fprintf(stream, "_%" PRIu64, abundance_value));
+      fprint(stream, '_');
+      fprint_integer(stream, abundance_value);
     }
   }
 }
@@ -1120,7 +1123,7 @@ auto fprint_id_noabundance(std::FILE * stream, struct seqinfo_s const & seqinfo,
       if (opt_usearch_abundance) {
           /* print semicolon if the abundance is not at either end */
           if ((abundance_start > 0) and (abundance_end < header.size())) {
-            static_cast<void>(std::fputc(';', stream));
+            fprint(stream, ';');
           }
 
           /* print remaining part */
@@ -1145,14 +1148,17 @@ auto fprint_id_with_new_abundance(std::FILE * stream,
 
   if (opt_usearch_abundance) {
     if (seqinfo.abundance_start > 0) {
-      static_cast<void>(std::fputc(';', stream));
+      fprint(stream, ';');
     }
-    static_cast<void>(std::fprintf(stream, "size=%" PRIu64 ";", new_abundance));
+    fprint(stream, "size=");
+    fprint_integer(stream, new_abundance);
+    fprint(stream, ';');
     /* print what followed the old annotation */
     fprint(stream, header.drop(static_cast<std::size_t>(seqinfo.abundance_end)));
   }
   else {
-    static_cast<void>(std::fprintf(stream, "_%" PRIu64, new_abundance));
+    fprint(stream, '_');
+    fprint_integer(stream, new_abundance);
   }
 }
 
