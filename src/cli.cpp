@@ -42,7 +42,9 @@
 #include <iterator>  // std::next
 #include <limits>
 #include <string>
-// #include <unistd.h>  // getopt_long... FAIL
+// <unistd.h> is not enough: it declares plain getopt(), but getopt_long()
+// is a GNU extension and lives in <getopt.h> (which mingw-w64 also
+// provides, so the Windows build resolves it too).
 
 
 // anonymous namespace: limit visibility and usage to this translation unit

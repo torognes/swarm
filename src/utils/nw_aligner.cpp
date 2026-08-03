@@ -32,7 +32,6 @@
 #include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // snprintf
 #include <vector>
 
 

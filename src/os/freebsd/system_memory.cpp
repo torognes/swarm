@@ -23,8 +23,8 @@
 
 #include "../../utils/fatal.hpp"
 #include "../../utils/system_memory.hpp"
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
-#include <cstdio>  // size_t
 #include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage
 #include <sys/sysctl.h>  // sysctlbyname
 

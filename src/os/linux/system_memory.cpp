@@ -24,7 +24,6 @@
 #include "../../utils/fatal.hpp"
 #include "../../utils/system_memory.hpp"
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // size_t
 #include <sys/resource.h>  // Linux: getrusage
 // #include <bits/types/struct_rusage.h>  // rusage (since 2017)
 #include <sys/sysinfo.h>  // sysinfo

@@ -22,8 +22,9 @@
 */
 
 #include "view.hpp"  // View<char>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
-#include <cstdio>  // size_t
+#include <cstdio>  // std::FILE
 
 
 // RAII wrapper for the line buffer used by read_next(). POSIX

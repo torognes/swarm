@@ -38,7 +38,7 @@
 #include <cassert>
 #include <cinttypes>  // macro PRIu64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fprintf(), fputc(), fflush
+#include <cstdio>  // fprintf(), fputc()
 #include <limits>
 #include <memory>  // unique pointer
 #include <string>

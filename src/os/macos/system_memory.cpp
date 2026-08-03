@@ -24,8 +24,8 @@
 #include "../../utils/fatal.hpp"
 #include "../../utils/system_memory.hpp"
 #include <array>  // std::array
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // size_t
 #include <sys/resource.h>
 #include <sys/sysctl.h>
 
