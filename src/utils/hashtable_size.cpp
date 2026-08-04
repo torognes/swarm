@@ -22,10 +22,8 @@
 */
 
 #include "hashtable_size.hpp"
-#include <algorithm>  // std::max
 #include <cassert>
 #include <cstdint>
-#include <cmath>
 
 
 auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
@@ -34,19 +32,42 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
   // 10/7 times the number of sequences.
   // Note that hash table size can be at least 2^1 and at most 2^63.
   // C++20: refactor with std::bit_ceil()
-  static constexpr unsigned int numerator {7};
-  static constexpr unsigned int denominator {10};
-  static constexpr double divider {2.0};
+  static constexpr uint64_t numerator {7};
+  static constexpr uint64_t denominator {10};
+  static constexpr uint64_t smallest {2};                   // 2^1, as documented above
+  static constexpr uint64_t largest {uint64_t{1} << 63};    // 2^63, likewise
   static_assert(numerator != 0, "Error: will result in a divide-by-zero");
   assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
-  // Scale in floating point: the same product computed in uint64_t,
-  // denominator * (sequence_count + 1), overflows for sequence_count
-  // above ~1.8e18, i.e. below the assert bound above.
-  auto const scaled =
-    static_cast<double>(denominator) * (static_cast<double>(sequence_count) + 1.0) / numerator;
-  // GCC 6 to 9: std::log2 is not a member of std! (replace with log(x) / log(2.0) for now)
-  auto const size = static_cast<uint64_t>(std::pow(divider, std::ceil(std::log(scaled) / std::log(divider))));
-  return std::max<uint64_t>(2, size);  // at least 2^1, as documented above
+
+  // Integer arithmetic, exactly. This used to scale in double and take
+  // pow(2, ceil(log(scaled) / log(2))), which rounds four times; computing
+  // log2 as log(x)/log(2) is the one that costs correctness, because near an
+  // exact power of two the quotient lands on the wrong side and ceil then
+  // picks the wrong exponent. It errs in both directions: at
+  // sequence_count = 394064967394918 the old form returned 2^49 where the
+  // answer is 2^50, and at 1576259869579672 it returned 2^52 where the
+  // answer is 2^51.
+  //
+  // The condition wanted is 'size >= 10 * (sequence_count + 1) / 7' with a
+  // real division, i.e. size >= ceil(10 * m / 7). The product 10 * m
+  // overflows uint64_t inside the range asserted above, which is why the
+  // double was there; it is never formed here. Writing m as 7q + r gives
+  // 10m/7 == 10q + 10r/7 with r in [0, 6], so
+  //   ceil(10m/7) == 10q + ceil(10r/7) == 10q + (10r + 6) / 7
+  // whose largest term is 10q <= 2^63 for any m the assert admits.
+  auto const scaled = sequence_count + 1;
+  auto const threshold = (denominator * (scaled / numerator))
+                       + (((denominator * (scaled % numerator)) + numerator - 1) / numerator);
+
+  // The cap is what keeps this total rather than merely asserted: without
+  // it, a threshold above 2^63 would double past it and wrap to zero,
+  // looping forever in a build with NDEBUG. Returning 2^63 there is also
+  // what the previous implementation did.
+  auto size = smallest;
+  while ((size < threshold) and (size < largest)) {
+    size *= 2;
+  }
+  return size;
 }
 
 
