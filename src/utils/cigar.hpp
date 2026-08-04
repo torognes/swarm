@@ -21,6 +21,10 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_CIGAR_H
+#define SWARM_UTILS_CIGAR_H
+
+
 #include "view.hpp"  // View<char>
 #include <string>
 
@@ -31,3 +35,5 @@
 // need not know which container holds them.
 auto compress_alignment_to_cigar(View<char> input,
                                  std::string & destination) -> void;
+
+#endif  // SWARM_UTILS_CIGAR_H

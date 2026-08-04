@@ -21,6 +21,10 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_MAKE_UNIQUE_H
+#define SWARM_UTILS_MAKE_UNIQUE_H
+
+
 #include <memory>
 
 
@@ -35,3 +39,5 @@ namespace utils {
   }
 
 } // namespace utils
+
+#endif  // SWARM_UTILS_MAKE_UNIQUE_H

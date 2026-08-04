@@ -21,6 +21,10 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_SEQINFO_H
+#define SWARM_UTILS_SEQINFO_H
+
+
 #include "view.hpp"
 #include <cstdint>  // uint64_t
 
@@ -48,3 +52,5 @@ struct seqinfo_s
   int abundance_start {0};
   int abundance_end {0};
 };
+
+#endif  // SWARM_UTILS_SEQINFO_H

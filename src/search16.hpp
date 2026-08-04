@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_SEARCH16_H
+#define SWARM_SEARCH16_H
+
+
 #include "utils/search_data.hpp"  // Search_data, WORD
 #include "utils/span.hpp"  // Span<uint64_t>
 #include "utils/view.hpp"  // View<uint64_t>
@@ -43,3 +47,5 @@ auto search16(Data const & data,
               Span<uint64_t> scores,
               Span<uint64_t> diffs,
               Sequence const & query) -> void;
+
+#endif  // SWARM_SEARCH16_H

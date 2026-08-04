@@ -21,6 +21,10 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_ARCH_AARCH64_INTRINSICS_TO_FUNCTIONS_H
+#define SWARM_ARCH_AARCH64_INTRINSICS_TO_FUNCTIONS_H
+
+
 // name functions after input/output type:
 // uint64x2_t -> 64
 // uint16x8_t -> 16
@@ -101,3 +105,5 @@ auto v_shift_left8(uint8x16_t vector) -> uint8x16_t;
 auto v_mask_eq16(uint16x8_t lhs, uint16x8_t rhs) -> uint16_t;
 
 auto v_mask_eq8(uint8x16_t lhs, uint8x16_t rhs) -> uint16_t;
+
+#endif  // SWARM_ARCH_AARCH64_INTRINSICS_TO_FUNCTIONS_H

@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_LINE_BUFFER_H
+#define SWARM_UTILS_LINE_BUFFER_H
+
+
 #include "view.hpp"  // View<char>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
@@ -73,3 +77,5 @@ private:
   std::size_t length_   {0};
   bool        at_end_   {false};
 };
+
+#endif  // SWARM_UTILS_LINE_BUFFER_H

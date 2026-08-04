@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_QGRAM_H
+#define SWARM_UTILS_QGRAM_H
+
+
 #include "cpu_features.hpp"  // Cpu_features
 #include "qgram_array.hpp"  // Qgram_store
 #include "span.hpp"  // Span<uint64_t>
@@ -81,3 +85,5 @@ private:
   std::vector<thread_info_s> thread_info_v_;
   ThreadRunner               threads_;  // last: its lambda touches the members above
 };
+
+#endif  // SWARM_UTILS_QGRAM_H

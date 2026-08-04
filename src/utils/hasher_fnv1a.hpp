@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_HASHER_FNV1A_H
+#define SWARM_UTILS_HASHER_FNV1A_H
+
+
 #ifndef HASHER_FNV1A_HPP
 #define HASHER_FNV1A_HPP
 
@@ -94,3 +98,5 @@ public:
 // }
 
 #endif // HASHER_FNV1A_HPP
+
+#endif  // SWARM_UTILS_HASHER_FNV1A_H

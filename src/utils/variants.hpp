@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_VARIANTS_H
+#define SWARM_UTILS_VARIANTS_H
+
+
 #include "view.hpp"  // View
 #include <cstdint>
 #include <vector>
@@ -65,3 +69,5 @@ auto generate_variants(Zobrist const & zobrist,
                        Sequence const & seq,
                        uint64_t hash,
                        std::vector<struct var_s> & variant_list) -> View<struct var_s>;
+
+#endif  // SWARM_UTILS_VARIANTS_H

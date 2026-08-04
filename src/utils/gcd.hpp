@@ -21,6 +21,10 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_GCD_H
+#define SWARM_UTILS_GCD_H
+
+
 #include <algorithm>
 #include <cmath>
 #include <type_traits>
@@ -62,3 +66,5 @@ auto gcd(Integral num1, Integral num2) -> Integral {
 // static_assert(gcd(6, 11) == 1);   // one prime
 // static_assert(gcd(13, 11) == 1);  // two primes
 // static_assert(gcd(100, 24) == 4);
+
+#endif  // SWARM_UTILS_GCD_H

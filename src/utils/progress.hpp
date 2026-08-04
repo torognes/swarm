@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_PROGRESS_H
+#define SWARM_UTILS_PROGRESS_H
+
+
 #include <cstdint>  // uint64_t
 #include <cstdio>   // std::FILE
 
@@ -59,3 +63,5 @@ private:
   std::FILE * logfile {nullptr};
   bool silent {false};  // true when output goes to a log file (--log)
 };
+
+#endif  // SWARM_UTILS_PROGRESS_H

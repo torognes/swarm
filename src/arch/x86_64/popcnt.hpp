@@ -21,8 +21,14 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_ARCH_X86_64_POPCNT_H
+#define SWARM_ARCH_X86_64_POPCNT_H
+
+
 #include <cstdint>
 
 
 auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const * rhs)
   -> uint64_t;
+
+#endif  // SWARM_ARCH_X86_64_POPCNT_H

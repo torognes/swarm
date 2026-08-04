@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_PSEUDO_RNG_H
+#define SWARM_UTILS_PSEUDO_RNG_H
+
+
 #include <cstdint>
 #include <random>
 
@@ -41,3 +45,5 @@ static auto rand_64() -> uint64_t {
   static std::mt19937_64 engine(seed);
   return engine();
 }
+
+#endif  // SWARM_UTILS_PSEUDO_RNG_H

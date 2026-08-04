@@ -21,9 +21,15 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_SYSTEM_MEMORY_H
+#define SWARM_UTILS_SYSTEM_MEMORY_H
+
+
 #include <cstdint>
 
 
 // operating system specific functions (Windows, macOS and Linux)
 auto system_get_memused() -> uint64_t;
 auto system_get_memtotal() -> uint64_t;
+
+#endif  // SWARM_UTILS_SYSTEM_MEMORY_H

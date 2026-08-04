@@ -21,6 +21,10 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_SEQ_INDEX_H
+#define SWARM_UTILS_SEQ_INDEX_H
+
+
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 
@@ -40,3 +44,5 @@ struct Entry {
   struct Index header;
   struct Index sequence;
 };
+
+#endif  // SWARM_UTILS_SEQ_INDEX_H

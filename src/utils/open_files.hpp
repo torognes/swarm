@@ -21,5 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_OPEN_FILES_H
+#define SWARM_UTILS_OPEN_FILES_H
+
 
 auto open_files(struct Parameters & parameters) -> void;
+
+#endif  // SWARM_UTILS_OPEN_FILES_H

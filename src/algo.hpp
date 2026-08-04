@@ -21,8 +21,14 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_ALGO_H
+#define SWARM_ALGO_H
+
+
 class Data;  // defined in db.hpp
 
 
 auto algo_run(struct Parameters const & parameters,
               Data const & data) -> void;
+
+#endif  // SWARM_ALGO_H

@@ -21,6 +21,12 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_HASHTABLE_SIZE_H
+#define SWARM_UTILS_HASHTABLE_SIZE_H
+
+
 #include <cstdint>
 
 auto compute_hashtable_size(uint64_t sequence_count) -> uint64_t;
+
+#endif  // SWARM_UTILS_HASHTABLE_SIZE_H

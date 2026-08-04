@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_SWARM_H
+#define SWARM_SWARM_H
+
+
 #include "utils/input_output.hpp"  // FileHandle
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // FILE, stderr
@@ -97,3 +101,5 @@ struct Parameters {
   FileHandle logfile_handle;  // empty unless -l was given
   std::FILE * logfile {stderr};  // stderr macro expands to type std::FILE*
 };
+
+#endif  // SWARM_SWARM_H

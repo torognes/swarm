@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_ZOBRIST_H
+#define SWARM_UTILS_ZOBRIST_H
+
+
 #include <array>
 #include <cstdint> // uint64_t, std::uint8_t
 #include <vector>
@@ -60,4 +64,4 @@ private:
   std::vector<Byte_row>                           tab_byte_base_v_;
 };
 
-
+#endif  // SWARM_UTILS_ZOBRIST_H

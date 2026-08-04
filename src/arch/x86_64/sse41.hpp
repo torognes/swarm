@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_ARCH_X86_64_SSE41_H
+#define SWARM_ARCH_X86_64_SSE41_H
+
+
 #ifdef __SSE4_1__
 
 /*
@@ -65,3 +69,5 @@ auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
                                  VECTORTYPE const * MQ0) -> void;
 
 #endif
+
+#endif  // SWARM_ARCH_X86_64_SSE41_H

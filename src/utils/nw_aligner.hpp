@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_NW_ALIGNER_H
+#define SWARM_UTILS_NW_ALIGNER_H
+
+
 #include "score_matrix.hpp"  // n_cells
 #include "view.hpp"  // View<char>
 #include <array>
@@ -82,3 +86,5 @@ private:
   uint64_t                               gapopen_;
   uint64_t                               gapextend_;
 };
+
+#endif  // SWARM_UTILS_NW_ALIGNER_H

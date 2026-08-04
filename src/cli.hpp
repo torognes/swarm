@@ -21,6 +21,12 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_CLI_H
+#define SWARM_CLI_H
+
+
 // Parse and validate options, derive the alignment scoring system,
 // open the input/output files, and print the header banner
 auto parse_command_line(int argc, char * const * argv) -> struct Parameters;
+
+#endif  // SWARM_CLI_H

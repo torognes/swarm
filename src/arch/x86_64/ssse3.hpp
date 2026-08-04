@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_ARCH_X86_64_SSSE3_H
+#define SWARM_ARCH_X86_64_SSSE3_H
+
+
 #ifdef __SSSE3__
 
 using WORD = unsigned short;
@@ -35,3 +39,5 @@ auto dprofile_shuffle16(WORD * dprofile,
                         BYTE const * dseq_byte) -> void;
 
 #endif
+
+#endif  // SWARM_ARCH_X86_64_SSSE3_H

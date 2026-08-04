@@ -21,6 +21,10 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_UTILS_FATAL_H
+#define SWARM_UTILS_FATAL_H
+
+
 #include <cstddef>  // std::size_t
 #include <iostream>
 #include <utility>
@@ -79,3 +83,5 @@ template<typename Head, typename... Tail>
     fatal_detail::print_then_exit(std::forward<Head>(head),
                                   std::forward<Tail>(tail)...);
 }
+
+#endif  // SWARM_UTILS_FATAL_H

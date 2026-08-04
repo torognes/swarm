@@ -21,6 +21,10 @@
   PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
+#ifndef SWARM_ARCH_X86_64_INTRINSICS_TO_FUNCTIONS_H
+#define SWARM_ARCH_X86_64_INTRINSICS_TO_FUNCTIONS_H
+
+
 #ifdef __SSE2__
 
 #include <cstdint>  // uint64_t
@@ -96,3 +100,5 @@ auto v_mask_eq16(__m128i lhs, __m128i rhs) -> uint16_t;
 auto v_mask_eq8(__m128i lhs, __m128i rhs) -> uint16_t;
 
 #endif
+
+#endif  // SWARM_ARCH_X86_64_INTRINSICS_TO_FUNCTIONS_H
