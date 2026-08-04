@@ -33,7 +33,7 @@
 #include <cinttypes>  // macro PRIu64
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fprintf(), fputc(), fputs()
+#include <cstdio>  // fprintf()
 #include <iterator>  // std::next
 #include <vector>
 
@@ -116,12 +116,21 @@ namespace {
                         Data const & data,
                         std::vector<struct bucket> const & hashtable) -> void {
     Progress progress("Writing stats:    ", hashtable.size(), parameters);
+    auto * const stats_file = parameters.statsfile.get();
+
     for (auto const & cluster: hashtable) {
-      std::fprintf(parameters.statsfile.get(), "%u\t%" PRIu64 "\t", cluster.size, cluster.mass);
-      fprint_id_noabundance(parameters.statsfile.get(), data.info(cluster.seqno_first), parameters.opt_usearch_abundance);
-      std::fprintf(parameters.statsfile.get(), "\t%" PRIu64 "\t%u\t%u\t%u\n",
-                   data.abundance(cluster.seqno_first),
-                   cluster.singletons, 0U, 0U);
+      fprint_integer(stats_file, cluster.size);
+      fprint(stats_file, '\t');
+      fprint_integer(stats_file, cluster.mass);
+      fprint(stats_file, '\t');
+      fprint_id_noabundance(stats_file, data.info(cluster.seqno_first), parameters.opt_usearch_abundance);
+      fprint(stats_file, '\t');
+      fprint_integer(stats_file, data.abundance(cluster.seqno_first));
+      fprint(stats_file, '\t');
+      fprint_integer(stats_file, cluster.singletons);
+      // columns 6 and 7 are the max generation and max radius, both zero at
+      // d = 0: identical sequences are all at generation zero from the seed
+      fprint(stats_file, "\t0\t0\n");
       progress.increment();
     }
     progress.done();
@@ -164,34 +173,43 @@ namespace {
                                   std::vector<unsigned int> const & nextseqtab) -> void {
     Progress progress("Writing UCLUST:   ", hashtable.size(), parameters);
     auto counter = 0U;
+    auto * const uclust_file = parameters.uclustfile.get();
 
     for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
 
-      std::fprintf(parameters.uclustfile.get(), "C\t%u\t%u\t*\t*\t*\t*\t*\t",
-                   counter,
-                   cluster.size);
-      fprint_id(parameters.uclustfile.get(), data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
+      fprint(uclust_file, "C\t");
+      fprint_integer(uclust_file, counter);
+      fprint(uclust_file, '\t');
+      fprint_integer(uclust_file, cluster.size);
+      fprint(uclust_file, "\t*\t*\t*\t*\t*\t");
+      fprint_id(uclust_file, data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      fprint(uclust_file, "\t*\n");
 
-      std::fprintf(parameters.uclustfile.get(), "S\t%u\t%u\t*\t*\t*\t*\t*\t",
-                   counter,
-                   data.sequence_view(seed).length);
-      fprint_id(parameters.uclustfile.get(), data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-      static_cast<void>(std::fputs("\t*\n", parameters.uclustfile.get()));
+      fprint(uclust_file, "S\t");
+      fprint_integer(uclust_file, counter);
+      fprint(uclust_file, '\t');
+      fprint_integer(uclust_file, data.sequence_view(seed).length);
+      fprint(uclust_file, "\t*\t*\t*\t*\t*\t");
+      fprint_id(uclust_file, data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+      fprint(uclust_file, "\t*\n");
 
       for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
-          std::fprintf(parameters.uclustfile.get(),
-                       "H\t%u\t%u\t%.1f\t+\t0\t0\t%s\t",
-                       counter,
-                       data.sequence_view(next_identical).length,
-                       100.0,
-                       "=");
-          fprint_id(parameters.uclustfile.get(), data.info(next_identical), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          static_cast<void>(std::fputc('\t', parameters.uclustfile.get()));
-          fprint_id(parameters.uclustfile.get(), data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
-          static_cast<void>(std::fputc('\n', parameters.uclustfile.get()));
+          fprint(uclust_file, "H\t");
+          fprint_integer(uclust_file, counter);
+          fprint(uclust_file, '\t');
+          fprint_integer(uclust_file, data.sequence_view(next_identical).length);
+          // Unlike the d = 1 and d > 1 uclust writers, no field here needs
+          // formatting: the identity is always 100.0 % and the alignment is
+          // always "=", because the two sequences are identical at d = 0.
+          // Both were constant arguments to "%.1f" and "%s"; they are now
+          // the text those conversions always produced.
+          fprint(uclust_file, "\t100.0\t+\t0\t0\t=\t");
+          fprint_id(uclust_file, data.info(next_identical), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          fprint(uclust_file, '\t');
+          fprint_id(uclust_file, data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
+          fprint(uclust_file, '\n');
         }
       ++counter;
       progress.update(counter);
@@ -210,10 +228,10 @@ namespace {
 
     for (auto const & cluster: hashtable) {
       auto const seed = cluster.seqno_first;
-      static_cast<void>(std::fputc('>', seeds_file));
+      fprint(seeds_file, '>');
       fprint_id_with_new_abundance(seeds_file, data.info(seed), cluster.mass,
                                    parameters.opt_usearch_abundance);
-      static_cast<void>(std::fputc('\n', seeds_file));
+      fprint(seeds_file, '\n');
       sequence_printer.print(seeds_file, data.sequence_view(seed));
       progress.increment();
     }
@@ -228,25 +246,27 @@ namespace {
     Progress progress("Writing swarms:   ", hashtable.size(), parameters);
 
     uint64_t const number_of_clusters {hashtable.size()};
-    std::fprintf(parameters.outfile.get(), "swarm_%" PRIu64 "\t%" PRIu64,
-                 parameters.opt_differences, number_of_clusters);
+    fprint(parameters.outfile.get(), "swarm_");
+    fprint_integer(parameters.outfile.get(), parameters.opt_differences);
+    fprint(parameters.outfile.get(), '\t');
+    fprint_integer(parameters.outfile.get(), number_of_clusters);
 
     for (auto const & cluster: hashtable) {
       // print cluster seed
       auto const seed = cluster.seqno_first;
-      static_cast<void>(std::fputc('\t', parameters.outfile.get()));
+      fprint(parameters.outfile.get(), '\t');
       fprint_id(parameters.outfile.get(), data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
 
       // print other cluster members
       for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
-          static_cast<void>(std::fputc(',', parameters.outfile.get()));
+          fprint(parameters.outfile.get(), ',');
           fprint_id(parameters.outfile.get(), data.info(next_identical), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         }
 
       progress.increment();
     }
-    static_cast<void>(std::fputc('\n', parameters.outfile.get()));
+    fprint(parameters.outfile.get(), '\n');
 
     progress.done();
   }
@@ -267,10 +287,10 @@ namespace {
       // print other cluster members
       for (auto const next_identical : identical_copies_of(nextseqtab, seed))
         {
-          static_cast<void>(std::fputc(sepchar, parameters.outfile.get()));
+          fprint(parameters.outfile.get(), sepchar);
           fprint_id(parameters.outfile.get(), data.info(next_identical), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
         }
-      static_cast<void>(std::fputc('\n', parameters.outfile.get()));
+      fprint(parameters.outfile.get(), '\n');
       progress.increment();
     }
 
@@ -414,7 +434,7 @@ auto dereplicate(struct Parameters const & parameters,
 
   output_results(parameters, data, hashtable, nextseqtab);
 
-  static_cast<void>(std::fputc('\n', parameters.logfile));
+  fprint(parameters.logfile, '\n');
   std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n",
                static_cast<uint64_t>(stats.swarmcount));
   std::fprintf(parameters.logfile, "Largest swarm:     %u\n", stats.maxsize);
