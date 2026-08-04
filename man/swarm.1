@@ -459,6 +459,39 @@ parameters modifications. When clustering using a higher \fId\fR
 value, modifying model parameters has a stronger impact.
 .\" classic parameters are +5/-4/-12/-1
 .\" ============================================================================
+.SH EXIT STATUS
+.B swarm
+returns 0 when it completes, and 1 when it stops with an error. The
+options \fB\-\-help\fR (\fB\-h\fR) and \fB\-\-version\fR (\fB\-v\fR) are
+successful runs and also return 0.
+.PP
+A status of 1 always comes with a message starting with 'Error:' on
+\fIstandard error\fR. Error messages are not redirected by \fB\-\-log\fR
+(\fB\-l\fR), so they appear there even when everything else has been sent
+to a file. The causes are:
+.RS
+.IP \(bu 4
+an unusable command line: an unknown option, an option given more than
+once, a non-numeric or out-of-range argument, or a combination that has no
+meaning, such as \fB\-\-fastidious\fR with a resolution other than 1;
+.IP \(bu
+an input that cannot be used: a missing or unreadable file, an illegal
+character in a sequence, an empty sequence, a missing abundance
+annotation, or amplicons that were not dereplicated when \fId\fR is
+greater than 0;
+.IP \(bu
+a failure while writing any of the output files, including running out of
+space. Output already written is left in place, so a result file may be
+incomplete when this happens.
+.RE
+.PP
+One failure does not produce a status at all. Because
+.B swarm
+does not handle exceptions, being unable to allocate memory terminates the
+process with SIGABRT instead of returning; a shell reports that as 134.
+This is distinct from exceeding the limit set by \fB\-\-ceiling\fR
+(\fB\-c\fR), which is diagnosed normally and returns 1.
+.\" ============================================================================
 .SH EXAMPLES
 .PP
 Cluster the compressed data set \fImyfile.fasta.gz\fR at the finest
