@@ -182,14 +182,30 @@ namespace {
   }
 
 
-  auto get_file_info(std::FILE * input_handle, struct Parameters const & parameters) -> struct File_info {
+  auto get_file_info(std::FILE * input_handle) -> struct File_info {
     // get file size and file type (regular or pipe)
     // refactoring: C++17 std::filesystem::file_size
     struct File_info file_info;
     struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
 
+    // A stream that cannot be inspected is treated as a pipe rather than
+    // refused. Both of these values only ever *improve* the run: filesize
+    // sizes an initial reserve() and the read-progress denominator, and
+    // is_regular decides whether that progress is reported at all. Neither
+    // is needed to cluster the input.
+    //
+    // The fallback is not a new code path: a pipe is not S_ISREG, so every
+    // "swarm -" and every piped invocation already produces exactly this
+    // result -- filesize 0, is_regular false -- and prints "Waiting for
+    // data..." followed by a progress line that jumps from 0 % to 100 %.
+    // The default-constructed File_info is that state.
+    //
+    // Note that is_regular is what guards progress.update() at the read
+    // loop below, and update() divides by filesize. That guard is therefore
+    // load-bearing twice over: without it a zero filesize would divide by
+    // zero, and this is now a second way to reach a zero filesize.
     if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // refactor: fstat and fileno are linuxisms
-      fatal("Unable to fstat on input file (", parameters.input_filename.c_str(), ").\n");
+      return file_info;
     }
     file_info.is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG is a linuxism
     file_info.filesize = file_info.is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0U;
@@ -729,7 +745,7 @@ namespace {
         fatal("Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
       }
 
-    auto const file_info = get_file_info(input_fp_handle.get(), parameters);
+    auto const file_info = get_file_info(input_fp_handle.get());
     warn_if_file_is_not_regular(parameters, file_info.is_regular);
 
     /* allocate space */
