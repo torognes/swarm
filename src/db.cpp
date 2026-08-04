@@ -29,7 +29,7 @@
 #include "utils/hasher_generic.hpp"
 #include "utils/input_output.hpp"
 #include "utils/nt_codec.hpp"
-#include "utils/print_view.hpp"  // fprint
+#include "utils/print_view.hpp"  // fprint, fprint_integer
 #include "utils/progress.hpp"
 #include "utils/seq_index.hpp"
 #include "utils/view.hpp"
@@ -39,10 +39,9 @@
 #include <array>
 #include <cassert>  // assert()
 #include <cerrno>  // errno, ERANGE
-#include <cinttypes>  // macro PRIu64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fileno, fprintf(), fputc(), size_t // stdio.h: fdopen, ssize_t, getline
+#include <cstdio>  // std::FILE, fileno // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // std::strtoll()
 #include <cstring>  // memcpy
 #include <iterator>  // std::next()
@@ -178,7 +177,7 @@ namespace {
 
   auto warn_if_file_is_not_regular(struct Parameters const & parameters, bool const is_regular) -> void {
     if (not is_regular) {
-      static_cast<void>(std::fputs("Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n", parameters.logfile));
+      fprint(parameters.logfile, "Waiting for data... (hit Ctrl-C and run 'swarm -h' if you meant to read data from a file)\n");
     }
   }
 
@@ -701,15 +700,13 @@ namespace {
 
   auto print_user_report(struct Parameters const & parameters,
                          struct Seq_stats const & seq_stats) -> void {
-    static_cast<void>(std::fprintf(parameters.logfile,
-                                   "Database info:     %" PRIu64 " nt",
-                                   seq_stats.nucleotides));
-    static_cast<void>(std::fprintf(parameters.logfile,
-                                   " in %u sequences,",
-                                   seq_stats.n_sequences));
-    static_cast<void>(std::fprintf(parameters.logfile,
-                                   " longest %u nt\n",
-                                   seq_stats.longest_sequence));
+    fprint(parameters.logfile, "Database info:     ");
+    fprint_integer(parameters.logfile, seq_stats.nucleotides);
+    fprint(parameters.logfile, " nt in ");
+    fprint_integer(parameters.logfile, seq_stats.n_sequences);
+    fprint(parameters.logfile, " sequences, longest ");
+    fprint_integer(parameters.logfile, seq_stats.longest_sequence);
+    fprint(parameters.logfile, " nt\n");
   }
 
 
@@ -1084,7 +1081,7 @@ auto Sequence_printer::print(std::FILE * stream, Sequence const & seq) const -> 
   }
 
   fprint(stream, make_view(decode_buffer_).first(seq.length));
-  static_cast<void>(std::fputc('\n', stream));
+  fprint(stream, '\n');
 }
 
 

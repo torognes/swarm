@@ -31,14 +31,13 @@
 #include "utils/scanner.hpp"
 #include "utils/memory_budget.hpp"
 #include "utils/make_unique.hpp"
+#include "utils/print_view.hpp"  // fprint, fprint_integer
 #include "utils/progress.hpp"
 #include "utils/span.hpp"  // Span, make_span
 #include "utils/view.hpp"  // View, make_view
 #include <algorithm>  // std::min(), std::for_each
 #include <cassert>
-#include <cinttypes>  // macro PRIu64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fprintf(), fputc()
 #include <limits>
 #include <memory>  // unique pointer
 #include <string>
@@ -232,13 +231,19 @@ namespace {
       write_representative_sequences(parameters, data, amps);
     }
 
-    static_cast<void>(std::fputc('\n', parameters.logfile));
+    fprint(parameters.logfile, '\n');
 
-    std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmid);
+    fprint(parameters.logfile, "Number of swarms:  ");
+    fprint_integer(parameters.logfile, swarmid);
+    fprint(parameters.logfile, '\n');
 
-    std::fprintf(parameters.logfile, "Largest swarm:     %" PRIu64 "\n", largestswarm);
+    fprint(parameters.logfile, "Largest swarm:     ");
+    fprint_integer(parameters.logfile, largestswarm);
+    fprint(parameters.logfile, '\n');
 
-    std::fprintf(parameters.logfile, "Max generations:   %" PRIu64 "\n", maxgenerations);
+    fprint(parameters.logfile, "Max generations:   ");
+    fprint_integer(parameters.logfile, maxgenerations);
+    fprint(parameters.logfile, '\n');
   }
 
 

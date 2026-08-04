@@ -26,12 +26,12 @@
 #include "algod1_internal.hpp"
 #include "system_memory.hpp"
 #include "fatal.hpp"
+#include "print_view.hpp"  // fprint, fprint_integer
 #include "progress.hpp"
 #include <algorithm>  // std::max()
 #include <cassert>  // assert()
-#include <cinttypes>  // macro PRIu64
 #include <cstdint>  // uint64_t
-#include <cstdio>  // fprintf(), fputc(), fputs()
+#include <cstdio>  // fprintf()
 #include <vector>  // std::vector
 
 #ifndef NDEBUG
@@ -125,7 +125,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
           if (new_bits < 2) {
             fatal("Insufficient memory remaining for Bloom filter.");
           }
-          static_cast<void>(std::fputs("Reducing memory used for Bloom filter due to --ceiling option.\n", parameters.logfile));
+          fprint(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
           bits = new_bits;
           n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
           bloom_length_in_bits = bloom_bits_for(bits);
@@ -137,13 +137,20 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 
   if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
     {
-      static_cast<void>(std::fputs("WARNING: Memory usage will probably exceed total amount of memory available.\n", parameters.logfile));
-      static_cast<void>(std::fputs("Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n", parameters.logfile));
+      fprint(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
+      fprint(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
     }
 
-  std::fprintf(parameters.logfile,
-               "Bloom filter: bits=%" PRIu64 ", m=%" PRIu64 ", k=%u, size=%.1fMB\n",
-               bits, bloom_length_in_bits, n_hash_functions, static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
+  fprint(parameters.logfile, "Bloom filter: bits=");
+  fprint_integer(parameters.logfile, bits);
+  fprint(parameters.logfile, ", m=");
+  fprint_integer(parameters.logfile, bloom_length_in_bits);
+  fprint(parameters.logfile, ", k=");
+  fprint_integer(parameters.logfile, n_hash_functions);
+  // the size in MB is the one field that needs a double formatted, so it
+  // keeps its fprintf (see the same note in the uclust writers)
+  std::fprintf(parameters.logfile, ", size=%.1fMB\n",
+               static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
 
 
   // bloom_length is in bits (divide by 8 to get bytes)
@@ -161,8 +168,17 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 auto log_swarm_summary(struct Parameters const & parameters,
                        Overall_stats const & overall_stats) -> void
 {
-  static_cast<void>(std::fputc('\n', parameters.logfile));
-  std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n", overall_stats.swarmcount_adjusted);
-  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
-  std::fprintf(parameters.logfile, "Max generations:   %u\n", overall_stats.maxgen);
+  fprint(parameters.logfile, '\n');
+
+  fprint(parameters.logfile, "Number of swarms:  ");
+  fprint_integer(parameters.logfile, overall_stats.swarmcount_adjusted);
+  fprint(parameters.logfile, '\n');
+
+  fprint(parameters.logfile, "Largest swarm:     ");
+  fprint_integer(parameters.logfile, overall_stats.largest);
+  fprint(parameters.logfile, '\n');
+
+  fprint(parameters.logfile, "Max generations:   ");
+  fprint_integer(parameters.logfile, overall_stats.maxgen);
+  fprint(parameters.logfile, '\n');
 }

@@ -30,14 +30,13 @@
 #include "bloom.hpp"
 #include "hashtable.hpp"
 #include "make_unique.hpp"
+#include "print_view.hpp"  // fprint, fprint_integer
 #include "progress.hpp"
 #include "threads.hpp"
 #include <algorithm>  // std::sort(), std::max(), std::count_if()
 #include <cassert>  // assert()
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fprintf(), fputc(), fputs()
 #include <mutex>  // std::lock_guard, std::unique_lock
 #include <vector>
 
@@ -488,9 +487,9 @@ namespace {
     }
     progress_light.done();
 
-    std::fprintf(parameters.logfile,
-                 "Generated %" PRIu64 " variants from light swarms\n",
-                 light_state.variants);
+    fprint(parameters.logfile, "Generated ");
+    fprint_integer(parameters.logfile, light_state.variants);
+    fprint(parameters.logfile, " variants from light swarms\n");
   }
 
 
@@ -522,8 +521,13 @@ namespace {
     }
     progress_heavy.done();
 
-    std::fprintf(parameters.logfile, "Heavy variants: %" PRIu64 "\n", heavy_state.variants);
-    std::fprintf(parameters.logfile, "Got %" PRId64 " graft candidates\n", graft_state.candidates);
+    fprint(parameters.logfile, "Heavy variants: ");
+    fprint_integer(parameters.logfile, heavy_state.variants);
+    fprint(parameters.logfile, '\n');
+
+    fprint(parameters.logfile, "Got ");
+    fprint_integer(parameters.logfile, graft_state.candidates);
+    fprint(parameters.logfile, " graft candidates\n");
   }
 
 } // namespace
@@ -538,11 +542,16 @@ auto run_fastidious_pass(struct Parameters const & parameters,
 {
   const auto amplicons = data.sequence_count();
 
-  static_cast<void>(std::fputc('\n', parameters.logfile));
-  static_cast<void>(std::fputs("Results before fastidious processing:\n", parameters.logfile));
-  std::fprintf(parameters.logfile, "Number of swarms:  %u\n", swarmcount);
-  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", overall_stats.largest);
-  static_cast<void>(std::fputc('\n', parameters.logfile));
+  fprint(parameters.logfile, '\n');
+  fprint(parameters.logfile, "Results before fastidious processing:\n");
+
+  fprint(parameters.logfile, "Number of swarms:  ");
+  fprint_integer(parameters.logfile, swarmcount);
+  fprint(parameters.logfile, '\n');
+
+  fprint(parameters.logfile, "Largest swarm:     ");
+  fprint_integer(parameters.logfile, overall_stats.largest);
+  fprint(parameters.logfile, "\n\n");
 
   auto const stats = count_cluster_stats(parameters, amplicons, swarminfo_v);
   auto const small_clusters = stats.small_clusters;
@@ -551,18 +560,26 @@ auto run_fastidious_pass(struct Parameters const & parameters,
   auto const amplicons_in_large_clusters = stats.amplicons_in_large_clusters;
   auto const nucleotides_in_small_clusters = stats.nucleotides_in_small_clusters;
 
-  std::fprintf(parameters.logfile, "Heavy swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-               large_clusters, amplicons_in_large_clusters);
-  std::fprintf(parameters.logfile, "Light swarms: %" PRIu64 ", with %" PRIu64 " amplicons\n",
-               small_clusters, amplicons_in_small_clusters);
-  std::fprintf(parameters.logfile, "Total length of amplicons in light swarms: %" PRIu64 "\n",
-               nucleotides_in_small_clusters);
+  fprint(parameters.logfile, "Heavy swarms: ");
+  fprint_integer(parameters.logfile, large_clusters);
+  fprint(parameters.logfile, ", with ");
+  fprint_integer(parameters.logfile, amplicons_in_large_clusters);
+  fprint(parameters.logfile, " amplicons\n");
+
+  fprint(parameters.logfile, "Light swarms: ");
+  fprint_integer(parameters.logfile, small_clusters);
+  fprint(parameters.logfile, ", with ");
+  fprint_integer(parameters.logfile, amplicons_in_small_clusters);
+  fprint(parameters.logfile, " amplicons\n");
+
+  fprint(parameters.logfile, "Total length of amplicons in light swarms: ");
+  fprint_integer(parameters.logfile, nucleotides_in_small_clusters);
+  fprint(parameters.logfile, '\n');
 
   if ((small_clusters == 0) or (large_clusters == 0))
     {
-      static_cast<void>(std::fputs("Only light or heavy swarms found - "
-                                   "no need for further analysis.\n",
-                                   parameters.logfile));
+      fprint(parameters.logfile, "Only light or heavy swarms found - "
+                                 "no need for further analysis.\n");
     }
   else
     {
@@ -586,7 +603,8 @@ auto run_fastidious_pass(struct Parameters const & parameters,
       run_heavy_pass(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_large_clusters, graft_state);
 
       auto const grafts = attach_candidates(parameters, amplicons, ampinfo_v, swarminfo_v, overall_stats);
-      std::fprintf(parameters.logfile, "Made %u grafts\n", grafts);
-      static_cast<void>(std::fputc('\n', parameters.logfile));
+      fprint(parameters.logfile, "Made ");
+      fprint_integer(parameters.logfile, grafts);
+      fprint(parameters.logfile, " grafts\n\n");
     }
 }

@@ -22,6 +22,7 @@
 */
 
 #include "cigar.hpp"
+#include "decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "view.hpp"  // View<char>
 #include <algorithm>  // std::find_if
 #include <cassert>
@@ -47,7 +48,14 @@ auto compress_alignment_to_cigar(View<char> const input,
                    });
     auto const length = std::distance(run_begin, run_end);
     if (length > 1) {
-      destination.append(std::to_string(length));
+      // not std::to_string: before libstdc++ 11 its integral overloads are
+      // __to_xstring(&std::vsnprintf, "%ld", ...), i.e. a run-time format
+      // string, and swarm still supports GCC 4.9. This also avoids the
+      // temporary std::string. decimal_digits.hpp is sink-agnostic for
+      // exactly this reason, so <cstdio> stays out of this file.
+      decimal::Buffer buffer {};
+      auto const digits = decimal::to_decimal(buffer, length);
+      destination.append(digits.data(), digits.size());
     }
     destination.push_back(operation);
     run_begin = run_end;

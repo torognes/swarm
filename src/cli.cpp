@@ -24,6 +24,8 @@
 #include "cli.hpp"
 #include "swarm.hpp"
 #include "utils/fatal.hpp"
+#include "utils/print_view.hpp"  // fprint, fprint_integer
+#include "utils/view.hpp"  // View, make_view
 #include "utils/gcd.hpp"
 #include "utils/open_files.hpp"
 #include "arch/x86_64/cpu_features.hpp"
@@ -32,9 +34,8 @@
 #include <bitset>
 #include <cassert>
 #include <cerrno>  // errno, ERANGE
-#include <cinttypes>  // macros PRIu32, PRIu64 and PRId64
 #include <cstdint>  // int64_t
-#include <cstdio>  // FILE, fclose, fprintf(), fputc(), fputs(), stderr
+#include <cstdio>  // FILE, fclose, fputs(), stderr
 #include <cstdlib>  // std::exit, std::strtoll
 #include <getopt.h>  // getopt_long, optarg, optind, struct option
                      // (no_argument, required_argument)
@@ -278,46 +279,91 @@ namespace {
     cpu_features_show(parameters);
 #endif
 
-    std::fprintf(parameters.logfile, "Database file:     %s\n", parameters.input_filename.c_str());
-    std::fprintf(parameters.logfile, "Output file:       %s\n", parameters.opt_output_file.c_str());
+    // Every line here is a padded label followed by one value. The file
+    // names arrive as std::string, so they go out as a View over their own
+    // bytes rather than through a "%s" and a c_str().
+    auto * const log = parameters.logfile;
+
+    fprint(log, "Database file:     ");
+    fprint(log, make_view(parameters.input_filename));
+    fprint(log, '\n');
+
+    fprint(log, "Output file:       ");
+    fprint(log, make_view(parameters.opt_output_file));
+    fprint(log, '\n');
+
     if (not parameters.opt_statistics_file.empty()) {
-      std::fprintf(parameters.logfile, "Statistics file:   %s\n", parameters.opt_statistics_file.c_str());
+      fprint(log, "Statistics file:   ");
+      fprint(log, make_view(parameters.opt_statistics_file));
+      fprint(log, '\n');
     }
     if (not parameters.opt_uclust_file.empty()) {
-      std::fprintf(parameters.logfile, "Uclust file:       %s\n", parameters.opt_uclust_file.c_str());
+      fprint(log, "Uclust file:       ");
+      fprint(log, make_view(parameters.opt_uclust_file));
+      fprint(log, '\n');
     }
     if (not parameters.opt_internal_structure.empty()) {
-      std::fprintf(parameters.logfile, "Int. struct. file: %s\n", parameters.opt_internal_structure.c_str());
+      fprint(log, "Int. struct. file: ");
+      fprint(log, make_view(parameters.opt_internal_structure));
+      fprint(log, '\n');
     }
     if (not parameters.opt_network_file.empty()) {
-      std::fprintf(parameters.logfile, "Network file:      %s\n", parameters.opt_network_file.c_str());
+      fprint(log, "Network file:      ");
+      fprint(log, make_view(parameters.opt_network_file));
+      fprint(log, '\n');
     }
-    std::fprintf(parameters.logfile, "Resolution (d):    %" PRIu64 "\n", parameters.opt_differences);
-    std::fprintf(parameters.logfile, "Threads:           %" PRIu32 "\n", parameters.opt_threads);
+
+    fprint(log, "Resolution (d):    ");
+    fprint_integer(log, parameters.opt_differences);
+    fprint(log, '\n');
+
+    fprint(log, "Threads:           ");
+    fprint_integer(log, parameters.opt_threads);
+    fprint(log, '\n');
 
     if (parameters.opt_differences > 1)
       {
-        std::fprintf(parameters.logfile,
-                     "Scores:            match: %" PRId64 ", mismatch: %" PRId64 "\n",
-                     parameters.opt_match_reward, parameters.opt_mismatch_penalty);
-        std::fprintf(parameters.logfile,
-                     "Gap penalties:     opening: %" PRId64 ", extension: %" PRId64 "\n",
-                     parameters.opt_gap_opening_penalty, parameters.opt_gap_extension_penalty);
-        std::fprintf(parameters.logfile,
-                     "Converted costs:   mismatch: %" PRId64 ", gap opening: %" PRId64 ", "
-                     "gap extension: %" PRId64 "\n",
-                     parameters.penalty_mismatch, parameters.penalty_gapopen, parameters.penalty_gapextend);
+        fprint(log, "Scores:            match: ");
+        fprint_integer(log, parameters.opt_match_reward);
+        fprint(log, ", mismatch: ");
+        fprint_integer(log, parameters.opt_mismatch_penalty);
+        fprint(log, '\n');
+
+        fprint(log, "Gap penalties:     opening: ");
+        fprint_integer(log, parameters.opt_gap_opening_penalty);
+        fprint(log, ", extension: ");
+        fprint_integer(log, parameters.opt_gap_extension_penalty);
+        fprint(log, '\n');
+
+        fprint(log, "Converted costs:   mismatch: ");
+        fprint_integer(log, parameters.penalty_mismatch);
+        fprint(log, ", gap opening: ");
+        fprint_integer(log, parameters.penalty_gapopen);
+        fprint(log, ", gap extension: ");
+        fprint_integer(log, parameters.penalty_gapextend);
+        fprint(log, '\n');
       }
-    std::fprintf(parameters.logfile, "Break clusters:    %s\n",
-                 parameters.opt_no_cluster_breaking ? "No" : "Yes");
-    if (parameters.opt_fastidious) {
-      std::fprintf(parameters.logfile, "Fastidious:        Yes, with boundary %" PRIu64 "\n",
-                   parameters.opt_boundary);
+
+    // Two branches rather than a ternary: 'cond ? "No\n" : "Yes\n"' has
+    // operands of different array types, so it decays to a char const * and
+    // matches none of the fprint overloads.
+    fprint(log, "Break clusters:    ");
+    if (parameters.opt_no_cluster_breaking) {
+      fprint(log, "No\n");
     }
     else {
-      static_cast<void>(std::fputs("Fastidious:        No\n", parameters.logfile));
+      fprint(log, "Yes\n");
     }
-    static_cast<void>(std::fputc('\n', parameters.logfile));
+
+    if (parameters.opt_fastidious) {
+      fprint(log, "Fastidious:        Yes, with boundary ");
+      fprint_integer(log, parameters.opt_boundary);
+      fprint(log, '\n');
+    }
+    else {
+      fprint(log, "Fastidious:        No\n");
+    }
+    fprint(log, '\n');
   }
 
 

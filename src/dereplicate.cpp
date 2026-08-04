@@ -30,10 +30,8 @@
 #include "utils/progress.hpp"
 #include <algorithm>  // sort
 #include <cassert>  // assert
-#include <cinttypes>  // macro PRIu64
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // fprintf()
 #include <iterator>  // std::next
 #include <vector>
 
@@ -435,8 +433,16 @@ auto dereplicate(struct Parameters const & parameters,
   output_results(parameters, data, hashtable, nextseqtab);
 
   fprint(parameters.logfile, '\n');
-  std::fprintf(parameters.logfile, "Number of swarms:  %" PRIu64 "\n",
-               static_cast<uint64_t>(stats.swarmcount));
-  std::fprintf(parameters.logfile, "Largest swarm:     %u\n", stats.maxsize);
-  std::fprintf(parameters.logfile, "Heaviest swarm:    %" PRIu64 "\n", stats.maxmass);
+
+  fprint(parameters.logfile, "Number of swarms:  ");
+  fprint_integer(parameters.logfile, stats.swarmcount);
+  fprint(parameters.logfile, '\n');
+
+  fprint(parameters.logfile, "Largest swarm:     ");
+  fprint_integer(parameters.logfile, stats.maxsize);
+  fprint(parameters.logfile, '\n');
+
+  fprint(parameters.logfile, "Heaviest swarm:    ");
+  fprint_integer(parameters.logfile, stats.maxmass);
+  fprint(parameters.logfile, '\n');
 }
