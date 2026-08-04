@@ -36,7 +36,10 @@
 #include "utils/algod1_network.hpp"
 #include "utils/algod1_output.hpp"
 #include "utils/algod1_statistics.hpp"
+#include "utils/span.hpp"  // Span<>, make_span()
 #include <algorithm>  // std::sort(), std::max()
+#include <cassert>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
 
@@ -56,12 +59,64 @@ namespace {
   };
 
 
+  /* the hit buffer's initial size and its growth step, in entries: one
+     unit for both, so that neither is derived from an unrelated quantity */
+  constexpr std::size_t hit_chunk {4UL * one_kilobyte};
+
+
+  /* One generation's hits, filled into storage that outlives them: the
+     buffer is allocated once per run and reused by every generation of
+     every cluster, so storage_.size() is the *allocated* length and never
+     the used one. The used length lives here, next to the storage it
+     applies to, instead of travelling beside it as a second parameter.
+
+     Constructed once per generation, so starting empty is structural
+     rather than something a caller has to remember to reset. */
+  class Hit_list {
+  public:
+    explicit Hit_list(std::vector<unsigned int> & storage) noexcept
+      : storage_(storage) {}
+
+    /* room for 'additional' more hits, grown in whole chunks. used_ is a
+       std::size_t, the same type as storage_.size(), so the sum below
+       cannot wrap; as an unsigned int count it could, skipping the growth
+       and leaving push() to write out of bounds. */
+    auto reserve_for(std::size_t const additional) -> void {
+      auto const required = used_ + additional;
+      if (required <= storage_.size()) { return; }
+      auto enlarged = storage_.size();
+      while (required > enlarged) {
+        enlarged += hit_chunk;
+      }
+      storage_.resize(enlarged);
+    }
+
+    /* an indexed write, deliberately: push_back() here is the shape of the
+       regression recorded in commit e517c04 (a candidate-list fill, 25-35 %
+       at d=2) */
+    auto push(unsigned int const amp) noexcept -> void {
+      assert(used_ < storage_.size());  // reserve_for() precedes the writes
+      storage_[used_] = amp;
+      ++used_;
+    }
+
+    /* the hits collected so far, mutable because the caller sorts them in
+       place. Invalidated by any later push() that grows the storage. */
+    auto filled() noexcept -> Span<unsigned int> {
+      return make_span(storage_).first(used_);
+    }
+
+  private:
+    std::vector<unsigned int> & storage_;
+    std::size_t used_ {0};
+  };
+
+
   auto process_seed(Data const & data,
                     unsigned int const seed,
                     std::vector<struct ampinfo_s> & ampinfo_v,
                     std::vector<unsigned int> const & network_v,
-                    std::vector<unsigned int> & global_hits_v,
-                    unsigned int & global_hits_count,
+                    Hit_list & hits,
                     Active_swarm_stats & current_swarm) -> void
   {
     /* update swarm stats */
@@ -77,26 +132,17 @@ namespace {
     current_swarm.sumlen += data.sequence_view(seed).length;
 
     auto const neighbours = neighbours_of(network_v, seed_info);
-    auto global_hits_alloc = global_hits_v.size();
-
-    // widen to uint64_t: global_hits_count + link_count is otherwise a
-    // 32-bit sum that could wrap and skip the resize, leading to an
-    // out-of-bounds write into global_hits_v below.
-    const uint64_t required = static_cast<uint64_t>(global_hits_count) + neighbours.size();
-    if (required > global_hits_alloc)
-      {
-        while (required > global_hits_alloc) {
-          global_hits_alloc += 4UL * one_kilobyte;
-        }
-        global_hits_v.resize(global_hits_alloc);
-      }
+    hits.reserve_for(neighbours.size());
 
     for (auto const amp : neighbours)
       {
         if (ampinfo_v[amp].swarmid == no_swarm)
           {
-            global_hits_v[global_hits_count] = amp;
-            ++global_hits_count;
+            /* each amplicon is appended at most once in the whole run: the
+               guard above is answered by the stamp below, and a stamped
+               amplicon is never a hit again. The buffer therefore never
+               needs more than one entry per amplicon. */
+            hits.push(amp);
 
             /* update info */
             ampinfo_v[amp].swarmid = ampinfo_v[seed].swarmid;
@@ -125,24 +171,25 @@ namespace {
                           Active_swarm_stats & current_swarm) -> unsigned int
   {
     /* process all subseeds of this generation */
-    auto global_hits_count = 0U;
+    Hit_list hits {global_hits_v};
     while (subseed != no_swarm)
       {
-        process_seed(data, subseed, ampinfo_v, network_v, global_hits_v, global_hits_count, current_swarm);
+        process_seed(data, subseed, ampinfo_v, network_v, hits, current_swarm);
         subseed = ampinfo_v[subseed].next;
       }
 
     /* sort all of this generation */
-    std::sort(global_hits_v.begin(), global_hits_v.begin() + global_hits_count);
+    auto const generation_hits = hits.filled();
+    std::sort(generation_hits.begin(), generation_hits.end());
 
     /* add them to the swarm */
-    for (auto i = 0U; i < global_hits_count; ++i) {
-      add_amp_to_swarm(global_hits_v[i], ampinfo_v, current_swarm);
+    for (auto const amp : generation_hits) {
+      add_amp_to_swarm(amp, ampinfo_v, current_swarm);
     }
 
     /* most abundant amplicon of next generation, or no_swarm if generation was empty */
-    if (global_hits_count != 0U) {
-      return global_hits_v[0];
+    if (not generation_hits.empty()) {
+      return generation_hits.front();
     }
     return no_swarm;
   }
@@ -262,8 +309,12 @@ auto algo_d1_run(struct Parameters const & parameters,
 
   std::vector<struct swarminfo_s> swarminfo_v(one_kilobyte);
 
-  const auto global_hits_alloc = compute_microvariant_buffer_size(data.longest_sequence());
-  std::vector<unsigned int> global_hits_v(global_hits_alloc);
+  /* one growth chunk: the buffer is a scratch arena refilled once per
+     generation and grown by Hit_list as needed, so its initial size is a
+     starting point, not a bound. It used to be 7L+5, the microvariant upper
+     bound for a single sequence, which sizes an unrelated quantity and fell
+     below the growth step anyway. */
+  std::vector<unsigned int> global_hits_v(hit_chunk);
 
 
   /* for all amplicons, generate list of matching amplicons */
