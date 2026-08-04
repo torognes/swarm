@@ -189,7 +189,7 @@ namespace {
           fprint(uclust_file, '\t');
           // the one field fprintf still formats: a double to one decimal.
           // See the identical note in algo_output.cpp.
-          std::fprintf(uclust_file, "%.1f", result.percent_id);
+          static_cast<void>(std::fprintf(uclust_file, "%.1f", result.percent_id));
           fprint(uclust_file, "\t+\t0\t0\t");
           if (result.differences > 0) {
             fprint(uclust_file, result.cigar_string);

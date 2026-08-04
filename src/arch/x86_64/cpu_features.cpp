@@ -25,7 +25,10 @@
 #include "../../swarm.hpp"
 #include "../../utils/fatal.hpp"
 #include <cpuid.h>  // __cpuid_count, bit_* feature masks
-#include <cstdio>  // fputc(), fputs()
+#include "../../utils/print_view.hpp"  // fprint
+#include <array>
+#include <cstdint>  // int64_t
+#include <cstdio>  // fputs()
 
 namespace {
 // Groups the four output registers of a CPUID query so each leaf can be
@@ -125,36 +128,35 @@ auto cpu_features_test(struct Parameters & parameters) -> void {
 
 auto cpu_features_show(struct Parameters const & parameters) -> void
 {
-  static_cast<void>(std::fputs("CPU features:     ", parameters.logfile));
-  if (parameters.mmx_present != 0){
-    static_cast<void>(std::fputs(" mmx", parameters.logfile));
+  // One entry per reported feature, in the order they are printed. A table
+  // rather than ten near-identical if blocks: the printed order becomes a
+  // property of the data instead of of the control flow, and adding a
+  // feature is one line. The member is reached through a pointer-to-member
+  // so that the flag and its name cannot drift apart.
+  struct Feature {
+    int64_t Parameters::* flag;
+    char const * name;
+  };
+
+  static constexpr std::array<Feature, 10> features {{
+      {&Parameters::mmx_present,    " mmx"},
+      {&Parameters::sse_present,    " sse"},
+      {&Parameters::sse2_present,   " sse2"},
+      {&Parameters::sse3_present,   " sse3"},
+      // Supplemental SSE3, introduced in 2006
+      {&Parameters::ssse3_present,  " ssse3"},
+      {&Parameters::sse41_present,  " sse4.1"},
+      {&Parameters::sse42_present,  " sse4.2"},
+      {&Parameters::popcnt_present, " popcnt"},
+      {&Parameters::avx_present,    " avx"},
+      {&Parameters::avx2_present,   " avx2"},
+    }};
+
+  fprint(parameters.logfile, "CPU features:     ");
+  for (auto const & feature : features) {
+    if ((parameters.*(feature.flag)) != 0) {
+      static_cast<void>(std::fputs(feature.name, parameters.logfile));
+    }
   }
-  if (parameters.sse_present != 0) {
-    static_cast<void>(std::fputs(" sse", parameters.logfile));
-  }
-  if (parameters.sse2_present != 0) {
-    static_cast<void>(std::fputs(" sse2", parameters.logfile));
-  }
-  if (parameters.sse3_present != 0) {
-    static_cast<void>(std::fputs(" sse3", parameters.logfile));
-  }
-  if (parameters.ssse3_present != 0) {
-    static_cast<void>(std::fputs(" ssse3", parameters.logfile)); // Supplemental SSE3, introduced in 2006
-  }
-  if (parameters.sse41_present != 0) {
-    static_cast<void>(std::fputs(" sse4.1", parameters.logfile));
-  }
-  if (parameters.sse42_present != 0) {
-    static_cast<void>(std::fputs(" sse4.2", parameters.logfile));
-  }
-  if (parameters.popcnt_present != 0) {
-    static_cast<void>(std::fputs(" popcnt", parameters.logfile));
-  }
-  if (parameters.avx_present != 0) {
-    static_cast<void>(std::fputs(" avx", parameters.logfile));
-  }
-  if (parameters.avx2_present != 0) {
-    static_cast<void>(std::fputs(" avx2", parameters.logfile));
-  }
-  static_cast<void>(std::fputc('\n', parameters.logfile));
+  fprint(parameters.logfile, '\n');
 }

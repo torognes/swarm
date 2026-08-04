@@ -22,9 +22,23 @@
 */
 
 #include "input_output.hpp"
-#include <cstdio>  // fopen, FILE, fdopen
+#include "fatal.hpp"  // fatal
+#include <cstdio>  // fopen, FILE, fdopen, fclose, ferror
 #include <string>  // std::string
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
+
+
+auto CloseFileHandle::operator()(std::FILE * file_handle) const -> void {
+  // Two separate questions, both asked: std::ferror reports any read or
+  // write that failed on this stream at any point, because stdio latches
+  // the flag; std::fclose reports the final buffer flush, which can fail on
+  // its own after every individual write appeared to succeed.
+  bool const stream_failed = std::ferror(file_handle) != 0;
+  bool const close_failed = std::fclose(file_handle) != 0;
+  if (stream_failed or close_failed) {
+    fatal("I/O error on a swarm file; the output may be incomplete.");
+  }
+}
 
 
 namespace {

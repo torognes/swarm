@@ -53,9 +53,18 @@ Progress::Progress(char const * prompt_, uint64_t const size_,
 auto Progress::update(uint64_t const current) -> void {
   if (silent) { return; }  // no progress output if log is a file
   if (current < next) { return; }  // milestone not yet reached
-  std::fprintf(logfile, "  \r%s %.0f%%", prompt,
-               100.0 * static_cast<double>(current)
-               / static_cast<double>(size));
+  // The one fprintf swarm still needs: "%.0f" rounds half to even, which
+  // integer truncation does not reproduce (1.5 % -> "2" against "1"), and
+  // the milestones land on half-integer percentages because chunk is
+  // size/200. Matching it exactly would take more code than the double.
+  //
+  // LTO inlines update() into ~29 callers, so this fprintf is duplicated
+  // that many times. Measured: hiding it behind a noinline helper cuts the
+  // copies from 33 to 5 and .text by 23 bytes. Not worth a function and a
+  // compiler-specific attribute; recorded so it is not re-attempted.
+  static_cast<void>(std::fprintf(logfile, "  \r%s %.0f%%", prompt,
+                                 100.0 * static_cast<double>(current)
+                                 / static_cast<double>(size)));
   next = current + chunk;
   std::fflush(logfile);
 }

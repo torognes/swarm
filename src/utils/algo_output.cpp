@@ -196,7 +196,7 @@ namespace {
       // that nothing simpler does: a double, rounded to one decimal. Doing
       // it by hand would mean reproducing glibc's rounding, for a field
       // written once per cluster member right after a full alignment.
-      std::fprintf(uclust_file, "%.1f", result.percent_id);
+      static_cast<void>(std::fprintf(uclust_file, "%.1f", result.percent_id));
       fprint(uclust_file, "\t+\t0\t0\t");
       if (result.differences > 0) {
         fprint(uclust_file, result.cigar_string);

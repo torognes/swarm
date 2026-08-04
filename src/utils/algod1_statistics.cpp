@@ -149,8 +149,8 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   fprint_integer(parameters.logfile, n_hash_functions);
   // the size in MB is the one field that needs a double formatted, so it
   // keeps its fprintf (see the same note in the uclust writers)
-  std::fprintf(parameters.logfile, ", size=%.1fMB\n",
-               static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte));
+  static_cast<void>(std::fprintf(parameters.logfile, ", size=%.1fMB\n",
+                                 static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte)));
 
 
   // bloom_length is in bits (divide by 8 to get bytes)

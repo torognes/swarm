@@ -24,7 +24,7 @@
 #ifndef SWARM_UTILS_INPUT_OUTPUT_H
 #define SWARM_UTILS_INPUT_OUTPUT_H
 
-#include <cstdio>  // FILE, fclose
+#include <cstdio>  // FILE
 #include <memory>  // unique_ptr
 #include <string>  // std::string
 
@@ -35,10 +35,33 @@
 // Note: taking the address of a standard library function (such as
 // &std::fclose) as deleter is unspecified behaviour; prefer a deleter
 // struct with an operator() that calls std::fclose.
+// The close is also where I/O failures are noticed. Nothing else in swarm
+// checks a write: every fprint/fputc/fwrite return value is discarded, so
+// before this a full disk produced truncated output and exit status 0.
+// stdio latches the error flag on the stream, so one std::ferror at the end
+// catches every failed read or write on it, whenever it happened; and
+// std::fclose reports separately, because the final buffer flush happens
+// there and can fail on its own.
+//
+// The message cannot name the file: a unique_ptr deleter is stateless, and
+// giving it a name would make FileHandle carry one for every stream. The
+// point is that the run fails loudly rather than silently, which it did not
+// before.
+//
+// This is also why the same deleter serves input and output. A read error
+// was previously indistinguishable from end of input (Line_buffer sets
+// at_end_ either way), so this reports that too.
+//
+// Calling fatal(), i.e. std::exit, from a destructor is safe here because
+// every FileHandle is reached through a local in main() or in parse_fasta()
+// and so is destroyed at normal scope exit. It would be undefined during
+// std::exit's own static destruction, which is not a path any of them take.
+// Defined in input_output.cpp, not here: it calls fatal(), and fatal.hpp
+// has no include guard, so pulling it into a header that other headers
+// reach would break any translation unit that arrives at it twice. Being
+// out of line costs nothing -- it runs once per file, at close.
 struct CloseFileHandle {
-  auto operator()(std::FILE * file_handle) const -> void {
-    static_cast<void>(std::fclose(file_handle));
-  }
+  auto operator()(std::FILE * file_handle) const -> void;
 };
 
 using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
