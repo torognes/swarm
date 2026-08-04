@@ -180,6 +180,15 @@ namespace {
 
     /* sort all of this generation */
     auto const generation_hits = hits.filled();
+
+    /* each amplicon is appended at most once in the whole run (see
+       process_seed), and this cluster's own seed was stamped by grow_swarm
+       without being appended, so one generation cannot hold as many hits as
+       the database has amplicons. This is the bound that would let the
+       buffer be pre-sized instead of grown; asserting it here costs nothing
+       in release builds. */
+    assert(generation_hits.size() < data.sequence_count());
+
     std::sort(generation_hits.begin(), generation_hits.end());
 
     /* add them to the swarm */
