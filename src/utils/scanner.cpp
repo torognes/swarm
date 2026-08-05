@@ -28,15 +28,14 @@
 #include "../swarm.hpp"
 #include "cpu_features.hpp"  // Cpu_features
 #include "memory_budget.hpp"  // require_ram
-#include "nt_codec.hpp"
 #include "score_matrix.hpp"
 #include "search_data.hpp"  // Search_data, BYTE, WORD
+#include "span.hpp"  // Span<uint64_t>
 #include "threads.hpp"  // ThreadRunner
+#include "view.hpp"  // View<uint64_t>
 #include <array>
 #include <cassert>  // assert()
-#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <iterator>
 #include <mutex>  // std::lock_guard
 #include <vector>
 

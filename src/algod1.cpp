@@ -41,6 +41,7 @@
 #include <cassert>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
+#include <functional>  // std::reference_wrapper
 #include <vector>
 
 
@@ -83,32 +84,39 @@ namespace {
        and leaving push() to write out of bounds. */
     auto reserve_for(std::size_t const additional) -> void {
       auto const required = used_ + additional;
-      if (required <= storage_.size()) { return; }
-      auto enlarged = storage_.size();
+      if (required <= storage().size()) { return; }
+      auto enlarged = storage().size();
       while (required > enlarged) {
         enlarged += hit_chunk;
       }
-      storage_.resize(enlarged);
+      storage().resize(enlarged);
     }
 
     /* an indexed write, deliberately: push_back() here is the shape of the
        regression recorded in commit e517c04 (a candidate-list fill, 25-35 %
        at d=2) */
     auto push(unsigned int const amp) noexcept -> void {
-      assert(used_ < storage_.size());  // reserve_for() precedes the writes
-      storage_[used_] = amp;
+      assert(used_ < storage().size());  // reserve_for() precedes the writes
+      storage()[used_] = amp;
       ++used_;
     }
 
     /* the hits collected so far, mutable because the caller sorts them in
        place. Invalidated by any later push() that grows the storage. */
     auto filled() noexcept -> Span<unsigned int> {
-      return make_span(storage_).first(used_);
+      return make_span(storage()).first(used_);
     }
 
   private:
-    std::vector<unsigned int> & storage_;
+    /* a reference_wrapper rather than a plain 'std::vector<unsigned int> &':
+       a reference member would delete the assignment operator, which is what
+       cppcoreguidelines-avoid-const-or-ref-data-members reports. The borrow
+       is unchanged -- the caller still owns the storage -- and storage()
+       hands the vector back so the members above read as before. */
+    std::reference_wrapper<std::vector<unsigned int>> storage_;
     std::size_t used_ {0};
+
+    auto storage() noexcept -> std::vector<unsigned int> & { return storage_; }
   };
 
 

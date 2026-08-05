@@ -32,8 +32,14 @@
 #include "utils/print_view.hpp"  // fprint, fprint_integer
 #include "utils/progress.hpp"
 #include "utils/seq_index.hpp"
+#include "utils/seqinfo.hpp"  // struct seqinfo_s
 #include "utils/view.hpp"
+// Needed even though nothing below names it: fatal() streams its arguments
+// from a template in fatal.hpp, and the operator is looked up where that
+// template is instantiated -- here. misc-include-cleaner reports it as
+// unused for that reason; removing it breaks the build.
 #include "utils/view_stream.hpp"  // operator<<(std::ostream &, View<char>)
+#include "utils/zobrist.hpp"  // Zobrist
 #include "utils/line_buffer.hpp"
 #include <algorithm>  // std::all_of() std::copy_n() std::find() std::find_if_not() std::max() std::min() std::search() std::sort()
 #include <array>
@@ -44,6 +50,7 @@
 #include <cstdio>  // std::FILE, fileno // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // std::strtoll()
 #include <cstring>  // memcpy
+#include <functional>  // std::reference_wrapper
 #include <iterator>  // std::next()
 #include <limits>
 #include <memory>  // std::unique_ptr
@@ -256,26 +263,26 @@ namespace {
     // The in-RAM form cannot be smaller than a quarter of the on-disk
     // form, so reserve that much up front for a regular file.
     auto reserve_for_file(uint64_t const filesize) -> void {
-      initial_allocation(storage_, filesize);
+      initial_allocation(storage(), filesize);
     }
 
     auto append(View<char> const bytes) -> void {
-      linear_resize_if_need_be(storage_, used_ + bytes.size());
+      linear_resize_if_need_be(storage(), used_ + bytes.size());
       std::copy_n(bytes.cbegin(), bytes.size(),
-                  std::next(storage_.begin(), static_cast<std::ptrdiff_t>(used_)));
+                  std::next(storage().begin(), static_cast<std::ptrdiff_t>(used_)));
       used_ += bytes.size();
     }
 
     auto append_byte(char const value) -> void {
-      linear_resize_if_need_be(storage_, used_ + 1);
-      storage_[used_] = value;
+      linear_resize_if_need_be(storage(), used_ + 1);
+      storage()[used_] = value;
       ++used_;
     }
 
     // One packed 64-bit word, copied rather than punned: see Nt_packer.
     auto append_word(uint64_t const value) -> void {
-      linear_resize_if_need_be(storage_, used_ + sizeof(value));
-      std::memcpy(&storage_[used_], &value, sizeof(value));
+      linear_resize_if_need_be(storage(), used_ + sizeof(value));
+      std::memcpy(&storage()[used_], &value, sizeof(value));
       used_ += sizeof(value);
     }
 
@@ -284,13 +291,20 @@ namespace {
     // dangle them). shrink_to_fit reallocates down to size(), so lower
     // size() to the used length first.
     auto shrink_to_used() -> void {
-      storage_.resize(used_);
-      storage_.shrink_to_fit();
+      storage().resize(used_);
+      storage().shrink_to_fit();
     }
 
   private:
-    std::vector<char> & storage_;
+    // A reference_wrapper rather than a plain 'std::vector<char> &': a
+    // reference member would delete the assignment operator, which is what
+    // cppcoreguidelines-avoid-const-or-ref-data-members reports. The borrow
+    // documented above is unchanged -- the caller still owns the storage --
+    // and storage() hands the vector back so the members read as before.
+    std::reference_wrapper<std::vector<char>> storage_;
     uint64_t used_ {0};
+
+    auto storage() noexcept -> std::vector<char> & { return storage_; }
   };
 
 

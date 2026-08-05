@@ -31,7 +31,6 @@
 #include "span.hpp"
 #include <algorithm>  // std::sort()
 #include <cassert>  // assert()
-#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // fprintf()
 #include <numeric>  // std::iota

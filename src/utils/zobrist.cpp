@@ -24,12 +24,12 @@
 #include "../db.hpp"  // brings in zobrist.hpp transitively, plus the Sequence definition
 #include "pseudo_rng.hpp"
 #include "view.hpp"  // View<>
+#include "zobrist.hpp"
 #include <algorithm> // std::for_each
 #include <array>
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <functional>  // std::bit_xor
-#include <iterator>  // std::next
 #include <numeric>  // std::accumulate, std::inner_product
 #include <vector>
 

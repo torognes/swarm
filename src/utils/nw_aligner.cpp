@@ -24,7 +24,6 @@
 #include "nw_aligner.hpp"
 #include "../db.hpp"  // struct Sequence
 #include "cigar.hpp"
-#include "nt_codec.hpp"
 #include "score_matrix.hpp"  // n_cells, create_score_matrix
 #include "span.hpp"  // Span, make_span
 #include "view.hpp"  // View, make_view

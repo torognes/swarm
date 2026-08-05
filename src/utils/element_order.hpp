@@ -59,8 +59,12 @@
 
 template <typename Type>
 struct element_order {
-  static constexpr auto less(Type const & lhs, Type const & rhs) -> bool {
-    return lhs < rhs;
+  // Parameters named for their position, not as the two sides of an
+  // operator: compare() below deliberately calls this with its own lhs and
+  // rhs the other way round, and readability-suspicious-call-argument reads
+  // an lhs bound to a parameter called rhs as a swapped pair of arguments.
+  static constexpr auto less(Type const & left, Type const & right) -> bool {
+    return left < right;
   }
 
   // Three-way, with the sign convention of std::strcmp: negative if lhs sorts
@@ -71,10 +75,6 @@ struct element_order {
   // only, which neither compare() can express without losing its shape)
   static auto compare(Type const & lhs, Type const & rhs) -> int {
     if (less(lhs, rhs)) { return -1; }
-    // the swapped operands are the point: this asks the same question the
-    // other way round, which is how a three-way result comes out of a
-    // two-way predicate
-    // NOLINTNEXTLINE(readability-suspicious-call-argument)
     if (less(rhs, lhs)) { return +1; }
     return 0;
   }
@@ -82,8 +82,8 @@ struct element_order {
 
 template <>
 struct element_order<char> {
-  static constexpr auto less(char const lhs, char const rhs) -> bool {
-    return static_cast<unsigned char>(lhs) < static_cast<unsigned char>(rhs);
+  static constexpr auto less(char const left, char const right) -> bool {
+    return static_cast<unsigned char>(left) < static_cast<unsigned char>(right);
   }
 
   // One byte comparison rather than the primary template's two: char is

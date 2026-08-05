@@ -26,6 +26,8 @@
 #include "utils/backtrack.hpp"
 #include "utils/search_data.hpp"  // Search_data (pulls in Cpu_features)
 #include "utils/dseq_fill.hpp"
+#include "utils/span.hpp"  // Span<uint64_t>
+#include "utils/view.hpp"  // View<uint64_t>, make_view
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t

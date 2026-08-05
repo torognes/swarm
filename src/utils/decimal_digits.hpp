@@ -134,17 +134,16 @@ namespace decimal {
     auto * const buffer_end = std::next(buffer.data(), static_cast<std::ptrdiff_t>(buffer.size()));
     auto * cursor = buffer_end;
     auto rest = split.magnitude;
-    // do-while, not while: zero has one digit and must be written.
-    // The guideline behind avoid-do-while (ES.75) is that a trailing
-    // condition is easy to miss; here the post-test *is* the algorithm, and
-    // the alternatives are a while(true) with a break or a duplicated first
-    // digit, both less clear than the line above.
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while)
-    do {
+    // The first pass is unconditional -- zero has one digit and must be
+    // written -- so the guard reads "nothing written yet, or digits left"
+    // rather than "the value is non-zero". cursor moves off buffer_end on
+    // that first pass and never returns to it, so the left operand is true
+    // exactly once.
+    while (cursor == buffer_end or rest != 0) {
       cursor = std::prev(cursor);
       *cursor = static_cast<char>('0' + (rest % detail::radix));
       rest /= detail::radix;
-    } while (rest != 0);
+    }
 
     if (split.negative) {
       cursor = std::prev(cursor);

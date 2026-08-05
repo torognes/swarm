@@ -29,8 +29,9 @@
 #include "progress.hpp"
 #include "qgram_array.hpp"
 #include "qgram_compare.hpp"  // compareqgramvectors (per-arch impl under arch/<isa>/)
-#include "nt_codec.hpp"
+#include "span.hpp"  // Span<uint64_t>
 #include "threads.hpp"
+#include "view.hpp"  // View<uint64_t>
 #include <algorithm>  // std::transform
 #include <cassert>
 #include <cstddef>  // std::size_t
