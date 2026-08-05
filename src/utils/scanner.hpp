@@ -90,6 +90,12 @@ private:
   // Work_window{} value-initializes both members, which is the empty
   // window; there is no uninitialized declaration of this type.
   // C++14 refactoring: add {0} initializers, aggregates may have them
+  //
+  // Both members stay public, and misc-non-private-member-variables-in-
+  // classes reports both, because empty() makes this a class with a member
+  // function rather than a plain aggregate. Private members would need a
+  // two-uint64_t constructor, which is the swappable pair of arguments the
+  // paragraph above says this type exists to prevent.
   struct Work_window {
     uint64_t first;
     uint64_t count;

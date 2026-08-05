@@ -74,6 +74,15 @@ struct Pool_cursor {
 };
 
 
+// Public by design: this is a scratch bundle, not an abstraction. The
+// buffers have no invariant to protect -- they are pre-allocated for the
+// whole amplicon pool once and refilled per cluster --  and algo.cpp writes
+// into them by index throughout the d > 1 clustering path.
+// misc-non-private-member-variables-in-classes reports all eight because the
+// struct also has a constructor and the window accessors below; making them
+// private would route those indexed writes through accessors, in the loops
+// commit e517c04 records a 25-35 % d = 2 regression in, for no invariant
+// gained.
 struct Cluster_workspace {
   std::vector<uint64_t> targetampliconids;
   std::vector<uint64_t> targetindices;
