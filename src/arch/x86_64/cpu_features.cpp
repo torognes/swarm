@@ -150,11 +150,11 @@ auto cpu_features_show(struct Parameters const & parameters) -> void
       {&Parameters::popcnt_present, " popcnt"},
       {&Parameters::avx_present,    " avx"},
       {&Parameters::avx2_present,   " avx2"},
-    }};
+    },};
 
   fprint(parameters.logfile, "CPU features:     ");
   for (auto const & feature : features) {
-    if ((parameters.*(feature.flag)) != 0) {
+    if ((parameters.*feature.flag) != 0) {
       static_cast<void>(std::fputs(feature.name, parameters.logfile));
     }
   }

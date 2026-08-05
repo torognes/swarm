@@ -71,6 +71,10 @@ struct element_order {
   // only, which neither compare() can express without losing its shape)
   static auto compare(Type const & lhs, Type const & rhs) -> int {
     if (less(lhs, rhs)) { return -1; }
+    // the swapped operands are the point: this asks the same question the
+    // other way round, which is how a three-way result comes out of a
+    // two-way predicate
+    // NOLINTNEXTLINE(readability-suspicious-call-argument)
     if (less(rhs, lhs)) { return +1; }
     return 0;
   }

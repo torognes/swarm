@@ -99,6 +99,11 @@ namespace decimal {
       return Signed_magnitude{static_cast<uint64_t>(value), false};
     }
 
+    // The base the digit loop divides by. Named rather than spelled 10 at
+    // both use sites: it is the same base max_width above is a digit count
+    // in, so the two cannot be read as unrelated numbers.
+    constexpr uint64_t radix {10};
+
   }  // namespace detail
 
 
@@ -130,10 +135,15 @@ namespace decimal {
     auto * cursor = buffer_end;
     auto rest = split.magnitude;
     // do-while, not while: zero has one digit and must be written.
+    // The guideline behind avoid-do-while (ES.75) is that a trailing
+    // condition is easy to miss; here the post-test *is* the algorithm, and
+    // the alternatives are a while(true) with a break or a duplicated first
+    // digit, both less clear than the line above.
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while)
     do {
       cursor = std::prev(cursor);
-      *cursor = static_cast<char>('0' + (rest % 10));
-      rest /= 10;
+      *cursor = static_cast<char>('0' + (rest % detail::radix));
+      rest /= detail::radix;
     } while (rest != 0);
 
     if (split.negative) {

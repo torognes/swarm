@@ -92,7 +92,7 @@ namespace {
     unsigned int longestheader {0};
     int missingabundance {0};
     uint64_t missingabundance_lineno {0};
-    View<char> missingabundance_header {};
+    View<char> missingabundance_header;  // empty through View's own initializers
     unsigned int n_sequences {0};
     unsigned int longest_sequence {0};
     bool has_duplicates {false};
@@ -1074,7 +1074,9 @@ Sequence_printer::Sequence_printer(unsigned int const longest_sequence)
   // rounded up to a whole 4-character group: print() decodes a packed byte
   // at a time, so the last group of the longest sequence can write up to
   // three characters past its length
-  : decode_buffer_(nt_per_byte * ceil_divide(longest_sequence, nt_per_byte), '\0')
+  // the group count is multiplied out in the vector's own size_type, so the
+  // product cannot wrap in unsigned int before being widened
+  : decode_buffer_(std::size_t{nt_per_byte} * ceil_divide(longest_sequence, nt_per_byte), '\0')
 {}
 
 
@@ -1091,8 +1093,10 @@ auto Sequence_printer::print(std::FILE * stream, Sequence const & seq) const -> 
   for (auto const packed_byte : packed) {
     // char may be signed; the table is indexed by the byte's value
     auto const byte_value = static_cast<unsigned char>(packed_byte);
-    auto const group = std::next(nt_quartets.cbegin(),
-                                 static_cast<std::ptrdiff_t>(nt_per_byte * byte_value));
+    // the offset is widened before the multiplication, not after: casting
+    // the product would let it be formed in unsigned int first
+    auto const * const group = std::next(nt_quartets.cbegin(),
+                                         static_cast<std::ptrdiff_t>(nt_per_byte) * byte_value);
     destination = std::copy_n(group, nt_per_byte, destination);
   }
 

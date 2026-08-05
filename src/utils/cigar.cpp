@@ -38,7 +38,7 @@ auto compress_alignment_to_cigar(View<char> const input,
   // next, rather than tracking the previous character and its count across
   // iterations. The final run needs no special case, since it ends at
   // input.cend() like every other one.
-  auto run_begin = input.cbegin();
+  auto const * run_begin = input.cbegin();
   while (run_begin != input.cend()) {
     auto const operation = *run_begin;
     auto const * const run_end =

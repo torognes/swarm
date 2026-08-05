@@ -202,6 +202,6 @@ auto Line_buffer::read_next(std::FILE * stream, uint64_t & filepos) -> void
   // input, so the rest of the file is still read.
   auto const * const line_begin = data_;
   auto const * const line_end = std::next(line_begin, static_cast<std::ptrdiff_t>(linelen));
-  auto const * const first_nul = std::find(line_begin, line_end, '\0');
-  length_ = static_cast<std::size_t>(std::distance(line_begin, first_nul));
+  auto const * const nul_or_end = std::find(line_begin, line_end, '\0');
+  length_ = static_cast<std::size_t>(std::distance(line_begin, nul_or_end));
 }

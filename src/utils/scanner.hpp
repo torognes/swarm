@@ -115,10 +115,12 @@ private:
   uint64_t next_ {0};
   uint64_t remainingchunks_ {0};
   // one candidate list and its two result columns; targets_.size() is
-  // the list length that used to be tracked separately in length_
-  View<uint64_t> targets_ {};
-  Span<uint64_t> scores_ {};
-  Span<uint64_t> diffs_ {};
+  // the list length that used to be tracked separately in length_.
+  // No {} initializer: View and Span default-construct empty through
+  // their own member initializers, so one here would be redundant.
+  View<uint64_t> targets_;
+  Span<uint64_t> scores_;
+  Span<uint64_t> diffs_;
   Bit_mode bits_ {Bit_mode::bits_16};
 
   std::vector<struct Search_data> search_data_v_;
