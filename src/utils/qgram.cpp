@@ -77,9 +77,11 @@ namespace {
     Qgram_store store(n_sequences);
 
     Progress progress_qg("Find qgram vects: ", n_sequences, parameters);
+    // increment() rather than update(counter): counter is a 0-based index,
+    // so handing it over left the bar one milestone short of n_sequences
     for (auto counter = 0U; counter < n_sequences; ++counter) {
       findqgrams(data.sequence_view(counter), store[counter]);
-      progress_qg.update(counter);
+      progress_qg.increment();
     }
     progress_qg.done();
     return store;

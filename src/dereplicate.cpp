@@ -158,8 +158,10 @@ namespace {
           fprint_integer(structure_file, counter + 1);
           fprint(structure_file, "\t0\n");
         }
+      // counter stays because it is the cluster number printed above; the
+      // bar keeps its own count, so the two no longer have to agree
       ++counter;
-      progress.update(counter);
+      progress.increment();
     }
     progress.done();
   }
@@ -209,8 +211,10 @@ namespace {
           fprint_id(uclust_file, data.info(seed), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
           fprint(uclust_file, '\n');
         }
+      // counter stays because it is the cluster number printed above; the
+      // bar keeps its own count, so the two no longer have to agree
       ++counter;
-      progress.update(counter);
+      progress.increment();
     }
     progress.done();
   }
@@ -378,7 +382,10 @@ namespace {
              stats.maxmass = std::max(clusterp->mass, stats.maxmass);
              stats.maxsize = std::max(clusterp->size, stats.maxsize);
 
-             progress.update(seqno);
+             // increment() rather than update(seqno): seqno is a 0-based
+             // amplicon id, so handing it over left the bar one milestone
+             // short of the total
+             progress.increment();
            }
          progress.done();
 
