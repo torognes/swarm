@@ -302,13 +302,21 @@ namespace {
                      std::vector<unsigned int> & nextseqtab)
     -> struct Stats
        {
-         Progress progress("Dereplicating:    ", nextseqtab.size(), parameters);
+         // seqno is an amplicon id: it is stored back into nextseqtab and
+         // into bucket::seqno_first and seqno_last, all unsigned int. Take
+         // the loop bound from that same type rather than from nextseqtab's
+         // 64-bit size_type, so the counter never has to narrow on the way
+         // into a field.
+         assert(nextseqtab.size() == data.sequence_count());
+         auto const amplicons = data.sequence_count();
+
+         Progress progress("Dereplicating:    ", amplicons, parameters);
 
          struct Stats stats;
          const uint64_t derep_hash_mask = hashtable.size() - 1;
          auto const & zobrist = data.zobrist();
 
-         for (auto seqno = 0U; seqno < nextseqtab.size(); ++seqno)
+         for (auto seqno = 0U; seqno < amplicons; ++seqno)
            {
              auto const seq = data.sequence_view(seqno);
 

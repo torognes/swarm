@@ -72,19 +72,32 @@ auto write_network_file(const uint64_t number_of_networks,
 
 namespace {
 
+  // swarminfo_v is indexed by ampinfo_s::swarmid, an unsigned int that
+  // reserves no_swarm, so a cluster count always fits in an unsigned int.
+  // The writers below take their bound from here rather than from
+  // swarminfo_v.size(): that keeps each loop counter the same type as the
+  // ids it hands to cluster_members(), instead of walking an unsigned int
+  // towards a 64-bit size_type it could never reach.
+  auto cluster_count(std::vector<struct swarminfo_s> const & swarminfo_v) noexcept -> unsigned int {
+    assert(swarminfo_v.size() < no_swarm);
+    return static_cast<unsigned int>(swarminfo_v.size());
+  }
+
+
   auto write_swarms_default_format(struct Parameters const & parameters,
                                    Data const & data,
                                    std::vector<struct ampinfo_s> const & ampinfo_v,
                                    std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     static constexpr char sepchar {' '};
-    Progress progress("Writing swarms:   ", swarminfo_v.size(), parameters);
+    auto const clusters = cluster_count(swarminfo_v);
+    Progress progress("Writing swarms:   ", clusters, parameters);
 
-    for (auto i = 0U; i < swarminfo_v.size(); ++i) {
-      if (swarminfo_v[i].attached) {
+    for (auto swarmid = 0U; swarmid < clusters; ++swarmid) {
+      if (swarminfo_v[swarmid].attached) {
         continue;
       }
 
-      const auto seed = swarminfo_v[i].seed;
+      const auto seed = swarminfo_v[swarmid].seed;
       for (auto const amp_id : cluster_members(ampinfo_v, seed)) {
         if (amp_id != seed) {
           fprint(parameters.outfile.get(), sepchar);
@@ -93,7 +106,7 @@ namespace {
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
       fprint(parameters.outfile.get(), '\n');
-      progress.update(i + 1);
+      progress.update(swarmid + 1);
     }
 
     progress.done();
@@ -105,20 +118,21 @@ namespace {
                                   std::vector<struct ampinfo_s> const & ampinfo_v,
                                   std::vector<struct swarminfo_s> const & swarminfo_v,
                                   Overall_stats const & overall_stats) -> void {
-    Progress progress("Writing swarms:   ", swarminfo_v.size(), parameters);
+    auto const clusters = cluster_count(swarminfo_v);
+    Progress progress("Writing swarms:   ", clusters, parameters);
 
     fprint(parameters.outfile.get(), "swarm_");
     fprint_integer(parameters.outfile.get(), parameters.opt_differences);
     fprint(parameters.outfile.get(), '\t');
     fprint_integer(parameters.outfile.get(), overall_stats.swarmcount_adjusted);
 
-    for (auto i = 0U; i < swarminfo_v.size(); ++i) {
-      assert(not swarminfo_v[i].attached);
-      if (swarminfo_v[i].attached) {
+    for (auto swarmid = 0U; swarmid < clusters; ++swarmid) {
+      assert(not swarminfo_v[swarmid].attached);
+      if (swarminfo_v[swarmid].attached) {
         continue;
       }
 
-      const auto seed = swarminfo_v[i].seed;
+      const auto seed = swarminfo_v[swarmid].seed;
       for (auto const amp_id : cluster_members(ampinfo_v, seed)) {
         if (amp_id == seed) {
           fprint(parameters.outfile.get(), '\t');
@@ -129,7 +143,7 @@ namespace {
         fprint_id(parameters.outfile.get(), data.info(amp_id),
                   parameters.opt_usearch_abundance, parameters.opt_append_abundance);
       }
-      progress.update(i + 1);
+      progress.update(swarmid + 1);
     }
 
     fprint(parameters.outfile.get(), '\n');
@@ -271,7 +285,8 @@ namespace {
                             std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     auto cluster_no = 0U;
 
-    Progress progress("Writing structure:", swarminfo_v.size(), parameters);
+    auto const clusters = cluster_count(swarminfo_v);
+    Progress progress("Writing structure:", clusters, parameters);
 
     // Column 3 of the internal-structure file is the number of differences
     // between the two amplicons (man swarm, --internal-structure). It is a
@@ -284,7 +299,7 @@ namespace {
 
     auto * const structure_file = parameters.internal_structure_file.get();
 
-    for (auto swarmid = 0U; swarmid < swarminfo_v.size(); ++swarmid)
+    for (auto swarmid = 0U; swarmid < clusters; ++swarmid)
       {
         if (swarminfo_v[swarmid].attached) {
           continue;
