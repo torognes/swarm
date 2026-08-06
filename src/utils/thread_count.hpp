@@ -24,6 +24,7 @@
 #ifndef SWARM_UTILS_THREAD_COUNT_H
 #define SWARM_UTILS_THREAD_COUNT_H
 
+#include <algorithm>  // std::min
 #include <cassert>  // assert()
 #include <cstddef>  // std::size_t
 #include <cstdint>  // std::uint32_t
@@ -39,7 +40,9 @@
 // and it returns std::size_t because that is what every consumer asks for:
 // the ThreadRunner constructor and the per-thread vectors in Scanner and
 // QgramDiffer are all sized by it. Without an implicit conversion a thread
-// count cannot drift into arithmetic it was never meant to take part in.
+// count cannot drift into arithmetic it was never meant to take part in;
+// capped_at() is the one reduction swarm performs, and it hands back a
+// ThreadCount rather than a bare integer.
 class ThreadCount {
 public:
   static constexpr std::uint32_t minimum {1};
@@ -54,6 +57,16 @@ public:
   }
 
   auto count() const noexcept -> std::size_t { return count_; }
+
+  // The count reduced to upper_bound when that is the smaller of the two:
+  // a caller that can only keep so many threads busy asks for the count it
+  // should actually start, and still gets a ThreadCount back, so the 1..512
+  // range survives the reduction. upper_bound is a useful-thread count, so
+  // zero would mean "run nothing" and is not a thing a caller may ask for.
+  auto capped_at(std::size_t const upper_bound) const noexcept -> ThreadCount {
+    assert(upper_bound >= minimum);
+    return ThreadCount{static_cast<std::uint32_t>(std::min(count(), upper_bound))};
+  }
 
 private:
   std::uint32_t count_ {minimum};

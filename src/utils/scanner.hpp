@@ -28,6 +28,7 @@
 #include "score_matrix.hpp"  // create_score_matrix, n_cells
 #include "search_data.hpp"  // Search_data, BYTE, WORD
 #include "span.hpp"  // Span<uint64_t>
+#include "thread_count.hpp"  // ThreadCount
 #include "threads.hpp"  // ThreadRunner
 #include "view.hpp"  // View<uint64_t>
 #include <array>
@@ -114,7 +115,7 @@ private:
     std::array<unsigned char, n_cells * n_cells> score_matrix_8_;
   alignas(score_matrix_alignment)
     std::array<unsigned short, n_cells * n_cells> score_matrix_16_;
-  uint64_t n_threads_ {0};
+  ThreadCount n_threads_ {};
 
   std::mutex scan_mutex_;
   Sequence query_ {};

@@ -26,6 +26,7 @@
 #include "../search8.hpp"
 #include "../search16.hpp"
 #include "../swarm.hpp"
+#include "ceil_divide.hpp"  // ceil_divide
 #include "cpu_features.hpp"  // Cpu_features
 #include "memory_budget.hpp"  // require_ram
 #include "score_matrix.hpp"
@@ -35,14 +36,13 @@
 #include "view.hpp"  // View<uint64_t>
 #include <array>
 #include <cassert>  // assert()
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <mutex>  // std::lock_guard
 #include <vector>
 
 #ifndef NDEBUG
-// C++17 refactoring: [[maybe_unused]]
 #include <limits>
-constexpr auto ullong_max = std::numeric_limits<unsigned long long int>::max();
 #endif
 
 
@@ -77,38 +77,13 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 }
 
 
-auto adjust_thread_number(const Bit_mode n_bits,
-                          const uint64_t remaining_sequences,
-                          uint64_t n_threads) -> uint64_t {
-  static constexpr auto channels_8 = 8U;
-  static constexpr auto channels_16 = 16U;
-  const auto channels = (n_bits == Bit_mode::bits_16) ? channels_8 : channels_16;
-
-  assert(remaining_sequences != 0);
-  assert(n_threads != 0);
-  assert((n_threads - 1) <= (ullong_max / channels_8));
-
-  while (remaining_sequences <= (n_threads - 1) * channels) {
-    --n_threads;
-  }
-
-  return n_threads;
+// How many sequences one thread is handed at a time: the 128-bit vector
+// holds that many lanes at the given width.
+auto channels_for(const Bit_mode n_bits) noexcept -> std::size_t {
+  static constexpr std::size_t channels_8 {8};
+  static constexpr std::size_t channels_16 {16};
+  return (n_bits == Bit_mode::bits_16) ? channels_8 : channels_16;
 }
-
-// arguments: bits, length, thr
-// static_assert(adjust_thread_number(Bit_mode::bits_8, 32, 10) == 2);
-// static_assert(adjust_thread_number(Bit_mode::bits_8, 32,  3) == 2);
-// static_assert(adjust_thread_number(Bit_mode::bits_8, 31,  2) == 2);
-// static_assert(adjust_thread_number(Bit_mode::bits_8, 17,  2) == 2);
-// static_assert(adjust_thread_number(Bit_mode::bits_8, 16,  2) == 1);
-// static_assert(adjust_thread_number(Bit_mode::bits_8,  1,  2) == 1);
-// static_assert(adjust_thread_number(Bit_mode::bits_8, 32,  1) == 1);
-// static_assert(adjust_thread_number(Bit_mode::bits_16, 17, 10) == 3);
-// static_assert(adjust_thread_number(Bit_mode::bits_16, 17,  3) == 3);
-// static_assert(adjust_thread_number(Bit_mode::bits_16, 16,  3) == 2);
-// static_assert(adjust_thread_number(Bit_mode::bits_16, 15,  2) == 2);
-// static_assert(adjust_thread_number(Bit_mode::bits_16,  1,  3) == 1);
-// static_assert(adjust_thread_number(Bit_mode::bits_16, 17,  1) == 1);
 
 }  // namespace
 
@@ -120,7 +95,7 @@ Scanner::Scanner(struct Parameters const & parameters,
     gapextend_(parameters.penalty_gapextend),
     score_matrix_8_(create_score_matrix<unsigned char>(parameters.penalty_mismatch)),
     score_matrix_16_(create_score_matrix<unsigned short>(parameters.penalty_mismatch)),
-    n_threads_(parameters.opt_threads.count()),
+    n_threads_(parameters.opt_threads),
     search_data_v_(parameters.opt_threads.count()),
     threads_(parameters.opt_threads.count(),
              [this](uint64_t thread_id) -> void { worker_core(thread_id); }) {
@@ -234,11 +209,24 @@ auto Scanner::run(const uint64_t query_no,
   diffs_ = diffs;
   bits_ = bits;
 
-  const auto thr = adjust_thread_number(bits, targets_.size(), n_threads_);
+  // Each thread is handed `channels` sequences at a time, so the useful
+  // thread count is ceil(remaining / channels), and capped_at() takes the
+  // smaller of that and the configured count. Expected values, in the
+  // (bits, remaining, configured) -> result form of the loop this replaced:
+  //   (bits_8,  32, 10) -> 2    (bits_16, 17, 10) -> 3
+  //   (bits_8,  32,  3) -> 2    (bits_16, 17,  3) -> 3
+  //   (bits_8,  31,  2) -> 2    (bits_16, 16,  3) -> 2
+  //   (bits_8,  17,  2) -> 2    (bits_16, 15,  2) -> 2
+  //   (bits_8,  16,  2) -> 1    (bits_16,  1,  3) -> 1
+  //   (bits_8,   1,  2) -> 1    (bits_16, 17,  1) -> 1
+  //   (bits_8,  32,  1) -> 1
+  assert(targets_.size() != 0);
+  const auto thr = n_threads_.capped_at(ceil_divide(targets_.size(),
+                                                    channels_for(bits)));
 
-  remainingchunks_ = thr;
+  remainingchunks_ = thr.count();
 
-  if (thr == 1) {
+  if (thr.count() == 1) {
     worker_core(0);
   }
   else {
