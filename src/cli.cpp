@@ -318,7 +318,7 @@ namespace {
     fprint(log, '\n');
 
     fprint(log, "Threads:           ");
-    fprint_integer(log, parameters.opt_threads);
+    fprint_integer(log, parameters.opt_threads.count());
     fprint(log, '\n');
 
     if (parameters.opt_differences > 1)
@@ -390,13 +390,18 @@ namespace {
   // negative input is rejected before it can wrap around. Cross-option
   // checks (e.g. option combinations) stay in the validate_* functions
   // called later from args_check().
-  auto validate_threading(int64_t const threads) -> std::uint32_t {
-    static constexpr int64_t max_threads {512};
-    if ((threads < 1) or (threads > max_threads)) {
+  auto validate_threading(int64_t const threads) -> ThreadCount {
+    // copied into locals of the argument's own type: ThreadCount owns the
+    // range, but fatal() binds its arguments to references, and a static
+    // constexpr data member has no out-of-line definition to bind to in C++11
+    static constexpr int64_t min_threads {ThreadCount::minimum};
+    static constexpr int64_t max_threads {ThreadCount::maximum};
+    if ((threads < min_threads) or (threads > max_threads)) {
       fatal("Illegal number of threads specified with "
-            "-t or --threads, must be in the range 1 to ", max_threads, ".");
+            "-t or --threads, must be in the range ", min_threads,
+            " to ", max_threads, ".");
     }
-    return static_cast<std::uint32_t>(threads);
+    return ThreadCount{static_cast<std::uint32_t>(threads)};
   }
 
 
