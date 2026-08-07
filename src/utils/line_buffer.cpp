@@ -31,7 +31,7 @@
 #include <iterator>  // std::distance, std::next
 
 #ifdef _WIN32
-#include <cerrno>  // errno, EINVAL, EOVERFLOW
+#include <cerrno>  // errno, EOVERFLOW
 #include <limits>  // std::numeric_limits
 #include <string>  // std::char_traits
 #endif
@@ -46,11 +46,11 @@ namespace {
 // MinGW/Windows toolchains. Swarm supports Windows builds (see the
 // mingw target in the Makefile), so a portable replacement must be
 // available when _WIN32 is defined.
-auto read_one_line(char ** const linep, std::size_t * const linecapp, std::FILE * const stream) -> ssize_t
+auto read_one_line(char *& linep, std::size_t & linecap, std::FILE * const stream) -> ssize_t
 {
 #ifndef _WIN32
 
-  return ::getline(linep, linecapp, stream);
+  return ::getline(&linep, &linecap, stream);
 
 #else
 
@@ -69,25 +69,18 @@ auto read_one_line(char ** const linep, std::size_t * const linecapp, std::FILE 
   static constexpr std::size_t max_capacity {std::numeric_limits<std::size_t>::max() / 2};
   static constexpr auto eof_value = std::char_traits<char>::eof();
 
-  /* Error if linep or linecapp pointers are null */
-  if ((linep == nullptr) or (linecapp == nullptr))
-    {
-      errno = EINVAL;
-      return -1;
-    }
-
-  if (*linep == nullptr)
+  if (linep == nullptr)
     {
       /* allocate a default buffer if linep is a null pointer */
-      *linecapp = min_capacity;
-      *linep = static_cast<char *>(std::malloc(*linecapp));
-      if (*linep == nullptr) {
+      linecap = min_capacity;
+      linep = static_cast<char *>(std::malloc(linecap));
+      if (linep == nullptr) {
         return -1;
       }
     }
 
-  auto * cursor = *linep;                  // pointer to where to put next char
-  auto const * end_of_buffer = std::next(cursor, static_cast<std::ptrdiff_t>(*linecapp - 1));  // pointer to last byte in buffer
+  auto * cursor = linep;                  // pointer to where to put next char
+  auto const * end_of_buffer = std::next(cursor, static_cast<std::ptrdiff_t>(linecap - 1));  // pointer to last byte in buffer
   *cursor = '\0';
 
   while (true)
@@ -101,7 +94,7 @@ auto read_one_line(char ** const linep, std::size_t * const linecapp, std::FILE 
                 {
                   // EOF, add NUL
                   *cursor = '\0';
-                  auto const length = static_cast<std::size_t>(cursor - *linep);
+                  auto const length = static_cast<std::size_t>(cursor - linep);
                   if (length > 0) {
                     return static_cast<ssize_t>(length);
                   }
@@ -116,7 +109,7 @@ auto read_one_line(char ** const linep, std::size_t * const linecapp, std::FILE 
               *cursor = static_cast<char>(character);
               ++cursor;
               *cursor = '\0';
-              return cursor - *linep;
+              return cursor - linep;
             }
           // Ordinary character, including NUL
           *cursor = static_cast<char>(character);
@@ -125,26 +118,26 @@ auto read_one_line(char ** const linep, std::size_t * const linecapp, std::FILE 
 
       // Increase buffer size
 
-      if (*linecapp >= max_capacity)
+      if (linecap >= max_capacity)
         {
           errno = EOVERFLOW;
           return -1;
         }
 
-      auto const new_capacity = std::min(*linecapp * 2, max_capacity);
+      auto const new_capacity = std::min(linecap * 2, max_capacity);
 
-      auto * const new_buffer = static_cast<char *>(std::realloc(*linep, new_capacity));
+      auto * const new_buffer = static_cast<char *>(std::realloc(linep, new_capacity));
       if (new_buffer == nullptr)
         {
           // Memory allocation error
           return -1;
         }
 
-      auto const length = static_cast<std::size_t>(cursor - *linep);
-      *linep = new_buffer;
-      *linecapp = new_capacity;
+      auto const length = static_cast<std::size_t>(cursor - linep);
+      linep = new_buffer;
+      linecap = new_capacity;
       cursor = std::next(new_buffer, static_cast<std::ptrdiff_t>(length));
-      end_of_buffer = std::next(new_buffer, static_cast<std::ptrdiff_t>(*linecapp - 1));
+      end_of_buffer = std::next(new_buffer, static_cast<std::ptrdiff_t>(linecap - 1));
     }
 #endif
 }
@@ -175,7 +168,7 @@ auto Line_buffer::release() noexcept -> void {
 
 auto Line_buffer::read_next(std::FILE * const stream, uint64_t & filepos) -> void
 {
-  auto const linelen = read_one_line(&data_, &capacity_, stream);
+  auto const linelen = read_one_line(data_, capacity_, stream);
   if (linelen < 0) {
     *data_ = '\0';
     length_ = 0;
