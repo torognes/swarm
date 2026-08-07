@@ -491,12 +491,12 @@ template <bool masked>
 auto align_cells_8(VECTORTYPE * const Sm,
                    VECTORTYPE * const hep,
                    VECTORTYPE ** const qp,
-                   VECTORTYPE const * const Qm,
-                   VECTORTYPE const * const Rm,
+                   VECTORTYPE const & Qm,
+                   VECTORTYPE const & Rm,
                    uint64_t const ql,
-                   VECTORTYPE const * const F0,
+                   VECTORTYPE const & F0,
                    uint64_t * const dir_long,
-                   VECTORTYPE const * const H0,
+                   VECTORTYPE const & H0,
                    VECTORTYPE const * const Mm,
                    VECTORTYPE * const MQ,
                    VECTORTYPE const * const MR,
@@ -513,15 +513,15 @@ auto align_cells_8(VECTORTYPE * const Sm,
 
   auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
-  const auto Q = *Qm;
-  const auto R = *Rm;
+  const auto Q = Qm;
+  const auto R = Rm;
 
-  auto f0 = *F0;
+  auto f0 = F0;
   auto f1 = v_add8(f0, R);
   auto f2 = v_add8(f1, R);
   auto f3 = v_add8(f2, R);
 
-  auto h0 = *H0;
+  auto h0 = H0;
   auto h1 = v_sub8(f0, Q);
   auto h2 = v_add8(h1, R);
   auto h3 = v_add8(h2, R);
@@ -585,12 +585,12 @@ namespace {
 auto align_cells_regular_8(VECTORTYPE * const Sm,
                            VECTORTYPE * const hep,
                            VECTORTYPE ** const qp,
-                           VECTORTYPE const * const Qm,
-                           VECTORTYPE const * const Rm,
+                           VECTORTYPE const & Qm,
+                           VECTORTYPE const & Rm,
                            uint64_t const ql,
-                           VECTORTYPE const * const F0,
+                           VECTORTYPE const & F0,
                            uint64_t * const dir_long,
-                           VECTORTYPE const * const H0) -> void
+                           VECTORTYPE const & H0) -> void
 {
   align_cells_8<false>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0,
                        nullptr, nullptr, nullptr, nullptr);
@@ -600,12 +600,12 @@ auto align_cells_regular_8(VECTORTYPE * const Sm,
 auto align_cells_masked_8(VECTORTYPE * const Sm,
                           VECTORTYPE * const hep,
                           VECTORTYPE ** const qp,
-                          VECTORTYPE const * const Qm,
-                          VECTORTYPE const * const Rm,
+                          VECTORTYPE const & Qm,
+                          VECTORTYPE const & Rm,
                           uint64_t const ql,
-                          VECTORTYPE const * const F0,
+                          VECTORTYPE const & F0,
                           uint64_t * const dir_long,
-                          VECTORTYPE const * const H0,
+                          VECTORTYPE const & H0,
                           VECTORTYPE const * const Mm,
                           VECTORTYPE * const MQ,
                           VECTORTYPE const * const MR,
@@ -818,7 +818,7 @@ auto search8(Data const & data,
 
           dispatch_dprofile8(cpu_features, dprofile.data(), score_matrix, dseq.data());
 
-          align_cells_regular_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0);
+          align_cells_regular_8(S, hep, qp, Q, R, qlen, F0, dir, H0);
         }
       else
         {
@@ -887,7 +887,7 @@ auto search8(Data const & data,
           MR = v_and8(M, R);
           MQ0 = MQ;
 
-          align_cells_masked_8(S, hep, qp, &Q, &R, qlen, &F0, dir, &H0, &M, &MQ, &MR, &MQ0);
+          align_cells_masked_8(S, hep, qp, Q, R, qlen, F0, dir, H0, &M, &MQ, &MR, &MQ0);
         }
 
       F0 = v_add8(F0, R);

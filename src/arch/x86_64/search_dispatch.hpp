@@ -67,15 +67,15 @@ auto dispatch_dprofile8(Cpu_features const & cpu_features,
 auto dispatch_align_regular_16(Cpu_features const & cpu_features,
                                VECTORTYPE16 * Sm, VECTORTYPE16 * hep,
                                VECTORTYPE16 ** qp,
-                               VECTORTYPE16 const * Qm, VECTORTYPE16 const * Rm,
-                               uint64_t ql, VECTORTYPE16 const * F0,
-                               uint64_t * dir_long, VECTORTYPE16 const * H0) -> void;
+                               VECTORTYPE16 const & Qm, VECTORTYPE16 const & Rm,
+                               uint64_t ql, VECTORTYPE16 const & F0,
+                               uint64_t * dir_long, VECTORTYPE16 const & H0) -> void;
 auto dispatch_align_masked_16(Cpu_features const & cpu_features,
                               VECTORTYPE16 * Sm, VECTORTYPE16 * hep,
                               VECTORTYPE16 ** qp,
-                              VECTORTYPE16 const * Qm, VECTORTYPE16 const * Rm,
-                              uint64_t ql, VECTORTYPE16 const * F0,
-                              uint64_t * dir_long, VECTORTYPE16 const * H0,
+                              VECTORTYPE16 const & Qm, VECTORTYPE16 const & Rm,
+                              uint64_t ql, VECTORTYPE16 const & F0,
+                              uint64_t * dir_long, VECTORTYPE16 const & H0,
                               VECTORTYPE16 const * Mm, VECTORTYPE16 * MQ,
                               VECTORTYPE16 const * MR, VECTORTYPE16 const * MQ0) -> void;
 
@@ -90,14 +90,14 @@ auto dprofile_fill8(unsigned char * dprofile,
                     unsigned char const * dseq) -> void;
 auto align_cells_regular_16(VECTORTYPE16 * Sm, VECTORTYPE16 * hep,
                             VECTORTYPE16 ** qp,
-                            VECTORTYPE16 const * Qm, VECTORTYPE16 const * Rm,
-                            uint64_t ql, VECTORTYPE16 const * F0,
-                            uint64_t * dir_long, VECTORTYPE16 const * H0) -> void;
+                            VECTORTYPE16 const & Qm, VECTORTYPE16 const & Rm,
+                            uint64_t ql, VECTORTYPE16 const & F0,
+                            uint64_t * dir_long, VECTORTYPE16 const & H0) -> void;
 auto align_cells_masked_16(VECTORTYPE16 * Sm, VECTORTYPE16 * hep,
                            VECTORTYPE16 ** qp,
-                           VECTORTYPE16 const * Qm, VECTORTYPE16 const * Rm,
-                           uint64_t ql, VECTORTYPE16 const * F0,
-                           uint64_t * dir_long, VECTORTYPE16 const * H0,
+                           VECTORTYPE16 const & Qm, VECTORTYPE16 const & Rm,
+                           uint64_t ql, VECTORTYPE16 const & F0,
+                           uint64_t * dir_long, VECTORTYPE16 const & H0,
                            VECTORTYPE16 const * Mm, VECTORTYPE16 * MQ,
                            VECTORTYPE16 const * MR, VECTORTYPE16 const * MQ0) -> void;
 

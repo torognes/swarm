@@ -75,9 +75,9 @@ auto dispatch_dprofile8(Cpu_features const & cpu_features,
 auto dispatch_align_regular_16(Cpu_features const & cpu_features,
                                VECTORTYPE16 * const Sm, VECTORTYPE16 * const hep,
                                VECTORTYPE16 ** const qp,
-                               VECTORTYPE16 const * const Qm, VECTORTYPE16 const * const Rm,
-                               uint64_t const ql, VECTORTYPE16 const * const F0,
-                               uint64_t * const dir_long, VECTORTYPE16 const * const H0) -> void
+                               VECTORTYPE16 const & Qm, VECTORTYPE16 const & Rm,
+                               uint64_t const ql, VECTORTYPE16 const & F0,
+                               uint64_t * const dir_long, VECTORTYPE16 const & H0) -> void
 {
 #ifdef __SSE4_1__
   if (cpu_features.sse41) {
@@ -93,9 +93,9 @@ auto dispatch_align_regular_16(Cpu_features const & cpu_features,
 auto dispatch_align_masked_16(Cpu_features const & cpu_features,
                               VECTORTYPE16 * const Sm, VECTORTYPE16 * const hep,
                               VECTORTYPE16 ** const qp,
-                              VECTORTYPE16 const * const Qm, VECTORTYPE16 const * const Rm,
-                              uint64_t const ql, VECTORTYPE16 const * const F0,
-                              uint64_t * const dir_long, VECTORTYPE16 const * const H0,
+                              VECTORTYPE16 const & Qm, VECTORTYPE16 const & Rm,
+                              uint64_t const ql, VECTORTYPE16 const & F0,
+                              uint64_t * const dir_long, VECTORTYPE16 const & H0,
                               VECTORTYPE16 const * const Mm, VECTORTYPE16 * const MQ,
                               VECTORTYPE16 const * const MR, VECTORTYPE16 const * const MQ0) -> void
 {
