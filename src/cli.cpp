@@ -227,7 +227,7 @@ namespace {
   // this standard level, not a leftover -- hence the errno = 0 before the
   // call and the three conditions after it.
   // C++17 refactoring: std::from_chars
-  auto args_long(char const * str, char const * option) -> int64_t {
+  auto args_long(char const * const str, char const * const option) -> int64_t {
     static constexpr int base_value {10};
     char * endptr {nullptr};
     errno = 0;
@@ -250,13 +250,13 @@ namespace {
 
   template <std::size_t N>
   auto show(std::array<char const *, N> const & message,
-            std::FILE * log_stream) -> void {
+            std::FILE * const log_stream) -> void {
     for (char const * message_element : message) {
       static_cast<void>(std::fputs(message_element, log_stream));
     }
   }
 
-  auto show_header_message(std::FILE * log_stream) -> void {
+  auto show_header_message(std::FILE * const log_stream) -> void {
     show(header_message, log_stream);
   }
 
@@ -447,7 +447,7 @@ namespace {
   }
 
 
-  auto args_init(int const argc, char * const * argv, struct Parameters & parameters) -> UsedOptions {
+  auto args_init(int const argc, char * const * const argv, struct Parameters & parameters) -> UsedOptions {
     static constexpr std::size_t alphabet_size {26};
     UsedOptions used_options {};
     std::bitset<alphabet_size> seen_options;  // duplicate detection keyed by short letter
@@ -782,7 +782,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto parse_command_line(int const argc, char * const * argv) -> Parameters {
+auto parse_command_line(int const argc, char * const * const argv) -> Parameters {
   Parameters parameters;
   auto const used_options = args_init(argc, argv, parameters);
   show_help_or_version_and_exit(parameters);

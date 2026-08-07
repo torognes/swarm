@@ -189,7 +189,7 @@ namespace {
   }
 
 
-  auto get_file_info(std::FILE * input_handle) -> struct File_info {
+  auto get_file_info(std::FILE * const input_handle) -> struct File_info {
     // get file size and file type (regular or pipe)
     // refactoring: C++17 std::filesystem::file_size
     struct File_info file_info;
@@ -386,7 +386,7 @@ namespace {
   // enforce max_sequence_length, and write entry.sequence + the
   // running counters in seq_stats. Stops with line_buf holding the
   // line that broke the loop ('>' or '\0').
-  auto parse_sequence_body(Line_buffer & line_buf, std::FILE * stream,
+  auto parse_sequence_body(Line_buffer & line_buf, std::FILE * const stream,
                            std::array<Nt_class, n_chars> const & classify,
                            Byte_sink & sink,
                            uint64_t & filepos, unsigned int & lineno,
@@ -623,8 +623,8 @@ namespace {
   }
 
 
-  auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t lineno,
-                      bool opt_usearch_abundance, int64_t opt_append_abundance) -> void
+  auto find_abundance(struct seqinfo_s & seqinfo, struct Seq_stats & seq_stats, uint64_t const lineno,
+                      bool const opt_usearch_abundance, int64_t const opt_append_abundance) -> void
   {
     auto const & header_view = seqinfo.header_view;
 
@@ -1094,7 +1094,7 @@ Sequence_printer::Sequence_printer(unsigned int const longest_sequence)
 {}
 
 
-auto Sequence_printer::print(std::FILE * stream, Sequence const & seq) const -> void {
+auto Sequence_printer::print(std::FILE * const stream, Sequence const & seq) const -> void {
   // decode to nucleotides (A, C, G and T), four at a time. The bytes
   // beyond the sequence's own are not read: nt_bytelength() rounds
   // encoded up to a multiple of eight. The last byte read does
@@ -1119,7 +1119,7 @@ auto Sequence_printer::print(std::FILE * stream, Sequence const & seq) const -> 
 }
 
 
-auto fprint_id(std::FILE * stream, struct seqinfo_s const & seqinfo,
+auto fprint_id(std::FILE * const stream, struct seqinfo_s const & seqinfo,
                bool const opt_usearch_abundance,
                int64_t const opt_append_abundance) -> void {
   auto const abundance_value = seqinfo.abundance;
@@ -1141,7 +1141,7 @@ auto fprint_id(std::FILE * stream, struct seqinfo_s const & seqinfo,
 }
 
 
-auto fprint_id_noabundance(std::FILE * stream, struct seqinfo_s const & seqinfo,
+auto fprint_id_noabundance(std::FILE * const stream, struct seqinfo_s const & seqinfo,
                            bool const opt_usearch_abundance) -> void {
   auto const header = seqinfo.header_view;
   auto const abundance_start = static_cast<std::size_t>(seqinfo.abundance_start);
@@ -1167,7 +1167,7 @@ auto fprint_id_noabundance(std::FILE * stream, struct seqinfo_s const & seqinfo,
 }
 
 
-auto fprint_id_with_new_abundance(std::FILE * stream,
+auto fprint_id_with_new_abundance(std::FILE * const stream,
                                   struct seqinfo_s const & seqinfo,
                                   uint64_t const new_abundance,
                                   bool const opt_usearch_abundance) -> void {
