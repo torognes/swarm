@@ -88,7 +88,7 @@ auto dprofile_shuffle8(BYTE * const dprofile,
   const auto seq_chunk2 = v_load8(&sequence_db[2]);  // next 16
   const auto seq_chunk3 = v_load8(&sequence_db[3]);  // final 16 (total of 64)
 
-  auto profline8 = [&](const long long int nuc) -> void {
+  auto profline8 = [&](long long int const nuc) -> void {
     // scores: 16 scores from the score matrix, matching the
     // nucleotide 'nuc'; five different nucleotides (0, 1, 2, 3, 4),
     // so five possible rows of scores
@@ -123,7 +123,7 @@ auto dprofile_shuffle16(WORD * const dprofile,
   const auto zero = v_zero();
   const auto one = v_dup16(1);
 
-  auto transform_lower_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
+  auto transform_lower_seq_chunk = [&](__m128i const& seq_chunk) -> __m128i {
     auto lower_chunk = v_merge_lo_8(seq_chunk, zero);
     lower_chunk = v_shift_left(lower_chunk, 1);
     auto local_t = v_add16(lower_chunk, one);
@@ -131,7 +131,7 @@ auto dprofile_shuffle16(WORD * const dprofile,
     return v_or(lower_chunk, local_t);
   };
 
-  auto transform_higher_seq_chunk = [&](const __m128i& seq_chunk) -> __m128i {
+  auto transform_higher_seq_chunk = [&](__m128i const& seq_chunk) -> __m128i {
     auto higher_chunk = v_merge_hi_8(seq_chunk, zero);
     higher_chunk = v_shift_left(higher_chunk, 1);
     auto local_t = v_add16(higher_chunk, one);
@@ -151,7 +151,7 @@ auto dprofile_shuffle16(WORD * const dprofile,
   const auto m2 = transform_lower_seq_chunk(t3);
   const auto m3 = transform_higher_seq_chunk(t3);
 
-  auto profline16 = [&](const long long int nuc) -> void {
+  auto profline16 = [&](long long int const nuc) -> void {
     const auto scores = v_load16(&score_db[4 * nuc]);
 
     v_store16(&profile_db[(4 * nuc) + 0], v_shuffle8(scores, m0));

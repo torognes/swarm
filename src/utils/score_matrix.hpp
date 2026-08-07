@@ -40,7 +40,7 @@ constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 // note: there is no uchar8_t, only char8_t in C++20
 // refactoring: C++20 use 'requires' to constrain accepted types
 template <typename Integral>
-auto create_score_matrix(const std::int64_t mismatch_penalty)
+auto create_score_matrix(std::int64_t const mismatch_penalty)
   -> std::array<Integral, n_cells * n_cells> {
   static_assert(std::is_same<Integral, unsigned char>::value \
                 or std::is_same<Integral, unsigned short int>::value \

@@ -87,7 +87,7 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 
 // How many sequences one thread is handed at a time: the 128-bit vector
 // holds that many lanes at the given width.
-auto channels_for(const Bit_mode n_bits) noexcept -> std::size_t {
+auto channels_for(Bit_mode const n_bits) noexcept -> std::size_t {
   static constexpr std::size_t channels_8 {8};
   static constexpr std::size_t channels_16 {16};
   return (n_bits == Bit_mode::bits_16) ? channels_8 : channels_16;
@@ -134,7 +134,7 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
 }
 
 
-auto Scanner::chunk(struct Search_data & thread_data, const Bit_mode bits) -> void {
+auto Scanner::chunk(struct Search_data & thread_data, Bit_mode const bits) -> void {
   assert(thread_data.target_count != 0);
 
   // The window this thread was handed by next_window(), computed once here
@@ -190,7 +190,7 @@ auto Scanner::next_window() -> Scanner::Work_window {
 }
 
 
-auto Scanner::worker_core(const uint64_t thread_id) -> void {
+auto Scanner::worker_core(uint64_t const thread_id) -> void {
   auto & thread_data = search_data_v_[thread_id];
   init(thread_data);
   for (auto window = next_window(); not window.empty(); window = next_window()) {
@@ -201,7 +201,7 @@ auto Scanner::worker_core(const uint64_t thread_id) -> void {
 }
 
 
-auto Scanner::run(const uint64_t query_no,
+auto Scanner::run(uint64_t const query_no,
                   View<uint64_t> const targets,
                   Span<uint64_t> const scores,
                   Span<uint64_t> const diffs,

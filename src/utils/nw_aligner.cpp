@@ -44,9 +44,9 @@ constexpr unsigned char maskextleft = 8;
 
 auto fill_matrix(Sequence const & dseq,
                  Sequence const & qseq,
-                 const std::array<int64_t, n_cells * n_cells> & score_matrix,
-                 const uint64_t gapopen,
-                 const uint64_t gapextend,
+                 std::array<int64_t, n_cells * n_cells> const & score_matrix,
+                 uint64_t const gapopen,
+                 uint64_t const gapextend,
                  Span<unsigned char> const directions,
                  Span<NwAligner::HECell> const hearray) -> void
 {

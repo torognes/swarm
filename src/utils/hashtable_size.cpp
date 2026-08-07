@@ -26,7 +26,7 @@
 #include <cstdint>
 
 
-auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
+auto compute_hashtable_size(uint64_t const sequence_count) -> uint64_t {
   // adjust hash table size for at most 70% fill rate (7/10th);
   // i.e. calculate the smallest power of two not smaller than
   // 10/7 times the number of sequences.
@@ -73,7 +73,7 @@ auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
 
 /* old function
 
-auto compute_hashtable_size(const uint64_t sequence_count) -> uint64_t {
+auto compute_hashtable_size(uint64_t const sequence_count) -> uint64_t {
   static constexpr unsigned int numerator {7};
   static constexpr unsigned int denominator {10};
   uint64_t hashtablesize = 2;
