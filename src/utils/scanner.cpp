@@ -54,13 +54,21 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
   static constexpr auto nt_per_uint64 = 32U;
   const uint64_t dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
 
+  // hearray_v is a vector of 16-byte He_blocks rather than of bytes (see
+  // search_data.hpp), so its length is a block count. The byte figure the
+  // budget below needs is derived back from that count, so the two cannot
+  // drift apart. No rounding happens in practice: the byte size is a
+  // multiple of nt_per_uint64, itself a multiple of 16.
+  const uint64_t hearray_blocks =
+    ceil_divide<uint64_t>(longestdbsequence * nt_per_uint64, simd_vector_bytes);
+
   // dir_array_v dominates and grows as O(L^2) in the longest sequence
   // length; fail early with a clear message instead of aborting inside
   // operator new (see memory_budget.hpp).
   static constexpr auto bytes_per_uint64 = uint64_t{8};
   const uint64_t per_thread_bytes =
       (dirbuffersize * bytes_per_uint64)                 // dir_array_v (dominant)
-    + (longestdbsequence * nt_per_uint64)                // hearray_v
+    + (hearray_blocks * simd_vector_bytes)               // hearray_v
     + (longestdbsequence * 2 * sizeof(void *));          // qtable_v + qtable_w_v
   require_ram(per_thread_bytes,
              search_data_v.size(),
@@ -71,7 +79,7 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
     thread_data.qtable_w_v.resize(longestdbsequence);
     thread_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
     thread_data.dprofile_w_v.resize(1 * one_kilobyte);  // 4 * 2 * 8 * 32
-    thread_data.hearray_v.resize(longestdbsequence * nt_per_uint64);
+    thread_data.hearray_v.resize(hearray_blocks);
     thread_data.dir_array_v.resize(dirbuffersize);
   }
 }

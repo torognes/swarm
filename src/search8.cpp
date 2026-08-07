@@ -738,7 +738,7 @@ auto search8(Data const & data,
   // unpack the per-thread working set (see utils/search_data.hpp)
   auto & q_start = search_data.qtable_v;
   auto & dprofile = search_data.dprofile_v;
-  auto * const hearray = search_data.hearray_v.data();
+  auto * const hearray = search_data.hearray_v.data();  // He_block *
   auto const sequences = seqnos.size();
   auto const qlen = static_cast<uint64_t>(query.length);
   auto & dirbuffer = search_data.dir_array_v;
@@ -777,6 +777,8 @@ auto search8(Data const & data,
   auto R = v_dup8(static_cast<char>(gap_extend_penalty));
 
   // refactoring: can't remove reinterpret_cast, cast_vector8() is a nullop in Aarch64
+  // hearray is a He_block * now, so this cast no longer widens the alignment
+  // of a bare BYTE * -- the source type already carries the 16 the load needs.
   auto *hep = reinterpret_cast<VECTORTYPE*>(hearray);
   auto **qp = reinterpret_cast<VECTORTYPE**>(q_start.data());
 

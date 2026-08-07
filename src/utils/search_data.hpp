@@ -25,12 +25,33 @@
 #define SWARM_UTILS_SEARCH_DATA_H
 
 #include "cpu_features.hpp"
+#include <array>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
 
 
 using BYTE = unsigned char;
 using WORD = unsigned short;
+
+// 16 bytes is both the width of the SIMD registers search8 and search16 use
+// and the alignment they require of the buffer they read through them.
+constexpr std::size_t simd_vector_bytes {16};
+
+// alignas: both kernels hand hearray_v to their inner loop as a
+// VECTORTYPE * and read it with aligned loads (__m128i on x86_64,
+// uint8x16_t on aarch64, vector unsigned char on ppc), so the buffer has to
+// start on a 16-byte boundary. A std::vector<BYTE> satisfied that only by
+// accident: operator new returns storage aligned for any fundamental type,
+// which is exactly 16 on these targets, so the requirement was met with no
+// margin and nothing in the code said it existed. An over-aligned element
+// type states it, and lets the kernels cast from a type whose own alignment
+// already covers the target instead of from bare bytes. Deriving from
+// std::array keeps data() and size() available.
+//
+// The same 16 appears as simd_alignment_bytes in qgram_array.hpp and as
+// score_matrix_alignment in scanner.hpp, for the same reason.
+struct alignas(simd_vector_bytes) He_block : std::array<BYTE, simd_vector_bytes> {};
 
 struct Search_data
 {
@@ -40,7 +61,7 @@ struct Search_data
   std::vector<BYTE> dprofile_v;
   std::vector<WORD> dprofile_w_v;
 
-  std::vector<BYTE> hearray_v;
+  std::vector<He_block> hearray_v;  // sized in blocks, not bytes
   std::vector<uint64_t> dir_array_v;
 
   uint64_t target_count = 0;

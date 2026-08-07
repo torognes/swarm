@@ -484,7 +484,7 @@ auto search16(Data const & data,
   // unpack the per-thread working set (see utils/search_data.hpp)
   auto & q_start = search_data.qtable_w_v;
   auto & dprofile = search_data.dprofile_w_v;
-  auto * const hearray = reinterpret_cast<WORD *>(search_data.hearray_v.data());
+  auto * const hearray = search_data.hearray_v.data();  // He_block *
   auto const sequences = seqnos.size();
   auto const qlen = static_cast<uint64_t>(query.length);
   auto & dirbuffer = search_data.dir_array_v;
@@ -522,6 +522,9 @@ auto search16(Data const & data,
   auto Q = v_dup16(static_cast<short>(gap_open_penalty + gap_extend_penalty));
   auto R = v_dup16(static_cast<short>(gap_extend_penalty));
 
+  // one cast, from the over-aligned He_block straight to the vector type.
+  // hearray used to be a WORD * that nothing else read, and that step
+  // discarded the alignment these loads need.
   auto * hep = reinterpret_cast<VECTORTYPE *>(hearray);
   auto * * qp = reinterpret_cast<VECTORTYPE * *>(q_start.data());
 
