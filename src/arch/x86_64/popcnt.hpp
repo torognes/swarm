@@ -25,10 +25,11 @@
 #define SWARM_ARCH_X86_64_POPCNT_H
 
 
+#include "../../utils/qgram_array.hpp"  // Qgram_vector
 #include <cstdint>
 
 
-auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const * rhs)
+auto compareqgramvectors_popcnt(Qgram_vector const & lhs, Qgram_vector const & rhs)
   -> uint64_t;
 
 #endif  // SWARM_ARCH_X86_64_POPCNT_H

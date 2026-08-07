@@ -30,13 +30,19 @@
 
 // C++20 refactoring: replace with a portable loop using std::popcount; on
 // aarch64 with -O3 the compiler auto-vectorizes to cnt + addv anyway.
-auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
+auto compareqgramvectors(Qgram_vector const & lhs, Qgram_vector const & rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   static_cast<void>(cpu_features);  // unused: NEON cnt is always available
+  static_assert(qgramvectorbytes % sizeof(uint8x16_t) == 0,
+                "qgram vector must be a whole number of 128-bit words");
+  static_assert(alignof(Qgram_vector) >= alignof(uint8x16_t),
+                "qgram vector must be aligned for the loads below");
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(uint8x16_t);  // 8
-  auto const * lhs_ptr = reinterpret_cast<uint8x16_t const *>(lhs);
-  auto const * rhs_ptr = reinterpret_cast<uint8x16_t const *>(rhs);
+  // cast from &lhs, not lhs.data(): data() hands back unsigned char const *,
+  // which drops the alignas(16) these aligned loads rely on
+  auto const * lhs_ptr = reinterpret_cast<uint8x16_t const *>(&lhs);
+  auto const * rhs_ptr = reinterpret_cast<uint8x16_t const *>(&rhs);
   uint64_t count {0};
 
   for (auto i = 0ULL; i < n_vector_lengths; ++i) {

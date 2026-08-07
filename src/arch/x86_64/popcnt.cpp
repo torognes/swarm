@@ -42,13 +42,15 @@
   available starting with the Intel Nehalem architecture in 2008.
 */
 
-auto compareqgramvectors_popcnt(unsigned char const * lhs, unsigned char const * rhs) -> uint64_t {
+auto compareqgramvectors_popcnt(Qgram_vector const & lhs, Qgram_vector const & rhs) -> uint64_t {
   /* Count number of different bits */
   /* requires a CPU with the POPCNT instruction */
 
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(uint64_t);  // 16
-  auto const * lhs_ptr = reinterpret_cast<uint64_t const *>(lhs);
-  auto const * rhs_ptr = reinterpret_cast<uint64_t const *>(rhs);
+  // cast from &lhs, not lhs.data(): data() hands back unsigned char const *,
+  // which drops the alignas(16) the load below relies on
+  auto const * lhs_ptr = reinterpret_cast<uint64_t const *>(&lhs);
+  auto const * rhs_ptr = reinterpret_cast<uint64_t const *>(&rhs);
   uint64_t count {0};
 
   for (auto i = 0ULL; i < n_vector_lengths; ++i) {

@@ -41,7 +41,7 @@
 #include <cstring>  // std::memcpy
 
 
-auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
+auto compareqgramvectors(Qgram_vector const & lhs, Qgram_vector const & rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   static_cast<void>(cpu_features);  // unused: portable path has no runtime dispatch
@@ -50,14 +50,20 @@ auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
   uint64_t lhs_word {0};
   uint64_t rhs_word {0};
 
+  // data() rather than &lhs, unlike the SIMD kernels: this path copies the
+  // bytes out instead of loading them as vectors, so it wants the buffer,
+  // not an over-aligned pointer to reinterpret.
+  auto const * lhs_bytes = lhs.data();
+  auto const * rhs_bytes = rhs.data();
+
   // std::memcpy avoids the strict-aliasing undefined behaviour of punning
   // an unsigned char buffer through a uint64_t* (same reasoning as
   // variants.cpp nt_set); optimisers fold each one back into a single
   // load, so this is not a copy at run time.
   // C++20 refactoring: std::bit_cast
   for (auto i = 0ULL; i < n_words; ++i) {
-    std::memcpy(&lhs_word, lhs + (i * sizeof(uint64_t)), sizeof(uint64_t));
-    std::memcpy(&rhs_word, rhs + (i * sizeof(uint64_t)), sizeof(uint64_t));
+    std::memcpy(&lhs_word, lhs_bytes + (i * sizeof(uint64_t)), sizeof(uint64_t));
+    std::memcpy(&rhs_word, rhs_bytes + (i * sizeof(uint64_t)), sizeof(uint64_t));
     count += static_cast<uint64_t>(__builtin_popcountll(lhs_word ^ rhs_word));
   }
 

@@ -94,8 +94,8 @@ namespace {
   {
     assert(seqno_a < store.size());
     assert(seqno_b < store.size());
-    const uint64_t diffqgrams = compareqgramvectors(store[seqno_a].data(),
-                                                    store[seqno_b].data(),
+    const uint64_t diffqgrams = compareqgramvectors(store[seqno_a],
+                                                    store[seqno_b],
                                                     cpu_features);
     // Each mismatch flips up to 2*qgramlength bits in the qgram XOR
     // vector (q bits leave, q bits arrive). Dividing the bit-difference

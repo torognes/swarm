@@ -35,13 +35,19 @@
 
 // C++20 refactoring: replace with a portable loop using std::popcount; on
 // ppc64le the compiler emits vpopcntd for tight XOR + popcount loops.
-auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
+auto compareqgramvectors(Qgram_vector const & lhs, Qgram_vector const & rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   static_cast<void>(cpu_features);  // unused: AltiVec vpopcnt is always available on Power8+
+  static_assert(qgramvectorbytes % sizeof(vector unsigned char) == 0,
+                "qgram vector must be a whole number of 128-bit words");
+  static_assert(alignof(Qgram_vector) >= alignof(vector unsigned char),
+                "qgram vector must be aligned for the loads below");
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(vector unsigned char);  // 8
-  auto const * lhs_ptr = reinterpret_cast<vector unsigned char const *>(lhs);
-  auto const * rhs_ptr = reinterpret_cast<vector unsigned char const *>(rhs);
+  // cast from &lhs, not lhs.data(): data() hands back unsigned char const *,
+  // which drops the alignas(16) these aligned loads rely on
+  auto const * lhs_ptr = reinterpret_cast<vector unsigned char const *>(&lhs);
+  auto const * rhs_ptr = reinterpret_cast<vector unsigned char const *>(&rhs);
   vector unsigned long long count_vector = { 0, 0 };
 
   for (auto i = 0ULL; i < n_vector_lengths; ++i) {

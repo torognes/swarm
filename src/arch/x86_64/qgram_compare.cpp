@@ -29,7 +29,6 @@
 #include "../../utils/cpu_features.hpp"  // Cpu_features
 #include "../../utils/qgram_array.hpp"   // qgramvectorbytes
 #include "popcnt.hpp"                    // compareqgramvectors_popcnt
-#include <cassert>
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next
 
@@ -102,15 +101,23 @@ auto popcount_128(__m128i input_vector) -> uint64_t
 }
 
 
-auto compareqgramvectors_128(unsigned char const * lhs, unsigned char const * rhs) -> uint64_t
+auto compareqgramvectors_128(Qgram_vector const & lhs, Qgram_vector const & rhs) -> uint64_t
 {
   /* Count number of different bits */
   /* Uses SSE2 but not POPCNT instruction */
-  assert(qgramvectorbytes % 16 == 0); // input MUST be 16-byte aligned
+  // the 16-byte alignment the loads below need is now carried by the
+  // parameter type, so what is left to check is that the vector divides
+  // evenly into __m128i-sized steps
+  static_assert(qgramvectorbytes % sizeof(__m128i) == 0,
+                "qgram vector must be a whole number of 128-bit words");
+  static_assert(alignof(Qgram_vector) >= alignof(__m128i),
+                "qgram vector must be aligned for the loads below");
 
   static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(__m128i);  // 8
-  auto const * lhs_ptr = reinterpret_cast<__m128i const *>(lhs);
-  auto const * rhs_ptr = reinterpret_cast<__m128i const *>(rhs);
+  // cast from &lhs, not lhs.data(): data() hands back unsigned char const *,
+  // which drops the alignas(16) these aligned loads rely on
+  auto const * lhs_ptr = reinterpret_cast<__m128i const *>(&lhs);
+  auto const * rhs_ptr = reinterpret_cast<__m128i const *>(&rhs);
   uint64_t count {0};
 
   for (auto i = 0ULL; i < n_vector_lengths; ++i) {
@@ -125,7 +132,7 @@ auto compareqgramvectors_128(unsigned char const * lhs, unsigned char const * rh
 }  // namespace
 
 
-auto compareqgramvectors(unsigned char const * lhs, unsigned char const * rhs,
+auto compareqgramvectors(Qgram_vector const & lhs, Qgram_vector const & rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   if (cpu_features.popcnt) {
