@@ -24,6 +24,7 @@
 #ifndef SWARM_UTILS_QGRAM_ARRAY_H
 #define SWARM_UTILS_QGRAM_ARRAY_H
 
+#include "simd_alignment.hpp"  // simd_vector_bytes
 #include <array>
 #include <vector>
 
@@ -40,8 +41,7 @@ constexpr unsigned int qgramvectorbytes {(1U << (2 * qgramlength)) / 8};
 // std::vector<Qgram_vector> place its buffer -- and, since the 128-byte
 // element size is a multiple of 16, every element -- on a 16-byte
 // boundary. Mirrors the alignas(16) on the score matrices in scanner.hpp.
-constexpr unsigned int simd_alignment_bytes {16};
-struct alignas(simd_alignment_bytes) Qgram_vector : std::array<unsigned char, qgramvectorbytes> {};
+struct alignas(simd_vector_bytes) Qgram_vector : std::array<unsigned char, qgramvectorbytes> {};
 using Qgram_store  = std::vector<Qgram_vector>;
 
 #endif

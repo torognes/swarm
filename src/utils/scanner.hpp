@@ -27,6 +27,7 @@
 #include "../db.hpp"  // Data (stored as reference_wrapper member), Sequence
 #include "score_matrix.hpp"  // create_score_matrix, n_cells
 #include "search_data.hpp"  // Search_data, BYTE, WORD
+#include "simd_alignment.hpp"  // simd_vector_bytes
 #include "span.hpp"  // Span<uint64_t>
 #include "thread_count.hpp"  // ThreadCount
 #include "threads.hpp"  // ThreadRunner
@@ -79,8 +80,6 @@ public:
   auto worker_core(uint64_t thread_id) -> void;
 
 private:
-  static constexpr std::size_t score_matrix_alignment {16};
-
   // A thread's share of the target list: `count` entries starting at
   // `first`. Returned as one value rather than written through two
   // adjacent uint64_t references, which a caller could fill in either
@@ -111,9 +110,9 @@ private:
   std::reference_wrapper<Data const> data_;
   int64_t gapopen_ {0};
   int64_t gapextend_ {0};
-  alignas(score_matrix_alignment)
+  alignas(simd_vector_bytes)
     std::array<unsigned char, n_cells * n_cells> score_matrix_8_;
-  alignas(score_matrix_alignment)
+  alignas(simd_vector_bytes)
     std::array<unsigned short, n_cells * n_cells> score_matrix_16_;
   ThreadCount n_threads_ {};
 
