@@ -90,12 +90,12 @@ public:
   }
 
   // Iterators
-  auto begin()  const noexcept -> Type * { return data(); }
+  constexpr auto begin()  const noexcept -> Type * { return data(); }
   auto end() const noexcept -> Type * {
     auto const distance = static_cast<std::ptrdiff_t>(size());
     return std::next(data(), distance);
   }
-  auto cbegin() const noexcept -> Type const * { return data(); }
+  constexpr auto cbegin() const noexcept -> Type const * { return data(); }
   auto cend() const noexcept -> Type const * {
     return end();
   }
@@ -121,7 +121,7 @@ public:
     assert(not empty());
     return *std::prev(end());
   }
-  auto data() const noexcept -> Type * { return start_; }
+  constexpr auto data() const noexcept -> Type * { return start_; }
   auto operator[](std::size_t const index) const noexcept -> Type & {
     assert(index < size());
     auto const distance = static_cast<std::ptrdiff_t>(index);
@@ -129,12 +129,12 @@ public:
   }
 
   // Observers
-  auto size() const noexcept -> std::size_t { return length_; }
+  constexpr auto size() const noexcept -> std::size_t { return length_; }
   auto size_bytes() const noexcept -> std::size_t {
     assert(size() <= (max_size / sizeof(Type)));
     return size() * sizeof(Type);
   }
-  auto empty() const noexcept -> bool { return size() == 0; }
+  constexpr auto empty() const noexcept -> bool { return size() == 0; }
 
   // Subspans
   auto subspan(std::size_t const offset, std::size_t const count) const noexcept -> Span {

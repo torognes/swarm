@@ -56,7 +56,7 @@ public:
     assert(requested <= maximum);
   }
 
-  auto count() const noexcept -> std::size_t { return count_; }
+  constexpr auto count() const noexcept -> std::size_t { return count_; }
 
   // The count reduced to upper_bound when that is the smaller of the two:
   // a caller that can only keep so many threads busy asks for the count it

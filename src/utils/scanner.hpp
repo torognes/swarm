@@ -100,7 +100,7 @@ private:
     uint64_t first;
     uint64_t count;
 
-    auto empty() const noexcept -> bool { return count == 0; }
+    constexpr auto empty() const noexcept -> bool { return count == 0; }
   };
 
   auto init(struct Search_data & thread_data) const -> void;

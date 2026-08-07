@@ -100,7 +100,7 @@ struct element_order<char> {
 // Functor wrapper, for the std algorithms that take a comparison object.
 template <typename Type>
 struct element_less {
-  auto operator()(Type const & lhs, Type const & rhs) const -> bool {
+  constexpr auto operator()(Type const & lhs, Type const & rhs) const -> bool {
     return element_order<Type>::less(lhs, rhs);
   }
 };

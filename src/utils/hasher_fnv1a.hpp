@@ -57,7 +57,7 @@ public:
 
   // finalize internal state to size_t (conversion operator)
   using result_type = decltype(hash);
-  explicit operator result_type() const noexcept {
+  constexpr explicit operator result_type() const noexcept {
     return hash;
   }
 };
