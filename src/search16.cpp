@@ -32,6 +32,7 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t, uint8_t
+#include <cstring>  // std::memcpy
 #include <iterator> // std::next
 #include <limits>
 #include <vector>
@@ -415,6 +416,29 @@ auto save_score_16(int64_t const cand_id,
 }
 
 
+// Write one 16-bit lane of a vector register.
+//
+// std::memcpy rather than a store through reinterpret_cast<WORD *>(&vec):
+// a narrow store into an object whose declared type is VECTORTYPE is not
+// something -fstrict-aliasing has to honour, so GCC is free to keep a
+// stale copy of the vector in a register across it. This is not
+// theoretical: with GCC 13.3 at -O3, 'swarm -d 4 -g 60' (a gap-open
+// penalty high enough to select 16-bit mode at a low d, see
+// set_bit_mode) produced clusters that disagreed with the -O0 build,
+// and -fno-strict-aliasing alone restored them. memcpy aliases
+// everything, so the lane write is always observed.
+//
+// Cold path: runs once per channel swap, never inside the kernel loop
+// (measured free on 'd = 16', 18SV9-derived input).
+auto set_lane_16(VECTORTYPE & vec, unsigned int const channel, WORD const value) -> void
+{
+  std::array<WORD, channels> lanes {{}};
+  std::memcpy(lanes.data(), &vec, sizeof(vec));
+  lanes[channel] = value;
+  std::memcpy(&vec, lanes.data(), sizeof(vec));
+}
+
+
 // Attach the next database sequence to 'channel': record its address and
 // length, reset the per-channel cursors, seed the H0/F0 lanes, and prime
 // the first block. Returns whether the channel already reached the end of
@@ -449,8 +473,8 @@ auto load_next_sequence_16(unsigned int const channel,
   ++next_id;
 
   assert(((2U * gap_open_penalty) + (2U * gap_extend_penalty)) <= std::numeric_limits<WORD>::max());
-  *std::next(reinterpret_cast<WORD *>(&H0), channel) = 0;
-  *std::next(reinterpret_cast<WORD *>(&F0), channel) = static_cast<WORD>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
+  set_lane_16(H0, channel, 0);
+  set_lane_16(F0, channel, static_cast<WORD>((2U * gap_open_penalty) + (2U * gap_extend_penalty)));
 
   // fill channel
   return fill_channel<channels, cdepth>(dseq, channel, d_sequence, d_pos);
