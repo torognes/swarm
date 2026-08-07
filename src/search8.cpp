@@ -32,6 +32,7 @@
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t, uint8_t
+#include <cstring>  // std::memcpy
 #include <iterator> // std::next
 #include <limits>
 #include <vector>
@@ -669,6 +670,26 @@ auto save_score_8(int64_t const cand_id,
 }
 
 
+// Write one 8-bit lane of a vector register.
+//
+// std::memcpy rather than a store through reinterpret_cast<BYTE *>(&vec):
+// a narrow store into an object whose declared type is VECTORTYPE is not
+// something -fstrict-aliasing has to honour, so GCC is free to keep a
+// stale copy of the vector in a register across it and drop the write.
+// The 16-bit twin of this construct was miscompiling swarm at -O3 (see
+// set_lane_16 in search16.cpp); the 8-bit path has not been caught
+// misbehaving, but the hazard is the same and so is the remedy.
+//
+// Cold path: runs once per channel swap, never inside the kernel loop.
+auto set_lane_8(VECTORTYPE & vec, unsigned int const channel, BYTE const value) -> void
+{
+  std::array<BYTE, channels> lanes {{}};
+  std::memcpy(lanes.data(), &vec, sizeof(vec));
+  lanes[channel] = value;
+  std::memcpy(&vec, lanes.data(), sizeof(vec));
+}
+
+
 // Attach the next database sequence to 'channel': record its address and
 // length, reset the per-channel cursors, seed the H0/F0 lanes, and prime
 // the first block. Returns whether the channel already reached the end of
@@ -702,9 +723,9 @@ auto load_next_sequence_8(unsigned int const channel,
   d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer_begin);
   ++next_id;
 
-  *std::next(reinterpret_cast<BYTE *>(&H0), channel) = 0;
+  set_lane_8(H0, channel, 0);
   assert((2U * gap_open_penalty) + (2U * gap_extend_penalty) <= std::numeric_limits<BYTE>::max());
-  *std::next(reinterpret_cast<BYTE *>(&F0), channel) = static_cast<BYTE>((2U * gap_open_penalty) + (2U * gap_extend_penalty));
+  set_lane_8(F0, channel, static_cast<BYTE>((2U * gap_open_penalty) + (2U * gap_extend_penalty)));
 
   // fill channel
   return fill_channel<channels, cdepth>(dseq, channel, d_sequence, d_pos);
