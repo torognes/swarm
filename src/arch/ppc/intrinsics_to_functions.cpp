@@ -54,46 +54,46 @@ constexpr v_u8_t perm_bits =
 
 // source: power vector intrinsic programming reference (chapter 4)
 
-auto cast_vector16(uint16_t * ptr) -> uint16_t* {
+auto cast_vector16(uint16_t * const ptr) -> uint16_t* {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector16(uint16_t const * ptr) -> uint16_t const * {
+auto cast_vector16(uint16_t const * const ptr) -> uint16_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector8(uint8_t * ptr) -> uint8_t* {
+auto cast_vector8(uint8_t * const ptr) -> uint8_t* {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector8(uint8_t const * ptr) -> uint8_t const * {
+auto cast_vector8(uint8_t const * const ptr) -> uint8_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector8(v_u8_t const * ptr) -> v_u8_t const * {
+auto cast_vector8(v_u8_t const * const ptr) -> v_u8_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
 // only used in v_merge_lo8()
-auto cast_vector8_real(uint8_t const * ptr) -> v_u8_t const * {
+auto cast_vector8_real(uint8_t const * const ptr) -> v_u8_t const * {
   return reinterpret_cast<v_u8_t const *>(ptr);
 }
 
-auto v_load16(uint16_t const * ptr) -> v_u16_t {
+auto v_load16(uint16_t const * const ptr) -> v_u16_t {
   return vec_splats(*ptr);  // dereference
 }
 
 // only in search8
-auto v_load_64(uint8_t const * ptr) -> v_u8_t {
+auto v_load_64(uint8_t const * const ptr) -> v_u8_t {
   return reinterpret_cast<v_u8_t>(vec_splats(*reinterpret_cast<uint64_t const *>(ptr)));
 }
 
-auto v_store16(uint16_t * ptr, v_u16_t cpu_register) -> void {
+auto v_store16(uint16_t * const ptr, v_u16_t const cpu_register) -> void {
   // store a vector at ptr address + displacement
   static constexpr auto displacement = 0LL;
   // useless in the original macro?
@@ -102,7 +102,7 @@ auto v_store16(uint16_t * ptr, v_u16_t cpu_register) -> void {
   vec_st(cpu_register, displacement, ptr);
 }
 
-auto v_store8(uint8_t * ptr, v_u8_t cpu_register) -> void {
+auto v_store8(uint8_t * const ptr, v_u8_t const cpu_register) -> void {
   // store a vector at ptr address + displacement
   static constexpr auto displacement = 0LL;
   // useless in the original macro?
@@ -112,20 +112,20 @@ auto v_store8(uint8_t * ptr, v_u8_t cpu_register) -> void {
 }
 
 // only in search8
-auto v_merge_lo_8(v_u8_t lhs, uint8_t const & rhs) -> v_u8_t {
+auto v_merge_lo_8(v_u8_t const lhs, uint8_t const & rhs) -> v_u8_t {
   auto const * rhs_ptr = &rhs;
   return vec_mergeh(lhs, *cast_vector8_real(rhs_ptr));
 }
 
-auto v_merge_lo_8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_merge_lo_8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   return vec_mergeh(lhs, rhs);
 }
 
-auto v_merge_lo_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_merge_lo_16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   return vec_mergeh(lhs, rhs);
 }
 
-auto v_merge_lo_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_merge_lo_16(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   // search8: v_merge_lo_16(a, b) (VECTORTYPE)vec_mergeh((vector short)(a), (vector short)(b))
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
   // and vec_perm are overloaded on element type, so casting to the wider
@@ -136,11 +136,11 @@ auto v_merge_lo_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
          );
 }
 
-auto v_merge_hi_16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_merge_hi_16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   return vec_mergel(lhs, rhs);
 }
 
-auto v_merge_hi_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_merge_hi_16(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   // search8: v_merge_hi_16(a, b) (VECTORTYPE)vec_mergel((vector short)(a), (vector short)(b))
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
   // and vec_perm are overloaded on element type, so casting to the wider
@@ -151,7 +151,7 @@ auto v_merge_hi_16(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
          );
 }
 
-auto v_merge_lo_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_merge_lo_32(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   // search16: v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -163,7 +163,7 @@ auto v_merge_lo_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
          );
 }
 
-auto v_merge_lo_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_merge_lo_32(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   // search8: v_merge_lo_32(a, b) (VECTORTYPE)vec_mergeh((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -175,7 +175,7 @@ auto v_merge_lo_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
          );
 }
 
-auto v_merge_hi_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_merge_hi_32(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   // search16: v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -187,7 +187,7 @@ auto v_merge_hi_32(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
          );
 }
 
-auto v_merge_hi_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_merge_hi_32(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   // search8: v_merge_hi_32(a, b) (VECTORTYPE)vec_mergel((vector int)(a), (vector int)(b))
   // decision: was casting to signed int; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -199,7 +199,7 @@ auto v_merge_hi_32(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
          );
 }
 
-auto v_merge_lo_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_merge_lo_64(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   // search16: v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_low)
   // decision: was casting to signed long long; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -212,7 +212,7 @@ auto v_merge_lo_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
          );
 }
 
-auto v_merge_lo_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_merge_lo_64(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   // search8: v_merge_lo_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_low)
   // decision: was casting to signed long long; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -226,7 +226,7 @@ auto v_merge_lo_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
 }
 
 
-auto v_merge_hi_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_merge_hi_64(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   // search16: v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_high)
   // decision: was casting to signed long long; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -239,7 +239,7 @@ auto v_merge_hi_64(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
          );
 }
 
-auto v_merge_hi_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_merge_hi_64(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   // search8: v_merge_hi_64(a, b) (VECTORTYPE)vec_perm((vector long long)(a), (vector long long)(b), perm_merge_long_high)
   // decision: was casting to signed long long; I use unsigned
   // the reinterpret_cast selects the merge granularity: vec_mergeh/vec_mergel
@@ -252,36 +252,36 @@ auto v_merge_hi_64(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
          );
 }
 
-auto v_min16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_min16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   return vec_min(lhs, rhs);
 }
 
-auto v_min8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_min8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   return vec_min(lhs, rhs);
 }
 
-auto v_add16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_add16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   return vec_adds(lhs, rhs);
 }
 
-auto v_add8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_add8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   return vec_adds(lhs, rhs);
 }
 
-auto v_sub16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_sub16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   return vec_subs(lhs, rhs);
 }
 
-auto v_sub8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_sub8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   return vec_subs(lhs, rhs);
 }
 
-auto v_dup16(int16_t value) -> v_u16_t {
+auto v_dup16(int16_t const value) -> v_u16_t {
   // broadcast a uint16_t to all elements of destination
   return vec_splats(static_cast<uint16_t>(value));
 }
 
-auto v_dup8(uint8_t value) -> v_u8_t {
+auto v_dup8(uint8_t const value) -> v_u8_t {
   // broadcast a uint8_t to all elements of destination
   return vec_splats(value);
 }
@@ -298,37 +298,37 @@ auto v_zero8() -> v_u8_t {
   return v_dup8(zero);
 }
 
-auto v_and16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_and16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   return vec_and(lhs, rhs);
 }
 
-auto v_and8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_and8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   return vec_and(lhs, rhs);
 }
 
-auto v_xor16(v_u16_t lhs, v_u16_t rhs) -> v_u16_t {
+auto v_xor16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
   return vec_xor(lhs, rhs);
 }
 
-auto v_xor8(v_u8_t lhs, v_u8_t rhs) -> v_u8_t {
+auto v_xor8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
   return vec_xor(lhs, rhs);
 }
 
-auto v_shift_left16(v_u16_t vector) -> v_u16_t {
+auto v_shift_left16(v_u16_t const vector) -> v_u16_t {
   // shift vector to the left by n bytes, pad with zeros
   // n: 4-bit unsigned literal (in the range 0–15)
   // static constexpr auto n_bytes = 2;
   return vec_sld(vector, v_zero16(), 2);
 }
 
-auto v_shift_left8(v_u8_t vector) -> v_u8_t {
+auto v_shift_left8(v_u8_t const vector) -> v_u8_t {
   // shift vector to the left by n bytes, pad with zeros
   // n: 4-bit unsigned literal (in the range 0–15)
   // static constexpr auto n_bytes = 1;
   return vec_sld(vector, v_zero8(), 1);
 }
 
-auto v_mask_eq16(v_u16_t lhs, v_u16_t rhs) -> uint16_t {
+auto v_mask_eq16(v_u16_t const lhs, v_u16_t const rhs) -> uint16_t {
   // - compare vectors of integers for equality
   // - vec_cmpeq -> vector bool char
   // - permute (vec_bperm -> vector unsigned char)
@@ -344,7 +344,7 @@ auto v_mask_eq16(v_u16_t lhs, v_u16_t rhs) -> uint16_t {
          )[fifth_item];
 }
     
-auto v_mask_eq8(v_u8_t lhs, v_u8_t rhs) -> uint16_t {
+auto v_mask_eq8(v_u8_t const lhs, v_u8_t const rhs) -> uint16_t {
   // - compare vectors of integers for equality
   // - vec_cmpeq -> vector bool char
   // - permute (vec_bperm -> vector unsigned char)

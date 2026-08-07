@@ -47,83 +47,83 @@ constexpr uint8x16_t neon_mask8 =
 constexpr uint16x8_t neon_shift16 = { 0, 0, 0, 0, 8, 8, 8, 8 };
 
 
-auto cast_vector16(uint16_t * ptr) -> uint16_t* {
+auto cast_vector16(uint16_t * const ptr) -> uint16_t* {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector16(uint16_t const * ptr) -> uint16_t const * {
+auto cast_vector16(uint16_t const * const ptr) -> uint16_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector8(uint8_t * ptr) -> uint8_t* {
+auto cast_vector8(uint8_t * const ptr) -> uint8_t* {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector8(uint8_t const * ptr) -> uint8_t const * {
+auto cast_vector8(uint8_t const * const ptr) -> uint8_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector8(uint8x16_t* ptr) -> uint8x16_t* {
+auto cast_vector8(uint8x16_t * const ptr) -> uint8x16_t* {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
-auto cast_vector8(uint8x16_t const * ptr) -> uint8x16_t const * {
+auto cast_vector8(uint8x16_t const * const ptr) -> uint8x16_t const * {
   // dummy function, needed to match x86-64 code
   return ptr;
 }
 
 // only used in v_merge_lo8()
-auto cast_vector8_real(uint8_t const * ptr) -> uint8x16_t const * {
+auto cast_vector8_real(uint8_t const * const ptr) -> uint8x16_t const * {
   return reinterpret_cast<uint8x16_t const *>(ptr);
 }
 
-auto cast_vector64(uint8_t const * ptr) -> uint64_t const * {
+auto cast_vector64(uint8_t const * const ptr) -> uint64_t const * {
   return reinterpret_cast<uint64_t const *>(ptr);
 }
 
-auto v_load16(uint16_t const * ptr) -> uint16x8_t {
+auto v_load16(uint16_t const * const ptr) -> uint16x8_t {
   return vld1q_u16(ptr);
 }
 
 // only in search8
-auto v_load_64(uint8_t const * ptr) -> uint64x2_t {
+auto v_load_64(uint8_t const * const ptr) -> uint64x2_t {
   return vld1q_dup_u64(cast_vector64(ptr));
 }
 
-auto v_store16(uint16_t * ptr, uint16x8_t cpu_register) -> void {
+auto v_store16(uint16_t * const ptr, uint16x8_t const cpu_register) -> void {
   vst1q_u16(ptr, cpu_register);
 }
 
-auto v_store8(uint8_t * ptr, uint8x16_t cpu_register) -> void {
+auto v_store8(uint8_t * const ptr, uint8x16_t const cpu_register) -> void {
   vst1q_u8(ptr, cpu_register);
 }
 
 // only in search8
-auto v_merge_lo_8(uint8x16_t lhs, uint8_t const & rhs) -> uint8x16_t {
+auto v_merge_lo_8(uint8x16_t const lhs, uint8_t const & rhs) -> uint8x16_t {
   // vzip1q_u8: interleaves the lower halves of two uint8x16_t
   auto const * rhs_ptr = &rhs;
   return vzip1q_u8(lhs, *cast_vector8_real(rhs_ptr));
 }
 
 // only in search8
-auto v_merge_lo_8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t {
+auto v_merge_lo_8(uint8x16_t const lhs, uint8x16_t const rhs) -> uint8x16_t {
   return vzip1q_u8(lhs, rhs);
 }
 
-auto v_merge_lo_16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_merge_lo_16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vzip1q_u16(lhs, rhs);
 }
 
-auto v_merge_hi_16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_merge_hi_16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vzip2q_u16(lhs, rhs);
 }
 
-auto v_merge_lo_32(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_merge_lo_32(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vreinterpretq_u16_u32(
              vzip1q_u32(
                  vreinterpretq_u32_u16(lhs),
@@ -132,7 +132,7 @@ auto v_merge_lo_32(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
          );
 }
 
-auto v_merge_hi_32(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_merge_hi_32(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vreinterpretq_u16_u32(
              vzip2q_u32(
                  vreinterpretq_u32_u16(lhs),
@@ -141,7 +141,7 @@ auto v_merge_hi_32(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
          );
 }
 
-auto v_merge_lo_64(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_merge_lo_64(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vreinterpretq_u16_u64(
             vcombine_u64(
                 vget_low_u64(vreinterpretq_u64_u16(lhs)),
@@ -150,7 +150,7 @@ auto v_merge_lo_64(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
          );
 }
 
-auto v_merge_hi_64(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_merge_hi_64(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vreinterpretq_u16_u64(
              vcombine_u64(
                 vget_high_u64(vreinterpretq_u64_u16(lhs)),
@@ -159,36 +159,36 @@ auto v_merge_hi_64(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
          );
 }
 
-auto v_min16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_min16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vminq_u16(lhs, rhs);
 }
 
-auto v_min8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t {
+auto v_min8(uint8x16_t const lhs, uint8x16_t const rhs) -> uint8x16_t {
   return vminq_u8(lhs, rhs);
 }
 
-auto v_add16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_add16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vqaddq_u16(lhs, rhs);
 }
 
-auto v_add8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t {
+auto v_add8(uint8x16_t const lhs, uint8x16_t const rhs) -> uint8x16_t {
   return vqaddq_u8(lhs, rhs);
 }
 
-auto v_sub16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_sub16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vqsubq_u16(lhs, rhs);
 }
 
-auto v_sub8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t {
+auto v_sub8(uint8x16_t const lhs, uint8x16_t const rhs) -> uint8x16_t {
   return vqsubq_u8(lhs, rhs);
 }
   
-auto v_dup16(int16_t value) -> uint16x8_t {
+auto v_dup16(int16_t const value) -> uint16x8_t {
   // broadcast a uint16_t to all elements of destination
   return vdupq_n_u16(static_cast<uint16_t>(value));
 }
 
-auto v_dup8(uint8_t value) -> uint8x16_t {
+auto v_dup8(uint8_t const value) -> uint8x16_t {
   // broadcast a uint8_t to all elements of destination
   return vdupq_n_u8(value);
 }
@@ -203,42 +203,42 @@ auto v_zero8() -> uint8x16_t {
   return v_dup8(zero);
 }
 
-auto v_and16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_and16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return vandq_u16(lhs, rhs);
 }
 
-auto v_and8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t {
+auto v_and8(uint8x16_t const lhs, uint8x16_t const rhs) -> uint8x16_t {
   return vandq_u8(lhs, rhs);
 }
 
-auto v_xor16(uint16x8_t lhs, uint16x8_t rhs) -> uint16x8_t {
+auto v_xor16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16x8_t {
   return veorq_u16(lhs, rhs);
 }
 
-auto v_xor8(uint8x16_t lhs, uint8x16_t rhs) -> uint8x16_t {
+auto v_xor8(uint8x16_t const lhs, uint8x16_t const rhs) -> uint8x16_t {
   return veorq_u8(lhs, rhs);
 }
 
-auto v_shift_left16(uint16x8_t vector) -> uint16x8_t {
+auto v_shift_left16(uint16x8_t const vector) -> uint16x8_t {
   // shift vector to the left by n bytes, pad with zeros
   static constexpr auto n_bytes = 7;
   return vextq_u16(v_zero16(), vector, n_bytes);
 }
 
-auto v_shift_left8(uint8x16_t vector) -> uint8x16_t {
+auto v_shift_left8(uint8x16_t const vector) -> uint8x16_t {
   // shift vector to the left by n bytes, pad with zeros
   static constexpr auto n_bytes = 15;
   return vextq_u8(v_zero8(), vector, n_bytes);
 }
 
-auto v_mask_eq16(uint16x8_t lhs, uint16x8_t rhs) -> uint16_t {
+auto v_mask_eq16(uint16x8_t const lhs, uint16x8_t const rhs) -> uint16_t {
   // - compare vectors of integers for equality
   // - mask
   // - add and return an uint16
   return vaddvq_u16(vandq_u16(vceqq_u16(lhs, rhs), neon_mask16));
 }
 
-auto v_mask_eq8(uint8x16_t lhs, uint8x16_t rhs) -> uint16_t {
+auto v_mask_eq8(uint8x16_t const lhs, uint8x16_t const rhs) -> uint16_t {
   // - compare vectors of integers for equality
   // - Bitwise AND, pairwise add,
   // - shift left by neon_shift16,
