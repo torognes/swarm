@@ -26,6 +26,7 @@
 #include "utils/backtrack.hpp"
 #include "utils/search_data.hpp"  // Search_data (pulls in Cpu_features)
 #include "utils/dseq_fill.hpp"
+#include "utils/mask_vectors.hpp"  // No_mask, Mask_vectors
 #include "utils/span.hpp"  // Span<uint64_t>
 #include "utils/view.hpp"  // View<uint64_t>, make_view
 #include <array>
@@ -482,12 +483,49 @@ inline auto onestep_8(VECTORTYPE & H,
 }
 
 
+// The masking payload: 'mask' selects the channels whose sequence just
+// ended, 'mq' is the running gap-open accumulator seeded by the caller,
+// 'mr' its per-iteration increment, and 'mq0' the value 'mq' held on
+// entry. A plain struct rather than a template on VECTORTYPE: see
+// utils/mask_vectors.hpp for why the template form is not usable here.
+struct Mask_vectors {
+  VECTORTYPE mask;
+  VECTORTYPE mq;
+  VECTORTYPE mr;
+  VECTORTYPE mq0;
+};
+
+
+// The masking step, selected by the type of the kernel's mask argument
+// (see utils/mask_vectors.hpp). The No_mask overload is empty, so the
+// regular kernel's loop body contains nothing at this point.
+inline auto apply_mask(VECTORTYPE &, VECTORTYPE &, No_mask const &) -> void
+{
+}
+
+inline auto apply_mask(VECTORTYPE & h4, VECTORTYPE & E,
+                       Mask_vectors & masks) -> void
+{
+  /* mask h4 and E */
+  h4 = v_sub8(h4, masks.mask);
+  E  = v_sub8(E,  masks.mask);
+
+  /* init h4 and E */
+  h4 = v_add8(h4, masks.mq);
+  E  = v_add8(E,  masks.mq);
+  E  = v_add8(E,  masks.mq0);
+
+  /* update MQ */
+  masks.mq = v_add8(masks.mq,  masks.mr);
+}
+
+
 // One block of cells, shared by the regular and masked kernels. The
-// masked variant differs only by a per-iteration adjustment of h4 and E
-// (consuming the Mm / MQ / MR / MQ0 vectors); 'masked' is a compile-time
-// flag, so the regular instantiation drops that block entirely and never
-// dereferences the (null) masking pointers.
-template <bool masked>
+// masked variant differs only by a per-iteration adjustment of h4 and E;
+// which flavour this is comes from the type of 'masks', so the regular
+// instantiation drops that adjustment entirely and is handed no masking
+// data at all (see utils/mask_vectors.hpp).
+template <typename Masks>
 auto align_cells_8(VECTORTYPE * const Sm,
                    VECTORTYPE * const hep,
                    VECTORTYPE ** const qp,
@@ -497,10 +535,7 @@ auto align_cells_8(VECTORTYPE * const Sm,
                    VECTORTYPE const & F0,
                    uint64_t * const dir_long,
                    VECTORTYPE const & H0,
-                   VECTORTYPE const * const Mm,
-                   VECTORTYPE * const MQ,
-                   VECTORTYPE const * const MR,
-                   VECTORTYPE const * const MQ0) -> void
+                   Masks & masks) -> void
 {
   static constexpr auto step = 16;
   static constexpr auto offset0 = 0;
@@ -544,20 +579,7 @@ auto align_cells_8(VECTORTYPE * const Sm,
       h4 = hep[(2 * pos) + 0];
       E  = hep[(2 * pos) + 1];
 
-      if (masked)
-        {
-          /* mask h4 and E */
-          h4 = v_sub8(h4, *Mm);
-          E  = v_sub8(E,  *Mm);
-
-          /* init h4 and E */
-          h4 = v_add8(h4, *MQ);
-          E  = v_add8(E,  *MQ);
-          E  = v_add8(E,  *MQ0);
-
-          /* update MQ */
-          *MQ = v_add8(*MQ,  *MR);
-        }
+      apply_mask(h4, E, masks);
 
       onestep_8(h0, h5, f0, x[0], &dir[(step * pos) + offset0], E, Q, R);
       onestep_8(h1, h6, f1, x[1], &dir[(step * pos) + offset1], E, Q, R);
@@ -592,8 +614,8 @@ auto align_cells_regular_8(VECTORTYPE * const Sm,
                            uint64_t * const dir_long,
                            VECTORTYPE const & H0) -> void
 {
-  align_cells_8<false>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0,
-                       nullptr, nullptr, nullptr, nullptr);
+  No_mask no_mask;
+  align_cells_8(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
 }
 
 
@@ -611,7 +633,9 @@ auto align_cells_masked_8(VECTORTYPE * const Sm,
                           VECTORTYPE const * const MR,
                           VECTORTYPE const * const MQ0) -> void
 {
-  align_cells_8<true>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
+  Mask_vectors masks {*Mm, *MQ, *MR, *MQ0};
+  align_cells_8(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
+  *MQ = masks.mq;
 }
 
 }  // namespace
