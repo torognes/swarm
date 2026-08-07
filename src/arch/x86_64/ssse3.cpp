@@ -48,16 +48,16 @@ using BYTE = unsigned char;
 
 namespace {
 
-auto v_shuffle8(__m128i lhs, __m128i mask) -> __m128i {
+auto v_shuffle8(__m128i const lhs, __m128i const mask) -> __m128i {
   // shuffle vector of bytes according to control mask
   return _mm_shuffle_epi8(lhs, mask);
 }
 
-auto v_or(__m128i lhs, __m128i rhs) -> __m128i {
+auto v_or(__m128i const lhs, __m128i const rhs) -> __m128i {
   return _mm_or_si128(lhs, rhs);
 }
 
-auto v_shift_left(__m128i vector, int n_bytes) -> __m128i {
+auto v_shift_left(__m128i const vector, int const n_bytes) -> __m128i {
   // shift vector of shorts to the left by n bytes, pad with zeros
   return _mm_slli_epi16(vector, n_bytes);
 }
@@ -73,9 +73,9 @@ auto v_zero() -> __m128i {
 
 /* 8-bit version with 16 channels */
 
-auto dprofile_shuffle8(BYTE * dprofile,
-                       BYTE const * score_matrix,
-                       BYTE const * dseq_byte) -> void
+auto dprofile_shuffle8(BYTE * const dprofile,
+                       BYTE const * const score_matrix,
+                       BYTE const * const dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   auto const * const sequence_db = cast_vector8(dseq_byte);
@@ -110,9 +110,9 @@ auto dprofile_shuffle8(BYTE * dprofile,
 
 /* 16-bit version with 8 channels */
 
-auto dprofile_shuffle16(WORD * dprofile,
-                        WORD const * score_matrix,
-                        BYTE const * dseq_byte) -> void
+auto dprofile_shuffle16(WORD * const dprofile,
+                        WORD const * const score_matrix,
+                        BYTE const * const dseq_byte) -> void
 {
   // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
   auto * const profile_db = cast_vector16(dprofile);

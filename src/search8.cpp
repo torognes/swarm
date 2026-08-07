@@ -97,9 +97,9 @@ auto compute_mask<n_bits>(uint64_t const channel,
 }
 
 // refactoring: objdump shows this function is not inlined
-auto dprofile_fill8(BYTE * dprofile,
-                           BYTE const * score_matrix,
-                           BYTE const * dseq) -> void
+auto dprofile_fill8(BYTE * const dprofile,
+                           BYTE const * const score_matrix,
+                           BYTE const * const dseq) -> void
 {
   static constexpr auto multiplier = 5U;
   static_assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max(),
@@ -458,11 +458,11 @@ namespace {
 inline auto onestep_8(VECTORTYPE & H,
                       VECTORTYPE & N,
                       VECTORTYPE & F,
-                      VECTORTYPE V,
-                      unsigned short * DIR,
+                      VECTORTYPE const V,
+                      unsigned short * const DIR,
                       VECTORTYPE & E,
-                      VECTORTYPE QR,
-                      VECTORTYPE R) -> void
+                      VECTORTYPE const QR,
+                      VECTORTYPE const R) -> void
 {
   H = v_add8(H, V);
   const auto W = H;
@@ -487,19 +487,19 @@ inline auto onestep_8(VECTORTYPE & H,
 // flag, so the regular instantiation drops that block entirely and never
 // dereferences the (null) masking pointers.
 template <bool masked>
-auto align_cells_8(VECTORTYPE * Sm,
-                   VECTORTYPE * hep,
-                   VECTORTYPE ** qp,
-                   VECTORTYPE const * Qm,
-                   VECTORTYPE const * Rm,
-                   uint64_t ql,
-                   VECTORTYPE const * F0,
-                   uint64_t * dir_long,
-                   VECTORTYPE const * H0,
-                   VECTORTYPE const * Mm,
-                   VECTORTYPE * MQ,
-                   VECTORTYPE const * MR,
-                   VECTORTYPE const * MQ0) -> void
+auto align_cells_8(VECTORTYPE * const Sm,
+                   VECTORTYPE * const hep,
+                   VECTORTYPE ** const qp,
+                   VECTORTYPE const * const Qm,
+                   VECTORTYPE const * const Rm,
+                   uint64_t const ql,
+                   VECTORTYPE const * const F0,
+                   uint64_t * const dir_long,
+                   VECTORTYPE const * const H0,
+                   VECTORTYPE const * const Mm,
+                   VECTORTYPE * const MQ,
+                   VECTORTYPE const * const MR,
+                   VECTORTYPE const * const MQ0) -> void
 {
   static constexpr auto step = 16;
   static constexpr auto offset0 = 0;
@@ -581,34 +581,34 @@ auto align_cells_8(VECTORTYPE * Sm,
 
 namespace {
 
-auto align_cells_regular_8(VECTORTYPE * Sm,
-                           VECTORTYPE * hep,
-                           VECTORTYPE ** qp,
-                           VECTORTYPE const * Qm,
-                           VECTORTYPE const * Rm,
-                           uint64_t ql,
-                           VECTORTYPE const * F0,
-                           uint64_t * dir_long,
-                           VECTORTYPE const * H0) -> void
+auto align_cells_regular_8(VECTORTYPE * const Sm,
+                           VECTORTYPE * const hep,
+                           VECTORTYPE ** const qp,
+                           VECTORTYPE const * const Qm,
+                           VECTORTYPE const * const Rm,
+                           uint64_t const ql,
+                           VECTORTYPE const * const F0,
+                           uint64_t * const dir_long,
+                           VECTORTYPE const * const H0) -> void
 {
   align_cells_8<false>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0,
                        nullptr, nullptr, nullptr, nullptr);
 }
 
 
-auto align_cells_masked_8(VECTORTYPE * Sm,
-                          VECTORTYPE * hep,
-                          VECTORTYPE ** qp,
-                          VECTORTYPE const * Qm,
-                          VECTORTYPE const * Rm,
-                          uint64_t ql,
-                          VECTORTYPE const * F0,
-                          uint64_t * dir_long,
-                          VECTORTYPE const * H0,
-                          VECTORTYPE const * Mm,
-                          VECTORTYPE * MQ,
-                          VECTORTYPE const * MR,
-                          VECTORTYPE const * MQ0) -> void
+auto align_cells_masked_8(VECTORTYPE * const Sm,
+                          VECTORTYPE * const hep,
+                          VECTORTYPE ** const qp,
+                          VECTORTYPE const * const Qm,
+                          VECTORTYPE const * const Rm,
+                          uint64_t const ql,
+                          VECTORTYPE const * const F0,
+                          uint64_t * const dir_long,
+                          VECTORTYPE const * const H0,
+                          VECTORTYPE const * const Mm,
+                          VECTORTYPE * const MQ,
+                          VECTORTYPE const * const MR,
+                          VECTORTYPE const * const MQ0) -> void
 {
   align_cells_8<true>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
 }
@@ -721,9 +721,9 @@ auto load_next_sequence_8(unsigned int const channel,
 // switch itself, which is intrinsic to the single-pass design.
 auto search8(Data const & data,
              Search_data & search_data,
-             BYTE gap_open_penalty,
-             BYTE gap_extend_penalty,
-             BYTE const * score_matrix,
+             BYTE const gap_open_penalty,
+             BYTE const gap_extend_penalty,
+             BYTE const * const score_matrix,
              View<uint64_t> const seqnos,
              Span<uint64_t> const scores,
              Span<uint64_t> const diffs,

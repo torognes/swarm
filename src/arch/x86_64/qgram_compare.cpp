@@ -40,12 +40,12 @@
 
 namespace {
 
-auto v_add64(__m128i lhs, __m128i rhs) -> __m128i {
+auto v_add64(__m128i const lhs, __m128i const rhs) -> __m128i {
   // add 64-bit integers packed in lhs and rhs (SSE2)
   return _mm_add_epi64(lhs, rhs);
 }
 
-auto popcount_128(__m128i input_vector) -> uint64_t
+auto popcount_128(__m128i const input_vector) -> uint64_t
 {
   static constexpr unsigned char char1 {0x55};  // '0101 0101'
   static constexpr unsigned char char2 {0x33};  // '0011 0011'

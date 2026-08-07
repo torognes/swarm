@@ -58,7 +58,7 @@ using WORD = unsigned short;
 namespace {
 
 // refactoring: v_min16 exists and is more complicated
-auto v_min(VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
+auto v_min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE {
   return _mm_min_epu16(lhs, rhs);
 }
 
@@ -66,11 +66,11 @@ auto v_min(VECTORTYPE lhs, VECTORTYPE rhs) -> VECTORTYPE {
 inline auto onestep_16_sse41(VECTORTYPE & H,
                              VECTORTYPE & N,
                              VECTORTYPE & F,
-                             VECTORTYPE V,
-                             WORD * DIR,
+                             VECTORTYPE const V,
+                             WORD * const DIR,
                              VECTORTYPE & E,
-                             VECTORTYPE QR,
-                             VECTORTYPE R) -> void
+                             VECTORTYPE const QR,
+                             VECTORTYPE const R) -> void
 {
   H = v_add16(H, V);
   const auto W = H;
@@ -95,19 +95,19 @@ inline auto onestep_16_sse41(VECTORTYPE & H,
 // compile-time flag, so the regular instantiation drops that block
 // entirely and never dereferences the (null) masking pointers.
 template <bool masked>
-auto align_cells_16_sse41(VECTORTYPE * Sm,
-                          VECTORTYPE * hep,
-                          VECTORTYPE ** qp,
-                          VECTORTYPE const * Qm,
-                          VECTORTYPE const * Rm,
-                          uint64_t ql,
-                          VECTORTYPE const * F0,
-                          uint64_t * dir_long,
-                          VECTORTYPE const * H0,
-                          VECTORTYPE const * Mm,
-                          VECTORTYPE * MQ,
-                          VECTORTYPE const * MR,
-                          VECTORTYPE const * MQ0) -> void
+auto align_cells_16_sse41(VECTORTYPE * const Sm,
+                          VECTORTYPE * const hep,
+                          VECTORTYPE ** const qp,
+                          VECTORTYPE const * const Qm,
+                          VECTORTYPE const * const Rm,
+                          uint64_t const ql,
+                          VECTORTYPE const * const F0,
+                          uint64_t * const dir_long,
+                          VECTORTYPE const * const H0,
+                          VECTORTYPE const * const Mm,
+                          VECTORTYPE * const MQ,
+                          VECTORTYPE const * const MR,
+                          VECTORTYPE const * const MQ0) -> void
 {
   static constexpr auto step = 16;
   static constexpr auto offset0 = 0;
@@ -189,34 +189,34 @@ auto align_cells_16_sse41(VECTORTYPE * Sm,
 }  // namespace
 
 
-auto align_cells_regular_16_sse41(VECTORTYPE * Sm,
-                                  VECTORTYPE * hep,
-                                  VECTORTYPE ** qp,
-                                  VECTORTYPE const * Qm,
-                                  VECTORTYPE const * Rm,
-                                  uint64_t ql,
-                                  VECTORTYPE const * F0,
-                                  uint64_t * dir_long,
-                                  VECTORTYPE const * H0) -> void
+auto align_cells_regular_16_sse41(VECTORTYPE * const Sm,
+                                  VECTORTYPE * const hep,
+                                  VECTORTYPE ** const qp,
+                                  VECTORTYPE const * const Qm,
+                                  VECTORTYPE const * const Rm,
+                                  uint64_t const ql,
+                                  VECTORTYPE const * const F0,
+                                  uint64_t * const dir_long,
+                                  VECTORTYPE const * const H0) -> void
 {
   align_cells_16_sse41<false>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0,
                               nullptr, nullptr, nullptr, nullptr);
 }
 
 
-auto align_cells_masked_16_sse41(VECTORTYPE * Sm,
-                                 VECTORTYPE * hep,
-                                 VECTORTYPE ** qp,
-                                 VECTORTYPE const * Qm,
-                                 VECTORTYPE const * Rm,
-                                 uint64_t ql,
-                                 VECTORTYPE const * F0,
-                                 uint64_t * dir_long,
-                                 VECTORTYPE const * H0,
-                                 VECTORTYPE const * Mm,
-                                 VECTORTYPE * MQ,
-                                 VECTORTYPE const * MR,
-                                 VECTORTYPE const * MQ0) -> void
+auto align_cells_masked_16_sse41(VECTORTYPE * const Sm,
+                                 VECTORTYPE * const hep,
+                                 VECTORTYPE ** const qp,
+                                 VECTORTYPE const * const Qm,
+                                 VECTORTYPE const * const Rm,
+                                 uint64_t const ql,
+                                 VECTORTYPE const * const F0,
+                                 uint64_t * const dir_long,
+                                 VECTORTYPE const * const H0,
+                                 VECTORTYPE const * const Mm,
+                                 VECTORTYPE * const MQ,
+                                 VECTORTYPE const * const MR,
+                                 VECTORTYPE const * const MQ0) -> void
 {
   align_cells_16_sse41<true>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
 }
