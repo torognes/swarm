@@ -54,7 +54,7 @@
 // reaches through seqinfo.hpp. Same reasoning as view_stream.hpp and
 // <ostream>.
 
-inline auto fprint(std::FILE * output_handle, View<char> const text) -> void
+inline auto fprint(std::FILE * const output_handle, View<char> const text) -> void
 {
   // An empty view may carry a null pointer, and passing one to fwrite is
   // undefined even with a zero count. Reachable: a header whose abundance
@@ -75,7 +75,7 @@ inline auto fprint(std::FILE * output_handle, View<char> const text) -> void
 // return value is dealt with once, here, instead of at every call site --
 // swarm had 45 'static_cast<void>(std::fputc(...))' spellings. Verified to
 // compile to the identical 'jmp fputc' at -O3.
-inline auto fprint(std::FILE * output_handle, char const character) -> void
+inline auto fprint(std::FILE * const output_handle, char const character) -> void
 {
   static_cast<void>(std::fputc(character, output_handle));
 }
@@ -102,7 +102,7 @@ inline auto fprint(std::FILE * output_handle, char const character) -> void
 // the gap the assert cannot close, hence this note.
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
 template <std::size_t Size>
-auto fprint(std::FILE * output_handle, char const (&literal)[Size]) -> void
+auto fprint(std::FILE * const output_handle, char const (&literal)[Size]) -> void
 {
   static_assert(Size > 0, "a string literal always carries its terminator");
   assert(literal[Size - 1] == '\0');
@@ -129,7 +129,7 @@ auto fprint(std::FILE * output_handle, char const (&literal)[Size]) -> void
 // re-proposed. (putc_unlocked would beat both, and is a POSIX-ism that
 // MinGW spells differently, so it is out.)
 template <typename Integer>
-auto fprint_integer(std::FILE * output_handle, Integer const value) -> void
+auto fprint_integer(std::FILE * const output_handle, Integer const value) -> void
 {
   decimal::Buffer buffer {};
   fprint(output_handle, decimal::to_decimal(buffer, value));

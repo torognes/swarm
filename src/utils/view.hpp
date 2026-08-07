@@ -60,7 +60,7 @@ public:
   // default-constructed (e.g. seqinfo_s held in std::vector::resize()).
   View() noexcept = default;
 
-  explicit View(Type const * start, std::size_t const length) noexcept
+  explicit View(Type const * const start, std::size_t const length) noexcept
     : start_ {start},
       length_ {length} {
     assert((start != nullptr) or (length == 0));

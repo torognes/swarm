@@ -32,7 +32,7 @@ namespace {
 }
 
 
-Progress::Progress(char const * prompt_, uint64_t const size_,
+Progress::Progress(char const * const prompt_, uint64_t const size_,
                    struct Parameters const & parameters)
   : prompt(prompt_),
     next(1),

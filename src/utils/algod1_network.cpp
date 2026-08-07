@@ -46,7 +46,7 @@ namespace {
                                    Data const & data,
                                    Hashtable const & hash_table,
                                    BloomFilter const & bloom_a,
-                                   unsigned int seed,
+                                   unsigned int const seed,
                                    struct var_s const & var,
                                    std::vector<unsigned int>& hits_data,
                                    unsigned int & hits_count) -> void
@@ -92,7 +92,7 @@ namespace {
                       Data const & data,
                       Hashtable const & hash_table,
                       BloomFilter const & bloom_a,
-                      unsigned int seed,
+                      unsigned int const seed,
                       std::vector<struct var_s> & variant_list,
                       std::vector<unsigned int>& hits_data) -> unsigned int
   {

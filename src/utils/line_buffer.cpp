@@ -46,7 +46,7 @@ namespace {
 // MinGW/Windows toolchains. Swarm supports Windows builds (see the
 // mingw target in the Makefile), so a portable replacement must be
 // available when _WIN32 is defined.
-auto read_one_line(char ** linep, std::size_t * linecapp, std::FILE * stream) -> ssize_t
+auto read_one_line(char ** const linep, std::size_t * const linecapp, std::FILE * const stream) -> ssize_t
 {
 #ifndef _WIN32
 
@@ -173,7 +173,7 @@ auto Line_buffer::release() noexcept -> void {
 }
 
 
-auto Line_buffer::read_next(std::FILE * stream, uint64_t & filepos) -> void
+auto Line_buffer::read_next(std::FILE * const stream, uint64_t & filepos) -> void
 {
   auto const linelen = read_one_line(&data_, &capacity_, stream);
   if (linelen < 0) {

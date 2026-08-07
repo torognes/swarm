@@ -77,7 +77,7 @@ namespace {
   /******************** FASTIDIOUS START ********************/
 
 
-  auto attach(unsigned int seed, unsigned int amp,
+  auto attach(unsigned int const seed, unsigned int const amp,
               std::vector<struct ampinfo_s> & ampinfo_v,
               std::vector<struct swarminfo_s> & swarminfo_v,
               Overall_stats & overall_stats) -> void
@@ -109,7 +109,7 @@ namespace {
 
 
   auto add_graft_candidate(std::vector<struct ampinfo_s> & ampinfo_v,
-                           unsigned int seed, unsigned int amp,
+                           unsigned int const seed, unsigned int const amp,
                            struct Graft_state & graft_state) -> void
   {
     std::lock_guard<std::mutex> const lock(graft_state.mutex);
@@ -134,7 +134,7 @@ namespace {
 
 
   auto attach_candidates(struct Parameters const & parameters,
-                         unsigned int amplicon_count,
+                         unsigned int const amplicon_count,
                          std::vector<struct ampinfo_s> & ampinfo_v,
                          std::vector<struct swarminfo_s> & swarminfo_v,
                          Overall_stats & overall_stats) -> unsigned int
@@ -214,7 +214,7 @@ namespace {
                          Hashtable const & hash_table,
                          Sequence const & seed_seq,
                          struct var_s const & var,
-                         unsigned int seed,
+                         unsigned int const seed,
                          struct Graft_state & graft_state) -> bool
   {
     /* seed is the original large swarm seed */
@@ -251,7 +251,7 @@ namespace {
                                 Hashtable const & hash_table,
                                 BloomFilter const & bloom_a,
                                 Sequence const & seq,
-                                unsigned int seed,
+                                unsigned int const seed,
                                 std::vector<struct var_s>& variant_list,
                                 struct Graft_state & graft_state) -> uint64_t
   {
@@ -283,7 +283,7 @@ namespace {
                        BloomFilter const & bloom_a,
                        BloomFilter const & bloom_f,
                        std::vector<char>& varseq,
-                       unsigned int seed,
+                       unsigned int const seed,
                        uint64_t & number_of_matches,
                        uint64_t & number_of_variants,
                        std::vector<struct var_s>& variant_list,
@@ -388,7 +388,7 @@ namespace {
                       Hashtable & hash_table,
                       BloomFilter & bloom_a,
                       BloomFilter & bloom_f,
-                      unsigned int seed,
+                      unsigned int const seed,
                       std::vector<struct var_s>& variant_list) -> uint64_t
   {
     /*

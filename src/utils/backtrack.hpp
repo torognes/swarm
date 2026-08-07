@@ -57,8 +57,8 @@ template <uint8_t n_bits>
 auto backtrack(Sequence const & qseq,
                Sequence const & dseq,
                View<uint64_t> const dirbuffer,
-               uint64_t offset,
-               uint64_t channel,
+               uint64_t const offset,
+               uint64_t const channel,
                const uint64_t longestdbsequence) -> uint64_t {
   static constexpr uint8_t bits8 {8};
   static constexpr uint8_t bits16 {16};

@@ -89,7 +89,7 @@ namespace {
 
 
   inline auto qgram_diff(Qgram_store const & store,
-                         uint64_t seqno_a, uint64_t seqno_b,
+                         uint64_t const seqno_a, uint64_t const seqno_b,
                          Cpu_features const & cpu_features) noexcept -> uint64_t
   {
     assert(seqno_a < store.size());
@@ -142,7 +142,7 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
 }
 
 
-auto QgramDiffer::fast(uint64_t seed,
+auto QgramDiffer::fast(uint64_t const seed,
                        View<uint64_t> const amplist,
                        Span<uint64_t> const difflist) -> void
 {

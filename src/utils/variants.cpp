@@ -70,10 +70,10 @@ namespace {
 
 
   inline auto seq_copy(Span<char> const seq_a,
-                       unsigned int a_start,
-                       View<char> seq_b,
-                       unsigned int b_start,
-                       unsigned int length) -> void
+                       unsigned int const a_start,
+                       View<char> const seq_b,
+                       unsigned int const b_start,
+                       unsigned int const length) -> void
   {
     /* copy part of the compressed sequence b to a */
     //
@@ -144,11 +144,11 @@ namespace {
   }
 
 
-  inline auto seq_identical(View<char> seq_a,
-                            unsigned int a_start,
-                            View<char> seq_b,
-                            unsigned int b_start,
-                            unsigned int length) -> bool
+  inline auto seq_identical(View<char> const seq_a,
+                            unsigned int const a_start,
+                            View<char> const seq_b,
+                            unsigned int const b_start,
+                            unsigned int const length) -> bool
   {
     /* compare parts of two compressed sequences a and b */
     /* return false if different, true if identical */
@@ -181,10 +181,10 @@ namespace {
   }
 
 
-  inline auto add_variant(uint64_t hash,
-                          Variant_type type,
-                          unsigned int pos,
-                          unsigned char base,
+  inline auto add_variant(uint64_t const hash,
+                          Variant_type const type,
+                          unsigned int const pos,
+                          unsigned char const base,
                           std::vector<struct var_s>& variant_list,
                           unsigned int & variant_count) -> void
   {
