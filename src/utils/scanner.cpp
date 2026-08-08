@@ -50,7 +50,6 @@ namespace {
 
 auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v,
                                      const uint64_t longestdbsequence) -> void {
-  static constexpr auto one_kilobyte = 1024UL;
   static constexpr auto nt_per_uint64 = 32U;
   const uint64_t dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
 
@@ -77,8 +76,6 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
   for (auto & thread_data: search_data_v) {
     thread_data.qtable_v.resize(longestdbsequence);
     thread_data.qtable_w_v.resize(longestdbsequence);
-    thread_data.dprofile_v.resize(2 * one_kilobyte);  // 4 * 16 * 32
-    thread_data.dprofile_w_v.resize(1 * one_kilobyte);  // 4 * 2 * 8 * 32
     thread_data.hearray_v.resize(hearray_blocks);
     thread_data.dir_array_v.resize(dirbuffersize);
   }
@@ -126,8 +123,8 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
     const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
-    thread_data.qtable_v[i]   = &thread_data.dprofile_v[byte_offset];
-    thread_data.qtable_w_v[i] = &thread_data.dprofile_w_v[word_offset];
+    thread_data.qtable_v[i]   = &thread_data.dprofile_a[byte_offset];
+    thread_data.qtable_w_v[i] = &thread_data.dprofile_w_a[word_offset];
   }
 }
 

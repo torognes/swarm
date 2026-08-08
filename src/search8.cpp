@@ -36,7 +36,6 @@
 #include <cstring>  // std::memcpy
 #include <iterator> // std::next
 #include <limits>
-#include <vector>
 
 
 // refactoring: C++26 std::simd
@@ -89,6 +88,7 @@ constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 constexpr unsigned int channels {16};
 static_assert(channels == channels_at_8_bits, "Dseq_8 is sized for 16 channels");
 constexpr unsigned int cdepth {4};
+static_assert(cdepth == depth_slots, "a block covers exactly one packed byte");
 constexpr uint8_t n_bits {8};
 using BYTE = unsigned char;
 
@@ -107,11 +107,11 @@ auto compute_mask<n_bits>(uint64_t const channel,
 // the body walks. Inlining .data() at each cast site instead cost two
 // prologue instructions and 16 bytes of search8 when the same thing was
 // tried on hearray (commit 80df510).
-auto dprofile_fill8(std::vector<BYTE> & dprofile_v,
+auto dprofile_fill8(Dprofile_8 & dprofile_a,
                            Score_matrix_8 const & score_matrix_a,
                            Dseq_8 const & dseq_a) -> void
 {
-  auto * const dprofile = dprofile_v.data();
+  auto * const dprofile = dprofile_a.data();
   auto const * const score_matrix = score_matrix_a.data();
 
   static constexpr auto multiplier = 5U;
@@ -793,7 +793,7 @@ auto search8(Data const & data,
 
   // unpack the per-thread working set (see utils/search_data.hpp)
   auto & q_start = search_data.qtable_v;
-  auto & dprofile = search_data.dprofile_v;
+  auto & dprofile = search_data.dprofile_a;
   auto * const hearray = search_data.hearray_v.data();  // He_block *
   auto const sequences = seqnos.size();
   auto const qlen = static_cast<uint64_t>(query.length);
@@ -820,7 +820,7 @@ auto search8(Data const & data,
 
   // Dseq_8 is an array of size VECTORTYPE * channels, interpreted as
   // an array of BYTES (see utils/search_data.hpp)
-  Dseq_8 dseq {{}};
+  Dseq_8 dseq {};
 
   uint64_t next_id {0};
   uint64_t done {0};

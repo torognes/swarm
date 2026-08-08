@@ -28,13 +28,12 @@
 #ifdef __SSSE3__
 
 #include "../../utils/search_data.hpp"  // BYTE, WORD, Score_matrix_8/16, Dseq_8/16
-#include <vector>  // std::vector
 
-auto dprofile_shuffle8(std::vector<BYTE> & dprofile_v,
+auto dprofile_shuffle8(Dprofile_8 & dprofile_a,
                        Score_matrix_8 const & score_matrix_a,
                        Dseq_8 const & dseq_a) -> void;
 
-auto dprofile_shuffle16(std::vector<WORD> & dprofile_v,
+auto dprofile_shuffle16(Dprofile_16 & dprofile_a,
                         Score_matrix_16 const & score_matrix_a,
                         Dseq_16 const & dseq_a) -> void;
 

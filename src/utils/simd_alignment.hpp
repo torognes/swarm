@@ -29,12 +29,18 @@
 
 // The vector registers swarm's kernels use are 128 bits wide, so 16 bytes is
 // both how much one load moves and the boundary that load has to start on.
-// Three buffers are read that way and say so in their own types, all taking
-// the figure from here rather than repeating it:
+// Five buffers are accessed that way, all taking the figure from here rather
+// than repeating it:
 //
 //   Qgram_vector  (qgram_array.hpp)  read by the qgram_compare kernels
 //   He_block      (search_data.hpp)  the HE array, read by search8/search16
+//   Dseq_8/16     (search_data.hpp)  read by dprofile_shuffle8/16
+//   Dprofile_8/16 (search_data.hpp)  written by the score-profile builders
 //   score_matrix_8_ and _16_ (scanner.hpp)  read by dprofile_fill8/16
+//
+// The first four say so in their own types; the score matrices say so at
+// their declaration instead, because create_score_matrix() returns the
+// plain std::array that Score_matrix_8/16 alias.
 //
 // Widening this would not be enough on its own to move to 256-bit vectors:
 // the kernels name their vector type per architecture, and the score-matrix

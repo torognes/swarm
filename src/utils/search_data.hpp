@@ -48,13 +48,15 @@ using WORD = unsigned short;
 // std::array keeps data() and size() available.
 struct alignas(simd_vector_bytes) He_block : std::array<BYTE, simd_vector_bytes> {};
 
-// The two read-only inputs of the score-profile builders, named. Their
-// destination is dprofile_v below, which already had a name.
+// The three buffers of the score-profile builders, named.
 //
 // dprofile_fill8/16, dprofile_shuffle8/16 and dispatch_dprofile8/16 used to
 // take all three as same-family pointers in a row -- dprofile, score_matrix,
 // dseq -- where nothing but the argument order said which was which, and no
 // extent was visible to the callee.
+//
+// Two of the three are also read or written with *aligned* SIMD accesses,
+// so they carry alignas for the same reason He_block does; see each below.
 
 // The substitution scores, as returned by create_score_matrix() and held by
 // Scanner, which over-aligns them: dprofile_fill8/16 loads 16 bytes at a
@@ -72,19 +74,48 @@ using Score_matrix_16 = std::array<WORD, n_cells * n_cells>;
 constexpr std::size_t channels_at_8_bits {simd_vector_bytes / sizeof(BYTE)};
 constexpr std::size_t channels_at_16_bits {simd_vector_bytes / sizeof(WORD)};
 
+// Depth slots per block: a block covers exactly one packed byte, i.e. four
+// nucleotides (utils/dseq_fill.hpp says so and static_asserts it).
+// search8.cpp and search16.cpp assert their own 'cdepth' against this.
+constexpr std::size_t depth_slots {4};
+
 // The staging buffer holding the next block of database nucleotides: one
-// SIMD vector's worth of bytes per channel, laid out as cdepth blocks of
-// 'channels' bytes each (see utils/dseq_fill.hpp).
-using Dseq_8  = std::array<BYTE, channels_at_8_bits * simd_vector_bytes>;
-using Dseq_16 = std::array<BYTE, channels_at_16_bits * simd_vector_bytes>;
+// SIMD vector's worth of bytes per channel, laid out as depth_slots blocks
+// of 'channels' bytes each (see utils/dseq_fill.hpp).
+//
+// alignas: dprofile_shuffle8/16 load it with v_load8, which is
+// _mm_load_si128 -- an aligned load. As a bare std::array its declared
+// alignment was 1, and the requirement was met only because GCC happens to
+// over-align stack arrays this size.
+struct alignas(simd_vector_bytes) Dseq_8
+  : std::array<BYTE, channels_at_8_bits * simd_vector_bytes> {};
+struct alignas(simd_vector_bytes) Dseq_16
+  : std::array<BYTE, channels_at_16_bits * simd_vector_bytes> {};
+
+// The score profile the builders write: depth_slots blocks of 'channels'
+// lanes for each of the n_cells nucleotide codes -- 2048 bytes at either
+// width. A fixed size, so an array rather than the std::vector it was:
+// scanner.cpp resized that to a compile-time constant, with the arithmetic
+// written out in a comment beside it (4 * 16 * 32, and 4 * 2 * 8 * 32).
+//
+// alignas for the same reason as He_block: dprofile_fill8/16 and
+// dprofile_shuffle8/16 write it with v_store8/16, which is _mm_store_si128
+// -- an aligned store -- at offsets that are multiples of 16. A
+// std::vector<BYTE> met that only because operator new returns
+// alignof(std::max_align_t) storage, which is exactly 16 on these targets.
+struct alignas(simd_vector_bytes) Dprofile_8
+  : std::array<BYTE, depth_slots * channels_at_8_bits * n_cells> {};
+struct alignas(simd_vector_bytes) Dprofile_16
+  : std::array<WORD, depth_slots * channels_at_16_bits * n_cells> {};
 
 struct Search_data
 {
   std::vector<BYTE *> qtable_v;
   std::vector<WORD *> qtable_w_v;
 
-  std::vector<BYTE> dprofile_v;
-  std::vector<WORD> dprofile_w_v;
+  // sized by their own types, so scanner.cpp no longer resizes them
+  Dprofile_8 dprofile_a {};
+  Dprofile_16 dprofile_w_a {};
 
   std::vector<He_block> hearray_v;  // sized in blocks, not bytes
   std::vector<uint64_t> dir_array_v;

@@ -42,7 +42,6 @@
 
 #include <tmmintrin.h>  // _mm_shuffle_epi8
 #include "ssse3.hpp"  // BYTE, WORD, Score_matrix_8/16, Dseq_8/16
-#include <vector>  // std::vector
 
 namespace {
 
@@ -71,17 +70,17 @@ auto v_zero() -> __m128i {
 
 /* 8-bit version with 16 channels */
 
-auto dprofile_shuffle8(std::vector<BYTE> & dprofile_v,
+auto dprofile_shuffle8(Dprofile_8 & dprofile_a,
                        Score_matrix_8 const & score_matrix_a,
                        Dseq_8 const & dseq_a) -> void
 {
   // The buffers arrive as their own containers, so a caller cannot mix
   // them up; the casts below start from the base of each, as they did
   // when they were three same-family pointers.
-  // inputs: score_matrix_a and dseq_a (sequence from db); output: dprofile_v
+  // inputs: score_matrix_a and dseq_a (sequence from db); output: dprofile_a
   auto const * const sequence_db = cast_vector8(dseq_a.data());
   auto const * const score_db = cast_vector8(score_matrix_a.data());
-  auto * const profile_db = cast_vector8(dprofile_v.data());    // output
+  auto * const profile_db = cast_vector8(dprofile_a.data());    // output
   // Performance: &arr[idx] rather than std::next() on this d>1 hot path
   // (same regression as commit 8c6925f); subscript is clang-tidy clean.
   const auto seq_chunk0 = v_load8(&sequence_db[0]);  // 16 nucleotides
@@ -111,12 +110,12 @@ auto dprofile_shuffle8(std::vector<BYTE> & dprofile_v,
 
 /* 16-bit version with 8 channels */
 
-auto dprofile_shuffle16(std::vector<WORD> & dprofile_v,
+auto dprofile_shuffle16(Dprofile_16 & dprofile_a,
                         Score_matrix_16 const & score_matrix_a,
                         Dseq_16 const & dseq_a) -> void
 {
-  // inputs: score_matrix_a and dseq_a (sequence from db); output: dprofile_v
-  auto * const profile_db = cast_vector16(dprofile_v.data());
+  // inputs: score_matrix_a and dseq_a (sequence from db); output: dprofile_a
+  auto * const profile_db = cast_vector16(dprofile_a.data());
   auto const * const score_db = cast_vector16(score_matrix_a.data());
   auto const * const sequence_db = cast_vector8(dseq_a.data());
   static constexpr int channels {8};  // does 8 represent the number of channels?
