@@ -25,8 +25,10 @@
 #define SWARM_ARCH_AARCH64_SEARCH_DISPATCH_H
 
 #include "../../utils/cpu_features.hpp"  // Cpu_features
+#include "../../utils/search_data.hpp"  // BYTE, WORD, Score_matrix_8/16, Dseq_8/16
 #include <arm_neon.h>  // uint16x8_t, uint8x16_t
 #include <cstdint>  // uint64_t
+#include <vector>  // std::vector
 
 
 // Per-architecture entry points for search8 / search16. AArch64 has a
@@ -46,13 +48,13 @@ auto make_T0_8() -> VECTORTYPE8;
 
 
 auto dispatch_dprofile16(Cpu_features const & cpu_features,
-                         unsigned short * dprofile,
-                         unsigned short const * score_matrix,
-                         unsigned char const * dseq) -> void;
+                         std::vector<WORD> & dprofile_v,
+                         Score_matrix_16 const & score_matrix_a,
+                         Dseq_16 const & dseq_a) -> void;
 auto dispatch_dprofile8(Cpu_features const & cpu_features,
-                        unsigned char * dprofile,
-                        unsigned char const * score_matrix,
-                        unsigned char const * dseq) -> void;
+                        std::vector<BYTE> & dprofile_v,
+                        Score_matrix_8 const & score_matrix_a,
+                        Dseq_8 const & dseq_a) -> void;
 
 
 auto dispatch_align_regular_16(Cpu_features const & cpu_features,
@@ -73,12 +75,12 @@ auto dispatch_align_masked_16(Cpu_features const & cpu_features,
 
 // Generic NEON kernels, defined in search16.cpp / search8.cpp and called by
 // the dispatchers above.
-auto dprofile_fill16(unsigned short * dprofile,
-                     unsigned short const * score_matrix,
-                     unsigned char const * dseq) -> void;
-auto dprofile_fill8(unsigned char * dprofile,
-                    unsigned char const * score_matrix,
-                    unsigned char const * dseq) -> void;
+auto dprofile_fill16(std::vector<WORD> & dprofile_v,
+                     Score_matrix_16 const & score_matrix_a,
+                     Dseq_16 const & dseq_a) -> void;
+auto dprofile_fill8(std::vector<BYTE> & dprofile_v,
+                    Score_matrix_8 const & score_matrix_a,
+                    Dseq_8 const & dseq_a) -> void;
 auto align_cells_regular_16(VECTORTYPE16 * Sm, VECTORTYPE16 * hep,
                             VECTORTYPE16 ** qp,
                             VECTORTYPE16 const & Qm, VECTORTYPE16 const & Rm,

@@ -25,7 +25,7 @@
 #define SWARM_SEARCH8_H
 
 
-#include "utils/search_data.hpp"  // Search_data, BYTE
+#include "utils/search_data.hpp"  // Search_data, BYTE, Score_matrix_8
 #include "utils/span.hpp"  // Span<uint64_t>
 #include "utils/view.hpp"  // View<uint64_t>
 #include <cstdint>
@@ -42,7 +42,7 @@ auto search8(Data const & data,
              Search_data & search_data,
              BYTE gap_open_penalty,
              BYTE gap_extend_penalty,
-             BYTE const * score_matrix,
+             Score_matrix_8 const & score_matrix,
              View<uint64_t> seqnos,
              Span<uint64_t> scores,
              Span<uint64_t> diffs,

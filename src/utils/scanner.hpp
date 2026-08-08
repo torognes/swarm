@@ -110,10 +110,10 @@ private:
   std::reference_wrapper<Data const> data_;
   int64_t gapopen_ {0};
   int64_t gapextend_ {0};
-  alignas(simd_vector_bytes)
-    std::array<unsigned char, n_cells * n_cells> score_matrix_8_;
-  alignas(simd_vector_bytes)
-    std::array<unsigned short, n_cells * n_cells> score_matrix_16_;
+  // named types rather than the spelt-out arrays, so that these members and
+  // the search8/search16 parameters they feed cannot drift apart
+  alignas(simd_vector_bytes) Score_matrix_8 score_matrix_8_;
+  alignas(simd_vector_bytes) Score_matrix_16 score_matrix_16_;
   ThreadCount n_threads_ {};
 
   std::mutex scan_mutex_;

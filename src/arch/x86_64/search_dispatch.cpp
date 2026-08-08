@@ -40,35 +40,35 @@ auto make_T0_8() -> VECTORTYPE8 {
 
 
 auto dispatch_dprofile16(Cpu_features const & cpu_features,
-                         unsigned short * const dprofile,
-                         unsigned short const * const score_matrix,
-                         unsigned char const * const dseq) -> void
+                         std::vector<WORD> & dprofile_v,
+                         Score_matrix_16 const & score_matrix_a,
+                         Dseq_16 const & dseq_a) -> void
 {
 #ifdef __SSSE3__
   if (cpu_features.ssse3) {
-    dprofile_shuffle16(dprofile, score_matrix, dseq);
+    dprofile_shuffle16(dprofile_v, score_matrix_a, dseq_a);
     return;
   }
 #else
   static_cast<void>(cpu_features);
 #endif
-  dprofile_fill16(dprofile, score_matrix, dseq);
+  dprofile_fill16(dprofile_v, score_matrix_a, dseq_a);
 }
 
 auto dispatch_dprofile8(Cpu_features const & cpu_features,
-                        unsigned char * const dprofile,
-                        unsigned char const * const score_matrix,
-                        unsigned char const * const dseq) -> void
+                        std::vector<BYTE> & dprofile_v,
+                        Score_matrix_8 const & score_matrix_a,
+                        Dseq_8 const & dseq_a) -> void
 {
 #ifdef __SSSE3__
   if (cpu_features.ssse3) {
-    dprofile_shuffle8(dprofile, score_matrix, dseq);
+    dprofile_shuffle8(dprofile_v, score_matrix_a, dseq_a);
     return;
   }
 #else
   static_cast<void>(cpu_features);
 #endif
-  dprofile_fill8(dprofile, score_matrix, dseq);
+  dprofile_fill8(dprofile_v, score_matrix_a, dseq_a);
 }
 
 

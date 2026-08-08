@@ -88,9 +88,7 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 // How many sequences one thread is handed at a time: the 128-bit vector
 // holds that many lanes at the given width.
 auto channels_for(Bit_mode const n_bits) noexcept -> std::size_t {
-  static constexpr std::size_t channels_8 {8};
-  static constexpr std::size_t channels_16 {16};
-  return (n_bits == Bit_mode::bits_16) ? channels_8 : channels_16;
+  return (n_bits == Bit_mode::bits_16) ? channels_at_16_bits : channels_at_8_bits;
 }
 
 }  // namespace
@@ -150,7 +148,7 @@ auto Scanner::chunk(struct Search_data & thread_data, Bit_mode const bits) -> vo
              thread_data,
              static_cast<WORD>(gapopen_),
              static_cast<WORD>(gapextend_),
-             score_matrix_16_.data(),
+             score_matrix_16_,
              targets_.subview(first, count),
              scores_.subspan(first, count),
              diffs_.subspan(first, count),
@@ -162,7 +160,7 @@ auto Scanner::chunk(struct Search_data & thread_data, Bit_mode const bits) -> vo
             thread_data,
             static_cast<BYTE>(gapopen_),
             static_cast<BYTE>(gapextend_),
-            score_matrix_8_.data(),
+            score_matrix_8_,
             targets_.subview(first, count),
             scores_.subspan(first, count),
             diffs_.subspan(first, count),

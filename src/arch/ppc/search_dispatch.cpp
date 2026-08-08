@@ -44,21 +44,21 @@ auto make_T0_8() -> VECTORTYPE8 {
 // ppc64le has a single Altivec/VSX code path: forward to the generic
 // kernels and ignore cpu_features.
 auto dispatch_dprofile16(Cpu_features const & cpu_features,
-                         unsigned short * const dprofile,
-                         unsigned short const * const score_matrix,
-                         unsigned char const * const dseq) -> void
+                         std::vector<WORD> & dprofile_v,
+                         Score_matrix_16 const & score_matrix_a,
+                         Dseq_16 const & dseq_a) -> void
 {
   static_cast<void>(cpu_features);
-  dprofile_fill16(dprofile, score_matrix, dseq);
+  dprofile_fill16(dprofile_v, score_matrix_a, dseq_a);
 }
 
 auto dispatch_dprofile8(Cpu_features const & cpu_features,
-                        unsigned char * const dprofile,
-                        unsigned char const * const score_matrix,
-                        unsigned char const * const dseq) -> void
+                        std::vector<BYTE> & dprofile_v,
+                        Score_matrix_8 const & score_matrix_a,
+                        Dseq_8 const & dseq_a) -> void
 {
   static_cast<void>(cpu_features);
-  dprofile_fill8(dprofile, score_matrix, dseq);
+  dprofile_fill8(dprofile_v, score_matrix_a, dseq_a);
 }
 
 

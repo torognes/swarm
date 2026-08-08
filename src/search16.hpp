@@ -25,7 +25,7 @@
 #define SWARM_SEARCH16_H
 
 
-#include "utils/search_data.hpp"  // Search_data, WORD
+#include "utils/search_data.hpp"  // Search_data, WORD, Score_matrix_16
 #include "utils/span.hpp"  // Span<uint64_t>
 #include "utils/view.hpp"  // View<uint64_t>
 #include <cstdint>
@@ -42,7 +42,7 @@ auto search16(Data const & data,
               Search_data & search_data,
               WORD gap_open_penalty,
               WORD gap_extend_penalty,
-              WORD const * score_matrix,
+              Score_matrix_16 const & score_matrix,
               View<uint64_t> seqnos,
               Span<uint64_t> scores,
               Span<uint64_t> diffs,

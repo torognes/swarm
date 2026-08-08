@@ -87,6 +87,7 @@ constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif
 
 constexpr unsigned int channels {16};
+static_assert(channels == channels_at_8_bits, "Dseq_8 is sized for 16 channels");
 constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {8};
 using BYTE = unsigned char;
@@ -99,10 +100,20 @@ auto compute_mask<n_bits>(uint64_t const channel,
 }
 
 // refactoring: objdump shows this function is not inlined
-auto dprofile_fill8(BYTE * const dprofile,
-                           BYTE const * const score_matrix,
-                           BYTE const * const dseq) -> void
+//
+// The three buffers arrive as their own containers rather than as three
+// same-family pointers in a row: their types now say which is which, and
+// the '_a'/'_v' parameters are unpacked once here into the base pointers
+// the body walks. Inlining .data() at each cast site instead cost two
+// prologue instructions and 16 bytes of search8 when the same thing was
+// tried on hearray (commit 80df510).
+auto dprofile_fill8(std::vector<BYTE> & dprofile_v,
+                           Score_matrix_8 const & score_matrix_a,
+                           Dseq_8 const & dseq_a) -> void
 {
+  auto * const dprofile = dprofile_v.data();
+  auto const * const score_matrix = score_matrix_a.data();
+
   static constexpr auto multiplier = 5U;
   static_assert((std::numeric_limits<BYTE>::max() << multiplier) <= std::numeric_limits<unsigned int>::max(),
                 "score-matrix byte offset must fit in an unsigned int");
@@ -161,7 +172,7 @@ auto dprofile_fill8(BYTE * const dprofile,
     {
       std::array<unsigned int, channels> score_offsets {{}};
       for (auto i = 0U; i < channels; ++i) {
-        score_offsets[i] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + i))) << multiplier;
+        score_offsets[i] = (static_cast<unsigned int>(dseq_a[(j * channels) + i])) << multiplier;
       }
 
       reg0  = v_load_64(std::next(score_matrix, score_offsets[pos0]));
@@ -768,7 +779,7 @@ auto search8(Data const & data,
              Search_data & search_data,
              BYTE const gap_open_penalty,
              BYTE const gap_extend_penalty,
-             BYTE const * const score_matrix,
+             Score_matrix_8 const & score_matrix,
              View<uint64_t> const seqnos,
              Span<uint64_t> const scores,
              Span<uint64_t> const diffs,
@@ -809,7 +820,7 @@ auto search8(Data const & data,
 
   // make an array of size VECTORTYPE * channels, but interpret as
   // an array of BYTES
-  std::array<BYTE, channels * sizeof(VECTORTYPE) / sizeof(BYTE)> dseq {{}};
+  Dseq_8 dseq {{}};
 
   uint64_t next_id {0};
   uint64_t done {0};
@@ -840,7 +851,7 @@ auto search8(Data const & data,
 
           easy = fill_all_channels<channels, cdepth>(dseq, d_sequence, d_pos);
 
-          dispatch_dprofile8(cpu_features, dprofile.data(), score_matrix, dseq.data());
+          dispatch_dprofile8(cpu_features, dprofile, score_matrix, dseq);
 
           align_cells_regular_8(S, hep, qp, Q, R, qlen, F0, dir, H0);
         }
@@ -905,7 +916,7 @@ auto search8(Data const & data,
             break;
           }
 
-          dispatch_dprofile8(cpu_features, dprofile.data(), score_matrix, dseq.data());
+          dispatch_dprofile8(cpu_features, dprofile, score_matrix, dseq);
 
           MQ = v_and8(M, Q);
           MR = v_and8(M, R);

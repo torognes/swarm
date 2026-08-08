@@ -27,16 +27,16 @@
 
 #ifdef __SSSE3__
 
-using WORD = unsigned short;
-using BYTE = unsigned char;
+#include "../../utils/search_data.hpp"  // BYTE, WORD, Score_matrix_8/16, Dseq_8/16
+#include <vector>  // std::vector
 
-auto dprofile_shuffle8(BYTE * dprofile,
-                       BYTE const * score_matrix,
-                       BYTE const * dseq_byte) -> void;
+auto dprofile_shuffle8(std::vector<BYTE> & dprofile_v,
+                       Score_matrix_8 const & score_matrix_a,
+                       Dseq_8 const & dseq_a) -> void;
 
-auto dprofile_shuffle16(WORD * dprofile,
-                        WORD const * score_matrix,
-                        BYTE const * dseq_byte) -> void;
+auto dprofile_shuffle16(std::vector<WORD> & dprofile_v,
+                        Score_matrix_16 const & score_matrix_a,
+                        Dseq_16 const & dseq_a) -> void;
 
 #endif
 

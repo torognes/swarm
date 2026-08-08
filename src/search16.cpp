@@ -87,15 +87,25 @@ constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif
 
 constexpr unsigned int channels {8};
+static_assert(channels == channels_at_16_bits, "Dseq_16 is sized for 8 channels");
 constexpr unsigned int cdepth {4};
 constexpr uint8_t n_bits {16};
 using BYTE = unsigned char;
 using WORD = uint16_t;
 
-auto dprofile_fill16(WORD * const dprofile_word,
-                            WORD const * const score_matrix,
-                            BYTE const * const dseq) -> void
+// The three buffers arrive as their own containers rather than as three
+// same-family pointers in a row: their types now say which is which, and
+// the '_a'/'_v' parameters are unpacked once here into the base pointers
+// the body walks. Inlining .data() at each cast site instead cost two
+// prologue instructions and 16 bytes of search8 when the same thing was
+// tried on hearray (commit 80df510).
+auto dprofile_fill16(std::vector<WORD> & dprofile_v,
+                            Score_matrix_16 const & score_matrix_a,
+                            Dseq_16 const & dseq_a) -> void
 {
+  auto * const dprofile_word = dprofile_v.data();
+  auto const * const score_matrix = score_matrix_a.data();
+
   static constexpr auto multiplier = 5U;
   static constexpr auto pos0 = 0;
   static constexpr auto pos1 = pos0 + 1;
@@ -152,9 +162,12 @@ auto dprofile_fill16(WORD * const dprofile_word,
   assert(offset7 + (static_cast<std::ptrdiff_t>(channels) * cdepth) <= max_ptrdiff);
   for (auto j = 0LL; j < cdepth; ++j)
     {
+      // dseq is laid out as cdepth blocks of 'channels' bytes; j is a
+      // long long here because 'lane' below is a std::ptrdiff_t
+      auto const block = static_cast<std::size_t>(j) * channels;
       std::array<unsigned int, channels> score_offsets {{}};
       for (auto z = 0U; z < channels; ++z) {
-        score_offsets[z] = (static_cast<unsigned int>(*std::next(dseq, (j * channels) + z))) << multiplier;
+        score_offsets[z] = (static_cast<unsigned int>(dseq_a[block + z])) << multiplier;
       }
 
       reg0  = v_load16(cast_vector16(std::next(score_matrix, score_offsets[pos0])));
@@ -517,7 +530,7 @@ auto search16(Data const & data,
               Search_data & search_data,
               WORD const gap_open_penalty,
               WORD const gap_extend_penalty,
-              WORD const * const score_matrix,
+              Score_matrix_16 const & score_matrix,
               View<uint64_t> const seqnos,
               Span<uint64_t> const scores,
               Span<uint64_t> const diffs,
@@ -558,7 +571,7 @@ auto search16(Data const & data,
 
   // make an array of size VECTORTYPE * channels, but interpret as
   // an array of BYTES (or WORDS?)
-  std::array<BYTE, channels * sizeof(VECTORTYPE) / sizeof(BYTE)> dseq {{}};
+  Dseq_16 dseq {{}};
 
   uint64_t next_id {0};
   uint64_t done {0};
@@ -590,7 +603,7 @@ auto search16(Data const & data,
 
           easy = fill_all_channels<channels, cdepth>(dseq, d_sequence, d_pos);
 
-          dispatch_dprofile16(cpu_features, dprofile.data(), score_matrix, dseq.data());
+          dispatch_dprofile16(cpu_features, dprofile, score_matrix, dseq);
 
           dispatch_align_regular_16(cpu_features, S, hep, qp, Q, R, qlen, F0, dir, H0);
         }
@@ -657,7 +670,7 @@ auto search16(Data const & data,
             break;
           }
 
-          dispatch_dprofile16(cpu_features, dprofile.data(), score_matrix, dseq.data());
+          dispatch_dprofile16(cpu_features, dprofile, score_matrix, dseq);
 
           MQ = v_and16(M, Q);
           MR = v_and16(M, R);
