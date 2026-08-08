@@ -78,7 +78,7 @@ auto dprofile_shuffle8(std::vector<BYTE> & dprofile_v,
   // The buffers arrive as their own containers, so a caller cannot mix
   // them up; the casts below start from the base of each, as they did
   // when they were three same-family pointers.
-  // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
+  // inputs: score_matrix_a and dseq_a (sequence from db); output: dprofile_v
   auto const * const sequence_db = cast_vector8(dseq_a.data());
   auto const * const score_db = cast_vector8(score_matrix_a.data());
   auto * const profile_db = cast_vector8(dprofile_v.data());    // output
@@ -115,7 +115,7 @@ auto dprofile_shuffle16(std::vector<WORD> & dprofile_v,
                         Score_matrix_16 const & score_matrix_a,
                         Dseq_16 const & dseq_a) -> void
 {
-  // inputs: score_matrix and dseq_byte (sequence from db); output: dprofile
+  // inputs: score_matrix_a and dseq_a (sequence from db); output: dprofile_v
   auto * const profile_db = cast_vector16(dprofile_v.data());
   auto const * const score_db = cast_vector16(score_matrix_a.data());
   auto const * const sequence_db = cast_vector8(dseq_a.data());

@@ -569,8 +569,8 @@ auto search16(Data const & data,
   // template argument ‘VECTORTYPE’ {aka ‘__m128i’}
   VECTORTYPE S[4];
 
-  // make an array of size VECTORTYPE * channels, but interpret as
-  // an array of BYTES (or WORDS?)
+  // Dseq_16 is an array of size VECTORTYPE * channels, interpreted as
+  // an array of BYTES (or WORDS?) -- see utils/search_data.hpp
   Dseq_16 dseq {{}};
 
   uint64_t next_id {0};

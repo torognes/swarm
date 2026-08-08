@@ -818,8 +818,8 @@ auto search8(Data const & data,
   // template argument ‘VECTORTYPE’ {aka ‘__m128i’}
   VECTORTYPE S[4];
 
-  // make an array of size VECTORTYPE * channels, but interpret as
-  // an array of BYTES
+  // Dseq_8 is an array of size VECTORTYPE * channels, interpreted as
+  // an array of BYTES (see utils/search_data.hpp)
   Dseq_8 dseq {{}};
 
   uint64_t next_id {0};
