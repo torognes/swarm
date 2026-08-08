@@ -640,14 +640,14 @@ namespace {
     if (match.found) {
         if (match.number <= 0) {
           fatal("Illegal abundance value on line ", lineno, ":\n",
-                header_view.data(), "\nAbundance values should be positive integers.");
+                header_view, "\nAbundance values should be positive integers.");
         }
         abundance = match.number;
       }
     else if (match.overflow)
       {
         fatal("Abundance value on line ", lineno, " is too large:\n",
-              header_view.data(),
+              header_view,
               "\nAbundance values must fit a 64-bit signed integer.");
       }
     else
@@ -758,7 +758,7 @@ namespace {
 
     auto const input_fp_handle = fopen_input(parameters.input_filename);
     if (not input_fp_handle) {
-        fatal("Unable to open input data file (", parameters.input_filename.c_str(), ").\n");
+        fatal("Unable to open input data file (", parameters.input_filename, ").\n");
       }
 
     auto const file_info = get_file_info(input_fp_handle.get());
