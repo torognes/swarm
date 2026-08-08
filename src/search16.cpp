@@ -411,7 +411,7 @@ auto save_score_16(int64_t const cand_id,
                           std::array<Sequence, channels> const & d_sequence,
                           std::array<uint64_t, channels> const & d_offset,
                           Sequence const & query,
-                          std::vector<uint64_t> const & dirbuffer,
+                          View<uint64_t> const dirbuffer,
                           uint64_t const q_start_size,
                           Span<uint64_t> const scores,
                           Span<uint64_t> const diffs,
@@ -437,7 +437,7 @@ auto save_score_16(int64_t const cand_id,
     {
       const uint64_t offset = d_offset[channel];
       diff = backtrack<n_bits>(query, dbseq,
-                               make_view(dirbuffer),
+                               dirbuffer,
                                offset,
                                channel,
                                q_start_size);
@@ -485,7 +485,7 @@ auto load_next_sequence_16(unsigned int const channel,
                                   Data const & data,
                                   View<uint64_t> const seqnos,
                                   uint64_t & next_id,
-                                  uint64_t const * const dirbuffer_begin,
+                                  Span<uint64_t> const dirbuffer,
                                   uint64_t const * const dir,
                                   WORD const gap_open_penalty,
                                   WORD const gap_extend_penalty,
@@ -506,7 +506,7 @@ auto load_next_sequence_16(unsigned int const channel,
   d_sequence[channel] = sequence;
 
   d_pos[channel] = 0;
-  d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer_begin);
+  d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer.cbegin());
   ++next_id;
 
   assert(((2U * gap_open_penalty) + (2U * gap_extend_penalty)) <= std::numeric_limits<WORD>::max());
@@ -548,7 +548,7 @@ auto search16(Data const & data,
   auto * const hearray = search_data.hearray_v.data();  // He_block *
   auto const sequences = seqnos.size();
   auto const qlen = static_cast<uint64_t>(query.length);
-  auto & dirbuffer = search_data.dir_array_v;
+  auto const dirbuffer = make_span(search_data.dir_array_v);
   auto const & cpu_features = search_data.cpu_features;
 
   VECTORTYPE T;
@@ -594,7 +594,7 @@ auto search16(Data const & data,
 
   bool easy {false};
 
-  uint64_t * dir = dirbuffer.data();
+  uint64_t * dir = dirbuffer.begin();
 
   while (true) {
 
@@ -639,14 +639,14 @@ auto search16(Data const & data,
                     {
                       save_score_16(cand_id, channel, S,
                                     d_sequence, d_offset,
-                                    query, dirbuffer, q_start.size(),
+                                    query, static_cast<View<uint64_t>>(dirbuffer), q_start.size(),
                                     scores, diffs, done);
                     }
 
                   if (next_id < sequences)
                     {
                       if (load_next_sequence_16(channel, data, seqnos, next_id,
-                                                dirbuffer.data(), dir,
+                                                dirbuffer, dir,
                                                 gap_open_penalty, gap_extend_penalty,
                                                 H0, F0, dseq,
                                                 seq_id, d_sequence, d_pos, d_offset)) {
@@ -687,8 +687,9 @@ auto search16(Data const & data,
 
       assert(4 * q_start.size() <= max_ptrdiff);
       dir = std::next(dir, static_cast<std::ptrdiff_t>(4 * q_start.size()));
-      assert(dirbuffer.size() <= max_ptrdiff);
-      if (dir >= std::next(dirbuffer.data(), static_cast<std::ptrdiff_t>(dirbuffer.size()))) {
+      // the cursor sweeps the buffer and wraps at its end; both bounds
+      // come from the span rather than from pointer arithmetic on .data()
+      if (dir >= dirbuffer.end()) {
         dir = std::prev(dir, static_cast<std::ptrdiff_t>(dirbuffer.size()));
       }
     }
