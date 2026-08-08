@@ -752,7 +752,9 @@ namespace {
 
     /* open input file or stream */
 
-    assert(parameters.input_filename.c_str() != nullptr);  // filename is set to '-' (stdin) by default
+    // never empty: defaults to '-' (stdin), and cli.cpp rejects an empty
+    // positional argument
+    assert(not parameters.input_filename.empty());
 
     auto const input_fp_handle = fopen_input(parameters.input_filename);
     if (not input_fp_handle) {

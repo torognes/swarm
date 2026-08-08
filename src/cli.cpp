@@ -609,6 +609,13 @@ namespace {
     if (optind < argc) {  // external variable defined in unistd.h for
       // use with the getopt function
       parameters.input_filename = *std::next(argv, optind);
+      // An empty positional argument would otherwise reach parse_fasta()
+      // as an empty filename, where the "filename is always set" contract
+      // is asserted. Rejected here so the contract holds by construction
+      // rather than aborting a debug build on ordinary bad input.
+      if (parameters.input_filename.empty()) {
+        fatal("Empty input file name.");
+      }
     }
 
 #ifdef __x86_64__
