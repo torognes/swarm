@@ -32,7 +32,6 @@
 #include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <iterator>  // std::next
 #include <vector>
 
 
@@ -300,6 +299,21 @@ namespace {
   }
 
 
+  // A linear probe stops at the first bucket that is free, or that
+  // already holds this exact sequence; it steps over every other one.
+  inline auto holds_another_sequence(struct bucket const & candidate,
+                                     uint64_t const hash,
+                                     Sequence const & seq,
+                                     Data const & data) -> bool {
+    if (candidate.mass == 0U) { return false; }  // free bucket
+    if (candidate.hash != hash) { return true; }
+    auto const resident = data.sequence_view(candidate.seqno_first);
+    return (seq.length != resident.length)
+      or not std::equal(seq.encoded.cbegin(), seq.encoded.cend(),
+                        resident.encoded.cbegin());
+  }
+
+
   auto dereplicating(struct Parameters const & parameters,
                      Data const & data,
                      std::vector<struct bucket> & hashtable,
@@ -334,53 +348,48 @@ namespace {
 
              auto const hash = zobrist.hash(seq);
 
+             // the table index is the only cursor the probe needs: a
+             // bucket pointer used to walk beside it, and had to be
+             // reset to hashtable.data() on wrap-around
              auto nth_bucket = hash & derep_hash_mask;
-             auto * clusterp = &hashtable[nth_bucket];
 
-             while ((clusterp->mass != 0U) and
-                    ((clusterp->hash != hash) or
-                     (seq.length != data.sequence_view(clusterp->seqno_first).length) or
-                     not std::equal(seq.encoded.cbegin(), seq.encoded.cend(),
-                                    data.sequence_view(clusterp->seqno_first).encoded.cbegin())
-                     )
-                    )
+             while (holds_another_sequence(hashtable[nth_bucket], hash, seq, data))
                {
-                 clusterp = std::next(clusterp);
                  ++nth_bucket;
                  if (nth_bucket >= hashtable.size()) // wrap around the table if we reach the end
                    {
                      nth_bucket = 0;
-                     clusterp = hashtable.data();
                    }
                }
 
+             auto & cluster = hashtable[nth_bucket];
              auto const abundance = data.abundance(seqno);
 
-             if (clusterp->mass != 0U)
+             if (cluster.mass != 0U)
                {
                  /* at least one identical sequence already */
-                 nextseqtab[clusterp->seqno_last] = seqno;
+                 nextseqtab[cluster.seqno_last] = seqno;
                }
              else
                {
                  /* no identical sequences yet, start a new cluster */
                  ++stats.swarmcount;
-                 clusterp->hash = hash;
-                 clusterp->seqno_first = seqno;
-                 clusterp->size = 0;
-                 clusterp->singletons = 0;
+                 cluster.hash = hash;
+                 cluster.seqno_first = seqno;
+                 cluster.size = 0;
+                 cluster.singletons = 0;
                }
 
-             ++clusterp->size;
-             clusterp->seqno_last = seqno;
-             clusterp->mass += abundance;
+             ++cluster.size;
+             cluster.seqno_last = seqno;
+             cluster.mass += abundance;
 
              if (abundance == 1) {
-               ++clusterp->singletons;
+               ++cluster.singletons;
              }
 
-             stats.maxmass = std::max(clusterp->mass, stats.maxmass);
-             stats.maxsize = std::max(clusterp->size, stats.maxsize);
+             stats.maxmass = std::max(cluster.mass, stats.maxmass);
+             stats.maxsize = std::max(cluster.size, stats.maxsize);
 
              // increment() rather than update(seqno): seqno is a 0-based
              // amplicon id, so handing it over left the bar one milestone
