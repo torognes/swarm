@@ -13,3 +13,5 @@ GPATH
 GRTAGS
 GTAGS
 src/.cache/
+TBD_*.md
+DONE_*.md
