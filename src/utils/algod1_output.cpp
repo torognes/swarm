@@ -118,6 +118,9 @@ namespace {
     // increment() precedes the attached test, as in the default format above
     for (auto const & swarm_info : swarminfo_v) {
       progress.increment();
+      // only the fastidious pass grafts clusters, so nothing can be
+      // attached when it did not run
+      assert(parameters.opt_fastidious or not swarm_info.attached);
       if (swarm_info.attached) {
         continue;
       }
@@ -345,6 +348,9 @@ namespace {
     auto * const stats_file = parameters.statsfile.get();
 
     for (auto const & swarm_info : swarminfo_v) {
+      // only the fastidious pass grafts clusters, so nothing can be
+      // attached when it did not run
+      assert(parameters.opt_fastidious or not swarm_info.attached);
       if (swarm_info.attached) {
         continue;
       }
