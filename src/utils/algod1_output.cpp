@@ -157,7 +157,11 @@ namespace {
     Progress progress("Writing UCLUST:   ", swarminfo_v.size(), parameters);
     auto * const uclust_file = parameters.uclustfile.get();
 
+    // increment() precedes the attached test, as in the swarm writers above;
+    // cluster_no counts only the clusters actually reported, so it stays a
+    // separate counter and still advances after the guard
     for (auto const & swarm_info : swarminfo_v) {
+      progress.increment();
       if (swarm_info.attached) {
         continue;
       }
@@ -211,7 +215,6 @@ namespace {
         }
 
       ++cluster_no;
-      progress.increment();
     }
     progress.done();
   }
@@ -347,7 +350,9 @@ namespace {
     Progress progress("Writing stats:    ", swarminfo_v.size(), parameters);
     auto * const stats_file = parameters.statsfile.get();
 
+    // increment() precedes the attached test, as in the swarm writers above
     for (auto const & swarm_info : swarminfo_v) {
+      progress.increment();
       // only the fastidious pass grafts clusters, so nothing can be
       // attached when it did not run
       assert(parameters.opt_fastidious or not swarm_info.attached);
@@ -368,7 +373,6 @@ namespace {
       fprint(stats_file, '\t');
       fprint_integer(stats_file, swarm_info.maxgen);
       fprint(stats_file, '\n');
-      progress.increment();
     }
     progress.done();
   }
