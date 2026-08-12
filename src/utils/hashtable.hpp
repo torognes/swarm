@@ -39,11 +39,6 @@ public:
   // hash-table size (always a power of two).
   auto allocate(uint64_t amplicons) -> uint64_t;
 
-  // Reset all occupancy bits to zero, preserving allocated capacity. The
-  // value/data buffers are left untouched: they are only read when the
-  // matching occupancy bit is set.
-  auto clear() -> void;
-
   auto getindex(uint64_t hash) const noexcept -> uint64_t;
   auto getnextindex(uint64_t index) const noexcept -> uint64_t;
 

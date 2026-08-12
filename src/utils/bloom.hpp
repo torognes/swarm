@@ -31,7 +31,7 @@
 // Blocked Bloom filter with precomputed bit patterns
 // (Putze, Sanders, Singler 2009 -- see bloom.cpp for the reference).
 // Bit semantics are inverted from a textbook Bloom filter: a freshly
-// zapped filter has all bits set to 1, set() clears the pattern's
+// constructed filter has all bits set to 1, set() clears the pattern's
 // bits, and get() returns true (possibly-present) when all of the
 // pattern's bits in the addressed word are zero.
 class BloomFilter {
@@ -43,10 +43,6 @@ public:
   BloomFilter(uint64_t bitmap_bytes,
               unsigned int shift,
               unsigned int n_hash_functions);
-
-  // Reset all bitmap bits to 1 ("filter is empty"), preserving
-  // allocated capacity and the precomputed patterns.
-  auto zap() noexcept -> void;
 
   // Mark hash as a member of the set.
   auto set(uint64_t hash) noexcept -> void;

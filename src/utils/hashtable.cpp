@@ -21,7 +21,6 @@
     PO Box 1080 Blindern, NO-0316 Oslo, Norway
 */
 
-#include <algorithm>  // std::fill
 #include <cassert>
 #include <cstdint>
 #include "hashtable.hpp"
@@ -40,11 +39,6 @@ auto Hashtable::allocate(uint64_t const amplicons) -> uint64_t {
   data.assign(hashtablesize, 0U);
 
   return hashtablesize;
-}
-
-
-auto Hashtable::clear() -> void {
-  std::fill(occupied.begin(), occupied.end(), 0U);
 }
 
 

@@ -33,7 +33,7 @@
 
 #include "bloom.hpp"
 #include "pseudo_rng.hpp"
-#include <algorithm>  // std::fill, std::max
+#include <algorithm>  // std::max
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <limits>
@@ -98,11 +98,6 @@ auto BloomFilter::set(uint64_t const hash) noexcept -> void {
 
 auto BloomFilter::get(uint64_t const hash) const noexcept -> bool {
   return (bitmap[bitmap_index(hash)] & bit_pattern(hash)) == 0U;
-}
-
-
-auto BloomFilter::zap() noexcept -> void {
-  std::fill(bitmap.begin(), bitmap.end(), std::numeric_limits<uint64_t>::max());
 }
 
 
