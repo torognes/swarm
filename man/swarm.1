@@ -404,7 +404,8 @@ set to '*' (S, C) or, for H, compact representation of the pairwise
 alignment using the CIGAR format (Compact Idiosyncratic Gapped
 Alignment Report): M (match), D (deletion) and I (insertion). The
 equal sign '=' indicates that the query is identical to the centroid
-sequence.
+sequence (only possible with \fB\-d\fR 0, as \fBswarm\fR requires
+dereplicated input for \fB\-d\fR 1 and above).
 .IP \n+[step].
 Header of the query sequence (H), or of the centroid sequence (S, C).
 .IP \n+[step].

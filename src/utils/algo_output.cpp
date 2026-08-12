@@ -198,12 +198,13 @@ namespace {
       // written once per cluster member right after a full alignment.
       static_cast<void>(std::fprintf(uclust_file, "%.1f", result.percent_id));
       fprint(uclust_file, "\t+\t0\t0\t");
-      if (result.differences > 0) {
-        fprint(uclust_file, result.cigar_string);
-      }
-      else {
-        fprint(uclust_file, '=');
-      }
+      // a hit is never identical to its centroid: dereplication is
+      // mandatory at d >= 1 (db.cpp, "some fasta entries have identical
+      // sequences"), and it compares packed encodings, so U/T and case
+      // variants count as duplicates too. USEARCH's '=' CIGAR, which marks
+      // an identical hit, is therefore emitted only by dereplicate.cpp.
+      assert(result.differences > 0);
+      fprint(uclust_file, result.cigar_string);
       fprint(uclust_file, '\t');
 
       fprint_id(uclust_file, data.info(hit), parameters.opt_usearch_abundance, parameters.opt_append_abundance);
