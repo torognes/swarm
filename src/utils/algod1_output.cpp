@@ -118,7 +118,6 @@ namespace {
     // increment() precedes the attached test, as in the default format above
     for (auto const & swarm_info : swarminfo_v) {
       progress.increment();
-      assert(not swarm_info.attached);
       if (swarm_info.attached) {
         continue;
       }
@@ -346,7 +345,6 @@ namespace {
     auto * const stats_file = parameters.statsfile.get();
 
     for (auto const & swarm_info : swarminfo_v) {
-      assert(not swarm_info.attached);
       if (swarm_info.attached) {
         continue;
       }
