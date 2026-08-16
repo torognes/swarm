@@ -312,10 +312,11 @@ belonging to the same cluster will receive the same number.
 cumulated number of steps from the cluster seed to amplicon B
 (\fInon-negative integer\fR). When using the option \-\-fastidious (\-f),
 the actual number of steps between grafted amplicons and the cluster
-seed cannot be re-computed efficiently and is always set to 2 for the
-amplicon pair linking the small cluster to the large
-cluster. Cumulated number of steps in the small cluster (if any) are
-left unchanged.
+seed cannot be re-computed efficiently: the amplicon pair linking the
+small cluster to the large cluster is reported with 2 differences
+(third column), and its cumulated number of steps is the number of
+steps from the seed to the grafting point, plus one. Cumulated number
+of steps in the small cluster (if any) are left unchanged.
 .RE
 .RE
 .TP
