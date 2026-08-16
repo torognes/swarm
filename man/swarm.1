@@ -156,13 +156,14 @@ message.
 .PP
 Clusters are written to output files (specified with \-i, \-o, \-s and
 \-u) by decreasing abundance of their seed sequences, and then by
-increasing byte value of the seed sequence label, comparing bytes as
-unsigned (the ordering of strcmp and LC_ALL=C sort). An exception to
-that is the \-w (\-\-seeds) output, which is sorted by decreasing
-\fIcluster abundance\fR (sum of abundances of all sequences in the
-cluster), and then by increasing byte value of the seed sequence
-label, comparing bytes as unsigned (the ordering of strcmp and
-LC_ALL=C sort). This is
+increasing byte value of the seed sequence header (abundance
+annotation included), comparing bytes as unsigned (the ordering of
+strcmp and LC_ALL=C sort). An exception to that is the \-w
+(\-\-seeds) output, which is sorted by decreasing \fIcluster
+abundance\fR (sum of abundances of all sequences in the cluster), and
+then by increasing byte value of the seed sequence header (abundance
+annotation included), comparing bytes as unsigned (the ordering of
+strcmp and LC_ALL=C sort). This is
 particularly useful for post-clustering steps, such as \fIde novo\fR
 chimera detection, that require clusters to be sorted by decreasing
 abundances.
@@ -420,7 +421,8 @@ of the abundances of all the amplicons in the cluster. Fasta headers
 are formatted as follows: '>label_\fIinteger\fR',
 or '>label;size=\fIinteger\fR;' if the \-z option is used, and
 sequences are uppercased. Sequences are sorted by decreasing
-abundance, and then by increasing byte value of the sequence label,
+abundance, and then by increasing byte value of the seed sequence
+header as read from the input (abundance annotation included),
 comparing bytes as unsigned (the ordering of strcmp and LC_ALL=C
 sort).
 .TP
