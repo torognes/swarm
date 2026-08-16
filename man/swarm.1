@@ -213,12 +213,13 @@ requires fasta entries to present abundance values. Default number of
 differences \fId\fR is 1.
 .TP
 .B \-n\fP,\fB\ \-\-no\-otu\-breaking
-when working with \fId\fR = 1, deactivate the built-in cluster
-refinement (not recommended). Amplicon abundance values are used to
-identify transitions among in-contact clusters and to separate them,
-yielding higher-resolution clustering results. This option disables
-that separation, meaning a link between amplicons A and B can be
-created even when B is more abundant than A.
+when working with \fId\fR = 1 or greater, deactivate the built-in
+cluster refinement (not recommended). Amplicon abundance values are
+used to identify transitions among in-contact clusters and to
+separate them, yielding higher-resolution clustering results. This
+option disables that separation, meaning a link between amplicons A
+and B can be created even when B is more abundant than A. This option
+is accepted but has no effect when dereplicating (\fId\fR = 0).
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Fastidious options
