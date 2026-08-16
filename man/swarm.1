@@ -152,7 +152,9 @@ nucleotide to 67 million
 nucleotides. Please note that processing 67-Mb sequences requires at
 least 32 gigabytes of memory. Lastly, if sequences are not all unique,
 i.e. were not properly dereplicated, swarm will exit with an error
-message.
+message. That check only applies when \fId\fR is greater than 0:
+dereplicating (\fId\fR = 0) precisely consists in merging identical
+amplicons.
 .PP
 Clusters are written to output files (specified with \-i, \-o, \-s and
 \-u) by decreasing abundance of their seed sequences, and then by
