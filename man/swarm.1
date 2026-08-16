@@ -449,10 +449,10 @@ Default reward for a nucleotide match is 5.
 .BI \-p\fP,\fB\ \-\-mismatch\-penalty\~ "positive integer"
 Default penalty for a nucleotide mismatch is 4.
 .TP
-.BI \-g\fP,\fB\ \-\-gap\-opening\-penalty\~ "positive integer"
+.BI \-g\fP,\fB\ \-\-gap\-opening\-penalty\~ "zero or positive integer"
 Default gap opening penalty is 12.
 .TP
-.BI \-e\fP,\fB\ \-\-gap\-extension\-penalty\~ "positive integer"
+.BI \-e\fP,\fB\ \-\-gap\-extension\-penalty\~ "zero or positive integer"
 Default gap extension penalty is 4.
 .TP
 .B \-x\fP,\fB\ \-\-disable\-sse3
@@ -461,6 +461,9 @@ instructions. This option is meant for developers, not for regular
 users.
 .LP
 .RE
+The gap opening and the gap extension penalties can each be set to
+zero, but their sum must be at least 1.
+.PP
 As \fBswarm\fR focuses on close relationships (e.g., \fId\fR = 2 or
 3), clustering results are resilient to pairwise alignment model
 parameters modifications. When clustering using a higher \fId\fR
