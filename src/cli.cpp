@@ -262,13 +262,16 @@ namespace {
 
 
   auto show_help_or_version_and_exit(struct Parameters const & parameters) -> void {
+    // --help and --version reports go to standard output (GNU
+    // convention). The log stream is not redirected yet at this point
+    // (open_files() runs later), and error paths keep using it.
     if (parameters.opt_version) {
-      show(header_message, parameters.logfile);
+      show(header_message, stdout);
       std::exit(EXIT_SUCCESS);
     }
     if (parameters.opt_help) {
-      show(header_message, parameters.logfile);
-      show(args_usage_message, parameters.logfile);
+      show(header_message, stdout);
+      show(args_usage_message, stdout);
       std::exit(EXIT_SUCCESS);
     }
   }
