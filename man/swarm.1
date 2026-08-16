@@ -166,7 +166,10 @@ annotation included), comparing bytes as unsigned (the ordering of
 strcmp and LC_ALL=C sort). This is
 particularly useful for post-clustering steps, such as \fIde novo\fR
 chimera detection, that require clusters to be sorted by decreasing
-abundances.
+abundances. When dereplicating (\fId\fR = 0), all output files (\-i,
+\-o, \-s, \-u and \-w) follow the \-w ordering: decreasing cluster
+abundance, with ties broken by decreasing seed abundance, and then by
+increasing byte value of the seed sequence header.
 .\" ----------------------------------------------------------------------------
 .SS General options
 .TP 9
