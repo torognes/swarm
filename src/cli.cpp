@@ -752,7 +752,7 @@ namespace {
     }
 
     if ((not parameters.opt_network_file.empty()) and (parameters.opt_differences != 1)) {
-      fatal("A network file can only written when d = 1.");
+      fatal("A network file can only be written when d = 1.");
     }
   }
 
