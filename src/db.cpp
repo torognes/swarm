@@ -496,8 +496,6 @@ namespace {
       in the header string.
     */
 
-    static constexpr std::size_t max_digits {20};  // 20 digits at most (abundance > 10^20)
-
     // Find the last '_' via reverse scan over the header view.
     auto const r_underscore = std::find(header_view.crbegin(),
                                         header_view.crend(), '_');
@@ -512,7 +510,7 @@ namespace {
     auto const n_digits = static_cast<std::size_t>(
       std::distance(digits_begin, digits_end));
 
-    if ((n_digits == 0) or (n_digits > max_digits)) {
+    if (n_digits == 0) {
       return Abundance_match{};
     }
     if (not std::all_of(digits_begin, digits_end, is_digit)) {
@@ -532,8 +530,8 @@ namespace {
     // strtoll still requires null-termination at the end of the digit run;
     // header_view points into Data::data_, where each header is followed
     // by a '\0' byte written at parse time.
-    // n_digits is bounded above by max_digits = 20, which can exceed
-    // int64_t's 19-digit range; flag values that overflow so the caller
+    // The digit run has no length cap (leading zeros make long runs with
+    // small values legitimate); flag values that overflow so the caller
     // reports them as too large rather than as a missing annotation.
     auto const status = parse_abundance_digits(digits_begin, digits_end, match.number);
     if (status == Abundance_status::overflow) {
