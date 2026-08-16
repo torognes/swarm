@@ -608,6 +608,13 @@ namespace {
 
     if (optind < argc) {  // external variable defined in unistd.h for
       // use with the getopt function
+      // getopt_long() has permuted argv so all operands now sit at the
+      // end; a second operand used to be silently ignored, which could
+      // hide a command-line mistake (a mistyped option, an unquoted
+      // glob expanding to several file names).
+      if ((argc - optind) > 1) {
+        fatal("Too many input files. Only one input file name can be specified.");
+      }
       parameters.input_filename = *std::next(argv, optind);
       // An empty positional argument would otherwise reach parse_fasta()
       // as an empty filename, where the "filename is always set" contract
