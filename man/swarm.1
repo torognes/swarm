@@ -445,9 +445,20 @@ sort).
 .TP
 .B \-z\fP,\fB\ \-\-usearch\-abundance
 accept amplicon abundance values in usearch/vsearch's style
-(>label;size=\fIinteger\fR[;]). This option influences the abundance
-annotation style used in swarm's \fIstandard output\fR (\-o), as well
-as the output of options \-r, \-u and \-w.
+(>label;size=\fIinteger\fR[;]). The annotation is recognized anywhere
+in the header (beginning, middle, or end), as long as it is delimited
+by the beginning of the header, a semicolon, or the end of the
+header; the string 'size=' must be lowercase. The \fIlabel\fR is then
+the header minus the annotation, with a joining semicolon re-inserted
+when the annotation was in the middle of the header. This option
+influences the abundance annotation style used in swarm's
+\fIstandard output\fR (\-o), as well as the output of options \-r,
+\-u and \-w: annotations already present in the input are written out
+verbatim by the options \-o, \-r, \-u and \-j, and annotations
+appended because of the option \-a follow the style selected by \-z;
+the option \-w is the exception, as it replaces the abundance value
+with the total abundance of the cluster and always terminates the
+annotation with a semicolon (';size=\fIinteger\fR;').
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Pairwise alignment advanced options
