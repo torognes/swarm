@@ -487,6 +487,13 @@ users.
 The gap opening and the gap extension penalties can each be set to
 zero, but their sum must be at least 1.
 .PP
+\fBswarm\fR converts these rewards and penalties into internal
+alignment costs. Two limits apply: the internal mismatch cost,
+derived from the match reward and the mismatch penalty, must not
+exceed 255, and the resolution \fId\fR must remain measurable with
+16-bit alignment scores. Out-of-range combinations are rejected with
+an explanatory error message.
+.PP
 As \fBswarm\fR focuses on close relationships (e.g., \fId\fR = 2 or
 3), clustering results are resilient to pairwise alignment model
 parameters modifications. When clustering using a higher \fId\fR
