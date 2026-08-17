@@ -362,7 +362,11 @@ option \-\-mothur (\-r). Default is to write to \fIstandard output\fR.
 .TP
 .B \-r\fP,\fB\ \-\-mothur
 output clustering results in a format compatible with Mothur. That
-option modifies \fBswarm\fR's default output format.
+option modifies \fBswarm\fR's default output format. The results then
+consist of a single line: the label 'swarm_\fId\fR' (where \fId\fR is
+the resolution), the number of clusters, and the clusters themselves,
+all separated by tabulations; within a cluster, amplicon headers are
+separated by commas.
 .TP
 .BI \-s\fP,\fB\ \-\-statistics\-file \0filename
 output statistics to \fIfilename\fR. The file is a tab-separated table
