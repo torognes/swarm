@@ -119,7 +119,12 @@ are not available, \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR can read nucleotide amplicons in fasta format from a
 normal file or from the standard input (using a pipe or a
-redirection). The amplicon \fIheader\fR is defined as the string
+redirection). The file name \fI\-\fR (a single dash) also stands for
+the standard input; likewise, the output options expecting a file
+name (\-i, \-j, \-l, \-o, \-s, \-u and \-w) accept \fI\-\fR to write
+to the standard output. When reading from a pipe or from the standard
+input, \fBswarm\fR prints the reminder 'Waiting for data...' to its
+log stream. The amplicon \fIheader\fR is defined as the string
 comprised between the '>' symbol and the first space, the first null
 byte, or the end of the line, whichever comes first. Each header must
 end with an \fIabundance annotation\fR representing the amplicon copy number and defined as '_'
@@ -147,10 +152,12 @@ line and ending before the next header line or the file end;
 \fBswarm\fR silently removes newline symbols ('\\n' or '\\r') and
 exits with an error message if any other symbol is present, with one
 exception: a null byte (ascii 0) ends the line, and the rest of that
-line is silently ignored. Accepted sequence lengths range from 1
-nucleotide to 67 million
-nucleotides. Please note that processing 67-Mb sequences requires at
-least 32 gigabytes of memory. Lastly, if sequences are not all unique,
+line is silently ignored. Accepted sequence lengths range from 1 to
+67,108,861 nucleotides. Please note that processing 67-Mb sequences
+requires at least 32 gigabytes of memory. Fasta headers can contain
+up to 16,777,215 symbols. An input containing no fasta entry at all
+is accepted: \fBswarm\fR reports zero sequences, writes the requested
+(empty) output files, and exits successfully. Lastly, if sequences are not all unique,
 i.e. were not properly dereplicated, swarm will exit with an error
 message. That check only applies when \fId\fR is greater than 0:
 dereplicating (\fId\fR = 0) precisely consists in merging identical
