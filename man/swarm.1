@@ -402,7 +402,9 @@ H or C). This option does not modify \fBswarm\fR's default output
 format. Each fasta sequence in the input file can be either a cluster
 centroid (S) or a hit (H) assigned to a cluster. Cluster records (C)
 summarize information for each cluster (number of hits, centroid
-header). Column content varies with the type of entry (S, H or C):
+header). For each cluster, the C record is written first, then the S
+record, then the H records (one per non-centroid amplicon, in cluster
+order). Column content varies with the type of entry (S, H or C):
 .RS
 .RS
 .nr step 1 1
@@ -414,7 +416,9 @@ Cluster number (zero-based).
 Centroid length (S), query length (H), or number of hits (C).
 .IP \n+[step].
 Percentage of similarity with the centroid sequence (H), or set to '*'
-(S, C).
+(S, C). The percentage is 100 times the number of identical columns
+in the pairwise alignment divided by the alignment length, so each
+column with a gap counts as a difference.
 .IP \n+[step].
 Match orientation + or - (H), or set to '*' (S, C).
 .IP \n+[step].
