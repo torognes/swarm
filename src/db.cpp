@@ -402,7 +402,7 @@ namespace {
   auto parse_sequence_body(Line_buffer & line_buf, std::FILE * const stream,
                            std::array<Nt_class, n_chars> const & classify,
                            Sink<uint64_t> & sink,
-                           uint64_t & filepos, unsigned int & lineno,
+                           uint64_t & filepos, uint64_t & lineno,
                            struct Entry & entry,
                            struct Seq_stats & seq_stats) -> void
   {
@@ -785,7 +785,7 @@ namespace {
 
     Line_buffer line_buf{linealloc};
 
-    auto lineno = 1U;
+    uint64_t lineno {1};
 
 
     Progress progress("Reading sequences:", file_info.filesize, parameters);

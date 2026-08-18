@@ -44,7 +44,13 @@ struct Index {
 // One fasta record as captured during parsing: source line number
 // plus header and sequence locations in the database vectors.
 struct Entry {
-  unsigned int lineno {1U};
+  // 64-bit: the line count is not bounded by the sequence count -- one
+  // long wrapped record spans many lines -- and everything downstream
+  // (find_abundance, Seq_stats::missingabundance_lineno) is already
+  // uint64_t. Widening costs nothing here: the two Index members align
+  // the struct to 8 bytes, so a 32-bit lineno paid the same 8 bytes in
+  // padding.
+  uint64_t lineno {1};
   struct Index header;
   struct Index sequence;
 };
