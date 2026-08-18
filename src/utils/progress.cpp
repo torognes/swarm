@@ -66,7 +66,7 @@ auto Progress::update(uint64_t const current) -> void {
                                  100.0 * static_cast<double>(current)
                                  / static_cast<double>(size)));
   next = current + chunk;
-  std::fflush(logfile);
+  static_cast<void>(std::fflush(logfile));
 }
 
 
@@ -85,5 +85,5 @@ auto Progress::done() const -> void {
     static_cast<void>(std::fputs(prompt, logfile));
   }
   static_cast<void>(std::fputs(" 100%\n", logfile));
-  std::fflush(logfile);
+  static_cast<void>(std::fflush(logfile));
 }

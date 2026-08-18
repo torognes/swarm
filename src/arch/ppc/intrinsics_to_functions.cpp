@@ -35,10 +35,10 @@
 #include <cstdint>  // uint64_t, uint16_t
 #include "intrinsics_to_functions.hpp"
 
-using v_u64_t = vector unsigned long long;
-using v_u32_t = vector unsigned int;
-using v_u16_t = vector unsigned short;
-using v_u8_t = vector unsigned char;
+using v_u64_t = __vector unsigned long long;
+using v_u32_t = __vector unsigned int;
+using v_u16_t = __vector unsigned short;
+using v_u8_t = __vector unsigned char;
 
 constexpr v_u8_t perm_merge_long_low =
   {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,

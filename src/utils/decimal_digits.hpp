@@ -25,12 +25,13 @@
 #define SWARM_UTILS_DECIMAL_DIGITS_H
 
 
+#include "span.hpp"  // make_span
 #include "view.hpp"  // View<char>
 #include <array>
 #include <cassert>
-#include <cstddef>  // std::size_t, std::ptrdiff_t
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
-#include <iterator>  // std::next, std::prev, std::distance
+#include <iterator>  // std::prev, std::distance
 #include <limits>  // std::numeric_limits
 #include <type_traits>  // std::integral_constant, std::is_integral, std::is_same,
                         // std::is_signed, std::remove_cv
@@ -131,7 +132,7 @@ namespace decimal {
       detail::split_sign(value,
                          std::integral_constant<bool, std::is_signed<Integer>::value>{});
 
-    auto * const buffer_end = std::next(buffer.data(), static_cast<std::ptrdiff_t>(buffer.size()));
+    auto * const buffer_end = make_span(buffer).end();
     auto * cursor = buffer_end;
     auto rest = split.magnitude;
     // The first pass is unconditional -- zero has one digit and must be

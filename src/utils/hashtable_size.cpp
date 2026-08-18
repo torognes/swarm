@@ -35,7 +35,7 @@ auto compute_hashtable_size(uint64_t const sequence_count) -> uint64_t {
   static constexpr uint64_t numerator {7};
   static constexpr uint64_t denominator {10};
   static constexpr uint64_t smallest {2};                   // 2^1, as documented above
-  static constexpr uint64_t largest {uint64_t{1} << 63};    // 2^63, likewise
+  static constexpr uint64_t largest {uint64_t{1} << 63U};   // 2^63, likewise
   static_assert(numerator != 0, "Error: will result in a divide-by-zero");
   assert(sequence_count < 6456360425798343065); // (7 * 2^63 / 10) otherwise hashtable_size > 2^63
 

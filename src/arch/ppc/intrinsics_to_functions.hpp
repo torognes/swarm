@@ -39,9 +39,9 @@
 #include <cstdint>  // uint64_t, uint16_t
 
 
-using v_u64_t = vector unsigned long long;
-using v_u16_t = vector unsigned short;
-using v_u8_t = vector unsigned char;
+using v_u64_t = __vector unsigned long long;
+using v_u16_t = __vector unsigned short;
+using v_u8_t = __vector unsigned char;
 
 
 auto cast_vector16(uint16_t * ptr) -> uint16_t*;

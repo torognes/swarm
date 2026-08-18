@@ -29,7 +29,7 @@
 #include "print_view.hpp"  // fprint
 #include "progress.hpp"
 #include "span.hpp"
-#include <algorithm>  // std::sort()
+#include <algorithm>  // std::sort(), std::remove_if()
 #include <cassert>  // assert()
 #include <cstdint>  // uint64_t
 #include <cstdio>  // fprintf()
@@ -225,10 +225,22 @@ namespace {
   auto write_representative_sequences(struct Parameters const & parameters,
                                       Data const & data,
                                       std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
-    Progress progress("Writing seeds:    ", swarminfo_v.size(), parameters);
+    std::vector<unsigned int> seed_sorter(swarminfo_v.size());
+    std::iota(seed_sorter.begin(), seed_sorter.end(), 0);
 
-    std::vector<unsigned int> sorter(swarminfo_v.size());
-    std::iota(sorter.begin(), sorter.end(), 0);
+    /* swarms grafted onto another swarm by the fastidious pass are not
+       representatives; drop them before sorting rather than skipping
+       them while writing. Only the fastidious pass sets 'attached'
+       (algod1_fastidious.cpp), so the scan is a no-op without it. */
+    if (parameters.opt_fastidious) {
+      auto const is_attached = [&swarminfo_v](unsigned int const index) -> bool {
+        return swarminfo_v[index].attached;
+      };
+      seed_sorter.erase(std::remove_if(seed_sorter.begin(), seed_sorter.end(), is_attached),
+                        seed_sorter.end());
+    }
+
+    Progress progress("Writing seeds:    ", seed_sorter.size(), parameters);
 
     auto compare_mass_and_headers = [&swarminfo_v, &data](unsigned int const lhs,
                                                           unsigned int const rhs) -> bool
@@ -251,17 +263,14 @@ namespace {
       return data.header_view(swarm_x.seed) < data.header_view(swarm_y.seed);
     };
 
-    std::sort(sorter.begin(), sorter.end(), compare_mass_and_headers);
+    std::sort(seed_sorter.begin(), seed_sorter.end(), compare_mass_and_headers);
 
     auto * const seeds_file = parameters.seeds_file.get();
     // one scratch buffer for the whole file
     Sequence_printer const sequence_printer {data.longest_sequence()};
 
-    for (auto const index : sorter) {
+    for (auto const index : seed_sorter) {
       auto const & a_swarm = swarminfo_v[index];
-      if (a_swarm.attached) {
-        continue;
-      }
       auto const seed = a_swarm.seed;
       auto const mass = a_swarm.mass;
       fprint(seeds_file, '>');
