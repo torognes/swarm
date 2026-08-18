@@ -52,7 +52,7 @@ namespace fatal_detail {
     // ostream operator<<, since string literals reach this template as
     // 'char const (&)[N]'.
     template<typename Type>
-    auto explicit_decay(Type && value) noexcept -> Type && {
+    constexpr auto explicit_decay(Type && value) noexcept -> Type && {
         return std::forward<Type>(value);
     }
     // The C-array parameter is intentional: string literals reach this
@@ -61,7 +61,7 @@ namespace fatal_detail {
     // a string literal, so the C-array parameter can't be avoided.
     template<typename Type, std::size_t Size>
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
-    auto explicit_decay(Type const (&array)[Size]) noexcept -> Type const * {
+    constexpr auto explicit_decay(Type const (&array)[Size]) noexcept -> Type const * {
         return static_cast<Type const *>(array);
     }
 

@@ -84,7 +84,7 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
 
 // How many sequences one thread is handed at a time: the 128-bit vector
 // holds that many lanes at the given width.
-auto channels_for(Bit_mode const n_bits) noexcept -> std::size_t {
+constexpr auto channels_for(Bit_mode const n_bits) noexcept -> std::size_t {
   return (n_bits == Bit_mode::bits_16) ? channels_at_16_bits : channels_at_8_bits;
 }
 

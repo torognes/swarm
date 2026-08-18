@@ -68,7 +68,7 @@ public:
         current_ {current} {
     }
 
-    auto operator*() const noexcept -> Id { return current_; }
+    constexpr auto operator*() const noexcept -> Id { return current_; }
 
     auto operator++() noexcept -> const_iterator & {
       current_ = Next::next(*table_, current_);
@@ -77,10 +77,10 @@ public:
 
     // Compares the position in the chain only: two iterators into the same
     // chain agree on the table, and end() is the sentinel position.
-    auto operator==(const_iterator const & other) const noexcept -> bool {
+    constexpr auto operator==(const_iterator const & other) const noexcept -> bool {
       return current_ == other.current_;
     }
-    auto operator!=(const_iterator const & other) const noexcept -> bool {
+    constexpr auto operator!=(const_iterator const & other) const noexcept -> bool {
       return not (*this == other);
     }
 
