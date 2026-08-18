@@ -26,7 +26,7 @@
 
 #include "../../utils/cpu_features.hpp"  // Cpu_features
 #include "../../utils/search_data.hpp"  // BYTE, WORD, Score_matrix_8/16, Dseq_8/16
-#include <altivec.h>  // vector unsigned short / char
+#include <altivec.h>  // __vector unsigned short / char
 #include <cstdint>  // uint64_t
 
 
