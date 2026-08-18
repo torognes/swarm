@@ -89,7 +89,7 @@ constexpr unsigned int channels {8};
 static_assert(channels == channels_at_16_bits, "Dseq_16 is sized for 8 channels");
 constexpr unsigned int cdepth {4};
 static_assert(cdepth == depth_slots, "a block covers exactly one packed byte");
-constexpr uint8_t n_bits {16};
+constexpr uint8_t n_bits {bits16};  // backtrack.hpp
 
 // The three buffers arrive as their own containers rather than as three
 // same-family pointers in a row: their types now say which is which, and

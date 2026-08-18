@@ -29,11 +29,18 @@
 #include "nt_codec.hpp"
 #include "view.hpp"  // View
 #include <cassert>
-#include <cstdint>  // uint64_t
+#include <cstdint>  // uint64_t, uint8_t
 
 #ifndef NDEBUG
 #include <limits>
 #endif
+
+
+// The two search widths served by this header, named once here: the
+// specialization below, backtrack()'s static_assert and search8.cpp /
+// search16.cpp all spell the same fact.
+constexpr uint8_t bits8 {8};
+constexpr uint8_t bits16 {16};
 
 
 // default template (16 bits)
@@ -42,6 +49,38 @@ constexpr auto compute_mask(uint64_t const channel,
                             unsigned int const offset) -> uint64_t {
   return (3ULL << ((2 * channel) + offset));
 }
+
+
+// specialization (8 bits)
+//
+// Here rather than in search8.cpp, which used to declare it. An explicit
+// specialization only applies where it has been declared, so a second
+// translation unit instantiating backtrack<bits8> without seeing it would
+// silently get the primary template instead -- and the two masks differ,
+// so that miscomputes rather than failing to link. Declaring it beside
+// the primary means every user of the header sees both.
+//
+// Definable in a header because it is constexpr, hence implicitly inline:
+// an explicit specialization is not inline on its own, and without that
+// specifier this definition would collide in every TU that included it.
+template <>
+constexpr auto compute_mask<bits8>(uint64_t const channel,
+                                   unsigned int const offset) -> uint64_t {
+  return (1ULL << (channel + offset));
+}
+
+
+// Both widths are constexpr, so which one a given n_bits selects is
+// checkable at compile time -- and that is the thing the move above is
+// for. These are what a translation unit that could not see the
+// specialization would fail: it would resolve compute_mask<bits8> to the
+// primary template and produce the 16-bit masks. (Same idea as the
+// static_assert block in ceil_divide.hpp.)
+static_assert(compute_mask<bits16>(0, 0) == 3ULL, "16 bits: two adjacent bits at channel 0");
+static_assert(compute_mask<bits16>(1, 0) == 12ULL, "16 bits: a channel strides by two bits");
+static_assert(compute_mask<bits8>(0, 0) == 1ULL, "8 bits: one bit at channel 0");
+static_assert(compute_mask<bits8>(1, 0) == 2ULL, "8 bits: a channel strides by one bit");
+static_assert(compute_mask<bits8>(1, 16) == (1ULL << 17), "8 bits: offset selects the mask field");
 
 enum struct Alignment: unsigned char { Insertion, Deletion, Match };
 
@@ -60,8 +99,6 @@ auto backtrack(Sequence const & qseq,
                uint64_t const offset,
                uint64_t const channel,
                uint64_t const longestdbsequence) -> uint64_t {
-  static constexpr uint8_t bits8 {8};
-  static constexpr uint8_t bits16 {16};
   static_assert(n_bits == bits8 or n_bits == bits16, "n_bits must be 8 or 16");
   static constexpr auto offset0 = 0U;
   static constexpr auto offset1 = offset0 + 16;

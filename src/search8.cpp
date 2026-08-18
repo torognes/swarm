@@ -89,14 +89,7 @@ constexpr unsigned int channels {16};
 static_assert(channels == channels_at_8_bits, "Dseq_8 is sized for 16 channels");
 constexpr unsigned int cdepth {4};
 static_assert(cdepth == depth_slots, "a block covers exactly one packed byte");
-constexpr uint8_t n_bits {8};
-
-// backtrack.hpp: template specialization (8 bits)
-template <>
-constexpr auto compute_mask<n_bits>(uint64_t const channel,
-                                    unsigned int const offset) -> uint64_t {
-  return (1ULL << (channel + offset));
-}
+constexpr uint8_t n_bits {bits8};  // backtrack.hpp
 
 // refactoring: objdump shows this function is not inlined
 //
