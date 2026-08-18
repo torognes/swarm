@@ -169,10 +169,22 @@ struct Bloom_geometry
 constexpr unsigned int amplicon_pattern_shift {10};
 constexpr unsigned int amplicon_n_hash_functions {8};
 
+/* Bloom filter shape used for bloom_f, the fastidious filter holding the
+   microvariants of the light clusters. Its k is not here: it comes from
+   the --bloom-bits memory budget (see compute_bloom_geometry). */
+constexpr unsigned int fastidious_pattern_shift {16};
+
+/* The two filters as distinct types, so that the six functions below and
+   in algod1_fastidious.cpp taking both of them cannot be handed the pair
+   the wrong way round. See utils/bloom.hpp on why the shift is a template
+   argument. */
+using Amplicon_bloom = BloomFilter<amplicon_pattern_shift>;
+using Fastidious_bloom = BloomFilter<fastidious_pattern_shift>;
+
 
 inline auto hash_insert(Data const & data,
                         Hashtable & hash_table,
-                        BloomFilter & bloom_a,
+                        Amplicon_bloom & bloom_a,
                         unsigned int const amp) -> void {
   /* find the first empty bucket */
   auto const hash = data.sequence_hash(amp);

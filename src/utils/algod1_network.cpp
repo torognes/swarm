@@ -45,7 +45,7 @@ namespace {
   inline auto find_variant_matches(struct Parameters const & parameters,
                                    Data const & data,
                                    Hashtable const & hash_table,
-                                   BloomFilter const & bloom_a,
+                                   Amplicon_bloom const & bloom_a,
                                    unsigned int const seed,
                                    struct var_s const & var,
                                    std::vector<unsigned int>& hits_data,
@@ -91,7 +91,7 @@ namespace {
   auto check_variants(struct Parameters const & parameters,
                       Data const & data,
                       Hashtable const & hash_table,
-                      BloomFilter const & bloom_a,
+                      Amplicon_bloom const & bloom_a,
                       unsigned int const seed,
                       std::vector<struct var_s> & variant_list,
                       std::vector<unsigned int>& hits_data) -> unsigned int
@@ -114,7 +114,7 @@ namespace {
                       Data const & data,
                       std::vector<struct ampinfo_s> & ampinfo_v,
                       Hashtable const & hash_table,
-                      BloomFilter const & bloom_a,
+                      Amplicon_bloom const & bloom_a,
                       struct Network_state & state,
                       Progress & progress) -> void
   {
@@ -169,8 +169,7 @@ auto build_amplicon_network(struct Parameters const & parameters,
   auto const amplicons = data.sequence_count();
   Hashtable hash_table;
   auto const hashtablesize = hash_table.allocate(amplicons);
-  BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
-                      amplicon_n_hash_functions);
+  Amplicon_bloom bloom_a(hashtablesize, amplicon_n_hash_functions);
 
   Progress progress_hash("Building hashtable:", amplicons, parameters);
 

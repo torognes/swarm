@@ -250,7 +250,7 @@ namespace {
   inline auto check_heavy_var_2(Data const & data,
                                 std::vector<struct ampinfo_s> & ampinfo_v,
                                 Hashtable const & hash_table,
-                                BloomFilter const & bloom_a,
+                                Amplicon_bloom const & bloom_a,
                                 Sequence const & seq,
                                 unsigned int const seed,
                                 std::vector<struct var_s>& variant_list,
@@ -281,8 +281,8 @@ namespace {
   auto check_heavy_var(Data const & data,
                        std::vector<struct ampinfo_s> & ampinfo_v,
                        Hashtable const & hash_table,
-                       BloomFilter const & bloom_a,
-                       BloomFilter const & bloom_f,
+                       Amplicon_bloom const & bloom_a,
+                       Fastidious_bloom const & bloom_f,
                        std::vector<uint64_t>& varseq,
                        unsigned int const seed,
                        uint64_t & number_of_matches,
@@ -342,8 +342,8 @@ namespace {
                           std::vector<struct ampinfo_s> & ampinfo_v,
                           std::vector<struct swarminfo_s> const & swarminfo_v,
                           Hashtable const & hash_table,
-                          BloomFilter const & bloom_a,
-                          BloomFilter const & bloom_f,
+                          Amplicon_bloom const & bloom_a,
+                          Fastidious_bloom const & bloom_f,
                           struct Heavy_state & heavy_state,
                           struct Graft_state & graft_state,
                           Progress & progress) -> void
@@ -385,8 +385,8 @@ namespace {
 
   auto mark_light_var(Data const & data,
                       Hashtable & hash_table,
-                      BloomFilter & bloom_a,
-                      BloomFilter & bloom_f,
+                      Amplicon_bloom & bloom_a,
+                      Fastidious_bloom & bloom_f,
                       unsigned int const seed,
                       std::vector<struct var_s>& variant_list) -> uint64_t
   {
@@ -417,8 +417,8 @@ namespace {
                          std::vector<struct ampinfo_s> const & ampinfo_v,
                          std::vector<struct swarminfo_s> const & swarminfo_v,
                          Hashtable & hash_table,
-                         BloomFilter & bloom_a,
-                         BloomFilter & bloom_f,
+                         Amplicon_bloom & bloom_a,
+                         Fastidious_bloom & bloom_f,
                          struct Light_state & state,
                          Progress & progress) -> void
   {
@@ -463,8 +463,8 @@ namespace {
                       std::vector<struct ampinfo_s> const & ampinfo_v,
                       std::vector<struct swarminfo_s> const & swarminfo_v,
                       Hashtable & hash_table,
-                      BloomFilter & bloom_a,
-                      BloomFilter & bloom_f,
+                      Amplicon_bloom & bloom_a,
+                      Fastidious_bloom & bloom_f,
                       uint64_t const amplicons_in_small_clusters) -> void
   {
     Progress progress_light("Adding light swarm amplicons to Bloom filter",
@@ -497,8 +497,8 @@ namespace {
                       std::vector<struct ampinfo_s> & ampinfo_v,
                       std::vector<struct swarminfo_s> const & swarminfo_v,
                       Hashtable const & hash_table,
-                      BloomFilter const & bloom_a,
-                      BloomFilter const & bloom_f,
+                      Amplicon_bloom const & bloom_a,
+                      Fastidious_bloom const & bloom_f,
                       uint64_t const amplicons_in_large_clusters,
                       struct Graft_state & graft_state) -> void
   {
@@ -583,9 +583,7 @@ auto run_fastidious_pass(struct Parameters const & parameters,
   else
     {
       auto const bloom_geom = compute_bloom_geometry(parameters, nucleotides_in_small_clusters);
-      static constexpr unsigned int fastidious_pattern_shift {16};
-      BloomFilter bloom_f(bloom_geom.n_bytes, fastidious_pattern_shift,
-                          bloom_geom.n_hash_functions);
+      Fastidious_bloom bloom_f(bloom_geom.n_bytes, bloom_geom.n_hash_functions);
 
 
       /* Allocate a fresh per-amplicon hash table and Bloom filter
@@ -593,8 +591,7 @@ auto run_fastidious_pass(struct Parameters const & parameters,
          be inserted. */
       Hashtable hash_table;
       auto const hashtablesize = hash_table.allocate(amplicons);
-      BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
-                          amplicon_n_hash_functions);
+      Amplicon_bloom bloom_a(hashtablesize, amplicon_n_hash_functions);
 
       run_light_pass(parameters, data, ampinfo_v, swarminfo_v, hash_table, bloom_a, bloom_f, amplicons_in_small_clusters);
 
