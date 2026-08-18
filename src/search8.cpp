@@ -510,7 +510,8 @@ struct Mask_vectors {
 // The masking step, selected by the type of the kernel's mask argument
 // (see utils/mask_vectors.hpp). The No_mask overload is empty, so the
 // regular kernel's loop body contains nothing at this point.
-inline auto apply_mask(VECTORTYPE &, VECTORTYPE &, No_mask const &) -> void
+inline auto apply_mask(VECTORTYPE & /*h4*/, VECTORTYPE & /*E*/,
+                       No_mask const & /*masks*/) -> void
 {
 }
 
