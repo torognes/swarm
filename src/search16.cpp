@@ -65,7 +65,7 @@ using VECTORTYPE = __m128i;
 #include <altivec.h>
 #include "arch/ppc/intrinsics_to_functions.hpp"
 #include "arch/ppc/search_dispatch.hpp"
-using VECTORTYPE = vector unsigned short;
+using VECTORTYPE = __vector unsigned short;
 
 #else
 

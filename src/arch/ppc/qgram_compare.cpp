@@ -32,6 +32,11 @@
 #include "../../utils/qgram_array.hpp"   // qgramvectorbytes
 #include <cstdint>  // uint64_t
 
+// same aliases as intrinsics_to_functions.cpp; '__vector' is the
+// standards-mode spelling of the AltiVec 'vector' keyword
+using v_u8_t = __vector unsigned char;
+using v_u64_t = __vector unsigned long long;
+
 
 // C++20 refactoring: replace with a portable loop using std::popcount; on
 // ppc64le the compiler emits vpopcntd for tight XOR + popcount loops.
@@ -39,19 +44,22 @@ auto compareqgramvectors(Qgram_vector const & lhs, Qgram_vector const & rhs,
                          Cpu_features const & cpu_features) -> uint64_t
 {
   static_cast<void>(cpu_features);  // unused: AltiVec vpopcnt is always available on Power8+
-  static_assert(qgramvectorbytes % sizeof(vector unsigned char) == 0,
+  // false positive: cppcheck does not know the 16-byte __vector types and
+  // evaluates sizeof(v_u8_t) as sizeof(unsigned char)
+  // cppcheck-suppress moduloofone
+  static_assert(qgramvectorbytes % sizeof(v_u8_t) == 0,
                 "qgram vector must be a whole number of 128-bit words");
-  static_assert(alignof(Qgram_vector) >= alignof(vector unsigned char),
+  static_assert(alignof(Qgram_vector) >= alignof(v_u8_t),
                 "qgram vector must be aligned for the loads below");
-  static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(vector unsigned char);  // 8
+  static constexpr auto n_vector_lengths = qgramvectorbytes / sizeof(v_u8_t);  // 8
   // cast from &lhs, not lhs.data(): data() hands back unsigned char const *,
   // which drops the alignas(16) these aligned loads rely on
-  auto const * lhs_ptr = reinterpret_cast<vector unsigned char const *>(&lhs);
-  auto const * rhs_ptr = reinterpret_cast<vector unsigned char const *>(&rhs);
-  vector unsigned long long count_vector = { 0, 0 };
+  auto const * lhs_ptr = reinterpret_cast<v_u8_t const *>(&lhs);
+  auto const * rhs_ptr = reinterpret_cast<v_u8_t const *>(&rhs);
+  v_u64_t count_vector = { 0, 0 };
 
   for (auto i = 0ULL; i < n_vector_lengths; ++i) {
-    count_vector += vec_vpopcnt(reinterpret_cast<vector unsigned long long>(vec_xor(*lhs_ptr, *rhs_ptr)));
+    count_vector += vec_vpopcnt(reinterpret_cast<v_u64_t>(vec_xor(*lhs_ptr, *rhs_ptr)));
     ++lhs_ptr;
     ++rhs_ptr;
   }

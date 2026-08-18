@@ -37,8 +37,8 @@
 // stay architecture-agnostic. Mirrors the scheme used for
 // compareqgramvectors (see utils/qgram_compare.hpp).
 
-using VECTORTYPE16 = vector unsigned short;
-using VECTORTYPE8 = vector unsigned char;
+using VECTORTYPE16 = __vector unsigned short;
+using VECTORTYPE8 = __vector unsigned char;
 
 
 // Initial diagonal mask: highest channel set, all others zero.
