@@ -28,6 +28,7 @@
 #include "utils/view.hpp"  // View, make_view
 #include "utils/gcd.hpp"
 #include "utils/open_files.hpp"
+#include "utils/search_data.hpp"  // score_ceiling_16
 #include "arch/x86_64/cpu_features.hpp"
 #include <algorithm>  // std::min(), std::transform()
 #include <array>
@@ -769,16 +770,15 @@ namespace {
 
   auto check_scoring_saturation(struct Parameters const & parameters) -> void {
     static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-    static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
-    // A saturated 16-bit lane sticks at exactly uint16_max, making a
-    // genuine score of uint16_max indistinguishable from an overflow
-    // (see save_score_16); cap the worst-case score at uint16_max - 1.
-    static constexpr auto max_reliable_score_16 = uint16_max - 1;
+    // A saturated 16-bit lane sticks at exactly score_ceiling_16, making a
+    // genuine score of score_ceiling_16 indistinguishable from an overflow
+    // (see save_score_16); cap the worst-case score at score_ceiling_16 - 1.
+    static constexpr auto max_reliable_score_16 = score_ceiling_16 - 1;
     int64_t const diff_saturation_16 = std::min((max_reliable_score_16 / parameters.penalty_mismatch),
                                                 (max_reliable_score_16 - parameters.penalty_gapopen)
                                                 / parameters.penalty_gapextend);
 
-    // diff_saturation_16 may be negative (its uint16_max - penalty_gapopen
+    // diff_saturation_16 may be negative (its score_ceiling_16 - penalty_gapopen
     // term underflows for large gap penalties), which means the scoring
     // system is already saturated; compare as signed so opt_differences
     // (0..255) correctly exceeds any negative saturation value.

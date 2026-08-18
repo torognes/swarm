@@ -29,6 +29,7 @@
 #include "utils/qgram.hpp"
 #include "utils/nw_aligner.hpp"
 #include "utils/scanner.hpp"
+#include "utils/search_data.hpp"  // score_ceiling_8
 #include "utils/memory_budget.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/print_view.hpp"  // fprint, fprint_integer
@@ -57,12 +58,11 @@ namespace {
 
 
   auto set_bit_mode(struct Parameters const & parameters) -> Bit_mode {
-    static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-    // A lane that saturates sticks at exactly uint8_max, so a genuine
-    // score of uint8_max would be indistinguishable from an overflow
-    // (see save_score_8). Cap the worst-case score at uint8_max - 1 so
-    // that a score of uint8_max can only ever mean "saturated".
-    static constexpr auto max_reliable_score = uint8_max - 1;
+    // A lane that saturates sticks at exactly score_ceiling_8, so a genuine
+    // score of score_ceiling_8 would be indistinguishable from an overflow
+    // (see save_score_8). Cap the worst-case score at score_ceiling_8 - 1 so
+    // that a score of score_ceiling_8 can only ever mean "saturated".
+    static constexpr auto max_reliable_score = score_ceiling_8 - 1;
 
 #ifdef __aarch64__
 #if !defined(DEBUG) && !defined(COVERAGE)

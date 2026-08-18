@@ -30,6 +30,7 @@
 #include <array>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint16_t, uint64_t
+#include <limits>  // std::numeric_limits
 #include <vector>
 
 
@@ -42,6 +43,22 @@
 // pointers -- and uint8_t is not even guaranteed to exist.
 using BYTE = unsigned char;
 using WORD = uint16_t;
+
+// The value a saturating lane sticks at, one per search width.
+//
+// A lane that overflows stops at exactly this value, so a genuine score
+// equal to it cannot be told apart from an overflow. save_score_8 and
+// save_score_16 resolve that by reading the ceiling as "saturated" and
+// reporting it as the difference count, which no legal -d accepts; in
+// exchange set_bit_mode() and check_scoring_saturation() have to keep the
+// worst-case score a step below the ceiling, so that reaching it can only
+// ever mean overflow.
+//
+// Both halves of that contract name one constant here rather than each
+// spelling std::numeric_limits out for itself: the kernels that produce
+// the ceiling and the checks that must stay under it are the same fact.
+constexpr auto score_ceiling_8 = std::numeric_limits<BYTE>::max();
+constexpr auto score_ceiling_16 = std::numeric_limits<WORD>::max();
 
 // alignas: both kernels hand hearray_v to their inner loop as a
 // VECTORTYPE * and read it with aligned loads (__m128i on x86_64,

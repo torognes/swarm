@@ -24,7 +24,7 @@
 #include "search16.hpp"
 #include "db.hpp"
 #include "utils/backtrack.hpp"
-#include "utils/search_data.hpp"  // Search_data, WORD (pulls in Cpu_features)
+#include "utils/search_data.hpp"  // Search_data, WORD, score_ceiling_16 (pulls in Cpu_features)
 #include "utils/dseq_fill.hpp"
 #include "utils/mask_vectors.hpp"  // No_mask, Mask_vectors
 #include "utils/span.hpp"  // Span<uint64_t>
@@ -32,7 +32,7 @@
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
-#include <cstdint>  // int64_t, uint16_t, uint64_t, uint8_t
+#include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <cstring>  // std::memcpy
 #include <iterator> // std::next
 #include <limits>
@@ -415,8 +415,6 @@ auto save_score_16(int64_t const cand_id,
                           Span<uint64_t> const diffs,
                           uint64_t & done) -> void
 {
-  static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
-
   // save score
 
   auto const & dbseq = d_sequence[channel];
@@ -431,7 +429,7 @@ auto save_score_16(int64_t const cand_id,
 
   uint64_t diff {0};
 
-  if (score < uint16_max)
+  if (score < score_ceiling_16)
     {
       uint64_t const offset = d_offset[channel];
       diff = backtrack<n_bits>(query, dbseq,
@@ -442,7 +440,7 @@ auto save_score_16(int64_t const cand_id,
     }
   else
     {
-      diff = uint16_max;
+      diff = score_ceiling_16;
     }
 
   diffs[candidate] = diff;
