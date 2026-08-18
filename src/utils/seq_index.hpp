@@ -29,8 +29,12 @@
 #include <cstdint>  // uint64_t
 
 
-// (offset, length) pair into a flat byte buffer; used to locate
-// headers and packed sequences inside the database byte vector.
+// (offset, length) pair into a flat buffer; used to locate headers
+// and packed sequences inside the two database vectors. The unit is
+// the buffer's element: for a header, offset counts bytes into the
+// header vector and length is the byte count; for a sequence, offset
+// counts 64-bit words into the packed-sequence vector and length is
+// the nucleotide count.
 struct Index {
   uint64_t offset {0};
   std::size_t length {0};
@@ -38,7 +42,7 @@ struct Index {
 
 
 // One fasta record as captured during parsing: source line number
-// plus header and sequence locations in the database byte vector.
+// plus header and sequence locations in the database vectors.
 struct Entry {
   unsigned int lineno {1U};
   struct Index header;

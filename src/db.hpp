@@ -43,6 +43,8 @@ struct Parameters;  // defined in swarm.hpp
 // - encoded views the storage bytes, with encoded.size() ==
 //   nt_bytelength(length) (4 nt per byte, rounded up to a whole
 //   number of 64-bit words)
+// The storage is a vector of 64-bit words, so encoded.data() is
+// 8-byte aligned and each sequence starts on a word boundary.
 // Word-wide consumers read encoded 64 bits at a time through
 // std::memcpy -- see packed_word() in variants.cpp -- which the
 // rounding above keeps in bounds; iterating encoded directly walks
@@ -84,7 +86,8 @@ public:
   auto abundance(uint64_t seqno)       const -> uint64_t;
 
 private:
-  std::vector<char>             data_;
+  std::vector<char>             data_header_;    // '\0'-terminated headers
+  std::vector<uint64_t>         data_sequence_;  // packed sequences, whole 64-bit words
   std::vector<struct seqinfo_s> seqindex_;
   std::unique_ptr<Zobrist>      zobrist_p_;  // deferred: needs longest_sequence
   unsigned int                  longest_ {0};

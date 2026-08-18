@@ -49,7 +49,6 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, fileno // stdio.h: fdopen, ssize_t, getline
 #include <cstdlib>  // std::strtoll()
-#include <cstring>  // memcpy
 #include <functional>  // std::reference_wrapper
 #include <iterator>  // std::next()
 #include <limits>
@@ -220,44 +219,62 @@ namespace {
   }
 
 
-  auto initial_allocation(std::vector<char> & data_v, uint64_t const filesize) -> void {
-    auto const minimal_reserve = filesize >> 2U;  // 1/4 of filesize
-    if (minimal_reserve > memchunk) {
+  // Both database vectors follow the same growth plan, so the two
+  // helpers below are templates: sizes and offsets count elements of
+  // the vector -- bytes for the header vector, 64-bit words for the
+  // packed-sequence vector -- and the memchunk growth step is a byte
+  // budget, converted to whole elements.
+  template <typename element>
+  auto initial_allocation(std::vector<element> & data_v, uint64_t const filesize) -> void {
+    static constexpr uint64_t chunk_elements {memchunk / sizeof(element)};
+    auto const minimal_reserve = (filesize >> 2U) / sizeof(element);  // 1/4 of filesize
+    if (minimal_reserve > chunk_elements) {
       // in-RAM data cannot be smaller than 1/4 of the on-disk data
       data_v.reserve(minimal_reserve);
     }
-    data_v.resize(memchunk);
+    data_v.resize(chunk_elements);
   }
 
 
-  auto linear_resize_if_need_be(std::vector<char> & data_v, uint64_t const minimal_size) -> void {
+  template <typename element>
+  auto linear_resize_if_need_be(std::vector<element> & data_v, uint64_t const minimal_size) -> void {
+    static constexpr uint64_t chunk_elements {memchunk / sizeof(element)};
     auto const current_size = data_v.size();
     if (current_size > minimal_size) { return; }
     auto new_size = current_size;
     while (minimal_size > new_size) {
-      assert(new_size <= std::numeric_limits<uint64_t>::max() - memchunk);
-      new_size += memchunk;
+      assert(new_size <= std::numeric_limits<uint64_t>::max() - chunk_elements);
+      new_size += chunk_elements;
     }
     data_v.resize(new_size);
   }
 
 
-  // The database byte buffer while parsing: the storage, plus how much of
-  // it is in use. The vector's own size() is not that number -- it is the
+  // A database buffer while parsing: the storage, plus how much of it
+  // is in use. The vector's own size() is not that number -- it is the
   // allocated length, grown in memchunk steps -- so the two had to travel
   // together, as a (data_v, datalen) argument pair through eight parsing
   // helpers, each writing through &data_v[datalen] after its own growth
   // call. Growth, the used length and the writes live here instead.
   //
+  // A template because the database is two such buffers with different
+  // element types: the '\0'-terminated headers in a byte vector
+  // (Sink<char>) and the packed sequences in a 64-bit word vector
+  // (Sink<uint64_t>). size() and the offsets derived from it count
+  // elements, not bytes. Only the members a specialization uses are
+  // instantiated, so the word sink compiles without append()'s
+  // View<uint64_t> ever existing.
+  //
   // Holds a reference rather than owning the vector: the caller keeps the
   // storage, because build_index() later takes raw pointers into it.
-  class Byte_sink {
+  template <typename element>
+  class Sink {
   public:
-    explicit Byte_sink(std::vector<char> & storage) noexcept
+    explicit Sink(std::vector<element> & storage) noexcept
       : storage_ (storage) {
     }
 
-    // Bytes written so far, and the offset the next append will land on.
+    // Elements written so far, and the offset the next append will land on.
     auto size() const noexcept -> uint64_t { return used_; }
 
     // The in-RAM form cannot be smaller than a quarter of the on-disk
@@ -266,24 +283,17 @@ namespace {
       initial_allocation(storage(), filesize);
     }
 
-    auto append(View<char> const bytes) -> void {
-      linear_resize_if_need_be(storage(), used_ + bytes.size());
-      std::copy_n(bytes.cbegin(), bytes.size(),
+    auto append(View<element> const values) -> void {
+      linear_resize_if_need_be(storage(), used_ + values.size());
+      std::copy_n(values.cbegin(), values.size(),
                   std::next(storage().begin(), static_cast<std::ptrdiff_t>(used_)));
-      used_ += bytes.size();
+      used_ += values.size();
     }
 
-    auto append_byte(char const value) -> void {
+    auto append_element(element const value) -> void {
       linear_resize_if_need_be(storage(), used_ + 1);
       storage()[used_] = value;
       ++used_;
-    }
-
-    // One packed 64-bit word, copied rather than punned: see Nt_packer.
-    auto append_word(uint64_t const value) -> void {
-      linear_resize_if_need_be(storage(), used_ + sizeof(value));
-      std::memcpy(&storage()[used_], &value, sizeof(value));
-      used_ += sizeof(value);
     }
 
     // Reclaim the slack the growth steps left, before anything takes raw
@@ -296,24 +306,27 @@ namespace {
     }
 
   private:
-    // A reference_wrapper rather than a plain 'std::vector<char> &': a
-    // reference member would delete the assignment operator, which is what
+    // A reference_wrapper rather than a plain reference: a reference
+    // member would delete the assignment operator, which is what
     // cppcoreguidelines-avoid-const-or-ref-data-members reports. The borrow
     // documented above is unchanged -- the caller still owns the storage --
     // and storage() hands the vector back so the members read as before.
-    std::reference_wrapper<std::vector<char>> storage_;
+    std::reference_wrapper<std::vector<element>> storage_;
     uint64_t used_ {0};
 
-    auto storage() noexcept -> std::vector<char> & { return storage_; }
+    auto storage() noexcept -> std::vector<element> & { return storage_; }
   };
 
 
   // Pack 4 nucleotides per byte into a 64-bit accumulator and flush
-  // it to data_v as a fixed-size memcpy whenever it fills up. A final
-  // flush() at end-of-sequence writes the partially-filled buffer
-  // padded with zeros (so the on-disk layout is unchanged).
+  // it to the word sink as one element whenever it fills up (the sink's
+  // element type is the accumulator's, so this is a plain store, with
+  // no memcpy or punning involved). A final flush() at end-of-sequence
+  // writes the partially-filled buffer padded with zeros (so each
+  // sequence occupies a whole number of words and the byte-level
+  // layout of a sequence is unchanged).
   struct Nt_packer {
-    auto push(uint64_t const nucleotide_code, Byte_sink & sink) -> void
+    auto push(uint64_t const nucleotide_code, Sink<uint64_t> & sink) -> void
     {
       buffer |= nucleotide_code << (2 * filled);
       ++filled;
@@ -321,7 +334,7 @@ namespace {
     }
 
     // flush the partially-filled buffer at end-of-sequence, if any
-    auto finalize(Byte_sink & sink) -> void
+    auto finalize(Sink<uint64_t> & sink) -> void
     {
       if (filled > 0) { flush(sink); }
     }
@@ -331,9 +344,9 @@ namespace {
     unsigned int filled {0};
     static constexpr unsigned int capacity {4 * sizeof(buffer)};  // 32 bases per uint64
 
-    auto flush(Byte_sink & sink) -> void
+    auto flush(Sink<uint64_t> & sink) -> void
     {
-      sink.append_word(buffer);
+      sink.append_element(buffer);
       buffer = 0;
       filled = 0;
     }
@@ -341,12 +354,12 @@ namespace {
 
 
   // Validate the '>' header line, copy the header bytes (everything
-  // after '>' up to the first space, CR or LF) into data_v, and fill
-  // entry.header. Updates seq_stats.longestheader and aborts when
-  // max_header_length is exceeded.
+  // after '>' up to the first space, CR or LF) into the header vector,
+  // and fill entry.header. Updates seq_stats.longestheader and aborts
+  // when max_header_length is exceeded.
   auto store_header(Line_buffer const & line_buf,
                     struct Entry & entry,
-                    Byte_sink & sink,
+                    Sink<char> & sink,
                     struct Seq_stats & seq_stats) -> void
   {
     if (line_buf.peek_first() != '>') {
@@ -376,19 +389,19 @@ namespace {
     entry.header.offset = sink.size();
     entry.header.length = headerlen;  // '>' removed, so header is one byte shorter
     sink.append(header_line.first(headerlen));
-    sink.append_byte('\0');
+    sink.append_element('\0');
   }
 
 
   // Read sequence lines starting at line_buf (already loaded with the
   // first line after a header) until the next header or end of input.
-  // Pack nucleotides into data_v via Nt_packer, validate characters,
-  // enforce max_sequence_length, and write entry.sequence + the
-  // running counters in seq_stats. Stops with line_buf holding the
-  // line that broke the loop ('>' or '\0').
+  // Pack nucleotides into the word vector via Nt_packer, validate
+  // characters, enforce max_sequence_length, and write entry.sequence
+  // + the running counters in seq_stats. Stops with line_buf holding
+  // the line that broke the loop ('>' or '\0').
   auto parse_sequence_body(Line_buffer & line_buf, std::FILE * const stream,
                            std::array<Nt_class, n_chars> const & classify,
-                           Byte_sink & sink,
+                           Sink<uint64_t> & sink,
                            uint64_t & filepos, unsigned int & lineno,
                            struct Entry & entry,
                            struct Seq_stats & seq_stats) -> void
@@ -528,8 +541,8 @@ namespace {
     match.end   = match.start + 1 + static_cast<int>(n_digits);
 
     // strtoll still requires null-termination at the end of the digit run;
-    // header_view points into Data::data_, where each header is followed
-    // by a '\0' byte written at parse time.
+    // header_view points into Data::data_header_, where each header is
+    // followed by a '\0' byte written at parse time.
     // The digit run has no length cap (leading zeros make long runs with
     // small values legitimate); flag values that overflow so the caller
     // reports them as too large rather than as a missing annotation.
@@ -598,7 +611,7 @@ namespace {
 
             // strtoll still requires null-termination at the end of the
             // digit run; the digit run is always followed by either ';'
-            // or the '\0' at the end of the header in Data::data_.
+            // or the '\0' at the end of the header in Data::data_header_.
             // Flag values that overflow int64_t so the caller reports
             // them as too large rather than as a missing annotation.
             auto const status = parse_abundance_digits(digits_begin, digits_end, result.number);
@@ -739,14 +752,16 @@ namespace {
 
 
   auto parse_fasta(struct Parameters const & parameters,
-                   std::vector<char> & data_v) -> struct Parse_result {
+                   std::vector<char> & header_v,
+                   std::vector<uint64_t> & sequence_v) -> struct Parse_result {
     static constexpr unsigned int linealloc {2048};
 
     auto const classify = make_nt_classifier();
     struct Parse_result result;
     auto & seq_stats = result.stats;
     auto & entries = result.entries;
-    Byte_sink sink {data_v};
+    Sink<char> header_sink {header_v};
+    Sink<uint64_t> sequence_sink {sequence_v};
 
     /* open input file or stream */
 
@@ -763,7 +778,8 @@ namespace {
     warn_if_file_is_not_regular(parameters, file_info.is_regular);
 
     /* allocate space */
-    sink.reserve_for_file(file_info.filesize);
+    header_sink.reserve_for_file(file_info.filesize);
+    sequence_sink.reserve_for_file(file_info.filesize);
 
     uint64_t filepos = 0;
 
@@ -783,7 +799,7 @@ namespace {
         struct Entry entry;
         entry.lineno = lineno;
 
-        store_header(line_buf, entry, sink, seq_stats);
+        store_header(line_buf, entry, header_sink, seq_stats);
 
         /* get next line */
 
@@ -795,7 +811,7 @@ namespace {
         /* read and store sequence */
 
         parse_sequence_body(line_buf, input_fp_handle.get(), classify,
-                            sink, filepos, lineno,
+                            sequence_sink, filepos, lineno,
                             entry, seq_stats);
 
         ++seq_stats.n_sequences;
@@ -807,11 +823,12 @@ namespace {
       }
     progress.done();
 
-    // data_v was grown with std::vector::resize, which doubles capacity
-    // on reallocation, so it can hold up to ~2x the bytes really used.
-    // Reclaim that slack now: before build_index takes raw pointers into
-    // data_v, and before the memory-heavy clustering phase.
-    sink.shrink_to_used();
+    // Both vectors were grown with std::vector::resize, which doubles
+    // capacity on reallocation, so each can hold up to ~2x the elements
+    // really used. Reclaim that slack now: before build_index takes raw
+    // pointers into them, and before the memory-heavy clustering phase.
+    header_sink.shrink_to_used();
+    sequence_sink.shrink_to_used();
 
     // Line_buffer is destroyed on return; indexing/hashing in
     // build_index can use the released memory
@@ -821,13 +838,24 @@ namespace {
 
   // Populate header_view and the (seq, seqlen) pointer pair from a
   // parsed Entry into its destination seqinfo slot.
+  //
+  // The reinterpret_cast is the one place where the packed words are
+  // rebound to the byte view every consumer works on. Reading uint64_t
+  // objects through a char pointer is one of the accesses the aliasing
+  // rules always allow (the reverse direction is the undefined one),
+  // and the byte order seen is the words' object representation --
+  // exactly what the old byte buffer held, where each word arrived via
+  // std::memcpy of the same accumulator.
   auto populate_views_from_entry(struct seqinfo_s & a_sequence,
                                  struct Entry const & entry,
-                                 std::vector<char> const & data_v) -> void {
-    a_sequence.header_view = make_view(data_v)
+                                 std::vector<char> const & header_v,
+                                 std::vector<uint64_t> const & sequence_v) -> void {
+    a_sequence.header_view = make_view(header_v)
       .subview(static_cast<std::size_t>(entry.header.offset), entry.header.length);
     a_sequence.seqlen = static_cast<unsigned int>(entry.sequence.length);
-    a_sequence.seq    = &data_v[entry.sequence.offset];
+    a_sequence.seq    = reinterpret_cast<char const *>(
+      std::next(sequence_v.data(),
+                static_cast<std::ptrdiff_t>(entry.sequence.offset)));
   }
 
 
@@ -920,14 +948,15 @@ namespace {
   // extracts the abundance annotation. Empty identifiers are caught
   // later, in detect_duplicate_identifiers().
   auto index_headers(struct Parameters const & parameters,
-                     std::vector<char> const & data_v,
+                     std::vector<char> const & header_v,
+                     std::vector<uint64_t> const & sequence_v,
                      std::vector<struct Entry> const & entries,
                      struct Seq_stats & seq_stats,
                      std::vector<struct seqinfo_s> & seqindex_v) -> void {
     Progress progress_hdr("Indexing headers:  ", seq_stats.n_sequences, parameters);
     auto entry_it = entries.cbegin();
     for (auto & a_sequence: seqindex_v) {
-        populate_views_from_entry(a_sequence, *entry_it, data_v);
+        populate_views_from_entry(a_sequence, *entry_it, header_v, sequence_v);
 
         /* get amplicon abundance */
         find_abundance(a_sequence, seq_stats, entry_it->lineno,
@@ -1007,13 +1036,14 @@ namespace {
 
   auto build_index(struct Parameters const & parameters,
                    Zobrist const & zobrist,
-                   std::vector<char> const & data_v,
+                   std::vector<char> const & header_v,
+                   std::vector<uint64_t> const & sequence_v,
                    std::vector<struct Entry> const & entries,
                    struct Seq_stats & seq_stats,
                    std::vector<struct seqinfo_s> & seqindex_v) -> void {
     seqindex_v.resize(seq_stats.n_sequences);
 
-    index_headers(parameters, data_v, entries, seq_stats, seqindex_v);
+    index_headers(parameters, header_v, sequence_v, entries, seq_stats, seqindex_v);
     detect_duplicate_identifiers(seq_stats, seqindex_v, parameters);
     compute_sequence_hashes(zobrist, seq_stats, seqindex_v, parameters);
     if (parameters.opt_differences > 0) {
@@ -1033,7 +1063,7 @@ namespace {
 // ----- class Data -----
 
 Data::Data(struct Parameters const & parameters) {
-  auto parse_result = parse_fasta(parameters, data_);
+  auto parse_result = parse_fasta(parameters, data_header_, data_sequence_);
 
   // Construct the Zobrist tables now that parse_fasta has determined
   // the longest header and sequence. The +2 budgets two insertions
@@ -1043,7 +1073,8 @@ Data::Data(struct Parameters const & parameters) {
   auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
   zobrist_p_.reset(new Zobrist(zobrist_len));
 
-  build_index(parameters, *zobrist_p_, data_, parse_result.entries, parse_result.stats, seqindex_);
+  build_index(parameters, *zobrist_p_, data_header_, data_sequence_,
+              parse_result.entries, parse_result.stats, seqindex_);
 }
 
 
