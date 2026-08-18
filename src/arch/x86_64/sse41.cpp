@@ -57,36 +57,17 @@ using WORD = uint16_t;
 
 namespace {
 
-// refactoring: v_min16 exists and is more complicated
-auto v_min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE {
-  return _mm_min_epu16(lhs, rhs);
-}
+// The SSE4.1 unsigned 16-bit minimum: one PMINUW, where the baseline
+// v_min16 has to emulate it. This is the whole of what distinguishes this
+// translation unit's kernel from search16.cpp's -- see
+// utils/align_cells_16.hpp.
+struct Min_sse41 {
+  static auto min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE {
+    return _mm_min_epu16(lhs, rhs);
+  }
+};
 
 
-inline auto onestep_16_sse41(VECTORTYPE & H,
-                             VECTORTYPE & N,
-                             VECTORTYPE & F,
-                             VECTORTYPE const V,
-                             WORD * const DIR,
-                             VECTORTYPE & E,
-                             VECTORTYPE const QR,
-                             VECTORTYPE const R) -> void
-{
-  H = v_add16(H, V);
-  auto const W = H;
-  H = v_min(H, F);
-  DIR[0] = v_mask_eq16(W, H);  // subscript, not std::next: hot loop, see align_cells
-  H = v_min(H, E);
-  DIR[1] = v_mask_eq16(H, E);
-  N = H;
-  H = v_add16(H, QR);
-  F = v_add16(F, R);
-  E = v_add16(E, R);
-  F = v_min(H, F);
-  DIR[2] = v_mask_eq16(H, F);
-  E = v_min(H, E);
-  DIR[3] = v_mask_eq16(H, E);
-}
 
 
 // The masking payload: 'mask' selects the channels whose sequence just
@@ -127,88 +108,11 @@ inline auto apply_mask(VECTORTYPE & h4, VECTORTYPE & E,
 }
 
 
-// One block of cells, shared by the regular and masked kernels. The
-// masked variant differs only by a per-iteration adjustment of h4 and E;
-// which flavour this is comes from the type of 'masks', so the regular
-// instantiation drops that adjustment entirely and is handed no masking
-// data at all (see utils/mask_vectors.hpp).
-template <typename Masks>
-auto align_cells_16_sse41(VECTORTYPE * const Sm,
-                          VECTORTYPE * const hep,
-                          VECTORTYPE ** const qp,
-                          VECTORTYPE const & Qm,
-                          VECTORTYPE const & Rm,
-                          uint64_t const ql,
-                          VECTORTYPE const & F0,
-                          uint64_t * const dir_long,
-                          VECTORTYPE const & H0,
-                          Masks & masks) -> void
-{
-  static constexpr auto step = 16;
-  static constexpr auto offset0 = 0;
-  static constexpr auto offset1 = offset0 + 4;
-  static constexpr auto offset2 = offset1 + 4;
-  static constexpr auto offset3 = offset2 + 4;
+// Last, inside this anonymous namespace: see the note at the same point in
+// search16.cpp, and utils/align_cells_16.hpp.
+#include "../../utils/align_cells_16.hpp"
 
-  VECTORTYPE E;
-  VECTORTYPE h4;
 
-  auto * const dir = reinterpret_cast<WORD *>(dir_long);
-
-  auto const Q = Qm;
-  auto const R = Rm;
-
-  auto f0 = F0;
-  auto f1 = v_add16(f0, R);
-  auto f2 = v_add16(f1, R);
-  auto f3 = v_add16(f2, R);
-
-  auto h0 = H0;
-  auto h1 = v_sub16(f0, Q);
-  auto h2 = v_add16(h1, R);
-  auto h3 = v_add16(h2, R);
-
-  auto h5 = v_zero16();
-  auto h6 = v_zero16();
-  auto h7 = v_zero16();
-  auto h8 = v_zero16();
-
-  assert(ql <= max_ptrdiff);
-  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
-  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
-  auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  // Performance: subscript / &dir[...] rather than std::next() in this hot
-  // loop. The std::next() form (commit 8c6925f, taken for
-  // cppcoreguidelines-pro-bounds-pointer-arithmetic) pessimized the SSE4.1
-  // kernel by ~20 % on d > 1 18SV9; all three copies of this loop are
-  // written the same way so that they cannot drift. Stays clang-tidy clean
-  // anyway: pos is signed, so no -Wsign-conversion, and operator[] is not
-  // pointer arithmetic.
-  for (auto pos = 0LL; pos < ql_signed; ++pos)
-    {
-      VECTORTYPE const * const x = qp[pos];
-      h4 = hep[(2 * pos) + 0];
-      E  = hep[(2 * pos) + 1];
-
-      apply_mask(h4, E, masks);
-
-      onestep_16_sse41(h0, h5, f0, x[0], &dir[(step * pos) + offset0], E, Q, R);
-      onestep_16_sse41(h1, h6, f1, x[1], &dir[(step * pos) + offset1], E, Q, R);
-      onestep_16_sse41(h2, h7, f2, x[2], &dir[(step * pos) + offset2], E, Q, R);
-      onestep_16_sse41(h3, h8, f3, x[3], &dir[(step * pos) + offset3], E, Q, R);
-      hep[(2 * pos) + 0] = h8;
-      hep[(2 * pos) + 1] = E;
-      h0 = h4;
-      h1 = h5;
-      h2 = h6;
-      h3 = h7;
-    }
-
-  Sm[0] = h5;
-  Sm[1] = h6;
-  Sm[2] = h7;
-  Sm[3] = h8;
-}
 
 }  // namespace
 
@@ -224,7 +128,7 @@ auto align_cells_regular_16_sse41(VECTORTYPE * const Sm,
                                   VECTORTYPE const & H0) -> void
 {
   No_mask no_mask;
-  align_cells_16_sse41(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
+  align_cells_16<Min_sse41>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
 }
 
 
@@ -243,7 +147,7 @@ auto align_cells_masked_16_sse41(VECTORTYPE * const Sm,
                                  VECTORTYPE const * const MQ0) -> void
 {
   Mask_vectors masks {*Mm, *MQ, *MR, *MQ0};
-  align_cells_16_sse41(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
+  align_cells_16<Min_sse41>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
   *MQ = masks.mq;
 }
 
