@@ -29,7 +29,7 @@
 #include "simd_alignment.hpp"  // simd_vector_bytes
 #include <array>
 #include <cstddef>  // std::size_t
-#include <cstdint>  // int64_t, uint16_t, uint64_t
+#include <cstdint>  // uint16_t, uint64_t
 #include <vector>
 
 

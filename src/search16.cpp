@@ -24,7 +24,7 @@
 #include "search16.hpp"
 #include "db.hpp"
 #include "utils/backtrack.hpp"
-#include "utils/search_data.hpp"  // Search_data (pulls in Cpu_features)
+#include "utils/search_data.hpp"  // Search_data, WORD (pulls in Cpu_features)
 #include "utils/dseq_fill.hpp"
 #include "utils/mask_vectors.hpp"  // No_mask, Mask_vectors
 #include "utils/span.hpp"  // Span<uint64_t>
@@ -32,7 +32,7 @@
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
-#include <cstdint>  // int64_t, uint64_t, uint8_t
+#include <cstdint>  // int64_t, uint16_t, uint64_t, uint8_t
 #include <cstring>  // std::memcpy
 #include <iterator> // std::next
 #include <limits>

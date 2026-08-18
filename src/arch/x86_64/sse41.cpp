@@ -42,10 +42,10 @@
   available starting with the Penryn architecture in 2008.
 */
 
-#include <cstdint>  //uint64_t
+#include <cstdint>  // uint16_t, uint64_t
 #include <smmintrin.h>  // _mm_min_epu16
 #include "../../utils/mask_vectors.hpp"  // No_mask, Mask_vectors
-#include "sse41.hpp"
+#include "sse41.hpp"  // VECTORTYPE
 
 #ifndef NDEBUG
 // C++17 refactoring: [[maybe_unused]]
@@ -53,7 +53,6 @@
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif
 
-using VECTORTYPE = __m128i;
 using WORD = uint16_t;
 
 namespace {

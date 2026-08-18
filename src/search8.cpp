@@ -24,7 +24,7 @@
 #include "search8.hpp"
 #include "db.hpp"
 #include "utils/backtrack.hpp"
-#include "utils/search_data.hpp"  // Search_data (pulls in Cpu_features)
+#include "utils/search_data.hpp"  // Search_data, BYTE (pulls in Cpu_features)
 #include "utils/dseq_fill.hpp"
 #include "utils/mask_vectors.hpp"  // No_mask, Mask_vectors
 #include "utils/span.hpp"  // Span<uint64_t>
