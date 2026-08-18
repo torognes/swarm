@@ -39,12 +39,14 @@ struct Parameters;  // defined in swarm.hpp
 
 
 // Non-owning view of a packed-nucleotide amplicon:
-// - length` is the nucleotide count
+// - length is the nucleotide count
 // - encoded views the storage bytes, with encoded.size() ==
-//   nt_bytelength(length) (4 nt per byte)
-// Downstream consumers reinterpret encoded.data() as uint64_t* for
-// SIMD-friendly access; iterating encoded directly walks the packed
-// bytes, not nucleotides.
+//   nt_bytelength(length) (4 nt per byte, rounded up to a whole
+//   number of 64-bit words)
+// Word-wide consumers read encoded 64 bits at a time through
+// std::memcpy -- see packed_word() in variants.cpp -- which the
+// rounding above keeps in bounds; iterating encoded directly walks
+// the packed bytes, not nucleotides.
 struct Sequence {
   View<char> encoded;
   unsigned int length;
