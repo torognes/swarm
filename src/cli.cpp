@@ -770,8 +770,12 @@ namespace {
   auto check_scoring_saturation(struct Parameters const & parameters) -> void {
     static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
     static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
-    int64_t const diff_saturation_16 = std::min((uint16_max / parameters.penalty_mismatch),
-                                                (uint16_max - parameters.penalty_gapopen)
+    // A saturated 16-bit lane sticks at exactly uint16_max, making a
+    // genuine score of uint16_max indistinguishable from an overflow
+    // (see save_score_16); cap the worst-case score at uint16_max - 1.
+    static constexpr auto max_reliable_score_16 = uint16_max - 1;
+    int64_t const diff_saturation_16 = std::min((max_reliable_score_16 / parameters.penalty_mismatch),
+                                                (max_reliable_score_16 - parameters.penalty_gapopen)
                                                 / parameters.penalty_gapextend);
 
     // diff_saturation_16 may be negative (its uint16_max - penalty_gapopen
