@@ -227,8 +227,8 @@ namespace {
                                       std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
     Progress progress("Writing seeds:    ", swarminfo_v.size(), parameters);
 
-    std::vector<unsigned int> sorter(swarminfo_v.size());
-    std::iota(sorter.begin(), sorter.end(), 0);
+    std::vector<unsigned int> seed_sorter(swarminfo_v.size());
+    std::iota(seed_sorter.begin(), seed_sorter.end(), 0);
 
     auto compare_mass_and_headers = [&swarminfo_v, &data](unsigned int const lhs,
                                                           unsigned int const rhs) -> bool
@@ -251,13 +251,13 @@ namespace {
       return data.header_view(swarm_x.seed) < data.header_view(swarm_y.seed);
     };
 
-    std::sort(sorter.begin(), sorter.end(), compare_mass_and_headers);
+    std::sort(seed_sorter.begin(), seed_sorter.end(), compare_mass_and_headers);
 
     auto * const seeds_file = parameters.seeds_file.get();
     // one scratch buffer for the whole file
     Sequence_printer const sequence_printer {data.longest_sequence()};
 
-    for (const auto index : sorter) {
+    for (const auto index : seed_sorter) {
       const auto & a_swarm = swarminfo_v[index];
       if (a_swarm.attached) {
         continue;
