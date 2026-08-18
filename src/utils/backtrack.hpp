@@ -73,7 +73,7 @@ auto backtrack(Sequence const & qseq,
   auto const maskextup   = compute_mask<n_bits>(channel, offset2);
   auto const maskextleft = compute_mask<n_bits>(channel, offset3);
 
-  // nucleotide counts; the packed bytes below are walked by nt_extract
+  // nucleotide counts; the packed words below are read by nucleotide_at
   auto const qlen = static_cast<uint64_t>(qseq.length);
   auto const dlen = static_cast<uint64_t>(dseq.length);
   assert(qlen <= std::numeric_limits<int64_t>::max());
