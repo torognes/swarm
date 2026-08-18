@@ -28,6 +28,7 @@
 #include "utils/hasher_fnv1a.hpp"
 #include "utils/hasher_generic.hpp"
 #include "utils/input_output.hpp"
+#include "utils/make_unique.hpp"  // utils::make_unique
 #include "utils/nt_codec.hpp"
 #include "utils/print_view.hpp"  // fprint, fprint_integer
 #include "utils/progress.hpp"
@@ -1041,7 +1042,7 @@ Data::Data(struct Parameters const & parameters) {
   auto const & stats = parse_result.stats;
   longest_ = stats.longest_sequence;
   auto const zobrist_len = std::max(4 * stats.longestheader, stats.longest_sequence + 2);
-  zobrist_p_.reset(new Zobrist(zobrist_len));
+  zobrist_p_ = utils::make_unique<Zobrist>(zobrist_len);
 
   build_index(parameters, *zobrist_p_, data_, parse_result.entries, parse_result.stats, seqindex_);
 }
