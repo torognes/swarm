@@ -43,10 +43,9 @@ template <typename Integral>
 auto create_score_matrix(std::int64_t const mismatch_penalty)
   -> std::array<Integral, n_cells * n_cells> {
   static_assert(std::is_same<Integral, unsigned char>::value \
-                or std::is_same<Integral, unsigned short int>::value \
                 or std::is_same<Integral, std::uint16_t>::value \
                 or std::is_same<Integral, std::int64_t>::value,
-                "Invalid type! Only unsigned char, unsigned short and int64_t can be used.");
+                "Invalid type! Only unsigned char, uint16_t and int64_t can be used.");
   static constexpr Integral matchscore {0};
   assert(mismatch_penalty <= std::numeric_limits<Integral>::max());
   auto const mismatchscore = static_cast<Integral>(mismatch_penalty);
@@ -73,24 +72,24 @@ auto create_score_matrix(std::int64_t const mismatch_penalty)
 // usage example:
 //
 // create_score_matrix<unsigned char>(mismatch_penalty)};   OK
-// create_score_matrix<unsigned short>(mismatch_penalty)};  OK
+// create_score_matrix<uint16_t>(mismatch_penalty)};        OK
 // create_score_matrix<int64_t>(mismatch_penalty)};         OK
 // create_score_matrix<signed char>(mismatch_penalty)};     compilation error
 
 // refactoring: C++20 constexpr template
-// static_assert(create_score_matrix<unsigned short>(4)[0] == 4);  // (0, 0)
-// static_assert(create_score_matrix<unsigned short>(4)[(n_cells / 2) - 1] == 4);  // (0, 15)
-// static_assert(create_score_matrix<unsigned short>(4)[(n_cells / 2)] == 0);  // (0, 16)
-// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + 0] == 4);  // (1, 0)
-// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + 1] == 0);  // (1, 1)
-// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + 2] == 4);  // (1, 2)
-// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + (n_cells / 2) - 1] == 4);  // (1, 15)
-// static_assert(create_score_matrix<unsigned short>(4)[(1 * n_cells) + (n_cells / 2)] == 0);  // (1, 16)
-// static_assert(create_score_matrix<unsigned short>(4)[(((n_cells / 2) - 1) * n_cells) + (n_cells / 2) - 1] == 0);  // (15, 15)
-// static_assert(create_score_matrix<unsigned short>(4)[(n_cells * n_cells) - 1] == 0);  // last cell
+// static_assert(create_score_matrix<uint16_t>(4)[0] == 4);  // (0, 0)
+// static_assert(create_score_matrix<uint16_t>(4)[(n_cells / 2) - 1] == 4);  // (0, 15)
+// static_assert(create_score_matrix<uint16_t>(4)[(n_cells / 2)] == 0);  // (0, 16)
+// static_assert(create_score_matrix<uint16_t>(4)[(1 * n_cells) + 0] == 4);  // (1, 0)
+// static_assert(create_score_matrix<uint16_t>(4)[(1 * n_cells) + 1] == 0);  // (1, 1)
+// static_assert(create_score_matrix<uint16_t>(4)[(1 * n_cells) + 2] == 4);  // (1, 2)
+// static_assert(create_score_matrix<uint16_t>(4)[(1 * n_cells) + (n_cells / 2) - 1] == 4);  // (1, 15)
+// static_assert(create_score_matrix<uint16_t>(4)[(1 * n_cells) + (n_cells / 2)] == 0);  // (1, 16)
+// static_assert(create_score_matrix<uint16_t>(4)[(((n_cells / 2) - 1) * n_cells) + (n_cells / 2) - 1] == 0);  // (15, 15)
+// static_assert(create_score_matrix<uint16_t>(4)[(n_cells * n_cells) - 1] == 0);  // last cell
 
 
-// expected score matrix (if mismatch score is 4, and type is unsigned short):
+// expected score matrix (if mismatch score is 4, and type is uint16_t):
 //
 //    0 . . . . 5 . . . .10 . . . .15 . . . .20 . . . .25 . . . .30 .
 // 0  4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
