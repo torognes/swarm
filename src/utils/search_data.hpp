@@ -29,12 +29,19 @@
 #include "simd_alignment.hpp"  // simd_vector_bytes
 #include <array>
 #include <cstddef>  // std::size_t
-#include <cstdint>  // int64_t, uint64_t
+#include <cstdint>  // int64_t, uint16_t, uint64_t
 #include <vector>
 
 
+// The two search widths. WORD is a fixed-width type because the width is
+// the requirement and not a property the platform happens to have: the
+// 16-bit kernels saturate at 65535 and derive their lane count from
+// sizeof(WORD), so a wider 'short' would be wrong rather than merely
+// unusual. BYTE stays unsigned char, the type blessed for reading object
+// representation -- which is what these buffers do through VECTORTYPE
+// pointers -- and uint8_t is not even guaranteed to exist.
 using BYTE = unsigned char;
-using WORD = unsigned short;
+using WORD = uint16_t;
 
 // alignas: both kernels hand hearray_v to their inner loop as a
 // VECTORTYPE * and read it with aligned loads (__m128i on x86_64,

@@ -54,7 +54,7 @@ constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif
 
 using VECTORTYPE = __m128i;
-using WORD = unsigned short;
+using WORD = uint16_t;
 
 namespace {
 
