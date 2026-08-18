@@ -25,7 +25,8 @@
 #define SWARM_UTILS_MAKE_UNIQUE_H
 
 
-#include <memory>
+#include <memory>   // std::unique_ptr
+#include <utility>  // std::forward
 
 
 namespace utils {
