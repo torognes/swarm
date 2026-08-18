@@ -314,118 +314,14 @@ auto align_cells_masked_16(VECTORTYPE * const Sm,
 
 namespace {
 
-// Store the final score for the sequence that just ended in 'channel'
-// and, when the score fits in a WORD, recover its number of differences
-// by backtracking the alignment.
-auto save_score_16(int64_t const cand_id,
-                          unsigned int const channel,
-                          VECTORTYPE const * const score_vectors,
-                          std::array<Sequence, channels> const & d_sequence,
-                          std::array<uint64_t, channels> const & d_offset,
-                          Sequence const & query,
-                          View<uint64_t> const dirbuffer,
-                          uint64_t const q_start_size,
-                          Span<uint64_t> const scores,
-                          Span<uint64_t> const diffs,
-                          uint64_t & done) -> void
-{
-  // save score
-
-  auto const & dbseq = d_sequence[channel];
-  uint64_t const dbseqlen = dbseq.length;
-  uint64_t const z = (dbseqlen + 3) % 4;
-  assert(z * channels + channel <= max_ptrdiff);
-  uint64_t const score
-    = *std::next(reinterpret_cast<WORD const *>(score_vectors), static_cast<std::ptrdiff_t>((z * channels) + channel));
-  assert(cand_id >= 0);
-  auto const candidate = static_cast<std::size_t>(cand_id);
-  scores[candidate] = score;
-
-  uint64_t diff {0};
-
-  if (score < score_ceiling_16)
-    {
-      uint64_t const offset = d_offset[channel];
-      diff = backtrack<n_bits>(query, dbseq,
-                               dirbuffer,
-                               offset,
-                               channel,
-                               q_start_size);
-    }
-  else
-    {
-      diff = score_ceiling_16;
-    }
-
-  diffs[candidate] = diff;
-
-  ++done;
-}
-
-
-// Write one 16-bit lane of a vector register.
-//
-// std::memcpy rather than a store through reinterpret_cast<WORD *>(&vec):
-// a narrow store into an object whose declared type is VECTORTYPE is not
-// something -fstrict-aliasing has to honour, so GCC is free to keep a
-// stale copy of the vector in a register across it. This is not
-// theoretical: with GCC 13.3 at -O3, 'swarm -d 4 -g 60' (a gap-open
-// penalty high enough to select 16-bit mode at a low d, see
-// set_bit_mode) produced clusters that disagreed with the -O0 build,
-// and -fno-strict-aliasing alone restored them. memcpy aliases
-// everything, so the lane write is always observed.
-//
-// Cold path: runs once per channel swap, never inside the kernel loop
-// (measured free on 'd = 16', 18SV9-derived input).
-auto set_lane_16(VECTORTYPE & vec, unsigned int const channel, WORD const value) -> void
-{
-  std::array<WORD, channels> lanes {{}};
-  std::memcpy(lanes.data(), &vec, sizeof(vec));
-  lanes[channel] = value;
-  std::memcpy(&vec, lanes.data(), sizeof(vec));
-}
-
-
-// Attach the next database sequence to 'channel': record its address and
-// length, reset the per-channel cursors, seed the H0/F0 lanes, and prime
-// the first block. Returns whether the channel already reached the end of
-// its (short) sequence, i.e. the next block is no longer "easy".
-template <std::size_t capacity>
-auto load_next_sequence_16(unsigned int const channel,
-                                  Data const & data,
-                                  View<uint64_t> const seqnos,
-                                  uint64_t & next_id,
-                                  Span<uint64_t> const dirbuffer,
-                                  uint64_t const * const dir,
-                                  WORD const gap_open_penalty,
-                                  WORD const gap_extend_penalty,
-                                  VECTORTYPE & H0,
-                                  VECTORTYPE & F0,
-                                  std::array<unsigned char, capacity> & dseq,
-                                  std::array<int64_t, channels> & seq_id,
-                                  std::array<Sequence, channels> & d_sequence,
-                                  std::array<uint64_t, channels> & d_pos,
-                                  std::array<uint64_t, channels> & d_offset) -> bool
-{
-  assert(next_id <= std::numeric_limits<int64_t>::max());
-  // get next sequence
-  seq_id[channel] = static_cast<int64_t>(next_id);
-  uint64_t const seqno = seqnos[next_id];
-  auto const sequence = data.sequence_view(seqno);
-
-  d_sequence[channel] = sequence;
-
-  d_pos[channel] = 0;
-  d_offset[channel] = static_cast<uint64_t>(dir - dirbuffer.cbegin());
-  ++next_id;
-
-  assert(((2U * gap_open_penalty) + (2U * gap_extend_penalty)) <= std::numeric_limits<WORD>::max());
-  set_lane_16(H0, channel, 0);
-  set_lane_16(F0, channel, static_cast<WORD>((2U * gap_open_penalty) + (2U * gap_extend_penalty)));
-
-  // fill channel
-  return fill_channel<channels, cdepth>(dseq, channel, d_sequence, d_pos);
-}
+// Names the three shared channel operations need, then the operations
+// themselves. LANE and score_ceiling are this file's width; VECTORTYPE,
+// channels, cdepth, n_bits and max_ptrdiff are already above. The header
+// includes nothing and has to come last, inside this namespace -- see it
+// for why.
+using LANE = WORD;
+constexpr auto score_ceiling = score_ceiling_16;
+#include "utils/search_channel_ops.hpp"
 
 }  // namespace
 
@@ -547,7 +443,7 @@ auto search16(Data const & data,
 
                   if (cand_id >= 0)
                     {
-                      save_score_16(cand_id, channel, S,
+                      save_score(cand_id, channel, S,
                                     d_sequence, d_offset,
                                     query, static_cast<View<uint64_t>>(dirbuffer), q_start.size(),
                                     scores, diffs, done);
@@ -555,7 +451,7 @@ auto search16(Data const & data,
 
                   if (next_id < sequences)
                     {
-                      if (load_next_sequence_16(channel, data, seqnos, next_id,
+                      if (load_next_sequence(channel, data, seqnos, next_id,
                                                 dirbuffer, dir,
                                                 gap_open_penalty, gap_extend_penalty,
                                                 H0, F0, dseq,
