@@ -228,7 +228,7 @@ inline auto onestep_16(VECTORTYPE & H,
                        VECTORTYPE const R) -> void
 {
   H = v_add16(H, V);
-  auto W = H;
+  auto const W = H;
   H = v_min16(H, F);
   DIR[0] = v_mask_eq16(W, H);  // subscript, not std::next: hot loop, see align_cells
   H = v_min16(H, E);
@@ -308,7 +308,7 @@ auto align_cells_16(VECTORTYPE * const Sm,
   VECTORTYPE E;
   VECTORTYPE h4;
 
-  auto * dir = reinterpret_cast<WORD *>(dir_long);
+  auto * const dir = reinterpret_cast<WORD *>(dir_long);
 
   auto const Q = Qm;
   auto const R = Rm;
@@ -332,9 +332,13 @@ auto align_cells_16(VECTORTYPE * const Sm,
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  // Performance: subscript / &dir[...] rather than std::next() in this hot loop
-  // (same regression as commit 8c6925f on the SSE4.1 kernel). Stays clang-tidy
-  // clean: pos is signed and operator[] is not pointer arithmetic.
+  // Performance: subscript / &dir[...] rather than std::next() in this hot
+  // loop. The std::next() form (commit 8c6925f, taken for
+  // cppcoreguidelines-pro-bounds-pointer-arithmetic) pessimized the SSE4.1
+  // kernel by ~20 % on d > 1 18SV9; all three copies of this loop are
+  // written the same way so that they cannot drift. Stays clang-tidy clean
+  // anyway: pos is signed, so no -Wsign-conversion, and operator[] is not
+  // pointer arithmetic.
   for (auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE const * const x = qp[pos];

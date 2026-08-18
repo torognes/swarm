@@ -127,11 +127,11 @@ inline auto apply_mask(VECTORTYPE & h4, VECTORTYPE & E,
 }
 
 
-// One block of cells, shared by the regular and masked SSE4.1 kernels.
-// The masked variant differs only by a per-iteration adjustment of h4
-// and E; which flavour this is comes from the type of 'masks', so the
-// regular instantiation drops that adjustment entirely and is handed no
-// masking data at all (see utils/mask_vectors.hpp).
+// One block of cells, shared by the regular and masked kernels. The
+// masked variant differs only by a per-iteration adjustment of h4 and E;
+// which flavour this is comes from the type of 'masks', so the regular
+// instantiation drops that adjustment entirely and is handed no masking
+// data at all (see utils/mask_vectors.hpp).
 template <typename Masks>
 auto align_cells_16_sse41(VECTORTYPE * const Sm,
                           VECTORTYPE * const hep,
@@ -177,13 +177,15 @@ auto align_cells_16_sse41(VECTORTYPE * const Sm,
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  // Performance: index this hot loop with the subscript operator (and
-  // &dir[...] for the 'dir' pointer arguments) rather than std::next().
-  // The std::next() form (commit 8c6925f, "pro-bounds-pointer-arithmetic")
-  // pessimized this kernel by ~20% on d>1 18SV9. Subscripting restores it and
-  // stays clang-tidy clean: pos is signed (no -Wsign-conversion) and operator[]
-  // is not flagged by cppcoreguidelines-pro-bounds-pointer-arithmetic.
-  for (auto pos = 0LL; pos < ql_signed; ++pos) {
+  // Performance: subscript / &dir[...] rather than std::next() in this hot
+  // loop. The std::next() form (commit 8c6925f, taken for
+  // cppcoreguidelines-pro-bounds-pointer-arithmetic) pessimized the SSE4.1
+  // kernel by ~20 % on d > 1 18SV9; all three copies of this loop are
+  // written the same way so that they cannot drift. Stays clang-tidy clean
+  // anyway: pos is signed, so no -Wsign-conversion, and operator[] is not
+  // pointer arithmetic.
+  for (auto pos = 0LL; pos < ql_signed; ++pos)
+    {
       VECTORTYPE const * const x = qp[pos];
       h4 = hep[(2 * pos) + 0];
       E  = hep[(2 * pos) + 1];

@@ -550,7 +550,7 @@ auto align_cells_8(VECTORTYPE * const Sm,
   VECTORTYPE E;
   VECTORTYPE h4;
 
-  auto * dir = reinterpret_cast<unsigned short *>(dir_long);
+  auto * const dir = reinterpret_cast<unsigned short *>(dir_long);
 
   auto const Q = Qm;
   auto const R = Rm;
@@ -574,9 +574,13 @@ auto align_cells_8(VECTORTYPE * const Sm,
   assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
   assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
   auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  // Performance: subscript / &dir[...] rather than std::next() in this hot loop
-  // (same regression as commit 8c6925f on the 16-bit kernel). Stays clang-tidy
-  // clean: pos is signed and operator[] is not pointer arithmetic.
+  // Performance: subscript / &dir[...] rather than std::next() in this hot
+  // loop. The std::next() form (commit 8c6925f, taken for
+  // cppcoreguidelines-pro-bounds-pointer-arithmetic) pessimized the SSE4.1
+  // kernel by ~20 % on d > 1 18SV9; all three copies of this loop are
+  // written the same way so that they cannot drift. Stays clang-tidy clean
+  // anyway: pos is signed, so no -Wsign-conversion, and operator[] is not
+  // pointer arithmetic.
   for (auto pos = 0LL; pos < ql_signed; ++pos)
     {
       VECTORTYPE const * const x = qp[pos];
