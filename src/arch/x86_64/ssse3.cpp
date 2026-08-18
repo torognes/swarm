@@ -54,9 +54,12 @@ auto v_or(__m128i const lhs, __m128i const rhs) -> __m128i {
   return _mm_or_si128(lhs, rhs);
 }
 
-auto v_shift_left(__m128i const vector, int const n_bytes) -> __m128i {
-  // shift vector of shorts to the left by n bytes, pad with zeros
-  return _mm_slli_epi16(vector, n_bytes);
+auto v_shift_left(__m128i const vector, int const n_bits) -> __m128i {
+  // shift each of the eight shorts to the left by n bits, pad with zeros
+  // (_mm_slli_epi16 counts bits, not bytes: the two callers below shift by
+  //  1 to double a value, and by 8 -- which is one byte -- to move it into
+  //  the high half of its lane)
+  return _mm_slli_epi16(vector, n_bits);
 }
 
 // refactoring: why not using that in vzero8 and vzero16?
