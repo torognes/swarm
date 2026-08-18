@@ -251,7 +251,7 @@ namespace {
   template <std::size_t N>
   auto show(std::array<char const *, N> const & message,
             std::FILE * const log_stream) -> void {
-    for (char const * message_element : message) {
+    for (char const * const message_element : message) {
       static_cast<void>(std::fputs(message_element, log_stream));
     }
   }

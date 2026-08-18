@@ -184,7 +184,7 @@ auto align_cells_16_sse41(VECTORTYPE * const Sm,
   // stays clang-tidy clean: pos is signed (no -Wsign-conversion) and operator[]
   // is not flagged by cppcoreguidelines-pro-bounds-pointer-arithmetic.
   for (auto pos = 0LL; pos < ql_signed; ++pos) {
-      VECTORTYPE const * x = qp[pos];
+      VECTORTYPE const * const x = qp[pos];
       h4 = hep[(2 * pos) + 0];
       E  = hep[(2 * pos) + 1];
 

@@ -338,7 +338,7 @@ auto align_cells_16(VECTORTYPE * const Sm,
   // clean: pos is signed and operator[] is not pointer arithmetic.
   for (auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      VECTORTYPE const * x = qp[pos];
+      VECTORTYPE const * const x = qp[pos];
       h4 = hep[(2 * pos) + 0];
       E  = hep[(2 * pos) + 1];
 
@@ -587,7 +587,7 @@ auto search16(Data const & data,
   // hearray used to be a WORD * that nothing else read, and that step
   // discarded the alignment these loads need.
   auto * hep = reinterpret_cast<VECTORTYPE *>(hearray);
-  auto * * qp = reinterpret_cast<VECTORTYPE * *>(q_start.data());
+  auto * * const qp = reinterpret_cast<VECTORTYPE * *>(q_start.data());
 
   auto F0 = v_zero16();
   auto H0 = v_zero16();

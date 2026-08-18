@@ -586,7 +586,7 @@ auto align_cells_8(VECTORTYPE * const Sm,
   // clean: pos is signed and operator[] is not pointer arithmetic.
   for (auto pos = 0LL; pos < ql_signed; ++pos)
     {
-      VECTORTYPE const * x = qp[pos];
+      VECTORTYPE const * const x = qp[pos];
       h4 = hep[(2 * pos) + 0];
       E  = hep[(2 * pos) + 1];
 
@@ -836,7 +836,7 @@ auto search8(Data const & data,
   // hearray is a He_block * now, so this cast no longer widens the alignment
   // of a bare BYTE * -- the source type already carries the 16 the load needs.
   auto *hep = reinterpret_cast<VECTORTYPE*>(hearray);
-  auto **qp = reinterpret_cast<VECTORTYPE**>(q_start.data());
+  auto ** const qp = reinterpret_cast<VECTORTYPE**>(q_start.data());
 
   auto F0 = v_zero8();
   auto H0 = v_zero8();
