@@ -153,8 +153,8 @@ auto Zobrist::hash(Sequence const & seq) const -> uint64_t {
 }
 
 
-auto Zobrist::hash_first_shifted(Sequence const & seq,
-                                 First_base_op const operation) const -> uint64_t {
+template <Zobrist::First_base_op operation>
+auto Zobrist::hash_first_shifted(Sequence const & seq) const -> uint64_t {
   /* Shared body of hash_delete_first and hash_insert_first.
      remove:     skip the first input base, output position = input pos - 1.
      insert_gap: keep all input bases,     output position = input pos + 1. */
@@ -186,13 +186,13 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
 auto Zobrist::hash_delete_first(Sequence const & seq) const -> uint64_t {
   /* compute the Zobrist hash function of sequence seq,
      but delete the first base */
-  return hash_first_shifted(seq, First_base_op::remove);
+  return hash_first_shifted<First_base_op::remove>(seq);
 }
 
 
 auto Zobrist::hash_insert_first(Sequence const & seq) const -> uint64_t {
   /* compute the Zobrist hash function of sequence seq,
      but insert a gap (no value) before the first base */
-  return hash_first_shifted(seq, First_base_op::insert_gap);
+  return hash_first_shifted<First_base_op::insert_gap>(seq);
 }
 

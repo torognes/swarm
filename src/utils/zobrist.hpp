@@ -45,7 +45,18 @@ public:
 
 private:
   enum struct First_base_op : std::uint8_t { remove, insert_gap };
-  auto hash_first_shifted(Sequence const & seq, First_base_op operation) const -> uint64_t;
+  // 'operation' is a template parameter rather than a function one: the
+  // two public wrappers are its only callers, each passing one enum
+  // constant, so the runtime parameter only ever carried a compile-time
+  // fact. Lifting it into the type folds the two conditionals that
+  // depend on it out of the byte walk at instantiation time -- what
+  // GCC's ipa-cp was observed to do on its own (two 86-byte constprop
+  // clones of the 569-byte generic body), now guaranteed by the source
+  // for every compiler instead of left to an optimiser's cost model.
+  // Defined in zobrist.cpp: the wrappers there are the only
+  // instantiation points.
+  template <First_base_op operation>
+  auto hash_first_shifted(Sequence const & seq) const -> uint64_t;
 
   auto fill_rng_table(unsigned int zobrist_len) -> void;
   auto fill_rng_byte_table(unsigned int zobrist_len) -> void;
