@@ -93,8 +93,8 @@ constexpr uint8_t n_bits {8};
 
 // backtrack.hpp: template specialization (8 bits)
 template <>
-auto compute_mask<n_bits>(uint64_t const channel,
-                     unsigned int const offset) -> uint64_t {
+constexpr auto compute_mask<n_bits>(uint64_t const channel,
+                                    unsigned int const offset) -> uint64_t {
   return (1ULL << (channel + offset));
 }
 
