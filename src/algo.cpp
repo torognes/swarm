@@ -58,6 +58,11 @@ namespace {
 
   auto set_bit_mode(struct Parameters const & parameters) -> Bit_mode {
     static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
+    // A lane that saturates sticks at exactly uint8_max, so a genuine
+    // score of uint8_max would be indistinguishable from an overflow
+    // (see save_score_8). Cap the worst-case score at uint8_max - 1 so
+    // that a score of uint8_max can only ever mean "saturated".
+    static constexpr auto max_reliable_score = uint8_max - 1;
 
 #ifdef __aarch64__
 #if !defined(DEBUG) && !defined(COVERAGE)
@@ -70,9 +75,9 @@ namespace {
     // penalty values are high (8 bits are not enough to keep track of
     // the score)
     auto const diff_saturation
-      = static_cast<uint64_t>(std::min(uint8_max / parameters.penalty_mismatch,
-                                       uint8_max / (parameters.penalty_gapopen +
-                                                    parameters.penalty_gapextend)));
+      = static_cast<uint64_t>(std::min(max_reliable_score / parameters.penalty_mismatch,
+                                       max_reliable_score / (parameters.penalty_gapopen +
+                                                             parameters.penalty_gapextend)));
 
     if (parameters.opt_differences > diff_saturation) {
       return Bit_mode::bits_16;
