@@ -81,7 +81,7 @@ namespace {
   // (currently unused short letters: k, q)
   struct OptionSpec {
     char short_name;
-    const char * long_name;
+    char const * long_name;
     bool needs_arg;
   };
 

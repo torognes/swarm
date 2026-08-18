@@ -50,15 +50,15 @@ namespace {
     static constexpr auto divider = 5U;
     static constexpr auto max_range = 31U;
     static constexpr auto two_bits = 3ULL;  // '... 0011' in binary
-    const auto whichlong = pos >> divider;
-    const uint64_t shift = static_cast<uint64_t>(pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
-    const uint64_t mask = compl (two_bits << shift);
+    auto const whichlong = pos >> divider;
+    uint64_t const shift = static_cast<uint64_t>(pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
+    uint64_t const mask = compl (two_bits << shift);
     // read-modify-write the target 64-bit word. std::memcpy avoids the
     // strict-aliasing undefined behaviour of punning a char buffer through
     // a uint64_t* (see C++ Weekly #185); optimisers fold the round-trip
     // back into a single load and store.
     // C++20 refactoring: std::bit_cast
-    const auto byte_offset = static_cast<std::ptrdiff_t>(whichlong)
+    auto const byte_offset = static_cast<std::ptrdiff_t>(whichlong)
                            * static_cast<std::ptrdiff_t>(sizeof(uint64_t));
     char * const target_word = std::next(seq.data(), byte_offset);
     uint64_t mutated_position {0};
@@ -309,14 +309,14 @@ auto generate_variants(Zobrist const & zobrist,
 
   for (auto position = 0U; position < seqlen; ++position)
     {
-      const auto current_base = nucleotide_at(seq, position);
-      const auto hash1 = hash ^ zobrist.value(position, current_base);
+      auto const current_base = nucleotide_at(seq, position);
+      auto const hash1 = hash ^ zobrist.value(position, current_base);
       for (unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
 
-        const auto hash2 = hash1 ^ zobrist.value(position, base);
+        auto const hash2 = hash1 ^ zobrist.value(position, base);
         add_variant(hash2, Variant_type::substitution, position, base,
                     variant_list, variant_count);
 
@@ -330,7 +330,7 @@ auto generate_variants(Zobrist const & zobrist,
   auto previous_base = nucleotide_at(seq, 0);
   for (auto offset = 1U; offset < seqlen; ++offset)
     {
-      const auto current_base = nucleotide_at(seq, offset);
+      auto const current_base = nucleotide_at(seq, offset);
       if (current_base == previous_base) {
         continue;
       }
@@ -345,19 +345,19 @@ auto generate_variants(Zobrist const & zobrist,
   // insert before the first position in the sequence
   for (unsigned char base = 0; base < 4; ++base)
     {
-      const auto hash1 = hash ^ zobrist.value(0, base);
+      auto const hash1 = hash ^ zobrist.value(0, base);
       add_variant(hash1, Variant_type::insertion, 0, base, variant_list, variant_count);
     }
   // insert after each position in the sequence
   for (auto position = 0U; position < seqlen; ++position)
     {
-      const auto current_base = nucleotide_at(seq, position);
+      auto const current_base = nucleotide_at(seq, position);
       hash ^= zobrist.value(position, current_base) ^ zobrist.value(position + 1, current_base);
       for (unsigned char base = 0; base < 4; ++base) {
         if (base == current_base) {
           continue;
         }
-        const auto hash1 = hash ^ zobrist.value(position + 1, base);
+        auto const hash1 = hash ^ zobrist.value(position + 1, base);
         add_variant(hash1, Variant_type::insertion, position + 1, base,
                     variant_list, variant_count);
       }

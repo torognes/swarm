@@ -74,7 +74,7 @@ inline auto onestep_16_sse41(VECTORTYPE & H,
                              VECTORTYPE const R) -> void
 {
   H = v_add16(H, V);
-  const auto W = H;
+  auto const W = H;
   H = v_min(H, F);
   DIR[0] = v_mask_eq16(W, H);  // subscript, not std::next: hot loop, see align_cells
   H = v_min(H, E);
@@ -155,8 +155,8 @@ auto align_cells_16_sse41(VECTORTYPE * const Sm,
 
   auto * const dir = reinterpret_cast<WORD *>(dir_long);
 
-  const auto Q = Qm;
-  const auto R = Rm;
+  auto const Q = Qm;
+  auto const R = Rm;
 
   auto f0 = F0;
   auto f1 = v_add16(f0, R);

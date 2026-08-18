@@ -83,16 +83,16 @@ auto dprofile_shuffle8(Dprofile_8 & dprofile_a,
   auto * const profile_db = cast_vector8(dprofile_a.data());    // output
   // Performance: &arr[idx] rather than std::next() on this d>1 hot path
   // (same regression as commit 8c6925f); subscript is clang-tidy clean.
-  const auto seq_chunk0 = v_load8(&sequence_db[0]);  // 16 nucleotides
-  const auto seq_chunk1 = v_load8(&sequence_db[1]);  // next 16
-  const auto seq_chunk2 = v_load8(&sequence_db[2]);  // next 16
-  const auto seq_chunk3 = v_load8(&sequence_db[3]);  // final 16 (total of 64)
+  auto const seq_chunk0 = v_load8(&sequence_db[0]);  // 16 nucleotides
+  auto const seq_chunk1 = v_load8(&sequence_db[1]);  // next 16
+  auto const seq_chunk2 = v_load8(&sequence_db[2]);  // next 16
+  auto const seq_chunk3 = v_load8(&sequence_db[3]);  // final 16 (total of 64)
 
   auto profline8 = [&](long long int const nuc) -> void {
     // scores: 16 scores from the score matrix, matching the
     // nucleotide 'nuc'; five different nucleotides (0, 1, 2, 3, 4),
     // so five possible rows of scores
-    const auto scores = v_load8(&score_db[2 * nuc]);
+    auto const scores = v_load8(&score_db[2 * nuc]);
 
     v_store8(&profile_db[(4 * nuc) + 0], v_shuffle8(scores, seq_chunk0));
     v_store8(&profile_db[(4 * nuc) + 1], v_shuffle8(scores, seq_chunk1));
@@ -120,8 +120,8 @@ auto dprofile_shuffle16(Dprofile_16 & dprofile_a,
   auto const * const sequence_db = cast_vector8(dseq_a.data());
   static constexpr int channels {8};  // does 8 represent the number of channels?
 
-  const auto zero = v_zero();
-  const auto one = v_dup16(1);
+  auto const zero = v_zero();
+  auto const one = v_dup16(1);
 
   auto transform_lower_seq_chunk = [&](__m128i const& seq_chunk) -> __m128i {
     auto lower_chunk = v_merge_lo_8(seq_chunk, zero);
@@ -143,16 +143,16 @@ auto dprofile_shuffle16(Dprofile_16 & dprofile_a,
   // std::next(); this profile builder is on the d>1 hot path and the
   // std::next() form regressed it (same issue as commit 8c6925f). &arr[idx]
   // stays clang-tidy clean (subscript, not pointer arithmetic).
-  const auto t0 = v_load8(&sequence_db[0]);
-  const auto m0 = transform_lower_seq_chunk(t0);
-  const auto m1 = transform_higher_seq_chunk(t0);
+  auto const t0 = v_load8(&sequence_db[0]);
+  auto const m0 = transform_lower_seq_chunk(t0);
+  auto const m1 = transform_higher_seq_chunk(t0);
 
-  const auto t3 = v_load8(&sequence_db[1]);
-  const auto m2 = transform_lower_seq_chunk(t3);
-  const auto m3 = transform_higher_seq_chunk(t3);
+  auto const t3 = v_load8(&sequence_db[1]);
+  auto const m2 = transform_lower_seq_chunk(t3);
+  auto const m3 = transform_higher_seq_chunk(t3);
 
   auto profline16 = [&](long long int const nuc) -> void {
-    const auto scores = v_load16(&score_db[4 * nuc]);
+    auto const scores = v_load16(&score_db[4 * nuc]);
 
     v_store16(&profile_db[(4 * nuc) + 0], v_shuffle8(scores, m0));
     v_store16(&profile_db[(4 * nuc) + 1], v_shuffle8(scores, m1));

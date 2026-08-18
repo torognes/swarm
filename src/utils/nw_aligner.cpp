@@ -142,20 +142,20 @@ auto backtrack(Sequence const & dseq,
 
   while ((column > 0) and (row > 0))
     {
-      const auto cell = directions[(qlen * (row - 1)) + (column - 1)];
+      auto const cell = directions[(qlen * (row - 1)) + (column - 1)];
 
-      const bool cell_extends_left = (cell & maskextleft) != 0;
-      const bool cell_extends_up   = (cell & maskextup)   != 0;
-      const bool cell_opens_left   = (cell & maskleft)    != 0;
-      const bool cell_opens_up     = (cell & maskup)      != 0;
+      bool const cell_extends_left = (cell & maskextleft) != 0;
+      bool const cell_extends_up   = (cell & maskextup)   != 0;
+      bool const cell_opens_left   = (cell & maskleft)    != 0;
+      bool const cell_opens_up     = (cell & maskup)      != 0;
 
       // Priority: extending an ongoing gap (sticky) beats opening a
       // new one; among fresh openings, insert beats delete; otherwise
       // take the diagonal (match/mismatch).
-      const bool extend_insert = (operation == 'I') and cell_extends_left;
-      const bool extend_delete = (operation == 'D') and cell_extends_up;
-      const bool is_insert     = extend_insert or (not extend_delete and cell_opens_left);
-      const bool is_delete     = extend_delete or cell_opens_up;
+      bool const extend_insert = (operation == 'I') and cell_extends_left;
+      bool const extend_delete = (operation == 'D') and cell_extends_up;
+      bool const is_insert     = extend_insert or (not extend_delete and cell_opens_left);
+      bool const is_delete     = extend_delete or cell_opens_up;
 
       if (is_insert)
         {

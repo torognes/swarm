@@ -49,15 +49,15 @@ auto create_score_matrix(std::int64_t const mismatch_penalty)
                 "Invalid type! Only unsigned char, unsigned short and int64_t can be used.");
   static constexpr Integral matchscore {0};
   assert(mismatch_penalty <= std::numeric_limits<Integral>::max());
-  const auto mismatchscore = static_cast<Integral>(mismatch_penalty);
+  auto const mismatchscore = static_cast<Integral>(mismatch_penalty);
   std::array<Integral, n_cells * n_cells> score_matrix {{}};  // note: alignas(16) has no effect
 
   // fill in the upper-left quarter of the matrix with mismatchscore,
   // except the diagonal starting from cell (1, 1)
   auto index = 0U;
   auto choose_score = [&index, &mismatchscore](Integral &element) -> void {
-    const auto column = index % n_cells;
-    const auto row = index / n_cells;
+    auto const column = index % n_cells;
+    auto const row = index / n_cells;
     element = ((row == column and row != 0)
                or (column >= n_cells / 2)
                or (row >= n_cells / 2)) ? matchscore : mismatchscore;

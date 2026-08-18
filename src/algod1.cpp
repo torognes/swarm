@@ -132,7 +132,7 @@ namespace {
 
     ++current_swarm.size;
     current_swarm.maxgen = std::max(seed_info.generation, current_swarm.maxgen);
-    const auto abundance = data.abundance(seed);
+    auto const abundance = data.abundance(seed);
     current_swarm.abundance_sum += abundance;
     if (abundance == 1) {
       ++current_swarm.singletons;
@@ -295,7 +295,7 @@ namespace {
   {
     /* for each non-swarmed amplicon look for subseeds ... */
     auto swarmcount = 0U;  // refactoring: find a way to know swarmcount in advance?
-    const auto amplicons = data.sequence_count();
+    auto const amplicons = data.sequence_count();
     Progress progress_cluster("Clustering:       ", amplicons, parameters);
 
     for (auto seed = 0U; seed < amplicons; ++seed)
@@ -318,7 +318,7 @@ namespace {
 auto algo_d1_run(struct Parameters const & parameters,
                  Data const & data) -> void
 {
-  const auto amplicons = data.sequence_count();
+  auto const amplicons = data.sequence_count();
 
   Overall_stats overall_stats {};
 

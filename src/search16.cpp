@@ -311,8 +311,8 @@ auto align_cells_16(VECTORTYPE * const Sm,
 
   auto * dir = reinterpret_cast<WORD *>(dir_long);
 
-  const auto Q = Qm;
-  const auto R = Rm;
+  auto const Q = Qm;
+  auto const R = Rm;
 
   auto f0 = F0;
   auto f1 = v_add16(f0, R);
@@ -422,10 +422,10 @@ auto save_score_16(int64_t const cand_id,
   // save score
 
   auto const & dbseq = d_sequence[channel];
-  const uint64_t dbseqlen = dbseq.length;
-  const uint64_t z = (dbseqlen + 3) % 4;
+  uint64_t const dbseqlen = dbseq.length;
+  uint64_t const z = (dbseqlen + 3) % 4;
   assert(z * channels + channel <= max_ptrdiff);
-  const uint64_t score
+  uint64_t const score
     = *std::next(reinterpret_cast<WORD const *>(score_vectors), static_cast<std::ptrdiff_t>((z * channels) + channel));
   assert(cand_id >= 0);
   auto const candidate = static_cast<std::size_t>(cand_id);
@@ -435,7 +435,7 @@ auto save_score_16(int64_t const cand_id,
 
   if (score < uint16_max)
     {
-      const uint64_t offset = d_offset[channel];
+      uint64_t const offset = d_offset[channel];
       diff = backtrack<n_bits>(query, dbseq,
                                dirbuffer,
                                offset,
@@ -500,7 +500,7 @@ auto load_next_sequence_16(unsigned int const channel,
   assert(next_id <= std::numeric_limits<int64_t>::max());
   // get next sequence
   seq_id[channel] = static_cast<int64_t>(next_id);
-  const uint64_t seqno = seqnos[next_id];
+  uint64_t const seqno = seqnos[next_id];
   auto const sequence = data.sequence_view(seqno);
 
   d_sequence[channel] = sequence;
@@ -576,7 +576,7 @@ auto search16(Data const & data,
   uint64_t next_id {0};
   uint64_t done {0};
 
-  const auto T0 = make_T0_16();
+  auto const T0 = make_T0_16();
 
   assert((gap_open_penalty + gap_extend_penalty) <= std::numeric_limits<short>::max());
   assert(gap_extend_penalty <= std::numeric_limits<short>::max());
@@ -633,7 +633,7 @@ auto search16(Data const & data,
 
                   M = v_xor16(M, T);
 
-                  const int64_t cand_id = seq_id[channel];
+                  int64_t const cand_id = seq_id[channel];
 
                   if (cand_id >= 0)
                     {

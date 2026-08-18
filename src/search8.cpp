@@ -478,7 +478,7 @@ inline auto onestep_8(VECTORTYPE & H,
                       VECTORTYPE const R) -> void
 {
   H = v_add8(H, V);
-  const auto W = H;
+  auto const W = H;
   H = v_min8(H, F);
   DIR[0] = v_mask_eq8(W, H);  // subscript, not std::next: hot loop, see align_cells
   H = v_min8(H, E);
@@ -559,8 +559,8 @@ auto align_cells_8(VECTORTYPE * const Sm,
 
   auto * dir = reinterpret_cast<unsigned short *>(dir_long);
 
-  const auto Q = Qm;
-  const auto R = Rm;
+  auto const Q = Qm;
+  auto const R = Rm;
 
   auto f0 = F0;
   auto f1 = v_add8(f0, R);
@@ -674,10 +674,10 @@ auto save_score_8(int64_t const cand_id,
   // save score
 
   auto const & dbseq = d_sequence[channel];
-  const uint64_t dbseqlen = dbseq.length;
-  const uint64_t z = (dbseqlen + 3) % 4;
+  uint64_t const dbseqlen = dbseq.length;
+  uint64_t const z = (dbseqlen + 3) % 4;
   assert(z * channels + channel <= max_ptrdiff);
-  const uint64_t score
+  uint64_t const score
     = *std::next(reinterpret_cast<BYTE const *>(score_vectors), static_cast<std::ptrdiff_t>((z * channels) + channel));
   assert(cand_id >= 0);
   auto const candidate = static_cast<std::size_t>(cand_id);
@@ -687,7 +687,7 @@ auto save_score_8(int64_t const cand_id,
 
   if (score < uint8_max)
     {
-      const uint64_t offset = d_offset[channel];
+      uint64_t const offset = d_offset[channel];
       diff = backtrack<n_bits>(query, dbseq,
                                dirbuffer,
                                offset,
@@ -749,7 +749,7 @@ auto load_next_sequence_8(unsigned int const channel,
   // get next sequence
   assert(next_id <= std::numeric_limits<int64_t>::max());
   seq_id[channel] = static_cast<int64_t>(next_id);
-  const uint64_t seqno = seqnos[next_id];
+  uint64_t const seqno = seqnos[next_id];
   auto const sequence = data.sequence_view(seqno);
 
   d_sequence[channel] = sequence;
@@ -825,7 +825,7 @@ auto search8(Data const & data,
   uint64_t next_id {0};
   uint64_t done {0};
 
-  const auto T0 = make_T0_8();
+  auto const T0 = make_T0_8();
 
   assert(gap_open_penalty + gap_extend_penalty <= std::numeric_limits<char>::max());
   assert(gap_extend_penalty <= std::numeric_limits<char>::max());
@@ -879,7 +879,7 @@ auto search8(Data const & data,
 
                   M = v_xor8(M, T);
 
-                  const int64_t cand_id = seq_id[channel];
+                  int64_t const cand_id = seq_id[channel];
 
                   if (cand_id >= 0)
                     {

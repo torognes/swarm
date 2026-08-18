@@ -55,45 +55,45 @@ auto popcount_128(__m128i const input_vector) -> uint64_t
   static constexpr auto shift_by_4 = 4;
   static constexpr auto shift_by_8 = 8;
 
-  const auto mask1 = _mm_set_epi8(char1, char1, char1, char1, char1, char1, char1, char1,
+  auto const mask1 = _mm_set_epi8(char1, char1, char1, char1, char1, char1, char1, char1,
                                   char1, char1, char1, char1, char1, char1, char1, char1);
 
-  const auto mask2 = _mm_set_epi8(char2, char2, char2, char2, char2, char2, char2, char2,
+  auto const mask2 = _mm_set_epi8(char2, char2, char2, char2, char2, char2, char2, char2,
                                   char2, char2, char2, char2, char2, char2, char2, char2);
 
-  const auto mask4 = _mm_set_epi8(char4, char4, char4, char4, char4, char4, char4, char4,
+  auto const mask4 = _mm_set_epi8(char4, char4, char4, char4, char4, char4, char4, char4,
                                   char4, char4, char4, char4, char4, char4, char4, char4);
 
-  const auto zero = _mm_setzero_si128();
+  auto const zero = _mm_setzero_si128();
 
   /* add together 2 bits: 0+1, 2+3, 3+4, ... 126+127 */
 
-  const auto vector_a = _mm_srli_epi64(input_vector, shift_by_1);
-  const auto vector_b = _mm_and_si128(input_vector, mask1);
-  const auto vector_c = _mm_and_si128(vector_a, mask1);
-  const auto vector_d = v_add64(vector_b, vector_c);
+  auto const vector_a = _mm_srli_epi64(input_vector, shift_by_1);
+  auto const vector_b = _mm_and_si128(input_vector, mask1);
+  auto const vector_c = _mm_and_si128(vector_a, mask1);
+  auto const vector_d = v_add64(vector_b, vector_c);
 
   /* add together 4 bits: (0+1)+(2+3), ... (124+125)+(126+127) */
 
-  const auto vector_e = _mm_srli_epi64(vector_d, shift_by_2);
-  const auto vector_f = _mm_and_si128(vector_d, mask2);
-  const auto vector_g = _mm_and_si128(vector_e, mask2);
-  const auto vector_h = v_add64(vector_f, vector_g);
+  auto const vector_e = _mm_srli_epi64(vector_d, shift_by_2);
+  auto const vector_f = _mm_and_si128(vector_d, mask2);
+  auto const vector_g = _mm_and_si128(vector_e, mask2);
+  auto const vector_h = v_add64(vector_f, vector_g);
 
   /* add together 8 bits: (0..3)+(4..7), ... (120..123)+(124..127) */
 
-  const auto vector_i = _mm_srli_epi64(vector_h, shift_by_4);
-  const auto vector_j = v_add64(vector_h, vector_i);
-  const auto vector_k = _mm_and_si128(vector_j, mask4);
+  auto const vector_i = _mm_srli_epi64(vector_h, shift_by_4);
+  auto const vector_j = v_add64(vector_h, vector_i);
+  auto const vector_k = _mm_and_si128(vector_j, mask4);
 
   /* add together 8 bytes: (0..63) and (64..127) */
 
-  const auto vector_l = _mm_sad_epu8(vector_k, zero);
+  auto const vector_l = _mm_sad_epu8(vector_k, zero);
 
   /* add together 64-bit values into final 128 bit value */
 
-  const auto vector_m = _mm_srli_si128(vector_l, shift_by_8);
-  const auto vector_n = v_add64(vector_m, vector_l);
+  auto const vector_m = _mm_srli_si128(vector_l, shift_by_8);
+  auto const vector_n = v_add64(vector_m, vector_l);
 
   /* return low 64 bits: return value is always in range 0 to 128 */
 

@@ -65,7 +65,7 @@ namespace {
       {
         if (hash_table.compare_value(index, var.hash))
           {
-            const auto amp = hash_table.get_data(index);
+            auto const amp = hash_table.get_data(index);
 
             /* avoid self */
             if ((seed != amp) and
@@ -99,7 +99,7 @@ namespace {
     auto hits_count = 0U;
 
     auto const seed_seq = data.sequence_view(seed);
-    const auto hash = data.sequence_hash(seed);
+    auto const hash = data.sequence_hash(seed);
     auto const variants = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
     for (auto const & var : variants) {
@@ -123,17 +123,17 @@ namespace {
     std::vector<unsigned int> hits_data(n_items);
     std::vector<struct var_s> variant_list(n_items);
 
-    const auto amplicons = data.sequence_count();
+    auto const amplicons = data.sequence_count();
     std::unique_lock<std::mutex> lock(state.mutex);
     while (state.amp < amplicons)
       {
-        const auto amp = state.amp;
+        auto const amp = state.amp;
         ++state.amp;
         progress.update(amp);
 
         lock.unlock();
 
-        const auto hits_count = check_variants(parameters, data, hash_table, bloom_a, amp, variant_list, hits_data);
+        auto const hits_count = check_variants(parameters, data, hash_table, bloom_a, amp, variant_list, hits_data);
         lock.lock();
 
         auto & target_amplicon = ampinfo_v[amp];
@@ -166,9 +166,9 @@ auto build_amplicon_network(struct Parameters const & parameters,
 
   /* populate the d=1 hash table and Bloom filter with the amplicon
      hashes precomputed in db.cpp */
-  const auto amplicons = data.sequence_count();
+  auto const amplicons = data.sequence_count();
   Hashtable hash_table;
-  const auto hashtablesize = hash_table.allocate(amplicons);
+  auto const hashtablesize = hash_table.allocate(amplicons);
   BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
                       amplicon_n_hash_functions);
 

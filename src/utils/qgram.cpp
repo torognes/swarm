@@ -94,7 +94,7 @@ namespace {
   {
     assert(seqno_a < store.size());
     assert(seqno_b < store.size());
-    const uint64_t diffqgrams = compareqgramvectors(store[seqno_a],
+    uint64_t const diffqgrams = compareqgramvectors(store[seqno_a],
                                                     store[seqno_b],
                                                     cpu_features);
     // Each mismatch flips up to 2*qgramlength bits in the qgram XOR
@@ -128,7 +128,7 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
   assert(nth_thread < thread_info_v_.size());
   auto const & tip = thread_info_v_[nth_thread];
 
-  const auto seed = tip.seed;
+  auto const seed = tip.seed;
   auto const amplist = tip.amplist;
   auto const difflist = tip.difflist;
 

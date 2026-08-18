@@ -49,23 +49,23 @@
 namespace {
 
 auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_data_v,
-                                     const uint64_t longestdbsequence) -> void {
+                                     uint64_t const longestdbsequence) -> void {
   static constexpr auto nt_per_uint64 = 32U;
-  const uint64_t dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
+  uint64_t const dirbuffersize = longestdbsequence * ((longestdbsequence + 3) / 4) * 4;
 
   // hearray_v is a vector of 16-byte He_blocks rather than of bytes (see
   // search_data.hpp), so its length is a block count. The byte figure the
   // budget below needs is derived back from that count, so the two cannot
   // drift apart. No rounding happens in practice: the byte size is a
   // multiple of nt_per_uint64, itself a multiple of 16.
-  const uint64_t hearray_blocks =
+  uint64_t const hearray_blocks =
     ceil_divide<uint64_t>(longestdbsequence * nt_per_uint64, simd_vector_bytes);
 
   // dir_array_v dominates and grows as O(L^2) in the longest sequence
   // length; fail early with a clear message instead of aborting inside
   // operator new (see memory_budget.hpp).
   static constexpr auto bytes_per_uint64 = uint64_t{8};
-  const uint64_t per_thread_bytes =
+  uint64_t const per_thread_bytes =
       (dirbuffersize * bytes_per_uint64)                 // dir_array_v (dominant)
     + (hearray_blocks * simd_vector_bytes)               // hearray_v
     + (longestdbsequence * 2 * sizeof(void *));          // qtable_v + qtable_w_v
@@ -118,9 +118,9 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
   static constexpr auto word_multiplier = 32U;
 
   for (auto i = 0U; i < query_.length; ++i) {
-    const auto nt_value = nucleotide_at(query_, i) + 1U;  // 1,  2,   3, or   4
-    const auto byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
-    const auto word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
+    auto const nt_value = nucleotide_at(query_, i) + 1U;  // 1,  2,   3, or   4
+    auto const byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
+    auto const word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
     thread_data.qtable_v[i]   = &thread_data.dprofile_a[byte_offset];
@@ -174,7 +174,7 @@ auto Scanner::next_window() -> Scanner::Work_window {
     return Work_window{};  // exhausted
   }
 
-  const uint64_t chunksize =
+  uint64_t const chunksize =
     ((listlength - next_ + remainingchunks_ - 1) / remainingchunks_);
   Work_window const window {next_, chunksize};
 
@@ -200,7 +200,7 @@ auto Scanner::run(uint64_t const query_no,
                   View<uint64_t> const targets,
                   Span<uint64_t> const scores,
                   Span<uint64_t> const diffs,
-                  const Bit_mode bits) -> void {
+                  Bit_mode const bits) -> void {
   assert(scores.size() == targets.size());
   assert(diffs.size() == targets.size());
 
@@ -224,7 +224,7 @@ auto Scanner::run(uint64_t const query_no,
   //   (bits_8,   1,  2) -> 1    (bits_16, 17,  1) -> 1
   //   (bits_8,  32,  1) -> 1
   assert(targets_.size() != 0);
-  const auto thr = n_threads_.capped_at(ceil_divide(targets_.size(),
+  auto const thr = n_threads_.capped_at(ceil_divide(targets_.size(),
                                                     channels_for(bits)));
 
   remainingchunks_ = thr.count();

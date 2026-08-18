@@ -29,13 +29,13 @@
 
 auto make_T0_16() -> VECTORTYPE16 {
   static constexpr auto uint16_max = std::numeric_limits<uint16_t>::max();
-  const VECTORTYPE16 result = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
+  VECTORTYPE16 const result = { uint16_max, 0, 0, 0, 0, 0, 0, 0 };
   return result;
 }
 
 auto make_T0_8() -> VECTORTYPE8 {
   static constexpr auto uint8_max = std::numeric_limits<uint8_t>::max();
-  const VECTORTYPE8 result = { uint8_max, 0, 0, 0, 0, 0, 0, 0,
+  VECTORTYPE8 const result = { uint8_max, 0, 0, 0, 0, 0, 0, 0,
                                        0, 0, 0, 0, 0, 0, 0, 0 };
   return result;
 }

@@ -188,8 +188,8 @@ namespace {
     /* attach in order */
     auto grafts = 0U;
     for (auto const& graft_pair : graft_array) {
-      const auto parent = graft_pair.parent;
-      const auto child  = graft_pair.child;
+      auto const parent = graft_pair.parent;
+      auto const child  = graft_pair.child;
 
       if (swarminfo_v[ampinfo_v[child].swarmid].attached)
         {
@@ -220,7 +220,7 @@ namespace {
     /* seed is the original large swarm seed */
 
     /* compute hash and corresponding hash table index */
-    const auto hash = var.hash;
+    auto const hash = var.hash;
     auto index = hash_table.getindex(hash);
 
     /* find matching buckets */
@@ -230,7 +230,7 @@ namespace {
         if (hash_table.compare_value(index, hash))
           {
             /* check that mass is below threshold */
-            const auto amp = hash_table.get_data(index);
+            auto const amp = hash_table.get_data(index);
 
             /* make absolutely sure sequences are identical */
             auto const amp_seq = data.sequence_view(amp);
@@ -260,7 +260,7 @@ namespace {
 
     uint64_t matches = 0;
 
-    const auto hash = data.zobrist().hash(seq);
+    auto const hash = data.zobrist().hash(seq);
     auto const variants = generate_variants(data.zobrist(), seq, hash, variant_list);
 
     // Not std::count_if, which cppcheck suggests here: hash_check_attach()
@@ -314,7 +314,7 @@ namespace {
     uint64_t matches = 0;
 
     auto const seed_seq = data.sequence_view(seed);
-    const auto hash = data.sequence_hash(seed);
+    auto const hash = data.sequence_hash(seed);
     auto const variants = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
     for (auto const & var : variants)
@@ -354,10 +354,10 @@ namespace {
     std::vector<struct var_s> variant_list((multiplier * data.longest_sequence()) + offset);
     std::vector<struct var_s> variant_list2((multiplier * (data.longest_sequence() + 1)) + offset);
 
-    const std::size_t size =
+    std::size_t const size =
       sizeof(uint64_t) * ((data.longest_sequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
     std::vector<char> buffer1(size);
-    const auto amplicons = data.sequence_count();
+    auto const amplicons = data.sequence_count();
     std::unique_lock<std::mutex> lock(heavy_state.mutex);
     while ((heavy_state.amplicon < amplicons) and
            (heavy_state.progress < heavy_state.amplicon_count))
@@ -402,7 +402,7 @@ namespace {
     hash_insert(data, hash_table, bloom_a, seed);
 
     auto const seed_seq = data.sequence_view(seed);
-    const auto hash = data.sequence_hash(seed);
+    auto const hash = data.sequence_hash(seed);
     auto const variants = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
     for (auto const & var : variants) {
@@ -431,7 +431,7 @@ namespace {
     std::unique_lock<std::mutex> lock(state.mutex);
     while (state.progress < state.amplicon_count)
       {
-        const auto light_amplicon_id = state.amplicon;
+        auto const light_amplicon_id = state.amplicon;
         // Invariant: amplicon_count equals the number of light-swarm
         // amplicons in [0, sequence_count), so the loop stops before this
         // unsigned cursor underflows. Assert it so a future change to the
@@ -446,7 +446,7 @@ namespace {
             ++state.progress;
             progress.update(state.progress);
             lock.unlock();
-            const auto variant_count = mark_light_var(data, hash_table, bloom_a, bloom_f,
+            auto const variant_count = mark_light_var(data, hash_table, bloom_a, bloom_f,
                                                       light_amplicon_id,
                                                       variant_list);
             lock.lock();
@@ -540,7 +540,7 @@ auto run_fastidious_pass(struct Parameters const & parameters,
                          std::vector<struct swarminfo_s> & swarminfo_v,
                          Overall_stats & overall_stats) -> void
 {
-  const auto amplicons = data.sequence_count();
+  auto const amplicons = data.sequence_count();
 
   fprint(parameters.logfile, '\n');
   fprint(parameters.logfile, "Results before fastidious processing:\n");
@@ -593,7 +593,7 @@ auto run_fastidious_pass(struct Parameters const & parameters,
          for the fastidious phase; only light-cluster amplicons will
          be inserted. */
       Hashtable hash_table;
-      const auto hashtablesize = hash_table.allocate(amplicons);
+      auto const hashtablesize = hash_table.allocate(amplicons);
       BloomFilter bloom_a(hashtablesize, amplicon_pattern_shift,
                           amplicon_n_hash_functions);
 

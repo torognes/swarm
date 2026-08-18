@@ -175,7 +175,7 @@ inline auto hash_insert(Data const & data,
                         BloomFilter & bloom_a,
                         unsigned int const amp) -> void {
   /* find the first empty bucket */
-  const auto hash = data.sequence_hash(amp);
+  auto const hash = data.sequence_hash(amp);
   auto index = hash_table.getindex(hash);
   while (hash_table.is_occupied(index)) {
     index = hash_table.getnextindex(index);

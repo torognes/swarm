@@ -59,7 +59,7 @@ auto backtrack(Sequence const & qseq,
                View<uint64_t> const dirbuffer,
                uint64_t const offset,
                uint64_t const channel,
-               const uint64_t longestdbsequence) -> uint64_t {
+               uint64_t const longestdbsequence) -> uint64_t {
   static constexpr uint8_t bits8 {8};
   static constexpr uint8_t bits16 {16};
   static_assert(n_bits == bits8 or n_bits == bits16, "n_bits must be 8 or 16");
@@ -123,7 +123,7 @@ auto backtrack(Sequence const & qseq,
         + (row_index % rows_per_block);
       auto index = offset + cell;
       if (index >= ring_size) { index -= ring_size; }
-      const auto direction = dirbuffer[index];
+      auto const direction = dirbuffer[index];
 
       if ((operation == Alignment::Insertion) and ((direction & maskextleft) == 0U)) {
         --row;

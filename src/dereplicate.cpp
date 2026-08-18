@@ -331,7 +331,7 @@ namespace {
          Progress progress("Dereplicating:    ", amplicons, parameters);
 
          struct Stats stats;
-         const uint64_t derep_hash_mask = hashtable.size() - 1;
+         uint64_t const derep_hash_mask = hashtable.size() - 1;
          auto const & zobrist = data.zobrist();
 
          for (auto seqno = 0U; seqno < amplicons; ++seqno)
@@ -440,8 +440,8 @@ namespace {
 auto dereplicate(struct Parameters const & parameters,
                  Data const & data) -> void
 {
-  const uint64_t dbsequencecount = data.sequence_count();
-  const uint64_t hashtablesize {compute_hashtable_size(dbsequencecount)};
+  uint64_t const dbsequencecount = data.sequence_count();
+  uint64_t const hashtablesize {compute_hashtable_size(dbsequencecount)};
 
   std::vector<struct bucket> hashtable(hashtablesize);
   /* alloc and init table of links to other sequences in cluster */

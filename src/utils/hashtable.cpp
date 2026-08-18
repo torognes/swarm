@@ -31,7 +31,7 @@ auto Hashtable::allocate(uint64_t const amplicons) -> uint64_t {
   static constexpr int padding {63};  // make sure our final value is >= 64 / 8
   static constexpr int convert_to_bytes {8};
 
-  const auto hashtablesize = compute_hashtable_size(amplicons);
+  auto const hashtablesize = compute_hashtable_size(amplicons);
   mask = hashtablesize - 1;
 
   occupied.assign((hashtablesize + padding) / convert_to_bytes, 0U);

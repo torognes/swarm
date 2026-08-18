@@ -88,7 +88,7 @@ namespace {
         continue;
       }
 
-      const auto seed = swarm_info.seed;
+      auto const seed = swarm_info.seed;
       for (auto const amp_id : cluster_members(ampinfo_v, seed)) {
         if (amp_id != seed) {
           fprint(parameters.outfile.get(), sepchar);
@@ -125,7 +125,7 @@ namespace {
         continue;
       }
 
-      const auto seed = swarm_info.seed;
+      auto const seed = swarm_info.seed;
       for (auto const amp_id : cluster_members(ampinfo_v, seed)) {
         if (amp_id == seed) {
           fprint(parameters.outfile.get(), '\t');
@@ -166,7 +166,7 @@ namespace {
         continue;
       }
 
-      const auto seed = swarm_info.seed;
+      auto const seed = swarm_info.seed;
 
       fprint(uclust_file, "C\t");
       fprint_integer(uclust_file, cluster_no);
@@ -233,11 +233,11 @@ namespace {
     auto compare_mass_and_headers = [&swarminfo_v, &data](unsigned int const lhs,
                                                           unsigned int const rhs) -> bool
     {
-      const auto & swarm_x = swarminfo_v[lhs];
-      const auto & swarm_y = swarminfo_v[rhs];
+      auto const & swarm_x = swarminfo_v[lhs];
+      auto const & swarm_y = swarminfo_v[rhs];
 
-      const auto mass_x = swarm_x.mass;
-      const auto mass_y = swarm_y.mass;
+      auto const mass_x = swarm_x.mass;
+      auto const mass_y = swarm_y.mass;
 
       // sort seeds by decreasing mass
       if (mass_x > mass_y) {
@@ -257,13 +257,13 @@ namespace {
     // one scratch buffer for the whole file
     Sequence_printer const sequence_printer {data.longest_sequence()};
 
-    for (const auto index : sorter) {
-      const auto & a_swarm = swarminfo_v[index];
+    for (auto const index : sorter) {
+      auto const & a_swarm = swarminfo_v[index];
       if (a_swarm.attached) {
         continue;
       }
-      const auto seed = a_swarm.seed;
-      const auto mass = a_swarm.mass;
+      auto const seed = a_swarm.seed;
+      auto const mass = a_swarm.mass;
       fprint(seeds_file, '>');
       fprint_id_with_new_abundance(seeds_file, data.info(seed), mass,
                                    parameters.opt_usearch_abundance);
@@ -304,11 +304,11 @@ namespace {
         if (swarm_info.attached) {
           continue;
         }
-        const auto seed = swarm_info.seed;
+        auto const seed = swarm_info.seed;
 
         for (auto const amp_id : cluster_members_after_seed(ampinfo_v, seed))
           {
-            const auto graft_parent = ampinfo_v[amp_id].graft_cand;
+            auto const graft_parent = ampinfo_v[amp_id].graft_cand;
             if (graft_parent != no_swarm)
               {
                 fprint_id_noabundance(structure_file, data.info(graft_parent),
@@ -324,7 +324,7 @@ namespace {
                 fprint(structure_file, '\n');
               }
 
-            const auto parent = ampinfo_v[amp_id].parent;
+            auto const parent = ampinfo_v[amp_id].parent;
             if (parent != no_swarm)
               {
                 fprint_id_noabundance(structure_file, data.info(parent), parameters.opt_usearch_abundance);

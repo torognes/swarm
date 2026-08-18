@@ -117,7 +117,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
           fatal("Memory ceiling for Bloom filter is too low.");
         }
       assert(memused < one_megabyte * parameters.opt_ceiling);
-      const uint64_t memrest
+      uint64_t const memrest
         = (one_megabyte * parameters.opt_ceiling) - memused;
       auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
       if (new_bits < bits)
