@@ -136,6 +136,19 @@ public:
   }
   constexpr auto empty() const noexcept -> bool { return size() == 0; }
 
+  // Byte span
+  //
+  // A writable span of the elements' object representation -- the C++11
+  // analogue of std::as_writable_bytes (C++20), with char standing in
+  // for C++17's std::byte; the read-only counterpart is
+  // View::as_bytes() (view.hpp). Reading and writing an object's
+  // representation through char is the access the aliasing rules always
+  // allow. Not constexpr: C++11 forbids reinterpret_cast in constant
+  // expressions.
+  auto as_writable_bytes() const noexcept -> Span<char> {
+    return Span<char>{reinterpret_cast<char *>(data()), size_bytes()};
+  }
+
   // Subspans
   auto subspan(std::size_t const offset, std::size_t const count) const noexcept -> Span {
     assert(offset <= size());

@@ -24,7 +24,6 @@
 #ifndef SWARM_DB_H
 #define SWARM_DB_H
 
-#include "utils/nt_codec.hpp"  // nt_byte_index, nt_extract
 #include "utils/seqinfo.hpp"
 #include "utils/view.hpp"
 #include "utils/zobrist.hpp"
@@ -59,13 +58,26 @@ struct Sequence {
 //
 // This is the checked way to read a packed sequence, and the check is
 // stronger than what a caller can express on its own: 'position' is
-// verified against the nucleotide count, where nt_extract() and the
-// hand-written bounds it used to need could only see the packed byte
-// count -- which also admits the padding nucleotides inside the last
-// byte. The View subscript then re-checks the byte index.
+// verified against the nucleotide count, which also excludes the
+// padding nucleotides inside the last word. The View subscript then
+// re-checks the word index.
+//
+// Extracts from the word directly rather than through
+// encoded.as_bytes(): this function is the read path of the d > 1
+// kernels' feeder (fill_channel) and of the qgram scan, and the byte
+// view's constructor is extra inlined code in exactly those loops --
+// measured +2.5 to +4.4 % at d = 2 and +2.5 % at d = 1 -f (alternating
+// pairs, both orders agreeing) when a View<char> was built here per
+// call. One aligned word load, one shift, one mask is also simply less
+// work than the byte path's index-byte-then-decode.
 inline auto nucleotide_at(Sequence const & sequence, uint64_t const position) -> unsigned char {
   assert(position < sequence.length);
-  return nt_extract(sequence.encoded.as_bytes()[nt_byte_index(position)], position);
+  static constexpr uint64_t nt_per_word {32};   // 32 nt fit in 64 bits
+  static constexpr unsigned int bits_per_nt {2};
+  static constexpr uint64_t keep_first_two_bits {3};
+  auto const word = sequence.encoded[position / nt_per_word];
+  auto const shift = bits_per_nt * (position % nt_per_word);
+  return static_cast<unsigned char>((word >> shift) & keep_first_two_bits);
 }
 
 
