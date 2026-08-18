@@ -58,7 +58,7 @@ auto allocate_per_thread_search_data(std::vector<struct Search_data>& search_dat
   // budget below needs is derived back from that count, so the two cannot
   // drift apart. No rounding happens in practice: the byte size is a
   // multiple of nt_per_uint64, itself a multiple of 16.
-  const uint64_t hearray_blocks =
+  auto const hearray_blocks =
     ceil_divide<uint64_t>(longestdbsequence * nt_per_uint64, simd_vector_bytes);
 
   // dir_array_v dominates and grows as O(L^2) in the longest sequence
