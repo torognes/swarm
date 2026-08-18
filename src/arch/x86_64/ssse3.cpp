@@ -54,11 +54,20 @@ auto v_or(__m128i const lhs, __m128i const rhs) -> __m128i {
   return _mm_or_si128(lhs, rhs);
 }
 
-auto v_shift_left(__m128i const vector, int const n_bits) -> __m128i {
-  // shift each of the eight shorts to the left by n bits, pad with zeros
-  // (_mm_slli_epi16 counts bits, not bytes: the two callers below shift by
-  //  1 to double a value, and by 8 -- which is one byte -- to move it into
-  //  the high half of its lane)
+// shift each of the eight shorts to the left by n_bits, pad with zeros
+// (_mm_slli_epi16 counts bits, not bytes: the two callers below shift by
+//  1 to double a value, and by 8 -- which is one byte -- to move it into
+//  the high half of its lane)
+//
+// n_bits is a template parameter because _mm_slli_epi16 wants an immediate:
+// its two call sites each pass a constant, so the runtime parameter only
+// ever carried a compile-time fact, and PSLLW's immediate form is the point
+// of the instruction. GCC already folded both calls -- this function is
+// static, in an anonymous namespace, and always inlined, so constant
+// propagation into it was never in doubt -- but the type now says the count
+// cannot be a runtime value, which is the intrinsic's actual contract.
+template <int n_bits>
+auto v_shift_left(__m128i const vector) -> __m128i {
   return _mm_slli_epi16(vector, n_bits);
 }
 
@@ -128,17 +137,17 @@ auto dprofile_shuffle16(Dprofile_16 & dprofile_a,
 
   auto transform_lower_seq_chunk = [&](__m128i const& seq_chunk) -> __m128i {
     auto lower_chunk = v_merge_lo_8(seq_chunk, zero);
-    lower_chunk = v_shift_left(lower_chunk, 1);
+    lower_chunk = v_shift_left<1>(lower_chunk);
     auto local_t = v_add16(lower_chunk, one);
-    local_t = v_shift_left(local_t, channels);
+    local_t = v_shift_left<channels>(local_t);
     return v_or(lower_chunk, local_t);
   };
 
   auto transform_higher_seq_chunk = [&](__m128i const& seq_chunk) -> __m128i {
     auto higher_chunk = v_merge_hi_8(seq_chunk, zero);
-    higher_chunk = v_shift_left(higher_chunk, 1);
+    higher_chunk = v_shift_left<1>(higher_chunk);
     auto local_t = v_add16(higher_chunk, one);
-    local_t = v_shift_left(local_t, channels);
+    local_t = v_shift_left<channels>(local_t);
     return v_or(higher_chunk, local_t);
   };
 
