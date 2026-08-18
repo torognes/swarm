@@ -47,8 +47,9 @@
 // little-endian bit array, so the byte view above and a 64-bit word view
 // agree with no conversion between them. That is what lets
 // seq_identical() (variants.cpp) compare 32 nucleotides with a single
-// xor, and nt_bytelength() below rounds every sequence up to a whole
-// multiple of 8 bytes, so such a word read always stays inside it.
+// xor. The storage is 64-bit words (nt_wordlength() below sizes it),
+// so a word subscript always stays inside a sequence, and the byte
+// view is the words' object representation via View::as_bytes().
 //
 // Do not flip the field order to make a packed byte read left to right.
 // Reversing it inside the byte alone breaks the agreement between those
@@ -99,6 +100,6 @@ inline auto nt_extract(char const compressed_byte, uint64_t const position) -> u
 }
 
 
-auto nt_bytelength(unsigned int len) -> unsigned int;
+auto nt_wordlength(unsigned int len) -> unsigned int;
 
 #endif

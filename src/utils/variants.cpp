@@ -28,23 +28,20 @@
 #include "variants.hpp"
 #include <algorithm>  // std::copy
 #include <cassert>  // assert
-#include <cstddef>  // std::ptrdiff_t, std::size_t
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
-#include <cstring>  // std::memcpy
-#include <iterator>  // std::next
 #include <vector>
 
 
 
 namespace {
 
-#ifndef NDEBUG
-  // C++17 refactoring: [[maybe_unused]]
-  constexpr std::size_t nt_per_byte = 4;  // 4 nucleotides packed per byte
-#endif
+  constexpr unsigned int bits_per_nt = 2;   // 2-bit fields
+  constexpr unsigned int nt_per_word = 32;  // 32 nucleotides in a uint64_t
+  constexpr unsigned int bits_per_word = bits_per_nt * nt_per_word;
 
 
-  inline auto nt_set(Span<char> const seq, unsigned int const pos, unsigned int const base) -> void
+  inline auto nt_set(Span<uint64_t> const seq, unsigned int const pos, unsigned int const base) -> void
   {
     // base = replacement nucleotide = encoded as 0, 1, 2, 3
     static constexpr auto divider = 5U;
@@ -53,25 +50,19 @@ namespace {
     auto const whichlong = pos >> divider;
     uint64_t const shift = static_cast<uint64_t>(pos & max_range) << 1U;  // 0, 2, 4, 6, ..., 60, 62
     uint64_t const mask = compl (two_bits << shift);
-    // read-modify-write the target 64-bit word. std::memcpy avoids the
-    // strict-aliasing undefined behaviour of punning a char buffer through
-    // a uint64_t* (see C++ Weekly #185); optimisers fold the round-trip
-    // back into a single load and store.
-    // C++20 refactoring: std::bit_cast
-    auto const byte_offset = static_cast<std::ptrdiff_t>(whichlong)
-                           * static_cast<std::ptrdiff_t>(sizeof(uint64_t));
-    char * const target_word = std::next(seq.data(), byte_offset);
-    uint64_t mutated_position {0};
-    std::memcpy(&mutated_position, target_word, sizeof(mutated_position));
-    mutated_position &= mask;
-    mutated_position |= (static_cast<uint64_t>(base)) << shift;
-    std::memcpy(target_word, &mutated_position, sizeof(mutated_position));
+    // read-modify-write the target 64-bit word directly: the buffer's
+    // element type is the word, so the std::memcpy round-trip that used
+    // to dodge the strict-aliasing undefined behaviour of punning a
+    // char buffer through a uint64_t* (see C++ Weekly #185) is gone,
+    // and the span subscript bounds-checks the word index.
+    auto & word = seq[whichlong];
+    word = (word & mask) | (static_cast<uint64_t>(base) << shift);
   }
 
 
-  inline auto seq_copy(Span<char> const seq_a,
+  inline auto seq_copy(Span<uint64_t> const seq_a,
                        unsigned int const a_start,
-                       View<char> const seq_b,
+                       View<uint64_t> const seq_b,
                        unsigned int const b_start,
                        unsigned int const length) -> void
   {
@@ -88,72 +79,51 @@ namespace {
     // into the fastidious worker it added 664 bytes to it, the same way
     // the packed-byte block cost search8 and search16 (see fill_channel
     // in dseq_fill.hpp). seq_identical is where that machinery pays.
-    assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
-    assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
+    assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_word);
+    assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_word);
+    auto const bytes_b = seq_b.as_bytes();
     for (auto i = 0U; i < length; ++i) {
-      nt_set(seq_a, a_start + i, nt_extract(seq_b[nt_byte_index(b_start + i)], b_start + i));
+      nt_set(seq_a, a_start + i, nt_extract(bytes_b[nt_byte_index(b_start + i)], b_start + i));
     }
-  }
-
-
-  constexpr unsigned int bits_per_nt = 2;   // 2-bit fields
-  constexpr unsigned int nt_per_word = 32;  // 32 nucleotides in a uint64_t
-  constexpr unsigned int bits_per_word = bits_per_nt * nt_per_word;
-
-
-  // The 64-bit word at 'word_index' of a packed sequence. Every packed
-  // sequence occupies a whole number of these: nt_bytelength() rounds
-  // the byte count up to a multiple of 8, so a word read stays inside
-  // the view for any nucleotide position the view covers.
-  //
-  // std::memcpy avoids the strict-aliasing undefined behaviour of
-  // punning a char buffer through a uint64_t* (see nt_set above);
-  // optimisers fold it back into a single load.
-  // C++20 refactoring: std::bit_cast
-  inline auto packed_word(View<char> const seq, uint64_t const word_index) -> uint64_t
-  {
-    assert(seq.size() % sizeof(uint64_t) == 0);
-    assert((word_index + 1) * sizeof(uint64_t) <= seq.size());
-    auto const byte_offset = static_cast<std::ptrdiff_t>(word_index * sizeof(uint64_t));
-    uint64_t word {0};
-    std::memcpy(&word, std::next(seq.data(), byte_offset), sizeof(word));
-    return word;
   }
 
 
   // The 32 nucleotides starting at 'position', packed lowest field
   // first. A variant sits anywhere in the sequence, so 'position' is
   // not word-aligned in general and the window is assembled from the
-  // word holding it and, when it straddles two, the one after.
-  inline auto nt_window(View<char> const seq, uint64_t const position) -> uint64_t
+  // word holding it and, when it straddles two, the one after. The
+  // view's element type is the word, so each read is one bounds-checked
+  // subscript -- the memcpy that used to rebuild the word from bytes is
+  // gone with the byte-typed storage.
+  inline auto nt_window(View<uint64_t> const seq, uint64_t const position) -> uint64_t
   {
     auto const word_index = position / nt_per_word;
     auto const shift = bits_per_nt * (position % nt_per_word);
-    auto const word = packed_word(seq, word_index) >> shift;
+    auto const word = seq[word_index] >> shift;
 
     // an aligned window is already complete, and shifting a 64-bit
     // value by 64 is undefined; a window opening in the last word has
     // no successor to draw its high fields from, and does not need one
     // (they lie past the end of the sequence, so no caller compares
     // them -- see the mask in seq_identical)
-    auto const has_next_word = ((word_index + 2) * sizeof(uint64_t)) <= seq.size();
+    auto const has_next_word = (word_index + 2) <= seq.size();
     if ((shift == 0) or (not has_next_word)) {
       return word;
     }
-    return word | (packed_word(seq, word_index + 1) << (bits_per_word - shift));
+    return word | (seq[word_index + 1] << (bits_per_word - shift));
   }
 
 
-  inline auto seq_identical(View<char> const seq_a,
+  inline auto seq_identical(View<uint64_t> const seq_a,
                             unsigned int const a_start,
-                            View<char> const seq_b,
+                            View<uint64_t> const seq_b,
                             unsigned int const b_start,
                             unsigned int const length) -> bool
   {
     /* compare parts of two compressed sequences a and b */
     /* return false if different, true if identical */
-    assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_byte);
-    assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_byte);
+    assert(static_cast<std::size_t>(a_start) + length <= seq_a.size() * nt_per_word);
+    assert(static_cast<std::size_t>(b_start) + length <= seq_b.size() * nt_per_word);
 
     // 32 nucleotides per iteration. The two windows carry the same
     // nucleotides at the same field positions whatever a_start and
@@ -201,7 +171,7 @@ namespace {
 
 auto generate_variant_sequence(Sequence const & seed,
                                struct var_s const & var,
-                               std::vector<char> & buffer) -> Sequence
+                               std::vector<uint64_t> & buffer) -> Sequence
 {
   /* generate the actual sequence of a variant */
 
@@ -242,7 +212,7 @@ auto generate_variant_sequence(Sequence const & seed,
   // a view of the caller's buffer, not of storage this function owns:
   // see the note on the declaration
   assert(seqlen != 0);
-  return Sequence{make_view(buffer).first(nt_bytelength(seqlen)), seqlen};
+  return Sequence{make_view(buffer).first(nt_wordlength(seqlen)), seqlen};
 }
 
 

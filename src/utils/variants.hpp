@@ -54,7 +54,7 @@ struct var_s
 // variant, so the returned Sequence is valid only until the next call.
 auto generate_variant_sequence(Sequence const & seed,
                                struct var_s const & var,
-                               std::vector<char> & buffer) -> Sequence;
+                               std::vector<uint64_t> & buffer) -> Sequence;
 
 auto check_variant(Sequence const & seed,
                    struct var_s const & var,

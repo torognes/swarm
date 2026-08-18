@@ -30,6 +30,7 @@
 #include "bloom.hpp"
 #include "hashtable.hpp"
 #include "make_unique.hpp"
+#include "nt_codec.hpp"  // nt_wordlength
 #include "print_view.hpp"  // fprint, fprint_integer
 #include "progress.hpp"
 #include "threads.hpp"
@@ -282,7 +283,7 @@ namespace {
                        Hashtable const & hash_table,
                        BloomFilter const & bloom_a,
                        BloomFilter const & bloom_f,
-                       std::vector<char>& varseq,
+                       std::vector<uint64_t>& varseq,
                        unsigned int const seed,
                        uint64_t & number_of_matches,
                        uint64_t & number_of_variants,
@@ -349,14 +350,12 @@ namespace {
   {
     static constexpr auto multiplier = 7U;  // max number of microvariants = 7 * len + 4
     static constexpr auto offset = 4U;
-    static constexpr auto nt_per_uint64 = 32U;  // 32 nucleotides can fit in a uint64
 
     std::vector<struct var_s> variant_list((multiplier * data.longest_sequence()) + offset);
     std::vector<struct var_s> variant_list2((multiplier * (data.longest_sequence() + 1)) + offset);
 
-    std::size_t const size =
-      sizeof(uint64_t) * ((data.longest_sequence() + 2 + nt_per_uint64 - 1) / nt_per_uint64);
-    std::vector<char> buffer1(size);
+    // sized in 64-bit words: long enough for any sequence + 1 insertion
+    std::vector<uint64_t> buffer1(nt_wordlength(data.longest_sequence() + 2));
     auto const amplicons = data.sequence_count();
     std::unique_lock<std::mutex> lock(heavy_state.mutex);
     while ((heavy_state.amplicon < amplicons) and

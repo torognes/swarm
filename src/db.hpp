@@ -40,17 +40,17 @@ struct Parameters;  // defined in swarm.hpp
 
 // Non-owning view of a packed-nucleotide amplicon:
 // - length is the nucleotide count
-// - encoded views the storage bytes, with encoded.size() ==
-//   nt_bytelength(length) (4 nt per byte, rounded up to a whole
-//   number of 64-bit words)
-// The storage is a vector of 64-bit words, so encoded.data() is
-// 8-byte aligned and each sequence starts on a word boundary.
-// Word-wide consumers read encoded 64 bits at a time through
-// std::memcpy -- see packed_word() in variants.cpp -- which the
-// rounding above keeps in bounds; iterating encoded directly walks
-// the packed bytes, not nucleotides.
+// - encoded views the storage words, with encoded.size() ==
+//   nt_wordlength(length) (32 nt per 64-bit word)
+// Each sequence starts on a word boundary of the word vector, so
+// encoded.data() is 8-byte aligned. Word-wide consumers (seq_identical
+// in variants.cpp) index the words directly; byte-level consumers (the
+// Zobrist byte-rate zip, Sequence_printer, nucleotide_at below) view
+// the words' object representation through encoded.as_bytes() -- the
+// same bytes the old byte-typed storage held, since every word arrived
+// there via std::memcpy of the same accumulator.
 struct Sequence {
-  View<char> encoded;
+  View<uint64_t> encoded;
   unsigned int length;
 };
 
@@ -65,7 +65,7 @@ struct Sequence {
 // byte. The View subscript then re-checks the byte index.
 inline auto nucleotide_at(Sequence const & sequence, uint64_t const position) -> unsigned char {
   assert(position < sequence.length);
-  return nt_extract(sequence.encoded[nt_byte_index(position)], position);
+  return nt_extract(sequence.encoded.as_bytes()[nt_byte_index(position)], position);
 }
 
 

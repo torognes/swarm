@@ -31,14 +31,12 @@ constexpr auto uint_max = std::numeric_limits<unsigned int>::max();
 #endif
 
 
-// round-up operation, compiler cleverly elimates the multiplication (8 is a power of 2)
-auto nt_bytelength(unsigned int const len) -> unsigned int {
-  // Compute number of bytes used for compressed sequence of length len
-  // (minimum result is 8 bytes)
+auto nt_wordlength(unsigned int const len) -> unsigned int {
+  // Compute number of 64-bit words used for a compressed sequence of
+  // length len (minimum result is 1 word)
   static constexpr auto max_nt_per_uint64 = 32U;  // 32 nt fit in 64 bits
   static constexpr auto divide_by_32 = 5U;  // (len + 31) % 32 (drop remainder)
-  static constexpr auto bytes_per_uint64 = 8U;  // times 8 to get the number of bytes
   assert(len != 0);
   assert(len <= uint_max - (max_nt_per_uint64 - 1));
-  return ((len + max_nt_per_uint64 - 1) >> divide_by_32) * bytes_per_uint64;
+  return (len + max_nt_per_uint64 - 1) >> divide_by_32;
 }

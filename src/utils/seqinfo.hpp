@@ -30,12 +30,12 @@
 
 // refactoring: header (char const *) + headerlen (int) merged into
 // header_view (View<char>). seq + seqlen are deliberately *not*
-// merged the same way, and the reason is not the byte/nucleotide-count
-// mismatch (4 nt packed per byte): struct Sequence in db.hpp already
-// expresses exactly that relation, and sequence_of() in db.cpp builds
-// one from this struct on demand.
+// merged the same way, and the reason is not the word/nucleotide-count
+// mismatch (32 nt packed per 64-bit word): struct Sequence in db.hpp
+// already expresses exactly that relation, and sequence_of() in db.cpp
+// builds one from this struct on demand.
 //
-// The reason is size. Sequence stores the nucleotide count and the byte
+// The reason is size. Sequence stores the nucleotide count and the word
 // count, and the second is a function of the first, so storing it here
 // would take seqinfo_s from 56 to 64 bytes -- one per amplicon, i.e.
 // +800 MB on a 100-million-read input, 4 bytes of which are derived.
@@ -45,7 +45,7 @@
 struct seqinfo_s
 {
   View<char> header_view;
-  char const * seq {nullptr};
+  uint64_t const * seq {nullptr};
   uint64_t abundance {0};
   uint64_t seqhash {0};
   unsigned int seqlen {0};

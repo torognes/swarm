@@ -837,15 +837,11 @@ namespace {
 
 
   // Populate header_view and the (seq, seqlen) pointer pair from a
-  // parsed Entry into its destination seqinfo slot.
-  //
-  // The reinterpret_cast is the one place where the packed words are
-  // rebound to the byte view every consumer works on. Reading uint64_t
-  // objects through a char pointer is one of the accesses the aliasing
-  // rules always allow (the reverse direction is the undefined one),
-  // and the byte order seen is the words' object representation --
-  // exactly what the old byte buffer held, where each word arrived via
-  // std::memcpy of the same accumulator.
+  // parsed Entry into its destination seqinfo slot. Both offsets count
+  // their vector's elements -- bytes for the header, 64-bit words for
+  // the sequence -- and the sequence pointer keeps the storage's own
+  // element type, so no cast is involved; byte-level consumers rebind
+  // through View::as_bytes() instead.
   auto populate_views_from_entry(struct seqinfo_s & a_sequence,
                                  struct Entry const & entry,
                                  std::vector<char> const & header_v,
@@ -853,9 +849,8 @@ namespace {
     a_sequence.header_view = make_view(header_v)
       .subview(static_cast<std::size_t>(entry.header.offset), entry.header.length);
     a_sequence.seqlen = static_cast<unsigned int>(entry.sequence.length);
-    a_sequence.seq    = reinterpret_cast<char const *>(
-      std::next(sequence_v.data(),
-                static_cast<std::ptrdiff_t>(entry.sequence.offset)));
+    a_sequence.seq    = std::next(sequence_v.data(),
+                                  static_cast<std::ptrdiff_t>(entry.sequence.offset));
   }
 
 
@@ -909,13 +904,13 @@ namespace {
   }
 
 
-  // The Sequence value for one index entry: the packed bytes viewed
-  // with their byte count, plus the nucleotide count. seqinfo_s stores
-  // the nucleotide count only, so the byte count is derived here rather
+  // The Sequence value for one index entry: the packed words viewed
+  // with their word count, plus the nucleotide count. seqinfo_s stores
+  // the nucleotide count only, so the word count is derived here rather
   // than at each call site -- one place where
-  // encoded.size() == nt_bytelength(length) has to hold.
+  // encoded.size() == nt_wordlength(length) has to hold.
   auto sequence_of(struct seqinfo_s const & entry) -> Sequence {
-    return {View<char>{entry.seq, nt_bytelength(entry.seqlen)}, entry.seqlen};
+    return {View<uint64_t>{entry.seq, nt_wordlength(entry.seqlen)}, entry.seqlen};
   }
 
 
@@ -1127,12 +1122,13 @@ Sequence_printer::Sequence_printer(unsigned int const longest_sequence)
 
 auto Sequence_printer::print(std::FILE * const stream, Sequence const & seq) const -> void {
   // decode to nucleotides (A, C, G and T), four at a time. The bytes
-  // beyond the sequence's own are not read: nt_bytelength() rounds
-  // encoded up to a multiple of eight. The last byte read does
-  // contribute a whole group, so up to three padding characters land
-  // past the sequence's length -- decode_buffer_ is sized for them (see
-  // the constructor) and the print below trims them.
-  auto const packed = seq.encoded.first(ceil_divide(seq.length, nt_per_byte));
+  // beyond the sequence's own are not read, and the byte view spans
+  // whole 64-bit words, so every byte the first() below keeps exists.
+  // The last byte read does contribute a whole group, so up to three
+  // padding characters land past the sequence's length --
+  // decode_buffer_ is sized for them (see the constructor) and the
+  // print below trims them.
+  auto const packed = seq.encoded.as_bytes().first(ceil_divide(seq.length, nt_per_byte));
   assert(decode_buffer_.size() >= nt_per_byte * packed.size());
   auto destination = decode_buffer_.begin();
   for (auto const packed_byte : packed) {

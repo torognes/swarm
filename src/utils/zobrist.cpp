@@ -125,9 +125,11 @@ auto Zobrist::hash(Sequence const & seq) const -> uint64_t {
   // Each byte is folded with the table row for its own position, so the
   // encoded bytes and the table advance together -- which is the zip that
   // std::inner_product expresses, over two contiguous ranges and with no
-  // captured counter walking the second one by hand.
+  // captured counter walking the second one by hand. The table is keyed
+  // by byte position, so the loop walks the words' byte view.
+  auto const bytes = seq.encoded.as_bytes();
   auto const n_complete_bytes = len / nt_per_byte;
-  auto const bulk = seq.encoded.first(n_complete_bytes);
+  auto const bulk = bytes.first(n_complete_bytes);
   assert(n_complete_bytes <= tab_byte_base_v_.size());
   zobrist_hash = std::inner_product(bulk.cbegin(), bulk.cend(),
                                     tab_byte_base_v_.cbegin(), zobrist_hash,
@@ -139,7 +141,7 @@ auto Zobrist::hash(Sequence const & seq) const -> uint64_t {
   // Sub-byte residue: 0..3 nt that didn't fill a byte
   auto pos = n_complete_bytes * nt_per_byte;
   if (pos < len) {
-    auto last_byte = to_uchar(seq.encoded[n_complete_bytes]);
+    auto last_byte = to_uchar(bytes[n_complete_bytes]);
     while (pos < len) {
       zobrist_hash ^= value(pos, last_byte & 3U);
       last_byte >>= 2U;
@@ -159,7 +161,7 @@ auto Zobrist::hash_first_shifted(Sequence const & seq,
 
   auto const len = seq.length;
   auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
-  auto const view = seq.encoded.first(n_bytes);
+  auto const view = seq.encoded.as_bytes().first(n_bytes);
   auto const start = (operation == First_base_op::remove) ? 1U : 0U;
 
   auto byte_idx = 0U;

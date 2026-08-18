@@ -51,7 +51,7 @@ auto fill_matrix(Sequence const & dseq,
                  Span<NwAligner::HECell> const hearray) -> void
 {
   // Sequence::length is the nucleotide count (not encoded.size(), which
-  // is the packed-byte count); nucleotide_at() and the inner loops below
+  // is the packed-word count); nucleotide_at() and the inner loops below
   // both work in nucleotide units.
   auto const dlen = static_cast<uint64_t>(dseq.length);
   auto const qlen = static_cast<uint64_t>(qseq.length);
