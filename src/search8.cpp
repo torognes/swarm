@@ -90,7 +90,6 @@ static_assert(channels == channels_at_8_bits, "Dseq_8 is sized for 16 channels")
 constexpr unsigned int cdepth {4};
 static_assert(cdepth == depth_slots, "a block covers exactly one packed byte");
 constexpr uint8_t n_bits {8};
-using BYTE = unsigned char;
 
 // backtrack.hpp: template specialization (8 bits)
 template <>
