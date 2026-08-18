@@ -29,7 +29,7 @@
 #include "print_view.hpp"  // fprint
 #include "progress.hpp"
 #include "span.hpp"
-#include <algorithm>  // std::sort()
+#include <algorithm>  // std::sort(), std::remove_if()
 #include <cassert>  // assert()
 #include <cstdint>  // uint64_t
 #include <cstdio>  // fprintf()
@@ -225,10 +225,22 @@ namespace {
   auto write_representative_sequences(struct Parameters const & parameters,
                                       Data const & data,
                                       std::vector<struct swarminfo_s> const & swarminfo_v) -> void {
-    Progress progress("Writing seeds:    ", swarminfo_v.size(), parameters);
-
     std::vector<unsigned int> seed_sorter(swarminfo_v.size());
     std::iota(seed_sorter.begin(), seed_sorter.end(), 0);
+
+    /* swarms grafted onto another swarm by the fastidious pass are not
+       representatives; drop them before sorting rather than skipping
+       them while writing. Only the fastidious pass sets 'attached'
+       (algod1_fastidious.cpp), so the scan is a no-op without it. */
+    if (parameters.opt_fastidious) {
+      auto const is_attached = [&swarminfo_v](unsigned int const index) -> bool {
+        return swarminfo_v[index].attached;
+      };
+      seed_sorter.erase(std::remove_if(seed_sorter.begin(), seed_sorter.end(), is_attached),
+                        seed_sorter.end());
+    }
+
+    Progress progress("Writing seeds:    ", seed_sorter.size(), parameters);
 
     auto compare_mass_and_headers = [&swarminfo_v, &data](unsigned int const lhs,
                                                           unsigned int const rhs) -> bool
@@ -259,9 +271,6 @@ namespace {
 
     for (const auto index : seed_sorter) {
       const auto & a_swarm = swarminfo_v[index];
-      if (a_swarm.attached) {
-        continue;
-      }
       const auto seed = a_swarm.seed;
       const auto mass = a_swarm.mass;
       fprint(seeds_file, '>');
