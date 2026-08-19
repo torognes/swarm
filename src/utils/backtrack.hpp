@@ -37,50 +37,61 @@
 
 
 // The two search widths served by this header, named once here: the
-// specialization below, backtrack()'s static_assert and search8.cpp /
-// search16.cpp all spell the same fact.
+// Mask_shape specializations below, backtrack()'s static_assert and
+// search8.cpp / search16.cpp all spell the same fact.
 constexpr uint8_t bits8 {8};
 constexpr uint8_t bits16 {16};
 
 
-// default template (16 bits)
+// The mask shape at each search width.
+//
+// A direction word holds one bit per channel at 8 bits (there are sixteen)
+// and two adjacent bits per channel at 16 (there are eight), so the mask a
+// backtrack step tests differs between them. Both shapes are equally real;
+// neither is a default.
+//
+// Declared without a primary definition on purpose. An unknown width is then
+// an incomplete type -- a compile error at the point of use -- where a primary
+// template would have quietly handed it one of the two shapes. This was not
+// hypothetical: until 7679022 a translation unit that could not see the 8-bit
+// specialization got the 16-bit masks, and since the two only differ in value
+// it miscomputed rather than failing to link.
+//
+// A class rather than a function template, which is what this used to be, for
+// the same reason. Specializing a *function* template brought two quirks that
+// each needed a commit: the specialization does not inherit constexpr from the
+// primary (b8e035e), and being definable in a header at all depended on that
+// constexpr making it implicitly inline (7679022). A class template
+// specialization has neither property to get wrong.
 template <uint8_t n_bits>
-constexpr auto compute_mask(uint64_t const channel,
-                            unsigned int const offset) -> uint64_t {
-  return (3ULL << ((2 * channel) + offset));
-}
+struct Mask_shape;
 
-
-// specialization (8 bits)
-//
-// Here rather than in search8.cpp, which used to declare it. An explicit
-// specialization only applies where it has been declared, so a second
-// translation unit instantiating backtrack<bits8> without seeing it would
-// silently get the primary template instead -- and the two masks differ,
-// so that miscomputes rather than failing to link. Declaring it beside
-// the primary means every user of the header sees both.
-//
-// Definable in a header because it is constexpr, hence implicitly inline:
-// an explicit specialization is not inline on its own, and without that
-// specifier this definition would collide in every TU that included it.
 template <>
-constexpr auto compute_mask<bits8>(uint64_t const channel,
-                                   unsigned int const offset) -> uint64_t {
-  return (1ULL << (channel + offset));
-}
+struct Mask_shape<bits8> {
+  static constexpr auto mask(uint64_t const channel,
+                             unsigned int const offset) -> uint64_t {
+    return 1ULL << (channel + offset);
+  }
+};
+
+template <>
+struct Mask_shape<bits16> {
+  static constexpr auto mask(uint64_t const channel,
+                             unsigned int const offset) -> uint64_t {
+    return 3ULL << ((2 * channel) + offset);
+  }
+};
 
 
-// Both widths are constexpr, so which one a given n_bits selects is
-// checkable at compile time -- and that is the thing the move above is
-// for. These are what a translation unit that could not see the
-// specialization would fail: it would resolve compute_mask<bits8> to the
-// primary template and produce the 16-bit masks. (Same idea as the
-// static_assert block in ceil_divide.hpp.)
-static_assert(compute_mask<bits16>(0, 0) == 3ULL, "16 bits: two adjacent bits at channel 0");
-static_assert(compute_mask<bits16>(1, 0) == 12ULL, "16 bits: a channel strides by two bits");
-static_assert(compute_mask<bits8>(0, 0) == 1ULL, "8 bits: one bit at channel 0");
-static_assert(compute_mask<bits8>(1, 0) == 2ULL, "8 bits: a channel strides by one bit");
-static_assert(compute_mask<bits8>(1, 16) == (1ULL << 17), "8 bits: offset selects the mask field");
+// Which shape a given width selects, checked at compile time. These are what
+// a width with no specialization now fails on -- as an incomplete type, before
+// it can produce a wrong number. (Same idea as the static_assert block in
+// ceil_divide.hpp.)
+static_assert(Mask_shape<bits16>::mask(0, 0) == 3ULL, "16 bits: two adjacent bits at channel 0");
+static_assert(Mask_shape<bits16>::mask(1, 0) == 12ULL, "16 bits: a channel strides by two bits");
+static_assert(Mask_shape<bits8>::mask(0, 0) == 1ULL, "8 bits: one bit at channel 0");
+static_assert(Mask_shape<bits8>::mask(1, 0) == 2ULL, "8 bits: a channel strides by one bit");
+static_assert(Mask_shape<bits8>::mask(1, 16) == (1ULL << 17), "8 bits: offset selects the mask field");
 
 enum struct Alignment: unsigned char { Insertion, Deletion, Match };
 
@@ -105,10 +116,10 @@ auto backtrack(Sequence const & qseq,
   static constexpr auto offset2 = offset1 + 16;
   static constexpr auto offset3 = offset2 + 16;
   // refactoring C++17: if constexpr
-  auto const maskup      = compute_mask<n_bits>(channel, offset0);
-  auto const maskleft    = compute_mask<n_bits>(channel, offset1);
-  auto const maskextup   = compute_mask<n_bits>(channel, offset2);
-  auto const maskextleft = compute_mask<n_bits>(channel, offset3);
+  auto const maskup      = Mask_shape<n_bits>::mask(channel, offset0);
+  auto const maskleft    = Mask_shape<n_bits>::mask(channel, offset1);
+  auto const maskextup   = Mask_shape<n_bits>::mask(channel, offset2);
+  auto const maskextleft = Mask_shape<n_bits>::mask(channel, offset3);
 
   // nucleotide counts; the packed words below are read by nucleotide_at
   auto const qlen = static_cast<uint64_t>(qseq.length);
