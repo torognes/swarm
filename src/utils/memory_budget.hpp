@@ -42,11 +42,12 @@ inline auto require_ram(uint64_t const bytes_per_unit,
                         uint64_t const units,
                         char const * const context) -> void {
   if (units == 0) { return; }
-  if (bytes_per_unit > system_get_memtotal() / units) {
+  if (bytes_per_unit > system_get_memlimit() / units) {
     static constexpr uint64_t bytes_per_mib {uint64_t{1} << 20U};
     fatal("Not enough memory for ", context, ": about ",
           (bytes_per_unit / bytes_per_mib) * units,
-          " MB is required, which exceeds the total amount of RAM. Reduce "
+          " MB is required, which exceeds the memory available to this "
+          "process. Reduce "
           "the number of threads (-t) and/or the length of the input "
           "sequences.");
   }

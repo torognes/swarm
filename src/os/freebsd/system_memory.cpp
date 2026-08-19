@@ -54,3 +54,11 @@ auto system_get_memtotal() -> uint64_t {
   }
   return ram;
 }
+
+
+// FreeBSD jails can carry an rctl 'memoryuse' limit, which is not read
+// here: it needs librctl and a rule-string parse, and no swarm user has
+// asked for it. Until then the machine's memory is also the limit.
+auto system_get_memlimit() -> uint64_t {
+  return system_get_memtotal();
+}

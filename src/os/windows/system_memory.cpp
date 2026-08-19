@@ -49,3 +49,13 @@ auto system_get_memtotal() -> uint64_t {
   }
   return memory_status.ullTotalPhys;
 }
+
+
+// Windows caps a process group with a job object rather than a cgroup, and
+// that limit is not read here: it needs QueryInformationJobObject, and
+// whether GlobalMemoryStatusEx already reflects it inside a
+// process-isolated container has not been established. Until then the
+// machine's memory is also the limit.
+auto system_get_memlimit() -> uint64_t {
+  return system_get_memtotal();
+}

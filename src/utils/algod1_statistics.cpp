@@ -103,7 +103,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 
   auto bloom_length_in_bits = bloom_bits_for(bits);
 
-  auto const memtotal = system_get_memtotal();
+  auto const memlimit = system_get_memlimit();
   auto const memused = system_get_memused();
 
   // nucleotides_in_small_clusters guards the division below: it is the
@@ -135,7 +135,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
   bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
 
-  if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memtotal)
+  if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memlimit)
     {
       fprint(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
       fprint(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");

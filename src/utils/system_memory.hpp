@@ -30,6 +30,23 @@
 
 // operating system specific functions (Windows, macOS and Linux)
 auto system_get_memused() -> uint64_t;
+
+// The machine's memory. Prefer system_get_memlimit() below for anything
+// that budgets: this figure is the host's, and a container's cgroup limit is
+// invisible in it, so inside one it can be orders of magnitude too large.
 auto system_get_memtotal() -> uint64_t;
+
+// The memory this process may actually use: system_get_memtotal(), reduced
+// to the smallest limit that applies to it. On Linux that is the cgroup
+// memory limit, which is how Slurm, Docker, podman and Kubernetes cap a job
+// -- they share the host's kernel, so there is no smaller "total" for
+// system_get_memtotal() to report. Platforms with no such mechanism visible
+// return system_get_memtotal() unchanged.
+//
+// Note that a virtual machine needs nothing here: it has its own kernel, and
+// system_get_memtotal() already reports what the hypervisor gave the guest.
+//
+// Never zero, and never larger than system_get_memtotal().
+auto system_get_memlimit() -> uint64_t;
 
 #endif  // SWARM_UTILS_SYSTEM_MEMORY_H

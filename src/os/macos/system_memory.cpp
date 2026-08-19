@@ -48,3 +48,12 @@ auto system_get_memtotal() -> uint64_t {
   }
   return static_cast<uint64_t>(ram);
 }
+
+
+// macOS has no cgroup-like per-process memory limit to consult, so the
+// machine's memory is also the limit. (Containers on macOS run inside a
+// Linux virtual machine, whose guest kernel reports its own assignment
+// through the Linux implementation of system_get_memtotal.)
+auto system_get_memlimit() -> uint64_t {
+  return system_get_memtotal();
+}
