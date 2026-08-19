@@ -40,7 +40,7 @@
 //
 // Written against names the including translation unit provides rather
 // than as a template on the lane type, for the same reason
-// utils/align_cells_16.hpp is: VECTORTYPE cannot be a template argument
+// utils/align_cells.hpp is: VECTORTYPE cannot be a template argument
 // without GCC dropping its attributes, may_alias among them (see
 // utils/mask_vectors.hpp), and set_lane takes a VECTORTYPE &. Given that
 // one name has to come from the includer, they all may, and the parameter

@@ -460,152 +460,25 @@ auto dprofile_fill8(Dprofile_8 & dprofile_a,
 
 namespace {
 
-inline auto onestep_8(VECTORTYPE & H,
-                      VECTORTYPE & N,
-                      VECTORTYPE & F,
-                      VECTORTYPE const V,
-                      unsigned short * const DIR,
-                      VECTORTYPE & E,
-                      VECTORTYPE const QR,
-                      VECTORTYPE const R) -> void
-{
-  H = v_add8(H, V);
-  auto const W = H;
-  H = v_min8(H, F);
-  DIR[0] = v_mask_eq8(W, H);  // subscript, not std::next: hot loop, see align_cells
-  H = v_min8(H, E);
-  DIR[1] = v_mask_eq8(H, E);
-  N = H;
-  H = v_add8(H, QR);
-  F = v_add8(F, R);
-  E = v_add8(E, R);
-  F = v_min8(H, F);
-  DIR[2] = v_mask_eq8(H, F);
-  E = v_min8(H, E);
-  DIR[3] = v_mask_eq8(H, E);
-}
-
-
-// The masking payload: 'mask' selects the channels whose sequence just
-// ended, 'mq' is the running gap-open accumulator seeded by the caller,
-// 'mr' its per-iteration increment, and 'mq0' the value 'mq' held on
-// entry. A plain struct rather than a template on VECTORTYPE: see
-// utils/mask_vectors.hpp for why the template form is not usable here.
-struct Mask_vectors {
-  VECTORTYPE mask;
-  VECTORTYPE mq;
-  VECTORTYPE mr;
-  VECTORTYPE mq0;
+// The lane operations and direction-word type for this file's width, handed
+// to the shared kernel (utils/align_cells.hpp). Dir_word is 16 bits even at
+// this width: v_mask_eq8 packs one bit per channel and there are sixteen.
+struct Ops_8 {
+  using Dir_word = unsigned short;
+  static auto add(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_add8(lhs, rhs); }
+  static auto sub(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_sub8(lhs, rhs); }
+  static auto min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_min8(lhs, rhs); }
+  static auto mask_eq(VECTORTYPE const lhs, VECTORTYPE const rhs) -> Dir_word { return v_mask_eq8(lhs, rhs); }
+  static auto zero() -> VECTORTYPE { return v_zero8(); }
 };
 
 
-// The masking step, selected by the type of the kernel's mask argument
-// (see utils/mask_vectors.hpp). The No_mask overload is empty, so the
-// regular kernel's loop body contains nothing at this point.
-inline auto apply_mask(VECTORTYPE & /*h4*/, VECTORTYPE & /*E*/,
-                       No_mask const & /*masks*/) -> void
-{
-}
-
-inline auto apply_mask(VECTORTYPE & h4, VECTORTYPE & E,
-                       Mask_vectors & masks) -> void
-{
-  /* mask h4 and E */
-  h4 = v_sub8(h4, masks.mask);
-  E  = v_sub8(E,  masks.mask);
-
-  /* init h4 and E */
-  h4 = v_add8(h4, masks.mq);
-  E  = v_add8(E,  masks.mq);
-  E  = v_add8(E,  masks.mq0);
-
-  /* update MQ */
-  masks.mq = v_add8(masks.mq,  masks.mr);
-}
-
-
-// One block of cells, shared by the regular and masked kernels. The
-// masked variant differs only by a per-iteration adjustment of h4 and E;
-// which flavour this is comes from the type of 'masks', so the regular
-// instantiation drops that adjustment entirely and is handed no masking
-// data at all (see utils/mask_vectors.hpp).
-template <typename Masks>
-auto align_cells_8(VECTORTYPE * const Sm,
-                   VECTORTYPE * const hep,
-                   VECTORTYPE ** const qp,
-                   VECTORTYPE const & Qm,
-                   VECTORTYPE const & Rm,
-                   uint64_t const ql,
-                   VECTORTYPE const & F0,
-                   uint64_t * const dir_long,
-                   VECTORTYPE const & H0,
-                   Masks & masks) -> void
-{
-  static constexpr auto step = 16;
-  static constexpr auto offset0 = 0;
-  static constexpr auto offset1 = offset0 + 4;
-  static constexpr auto offset2 = offset1 + 4;
-  static constexpr auto offset3 = offset2 + 4;
-
-  VECTORTYPE E;
-  VECTORTYPE h4;
-
-  auto * const dir = reinterpret_cast<unsigned short *>(dir_long);
-
-  auto const Q = Qm;
-  auto const R = Rm;
-
-  auto f0 = F0;
-  auto f1 = v_add8(f0, R);
-  auto f2 = v_add8(f1, R);
-  auto f3 = v_add8(f2, R);
-
-  auto h0 = H0;
-  auto h1 = v_sub8(f0, Q);
-  auto h2 = v_add8(h1, R);
-  auto h3 = v_add8(h2, R);
-
-  auto h5 = v_zero8();
-  auto h6 = v_zero8();
-  auto h7 = v_zero8();
-  auto h8 = v_zero8();
-
-  assert(ql <= max_ptrdiff);
-  assert(ql <= ((max_ptrdiff - 1) / 2));  // max 'E' offset
-  assert(ql <= ((max_ptrdiff - offset3) / step));  // max 'dir' offset
-  auto const ql_signed = static_cast<std::ptrdiff_t>(ql);
-  // Performance: subscript / &dir[...] rather than std::next() in this hot
-  // loop. The std::next() form (commit 8c6925f, taken for
-  // cppcoreguidelines-pro-bounds-pointer-arithmetic) pessimized the SSE4.1
-  // kernel by ~20 % on d > 1 18SV9; all three copies of this loop are
-  // written the same way so that they cannot drift. Stays clang-tidy clean
-  // anyway: pos is signed, so no -Wsign-conversion, and operator[] is not
-  // pointer arithmetic.
-  for (auto pos = 0LL; pos < ql_signed; ++pos)
-    {
-      VECTORTYPE const * const x = qp[pos];
-      h4 = hep[(2 * pos) + 0];
-      E  = hep[(2 * pos) + 1];
-
-      apply_mask(h4, E, masks);
-
-      onestep_8(h0, h5, f0, x[0], &dir[(step * pos) + offset0], E, Q, R);
-      onestep_8(h1, h6, f1, x[1], &dir[(step * pos) + offset1], E, Q, R);
-      onestep_8(h2, h7, f2, x[2], &dir[(step * pos) + offset2], E, Q, R);
-      onestep_8(h3, h8, f3, x[3], &dir[(step * pos) + offset3], E, Q, R);
-      hep[(2 * pos) + 0] = h8;
-      hep[(2 * pos) + 1] = E;
-      h0 = h4;
-      h1 = h5;
-      h2 = h6;
-      h3 = h7;
-    }
-
-  Sm[0] = h5;
-  Sm[1] = h6;
-  Sm[2] = h7;
-  Sm[3] = h8;
-}
+// Last, inside this anonymous namespace: the shared kernel names VECTORTYPE,
+// No_mask, Ops_8 and max_ptrdiff, all of which are in scope only from here,
+// and being inside the namespace gives its instantiations the internal linkage
+// the hand-written copy had. See the header for why it cannot include what it
+// uses.
+#include "utils/align_cells.hpp"
 
 }  // namespace
 
@@ -623,7 +496,7 @@ auto align_cells_regular_8(VECTORTYPE * const Sm,
                            VECTORTYPE const & H0) -> void
 {
   No_mask no_mask;
-  align_cells_8(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
+  align_cells<Ops_8>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
 }
 
 
@@ -642,7 +515,7 @@ auto align_cells_masked_8(VECTORTYPE * const Sm,
                           VECTORTYPE const * const MQ0) -> void
 {
   Mask_vectors masks {*Mm, *MQ, *MR, *MQ0};
-  align_cells_8(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
+  align_cells<Ops_8>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
   *MQ = masks.mq;
 }
 

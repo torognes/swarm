@@ -218,52 +218,20 @@ auto dprofile_fill16(Dprofile_16 & dprofile_a,
 
 namespace {
 
-// The baseline unsigned 16-bit minimum: whatever v_min16 is on this
-// architecture. On x86-64 without SSE4.1 that is an emulation, which is why
-// arch/x86_64/sse41.cpp instantiates the same kernel with PMINUW instead.
-struct Min_baseline {
-  static auto min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE {
-    return v_min16(lhs, rhs);
-  }
+// The lane operations and direction-word type for this file's width, handed
+// to the shared kernel (utils/align_cells.hpp). min() is whatever v_min16 is on this architecture; on x86-64
+// without SSE4.1 that is an emulation, which is why arch/x86_64/sse41.cpp
+// instantiates the same kernel with PMINUW instead.
+struct Ops_baseline {
+  using Dir_word = WORD;
+  static auto add(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_add16(lhs, rhs); }
+  static auto sub(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_sub16(lhs, rhs); }
+  static auto min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_min16(lhs, rhs); }
+  static auto mask_eq(VECTORTYPE const lhs, VECTORTYPE const rhs) -> Dir_word { return v_mask_eq16(lhs, rhs); }
+  static auto zero() -> VECTORTYPE { return v_zero16(); }
 };
 
 
-// The masking payload: 'mask' selects the channels whose sequence just
-// ended, 'mq' is the running gap-open accumulator seeded by the caller,
-// 'mr' its per-iteration increment, and 'mq0' the value 'mq' held on
-// entry. A plain struct rather than a template on VECTORTYPE: see
-// utils/mask_vectors.hpp for why the template form is not usable here.
-struct Mask_vectors {
-  VECTORTYPE mask;
-  VECTORTYPE mq;
-  VECTORTYPE mr;
-  VECTORTYPE mq0;
-};
-
-
-// The masking step, selected by the type of the kernel's mask argument
-// (see utils/mask_vectors.hpp). The No_mask overload is empty, so the
-// regular kernel's loop body contains nothing at this point.
-inline auto apply_mask(VECTORTYPE & /*h4*/, VECTORTYPE & /*E*/,
-                       No_mask const & /*masks*/) -> void
-{
-}
-
-inline auto apply_mask(VECTORTYPE & h4, VECTORTYPE & E,
-                       Mask_vectors & masks) -> void
-{
-  /* mask h4 and E */
-  h4 = v_sub16(h4, masks.mask);
-  E  = v_sub16(E,  masks.mask);
-
-  /* init h4 and E */
-  h4 = v_add16(h4, masks.mq);
-  E  = v_add16(E,  masks.mq);
-  E  = v_add16(E,  masks.mq0);
-
-  /* update MQ */
-  masks.mq = v_add16(masks.mq,  masks.mr);
-}
 
 
 // Last, inside this anonymous namespace: the shared kernel names
@@ -272,7 +240,7 @@ inline auto apply_mask(VECTORTYPE & h4, VECTORTYPE & E,
 // the namespace gives its instantiations the internal linkage the two
 // hand-written copies had. See the header for why it cannot include what
 // it uses.
-#include "utils/align_cells_16.hpp"
+#include "utils/align_cells.hpp"
 
 }  // namespace
 
@@ -288,7 +256,7 @@ auto align_cells_regular_16(VECTORTYPE * const Sm,
                             VECTORTYPE const & H0) -> void
 {
   No_mask no_mask;
-  align_cells_16<Min_baseline>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
+  align_cells<Ops_baseline>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
 }
 
 
@@ -307,7 +275,7 @@ auto align_cells_masked_16(VECTORTYPE * const Sm,
                            VECTORTYPE const * const MQ0) -> void
 {
   Mask_vectors masks {*Mm, *MQ, *MR, *MQ0};
-  align_cells_16<Min_baseline>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
+  align_cells<Ops_baseline>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
   *MQ = masks.mq;
 }
 

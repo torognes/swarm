@@ -57,60 +57,27 @@ using WORD = uint16_t;
 
 namespace {
 
-// The SSE4.1 unsigned 16-bit minimum: one PMINUW, where the baseline
-// v_min16 has to emulate it. This is the whole of what distinguishes this
-// translation unit's kernel from search16.cpp's -- see
-// utils/align_cells_16.hpp.
-struct Min_sse41 {
-  static auto min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE {
-    return _mm_min_epu16(lhs, rhs);
-  }
+// The lane operations and direction-word type for this file's width, handed
+// to the shared kernel (utils/align_cells.hpp). min() is one PMINUW, where the baseline
+// v_min16 has to emulate it; that is the whole of what distinguishes this
+// translation unit's kernel from search16.cpp's.
+struct Ops_sse41 {
+  using Dir_word = WORD;
+  static auto add(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_add16(lhs, rhs); }
+  static auto sub(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return v_sub16(lhs, rhs); }
+  static auto min(VECTORTYPE const lhs, VECTORTYPE const rhs) -> VECTORTYPE { return _mm_min_epu16(lhs, rhs); }
+  static auto mask_eq(VECTORTYPE const lhs, VECTORTYPE const rhs) -> Dir_word { return v_mask_eq16(lhs, rhs); }
+  static auto zero() -> VECTORTYPE { return v_zero16(); }
 };
 
 
 
 
-// The masking payload: 'mask' selects the channels whose sequence just
-// ended, 'mq' is the running gap-open accumulator seeded by the caller,
-// 'mr' its per-iteration increment, and 'mq0' the value 'mq' held on
-// entry. A plain struct rather than a template on VECTORTYPE: see
-// utils/mask_vectors.hpp for why the template form is not usable here.
-struct Mask_vectors {
-  VECTORTYPE mask;
-  VECTORTYPE mq;
-  VECTORTYPE mr;
-  VECTORTYPE mq0;
-};
-
-
-// The masking step, selected by the type of the kernel's mask argument
-// (see utils/mask_vectors.hpp). The No_mask overload is empty, so the
-// regular kernel's loop body contains nothing at this point.
-inline auto apply_mask(VECTORTYPE & /*h4*/, VECTORTYPE & /*E*/,
-                       No_mask const & /*masks*/) -> void
-{
-}
-
-inline auto apply_mask(VECTORTYPE & h4, VECTORTYPE & E,
-                       Mask_vectors & masks) -> void
-{
-  /* mask h4 and E */
-  h4 = v_sub16(h4, masks.mask);
-  E  = v_sub16(E,  masks.mask);
-
-  /* init h4 and E */
-  h4 = v_add16(h4, masks.mq);
-  E  = v_add16(E,  masks.mq);
-  E  = v_add16(E,  masks.mq0);
-
-  /* update MQ */
-  masks.mq = v_add16(masks.mq,  masks.mr);
-}
 
 
 // Last, inside this anonymous namespace: see the note at the same point in
-// search16.cpp, and utils/align_cells_16.hpp.
-#include "../../utils/align_cells_16.hpp"
+// search16.cpp, and utils/align_cells.hpp.
+#include "../../utils/align_cells.hpp"
 
 
 
@@ -128,7 +95,7 @@ auto align_cells_regular_16_sse41(VECTORTYPE * const Sm,
                                   VECTORTYPE const & H0) -> void
 {
   No_mask no_mask;
-  align_cells_16<Min_sse41>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
+  align_cells<Ops_sse41>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
 }
 
 
@@ -147,7 +114,7 @@ auto align_cells_masked_16_sse41(VECTORTYPE * const Sm,
                                  VECTORTYPE const * const MQ0) -> void
 {
   Mask_vectors masks {*Mm, *MQ, *MR, *MQ0};
-  align_cells_16<Min_sse41>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
+  align_cells<Ops_sse41>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
   *MQ = masks.mq;
 }
 

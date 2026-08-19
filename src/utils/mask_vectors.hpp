@@ -39,23 +39,34 @@
 // thread through, and without handing the regular kernel four null
 // pointers (or four dummy zero vectors) that it must not look at.
 //
-// Only the empty tag lives here, because it is the only part that is
-// genuinely common. Two things stay next to each kernel:
+// Only the empty tag lives here. The rest of the machinery -- Mask_vectors,
+// the four-vector payload, and both apply_mask() overloads -- lives in
+// utils/align_cells.hpp beside the loop body that uses it, and is shared by
+// all three kernels from there.
 //
-//   - apply_mask(), which is written in terms of the width-specific
-//     intrinsic wrappers (v_add8 / v_sub8 against v_add16 / v_sub16).
-//     Those are distinct names rather than overloads, so they cannot be
-//     selected generically;
+// It did not always. Both used to be written out next to each kernel, for two
+// reasons, of which one has since been solved and the other still holds:
 //
-//   - Mask_vectors, the four-vector payload, which cannot be a template
-//     on the channel type. Naming VECTORTYPE as a template argument
-//     makes GCC drop its attributes ("ignoring attributes on template
-//     argument 'VECTORTYPE'"), and one of those attributes is
-//     may_alias. This codebase already hit that wall: see the C array
-//     'VECTORTYPE S[4]' in search8.cpp / search16.cpp, kept as a C array
-//     for exactly this reason. Since these vectors sit next to the
+//   - apply_mask() is written in terms of width-specific intrinsic wrappers
+//     (v_add8 / v_sub8 against v_add16 / v_sub16), which are distinct names
+//     rather than overloads and so cannot be selected generically. That is
+//     now what the kernel's 'Ops' policy is for: it names those wrappers once
+//     per width, and apply_mask() arithmetics through it.
+//
+//   - Mask_vectors cannot be a template on the channel type. Naming
+//     VECTORTYPE as a template argument makes GCC drop its attributes
+//     ("ignoring attributes on template argument 'VECTORTYPE'"), and one of
+//     those attributes is may_alias. This codebase already hit that wall: see
+//     the C array 'VECTORTYPE S[4]' in search8.cpp / search16.cpp, kept as a
+//     C array for exactly this reason. Since these vectors sit next to the
 //     H0 / F0 lane writes whose aliasing behaviour is delicate (see
-//     set_lane_16), a plain per-kernel struct is the safe form.
+//     set_lane in utils/search_channel_ops.hpp), the constraint is real.
+//
+//     It is still respected: align_cells.hpp does not template on VECTORTYPE
+//     either. It names it, and requires each includer to have the type in
+//     scope before including the header. That is what lets one struct serve
+//     three kernels whose VECTORTYPE differs by width and by architecture,
+//     without ever making it a template argument.
 
 struct No_mask { };
 
