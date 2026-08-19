@@ -29,6 +29,7 @@
 #include "algod1_statistics.hpp"
 #include "bloom.hpp"
 #include "hashtable.hpp"
+#include "hashtable_size.hpp"  // compute_hashtable_size
 #include "make_unique.hpp"
 #include "nt_codec.hpp"  // nt_wordlength
 #include "print_view.hpp"  // fprint, fprint_integer
@@ -131,6 +132,51 @@ namespace {
                     [](struct ampinfo_s const & info) -> bool {
                       return info.graft_cand != no_swarm;
                     }));
+  }
+
+
+  // Memory this phase must still allocate after its Bloom filter has been
+  // sized, and which stays allocated while the filter is alive. It is the
+  // filter's budget that has to leave room for it, so compute_bloom_geometry
+  // subtracts this from what it may spend.
+  //
+  // Counted rather than guessed at as a fraction of memory: every term is
+  // known here, which is also the only place that knows what this phase
+  // allocates. All of it lives in the same block as bloom_f
+  // (algo_d1_fastidious below), including attach_candidates' array -- checked,
+  // because an allocation made after the filter is freed would not belong.
+  auto fastidious_headroom(struct Parameters const & parameters,
+                           Data const & data,
+                           unsigned int const amplicons) -> uint64_t {
+    auto const table_size = compute_hashtable_size(amplicons);
+
+    // Hashtable::allocate(): an occupancy bitset, a hash per slot, an
+    // amplicon id per slot
+    static constexpr uint64_t bits_per_byte {8};
+    auto const hashtable_bytes = ((table_size + 63) / bits_per_byte)
+      + (table_size * sizeof(uint64_t))
+      + (table_size * sizeof(unsigned int));
+
+    // bloom_a: a bitmap of the same byte count as the table, plus its
+    // precomputed patterns (2^amplicon_pattern_shift words)
+    auto const bloom_a_bytes = table_size
+      + ((uint64_t{1} << amplicon_pattern_shift) * sizeof(uint64_t));
+
+    // check_heavy_thread()'s scratch, per thread: two microvariant lists and
+    // one variant-sequence buffer. The light pass allocates one such list, so
+    // the heavy pass bounds both -- they run one after the other.
+    auto const longest = data.longest_sequence();
+    auto const per_thread = (compute_microvariant_buffer_size(longest)
+                             + compute_microvariant_buffer_size(longest + 1))
+      * sizeof(struct var_s)
+      + (nt_wordlength(longest + 2) * sizeof(uint64_t));
+    auto const scratch_bytes = parameters.opt_threads.count() * per_thread;
+
+    // attach_candidates()'s graft array, whose length is the number of
+    // candidate pairs and so is bounded by the amplicon count
+    auto const graft_bytes = uint64_t{amplicons} * sizeof(struct graft_cand);
+
+    return hashtable_bytes + bloom_a_bytes + scratch_bytes + graft_bytes;
   }
 
 
@@ -582,7 +628,9 @@ auto run_fastidious_pass(struct Parameters const & parameters,
     }
   else
     {
-      auto const bloom_geom = compute_bloom_geometry(parameters, nucleotides_in_small_clusters);
+      Bloom_demand const demand {nucleotides_in_small_clusters,
+                                 fastidious_headroom(parameters, data, amplicons)};
+      auto const bloom_geom = compute_bloom_geometry(parameters, demand);
       Fastidious_bloom bloom_f(bloom_geom.n_bytes, bloom_geom.n_hash_functions);
 
 

@@ -41,7 +41,7 @@ auto count_cluster_stats(struct Parameters const & parameters,
                          std::vector<struct swarminfo_s> const & swarminfo_v) -> Cluster_stats;
 
 auto compute_bloom_geometry(struct Parameters const & parameters,
-                            uint64_t nucleotides_in_small_clusters) -> Bloom_geometry;
+                            struct Bloom_demand const & demand) -> Bloom_geometry;
 
 auto log_swarm_summary(struct Parameters const & parameters,
                        Overall_stats const & overall_stats) -> void;

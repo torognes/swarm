@@ -70,8 +70,9 @@ auto count_cluster_stats(struct Parameters const & parameters,
 
 
 auto compute_bloom_geometry(struct Parameters const & parameters,
-                            uint64_t const nucleotides_in_small_clusters) -> Bloom_geometry
+                            struct Bloom_demand const & demand) -> Bloom_geometry
 {
+  auto const nucleotides_in_small_clusters = demand.nucleotides;
   /* m: total size of Bloom filter in bits */
   /* k: number of hash functions (n_hash_functions) */
   /* n: number of entries in the bloom filter */
@@ -127,6 +128,41 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
           }
           fprint(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
           bits = new_bits;
+          n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
+          bloom_length_in_bits = bloom_bits_for(bits);
+        }
+    }
+  else if (nucleotides_in_small_clusters != 0)
+    {
+      // No --ceiling, so nothing bounded this filter: its size was a fixed
+      // number of bits per nucleotide in a light cluster, and the only check
+      // was the advisory warning below, after which the allocation was
+      // attempted anyway. Not setting --ceiling was therefore what allowed
+      // the filter to exceed memory and send the run into swap.
+      //
+      // The budget is what is free now, less what this phase still has to
+      // allocate while the filter is alive (demand.headroom_bytes, counted by
+      // its caller). memlimit rather than memtotal, so that a cgroup-capped
+      // run is bounded by its cgroup and not by the host.
+      //
+      // Unlike the --ceiling branch this never fails: the user asked for no
+      // limit, so a limit discovered here must not turn a run that works
+      // today into one that refuses to start. When even the 2-bit floor does
+      // not fit, the floor is used and the shortfall reported.
+      auto const committed = memused + demand.headroom_bytes;
+      auto const memrest = (memlimit > committed) ? (memlimit - committed) : uint64_t{0};
+      auto const new_bits = n_bits_in_a_byte * memrest / (microvariants * nucleotides_in_small_clusters);
+      if (new_bits < bits)
+        {
+          static constexpr uint64_t min_bits_per_entry {2};
+          fprint(parameters.logfile,
+                 "Reducing memory used for Bloom filter to fit available memory.\n");
+          if (new_bits < min_bits_per_entry) {
+            fprint(parameters.logfile,
+                   "WARNING: available memory allows fewer than 2 bits per entry; "
+                   "using 2. The fastidious pass will be slow.\n");
+          }
+          bits = std::max(new_bits, min_bits_per_entry);
           n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
           bloom_length_in_bits = bloom_bits_for(bits);
         }

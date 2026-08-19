@@ -164,6 +164,28 @@ struct Bloom_geometry
   unsigned int n_hash_functions {0};
 };
 
+/* What the fastidious phase asks its Bloom filter to be sized for.
+   Bundled rather than passed as two adjacent uint64_t parameters that a
+   caller could hand over in either order -- the same reason
+   Scanner::Work_window exists (see utils/scanner.hpp).
+
+   headroom_bytes is the memory this phase has still to allocate after the
+   filter is sized and while the filter is alive, so it is what the filter's
+   budget must leave free; see fastidious_headroom() in
+   algod1_fastidious.cpp, which is where those allocations are made and so
+   where they can be counted. */
+struct Bloom_demand
+{
+  uint64_t nucleotides;      // total length of the light clusters
+  uint64_t headroom_bytes;
+
+  /* No default member initializers: under C++11 they would make this a
+     non-aggregate, and its one construction site is a brace-initialized
+     Bloom_demand{nucleotides, headroom}. Same constraint as
+     Scanner::Work_window, which says so too.
+     C++14 refactoring: add {0} initializers, aggregates may have them */
+};
+
 /* Bloom filter shape used for the per-amplicon hashtable + bloom_a
    in both the d=1 phase and the fastidious phase. */
 constexpr unsigned int amplicon_pattern_shift {10};
