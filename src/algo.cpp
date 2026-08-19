@@ -64,6 +64,17 @@ namespace {
     // that a score of score_ceiling_8 can only ever mean "saturated".
     static constexpr auto max_reliable_score = score_ceiling_8 - 1;
 
+    // The guard below makes a release build on aarch64 disagree with a debug
+    // or coverage build on the same platform, and that is deliberate rather
+    // than a leftover. A release build takes the 16-bit kernel for every d,
+    // which is the one aarch64 users run; a debug or coverage build falls
+    // through to the saturation rule below and takes the 8-bit kernel at low
+    // d, which is how that kernel stays exercised on this platform. Between
+    // the two builds the suite covers both.
+    //
+    // So do not "fix" the divergence by dropping the guard: that would leave
+    // the 8-bit kernel untested on aarch64. Anyone reasoning about which
+    // kernel a given aarch64 run used has to look at how it was built.
 #ifdef __aarch64__
 #if !defined(DEBUG) && !defined(COVERAGE)
     /* always use 16-bit version on aarch64 because it is faster */
