@@ -178,8 +178,12 @@ constexpr unsigned int fastidious_pattern_shift {16};
    in algod1_fastidious.cpp taking both of them cannot be handed the pair
    the wrong way round. See utils/bloom.hpp on why the shift is a template
    argument. */
-using Amplicon_bloom = BloomFilter<amplicon_pattern_shift>;
-using Fastidious_bloom = BloomFilter<fastidious_pattern_shift>;
+/* The amplicon filter's length is compute_hashtable_size()'s return value,
+   which is an exact power of two; the fastidious filter's comes from the
+   --bloom-bits / --ceiling budget and is whatever that budget allows. That
+   difference picks the addressing in BloomFilter::bitmap_index. */
+using Amplicon_bloom = BloomFilter<amplicon_pattern_shift, Bitmap_size::power_of_two>;
+using Fastidious_bloom = BloomFilter<fastidious_pattern_shift, Bitmap_size::arbitrary>;
 
 
 inline auto hash_insert(Data const & data,
