@@ -46,13 +46,27 @@
 // note: if numerator > max - (denominator - 1), the intermediate
 //       sum overflows => Error!
 //
-// (when denominator is a power of two, src/utils/round_up_to_*
-//  helpers can avoid the division with a bitmask; ceil_divide stays
-//  generic.)
+// The sum-first idiom is kept for its cost, not only its brevity: where the
+// numerator arrives as a sum, as it does in qgram_diff (two psadbw halves),
+// the '+ denominator - 1' folds into the lea that adds them, so the rounding
+// is free. Computing it from the remainder instead -- quotient plus
+// (remainder != 0), which is total and needs no precondition -- measured
+// +2 to +4 % user CPU on the CLAUDE.md 'd = 2' benchmark, because that
+// version has to materialise the remainder with a multiply and a subtract.
+// The precondition above is the price of the free version.
+//
+// (No power-of-two special case here, and vsearch's round_up_to_8() is not
+//  one either way -- it lives in that project, not this one. For a constant
+//  power-of-two denominator GCC already emits the bitmask by itself:
+//  ((x + 3) / 4) * 4 and (x + 3) & ~3 compile to the same two instructions,
+//  checked at -O3. Writing it by hand would only pay for a run-time
+//  denominator known to be a power of two, and swarm has none.)
 
 
 // C++14 refactoring: constexpr
 // C++17 refactoring: [[nodiscard]]
+// C++20 refactoring: std::unsigned_integral concept, in place of the
+// type parameter and the static_assert below
 template <typename Unsigned = std::uint64_t>
 auto ceil_divide(Unsigned const numerator,
                  Unsigned const denominator) noexcept -> Unsigned {
