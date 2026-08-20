@@ -37,6 +37,35 @@
 
 constexpr auto n_cells = 32ULL;  // number of chars in sym_nt
 
+// Only a 4 x 4 corner of this carries information. Nucleotide codes run
+// from 1 to 4 (A, C, G, T/U) and 0 marks a gap, i.e. a database slot past
+// the end of its sequence (utils/dseq_fill.hpp), which gives three
+// separate reasons why the rest does not matter:
+//
+//   Rows and columns 5 and beyond are never selected. The fill builders
+//   do copy columns 5 to 31 into the score profile, but nothing reads
+//   those profile slots (see the note on dprofile_fill8 in search8.cpp),
+//   and the shuffle builders cannot reach past column 15 at all, since
+//   PSHUFB indexes within one 16-byte register (arch/x86_64/ssse3.cpp).
+//
+//   Row 0 and column 0 are read -- a padded database slot selects them --
+//   but their values cannot change a result: save_score takes the score
+//   at the depth slot of the sequence's last real nucleotide
+//   (utils/search_channel_ops.hpp), so padded slots are discarded.
+//
+//   Cell (0, 0) is not consumed by anything.
+//
+// Measured rather than argued. Poisoning every cell outside the 5 x 5
+// corner with max() / 2, and then poisoning row 0 and column 0 while
+// leaving the 4 x 4 core alone, each leave every output byte-identical
+// over two datasets at d = 1 to 10, in 8-bit and 16-bit mode, with and
+// without --disable-sse3 to reach both profile builders, and with UCLUST
+// output to reach the scalar aligner as well.
+//
+// The upper-left quarter is filled anyway: it costs one pass at startup,
+// and a code outside 1 to 4 arriving here would score as a match if
+// those cells were left at zero.
+
 // note: there is no uchar8_t, only char8_t in C++20
 // refactoring: C++20 use 'requires' to constrain accepted types
 template <typename Integral>
