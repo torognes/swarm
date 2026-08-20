@@ -42,6 +42,14 @@ namespace bloom_detail {
   static_assert(bytes_per_word == sizeof(uint64_t),
                 "bytes_per_word must match sizeof(uint64_t)");
 
+  // The shift that performs that bytes -> words conversion. Named, and
+  // checked against bytes_per_word, because the constructor used to spell
+  // it as a bare 3: the comment above claimed bytes_per_word was what
+  // converted, while nothing tied the two together.
+  constexpr unsigned int bytes_per_word_shift {3};
+  static_assert((uint64_t{1} << bytes_per_word_shift) == bytes_per_word,
+                "bytes_per_word_shift must halve as many times as bytes_per_word divides");
+
   // Give each pattern n_hash_functions distinct bits, drawn at random.
   //
   // Not a member and not a template: the pattern *shift* decides how many
@@ -107,7 +115,8 @@ public:
   // throw std::bad_alloc.
   BloomFilter(uint64_t const bitmap_bytes,
               unsigned int const n_hash_functions)
-    : size{std::max(bitmap_bytes, bloom_detail::bytes_per_word) >> 3U}
+    : size{std::max(bitmap_bytes, bloom_detail::bytes_per_word)
+            >> bloom_detail::bytes_per_word_shift}
     , bitmap(size, std::numeric_limits<uint64_t>::max())
     , patterns(pattern_count) {
     // Checked here, once, rather than at every probe: this is the promise
