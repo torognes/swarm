@@ -41,13 +41,13 @@
   available starting with the Penryn architecture in 2008.
 */
 
+#include <cstddef>  // std::ptrdiff_t (align_cells.hpp uses it in all builds)
 #include <cstdint>  // uint16_t, uint64_t
 #include <smmintrin.h>  // _mm_min_epu16
 #include "../../utils/mask_vectors.hpp"  // No_mask, Mask_vectors
 #include "sse41.hpp"  // VECTORTYPE
 
 #ifndef NDEBUG
-#include <cstddef>  // std::ptrdiff_t
 #include <limits>  // std::numeric_limits
 // C++17 refactoring: [[maybe_unused]]
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();

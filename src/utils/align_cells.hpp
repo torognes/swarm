@@ -64,6 +64,12 @@
 // no includes of its own and why each includer names it last, inside its own
 // anonymous namespace -- which also gives the instantiations the internal
 // linkage the hand-written copies had.
+//
+// Carrying no includes of its own also means the includer owes it <cstddef>,
+// in every build and not just the debug ones: the loop below counts in
+// std::ptrdiff_t. libstdc++ drags <cstddef> in through some other header and
+// hides an includer that forgets; libc++ does not, so the omission surfaced
+// as a macOS and FreeBSD release build failing on its own.
 
 
 // The masking payload: 'mask' selects the channels whose sequence just
