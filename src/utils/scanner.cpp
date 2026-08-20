@@ -130,9 +130,9 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
                 "every nucleotide code needs a profile slot of its own");
 
   for (auto i = 0U; i < query_.length; ++i) {
-    auto const nt_value = nucleotide_at(query_, i) + 1U;  // 1,  2,   3, or   4
-    auto const byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192
-    auto const word_offset = word_multiplier * nt_value;  // 1, 32,  64, or 128
+    auto const nt_value = nucleotide_at(query_, i) + 1U;  //  1,   2,   3, or   4
+    auto const byte_offset = byte_multiplier * nt_value;  // 64, 128, 192, or 256
+    auto const word_offset = word_multiplier * nt_value;  // 32,  64,  96, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
     thread_data.qtable_v[i]   = &thread_data.dprofile_a[byte_offset];
