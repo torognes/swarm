@@ -91,7 +91,7 @@ static_assert(Mask_shape<bits16>::mask(0, 0) == 3ULL, "16 bits: two adjacent bit
 static_assert(Mask_shape<bits16>::mask(1, 0) == 12ULL, "16 bits: a channel strides by two bits");
 static_assert(Mask_shape<bits8>::mask(0, 0) == 1ULL, "8 bits: one bit at channel 0");
 static_assert(Mask_shape<bits8>::mask(1, 0) == 2ULL, "8 bits: a channel strides by one bit");
-static_assert(Mask_shape<bits8>::mask(1, 16) == (1ULL << 17), "8 bits: offset selects the mask field");
+static_assert(Mask_shape<bits8>::mask(1, 16) == (1ULL << 17U), "8 bits: offset selects the mask field");
 
 enum struct Alignment: unsigned char { Insertion, Deletion, Match };
 
