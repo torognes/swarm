@@ -618,7 +618,7 @@ auto run_fastidious_pass(struct Parameters const & parameters,
   else
     {
       Bloom_demand const demand {nucleotides_in_small_clusters,
-                                 fastidious_headroom(parameters, data)};
+                                 fastidious_headroom(parameters, data),};
       auto const bloom_geom = compute_bloom_geometry(parameters, demand);
       Fastidious_bloom bloom_f(bloom_geom.n_bytes, bloom_geom.n_hash_functions);
 
