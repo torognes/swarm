@@ -25,9 +25,7 @@
 #define SWARM_UTILS_NW_ALIGNER_H
 
 
-#include "score_matrix.hpp"  // n_cells
 #include "view.hpp"  // View<char>
-#include <array>
 #include <cstdint>  // int64_t
 #include <string>
 #include <vector>
@@ -82,7 +80,7 @@ private:
   std::vector<HECell>                    hearray_;
   std::vector<char>                      raw_alignment_;
   std::string                            cigar_string_;
-  std::array<int64_t, n_cells * n_cells> score_matrix_;
+  uint64_t                               penalty_mismatch_;
   uint64_t                               gapopen_;
   uint64_t                               gapextend_;
 };

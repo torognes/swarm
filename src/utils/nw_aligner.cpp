@@ -24,11 +24,9 @@
 #include "nw_aligner.hpp"
 #include "../db.hpp"  // struct Sequence
 #include "cigar.hpp"
-#include "score_matrix.hpp"  // n_cells, create_score_matrix
 #include "span.hpp"  // Span, make_span
 #include "view.hpp"  // View, make_view
 #include <algorithm>  // std::min(), std::reverse()
-#include <array>
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
@@ -42,11 +40,18 @@ constexpr unsigned char maskextup   = 4;
 constexpr unsigned char maskextleft = 8;
 
 
+// The three costs one alignment is scored with, bundled rather than passed
+// as three uint64_t in a row that a caller could reorder unnoticed.
+struct Penalties {
+  uint64_t mismatch;
+  uint64_t gap_open;
+  uint64_t gap_extend;
+};
+
+
 auto fill_matrix(Sequence const & dseq,
                  Sequence const & qseq,
-                 std::array<int64_t, n_cells * n_cells> const & score_matrix,
-                 uint64_t const gapopen,
-                 uint64_t const gapextend,
+                 Penalties const & penalties,
                  Span<unsigned char> const directions,
                  Span<NwAligner::HECell> const hearray) -> void
 {
@@ -65,7 +70,8 @@ auto fill_matrix(Sequence const & dseq,
   // - cell on the 'left' (column - 1),
   // - cell above ('top' or 'up') (row - 1),
   // - 'diagonal' cell ('top' or 'up') (column - 1 and row - 1),
-  static constexpr auto multiplier = 5U;
+  auto const gapopen = penalties.gap_open;
+  auto const gapextend = penalties.gap_extend;
   auto const new_gap = gapopen + gapextend;
 
   assert(directions.size() >= qlen * dlen);
@@ -82,7 +88,11 @@ auto fill_matrix(Sequence const & dseq,
   for (auto row = 0UL; row < dlen; ++row) {
       auto top = (2 * gapopen) + ((row + 2) * gapextend);
       uint64_t diagonal = (row == 0) ? 0 : (gapopen + (row * gapextend));
-      auto const row_offset = (nucleotide_at(dseq, row) + 1U) << multiplier;
+      // A match costs nothing and a mismatch costs the same wherever it
+      // falls, so the comparison is the whole score matrix: the 32 x 32
+      // table this used to index held one value off its ACGT diagonal and
+      // zero on it (see score_matrix.hpp).
+      auto const row_nucleotide = nucleotide_at(dseq, row);
 
       // this row of the direction matrix, so the inner loop indexes a row
       // rather than recomputing (qlen * row) + column into the whole
@@ -94,8 +104,8 @@ auto fill_matrix(Sequence const & dseq,
           auto left                    = hearray[column].e_score;
           unsigned char flags          = '\0';
 
-          diagonal += static_cast<uint64_t>(
-              score_matrix[row_offset + nucleotide_at(qseq, column) + 1U]);
+          diagonal += (nucleotide_at(qseq, column) == row_nucleotide)
+            ? 0U : penalties.mismatch;
 
           flags |= (top < diagonal) ? maskup : 0U;
           diagonal = std::min({diagonal, top, left});
@@ -198,7 +208,7 @@ NwAligner::NwAligner(uint64_t const longest_sequence,
                      uint64_t const gapextend)
   : directions_(longest_sequence * longest_sequence),
     hearray_(longest_sequence),
-    score_matrix_(create_score_matrix<int64_t>(penalty_mismatch)),
+    penalty_mismatch_(static_cast<uint64_t>(penalty_mismatch)),
     gapopen_(gapopen),
     gapextend_(gapextend)
 {
@@ -238,8 +248,8 @@ NwAligner::NwAligner(uint64_t const longest_sequence,
 
   scoring configuration (set once at NwAligner construction)
 
-  score_matrix: 32x32 matrix of longs with scores for aligning two symbols
-                (derived from penalty_mismatch)
+  penalty_mismatch: positive number indicating the cost of aligning two
+                    different nucleotides (a match costs zero)
   gapopen: positive number indicating penalty for opening a gap of length zero
   gapextend: positive number indicating penalty for extending a gap
 
@@ -262,8 +272,8 @@ auto NwAligner::align(Sequence const & dseq, Sequence const & qseq) -> NwAligner
 
   // fill_matrix() writes every directions[i] for i in [0, dlen*qlen),
   // so the buffer's content on entry doesn't matter.
-  fill_matrix(dseq, qseq, score_matrix_,
-              gapopen_, gapextend_,
+  fill_matrix(dseq, qseq,
+              Penalties{penalty_mismatch_, gapopen_, gapextend_},
               make_span(directions_), make_span(hearray_));
 
   auto const nwdiff = backtrack(dseq, qseq, make_view(directions_), raw_alignment_);
