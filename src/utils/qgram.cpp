@@ -166,7 +166,7 @@ auto QgramDiffer::fast(uint64_t const seed,
 
       /* distribute work */
       for (auto & tip: thread_info_v_) {
-          auto const chunk = (listrest + thrrest - 1) / thrrest;
+          auto const chunk = ceil_divide(listrest, thrrest);
 
           tip.seed = seed;
           tip.amplist = amplist.subview(offset, chunk);
