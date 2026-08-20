@@ -118,6 +118,17 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
 
+  // One profile slot is depth_slots blocks of 'channels' lanes, so these
+  // two multipliers are the slot stride at each width, and the largest
+  // nucleotide code has to have a slot of its own to point at.
+  static constexpr auto largest_code = 4U;  // codes are 1 + a 2-bit value
+  static_assert(byte_multiplier == depth_slots * channels_at_8_bits,
+                "the 8-bit profile slot stride is depth_slots * channels");
+  static_assert(word_multiplier == depth_slots * channels_at_16_bits,
+                "the 16-bit profile slot stride is depth_slots * channels");
+  static_assert(largest_code < profile_slots,
+                "every nucleotide code needs a profile slot of its own");
+
   for (auto i = 0U; i < query_.length; ++i) {
     auto const nt_value = nucleotide_at(query_, i) + 1U;  // 1,  2,   3, or   4
     auto const byte_offset = byte_multiplier * nt_value;  // 1, 64, 128, or 192

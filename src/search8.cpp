@@ -147,6 +147,8 @@ auto dprofile_fill8(Dprofile_8 & dprofile_a,
   static constexpr auto line5  = 64U * 5;
   static constexpr auto line6  = 64U * 6;
   static constexpr auto line7  = 64U * 7;
+  static_assert(line7 + (channels * cdepth) <= sizeof(Dprofile_8),
+                "the eight profile slots filled below must fit the buffer");
 
   VECTORTYPE reg0;
   VECTORTYPE reg1;

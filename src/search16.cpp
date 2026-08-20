@@ -121,6 +121,8 @@ auto dprofile_fill16(Dprofile_16 & dprofile_a,
   static constexpr auto offset5 = pos5 * cdepth * channels;
   static constexpr auto offset6 = pos6 * cdepth * channels;
   static constexpr auto offset7 = pos7 * cdepth * channels;
+  static_assert((offset7 + (cdepth * channels)) * sizeof(WORD) <= sizeof(Dprofile_16),
+                "the eight profile slots filled below must fit the buffer");
   VECTORTYPE reg0;
   VECTORTYPE reg1;
   VECTORTYPE reg2;

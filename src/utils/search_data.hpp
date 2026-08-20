@@ -116,11 +116,21 @@ struct alignas(simd_vector_bytes) Dseq_8
 struct alignas(simd_vector_bytes) Dseq_16
   : std::array<BYTE, channels_at_16_bits * simd_vector_bytes> {};
 
+// Profile slots per buffer: one per nucleotide code a profile builder
+// writes. Only codes 1 to 4 (ACGT) are ever read back -- Scanner::init
+// points qtable_v and qtable_w_v at code * depth_slots * channels, and
+// nothing indexes those tables with anything else -- but the fill builders
+// transpose eight columns in one pass, so eight is what they write and
+// eight is what the buffer holds. The shuffle builders write five (codes 0
+// to 4) and leave the rest alone.
+constexpr std::size_t profile_slots {8};
+
 // The score profile the builders write: depth_slots blocks of 'channels'
-// lanes for each of the n_cells nucleotide codes -- 2048 bytes at either
-// width. A fixed size, so an array rather than the std::vector it was:
-// scanner.cpp resized that to a compile-time constant, with the arithmetic
-// written out in a comment beside it (4 * 16 * 32, and 4 * 2 * 8 * 32).
+// lanes for each of the profile_slots nucleotide codes -- 512 bytes at
+// either width. A fixed size, so an array rather than the std::vector it
+// was: scanner.cpp resized that to a compile-time constant, with the
+// arithmetic written out in a comment beside it (4 * 16 * 8, and
+// 4 * 2 * 8 * 8).
 //
 // alignas for the same reason as He_block: dprofile_fill8/16 and
 // dprofile_shuffle8/16 write it with v_store8/16, which is _mm_store_si128
@@ -128,9 +138,9 @@ struct alignas(simd_vector_bytes) Dseq_16
 // std::vector<BYTE> met that only because operator new returns
 // alignof(std::max_align_t) storage, which is exactly 16 on these targets.
 struct alignas(simd_vector_bytes) Dprofile_8
-  : std::array<BYTE, depth_slots * channels_at_8_bits * n_cells> {};
+  : std::array<BYTE, depth_slots * channels_at_8_bits * profile_slots> {};
 struct alignas(simd_vector_bytes) Dprofile_16
-  : std::array<WORD, depth_slots * channels_at_16_bits * n_cells> {};
+  : std::array<WORD, depth_slots * channels_at_16_bits * profile_slots> {};
 
 struct Search_data
 {
