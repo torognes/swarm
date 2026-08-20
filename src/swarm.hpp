@@ -50,7 +50,10 @@ struct Parameters {
   static constexpr unsigned int gap_extension_penalty_default {4};
   static constexpr unsigned int bloom_bits_default {16};
 
-  ThreadCount opt_threads {};
+  // no {}: ThreadCount default-constructs to its own minimum, so an
+  // initializer here would be redundant (unlike the members below, whose
+  // defaults are named above)
+  ThreadCount opt_threads;
   std::uint64_t opt_bloom_bits {bloom_bits_default};
   std::uint64_t opt_differences {opt_differences_default};
   int64_t opt_mismatch_penalty {mismatch_penalty_default};

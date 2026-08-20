@@ -114,7 +114,7 @@ private:
   // the search8/search16 parameters they feed cannot drift apart
   alignas(simd_vector_bytes) Score_matrix_8 score_matrix_8_;
   alignas(simd_vector_bytes) Score_matrix_16 score_matrix_16_;
-  ThreadCount n_threads_ {};
+  ThreadCount n_threads_;  // no {}: it default-constructs to its own minimum
 
   std::mutex scan_mutex_;
   Sequence query_ {};
