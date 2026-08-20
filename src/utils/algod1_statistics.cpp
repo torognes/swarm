@@ -171,7 +171,22 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   static constexpr uint64_t min_bloom_length_in_bits {64};  // at least 64 bits
   bloom_length_in_bits = std::max(bloom_length_in_bits, min_bloom_length_in_bits);
 
-  if (memused + (bloom_length_in_bits / n_bits_in_a_byte) > memlimit)
+  // bloom_length is in bits (divide by 8 to get bytes)
+  // bloom_length is guaranteed to be at least 64 (see code above)
+  assert(bloom_length_in_bits != 0);  // safeguard for future changes
+  assert(bloom_length_in_bits >= 64);
+
+  // Rounded up, and computed once. The warning below and the returned
+  // geometry are the same number of bytes, and used to convert it
+  // separately, one rounding down and the other up -- while issue 174 was
+  // about a bits-to-bytes conversion that rounded the wrong way.
+  //
+  // The (x - 1) / d + 1 form and not ceil_divide(), whose (x + d - 1) / d
+  // can overflow the numerator and guards against it with an assert, i.e.
+  // with nothing in a release build. Here x >= 64, so x - 1 cannot wrap.
+  auto const n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
+
+  if (memused + n_bytes > memlimit)
     {
       fprint(parameters.logfile, "WARNING: Memory usage will probably exceed total amount of memory available.\n");
       fprint(parameters.logfile, "Try to reduce memory footprint using the --bloom-bits or --ceiling options.\n");
@@ -189,13 +204,8 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
                                  static_cast<double>(bloom_length_in_bits) / (n_bits_in_a_byte * one_megabyte)));
 
 
-  // bloom_length is in bits (divide by 8 to get bytes)
-  // bloom_length is guaranteed to be at least 64 (see code above)
-  assert(bloom_length_in_bits != 0);  // safeguard for future changes
-  assert(bloom_length_in_bits >= 64);
-
   Bloom_geometry geom;
-  geom.n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
+  geom.n_bytes = n_bytes;
   geom.n_hash_functions = n_hash_functions;
   return geom;
 }
