@@ -26,8 +26,9 @@
 #include <algorithm>  // std::min
 #include <array>
 #include <cerrno>  // errno, ERANGE
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fopen, std::fgets, std::fclose
+#include <cstdio>  // std::FILE, std::fopen, std::fgets, std::fclose, std::feof, std::ferror
 #include <cstdlib>  // std::strtoull
 #include <memory>  // std::unique_ptr
 #include <string>
@@ -102,9 +103,18 @@ namespace {
   // One line, however long: cgroup paths under Kubernetes run to a couple of
   // hundred characters, and a truncated path would silently name a file that
   // does not exist. Returns false at end of input.
+  //
+  // The end-of-input test at the top is not redundant with the loop below. A
+  // final line with no trailing newline leaves the stream at end of file and
+  // still has a line to report, so the caller comes back for one more read;
+  // that read is a no-op at end of file, and after a read error the file
+  // position is indeterminate, which makes it undefined. Ask the stream once
+  // instead.
   auto read_line(std::FILE * const input, std::string & line) -> bool {
     line.clear();
-    std::array<char, 256> buffer {};
+    if ((std::feof(input) != 0) or (std::ferror(input) != 0)) { return false; }
+    static constexpr std::size_t read_chunk_bytes {256};
+    std::array<char, read_chunk_bytes> buffer {};
     while (std::fgets(buffer.data(), static_cast<int>(buffer.size()), input) != nullptr) {
       line.append(buffer.data());
       if (not line.empty() and (line.back() == '\n')) {
@@ -142,7 +152,7 @@ namespace {
   auto own_cgroup_path(char const * const proc_file, bool & unified) -> std::string {
     unified = false;
     Probe_file const input {std::fopen(proc_file, "r")};
-    if (not input) { return std::string(); }
+    if (not input) { return {}; }
 
     std::string line;
     std::string memory_path;
