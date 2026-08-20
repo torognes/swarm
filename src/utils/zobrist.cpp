@@ -22,6 +22,7 @@
 */
 
 #include "../db.hpp"  // brings in zobrist.hpp transitively, plus the Sequence definition
+#include "ceil_divide.hpp"  // ceil_divide
 #include "pseudo_rng.hpp"
 #include "view.hpp"  // View<>
 #include "zobrist.hpp"
@@ -160,7 +161,7 @@ auto Zobrist::hash_first_shifted(Sequence const & seq) const -> uint64_t {
      insert_gap: keep all input bases,     output position = input pos + 1. */
 
   auto const len = seq.length;
-  auto const n_bytes = (len + nt_per_byte - 1U) / nt_per_byte;
+  auto const n_bytes = ceil_divide(len, nt_per_byte);
   auto const view = seq.encoded.as_bytes().first(n_bytes);
   auto const start = (operation == First_base_op::remove) ? 1U : 0U;
 

@@ -24,6 +24,7 @@
 #include "algod1_statistics.hpp"
 #include "../swarm.hpp"
 #include "algod1_internal.hpp"
+#include "ceil_divide.hpp"  // ceil_divide
 #include "system_memory.hpp"
 #include "fatal.hpp"
 #include "print_view.hpp"  // fprint, fprint_integer
@@ -175,16 +176,18 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   // bloom_length is guaranteed to be at least 64 (see code above)
   assert(bloom_length_in_bits != 0);  // safeguard for future changes
   assert(bloom_length_in_bits >= 64);
+  // ceil_divide's precondition, named at the call site and not only inside
+  // the template: the sum it forms must not overflow. bloom_length_in_bits
+  // is a nucleotide count times 7 times at most 64 bits, so it cannot come
+  // near this, but meeting the contract is the caller's job.
+  assert(bloom_length_in_bits
+         <= std::numeric_limits<uint64_t>::max() - (n_bits_in_a_byte - 1));
 
   // Rounded up, and computed once. The warning below and the returned
   // geometry are the same number of bytes, and used to convert it
   // separately, one rounding down and the other up -- while issue 174 was
   // about a bits-to-bytes conversion that rounded the wrong way.
-  //
-  // The (x - 1) / d + 1 form and not ceil_divide(), whose (x + d - 1) / d
-  // can overflow the numerator and guards against it with an assert, i.e.
-  // with nothing in a release build. Here x >= 64, so x - 1 cannot wrap.
-  auto const n_bytes = ((bloom_length_in_bits - 1) / n_bits_in_a_byte) + 1;
+  auto const n_bytes = ceil_divide<uint64_t>(bloom_length_in_bits, n_bits_in_a_byte);
 
   if (memused + n_bytes > memlimit)
     {
