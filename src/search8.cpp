@@ -91,7 +91,19 @@ constexpr unsigned int cdepth {4};
 static_assert(cdepth == depth_slots, "a block covers exactly one packed byte");
 constexpr uint8_t n_bits {bits8};  // backtrack.hpp
 
-// refactoring: objdump shows this function is not inlined
+// One pass over eight score-matrix columns, where this used to make four
+// passes over all thirty-two. The kernel only ever dereferences the profile
+// slots for nucleotide codes 1 to 4 -- Scanner::init points qtable_v at
+// 64 * code (utils/scanner.cpp) and align_cells reads four vectors from
+// there -- so the slots this filled for codes 8 to 31 were written and
+// never read. Poisoning the score matrix outside its 4x4 ACGT core leaves
+// every output byte-identical; see utils/score_matrix.hpp for what that
+// core is. dprofile_fill16 has always written one chunk only, and the two
+// builders now have the same shape.
+//
+// Dropping the other three chunks also made this small enough to inline:
+// it was 1,854 bytes of its own before, which is what an earlier note here
+// recorded as objdump showing it was not inlined.
 //
 // The three buffers arrive as their own containers rather than as three
 // same-family pointers in a row: their types now say which is which, and
@@ -135,13 +147,6 @@ auto dprofile_fill8(Dprofile_8 & dprofile_a,
   static constexpr auto line5  = 64U * 5;
   static constexpr auto line6  = 64U * 6;
   static constexpr auto line7  = 64U * 7;
-  static constexpr auto line8  = 64U * 8;
-  static constexpr auto line16 = 64U * 16;  // 1,024
-  static constexpr auto line24 = 64U * 24;  // 1,536
-
-  static constexpr auto offset8  =  8U;
-  static constexpr auto offset16 = 16U;
-  static constexpr auto offset24 = 24U;
 
   VECTORTYPE reg0;
   VECTORTYPE reg1;
@@ -233,227 +238,6 @@ auto dprofile_fill8(Dprofile_8 & dprofile_a,
       v_store8(cast_vector8(std::next(dprofile, lane + line5)), reg11);
       v_store8(cast_vector8(std::next(dprofile, lane + line6)), reg6);
       v_store8(cast_vector8(std::next(dprofile, lane + line7)), reg15);
-
-
-      // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
-
-      reg0  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos0]));
-      reg1  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos1]));
-      reg2  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos2]));
-      reg3  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos3]));
-      reg4  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos4]));
-      reg5  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos5]));
-      reg6  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos6]));
-      reg7  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos7]));
-      reg8  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos8]));
-      reg9  = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos9]));
-      reg10 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos10]));
-      reg11 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos11]));
-      reg12 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos12]));
-      reg13 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos13]));
-      reg14 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos14]));
-      reg15 = v_load_64(std::next(score_matrix, offset8 + score_offsets[pos15]));
-
-      reg0  = v_merge_lo_8(reg0,  reg1);
-      reg2  = v_merge_lo_8(reg2,  reg3);
-      reg4  = v_merge_lo_8(reg4,  reg5);
-      reg6  = v_merge_lo_8(reg6,  reg7);
-      reg8  = v_merge_lo_8(reg8,  reg9);
-      reg10 = v_merge_lo_8(reg10, reg11);
-      reg12 = v_merge_lo_8(reg12, reg13);
-      reg14 = v_merge_lo_8(reg14, reg15);
-
-      reg1 = reg0;
-      reg0 = v_merge_lo_16(reg0, reg2);
-      reg1 = v_merge_hi_16(reg1, reg2);
-      reg5 = reg4;
-      reg4 = v_merge_lo_16(reg4, reg6);
-      reg5 = v_merge_hi_16(reg5, reg6);
-      reg9 = reg8;
-      reg8 = v_merge_lo_16(reg8, reg10);
-      reg9 = v_merge_hi_16(reg9, reg10);
-      reg13 = reg12;
-      reg12 = v_merge_lo_16(reg12, reg14);
-      reg13 = v_merge_hi_16(reg13, reg14);
-
-      reg2  = reg0;
-      reg0  = v_merge_lo_32(reg0, reg4);
-      reg2  = v_merge_hi_32(reg2, reg4);
-      reg6  = reg1;
-      reg1  = v_merge_lo_32(reg1, reg5);
-      reg6  = v_merge_hi_32(reg6, reg5);
-      reg10 = reg8;
-      reg8  = v_merge_lo_32(reg8, reg12);
-      reg10 = v_merge_hi_32(reg10, reg12);
-      reg14 = reg9;
-      reg9  = v_merge_lo_32(reg9, reg13);
-      reg14 = v_merge_hi_32(reg14, reg13);
-
-      reg3  = reg0;
-      reg0  = v_merge_lo_64(reg0, reg8);
-      reg3  = v_merge_hi_64(reg3, reg8);
-      reg7  = reg2;
-      reg2  = v_merge_lo_64(reg2, reg10);
-      reg7  = v_merge_hi_64(reg7, reg10);
-      reg11 = reg1;
-      reg1  = v_merge_lo_64(reg1, reg9);
-      reg11 = v_merge_hi_64(reg11, reg9);
-      reg15 = reg6;
-      reg6  = v_merge_lo_64(reg6, reg14);
-      reg15 = v_merge_hi_64(reg15, reg14);
-
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line0)), reg0);
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line1)), reg3);
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line2)), reg2);
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line3)), reg7);
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line4)), reg1);
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line5)), reg11);
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line6)), reg6);
-      v_store8(cast_vector8(std::next(dprofile, lane + line8 + line7)), reg15);
-
-
-      reg0  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos0]));
-      reg2  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos2]));
-      reg4  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos4]));
-      reg6  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos6]));
-      reg8  = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos8]));
-      reg10 = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos10]));
-      reg12 = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos12]));
-      reg14 = v_load_64(std::next(score_matrix, offset16 + score_offsets[pos14]));
-
-      reg0  = v_merge_lo_8(reg0,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos1])));
-      reg2  = v_merge_lo_8(reg2,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos3])));
-      reg4  = v_merge_lo_8(reg4,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos5])));
-      reg6  = v_merge_lo_8(reg6,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos7])));
-      reg8  = v_merge_lo_8(reg8,  *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos9])));
-      reg10 = v_merge_lo_8(reg10, *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos11])));
-      reg12 = v_merge_lo_8(reg12, *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos13])));
-      reg14 = v_merge_lo_8(reg14, *cast_vector8(std::next(score_matrix, offset16 + score_offsets[pos15])));
-
-      reg1 = reg0;
-      reg0 = v_merge_lo_16(reg0, reg2);
-      reg1 = v_merge_hi_16(reg1, reg2);
-      reg5 = reg4;
-      reg4 = v_merge_lo_16(reg4, reg6);
-      reg5 = v_merge_hi_16(reg5, reg6);
-      reg9 = reg8;
-      reg8 = v_merge_lo_16(reg8, reg10);
-      reg9 = v_merge_hi_16(reg9, reg10);
-      reg13 = reg12;
-      reg12 = v_merge_lo_16(reg12, reg14);
-      reg13 = v_merge_hi_16(reg13, reg14);
-
-      reg2  = reg0;
-      reg0  = v_merge_lo_32(reg0, reg4);
-      reg2  = v_merge_hi_32(reg2, reg4);
-      reg6  = reg1;
-      reg1  = v_merge_lo_32(reg1, reg5);
-      reg6  = v_merge_hi_32(reg6, reg5);
-      reg10 = reg8;
-      reg8  = v_merge_lo_32(reg8, reg12);
-      reg10 = v_merge_hi_32(reg10, reg12);
-      reg14 = reg9;
-      reg9  = v_merge_lo_32(reg9, reg13);
-      reg14 = v_merge_hi_32(reg14, reg13);
-
-      reg3  = reg0;
-      reg0  = v_merge_lo_64(reg0, reg8);
-      reg3  = v_merge_hi_64(reg3, reg8);
-      reg7  = reg2;
-      reg2  = v_merge_lo_64(reg2, reg10);
-      reg7  = v_merge_hi_64(reg7, reg10);
-      reg11 = reg1;
-      reg1  = v_merge_lo_64(reg1, reg9);
-      reg11 = v_merge_hi_64(reg11, reg9);
-      reg15 = reg6;
-      reg6  = v_merge_lo_64(reg6, reg14);
-      reg15 = v_merge_hi_64(reg15, reg14);
-
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line0)), reg0);
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line1)), reg3);
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line2)), reg2);
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line3)), reg7);
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line4)), reg1);
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line5)), reg11);
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line6)), reg6);
-      v_store8(cast_vector8(std::next(dprofile, lane + line16 + line7)), reg15);
-
-
-      // loads not aligned on 16 byte boundary, cannot load and unpack in one instr.
-
-      reg0  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos0]));
-      reg1  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos1]));
-      reg2  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos2]));
-      reg3  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos3]));
-      reg4  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos4]));
-      reg5  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos5]));
-      reg6  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos6]));
-      reg7  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos7]));
-      reg8  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos8]));
-      reg9  = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos9]));
-      reg10 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos10]));
-      reg11 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos11]));
-      reg12 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos12]));
-      reg13 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos13]));
-      reg14 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos14]));
-      reg15 = v_load_64(std::next(score_matrix, offset24 + score_offsets[pos15]));
-
-      reg0  = v_merge_lo_8(reg0,  reg1);
-      reg2  = v_merge_lo_8(reg2,  reg3);
-      reg4  = v_merge_lo_8(reg4,  reg5);
-      reg6  = v_merge_lo_8(reg6,  reg7);
-      reg8  = v_merge_lo_8(reg8,  reg9);
-      reg10 = v_merge_lo_8(reg10, reg11);
-      reg12 = v_merge_lo_8(reg12, reg13);
-      reg14 = v_merge_lo_8(reg14, reg15);
-
-      reg1 = reg0;
-      reg0 = v_merge_lo_16(reg0, reg2);
-      reg1 = v_merge_hi_16(reg1, reg2);
-      reg5 = reg4;
-      reg4 = v_merge_lo_16(reg4, reg6);
-      reg5 = v_merge_hi_16(reg5, reg6);
-      reg9 = reg8;
-      reg8 = v_merge_lo_16(reg8, reg10);
-      reg9 = v_merge_hi_16(reg9, reg10);
-      reg13 = reg12;
-      reg12 = v_merge_lo_16(reg12, reg14);
-      reg13 = v_merge_hi_16(reg13, reg14);
-
-      reg2  = reg0;
-      reg0  = v_merge_lo_32(reg0, reg4);
-      reg2  = v_merge_hi_32(reg2, reg4);
-      reg6  = reg1;
-      reg1  = v_merge_lo_32(reg1, reg5);
-      reg6  = v_merge_hi_32(reg6, reg5);
-      reg10 = reg8;
-      reg8  = v_merge_lo_32(reg8, reg12);
-      reg10 = v_merge_hi_32(reg10, reg12);
-      reg14 = reg9;
-      reg9  = v_merge_lo_32(reg9, reg13);
-      reg14 = v_merge_hi_32(reg14, reg13);
-
-      reg3  = reg0;
-      reg0  = v_merge_lo_64(reg0, reg8);
-      reg3  = v_merge_hi_64(reg3, reg8);
-      reg7  = reg2;
-      reg2  = v_merge_lo_64(reg2, reg10);
-      reg7  = v_merge_hi_64(reg7, reg10);
-      reg11 = reg1;
-      reg1  = v_merge_lo_64(reg1, reg9);
-      reg11 = v_merge_hi_64(reg11, reg9);
-      reg15 = reg6;
-      reg6  = v_merge_lo_64(reg6, reg14);
-      reg15 = v_merge_hi_64(reg15, reg14);
-
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line0)), reg0);
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line1)), reg3);
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line2)), reg2);
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line3)), reg7);
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line4)), reg1);
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line5)), reg11);
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line6)), reg6);
-      v_store8(cast_vector8(std::next(dprofile, lane + line24 + line7)), reg15);
     }
 }
 
