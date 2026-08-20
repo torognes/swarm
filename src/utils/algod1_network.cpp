@@ -26,7 +26,6 @@
 #include "../db.hpp"
 #include "variants.hpp"
 #include "algod1_internal.hpp"
-#include "bloom.hpp"
 #include "hashtable.hpp"
 #include "make_unique.hpp"
 #include "progress.hpp"

@@ -27,7 +27,6 @@
 #include "variants.hpp"
 #include "algod1_internal.hpp"
 #include "algod1_statistics.hpp"
-#include "bloom.hpp"
 #include "hashtable.hpp"
 #include "make_unique.hpp"
 #include "nt_codec.hpp"  // nt_wordlength
@@ -36,7 +35,6 @@
 #include "threads.hpp"
 #include <algorithm>  // std::sort(), std::max(), std::count_if()
 #include <cassert>  // assert()
-#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <mutex>  // std::lock_guard, std::unique_lock
 #include <vector>

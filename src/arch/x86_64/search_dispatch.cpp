@@ -26,6 +26,7 @@
 #include "sse41.hpp"  // align_cells_*_16_sse41 (only declared when __SSE4_1__)
 #include <emmintrin.h>  // _mm_set_epi8/16 (SSE2)
 #include "../../utils/cpu_features.hpp"  // Cpu_features
+#include "../../utils/search_data.hpp"  // Dprofile_8/16, Score_matrix_8/16, Dseq_8/16
 #include <cstdint>  // uint64_t
 
 

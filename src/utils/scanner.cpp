@@ -31,6 +31,7 @@
 #include "memory_budget.hpp"  // require_ram
 #include "score_matrix.hpp"
 #include "search_data.hpp"  // Search_data, BYTE, WORD
+#include "simd_alignment.hpp"  // simd_vector_bytes
 #include "span.hpp"  // Span<uint64_t>
 #include "threads.hpp"  // ThreadRunner
 #include "view.hpp"  // View<uint64_t>

@@ -41,7 +41,8 @@
 */
 
 #include <tmmintrin.h>  // _mm_shuffle_epi8
-#include "ssse3.hpp"  // BYTE, WORD, Score_matrix_8/16, Dseq_8/16
+#include "ssse3.hpp"  // dprofile_shuffle8/16
+#include "../../utils/search_data.hpp"  // BYTE, WORD, Dprofile_8/16, Score_matrix_8/16, Dseq_8/16
 
 namespace {
 
