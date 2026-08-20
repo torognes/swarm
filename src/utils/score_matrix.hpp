@@ -72,9 +72,8 @@ template <typename Integral>
 auto create_score_matrix(std::int64_t const mismatch_penalty)
   -> std::array<Integral, n_cells * n_cells> {
   static_assert(std::is_same<Integral, unsigned char>::value \
-                or std::is_same<Integral, std::uint16_t>::value \
-                or std::is_same<Integral, std::int64_t>::value,
-                "Invalid type! Only unsigned char, uint16_t and int64_t can be used.");
+                or std::is_same<Integral, std::uint16_t>::value,
+                "Invalid type! Only unsigned char and uint16_t can be used.");
   static constexpr Integral matchscore {0};
   assert(mismatch_penalty <= std::numeric_limits<Integral>::max());
   auto const mismatchscore = static_cast<Integral>(mismatch_penalty);
@@ -102,8 +101,13 @@ auto create_score_matrix(std::int64_t const mismatch_penalty)
 //
 // create_score_matrix<unsigned char>(mismatch_penalty)};   OK
 // create_score_matrix<uint16_t>(mismatch_penalty)};        OK
-// create_score_matrix<int64_t>(mismatch_penalty)};         OK
+// create_score_matrix<int64_t>(mismatch_penalty)};         compilation error
 // create_score_matrix<signed char>(mismatch_penalty)};     compilation error
+//
+// The two widths the SIMD kernels search at are the only ones asked for.
+// int64_t used to be a third: nw_aligner held a 32 x 32 table of them until
+// it started comparing nucleotides instead, which is the whole of what that
+// table said.
 
 // refactoring: C++20 constexpr template
 // static_assert(create_score_matrix<uint16_t>(4)[0] == 4);  // (0, 0)
