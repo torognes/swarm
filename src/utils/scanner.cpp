@@ -176,7 +176,7 @@ auto Scanner::next_window() -> Scanner::Work_window {
   }
 
   uint64_t const chunksize =
-    ((listlength - next_ + remainingchunks_ - 1) / remainingchunks_);
+    ceil_divide<uint64_t>(listlength - next_, remainingchunks_);
   Work_window const window {next_, chunksize};
 
   next_ += chunksize;
