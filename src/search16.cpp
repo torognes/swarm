@@ -35,7 +35,6 @@
 #include <cstdint>  // int64_t, uint64_t, uint8_t
 #include <cstring>  // std::memcpy
 #include <iterator> // std::next
-#include <limits>
 
 
 // refactoring: C++26 std::simd
@@ -81,6 +80,7 @@ using VECTORTYPE = __vector unsigned short;
 
 
 #ifndef NDEBUG
+#include <limits>  // std::numeric_limits, in the assertions only
 // C++17 refactoring: [[maybe_unused]]
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif

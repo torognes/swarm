@@ -39,10 +39,13 @@
 #include <algorithm>  // std::min(), std::for_each
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
-#include <limits>
 #include <memory>  // unique pointer
 #include <string>
 #include <vector>
+
+#ifndef NDEBUG
+#include <limits>  // std::numeric_limits, in the assertions only
+#endif
 
 
 namespace {

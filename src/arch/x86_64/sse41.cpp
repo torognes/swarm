@@ -26,7 +26,6 @@
 #include <emmintrin.h>  // SSE2 intrinsics
 #include "intrinsics_to_functions.hpp"
 #include <cassert>
-#include <cstddef>  // std::ptrdiff_t
 #endif
 
 #ifdef __SSE4_1__
@@ -48,8 +47,9 @@
 #include "sse41.hpp"  // VECTORTYPE
 
 #ifndef NDEBUG
+#include <cstddef>  // std::ptrdiff_t
+#include <limits>  // std::numeric_limits
 // C++17 refactoring: [[maybe_unused]]
-#include <limits>
 constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
 #endif
 
