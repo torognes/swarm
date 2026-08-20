@@ -13,15 +13,18 @@ jobs:
 
     steps:
     - name: Checkout
+      timeout-minutes: 5
       uses: actions/checkout@v6
 
     - name: Build for Linux x86_64
+      timeout-minutes: 10
       run: |
         make clean
         make RELEASE=1
         bin/swarm -v
 
     - name: Install and run tests
+      timeout-minutes: 25
       run: |
         sudo apt-get update
         sudo apt-get -y install valgrind
@@ -45,6 +48,7 @@ jobs:
 
     steps:
     - name: Fetch swarm at the tested revision
+      timeout-minutes: 10
       run: |
         git init -q .
         git remote add origin "https://github.com/${{ github.repository }}.git"
@@ -52,6 +56,7 @@ jobs:
         git checkout -q --detach FETCH_HEAD
 
     - name: Build for Linux x86_64 (GCC 4.9)
+      timeout-minutes: 10
       run: |
         g++ --version
         make clean
@@ -59,6 +64,7 @@ jobs:
         bin/swarm -v
 
     - name: Install and run tests
+      timeout-minutes: 25
       run: |
         # Steps run as root inside the container, but the test-suite's
         # "file not readable/writable" checks need an unprivileged user
@@ -85,14 +91,17 @@ jobs:
 
     steps:
     - name: Checkout
+      timeout-minutes: 5
       uses: actions/checkout@v6
 
     - name: Install dependencies
+      timeout-minutes: 10
       run: |
         sudo apt-get update
         sudo apt-get -y install make ${{ matrix.target.pkg }}
 
     - name: Build for ${{ matrix.target.name }}
+      timeout-minutes: 10
       run: |
         make clean
         make CXX="${{ matrix.target.cxx }}" RELEASE=1
@@ -104,15 +113,18 @@ jobs:
 
     steps:
     - name: Checkout
+      timeout-minutes: 5
       uses: actions/checkout@v6
 
     - name: Build for macos aarch64
+      timeout-minutes: 10
       run: |
         make clean
         make RELEASE=1
         bin/swarm -v
 
     - name: Install and run tests
+      timeout-minutes: 25
       run: |
         export PATH=$PWD/bin:$PATH
         git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
@@ -126,15 +138,18 @@ jobs:
 
     steps:
     - name: Checkout
+      timeout-minutes: 5
       uses: actions/checkout@v6
 
     - name: Build for macos x86_64
+      timeout-minutes: 10
       run: |
         make clean
         make RELEASE=1
         bin/swarm -v
 
     - name: Install and run tests
+      timeout-minutes: 25
       run: |
         export PATH=$PWD/bin:$PATH
         git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/swarm-tests
@@ -148,9 +163,11 @@ jobs:
 
     steps:
     - name: Checkout
+      timeout-minutes: 5
       uses: actions/checkout@v6
 
     - name: Build and test on FreeBSD
+      timeout-minutes: 25
       uses: vmactions/freebsd-vm@v1
       with:
         usesh: true
