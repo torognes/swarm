@@ -191,7 +191,7 @@ namespace {
 
   auto get_file_info(std::FILE * const input_handle) -> struct File_info {
     // get file size and file type (regular or pipe)
-    // refactoring: C++17 std::filesystem::file_size
+    // POSIX; C++17 refactoring: std::filesystem::file_size
     struct File_info file_info;
     struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
 
@@ -229,10 +229,10 @@ namespace {
     // exabyte and pass to reserve(). It is safe only behind the is_regular
     // test this function already makes, which is why that test comes
     // first and the size second.
-    if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // refactor: fstat and fileno are linuxisms
+    if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // POSIX; C++17 refactoring: std::filesystem::status
       return file_info;
     }
-    file_info.is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG is a linuxism
+    file_info.is_regular = S_ISREG(fstat_buffer.st_mode);  // POSIX; C++17 refactoring: std::filesystem::is_regular_file
     file_info.filesize = file_info.is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0U;
     return file_info;
   }
