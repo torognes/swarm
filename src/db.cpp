@@ -211,6 +211,24 @@ namespace {
     // loop below, and update() divides by filesize. That guard is therefore
     // load-bearing twice over: without it a zero filesize would divide by
     // zero, and this is now a second way to reach a zero filesize.
+    //
+    // Whatever eventually replaces the three markers here must ask the
+    // operating system about the *file*, and must never ask the *stream*
+    // for its size. Seeking to the end is the usual way to size a
+    // std::istream, and on a FIFO that seek fails: it sets failbit,
+    // failbit is sticky, and every later read returns nothing. swarm then
+    // sees an empty input, clusters nothing and exits 0 -- the same silent
+    // success the ferror() check in CloseFileHandle exists to stop, except
+    // that the istream form of that check does not catch it. After a
+    // failed seek bad() is false, and fail() is true at the end of every
+    // healthy read as well, so only eof() tells the two apart.
+    //
+    // C++17 file_size() carries a sharper version of the same trap: on a
+    // FIFO it reports "Operation not supported" and returns
+    // uintmax_t(-1), which initial_allocation() below would take for an
+    // exabyte and pass to reserve(). It is safe only behind the is_regular
+    // test this function already makes, which is why that test comes
+    // first and the size second.
     if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // refactor: fstat and fileno are linuxisms
       return file_info;
     }
