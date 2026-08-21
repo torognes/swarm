@@ -36,15 +36,15 @@
 #include "utils/progress.hpp"
 #include "utils/span.hpp"  // Span, make_span
 #include "utils/view.hpp"  // View, make_view
-#include <algorithm>  // std::min(), std::for_each, std::all_of
+#include <algorithm>  // std::min(), std::for_each, std::is_sorted, std::partition_point
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
+#include <iterator>  // std::next, std::distance
 #include <memory>  // unique pointer
 #include <string>
 #include <vector>
 
 #ifndef NDEBUG
-#include <iterator>  // std::next, in the assertions only
 #include <limits>  // std::numeric_limits, in the assertions only
 #endif
 
@@ -166,6 +166,27 @@ namespace {
   }
 
 
+  // The position in the pool of the first target that cluster breaking
+  // admits for this subseed, i.e. the first entry no more abundant than the
+  // subseed itself, or the end of the pool if there is none. The pool is in
+  // decreasing abundance order (asserted in seed_first_generation), so those
+  // targets are a suffix of it and binary search finds where it opens.
+  auto first_qualifying_amplicon(uint64_t const swarmed,
+                                 struct ampliconinfo_s const & subseed,
+                                 Data const & data,
+                                 std::vector<struct ampliconinfo_s> const & amps_v) -> uint64_t {
+    auto const subseed_abundance = data.abundance(subseed.ampliconid);
+    auto const pool_start = std::next(amps_v.cbegin(),
+                                      static_cast<std::ptrdiff_t>(swarmed));
+    auto const suffix =
+      std::partition_point(pool_start, amps_v.cend(),
+                           [&data, subseed_abundance](struct ampliconinfo_s const & amplicon) -> bool {
+                             return data.abundance(amplicon.ampliconid) > subseed_abundance;
+                           });
+    return static_cast<uint64_t>(std::distance(amps_v.cbegin(), suffix));
+  }
+
+
   auto build_subseed_candidate_list(uint64_t const swarmed,
                                     uint64_t const amplicons,
                                     struct ampliconinfo_s const & subseed,
@@ -173,16 +194,20 @@ namespace {
                                     Data const & data,
                                     std::vector<struct ampliconinfo_s> const & amps_v,
                                     Cluster_workspace & workspace) -> uint64_t {
-    auto const subseed_abundance = data.abundance(subseed.ampliconid);
+    // Where the walk can start. Testing the abundance of every entry was
+    // 2.1e9 random loads over a -d 2 run on 219k reads, and the entries in
+    // front of the suffix -- 28 % of the walk -- were stepped over only to
+    // be rejected. Both go away: inside the suffix the test is redundant,
+    // and opt_no_cluster_breaking makes it vacuous everywhere.
+    auto const first = parameters.opt_no_cluster_breaking
+      ? swarmed
+      : first_qualifying_amplicon(swarmed, subseed, data, amps_v);
+
     uint64_t subseedlistlen {0};
-    for (auto i = swarmed; i < amplicons; ++i) {
-      uint64_t const targetampliconid = amps_v[i].ampliconid;
-      if ((amps_v[i].diffestimate <=
-           subseed.radius + parameters.opt_differences) and
-          (parameters.opt_no_cluster_breaking or
-           (data.abundance(targetampliconid)
-            <= subseed_abundance))) {
-        workspace.qgramamps_v[subseedlistlen] = targetampliconid;
+    for (auto i = first; i < amplicons; ++i) {
+      if (amps_v[i].diffestimate <=
+          subseed.radius + parameters.opt_differences) {
+        workspace.qgramamps_v[subseedlistlen] = amps_v[i].ampliconid;
         workspace.qgramindices_v[subseedlistlen] = i;
         ++subseedlistlen;
       }
@@ -308,24 +333,37 @@ namespace {
     uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
 
 #ifndef NDEBUG
-    // The seed is the most abundant amplicon left, so every entry of the
-    // pool it is about to be compared against qualifies as a candidate.
-    // Three facts make that so: sort_index_if_need_be() (db.cpp) always
-    // leaves the amplicons in decreasing abundance order,
-    // move_target_to_first_unswarmed_position() lifts one entry out and
-    // shifts the rest, which preserves that order among those still
-    // unswarmed, and start_new_cluster() takes the seed from the front of
-    // the pool. The abundance test that used to select candidates here
-    // therefore rejected nothing -- 0 of 4.7e9 entries over a d = 2 run on
-    // 219k reads -- and opt_no_cluster_breaking never entered into it: it
-    // only widened a filter that was already total.
-    auto const seed_abundance = data.abundance(seedampliconid);
-    assert(std::all_of(std::next(amps_v.cbegin(),
-                                 static_cast<std::ptrdiff_t>(cursor.swarmed)),
-                       amps_v.cend(),
-                       [&data, seed_abundance](struct ampliconinfo_s const & amplicon) -> bool {
-                         return data.abundance(amplicon.ampliconid) <= seed_abundance;
-                       }));
+    // The pool is in decreasing abundance order, and the seed is at least as
+    // abundant as all of it. Three facts make that so:
+    // sort_index_if_need_be() (db.cpp) always leaves the amplicons in
+    // decreasing abundance order, move_target_to_first_unswarmed_position()
+    // lifts one entry out and shifts the rest, which preserves that order
+    // among those still unswarmed, and start_new_cluster() takes the seed
+    // from the front of the pool.
+    //
+    // Both halves are load-bearing. That the seed dominates the pool is why
+    // the candidate list below is the whole of it: the abundance test that
+    // used to select candidates here rejected nothing -- 0 of 4.7e9 entries
+    // over a d = 2 run on 219k reads -- and opt_no_cluster_breaking never
+    // entered into it, it only widened a filter that was already total. The
+    // ordering is what lets first_qualifying_amplicon() binary-search for
+    // the first target cluster breaking admits, instead of testing every
+    // entry in the pool once per subseed.
+    //
+    // Asserted here, once per cluster, rather than at either use: lifting a
+    // target out of the pool keeps the entries left in order, so neither
+    // fact can lapse between this point and the subseed passes.
+    auto const by_decreasing_abundance =
+      [&data](struct ampliconinfo_s const & lhs,
+              struct ampliconinfo_s const & rhs) -> bool {
+        return data.abundance(lhs.ampliconid) > data.abundance(rhs.ampliconid);
+      };
+    auto const pool_start = std::next(amps_v.cbegin(),
+                                      static_cast<std::ptrdiff_t>(cursor.swarmed));
+    assert(std::is_sorted(pool_start, amps_v.cend(), by_decreasing_abundance));
+    assert((pool_start == amps_v.cend()) or
+           (data.abundance(pool_start->ampliconid)
+            <= data.abundance(seedampliconid)));
 #endif
 
     uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed,
