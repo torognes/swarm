@@ -191,7 +191,7 @@ namespace {
 
   auto get_file_info(std::FILE * const input_handle) -> struct File_info {
     // get file size and file type (regular or pipe)
-    // refactoring: C++17 std::filesystem::file_size
+    // POSIX; C++17 refactoring: std::filesystem::file_size
     struct File_info file_info;
     struct stat fstat_buffer;  // refactoring: add initializer '{}' (warning with GCC < 5)
 
@@ -211,10 +211,28 @@ namespace {
     // loop below, and update() divides by filesize. That guard is therefore
     // load-bearing twice over: without it a zero filesize would divide by
     // zero, and this is now a second way to reach a zero filesize.
-    if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // refactor: fstat and fileno are linuxisms
+    //
+    // Whatever eventually replaces the three markers here must ask the
+    // operating system about the *file*, and must never ask the *stream*
+    // for its size. Seeking to the end is the usual way to size a
+    // std::istream, and on a FIFO that seek fails: it sets failbit,
+    // failbit is sticky, and every later read returns nothing. swarm then
+    // sees an empty input, clusters nothing and exits 0 -- the same silent
+    // success the ferror() check in CloseFileHandle exists to stop, except
+    // that the istream form of that check does not catch it. After a
+    // failed seek bad() is false, and fail() is true at the end of every
+    // healthy read as well, so only eof() tells the two apart.
+    //
+    // C++17 file_size() carries a sharper version of the same trap: on a
+    // FIFO it reports "Operation not supported" and returns
+    // uintmax_t(-1), which initial_allocation() below would take for an
+    // exabyte and pass to reserve(). It is safe only behind the is_regular
+    // test this function already makes, which is why that test comes
+    // first and the size second.
+    if (fstat(fileno(input_handle), &fstat_buffer) != 0) { // POSIX; C++17 refactoring: std::filesystem::status
       return file_info;
     }
-    file_info.is_regular = S_ISREG(fstat_buffer.st_mode);  // refactoring: S_ISREG is a linuxism
+    file_info.is_regular = S_ISREG(fstat_buffer.st_mode);  // POSIX; C++17 refactoring: std::filesystem::is_regular_file
     file_info.filesize = file_info.is_regular ? static_cast<uint64_t>(fstat_buffer.st_size) : 0U;
     return file_info;
   }
