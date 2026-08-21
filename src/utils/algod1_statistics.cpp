@@ -81,17 +81,28 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 
   static constexpr auto microvariants = 7U;
   static constexpr auto n_bits_in_a_byte = 8U;
-  static constexpr double hash_functions_per_bit {4.0 / 10};
+  // k per bit, as an exact ratio rather than a double. The quotient is the
+  // same value the double form (4.0 / 10) produced for every bits_value in
+  // the accepted range, and the multiplication cannot overflow: --bloom-bits
+  // arrives validated to 2 to 64 (validate_bloom_bits, cli.cpp) and the two
+  // adjustments below only ever lower it.
+  static constexpr auto hash_functions_per_bit_numerator = 4U;
+  static constexpr auto hash_functions_per_bit_denominator = 10U;
   static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
-  static_assert(hash_functions_per_bit <= natural_log_of_2, "upper limit is log(2)");
+  static_assert(static_cast<double>(hash_functions_per_bit_numerator)
+                  / hash_functions_per_bit_denominator <= natural_log_of_2,
+                "upper limit is log(2)");
   assert(parameters.opt_bloom_bits <= uint_max);
   assert(parameters.opt_bloom_bits <= 64);  // larger than expected
   assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
 
-  // bits_value is unsigned int (not uint64_t) to avoid a risky
-  // uint64 to double conversion warning in the multiplication
+  // bits_value is unsigned int (not uint64_t) to match the result type,
+  // which is what Bloom_geometry::n_hash_functions holds; the call sites
+  // narrow bits down to it. With the exact ratio above, there is no longer
+  // a uint64-to-double conversion to avoid.
   auto const hash_functions_for = [](unsigned int const bits_value) -> unsigned int {
-    return std::max(static_cast<unsigned int>(hash_functions_per_bit * bits_value), 1U);
+    return std::max((hash_functions_per_bit_numerator * bits_value)
+                    / hash_functions_per_bit_denominator, 1U);
   };
   auto const bloom_bits_for = [nucleotides_in_small_clusters](uint64_t const bits_value) -> uint64_t {
     return nucleotides_in_small_clusters * microvariants * bits_value;
