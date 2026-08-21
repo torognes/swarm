@@ -42,6 +42,61 @@ constexpr auto uint_max = std::numeric_limits<unsigned int>::max();
 #endif
 
 
+namespace {
+
+  // k per bit, as an exact ratio rather than a double. Integer division
+  // yields the same value the old expression -- unsigned(0.4 * bits) --
+  // gave for every bits_value in the accepted range, without a
+  // floating-point multiplication or a narrowing conversion on the way out.
+  constexpr auto hash_functions_per_bit_numerator = 4U;
+  constexpr auto hash_functions_per_bit_denominator = 10U;
+
+  // log(2) is the upper limit for the ratio above. The comparison is the
+  // one place a double still earns its keep: it is evaluated at compile
+  // time and never reaches the running program.
+  constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
+  static_assert(static_cast<double>(hash_functions_per_bit_numerator)
+                  / hash_functions_per_bit_denominator <= natural_log_of_2,
+                "upper limit is log(2)");
+
+  // The clamp, split out so that neither function has to spell the
+  // division twice: a C++11 constexpr function body is a single return
+  // statement, so no local variable can hold the quotient. std::max would
+  // read better but is not constexpr before C++14.
+  constexpr auto at_least_one(uint64_t const value) -> uint64_t {
+    return value == 0 ? 1 : value;
+  }
+
+  // k: the number of hash functions for a filter of bits_value bits per
+  // entry. constexpr so that the values it produces can be pinned by the
+  // assertions below rather than only observed in the log: k is printed by
+  // compute_bloom_geometry and read by nothing else, so a change of formula
+  // would otherwise alter the filter's false-positive rate, and with it the
+  // fastidious pass, without failing anything.
+  //
+  // The multiplication cannot overflow and the narrowing cannot lose a
+  // value: --bloom-bits arrives validated to 2 to 64 (validate_bloom_bits,
+  // cli.cpp), the two adjustments in compute_bloom_geometry only ever lower
+  // it, and 64 bits yield 25 hash functions. The range is asserted there,
+  // where the value enters, because a C++11 constexpr function cannot hold
+  // an assert.
+  constexpr auto hash_functions_for(uint64_t const bits_value) -> unsigned int {
+    return static_cast<unsigned int>(
+        at_least_one((hash_functions_per_bit_numerator * bits_value)
+                     / hash_functions_per_bit_denominator));
+  }
+
+  // The ends of the accepted range, the default, and the two steps that the
+  // clamp and the truncation decide between them.
+  static_assert(hash_functions_for(2) == 1, "k floor: 0.8 truncates to 0, clamped to 1");
+  static_assert(hash_functions_for(4) == 1, "1.6 truncates to 1");
+  static_assert(hash_functions_for(5) == 2, "first bits_value to reach k = 2");
+  static_assert(hash_functions_for(16) == 6, "--bloom-bits default");
+  static_assert(hash_functions_for(64) == 25, "k ceiling at the largest --bloom-bits");
+
+}  // end of anonymous namespace
+
+
 auto count_cluster_stats(struct Parameters const & parameters,
                          unsigned int const amplicon_count,
                          std::vector<struct swarminfo_s> const & swarminfo_v) -> Cluster_stats
@@ -81,29 +136,10 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 
   static constexpr auto microvariants = 7U;
   static constexpr auto n_bits_in_a_byte = 8U;
-  // k per bit, as an exact ratio rather than a double. The quotient is the
-  // same value the double form (4.0 / 10) produced for every bits_value in
-  // the accepted range, and the multiplication cannot overflow: --bloom-bits
-  // arrives validated to 2 to 64 (validate_bloom_bits, cli.cpp) and the two
-  // adjustments below only ever lower it.
-  static constexpr auto hash_functions_per_bit_numerator = 4U;
-  static constexpr auto hash_functions_per_bit_denominator = 10U;
-  static constexpr double natural_log_of_2 {0.693147181};  // C++26 refactoring: std::log(2.0)
-  static_assert(static_cast<double>(hash_functions_per_bit_numerator)
-                  / hash_functions_per_bit_denominator <= natural_log_of_2,
-                "upper limit is log(2)");
   assert(parameters.opt_bloom_bits <= uint_max);
   assert(parameters.opt_bloom_bits <= 64);  // larger than expected
   assert(parameters.opt_bloom_bits >= 2);  // smaller than expected
 
-  // bits_value is unsigned int (not uint64_t) to match the result type,
-  // which is what Bloom_geometry::n_hash_functions holds; the call sites
-  // narrow bits down to it. With the exact ratio above, there is no longer
-  // a uint64-to-double conversion to avoid.
-  auto const hash_functions_for = [](unsigned int const bits_value) -> unsigned int {
-    return std::max((hash_functions_per_bit_numerator * bits_value)
-                    / hash_functions_per_bit_denominator, 1U);
-  };
   auto const bloom_bits_for = [nucleotides_in_small_clusters](uint64_t const bits_value) -> uint64_t {
     return nucleotides_in_small_clusters * microvariants * bits_value;
   };
@@ -112,7 +148,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
 
   // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
   // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
-  auto n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
+  auto n_hash_functions = hash_functions_for(bits);
 
   auto bloom_length_in_bits = bloom_bits_for(bits);
 
@@ -140,7 +176,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
           }
           fprint(parameters.logfile, "Reducing memory used for Bloom filter due to --ceiling option.\n");
           bits = new_bits;
-          n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
+          n_hash_functions = hash_functions_for(bits);
           bloom_length_in_bits = bloom_bits_for(bits);
         }
     }
@@ -175,7 +211,7 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
                    "using 2. The fastidious pass will be slow.\n");
           }
           bits = std::max(new_bits, min_bits_per_entry);
-          n_hash_functions = hash_functions_for(static_cast<unsigned int>(bits));
+          n_hash_functions = hash_functions_for(bits);
           bloom_length_in_bits = bloom_bits_for(bits);
         }
     }
