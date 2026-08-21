@@ -36,7 +36,7 @@
 #include "utils/progress.hpp"
 #include "utils/span.hpp"  // Span, make_span
 #include "utils/view.hpp"  // View, make_view
-#include <algorithm>  // std::min(), std::for_each
+#include <algorithm>  // std::min(), std::for_each, std::all_of
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
 #include <memory>  // unique pointer
@@ -44,6 +44,7 @@
 #include <vector>
 
 #ifndef NDEBUG
+#include <iterator>  // std::next, in the assertions only
 #include <limits>  // std::numeric_limits, in the assertions only
 #endif
 
@@ -147,21 +148,19 @@ namespace {
   }
 
 
+  // The candidate list of a cluster seed is the whole unswarmed pool, in
+  // pool order. There is nothing to select: an abundance test used to guard
+  // the append below, and it accepted every entry it was ever shown. Why it
+  // could not do otherwise, and what depends on it, are recorded with the
+  // assertions in seed_first_generation() that took its place.
   auto build_remaining_amplicons_list(uint64_t const swarmed,
-                                      uint64_t const seed_abundance,
-                                      struct Parameters const & parameters,
-                                      Data const & data,
                                       std::vector<struct ampliconinfo_s> const & amps_v,
                                       Cluster_workspace & workspace) -> uint64_t {
     auto const amplicons = amps_v.size();
     uint64_t listlen {0};
     for (auto i = swarmed; i < amplicons; ++i) {
-      auto const ampliconid = amps_v[i].ampliconid;
-      if (parameters.opt_no_cluster_breaking or
-          (data.abundance(ampliconid) <= seed_abundance)) {
-        workspace.qgramamps_v[listlen] = ampliconid;
-        ++listlen;
-      }
+      workspace.qgramamps_v[listlen] = amps_v[i].ampliconid;
+      ++listlen;
     }
     return listlen;
   }
@@ -307,11 +306,39 @@ namespace {
                              Cluster_state & state) -> void {
     /* find diff estimates between seed and each amplicon in pool */
     uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
-    auto const seed_abundance = data.abundance(seedampliconid);
 
-    uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed, seed_abundance,
-                                                            parameters, data,
+#ifndef NDEBUG
+    // The seed is the most abundant amplicon left, so every entry of the
+    // pool it is about to be compared against qualifies as a candidate.
+    // Three facts make that so: sort_index_if_need_be() (db.cpp) always
+    // leaves the amplicons in decreasing abundance order,
+    // move_target_to_first_unswarmed_position() lifts one entry out and
+    // shifts the rest, which preserves that order among those still
+    // unswarmed, and start_new_cluster() takes the seed from the front of
+    // the pool. The abundance test that used to select candidates here
+    // therefore rejected nothing -- 0 of 4.7e9 entries over a d = 2 run on
+    // 219k reads -- and opt_no_cluster_breaking never entered into it: it
+    // only widened a filter that was already total.
+    auto const seed_abundance = data.abundance(seedampliconid);
+    assert(std::all_of(std::next(amps_v.cbegin(),
+                                 static_cast<std::ptrdiff_t>(cursor.swarmed)),
+                       amps_v.cend(),
+                       [&data, seed_abundance](struct ampliconinfo_s const & amplicon) -> bool {
+                         return data.abundance(amplicon.ampliconid) <= seed_abundance;
+                       }));
+#endif
+
+    uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed,
                                                             amps_v, workspace);
+
+    // Not an optimisation detail: the loop below writes
+    // amps_v[cursor.swarmed + i].diffestimate, which pairs candidate i with
+    // the pool entry at that offset and is only the right entry because the
+    // list is the whole pool in pool order. Were a candidate ever left out,
+    // every diffestimate past it would land on the wrong amplicon, and the
+    // subseed passes -- which prune on diffestimate -- would drop true
+    // neighbours.
+    assert(listlen == amps_v.size() - cursor.swarmed);
 
     // the collected candidates, not the pool-sized scratch behind them
     qgram_differ.fast(seedampliconid,
