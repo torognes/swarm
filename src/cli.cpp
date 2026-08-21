@@ -249,6 +249,24 @@ namespace {
   }
 
 
+  // Reject an empty file name at parse time, the way args_long() rejects a
+  // malformed number. The option was given, so an empty name is a
+  // command-line mistake -- typically a shell variable that expanded to
+  // nothing -- and never a request for the default: the default for an
+  // optional output file is to not write it at all, which is what omitting
+  // the option does. Mirrors the check on the positional input file name in
+  // args_init(). std::fopen("") fails everywhere, so without this the empty
+  // name either died blaming the filesystem (-o) or was silently ignored,
+  // leaving the run to succeed without the file it was asked for.
+  auto args_filename(char const * const str, char const * const option) -> std::string {
+    std::string filename {str};
+    if (filename.empty()) {
+      fatal("Empty file name given with option ", option, ".");
+    }
+    return filename;
+  }
+
+
   template <std::size_t N>
   auto show(std::array<char const *, N> const & message,
             std::FILE * const log_stream) -> void {
@@ -522,17 +540,17 @@ namespace {
 
       case 'i':
         /* internal-structure */
-        parameters.opt_internal_structure = optarg;
+        parameters.opt_internal_structure = args_filename(optarg, "-i or --internal-structure");
         break;
 
       case 'j':
         /* network-file */
-        parameters.opt_network_file = optarg;
+        parameters.opt_network_file = args_filename(optarg, "-j or --network-file");
         break;
 
       case 'l':
         /* log */
-        parameters.opt_log = optarg;
+        parameters.opt_log = args_filename(optarg, "-l or --log");
         break;
 
       case 'm':
@@ -548,7 +566,7 @@ namespace {
 
       case 'o':
         /* output-file */
-        parameters.opt_output_file = optarg;
+        parameters.opt_output_file = args_filename(optarg, "-o or --output-file");
         break;
 
       case 'p':
@@ -564,7 +582,7 @@ namespace {
 
       case 's':
         /* statistics-file */
-        parameters.opt_statistics_file = optarg;
+        parameters.opt_statistics_file = args_filename(optarg, "-s or --statistics-file");
         break;
 
       case 't':
@@ -574,7 +592,7 @@ namespace {
 
       case 'u':
         /* uclust-file */
-        parameters.opt_uclust_file = optarg;
+        parameters.opt_uclust_file = args_filename(optarg, "-u or --uclust-file");
         break;
 
       case 'v':
@@ -584,7 +602,7 @@ namespace {
 
       case 'w':
         /* seeds */
-        parameters.opt_seeds = optarg;
+        parameters.opt_seeds = args_filename(optarg, "-w or --seeds");
         break;
 
       case 'x':
