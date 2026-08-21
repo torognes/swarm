@@ -81,6 +81,7 @@ namespace {
   // where the value enters, because a C++11 constexpr function cannot hold
   // an assert.
   constexpr auto hash_functions_for(uint64_t const bits_value) -> unsigned int {
+    // C++14 refactoring: replace at_least_one() with std::max()
     return static_cast<unsigned int>(
         at_least_one((hash_functions_per_bit_numerator * bits_value)
                      / hash_functions_per_bit_denominator));
@@ -147,7 +148,6 @@ auto compute_bloom_geometry(struct Parameters const & parameters,
   auto bits = parameters.opt_bloom_bits;
 
   // int64_t n_hash_functions = int(bits * std::log(2.0));    /* 16 bits -> 11 hash functions */
-  // auto n_hash_functions = unsigned int(hash_functions_per_bit * bits); /* 6 */
   auto n_hash_functions = hash_functions_for(bits);
 
   auto bloom_length_in_bits = bloom_bits_for(bits);
