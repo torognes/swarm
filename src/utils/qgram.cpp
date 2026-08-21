@@ -129,16 +129,64 @@ auto QgramDiffer::worker(uint64_t const nth_thread) const noexcept -> void
   auto const & tip = thread_info_v_[nth_thread];
 
   auto const seed = tip.seed;
-  auto const amplist = tip.amplist;
   auto const difflist = tip.difflist;
 
-  // one distance per candidate, so the chunk's two halves agree in length
-  assert(difflist.size() == amplist.size());
+  // one input shape or the other, never both, see thread_info_s. Not
+  // "exactly one": the last cluster of a run finds the pool already
+  // exhausted, so both are empty and the transform below is a no-op.
+  assert(tip.amplist.empty() or tip.poollist.empty());
 
-  std::transform(amplist.cbegin(), amplist.cend(), difflist.begin(),
-                 [this, seed](uint64_t const candidate) noexcept -> uint64_t {
-                   return qgram_diff(store_, seed, candidate, cpu_features_);
+  // an empty chunk takes this branch too, and transforms nothing
+  if (tip.poollist.empty()) {
+    // one distance per candidate, so the chunk's two halves agree in length
+    assert(difflist.size() == tip.amplist.size());
+    std::transform(tip.amplist.cbegin(), tip.amplist.cend(), difflist.begin(),
+                   [this, seed](uint64_t const candidate) noexcept -> uint64_t {
+                     return qgram_diff(store_, seed, candidate, cpu_features_);
+                   });
+    return;
+  }
+
+  assert(difflist.size() == tip.poollist.size());
+  std::transform(tip.poollist.cbegin(), tip.poollist.cend(), difflist.begin(),
+                 [this, seed](struct ampliconinfo_s const & candidate) noexcept -> uint64_t {
+                   return qgram_diff(store_, seed, candidate.ampliconid, cpu_features_);
                  });
+}
+
+
+template <typename Assign>
+auto QgramDiffer::distribute_and_run(uint64_t const seed,
+                                     uint64_t const listlen,
+                                     Assign assign) -> void
+{
+  static constexpr auto single_threaded_threshold = std::numeric_limits<uint8_t>::max();
+  if (listlen <= single_threaded_threshold)
+    {
+      auto & tip = thread_info_v_[0];
+      tip.seed = seed;
+      assign(tip, std::size_t{0}, static_cast<std::size_t>(listlen));
+      worker(0);
+      return;
+    }
+
+  std::size_t offset {0};
+  auto listrest = listlen;
+  auto thrrest = thread_info_v_.size();
+
+  /* distribute work */
+  for (auto & tip: thread_info_v_) {
+      auto const chunk = ceil_divide(listrest, thrrest);
+
+      tip.seed = seed;
+      assign(tip, offset, static_cast<std::size_t>(chunk));
+
+      offset += chunk;
+      listrest -= chunk;
+      --thrrest;
+    }
+
+  threads_.run();
 }
 
 
@@ -147,36 +195,28 @@ auto QgramDiffer::fast(uint64_t const seed,
                        Span<uint64_t> const difflist) -> void
 {
   assert(difflist.size() == amplist.size());
-  auto const listlen = amplist.size();
+  distribute_and_run(seed, amplist.size(),
+                     [amplist, difflist](thread_info_s & tip,
+                                         std::size_t const offset,
+                                         std::size_t const chunk) -> void {
+                       tip.amplist = amplist.subview(offset, chunk);
+                       tip.poollist = View<struct ampliconinfo_s>{};
+                       tip.difflist = difflist.subspan(offset, chunk);
+                     });
+}
 
-  static constexpr auto single_threaded_threshold = std::numeric_limits<uint8_t>::max();
-  if (listlen <= single_threaded_threshold)
-    {
-      auto & tip = thread_info_v_[0];
-      tip.seed = seed;
-      tip.amplist = amplist;
-      tip.difflist = difflist;
-      worker(0);
-    }
-  else
-    {
-      std::size_t offset {0};
-      auto listrest = listlen;
-      auto thrrest = thread_info_v_.size();
 
-      /* distribute work */
-      for (auto & tip: thread_info_v_) {
-          auto const chunk = ceil_divide(listrest, thrrest);
-
-          tip.seed = seed;
-          tip.amplist = amplist.subview(offset, chunk);
-          tip.difflist = difflist.subspan(offset, chunk);
-
-          offset += chunk;
-          listrest -= chunk;
-          --thrrest;
-        }
-
-      threads_.run();
-    }
+auto QgramDiffer::fast_over_pool(uint64_t const seed,
+                                 View<struct ampliconinfo_s> const poollist,
+                                 Span<uint64_t> const difflist) -> void
+{
+  assert(difflist.size() == poollist.size());
+  distribute_and_run(seed, poollist.size(),
+                     [poollist, difflist](thread_info_s & tip,
+                                          std::size_t const offset,
+                                          std::size_t const chunk) -> void {
+                       tip.amplist = View<uint64_t>{};
+                       tip.poollist = poollist.subview(offset, chunk);
+                       tip.difflist = difflist.subspan(offset, chunk);
+                     });
 }

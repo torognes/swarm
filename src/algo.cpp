@@ -148,24 +148,6 @@ namespace {
   }
 
 
-  // The candidate list of a cluster seed is the whole unswarmed pool, in
-  // pool order. There is nothing to select: an abundance test used to guard
-  // the append below, and it accepted every entry it was ever shown. Why it
-  // could not do otherwise, and what depends on it, are recorded with the
-  // assertions in seed_first_generation() that took its place.
-  auto build_remaining_amplicons_list(uint64_t const swarmed,
-                                      std::vector<struct ampliconinfo_s> const & amps_v,
-                                      Cluster_workspace & workspace) -> uint64_t {
-    auto const amplicons = amps_v.size();
-    uint64_t listlen {0};
-    for (auto i = swarmed; i < amplicons; ++i) {
-      workspace.qgramamps_v[listlen] = amps_v[i].ampliconid;
-      ++listlen;
-    }
-    return listlen;
-  }
-
-
 #ifndef NDEBUG
   // Whether the whole amplicon pool is in decreasing abundance order, which
   // sort_index_if_need_be() (db.cpp) establishes and the clustering loop
@@ -381,32 +363,37 @@ namespace {
            (data.abundance(amps_v[cursor.swarmed].ampliconid)
             <= data.abundance(seedampliconid)));
 
-    uint64_t const listlen = build_remaining_amplicons_list(cursor.swarmed,
-                                                            amps_v, workspace);
-
-    // Not an optimisation detail: the loop below writes
-    // amps_v[cursor.swarmed + i].diffestimate, which pairs candidate i with
-    // the pool entry at that offset and is only the right entry because the
-    // list is the whole pool in pool order. Were a candidate ever left out,
-    // every diffestimate past it would land on the wrong amplicon, and the
-    // subseed passes -- which prune on diffestimate -- would drop true
-    // neighbours.
-    assert(listlen == amps_v.size() - cursor.swarmed);
-
-    // the collected candidates, not the pool-sized scratch behind them
-    qgram_differ.fast(seedampliconid,
-                      workspace.qgram_candidates(listlen),
-                      workspace.qgram_diffs(listlen));
+    // The seed's candidates are the whole unswarmed pool, in pool order, so
+    // there is nothing to collect: hand the workers the pool itself. The pass
+    // this replaces copied four bytes out of each twenty-byte record into a
+    // contiguous list -- 4 711 615 447 iterations over a -d 2 run on 219k
+    // reads -- and did it on this thread, while the workers were about to
+    // read those records' q-gram vectors anyway.
+    //
+    // It also puts the pairing beyond doubt. The loop below writes
+    // amps_v[cursor.swarmed + i].diffestimate for candidate i, which is that
+    // candidate's own entry because the view handed to the scan *is* the pool
+    // from cursor.swarmed on. That used to rest on the collecting pass
+    // keeping every entry, asserted here, and now holds by construction --
+    // had a candidate ever been left out, every diffestimate past it would
+    // have landed on the wrong amplicon and the subseed passes, which prune
+    // on diffestimate, would have dropped true neighbours.
+    auto const listlen = amps_v.size() - cursor.swarmed;
+    qgram_differ.fast_over_pool(seedampliconid,
+                                make_view(amps_v).subview(cursor.swarmed, listlen),
+                                workspace.qgram_diffs(listlen));
 
     uint64_t targetcount = 0;
     for (auto i = 0ULL; i < listlen; ++i) {
-      auto const poolampliconid = workspace.qgramamps_v[i];
       auto const diff = workspace.qgramdiffs_v[i];
       assert(diff <= std::numeric_limits<unsigned int>::max());
-      amps_v[cursor.swarmed + i].diffestimate = static_cast<unsigned int>(diff);
+      // the id comes from the record this iteration is writing to, rather
+      // than from a second array the collecting pass used to fill
+      auto & pool_entry = amps_v[cursor.swarmed + i];
+      pool_entry.diffestimate = static_cast<unsigned int>(diff);
       if (diff <= parameters.opt_differences) {
         workspace.targetindices[targetcount] = cursor.swarmed + i;
-        workspace.targetampliconids[targetcount] = poolampliconid;
+        workspace.targetampliconids[targetcount] = pool_entry.ampliconid;
         ++targetcount;
       }
     }
