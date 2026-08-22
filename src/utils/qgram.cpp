@@ -36,7 +36,6 @@
 #include <cassert>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
-#include <limits>
 #include <vector>
 
 
@@ -160,7 +159,44 @@ auto QgramDiffer::distribute_and_run(uint64_t const seed,
                                      uint64_t const listlen,
                                      Assign assign) -> void
 {
-  static constexpr auto single_threaded_threshold = std::numeric_limits<uint8_t>::max();
+  // How long a candidate list has to be before it is worth waking the worker
+  // pool for it: below this, the calling thread runs the whole list itself.
+  //
+  // The value cannot change what swarm computes. qgram_diff() is a pure
+  // function of (store, lengths, seed, candidate): it reads immutable state,
+  // writes nothing, and each candidate's distance lands at its own index of
+  // difflist. Splitting the list T ways or not splitting it at all puts the
+  // same bytes in the same places, so this is a performance trade-off and
+  // nothing observable rests on it.
+  //
+  // The trade-off: n candidates cost n*c on one thread, against n*c/T + B
+  // spread over T of them, where c is the per-candidate cost and B the cost
+  // of one fan-out and join. Splitting pays above n = B*T / (c*(T-1)).
+  // Measured on this host -- c ~ 13.6 ns for a 128-byte q-gram comparison,
+  // B ~ 53 us at T = 10 -- that break-even is around 4300 candidates, and
+  // 4096 of them cost ~56 us here, about what one fan-out costs. Below that,
+  // the barrier is most of what the call does.
+  //
+  // The previous value was numeric_limits<uint8_t>::max(): 255, which is
+  // what fits in a byte rather than anything that was measured. At 255 the
+  // subseed pass handed 27 640 of its 128 970 calls -- 21 % of them, carrying
+  // 1.6 % of all candidates -- to ten threads, 26 to 205 candidates each.
+  //
+  // The downside is bounded even where that measurement does not hold. A call
+  // below the threshold loses at most the difference between doing its work
+  // here and having it done perfectly in parallel for nothing: under 56 us,
+  // and only on a machine whose barriers are free. This one's are not -- the
+  // alignment stage in scanner.cpp measures 0.9x on ten threads.
+  //
+  // What this constant is *not* is thread-count independent. B grows with T,
+  // so the break-even grows with it, and a 64-thread machine wants a larger
+  // value than a 4-thread one. The general form is the one Scanner::run
+  // already uses -- n_threads_.capped_at(ceil_divide(work, per_thread)),
+  // which picks the thread count from the work rather than choosing between
+  // one thread and all of them -- and it subsumes this threshold. Not done
+  // here because it also changes the thread count for mid-sized lists, which
+  // nothing has measured.
+  static constexpr uint64_t single_threaded_threshold {4096};
   if (listlen <= single_threaded_threshold)
     {
       auto & tip = thread_info_v_[0];
