@@ -1,0 +1,251 @@
+/*
+    SWARM
+
+    Copyright (C) 2012-2026 Torbjorn Rognes and Frederic Mahe
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+    Department of Informatics, University of Oslo,
+    PO Box 1080 Blindern, NO-0316 Oslo, Norway
+*/
+
+#include "pigeonhole.hpp"
+#include "../db.hpp"  // Data, Sequence, nucleotide_at
+#include "../swarm.hpp"  // struct Parameters
+#include "memory_budget.hpp"  // require_ram
+#include "view.hpp"  // make_view
+#include <algorithm>  // std::min, std::sort, std::unique, std::is_sorted
+#include <cassert>
+#include <cstdint>  // uint64_t, int64_t
+#include <cstdlib>  // std::abs
+#include <iterator>  // std::next
+#include <utility>  // std::pair
+#include <vector>
+
+
+namespace {
+
+  struct Segment_bounds {
+    uint64_t start;
+    uint64_t length;
+  };
+
+  // Segment number 'segment' (0-based) of a sequence of 'length'
+  // nucleotides cut into 'n_segments' near-equal parts: the first
+  // (length % n_segments) segments are one nucleotide longer than the
+  // rest. Build and query must agree on this rule, which is why it lives
+  // in one place.
+  auto segment_bounds(uint64_t const length,
+                      uint64_t const segment,
+                      uint64_t const n_segments) -> Segment_bounds {
+    auto const base = length / n_segments;
+    auto const n_longer = length % n_segments;
+    auto const start = (segment * base) + std::min(segment, n_longer);
+    auto const seg_length = base + (segment < n_longer ? 1 : 0);
+    return {start, seg_length};
+  }
+
+
+  // The bucket key of one (target length, segment number, content)
+  // triple, where the content is read from 'sequence' at [start, start +
+  // seg_length). FNV-1a over the 2-bit nucleotide codes, the two
+  // coordinates folded in, and a splitmix64 finalizer so that every
+  // input bit reaches the low bits the bucket mask keeps. Collisions are
+  // safe by design (see the class comment), so nothing here needs to be
+  // cryptographic -- only well spread.
+  auto segment_key(Sequence const & sequence,
+                   uint64_t const start,
+                   uint64_t const seg_length,
+                   uint64_t const target_length,
+                   uint64_t const segment) -> uint64_t {
+    static constexpr uint64_t fnv_offset_basis {14695981039346656037ULL};
+    static constexpr uint64_t fnv_prime {1099511628211ULL};
+    // splitmix64 finalizer constants (Steele, Lea & Flood 2014)
+    static constexpr uint64_t mix_multiplier_1 {0xbf58476d1ce4e5b9ULL};
+    static constexpr uint64_t mix_multiplier_2 {0x94d049bb133111ebULL};
+    static constexpr unsigned int mix_shift_1 {30};
+    static constexpr unsigned int mix_shift_2 {27};
+    static constexpr unsigned int mix_shift_3 {31};
+    // the segment number occupies the low bits, the length the rest;
+    // segments are numbered 0..d with d < 256
+    static constexpr unsigned int segment_number_bits {8};
+
+    auto key = fnv_offset_basis;
+    auto const past_last = start + seg_length;
+    for (auto position = start; position < past_last; ++position) {
+      key = (key ^ nucleotide_at(sequence, position)) * fnv_prime;
+    }
+    key ^= (target_length << segment_number_bits) ^ segment;
+    key ^= key >> mix_shift_1;
+    key *= mix_multiplier_1;
+    key ^= key >> mix_shift_2;
+    key *= mix_multiplier_2;
+    key ^= key >> mix_shift_3;
+    return key;
+  }
+
+}  // namespace
+
+
+PigeonholeIndex::PigeonholeIndex(struct Parameters const & parameters,
+                                 Data const & data)
+  : data_(data),
+    n_differences_(parameters.opt_differences)
+{
+  auto const n_sequences = uint64_t{data.sequence_count()};
+  auto const n_segments = n_differences_ + 1;
+  auto const n_entries = n_sequences * n_segments;
+
+  // the smallest power of two giving at most one entry per bucket on
+  // average; unrelated triples sharing a bucket only add candidates
+  uint64_t n_buckets {1};
+  while (n_buckets < n_entries) {
+    n_buckets += n_buckets;
+  }
+  bucket_mask_ = n_buckets - 1;
+
+  // entries (4 bytes each), offsets and the build-time cursors (8 bytes
+  // per bucket each, with fewer than two buckets per entry): under 36
+  // bytes per entry all told. The product cannot overflow: n_entries is
+  // at most 2^32 sequences times 256 segments, well under 2^64 / 36.
+  static constexpr uint64_t bytes_per_entry {36};
+  require_ram(bytes_per_entry * n_entries, 1, "the pigeonhole index");
+
+  offsets_.assign(n_buckets + 1, 0);
+  entries_.resize(n_entries);
+  length_present_.assign(data.longest_sequence() + n_differences_ + 1, false);
+
+  // count the population of each bucket...
+  for (auto seqno = 0ULL; seqno < n_sequences; ++seqno) {
+    auto const sequence = data.sequence_view(seqno);
+    length_present_[sequence.length] = true;
+    for (auto segment = 0ULL; segment < n_segments; ++segment) {
+      auto const bounds = segment_bounds(sequence.length, segment, n_segments);
+      auto const key = segment_key(sequence, bounds.start, bounds.length,
+                                   sequence.length, segment);
+      ++offsets_[(key & bucket_mask_) + 1];
+    }
+  }
+
+  // ...turn the counts into bucket boundaries...
+  for (auto bucket = 1ULL; bucket <= n_buckets; ++bucket) {
+    offsets_[bucket] += offsets_[bucket - 1];
+  }
+  assert(offsets_[n_buckets] == n_entries);
+
+  // ...and place the amplicon ids. Ids are visited in ascending order, so
+  // each bucket's ids come out ascending: search() counts on that to hand
+  // back candidates in pool order after one merge-free sort.
+  std::vector<uint64_t> cursors(offsets_.cbegin(),
+                                std::next(offsets_.cbegin(),
+                                          static_cast<std::ptrdiff_t>(n_buckets)));
+  for (auto seqno = 0ULL; seqno < n_sequences; ++seqno) {
+    auto const sequence = data.sequence_view(seqno);
+    for (auto segment = 0ULL; segment < n_segments; ++segment) {
+      auto const bounds = segment_bounds(sequence.length, segment, n_segments);
+      auto const key = segment_key(sequence, bounds.start, bounds.length,
+                                   sequence.length, segment);
+      entries_[cursors[key & bucket_mask_]] = static_cast<unsigned int>(seqno);
+      ++cursors[key & bucket_mask_];
+    }
+  }
+}
+
+
+auto PigeonholeIndex::search(uint64_t const query) -> Search_result {
+  // Refuse to gather more candidates than this, and report the query
+  // 'heavy' instead: the caller's fallback is the full pool scan, whose
+  // per-candidate cost (a 128-byte q-gram comparison, parallelized) is
+  // several times below this path's gather-sort-deduplicate cost per
+  // candidate, so an index win requires far fewer candidates than the
+  // pool holds. The value is measured on the d = 2 / d = 3 profiling
+  // dataset (see the cap sweep in the d > 1 notes): it keeps 72-87 % of
+  // d = 2 queries and 40-49 % of d = 3 queries on the index at a few
+  // hundred candidates each, while the skewed rest -- queries touching a
+  // conserved-region bucket -- pay one probe pass (~30-80 constant-time
+  // size lookups) and fall back.
+  static constexpr uint64_t max_gather_volume {4096};
+
+  auto const & data = data_.get();
+  auto const sequence = data.sequence_view(query);
+  auto const query_length = static_cast<int64_t>(sequence.length);
+  auto const n_segments = n_differences_ + 1;
+  auto const differences = static_cast<int64_t>(n_differences_);
+
+  probes_v_.clear();
+  uint64_t volume {0};
+
+  for (auto target_length = query_length - differences;
+       target_length <= query_length + differences;
+       ++target_length) {
+    if (target_length < 0) { continue; }
+    assert(static_cast<uint64_t>(target_length) < length_present_.size());
+    if (not length_present_[static_cast<uint64_t>(target_length)]) { continue; }
+    auto const delta = query_length - target_length;
+
+    for (auto segment = 0ULL; segment < n_segments; ++segment) {
+      auto const bounds =
+        segment_bounds(static_cast<uint64_t>(target_length), segment, n_segments);
+
+      for (auto shift = -differences; shift <= differences; ++shift) {
+        // A target within distance d has at least one segment untouched
+        // by any edit, so that segment occurs verbatim in the query,
+        // displaced by the net indel count of the edits before it. Those
+        // edits split around the segment: e_pre before it bounds the
+        // displacement, |shift| <= e_pre; e_post after it must absorb
+        // the rest of the length difference, |delta - shift| <= e_post;
+        // and e_pre + e_post <= d. Shifts violating the sum cannot carry
+        // a match. (This is the length-aware window only -- the tighter
+        // multi-match-aware window of the PassJoin paper trades a subtle
+        // proof for a constant factor, and a mistake there would lose
+        // true neighbours; this one cannot.)
+        if (std::abs(shift) + std::abs(delta - shift) > differences) { continue; }
+        auto const position = static_cast<int64_t>(bounds.start) + shift;
+        if (position < 0) { continue; }
+        if (position + static_cast<int64_t>(bounds.length) > query_length) { continue; }
+
+        auto const key = segment_key(sequence,
+                                     static_cast<uint64_t>(position),
+                                     bounds.length,
+                                     static_cast<uint64_t>(target_length),
+                                     segment);
+        auto const bucket = key & bucket_mask_;
+        auto const begin = offsets_[bucket];
+        auto const end = offsets_[bucket + 1];
+        if (begin == end) { continue; }
+        probes_v_.emplace_back(begin, end);
+        volume += end - begin;
+      }
+    }
+  }
+
+  if (volume > max_gather_volume) {
+    return {true, View<unsigned int>{}};
+  }
+
+  candidates_v_.clear();
+  candidates_v_.reserve(volume);
+  for (auto const & probe : probes_v_) {
+    candidates_v_.insert(candidates_v_.end(),
+                         std::next(entries_.cbegin(),
+                                   static_cast<std::ptrdiff_t>(probe.first)),
+                         std::next(entries_.cbegin(),
+                                   static_cast<std::ptrdiff_t>(probe.second)));
+  }
+  std::sort(candidates_v_.begin(), candidates_v_.end());
+  candidates_v_.erase(std::unique(candidates_v_.begin(), candidates_v_.end()),
+                      candidates_v_.end());
+  return {false, make_view(candidates_v_)};
+}
