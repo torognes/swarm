@@ -26,6 +26,7 @@
 #include "db.hpp"
 #include "utils/algo_internal.hpp"
 #include "utils/algo_output.hpp"
+#include "utils/pigeonhole.hpp"
 #include "utils/qgram.hpp"
 #include "utils/nw_aligner.hpp"
 #include "utils/scanner.hpp"
@@ -229,6 +230,59 @@ namespace {
   }
 
 
+  // The pool positions of the candidate ids the index returned. The
+  // unswarmed pool region [first, end) is in ascending ampliconid order --
+  // ids are assigned by initial position and the rotation only ever lifts
+  // an entry out, which keeps the rest in relative order -- and the
+  // candidate list arrives ascending too, so each binary search resumes
+  // where the previous hit left off. An id not found in the region is an
+  // amplicon that is swarmed already, or that cluster breaking excludes
+  // when 'first' is the cluster-breaking boundary: exactly the entries the
+  // scan-based collectors never see either.
+  auto map_candidates_to_pool(View<unsigned int> const candidates,
+                              uint64_t const first,
+                              std::vector<struct ampliconinfo_s> const & amps_v,
+                              Cluster_workspace & workspace) -> uint64_t {
+    assert(std::is_sorted(candidates.cbegin(), candidates.cend()));
+    uint64_t listlen {0};
+    auto position = std::next(amps_v.cbegin(), static_cast<std::ptrdiff_t>(first));
+    auto const past_last = amps_v.cend();
+    for (auto const candidate : candidates) {
+      position = std::lower_bound(position, past_last, candidate,
+                                  [](struct ampliconinfo_s const & amplicon,
+                                     unsigned int const id_sought) -> bool {
+                                    return amplicon.ampliconid < id_sought;
+                                  });
+      if (position == past_last) { break; }
+      if (position->ampliconid != candidate) { continue; }
+      workspace.qgramamps_v[listlen] = candidate;
+      workspace.qgramindices_v[listlen] =
+        static_cast<uint64_t>(std::distance(amps_v.cbegin(), position));
+      ++listlen;
+      position = std::next(position);
+    }
+    return listlen;
+  }
+
+
+  // The candidates whose q-gram bound keeps them within reach of the
+  // seed: copy the survivors' pool positions and ids into the target
+  // columns, ready for the alignment scanner.
+  auto collect_targets(uint64_t const listlen,
+                       uint64_t const max_differences,
+                       Cluster_workspace & workspace) -> uint64_t {
+    uint64_t targetcount {0};
+    for (auto i = 0ULL; i < listlen; ++i) {
+      if (workspace.qgramdiffs_v[i] <= max_differences) {
+        workspace.targetindices[targetcount] = workspace.qgramindices_v[i];
+        workspace.targetampliconids[targetcount] = workspace.qgramamps_v[i];
+        ++targetcount;
+      }
+    }
+    return targetcount;
+  }
+
+
   auto include_amplicon_in_cluster(uint64_t const position,
                                    uint64_t const diff,
                                    unsigned int const swarmid,
@@ -331,9 +385,13 @@ namespace {
   }
 
 
+  // Returns whether the whole-pool scan ran and cached its bounds in the
+  // pool entries' diffestimate: the subseed walks may prune on those
+  // bounds only for a cluster whose seed wrote them.
   auto seed_first_generation(struct Parameters const & parameters,
                              Data const & data,
                              QgramDiffer & qgram_differ,
+                             PigeonholeIndex * const pigeonhole,
                              Scanner & scanner,
                              Bit_mode const bits,
                              Pool_cursor & cursor,
@@ -341,7 +399,7 @@ namespace {
                              uint64_t const seedindex,
                              std::vector<struct ampliconinfo_s> & amps_v,
                              Cluster_workspace & workspace,
-                             Cluster_state & state) -> void {
+                             Cluster_state & state) -> bool {
     /* find diff estimates between seed and each amplicon in pool */
     uint64_t const seedampliconid = amps_v[seedindex].ampliconid;
 
@@ -363,42 +421,67 @@ namespace {
            (data.abundance(amps_v[cursor.swarmed].ampliconid)
             <= data.abundance(seedampliconid)));
 
-    // The seed's candidates are the whole unswarmed pool, in pool order, so
-    // there is nothing to collect: hand the workers the pool itself. The pass
-    // this replaces copied four bytes out of each twenty-byte record into a
-    // contiguous list -- 4 711 615 447 iterations over a -d 2 run on 219k
-    // reads -- and did it on this thread, while the workers were about to
-    // read those records' q-gram vectors anyway.
-    //
-    // It also puts the pairing beyond doubt. The loop below writes
-    // amps_v[cursor.swarmed + i].diffestimate for candidate i, which is that
-    // candidate's own entry because the view handed to the scan *is* the pool
-    // from cursor.swarmed on. That used to rest on the collecting pass
-    // keeping every entry, asserted here, and now holds by construction --
-    // had a candidate ever been left out, every diffestimate past it would
-    // have landed on the wrong amplicon and the subseed passes, which prune
-    // on diffestimate, would have dropped true neighbours.
-    auto const listlen = amps_v.size() - cursor.swarmed;
-    qgram_differ.fast_over_pool(seedampliconid,
-                                make_view(amps_v).subview(cursor.swarmed, listlen),
-                                workspace.qgram_diffs(listlen));
-
     uint64_t targetcount = 0;
-    for (auto i = 0ULL; i < listlen; ++i) {
-      auto const diff = workspace.qgramdiffs_v[i];
-      assert(diff <= std::numeric_limits<unsigned int>::max());
-      // the id comes from the record this iteration is writing to, rather
-      // than from a second array the collecting pass used to fill
-      auto & pool_entry = amps_v[cursor.swarmed + i];
-      pool_entry.diffestimate = static_cast<unsigned int>(diff);
-      if (diff <= parameters.opt_differences) {
-        workspace.targetindices[targetcount] = cursor.swarmed + i;
-        workspace.targetampliconids[targetcount] = pool_entry.ampliconid;
-        ++targetcount;
+    auto scanned_pool = true;
+
+    // Ask the index for the seed's neighbourhood first: for most seeds it
+    // returns a few hundred candidates where the scan below reads the
+    // q-gram vector of every pool entry. A heavy seed -- one whose probes
+    // land in a conserved-region bucket -- takes the scan instead, and
+    // with it the diffestimate cache that lets its subseeds prune, so the
+    // skewed part of the dataset runs exactly as it did without the index.
+    if (pigeonhole != nullptr) {
+      auto const found = pigeonhole->search(seedampliconid);
+      if (not found.heavy) {
+        scanned_pool = false;
+        auto const listlen = map_candidates_to_pool(found.candidates,
+                                                    cursor.swarmed,
+                                                    amps_v, workspace);
+        qgram_differ.fast(seedampliconid,
+                          workspace.qgram_candidates(listlen),
+                          workspace.qgram_diffs(listlen));
+        targetcount = collect_targets(listlen, parameters.opt_differences,
+                                      workspace);
       }
     }
 
-    if (targetcount == 0) { return; }
+    if (scanned_pool) {
+      // The seed's candidates are the whole unswarmed pool, in pool order, so
+      // there is nothing to collect: hand the workers the pool itself. The pass
+      // this replaces copied four bytes out of each twenty-byte record into a
+      // contiguous list -- 4 711 615 447 iterations over a -d 2 run on 219k
+      // reads -- and did it on this thread, while the workers were about to
+      // read those records' q-gram vectors anyway.
+      //
+      // It also puts the pairing beyond doubt. The loop below writes
+      // amps_v[cursor.swarmed + i].diffestimate for candidate i, which is that
+      // candidate's own entry because the view handed to the scan *is* the pool
+      // from cursor.swarmed on. That used to rest on the collecting pass
+      // keeping every entry, asserted here, and now holds by construction --
+      // had a candidate ever been left out, every diffestimate past it would
+      // have landed on the wrong amplicon and the subseed passes, which prune
+      // on diffestimate, would have dropped true neighbours.
+      auto const listlen = amps_v.size() - cursor.swarmed;
+      qgram_differ.fast_over_pool(seedampliconid,
+                                  make_view(amps_v).subview(cursor.swarmed, listlen),
+                                  workspace.qgram_diffs(listlen));
+
+      for (auto i = 0ULL; i < listlen; ++i) {
+        auto const diff = workspace.qgramdiffs_v[i];
+        assert(diff <= std::numeric_limits<unsigned int>::max());
+        // the id comes from the record this iteration is writing to, rather
+        // than from a second array the collecting pass used to fill
+        auto & pool_entry = amps_v[cursor.swarmed + i];
+        pool_entry.diffestimate = static_cast<unsigned int>(diff);
+        if (diff <= parameters.opt_differences) {
+          workspace.targetindices[targetcount] = cursor.swarmed + i;
+          workspace.targetampliconids[targetcount] = pool_entry.ampliconid;
+          ++targetcount;
+        }
+      }
+    }
+
+    if (targetcount == 0) { return scanned_pool; }
 
     // the candidate window inside the workspace: the first targetcount
     // entries of the target list and of its three result columns
@@ -423,12 +506,16 @@ namespace {
                                   state, parameters, data);
       ++cursor.swarmed;
     }
+
+    return scanned_pool;
   }
 
 
   auto grow_cluster_from_subseeds(struct Parameters const & parameters,
                                   Data const & data,
                                   QgramDiffer & qgram_differ,
+                                  PigeonholeIndex * const pigeonhole,
+                                  bool const diffestimates_cached,
                                   Scanner & scanner,
                                   Bit_mode const bits,
                                   Pool_cursor & cursor,
@@ -447,20 +534,57 @@ namespace {
 
       uint64_t targetcount = 0;
 
-      auto const subseedlistlen = build_subseed_candidate_list(cursor.swarmed, amplicons,
-                                                               subseed, parameters,
-                                                               data, amps_v, workspace);
+      if (diffestimates_cached) {
+        // the seed scanned the pool, so every entry carries a lower bound
+        // on its distance to the cluster seed and the walk can prune by
+        // triangle inequality
+        auto const subseedlistlen =
+          build_subseed_candidate_list(cursor.swarmed, amplicons,
+                                       subseed, parameters,
+                                       data, amps_v, workspace);
 
-      // as above: the collected candidates, not the whole scratch buffer
-      qgram_differ.fast(subseed.ampliconid,
-                        workspace.qgram_candidates(subseedlistlen),
-                        workspace.qgram_diffs(subseedlistlen));
+        // as above: the collected candidates, not the whole scratch buffer
+        qgram_differ.fast(subseed.ampliconid,
+                          workspace.qgram_candidates(subseedlistlen),
+                          workspace.qgram_diffs(subseedlistlen));
 
-      for (auto i = 0ULL; i < subseedlistlen; ++i) {
-        if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {
-          workspace.targetindices[targetcount] = workspace.qgramindices_v[i];
-          workspace.targetampliconids[targetcount] = workspace.qgramamps_v[i];
-          ++targetcount;
+        targetcount = collect_targets(subseedlistlen,
+                                      parameters.opt_differences, workspace);
+      }
+      else {
+        // the seed took the index path, so there are no cached bounds to
+        // prune on: ask the index for this subseed's neighbourhood too
+        assert(pigeonhole != nullptr);
+        auto const first = parameters.opt_no_cluster_breaking
+          ? cursor.swarmed
+          : first_qualifying_amplicon(cursor.swarmed, subseed, data, amps_v);
+        auto const found = pigeonhole->search(subseed.ampliconid);
+
+        if (not found.heavy) {
+          auto const subseedlistlen =
+            map_candidates_to_pool(found.candidates, first, amps_v, workspace);
+          qgram_differ.fast(subseed.ampliconid,
+                            workspace.qgram_candidates(subseedlistlen),
+                            workspace.qgram_diffs(subseedlistlen));
+          targetcount = collect_targets(subseedlistlen,
+                                        parameters.opt_differences, workspace);
+        }
+        else {
+          // a heavy subseed of an index cluster scans the whole
+          // qualifying suffix -- a superset of what the pruned walk would
+          // collect, so nothing downstream can change; only more
+          // candidates than strictly necessary get their bound computed
+          auto const listlen = amplicons - first;
+          qgram_differ.fast_over_pool(subseed.ampliconid,
+                                      make_view(amps_v).subview(first, listlen),
+                                      workspace.qgram_diffs(listlen));
+          for (auto i = 0ULL; i < listlen; ++i) {
+            if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {
+              workspace.targetindices[targetcount] = first + i;
+              workspace.targetampliconids[targetcount] = amps_v[first + i].ampliconid;
+              ++targetcount;
+            }
+          }
         }
       }
 
@@ -515,6 +639,15 @@ auto algo_run(struct Parameters const & parameters,
   // joined) at end of algo_run scope.
   QgramDiffer qgram_differ(parameters, data);
 
+  // The candidate index replaces most whole-pool scans with a lookup of
+  // the query's neighbourhood; it earns its keep only while its buckets
+  // stay small, so it is built for the measured d range and left out
+  // above it (see PigeonholeIndex::max_indexed_differences).
+  std::unique_ptr<PigeonholeIndex> pigeonhole;
+  if (parameters.opt_differences <= PigeonholeIndex::max_indexed_differences) {
+    pigeonhole = utils::make_unique<PigeonholeIndex>(parameters, data);
+  }
+
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   Cluster_workspace workspace(amplicons);
 
@@ -553,12 +686,14 @@ auto algo_run(struct Parameters const & parameters,
       uint64_t const seedampliconid = start_new_cluster(cursor, swarmid, amps_v,
                                                         state, workspace, data);
 
-      seed_first_generation(parameters, data, qgram_differ,
-                            scanner, bits,
-                            cursor, swarmid, seedindex,
-                            amps_v, workspace, state);
+      auto const diffestimates_cached =
+        seed_first_generation(parameters, data, qgram_differ,
+                              pigeonhole.get(), scanner, bits,
+                              cursor, swarmid, seedindex,
+                              amps_v, workspace, state);
 
       grow_cluster_from_subseeds(parameters, data, qgram_differ,
+                                 pigeonhole.get(), diffestimates_cached,
                                  scanner, bits,
                                  cursor, swarmid, amplicons,
                                  amps_v, workspace, state);
