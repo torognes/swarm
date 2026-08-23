@@ -511,6 +511,96 @@ namespace {
   }
 
 
+  // The subseed's alignment candidates: selection -- index lookup,
+  // triangle-pruned walk or qualifying-suffix scan -- followed by the
+  // q-gram prune, with the survivors' pool positions and ids left in the
+  // workspace target columns. Returns how many there are. Reads the pool
+  // and writes only the workspace, so calling it early for a later
+  // subseed cannot disturb an earlier one.
+  auto collect_subseed_targets(struct ampliconinfo_s const & subseed,
+                               uint64_t const swarmed,
+                               uint64_t const amplicons,
+                               struct Parameters const & parameters,
+                               Data const & data,
+                               QgramDiffer & qgram_differ,
+                               PigeonholeIndex * const pigeonhole,
+                               bool const diffestimates_cached,
+                               std::vector<struct ampliconinfo_s> const & amps_v,
+                               Cluster_workspace & workspace) -> uint64_t {
+    uint64_t targetcount = 0;
+
+    // Subseed candidate selection is independent of how the seed's first
+    // generation ran: the index answers for any query, and its candidate
+    // list, the triangle-pruned walk and the qualifying suffix are all
+    // supersets of the accepted links, handled in pool order, so the
+    // choice between them cannot change the output. A light subseed
+    // therefore takes the index whichever way its seed went -- profiled
+    // before this was so, the walks of the scanned clusters' subseeds
+    // alone were 34 % of a d = 2 run and 55 % of a d = 3 run -- and only
+    // a heavy subseed scans: pruned by the triangle inequality where the
+    // seed cached bounds, over the whole qualifying suffix where it did
+    // not.
+    auto const found = (pigeonhole != nullptr)
+      ? pigeonhole->search(subseed.ampliconid)
+      : PigeonholeIndex::Search_result{true, View<unsigned int>{}};
+
+    if (not found.heavy) {
+      auto const first = parameters.opt_no_cluster_breaking
+        ? swarmed
+        : first_qualifying_amplicon(swarmed, subseed, data, amps_v);
+      auto const subseedlistlen =
+        map_candidates_to_pool(found.candidates, first, amps_v, workspace);
+      qgram_differ.fast(subseed.ampliconid,
+                        workspace.qgram_candidates(subseedlistlen),
+                        workspace.qgram_diffs(subseedlistlen));
+      targetcount = collect_targets(subseedlistlen,
+                                    parameters.opt_differences, workspace);
+    }
+    else if (diffestimates_cached) {
+      // the seed scanned the pool, so every entry carries a lower bound
+      // on its distance to the cluster seed and the walk can prune by
+      // triangle inequality
+      auto const subseedlistlen =
+        build_subseed_candidate_list(swarmed, amplicons,
+                                     subseed, parameters,
+                                     data, amps_v, workspace);
+
+      // as above: the collected candidates, not the whole scratch buffer
+      qgram_differ.fast(subseed.ampliconid,
+                        workspace.qgram_candidates(subseedlistlen),
+                        workspace.qgram_diffs(subseedlistlen));
+
+      targetcount = collect_targets(subseedlistlen,
+                                    parameters.opt_differences, workspace);
+    }
+    else {
+      // a heavy subseed of an index cluster has no cached bounds to
+      // prune on and scans the whole qualifying suffix -- a superset of
+      // what the pruned walk would collect, so nothing downstream can
+      // change; only more candidates than strictly necessary get their
+      // bound computed
+      assert(pigeonhole != nullptr);  // a seed without the index scans,
+                                      // so diffestimates_cached held
+      auto const first = parameters.opt_no_cluster_breaking
+        ? swarmed
+        : first_qualifying_amplicon(swarmed, subseed, data, amps_v);
+      auto const listlen = amplicons - first;
+      qgram_differ.fast_over_pool(subseed.ampliconid,
+                                  make_view(amps_v).subview(first, listlen),
+                                  workspace.qgram_diffs(listlen));
+      for (auto i = 0ULL; i < listlen; ++i) {
+        if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {
+          workspace.targetindices[targetcount] = first + i;
+          workspace.targetampliconids[targetcount] = amps_v[first + i].ampliconid;
+          ++targetcount;
+        }
+      }
+    }
+
+    return targetcount;
+  }
+
+
   auto grow_cluster_from_subseeds(struct Parameters const & parameters,
                                   Data const & data,
                                   QgramDiffer & qgram_differ,
@@ -532,75 +622,11 @@ namespace {
 
       ++cursor.seeded;
 
-      uint64_t targetcount = 0;
-
-      // Subseed candidate selection is independent of how the seed's first
-      // generation ran: the index answers for any query, and its candidate
-      // list, the triangle-pruned walk and the qualifying suffix are all
-      // supersets of the accepted links, handled in pool order, so the
-      // choice between them cannot change the output. A light subseed
-      // therefore takes the index whichever way its seed went -- profiled
-      // before this was so, the walks of the scanned clusters' subseeds
-      // alone were 34 % of a d = 2 run and 55 % of a d = 3 run -- and only
-      // a heavy subseed scans: pruned by the triangle inequality where the
-      // seed cached bounds, over the whole qualifying suffix where it did
-      // not.
-      auto const found = (pigeonhole != nullptr)
-        ? pigeonhole->search(subseed.ampliconid)
-        : PigeonholeIndex::Search_result{true, View<unsigned int>{}};
-
-      if (not found.heavy) {
-        auto const first = parameters.opt_no_cluster_breaking
-          ? cursor.swarmed
-          : first_qualifying_amplicon(cursor.swarmed, subseed, data, amps_v);
-        auto const subseedlistlen =
-          map_candidates_to_pool(found.candidates, first, amps_v, workspace);
-        qgram_differ.fast(subseed.ampliconid,
-                          workspace.qgram_candidates(subseedlistlen),
-                          workspace.qgram_diffs(subseedlistlen));
-        targetcount = collect_targets(subseedlistlen,
-                                      parameters.opt_differences, workspace);
-      }
-      else if (diffestimates_cached) {
-        // the seed scanned the pool, so every entry carries a lower bound
-        // on its distance to the cluster seed and the walk can prune by
-        // triangle inequality
-        auto const subseedlistlen =
-          build_subseed_candidate_list(cursor.swarmed, amplicons,
-                                       subseed, parameters,
-                                       data, amps_v, workspace);
-
-        // as above: the collected candidates, not the whole scratch buffer
-        qgram_differ.fast(subseed.ampliconid,
-                          workspace.qgram_candidates(subseedlistlen),
-                          workspace.qgram_diffs(subseedlistlen));
-
-        targetcount = collect_targets(subseedlistlen,
-                                      parameters.opt_differences, workspace);
-      }
-      else {
-        // a heavy subseed of an index cluster has no cached bounds to
-        // prune on and scans the whole qualifying suffix -- a superset of
-        // what the pruned walk would collect, so nothing downstream can
-        // change; only more candidates than strictly necessary get their
-        // bound computed
-        assert(pigeonhole != nullptr);  // a seed without the index scans,
-                                        // so diffestimates_cached held
-        auto const first = parameters.opt_no_cluster_breaking
-          ? cursor.swarmed
-          : first_qualifying_amplicon(cursor.swarmed, subseed, data, amps_v);
-        auto const listlen = amplicons - first;
-        qgram_differ.fast_over_pool(subseed.ampliconid,
-                                    make_view(amps_v).subview(first, listlen),
-                                    workspace.qgram_diffs(listlen));
-        for (auto i = 0ULL; i < listlen; ++i) {
-          if (workspace.qgramdiffs_v[i] <= parameters.opt_differences) {
-            workspace.targetindices[targetcount] = first + i;
-            workspace.targetampliconids[targetcount] = amps_v[first + i].ampliconid;
-            ++targetcount;
-          }
-        }
-      }
+      auto const targetcount =
+        collect_subseed_targets(subseed, cursor.swarmed, amplicons,
+                                parameters, data, qgram_differ,
+                                pigeonhole, diffestimates_cached,
+                                amps_v, workspace);
 
       if (targetcount == 0) { continue; }
 
