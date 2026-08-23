@@ -29,6 +29,7 @@
 #include "algo_internal.hpp"  // ampliconinfo_s
 #include "qgram_array.hpp"  // Qgram_store
 #include "span.hpp"  // Span<uint64_t>
+#include "thread_count.hpp"  // ThreadCount
 #include "threads.hpp"  // ThreadRunner
 #include "view.hpp"  // View<uint64_t>
 #include <cstdint>  // uint64_t
@@ -108,6 +109,7 @@ private:
 
   Qgram_store const          store_;        // owned (built in the ctor)
   Cpu_features const         cpu_features_;
+  ThreadCount const          n_threads_;    // the configured -t value
   std::vector<thread_info_s> thread_info_v_;
   ThreadRunner               threads_;  // last: its lambda touches the members above
 };

@@ -30,12 +30,14 @@
 #include "qgram_array.hpp"
 #include "qgram_compare.hpp"  // compareqgramvectors (per-arch impl under arch/<isa>/)
 #include "span.hpp"  // Span<uint64_t>
+#include "thread_count.hpp"  // ThreadCount
 #include "threads.hpp"
 #include "view.hpp"  // View<uint64_t>
-#include <algorithm>  // std::transform
+#include <algorithm>  // std::transform, std::for_each, std::max
 #include <cassert>
-#include <cstddef>  // std::size_t
+#include <cstddef>  // std::size_t, std::ptrdiff_t
 #include <cstdint>  // uint64_t
+#include <iterator>  // std::next
 #include <vector>
 
 
@@ -114,6 +116,7 @@ QgramDiffer::QgramDiffer(struct Parameters const & parameters,
       parameters.sse41_present != 0,
       parameters.popcnt_present != 0,
     },
+    n_threads_(parameters.opt_threads),
     thread_info_v_(parameters.opt_threads.count()),
     threads_(parameters.opt_threads.count(),
              [this](uint64_t nth_thread) -> void {
@@ -159,12 +162,19 @@ auto QgramDiffer::distribute_and_run(uint64_t const seed,
                                      uint64_t const listlen,
                                      Assign assign) -> void
 {
-  // How long a candidate list has to be before it is worth waking the worker
-  // pool for it: below this, the calling thread runs the whole list itself.
+  // How many candidates one thread should carry before another is worth
+  // waking: the thread count is ceil(listlen / candidates_per_thread),
+  // capped at the configured -t value -- the dispatch Scanner::run already
+  // uses. Short lists run on the calling thread with the worker pool left
+  // asleep, mid-sized lists wake only as many workers as they can keep
+  // busy, and -t 1 (the default, man swarm --threads) never reaches the
+  // pool at all -- where choosing between "one thread" and "all of them"
+  // used to hand every long list to a lone worker through a full
+  // condition-variable round trip, for no parallelism.
   //
   // The value cannot change what swarm computes. qgram_diff() is a pure
-  // function of (store, lengths, seed, candidate): it reads immutable state,
-  // writes nothing, and each candidate's distance lands at its own index of
+  // function of (store, seed, candidate): it reads immutable state, writes
+  // nothing, and each candidate's distance lands at its own index of
   // difflist. Splitting the list T ways or not splitting it at all puts the
   // same bytes in the same places, so this is a performance trade-off and
   // nothing observable rests on it.
@@ -174,30 +184,24 @@ auto QgramDiffer::distribute_and_run(uint64_t const seed,
   // of one fan-out and join. Splitting pays above n = B*T / (c*(T-1)).
   // Measured on this host -- c ~ 13.6 ns for a 128-byte q-gram comparison,
   // B ~ 53 us at T = 10 -- that break-even is around 4300 candidates, and
-  // 4096 of them cost ~56 us here, about what one fan-out costs. Below that,
-  // the barrier is most of what the call does.
+  // 4096 of them cost ~56 us here, about what one fan-out costs. B grows
+  // with the number of threads woken, so deriving the count from the work
+  // keeps the break-even in place as T changes, which a fixed one-or-all
+  // threshold could not.
   //
-  // The previous value was numeric_limits<uint8_t>::max(): 255, which is
-  // what fits in a byte rather than anything that was measured. At 255 the
-  // subseed pass handed 27 640 of its 128 970 calls -- 21 % of them, carrying
-  // 1.6 % of all candidates -- to ten threads, 26 to 205 candidates each.
-  //
-  // The downside is bounded even where that measurement does not hold. A call
-  // below the threshold loses at most the difference between doing its work
-  // here and having it done perfectly in parallel for nothing: under 56 us,
-  // and only on a machine whose barriers are free. This one's are not -- the
-  // alignment stage in scanner.cpp measures 0.9x on ten threads.
-  //
-  // What this constant is *not* is thread-count independent. B grows with T,
-  // so the break-even grows with it, and a 64-thread machine wants a larger
-  // value than a 4-thread one. The general form is the one Scanner::run
-  // already uses -- n_threads_.capped_at(ceil_divide(work, per_thread)),
-  // which picks the thread count from the work rather than choosing between
-  // one thread and all of them -- and it subsumes this threshold. Not done
-  // here because it also changes the thread count for mid-sized lists, which
-  // nothing has measured.
-  static constexpr uint64_t single_threaded_threshold {4096};
-  if (listlen <= single_threaded_threshold)
+  // The downside is bounded even where that measurement does not hold: a
+  // list kept on the calling thread loses at most the difference between
+  // doing its work here and having it done perfectly in parallel for
+  // nothing -- under 56 us, and only on a machine whose barriers are free.
+  static constexpr uint64_t candidates_per_thread {4096};
+  // an empty list still needs one (idle) pass -- the last cluster of a run
+  // finds the pool exhausted -- and capped_at() rejects zero by contract
+  auto const useful_threads =
+    std::max(ceil_divide(listlen, candidates_per_thread), uint64_t{1});
+  auto const n_threads =
+    n_threads_.capped_at(static_cast<std::size_t>(useful_threads)).count();
+
+  if (n_threads == 1)
     {
       auto & tip = thread_info_v_[0];
       tip.seed = seed;
@@ -208,21 +212,26 @@ auto QgramDiffer::distribute_and_run(uint64_t const seed,
 
   std::size_t offset {0};
   auto listrest = listlen;
-  auto thrrest = thread_info_v_.size();
+  auto thrrest = n_threads;
 
-  /* distribute work */
-  for (auto & tip: thread_info_v_) {
-      auto const chunk = ceil_divide(listrest, thrrest);
+  /* distribute work over the first n_threads slots; the slots beyond keep
+     whatever they held last time, and threads_.run(n_threads) below leaves
+     the workers that would read them asleep */
+  auto const past_last = std::next(thread_info_v_.begin(),
+                                   static_cast<std::ptrdiff_t>(n_threads));
+  std::for_each(thread_info_v_.begin(), past_last,
+                [&](thread_info_s & tip) -> void {
+                  auto const chunk = ceil_divide(listrest, thrrest);
 
-      tip.seed = seed;
-      assign(tip, offset, static_cast<std::size_t>(chunk));
+                  tip.seed = seed;
+                  assign(tip, offset, static_cast<std::size_t>(chunk));
 
-      offset += chunk;
-      listrest -= chunk;
-      --thrrest;
-    }
+                  offset += chunk;
+                  listrest -= chunk;
+                  --thrrest;
+                });
 
-  threads_.run();
+  threads_.run(n_threads);
 }
 
 
