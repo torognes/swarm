@@ -26,7 +26,7 @@
 #include "../swarm.hpp"  // struct Parameters
 #include "memory_budget.hpp"  // require_ram
 #include "view.hpp"  // make_view
-#include <algorithm>  // std::min, std::sort, std::unique, std::is_sorted
+#include <algorithm>  // std::min, std::sort, std::fill, std::is_sorted
 #include <cassert>
 #include <cstdint>  // uint64_t, int64_t
 #include <cstdlib>  // std::abs
@@ -117,15 +117,18 @@ PigeonholeIndex::PigeonholeIndex(struct Parameters const & parameters,
   bucket_mask_ = n_buckets - 1;
 
   // entries (4 bytes each), offsets and the build-time cursors (8 bytes
-  // per bucket each, with fewer than two buckets per entry): under 36
-  // bytes per entry all told. The product cannot overflow: n_entries is
-  // at most 2^32 sequences times 256 segments, well under 2^64 / 36.
-  static constexpr uint64_t bytes_per_entry {36};
+  // per bucket each, with fewer than two buckets per entry), and the
+  // per-sequence query stamps (4 bytes, at most one sequence per entry):
+  // under 40 bytes per entry all told. The product cannot overflow:
+  // n_entries is at most 2^32 sequences times 256 segments, well under
+  // 2^64 / 40.
+  static constexpr uint64_t bytes_per_entry {40};
   require_ram(bytes_per_entry * n_entries, 1, "the pigeonhole index");
 
   offsets_.assign(n_buckets + 1, 0);
   entries_.resize(n_entries);
   length_present_.assign(data.longest_sequence() + n_differences_ + 1, false);
+  seen_stamp_.assign(n_sequences, 0);
 
   // count the population of each bucket...
   for (auto seqno = 0ULL; seqno < n_sequences; ++seqno) {
@@ -235,17 +238,26 @@ auto PigeonholeIndex::search(uint64_t const query) -> Search_result {
     return {true, View<unsigned int>{}};
   }
 
+  // a fresh stamp marks this query's round; when the counter wraps, the
+  // whole array is cleared so no stamp left by an old round can alias it
+  ++query_stamp_;
+  if (query_stamp_ == 0) {
+    std::fill(seen_stamp_.begin(), seen_stamp_.end(), 0U);
+    ++query_stamp_;
+  }
+
   candidates_v_.clear();
   candidates_v_.reserve(volume);
   for (auto const & probe : probes_v_) {
-    candidates_v_.insert(candidates_v_.end(),
-                         std::next(entries_.cbegin(),
-                                   static_cast<std::ptrdiff_t>(probe.first)),
-                         std::next(entries_.cbegin(),
-                                   static_cast<std::ptrdiff_t>(probe.second)));
+    for (auto index = probe.first; index < probe.second; ++index) {
+      auto const candidate = entries_[index];
+      if (seen_stamp_[candidate] == query_stamp_) { continue; }
+      seen_stamp_[candidate] = query_stamp_;
+      candidates_v_.push_back(candidate);
+    }
   }
+  // the stamps already deduplicated, so the sort -- pool order is part of
+  // the contract -- runs on the unique candidates only
   std::sort(candidates_v_.begin(), candidates_v_.end());
-  candidates_v_.erase(std::unique(candidates_v_.begin(), candidates_v_.end()),
-                      candidates_v_.end());
   return {false, make_view(candidates_v_)};
 }

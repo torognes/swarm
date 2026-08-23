@@ -26,7 +26,7 @@
 
 
 #include "view.hpp"  // View<unsigned int>
-#include <cstdint>  // uint64_t
+#include <cstdint>  // uint64_t, std::uint32_t
 #include <functional>  // std::reference_wrapper
 #include <utility>  // std::pair
 #include <vector>
@@ -97,6 +97,12 @@ private:
   std::vector<bool> length_present_;   // which sequence lengths occur
   std::vector<std::pair<uint64_t, uint64_t>> probes_v_;  // search() scratch
   std::vector<unsigned int> candidates_v_;               // search() scratch and result
+  // per-amplicon stamp of the last query that gathered it, so duplicates
+  // -- one candidate matching on several segments -- are dropped at
+  // gather time for one array load each, instead of surviving into the
+  // sort and being erased by std::unique afterwards
+  std::vector<std::uint32_t> seen_stamp_;
+  std::uint32_t query_stamp_ {0};
 };
 
 #endif  // SWARM_UTILS_PIGEONHOLE_H
