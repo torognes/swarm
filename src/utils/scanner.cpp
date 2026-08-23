@@ -245,6 +245,9 @@ auto Scanner::run(uint64_t const query_no,
     worker_core(0);
   }
   else {
-    threads_.run();
+    // wake the capped count only: the threads beyond it used to be woken
+    // too, find the window list exhausted, and go straight back to sleep,
+    // at one condition-variable round trip each per call
+    threads_.run(thr.count());
   }
 }
