@@ -102,7 +102,14 @@ Scanner::Scanner(struct Parameters const & parameters,
     n_threads_(parameters.opt_threads),
     search_data_v_(parameters.opt_threads.count()),
     threads_(parameters.opt_threads.count(),
-             [this](uint64_t thread_id) -> void { worker_core(thread_id); }) {
+             [this](uint64_t thread_id) -> void {
+               if (batch_mode_) {
+                 batch_worker(thread_id);
+               }
+               else {
+                 worker_core(thread_id);
+               }
+             }) {
   allocate_per_thread_search_data(search_data_v_, data.longest_sequence());
 
   Cpu_features const features {parameters.ssse3_present != 0,
@@ -114,7 +121,8 @@ Scanner::Scanner(struct Parameters const & parameters,
 }
 
 
-auto Scanner::init(struct Search_data & thread_data) const -> void {
+auto Scanner::init(struct Search_data & thread_data,
+                   Sequence const & query) const -> void {
   static constexpr auto byte_multiplier = 64U;
   static constexpr auto word_multiplier = 32U;
 
@@ -129,14 +137,46 @@ auto Scanner::init(struct Search_data & thread_data) const -> void {
   static_assert(largest_code < profile_slots,
                 "every nucleotide code needs a profile slot of its own");
 
-  for (auto i = 0U; i < query_.length; ++i) {
-    auto const nt_value = nucleotide_at(query_, i) + 1U;  //  1,   2,   3, or   4
+  for (auto i = 0U; i < query.length; ++i) {
+    auto const nt_value = nucleotide_at(query, i) + 1U;   //  1,   2,   3, or   4
     auto const byte_offset = byte_multiplier * nt_value;  // 64, 128, 192, or 256
     auto const word_offset = word_multiplier * nt_value;  // 32,  64,  96, or 128
 
     // refactoring: difficult to work directly on vectors (thread barrier)
     thread_data.qtable_v[i]   = &thread_data.dprofile_a[byte_offset];
     thread_data.qtable_w_v[i] = &thread_data.dprofile_w_a[word_offset];
+  }
+}
+
+
+auto Scanner::align_slice(struct Search_data & thread_data, Bit_mode const bits,
+                          Sequence const & query,
+                          View<uint64_t> const targets, Span<uint64_t> const scores,
+                          Span<uint64_t> const diffs) -> void {
+  if (bits == Bit_mode::bits_16) {
+    assert(gapopen_ <= std::numeric_limits<WORD>::max());
+    assert(gapextend_ <= std::numeric_limits<WORD>::max());
+    search16(data_.get(),
+             thread_data,
+             static_cast<WORD>(gapopen_),
+             static_cast<WORD>(gapextend_),
+             score_matrix_16_,
+             targets,
+             scores,
+             diffs,
+             query);
+  } else {
+    assert(gapopen_ <= std::numeric_limits<BYTE>::max());
+    assert(gapextend_ <= std::numeric_limits<BYTE>::max());
+    search8(data_.get(),
+            thread_data,
+            static_cast<BYTE>(gapopen_),
+            static_cast<BYTE>(gapextend_),
+            score_matrix_8_,
+            targets,
+            scores,
+            diffs,
+            query);
   }
 }
 
@@ -150,31 +190,10 @@ auto Scanner::chunk(struct Search_data & thread_data, Bit_mode const bits) -> vo
   auto const first = thread_data.target_index;
   auto const count = thread_data.target_count;
 
-  if (bits == Bit_mode::bits_16) {
-    assert(gapopen_ <= std::numeric_limits<WORD>::max());
-    assert(gapextend_ <= std::numeric_limits<WORD>::max());
-    search16(data_.get(),
-             thread_data,
-             static_cast<WORD>(gapopen_),
-             static_cast<WORD>(gapextend_),
-             score_matrix_16_,
-             targets_.subview(first, count),
-             scores_.subspan(first, count),
-             diffs_.subspan(first, count),
-             query_);
-  } else {
-    assert(gapopen_ <= std::numeric_limits<BYTE>::max());
-    assert(gapextend_ <= std::numeric_limits<BYTE>::max());
-    search8(data_.get(),
-            thread_data,
-            static_cast<BYTE>(gapopen_),
-            static_cast<BYTE>(gapextend_),
-            score_matrix_8_,
-            targets_.subview(first, count),
-            scores_.subspan(first, count),
-            diffs_.subspan(first, count),
-            query_);
-  }
+  align_slice(thread_data, bits, query_,
+              targets_.subview(first, count),
+              scores_.subspan(first, count),
+              diffs_.subspan(first, count));
 }
 
 
@@ -199,12 +218,56 @@ auto Scanner::next_window() -> Scanner::Work_window {
 
 auto Scanner::worker_core(uint64_t const thread_id) -> void {
   auto & thread_data = search_data_v_[thread_id];
-  init(thread_data);
+  init(thread_data, query_);
   for (auto window = next_window(); not window.empty(); window = next_window()) {
     thread_data.target_index = window.first;
     thread_data.target_count = window.count;
     chunk(thread_data, bits_);
   }
+}
+
+
+auto Scanner::batch_worker(uint64_t const thread_id) -> void {
+  auto & thread_data = search_data_v_[thread_id];
+  while (true) {
+    uint64_t task_index {0};
+    {
+      std::lock_guard<std::mutex> const lock(scan_mutex_);
+      if (next_ >= tasks_.size()) { return; }
+      task_index = next_;
+      ++next_;
+    }
+    auto const & task = tasks_[task_index];
+    assert(task.scores.size() == task.targets.size());
+    assert(task.diffs.size() == task.targets.size());
+    auto const query = data_.get().sequence_view(task.query_no);
+    init(thread_data, query);
+    align_slice(thread_data, bits_, query,
+                task.targets, task.scores, task.diffs);
+  }
+}
+
+
+auto Scanner::run_batch(View<Task> const tasks, Bit_mode const bits) -> void {
+  if (tasks.empty()) { return; }
+
+  next_ = 0;
+  tasks_ = tasks;
+  bits_ = bits;
+  batch_mode_ = true;
+
+  // one whole task per thread at a time, so more threads than tasks
+  // cannot be kept busy
+  auto const thr = n_threads_.capped_at(tasks.size());
+
+  if (thr.count() == 1) {
+    batch_worker(0);
+  }
+  else {
+    threads_.run(thr.count());
+  }
+
+  batch_mode_ = false;
 }
 
 

@@ -75,6 +75,24 @@ public:
            Span<uint64_t> diffs,
            Bit_mode bits) -> void;
 
+  // One independent alignment job: a query and its candidate list with
+  // the two result columns, same lockstep contract as run().
+  struct Task {
+    uint64_t query_no;
+    View<uint64_t> targets;
+    Span<uint64_t> scores;
+    Span<uint64_t> diffs;
+  };
+
+  // Aligns a batch of independent tasks, handing whole tasks out to the
+  // worker pool: run() fills SIMD channels from one query's target list
+  // and starves when that list is short, while a batch keeps every
+  // thread on its own query. Tasks must not alias each other's result
+  // columns. Results are identical to running each task through run() --
+  // each (query, target) pair is aligned by the same kernel on the same
+  // inputs, whichever thread gets it.
+  auto run_batch(View<Task> tasks, Bit_mode bits) -> void;
+
   // entry point for each worker thread (also called directly when a
   // single thread suffices)
   auto worker_core(uint64_t thread_id) -> void;
@@ -103,9 +121,16 @@ private:
     constexpr auto empty() const noexcept -> bool { return count == 0; }
   };
 
-  auto init(struct Search_data & thread_data) const -> void;
+  auto init(struct Search_data & thread_data, Sequence const & query) const -> void;
+  auto align_slice(struct Search_data & thread_data, Bit_mode bits,
+                   Sequence const & query,
+                   View<uint64_t> targets, Span<uint64_t> scores,
+                   Span<uint64_t> diffs) -> void;
   auto chunk(struct Search_data & thread_data, Bit_mode bits) -> void;
   auto next_window() -> Work_window;
+  // entry point for each worker thread while a batch is running: grab the
+  // next unclaimed task, align it whole, repeat until none are left
+  auto batch_worker(uint64_t thread_id) -> void;
 
   std::reference_wrapper<Data const> data_;
   int64_t gapopen_ {0};
@@ -128,6 +153,11 @@ private:
   Span<uint64_t> scores_;
   Span<uint64_t> diffs_;
   Bit_mode bits_ {Bit_mode::bits_16};
+  // what a woken worker should do: share one query's windows
+  // (worker_core, from run()) or claim whole tasks (batch_worker, from
+  // run_batch()); the flag is only written while no worker is awake
+  bool batch_mode_ {false};
+  View<Task> tasks_;
 
   std::vector<struct Search_data> search_data_v_;
   ThreadRunner threads_;  // last: its lambda touches the members above
