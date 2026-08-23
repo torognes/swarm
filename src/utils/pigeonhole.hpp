@@ -95,6 +95,7 @@ private:
   std::vector<uint64_t> offsets_;      // bucket b: entries_[offsets_[b], offsets_[b+1])
   std::vector<unsigned int> entries_;  // amplicon ids, ascending within a bucket
   std::vector<bool> length_present_;   // which sequence lengths occur
+  std::vector<uint64_t> multiplier_powers_;  // B^i, for the rolling hash
   std::vector<std::pair<uint64_t, uint64_t>> probes_v_;  // search() scratch
   std::vector<unsigned int> candidates_v_;               // search() scratch and result
   // per-amplicon stamp of the last query that gathered it, so duplicates
