@@ -511,6 +511,50 @@ namespace {
   }
 
 
+  // One pending subseed's share of an alignment batch: where its pruned
+  // candidate ids and their alignment results sit in the batch's
+  // concatenated columns.
+  struct Batch_member {
+    uint64_t ampliconid;
+    uint64_t offset;
+    uint64_t count;
+  };
+
+  // Scratch for one alignment batch, allocated once per run and refilled
+  // per wave of pending subseeds. Candidates are kept by id only: their
+  // pool positions go stale as soon as an earlier subseed of the wave
+  // accepts a target, and are re-derived at acceptance time.
+  struct Subseed_batch {
+    std::vector<struct Batch_member> members_v;  // sorted by ampliconid
+    std::vector<uint64_t> target_ids;
+    std::vector<uint64_t> scores_v;
+    std::vector<uint64_t> diffs_v;
+    std::vector<Scanner::Task> tasks;
+  };
+
+
+  // The pool position of amplicon 'id' inside [first, size), or the pool
+  // size when it is not there -- an amplicon accepted into a cluster since
+  // its candidacy was recorded. Same premise as map_candidates_to_pool:
+  // the unswarmed region stays in ascending ampliconid order.
+  auto pool_position_of(uint64_t const id_sought,
+                        uint64_t const first,
+                        std::vector<struct ampliconinfo_s> const & amps_v) -> uint64_t {
+    auto const pool_start = std::next(amps_v.cbegin(),
+                                      static_cast<std::ptrdiff_t>(first));
+    auto const position =
+      std::lower_bound(pool_start, amps_v.cend(), id_sought,
+                       [](struct ampliconinfo_s const & amplicon,
+                          uint64_t const value) -> bool {
+                         return amplicon.ampliconid < value;
+                       });
+    if ((position == amps_v.cend()) or (position->ampliconid != id_sought)) {
+      return amps_v.size();
+    }
+    return static_cast<uint64_t>(std::distance(amps_v.cbegin(), position));
+  }
+
+
   // The subseed's alignment candidates: selection -- index lookup,
   // triangle-pruned walk or qualifying-suffix scan -- followed by the
   // q-gram prune, with the survivors' pool positions and ids left in the
@@ -613,47 +657,155 @@ namespace {
                                   uint64_t const amplicons,
                                   std::vector<struct ampliconinfo_s> & amps_v,
                                   Cluster_workspace & workspace,
+                                  Subseed_batch & batch,
                                   Cluster_state & state) -> void {
     while (cursor.seeded < cursor.swarmed) {
 
-      /* process each subseed */
+      // ---- select and align, for every subseed pending right now ----
+      //
+      // The wave's candidates are all selected against the pool as it
+      // stands here, before any of the wave's acceptances, where the old
+      // loop selected each subseed's after its predecessors'. The pool
+      // only ever shrinks, and every selection gate is per-candidate and
+      // stable within a cluster (abundance never changes; diffestimate is
+      // written once by the seed's scan; a subseed's radius is fixed when
+      // it is included), so selecting early yields a superset of what
+      // selecting late would, and the acceptance pass below drops exactly
+      // the difference by rechecking pool membership. The alignment of a
+      // (query, target) pair does not depend on when it runs. Accepted
+      // links and their order therefore cannot change; what the batch
+      // buys is that the alignments run as one task list across the
+      // worker pool instead of a few starved channels per subseed.
+      batch.members_v.clear();
+      batch.target_ids.clear();
+      batch.tasks.clear();
+      for (auto position = cursor.seeded; position < cursor.swarmed; ++position) {
+        auto const & subseed = amps_v[position];
+        auto const targetcount =
+          collect_subseed_targets(subseed, cursor.swarmed, amplicons,
+                                  parameters, data, qgram_differ,
+                                  pigeonhole, diffestimates_cached,
+                                  amps_v, workspace);
+        batch.members_v.push_back({subseed.ampliconid,
+                                   batch.target_ids.size(), targetcount});
+        // ids only; the positions in targetindices go stale at the first
+        // acceptance below
+        batch.target_ids.insert(batch.target_ids.end(),
+                                workspace.targetampliconids.cbegin(),
+                                std::next(workspace.targetampliconids.cbegin(),
+                                          static_cast<std::ptrdiff_t>(targetcount)));
+      }
 
-      auto const & subseed = amps_v[cursor.seeded];
+      batch.scores_v.resize(batch.target_ids.size());
+      batch.diffs_v.resize(batch.target_ids.size());
+      for (auto const & member : batch.members_v) {
+        if (member.count == 0) { continue; }
+        batch.tasks.push_back(
+          {member.ampliconid,
+           make_view(batch.target_ids).subview(member.offset, member.count),
+           make_span(batch.scores_v).subspan(member.offset, member.count),
+           make_span(batch.diffs_v).subspan(member.offset, member.count)});
+      }
+      scanner.run_batch(make_view(batch.tasks), bits);
 
-      ++cursor.seeded;
+      std::sort(batch.members_v.begin(), batch.members_v.end(),
+                [](struct Batch_member const & lhs,
+                   struct Batch_member const & rhs) -> bool {
+                  return lhs.ampliconid < rhs.ampliconid;
+                });
 
-      auto const targetcount =
-        collect_subseed_targets(subseed, cursor.swarmed, amplicons,
-                                parameters, data, qgram_differ,
-                                pigeonhole, diffestimates_cached,
-                                amps_v, workspace);
+      // ---- process the queue in order on the batch results ----
+      //
+      // Acceptances insert new members into the pending queue, possibly
+      // ahead of unprocessed batch members (find_correct_position_in_list
+      // orders the queue by generation, then id). Those interlopers had no
+      // candidates selected, so they take the old serial path when their
+      // turn comes; the wave ends once every batch member is consumed, and
+      // anything still pending then forms the next wave.
+      auto batch_remaining = batch.members_v.size();
+      while (batch_remaining > 0) {
 
-      if (targetcount == 0) { continue; }
+        /* process each subseed */
+        assert(cursor.seeded < cursor.swarmed);
+        auto const & subseed = amps_v[cursor.seeded];
 
-      // the candidate window inside the workspace, as above
-      scanner.run(subseed.ampliconid,
-                  workspace.targets(targetcount),
-                  workspace.scores(targetcount),
-                  workspace.diffs(targetcount),
-                  bits);
+        ++cursor.seeded;
 
-      for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
-        auto const diff = workspace.diffs_v[target_id];
+        auto const member_it =
+          std::lower_bound(batch.members_v.cbegin(), batch.members_v.cend(),
+                           uint64_t{subseed.ampliconid},
+                           [](struct Batch_member const & member,
+                              uint64_t const value) -> bool {
+                             return member.ampliconid < value;
+                           });
 
-        if (diff > parameters.opt_differences) { continue; }
-        auto const target = workspace.targetindices[target_id];
+        if ((member_it != batch.members_v.cend()) and
+            (member_it->ampliconid == subseed.ampliconid)) {
+          --batch_remaining;
 
-        /* find correct position in list */
+          for (auto i = 0ULL; i < member_it->count; ++i) {
+            auto const diff = batch.diffs_v[member_it->offset + i];
 
-        auto const pos = find_correct_position_in_list(cursor.swarmed, target, cursor.seeded,
-                                                       subseed, amps_v);
+            if (diff > parameters.opt_differences) { continue; }
 
-        move_target_to_first_unswarmed_position(pos, target, amps_v);
+            // swarmed by an earlier subseed since its candidacy was
+            // recorded? then it is gone from the pool, as it would have
+            // been from a late-selected candidate list
+            auto const target =
+              pool_position_of(batch.target_ids[member_it->offset + i],
+                               cursor.swarmed, amps_v);
+            if (target == amps_v.size()) { continue; }
 
-        include_amplicon_in_cluster(pos, diff, swarmid, subseed,
-                                    amps_v, workspace.hits, state,
-                                    parameters, data);
-        ++cursor.swarmed;
+            /* find correct position in list */
+
+            auto const pos = find_correct_position_in_list(cursor.swarmed, target, cursor.seeded,
+                                                           subseed, amps_v);
+
+            move_target_to_first_unswarmed_position(pos, target, amps_v);
+
+            include_amplicon_in_cluster(pos, diff, swarmid, subseed,
+                                        amps_v, workspace.hits, state,
+                                        parameters, data);
+            ++cursor.swarmed;
+          }
+          continue;
+        }
+
+        // an interloper: the old serial path, selection against the
+        // current pool, so its target positions are fresh and usable
+        auto const targetcount =
+          collect_subseed_targets(subseed, cursor.swarmed, amplicons,
+                                  parameters, data, qgram_differ,
+                                  pigeonhole, diffestimates_cached,
+                                  amps_v, workspace);
+
+        if (targetcount == 0) { continue; }
+
+        // the candidate window inside the workspace, as above
+        scanner.run(subseed.ampliconid,
+                    workspace.targets(targetcount),
+                    workspace.scores(targetcount),
+                    workspace.diffs(targetcount),
+                    bits);
+
+        for (auto target_id = 0ULL; target_id < targetcount; ++target_id) {
+          auto const diff = workspace.diffs_v[target_id];
+
+          if (diff > parameters.opt_differences) { continue; }
+          auto const target = workspace.targetindices[target_id];
+
+          /* find correct position in list */
+
+          auto const pos = find_correct_position_in_list(cursor.swarmed, target, cursor.seeded,
+                                                         subseed, amps_v);
+
+          move_target_to_first_unswarmed_position(pos, target, amps_v);
+
+          include_amplicon_in_cluster(pos, diff, swarmid, subseed,
+                                      amps_v, workspace.hits, state,
+                                      parameters, data);
+          ++cursor.swarmed;
+        }
       }
     }
   }
@@ -690,6 +842,7 @@ auto algo_run(struct Parameters const & parameters,
 
   std::vector<struct ampliconinfo_s> amps_v(amplicons);
   Cluster_workspace workspace(amplicons);
+  Subseed_batch batch;  // grows to a wave's candidate total, reused throughout
 
   // NwAligner is only needed when UCLUST output is requested; its
   // scratch buffers grow with longestamplicon^2, so allocate lazily.
@@ -736,7 +889,7 @@ auto algo_run(struct Parameters const & parameters,
                                  pigeonhole.get(), diffestimates_cached,
                                  scanner, bits,
                                  cursor, swarmid, amplicons,
-                                 amps_v, workspace, state);
+                                 amps_v, workspace, batch, state);
 
       largestswarm = std::max(state.swarmsize, largestswarm);
       maxgenerations = std::max(state.maxgen, maxgenerations);
