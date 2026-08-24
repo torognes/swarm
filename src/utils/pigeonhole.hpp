@@ -65,12 +65,16 @@ public:
   // The largest d the index is built for. Query cost grows with d on
   // every axis -- (2d+1) target lengths x (d+1) segments x up to (d+1)
   // shifts, on segments that get shorter and buckets that get bigger --
-  // and the measured gather volume goes from winning at d = 2 (0.7 G
-  // candidates versus 6.2 G q-gram comparisons plus a 19.3 G-step serial
-  // walk) to marginal at d = 3 (2.8 G) to hopeless at d = 10 (40 G, all
-  // queries over any workable cap). d = 2 and d = 3 are also what the
-  // downstream pipelines ask for; larger d stays on the scan path.
-  static constexpr uint64_t max_indexed_differences {3};
+  // so the fraction of queries the volume cap keeps on the index falls
+  // as d rises: measured on a 219k-read V9 dataset, 80 % at d = 2, 49 %
+  // at d = 3, 37 % at d = 4, 29 % at d = 5, and essentially none by
+  // d = 10 (40 G candidates gathered against 0.7 G at d = 2). The wins
+  // shrink accordingly -- wall -30 % at d = 2, -9 % at d = 3, -7 % at
+  // d = 4, and at d = 5 wall is neutral while user CPU still falls 2 %
+  // (6/6 pairs) -- so the index stops after the last d where it measures
+  // as a win; beyond it, queries would pay the probe pass for fallbacks
+  // that almost always follow.
+  static constexpr uint64_t max_indexed_differences {5};
 
   PigeonholeIndex(struct Parameters const & parameters, Data const & data);
 
