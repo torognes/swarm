@@ -26,6 +26,7 @@
 #define SWARM_UTILS_BLOOM_H
 
 #include <algorithm>  // std::max
+#include <atomic>  // std::atomic, std::memory_order_relaxed
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <limits>  // std::numeric_limits
@@ -111,13 +112,18 @@ public:
   // up to at least one 64-bit word so bitmap_index() can compute a
   // valid position.
   //
-  // Non-noexcept: the two vector constructions from (count, value) can
-  // throw std::bad_alloc.
+  // Non-noexcept: the two vector constructions can throw std::bad_alloc.
+  //
+  // The words start all-ones through an explicit store loop rather than
+  // the old (count, value) construction: std::atomic is not copyable, so
+  // the vector can only be built default-initialized. Construction is
+  // single-threaded, but the loop stays on the atomic interface -- mixing
+  // atomic and plain access to the same object is undefined behaviour.
   BloomFilter(uint64_t const bitmap_bytes,
               unsigned int const n_hash_functions)
     : size{std::max(bitmap_bytes, bloom_detail::bytes_per_word)
             >> bloom_detail::bytes_per_word_shift}
-    , bitmap(size, std::numeric_limits<uint64_t>::max())
+    , bitmap(size)
     , patterns(pattern_count) {
     // Checked here, once, rather than at every probe: this is the promise
     // the caller makes by choosing a size_kind, and the constructor is
@@ -126,18 +132,35 @@ public:
     // see bitmap_index.
     assert(size != 0);
     assert(size_kind == Bitmap_size::arbitrary or (size & (size - 1)) == 0);
+    for (auto & word : bitmap) {
+      word.store(std::numeric_limits<uint64_t>::max(),
+                 std::memory_order_relaxed);
+    }
     bloom_detail::generate_patterns(patterns, n_hash_functions);
   }
 
   // Mark hash as a member of the set.
+  //
+  // An atomic fetch_and rather than a plain '&=': the fastidious light
+  // pass calls set() from every worker thread with no lock held
+  // (mark_light_thread in algod1_fastidious.cpp), and two plain
+  // read-modify-writes landing on the same word could each lose the
+  // other's bits -- a lost pattern turns get() into a false *negative*,
+  // which is the one error a Bloom filter must never make (a missed
+  // graft, and a run whose output depends on thread timing). Relaxed
+  // ordering suffices: concurrent set() calls need atomicity only, and
+  // every reader runs after the writers' ThreadRunner has joined, which
+  // already orders the passes.
   auto set(uint64_t const hash) noexcept -> void {
-    bitmap[bitmap_index(hash)] &= compl bit_pattern(hash);
+    bitmap[bitmap_index(hash)].fetch_and(compl bit_pattern(hash),
+                                         std::memory_order_relaxed);
   }
 
   // Test whether hash may be a member of the set. Returns true on
   // possible-membership, false on definite-non-membership.
   auto get(uint64_t const hash) const noexcept -> bool {
-    return (bitmap[bitmap_index(hash)] & bit_pattern(hash)) == 0U;
+    return (bitmap[bitmap_index(hash)].load(std::memory_order_relaxed)
+            & bit_pattern(hash)) == 0U;
   }
 
 private:
@@ -220,7 +243,10 @@ private:
   }
 
   uint64_t size {0};            // bitmap length, in 64-bit words
-  std::vector<uint64_t> bitmap;
+  // atomic words: see set() -- same size and layout as plain uint64_t,
+  // and lock-free on every supported target (x86_64, aarch64, ppc64le,
+  // x86_64-mingw)
+  std::vector<std::atomic<uint64_t>> bitmap;
   std::vector<uint64_t> patterns;
 };
 

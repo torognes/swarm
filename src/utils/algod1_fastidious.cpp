@@ -424,8 +424,6 @@ namespace {
 
 
   auto mark_light_var(Data const & data,
-                      Hashtable & hash_table,
-                      Amplicon_bloom & bloom_a,
                       Fastidious_bloom & bloom_f,
                       unsigned int const seed,
                       std::vector<struct var_s>& variant_list) -> uint64_t
@@ -434,11 +432,15 @@ namespace {
       add all microvariants of seed to Bloom filter
 
       bloom_f is the fastidious BloomFilter in which to enter the variants
-      bloom_a is the amplicon BloomFilter, updated by hash_insert
       seed is the original seed
-    */
 
-    hash_insert(data, hash_table, bloom_a, seed);
+      Runs concurrently on every worker thread with no lock held, which
+      is safe because bloom_f.set() is an atomic RMW (see bloom.hpp).
+      hash_insert() is not called from here for the same reason it used
+      to be a data race: it probes the shared hash table for a free
+      bucket and then claims it, so it lives in mark_light_thread(),
+      under the lock.
+    */
 
     auto const seed_seq = data.sequence_view(seed);
     auto const hash = data.sequence_hash(seed);
@@ -484,8 +486,16 @@ namespace {
           {
             ++state.progress;
             progress.update(state.progress);
+            /* claim the amplicon's bucket while still holding the lock:
+               hash_insert() probes the shared hash table for a free
+               bucket and then writes it, and two unsynchronized claims
+               can pick the same bucket and silently lose an amplicon.
+               Once per light amplicon, so serializing it costs nothing
+               next to the variant marking below, which is the heavy
+               part and stays parallel (bloom_f.set() is atomic). */
+            hash_insert(data, hash_table, bloom_a, light_amplicon_id);
             lock.unlock();
-            auto const variant_count = mark_light_var(data, hash_table, bloom_a, bloom_f,
+            auto const variant_count = mark_light_var(data, bloom_f,
                                                       light_amplicon_id,
                                                       variant_list);
             lock.lock();
