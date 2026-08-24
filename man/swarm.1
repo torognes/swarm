@@ -284,9 +284,17 @@ when using the option \-\-fastidious (\-f), define the size (in bits)
 of each entry in the Bloom filter. This option allows to balance the
 efficiency (i.e. speed) and the memory footprint of the Bloom
 filter. Large values will make the Bloom filter more efficient but
-will require more memory. Any value between 2 and 64 can be
-used. Default value is 16. See the \-\-ceiling (\-c) option for an
-alternative way to control the memory footprint.
+will require more memory: the filter stores one entry per
+microvariant of the amplicons placed in small clusters, so it
+occupies about 7 x \fIvalue\fR / 8 bytes per nucleotide in small
+clusters. Any value between 2 and 64 can be used. Default value is
+16. Clustering results are identical whatever the value: the entry
+size only trades memory for speed, and raising it to 20 or 24 can
+substantially shorten the second clustering pass when memory
+allows. When the filter would exceed the available memory,
+\fBswarm\fR automatically reduces the entry size and reports it in
+the log file. See the \-\-ceiling (\-c) option for an alternative way
+to control the memory footprint.
 .LP
 .\" ----------------------------------------------------------------------------
 .SS Input/output options
