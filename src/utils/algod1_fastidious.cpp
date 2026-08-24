@@ -285,6 +285,7 @@ namespace {
                                 Hashtable const & hash_table,
                                 Amplicon_bloom const & bloom_a,
                                 Sequence const & seq,
+                                uint64_t const seq_hash,
                                 unsigned int const seed,
                                 std::vector<struct var_s>& variant_list,
                                 struct Graft_state & graft_state) -> uint64_t
@@ -294,8 +295,13 @@ namespace {
 
     uint64_t matches = 0;
 
-    auto const hash = data.zobrist().hash(seq);
-    auto const variants = generate_variants(data.zobrist(), seq, hash, variant_list);
+    // seq is the sequence of a first-generation variant, and seq_hash is
+    // that variant's var_s::hash: generate_variants() derives each
+    // variant's full Zobrist hash incrementally, so hashing seq again
+    // here recomputed the value the caller already held -- one O(length)
+    // rehash per Bloom-filter survivor.
+    assert(seq_hash == data.zobrist().hash(seq));
+    auto const variants = generate_variants(data.zobrist(), seq, seq_hash, variant_list);
 
     // Not std::count_if, which cppcheck suggests here: hash_check_attach()
     // is what records the graft, so counting through it would hide a
@@ -359,6 +365,7 @@ namespace {
             matches += check_heavy_var_2(data, ampinfo_v, hash_table,
                                          bloom_a,
                                          var_seq,
+                                         var.hash,
                                          seed,
                                          variant_list2,
                                          graft_state);
