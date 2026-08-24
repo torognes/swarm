@@ -345,7 +345,6 @@ namespace {
 
          struct Stats stats;
          uint64_t const derep_hash_mask = hashtable.size() - 1;
-         auto const & zobrist = data.zobrist();
 
          for (auto seqno = 0U; seqno < amplicons; ++seqno)
            {
@@ -359,7 +358,11 @@ namespace {
                collision when the number of sequences is about 5e9.
              */
 
-             auto const hash = zobrist.hash(seq);
+             // Pass 2a (compute_sequence_hashes in db.cpp) has already
+             // hashed every sequence into seqinfo_s.seqhash -- the same
+             // Zobrist tables over the same bytes. Recomputing it here
+             // doubled the hashing work of a d = 0 run for the same value.
+             auto const hash = data.sequence_hash(seqno);
 
              // the table index is the only cursor the probe needs: a
              // bucket pointer used to walk beside it, and had to be
