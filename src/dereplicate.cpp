@@ -28,7 +28,7 @@
 #include "utils/hashtable_size.hpp"
 #include "utils/print_view.hpp"  // fprint, fprint_integer
 #include "utils/progress.hpp"
-#include <algorithm>  // sort
+#include <algorithm>  // partition, sort
 #include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
@@ -92,7 +92,20 @@ namespace {
       return lhs.seqno_first < rhs.seqno_first;
     };
 
-    std::sort(hashtable.begin(), hashtable.end(), compare_seeds);
+    // Only occupied buckets carry information: an empty one (mass == 0)
+    // compares after every occupied one and equivalent to every other
+    // empty one, so sorting the whole table pays to order 8 GiB of
+    // zeros that release_unused_memory() then discards. Partition the
+    // occupied buckets to the front and sort only those; the comparator
+    // is a strict total order on them (seqno_first is unique per
+    // bucket), so their sorted order does not depend on how the
+    // partition shuffled them.
+    auto const is_occupied = [](struct bucket const & entry) -> bool {
+      return entry.mass != 0U;
+    };
+    auto const occupied_end =
+      std::partition(hashtable.begin(), hashtable.end(), is_occupied);
+    std::sort(hashtable.begin(), occupied_end, compare_seeds);
     progress.done();
   }
 
