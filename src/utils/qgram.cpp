@@ -221,7 +221,7 @@ auto QgramDiffer::distribute_and_run(uint64_t const seed,
                                    static_cast<std::ptrdiff_t>(n_threads));
   std::for_each(thread_info_v_.begin(), past_last,
                 [&](thread_info_s & tip) -> void {
-                  auto const chunk = ceil_divide(listrest, thrrest);
+                  auto const chunk = ceil_divide<uint64_t>(listrest, thrrest);
 
                   tip.seed = seed;
                   assign(tip, offset, static_cast<std::size_t>(chunk));
