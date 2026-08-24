@@ -41,11 +41,17 @@
 
 namespace {
 
+  // seed_seq and seed_abundance are the seed's own sequence view and
+  // abundance, fetched once by the caller: both are invariant across
+  // the seed's whole variant list, and reading them here re-dereferenced
+  // the seed's index record once per hash-matched bucket.
   inline auto find_variant_matches(struct Parameters const & parameters,
                                    Data const & data,
                                    Hashtable const & hash_table,
                                    Amplicon_bloom const & bloom_a,
                                    unsigned int const seed,
+                                   Sequence const & seed_seq,
+                                   uint64_t const seed_abundance,
                                    struct var_s const & var,
                                    std::vector<unsigned int>& hits_data,
                                    unsigned int & hits_count) -> void
@@ -69,9 +75,8 @@ namespace {
             /* avoid self */
             if ((seed != amp) and
                 (parameters.opt_no_cluster_breaking or
-                 (data.abundance(seed) >= data.abundance(amp))))
+                 (seed_abundance >= data.abundance(amp))))
               {
-                auto const seed_seq = data.sequence_view(seed);
                 auto const amp_seq = data.sequence_view(amp);
 
                 if (check_variant(seed_seq, var, amp_seq))
@@ -99,10 +104,12 @@ namespace {
 
     auto const seed_seq = data.sequence_view(seed);
     auto const hash = data.sequence_hash(seed);
+    auto const seed_abundance = data.abundance(seed);
     auto const variants = generate_variants(data.zobrist(), seed_seq, hash, variant_list);
 
     for (auto const & var : variants) {
-      find_variant_matches(parameters, data, hash_table, bloom_a, seed, var, hits_data, hits_count);
+      find_variant_matches(parameters, data, hash_table, bloom_a, seed,
+                           seed_seq, seed_abundance, var, hits_data, hits_count);
     }
 
     return hits_count;
