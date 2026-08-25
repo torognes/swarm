@@ -31,11 +31,12 @@
 #include "progress.hpp"
 #include "threads.hpp"
 #include "view.hpp"
+#include "worker_loop.hpp"
 #include <algorithm>  // std::copy()
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next()
-#include <mutex>  // std::unique_lock
+#include <mutex>  // std::lock_guard
 #include <vector>
 
 
@@ -130,32 +131,38 @@ namespace {
     std::vector<struct var_s> variant_list(n_items);
 
     auto const amplicons = data.sequence_count();
-    std::unique_lock<std::mutex> lock(state.mutex);
-    while (state.amp < amplicons)
-      {
-        auto const amp = state.amp;
-        ++state.amp;
-        progress.update(amp);
+    unsigned int amp {0};  // the claimed amplicon, handed from claim to work
+    run_worker_loop(
+        state.mutex,
+        /* claim (state.mutex held) */
+        [&]() -> bool {
+          if (state.amp >= amplicons) {
+            return false;
+          }
+          amp = state.amp;
+          ++state.amp;
+          progress.update(amp);
+          return true;
+        },
+        /* work (no lock held); re-takes state.mutex to append the hits */
+        [&]() -> void {
+          auto const hits_count = check_variants(parameters, data, hash_table, bloom_a, amp, variant_list, hits_data);
 
-        lock.unlock();
+          std::lock_guard<std::mutex> const lock(state.mutex);
+          auto & target_amplicon = ampinfo_v[amp];
+          target_amplicon.link_start = state.count;
+          target_amplicon.link_count = hits_count;
 
-        auto const hits_count = check_variants(parameters, data, hash_table, bloom_a, amp, variant_list, hits_data);
-        lock.lock();
+          while (state.count + hits_count > state.network_v.size()) {
+            state.network_v.resize(state.network_v.size() + one_megabyte);
+          }
 
-        auto & target_amplicon = ampinfo_v[amp];
-        target_amplicon.link_start = state.count;
-        target_amplicon.link_count = hits_count;
-
-        while (state.count + hits_count > state.network_v.size()) {
-          state.network_v.resize(state.network_v.size() + one_megabyte);
-        }
-
-        std::copy(hits_data.cbegin(),
-                  std::next(hits_data.cbegin(), hits_count),
-                  std::next(state.network_v.begin(),
-                            static_cast<std::ptrdiff_t>(state.count)));
-        state.count += hits_count;
-      }
+          std::copy(hits_data.cbegin(),
+                    std::next(hits_data.cbegin(), hits_count),
+                    std::next(state.network_v.begin(),
+                              static_cast<std::ptrdiff_t>(state.count)));
+          state.count += hits_count;
+        });
   }
 
 } // namespace
