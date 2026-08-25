@@ -33,10 +33,11 @@
 #include "print_view.hpp"  // fprint, fprint_integer
 #include "progress.hpp"
 #include "threads.hpp"
+#include "worker_loop.hpp"
 #include <algorithm>  // std::sort(), std::max(), std::count_if()
 #include <cassert>  // assert()
 #include <cstdint>  // int64_t, uint64_t
-#include <mutex>  // std::lock_guard, std::unique_lock
+#include <mutex>  // std::lock_guard
 #include <vector>
 
 
@@ -397,29 +398,42 @@ namespace {
     // sized in 64-bit words: long enough for any sequence + 1 insertion
     std::vector<uint64_t> buffer1(nt_wordlength(data.longest_sequence() + 2));
     auto const amplicons = data.sequence_count();
-    std::unique_lock<std::mutex> lock(heavy_state.mutex);
-    while ((heavy_state.amplicon < amplicons) and
-           (heavy_state.progress < heavy_state.amplicon_count))
-      {
-        auto const heavy_amplicon_id = heavy_state.amplicon;
-        ++heavy_state.amplicon;
-        auto const & target_amplicon = ampinfo_v[heavy_amplicon_id];
-        auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
-        if (target_swarm.mass >= parameters.opt_boundary)
-          {
-            ++heavy_state.progress;
-            progress.update(heavy_state.progress);
-            lock.unlock();
-            uint64_t number_of_matches {0};
-            uint64_t number_of_variants {0};
-            check_heavy_var(data, ampinfo_v, hash_table, bloom_a, bloom_f, buffer1, heavy_amplicon_id,
-                            number_of_matches, number_of_variants,
-                            variant_list, variant_list2,
-                            graft_state);
-            lock.lock();
-            heavy_state.variants += number_of_variants;
-          }
-      }
+    // the claimed heavy amplicon, handed from claim to work
+    unsigned int heavy_amplicon_id {0};
+    run_worker_loop(
+        heavy_state.mutex,
+        /* claim (heavy_state.mutex held): skip over light amplicons
+           until a heavy one can be claimed or the input is exhausted */
+        [&]() -> bool {
+          while ((heavy_state.amplicon < amplicons) and
+                 (heavy_state.progress < heavy_state.amplicon_count))
+            {
+              heavy_amplicon_id = heavy_state.amplicon;
+              ++heavy_state.amplicon;
+              auto const & target_amplicon = ampinfo_v[heavy_amplicon_id];
+              auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
+              if (target_swarm.mass >= parameters.opt_boundary)
+                {
+                  ++heavy_state.progress;
+                  progress.update(heavy_state.progress);
+                  return true;
+                }
+            }
+          return false;
+        },
+        /* work (no lock held); re-takes heavy_state.mutex to
+           accumulate the variant count */
+        [&]() -> void {
+          uint64_t number_of_matches {0};
+          uint64_t number_of_variants {0};
+          check_heavy_var(data, ampinfo_v, hash_table, bloom_a, bloom_f, buffer1, heavy_amplicon_id,
+                          number_of_matches, number_of_variants,
+                          variant_list, variant_list2,
+                          graft_state);
+
+          std::lock_guard<std::mutex> const lock(heavy_state.mutex);
+          heavy_state.variants += number_of_variants;
+        });
   }
 
 
@@ -469,39 +483,52 @@ namespace {
 
     std::vector<struct var_s> variant_list((multiplier * data.longest_sequence()) + offset);
 
-    std::unique_lock<std::mutex> lock(state.mutex);
-    while (state.progress < state.amplicon_count)
-      {
-        auto const light_amplicon_id = state.amplicon;
-        // Invariant: amplicon_count equals the number of light-swarm
-        // amplicons in [0, sequence_count), so the loop stops before this
-        // unsigned cursor underflows. Assert it so a future change to the
-        // counting in count_cluster_stats() cannot silently become an
-        // out-of-bounds read here.
-        assert(light_amplicon_id < ampinfo_v.size());
-        --state.amplicon;
-        auto const & target_amplicon = ampinfo_v[light_amplicon_id];
-        auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
-        if (target_swarm.mass < parameters.opt_boundary)
-          {
-            ++state.progress;
-            progress.update(state.progress);
-            /* claim the amplicon's bucket while still holding the lock:
-               hash_insert() probes the shared hash table for a free
-               bucket and then writes it, and two unsynchronized claims
-               can pick the same bucket and silently lose an amplicon.
-               Once per light amplicon, so serializing it costs nothing
-               next to the variant marking below, which is the heavy
-               part and stays parallel (bloom_f.set() is atomic). */
-            hash_insert(data, hash_table, bloom_a, light_amplicon_id);
-            lock.unlock();
-            auto const variant_count = mark_light_var(data, bloom_f,
-                                                      light_amplicon_id,
-                                                      variant_list);
-            lock.lock();
-            state.variants += variant_count;
-          }
-      }
+    // the claimed light amplicon, handed from claim to work
+    unsigned int light_amplicon_id {0};
+    run_worker_loop(
+        state.mutex,
+        /* claim (state.mutex held): skip over heavy amplicons until a
+           light one can be claimed or the input is exhausted */
+        [&]() -> bool {
+          while (state.progress < state.amplicon_count)
+            {
+              light_amplicon_id = state.amplicon;
+              // Invariant: amplicon_count equals the number of light-swarm
+              // amplicons in [0, sequence_count), so the loop stops before this
+              // unsigned cursor underflows. Assert it so a future change to the
+              // counting in count_cluster_stats() cannot silently become an
+              // out-of-bounds read here.
+              assert(light_amplicon_id < ampinfo_v.size());
+              --state.amplicon;
+              auto const & target_amplicon = ampinfo_v[light_amplicon_id];
+              auto const & target_swarm = swarminfo_v[target_amplicon.swarmid];
+              if (target_swarm.mass < parameters.opt_boundary)
+                {
+                  ++state.progress;
+                  progress.update(state.progress);
+                  /* claim the amplicon's bucket while still holding the lock:
+                     hash_insert() probes the shared hash table for a free
+                     bucket and then writes it, and two unsynchronized claims
+                     can pick the same bucket and silently lose an amplicon.
+                     Once per light amplicon, so serializing it costs nothing
+                     next to the variant marking below, which is the heavy
+                     part and stays parallel (bloom_f.set() is atomic). */
+                  hash_insert(data, hash_table, bloom_a, light_amplicon_id);
+                  return true;
+                }
+            }
+          return false;
+        },
+        /* work (no lock held); re-takes state.mutex to accumulate the
+           variant count */
+        [&]() -> void {
+          auto const variant_count = mark_light_var(data, bloom_f,
+                                                    light_amplicon_id,
+                                                    variant_list);
+
+          std::lock_guard<std::mutex> const lock(state.mutex);
+          state.variants += variant_count;
+        });
   }
 
 
