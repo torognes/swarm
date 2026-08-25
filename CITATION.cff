@@ -23,8 +23,8 @@ authors:
   given-names: "Torbjørn"
   orcid: "https://orcid.org/0000-0002-9329-9974"
 title: "SWARM: A robust and fast clustering method for amplicon-based studies"
-version: 3.1.8
-date-released: 2026-07-22
+version: 3.2.0
+date-released: 2026-08-27
 url: "https://github.com/torognes/swarm"
 preferred-citation:
   type: article

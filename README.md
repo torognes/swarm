@@ -467,6 +467,97 @@ swarm 4.0.0:
 
 ## Version history ##
 
+### version 3.2.0 ###
+
+**swarm** 3.2.0 is a performance and robustness release. Clustering
+with `d` > 1 is two to three times faster, dereplication and the
+fastidious phase are substantially faster, several (rare) silent
+wrong-answer and data-loss bugs are fixed, memory budgeting now works
+inside containers, and the manual page has been extensively
+expanded. Internally, the code base has been broadly modernized to
+C++11.
+
+changes:
+- fix: a data race in the fastidious light phase could silently drop
+  light amplicons and graft candidates, making clustering results
+  depend on thread timing; the shared Bloom filter and hash table are
+  now updated safely (7056d74)
+- fix: with alignment-scoring values whose worst in-range case landed
+  exactly on the 8-bit or 16-bit saturation value, a genuine
+  d-difference pair was misclassified as out of range and split into
+  two clusters; such scoring systems are now routed to a wider search
+  (f00fea6, 6255732)
+- fix: an input byte with the high bit set caused an out-of-bounds
+  read of the nucleotide classification table; such bytes are now
+  correctly rejected as illegal characters (93e91cf)
+- fix: a line starting with a null byte was mistaken for end-of-input,
+  so every amplicon after it was silently discarded with exit status
+  0; a null byte now only ends the line (6a80960)
+- fix: failed writes are now detected and reported with a non-zero
+  exit status (`swarm -o /dev/full` used to write nothing, say
+  nothing, and exit 0) (065a2e0)
+- fix: an abundance annotation of 21 digits or more was mistaken for a
+  missing annotation instead of being reported as too large (16e0c39)
+- fix: an empty output file name (typically an unset shell variable,
+  e.g.  `-l "$LOGFILE"`) was silently ignored for six of the seven
+  file options; it is now rejected as a command-line error (7e3d5d6)
+- fix: command lines with more than one input file name are now
+  rejected instead of silently clustering only the first (20d501c)
+- fix: `--help` and `--version` are now printed on standard output,
+  following the GNU convention, instead of the log stream (00df23b)
+- fix: an input file that cannot be inspected with `fstat()` is now
+  read as a pipe instead of aborting (dc3e579)
+- fix: on fastidious runs, the progress bars of the statistics and
+  uclust writers stopped short of 100 % (689fb17)
+- fix: the `--ceiling` error message announced a stale lower bound (8
+  instead of 40 since v3.1.5); the `--ceiling` and `--bloom-bits`
+  messages are now derived from the actual limits (a736382,
+  cherry-picked from PR #191)
+- fix: undefined behaviour (signed shift) when computing the maximal
+  `--ceiling` value (740a9ff)
+- perf: with `d` > 1, seeds now look their candidates up in an exact
+  pigeonhole index (up to `d` = 5) instead of scanning the whole
+  amplicon pool, and subseed alignments are batched into waves across
+  the thread pool: about 2.8× faster at `d` = 2 and 2.1× at `d` = 3,
+  with identical results (03ec14e, c558907, 4ca9d75, 7813b6b, de0e998)
+- perf: dereplication (`d` = 0) reuses the sequence hashes computed
+  while reading the database and sorts only the occupied hash-table
+  buckets, cutting several seconds of wall time on datasets with
+  millions of reads (69c0bf9, 4ce5669)
+- perf: the database stores headers and packed sequences in two
+  separate buffers, speeding up dereplication by about 20 % and `d` =
+  1 slightly (c461142)
+- perf: the fastidious phase no longer recomputes the hash of each
+  Bloom-filter survivor, and the `d` = 1 network build fetches each
+  seed's sequence and abundance once per seed instead of once per
+  candidate (9b3e32a, 2a96a60)
+- perf: Bloom-filter geometry and compile-time-constant work cut about
+  10 % off fastidious runs (430b373, 9b25f34, 6feea91, b72e569)
+- perf: microvariant sequences are compared 32 nucleotides at a time
+  (3ddf715)
+- perf: worker threads are woken only when there is work for them,
+  output is written without printf-style format parsing, and the `d` >
+  1 uclust writer no longer flushes after every line (8d3dfb0,
+  2bb3beb, 71f6ead, 164e592, 16c65a2)
+- improve: without `--ceiling`, the fastidious Bloom filter is now
+  automatically reduced to fit the memory actually available, instead
+  of potentially sending the run into swap or the OOM killer (3d43e3f)
+- improve: memory limits imposed by containers (Docker, Kubernetes,
+  Slurm with cgroups v1 or v2) are now detected and respected; memory
+  warnings and pre-allocation checks budget against the container's
+  limit rather than the host's total (b6e651d)
+- improve: the manual page now documents input conventions and limits,
+  usearch abundance-annotation handling, alignment-scoring limits, the
+  mothur and uclust output formats, the exit status, output ordering
+  rules, and the `--bloom-bits` memory/speed trade-off (ee9fdc2,
+  bfa7449, 0349ecf, 8678ef5, 32b6336, 63608a9, d7946fc, among others)
+- improve: extensive internal modernization to C++11 (RAII, views and
+  spans over raw pointers, `constexpr`, include hygiene, `.hpp`/`.cpp`
+  file renames), clean under cppcheck and clang-tidy, with
+  byte-identical results (05439e1, 91df0d9, df49a91, 84c516e, among
+  ~150 commits)
+
+
 ### version 3.1.8 ###
 
 **swarm** 3.1.8 is a maintenance release (30 commits). It fixes
