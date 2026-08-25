@@ -447,10 +447,10 @@ swarm adheres to [semantic versioning 2.0.0](https://semver.org/):
 > MINOR version when you add functionality in a backwards compatible manner, and
 > PATCH version when you make backwards compatible bug fixes.
 
-swarm 3.1.x:
+swarm 3.2.x:
 - reduce/eliminate linuxisms to improve portability
 
-swarm 3.2.0:
+swarm 3.3.0:
 - add support for the RISC-V architecture,
 - swarm can be compiled natively on a BSD or a Windows system
   (FreeBSD support added; Windows native build still pending — only
