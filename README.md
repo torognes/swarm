@@ -193,10 +193,10 @@ names too.
 The completion scripts are installed automatically by `make install`,
 in the standard locations (`$PREFIX/share/bash-completion/completions`
 and `$PREFIX/share/zsh/site-functions`). You can override these with
-the `BASH_COMPLETION_DIR` and `ZSH_COMPLETION_DIR` variables:
+the `bashcompdir` and `zshcompdir` variables:
 
 ```sh
-make install BASH_COMPLETION_DIR=/etc/bash_completion.d
+make install bashcompdir=/etc/bash_completion.d
 ```
 
 To enable completion manually, without installing system-wide:
