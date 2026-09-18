@@ -1,0 +1,349 @@
+name: Release assets
+
+# Builds the seven pre-compiled assets a release carries, checks them, and
+# attaches them to the release. Replaces a manual procedure: the assets up
+# to v3.2.0 were built and packed by hand on macOS, which is why every
+# Linux tarball shipped an AppleDouble "bin/._swarm" and com.apple.*
+# extended attributes, and why the Windows zip had uppercase, CRLF-converted
+# text files and no manual page at all.
+#
+# Four decisions shape this file.
+#
+# 1. The three Linux assets are built inside a pinned debian:12 container,
+#    not on ubuntu-latest. Bookworm's GCC 12 and glibc 2.36 reproduce the
+#    exact floor the hand-built assets had -- glibc 2.34, GLIBCXX_3.4.30 --
+#    whereas ubuntu-latest would raise it to glibc 2.39 and stop the
+#    binaries from starting on Debian 12, RHEL 9 or Ubuntu 22.04.
+#
+# 2. The container is entered with "docker run", not with a job-level
+#    "container:". GitHub injects its own Node runtime into a container job
+#    to run actions/checkout and friends; keeping every JavaScript action on
+#    the host makes the container's age irrelevant to them.
+#
+# 3. The Windows asset is cross-compiled on the runner itself rather than in
+#    that container. Its binary is linked -static (see src/Makefile), so an
+#    older glibc buys it nothing, and Debian's mingw-w64 defaults to the
+#    win32 threading model, whose libstdc++ ships empty <thread>, <mutex>
+#    and <condition_variable> headers -- src/utils/threads.hpp needs all
+#    three. Ubuntu's mingw-w64 defaults to posix threads, and is what the
+#    Build workflow already cross-compiles with.
+#
+# 4. The full test suite is not re-run here. It runs on every push to master
+#    and dev in the Build workflow, on the same six platforms; a release is
+#    tagged from a commit that has already been through it. Each asset that
+#    can be executed on its build host is still smoke-tested, and the version
+#    it reports is checked against the tag.
+
+on:
+  release:
+    types: [published]
+  # A manual run builds and verifies every asset without touching a release.
+  # Give it a tag to attach the results to a release that already exists.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to attach the assets to (leave empty to only build them)"
+        required: false
+        default: ""
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DEBIAN_IMAGE: docker.io/library/debian:12
+
+jobs:
+  version:
+    name: Check the version
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      ref: ${{ steps.check.outputs.ref }}
+
+    steps:
+    - name: Checkout
+      timeout-minutes: 5
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.tag || github.ref }}
+
+    # swarm carries its version in four places and has no configure.ac to
+    # derive them from, so a release that forgot one of them is caught here,
+    # before six jobs spend half an hour building the wrong thing.
+    - name: Check that every version string agrees
+      id: check
+      run: |
+        sh .github/scripts/version.sh "${{ github.event.release.tag_name || inputs.tag }}"
+        echo "ref=${{ github.event.release.tag_name || inputs.tag || github.ref }}" >> "$GITHUB_OUTPUT"
+
+
+  linux:
+    name: ${{ matrix.target.asset }}
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { asset: linux-x86_64,  cxx: g++,                       pkgs: "" }
+          - { asset: linux-aarch64, cxx: aarch64-linux-gnu-g++,     pkgs: g++-aarch64-linux-gnu }
+          - { asset: linux-ppc64le, cxx: powerpc64le-linux-gnu-g++, pkgs: g++-powerpc64le-linux-gnu }
+
+    steps:
+    - name: Checkout
+      timeout-minutes: 5
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.ref }}
+
+    - name: Build and package in ${{ env.DEBIAN_IMAGE }}
+      timeout-minutes: 20
+      run: |
+        docker run --rm -v "$PWD":/work -w /work \
+          -e ASSET="${{ matrix.target.asset }}" \
+          -e VERSION="${{ needs.version.outputs.version }}" \
+          -e TARGET_CXX="${{ matrix.target.cxx }}" \
+          -e OUTDIR=/work/assets \
+          "${DEBIAN_IMAGE}" bash -c '
+            set -eu
+            apt-get update -qq
+            apt-get install -y -qq make g++ ${{ matrix.target.pkgs }}
+            "${TARGET_CXX}" --version | head -n 1
+            ldd --version | head -n 1
+            make clean
+            make -j"$(nproc)" CXX="${TARGET_CXX}" RELEASE=1
+            # Only the native build can be run here; the cross-built assets
+            # are exercised by the Build workflow on real hardware.
+            if [ "${ASSET}" = "linux-x86_64" ] ; then
+              bin/swarm -v
+              bin/swarm -v | grep -qx "Swarm ${VERSION}" || {
+                echo "::error::the binary does not report version ${VERSION}" >&2
+                exit 1
+              }
+            fi
+            sh .github/scripts/package-asset.sh
+          '
+
+    - name: Verify
+      timeout-minutes: 5
+      env:
+        ASSET: ${{ matrix.target.asset }}
+      run: sh .github/scripts/verify-asset.sh assets "${{ needs.version.outputs.version }}"
+
+    - name: Upload
+      timeout-minutes: 5
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-${{ matrix.target.asset }}
+        path: assets/*
+
+
+  windows:
+    name: win-x86_64
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout
+      timeout-minutes: 5
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.ref }}
+
+    - name: Install dependencies
+      timeout-minutes: 10
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install make mingw-w64 zip
+
+    # <thread>, <mutex> and <condition_variable> are empty headers under the
+    # win32 threading model, so fail in two seconds with a readable message
+    # rather than three minutes into the build with a wall of template noise.
+    - name: Check the mingw-w64 threading model
+      timeout-minutes: 5
+      run: |
+        x86_64-w64-mingw32-g++ -v 2>&1 | grep -E "Thread model|gcc version"
+        x86_64-w64-mingw32-g++ -v 2>&1 | grep -q "Thread model: posix" || {
+          echo "::error::mingw-w64 is on the win32 threading model; C++11 <thread> is unavailable" >&2
+          exit 1
+        }
+
+    - name: Build and package
+      timeout-minutes: 20
+      env:
+        ASSET: win-x86_64
+        VERSION: ${{ needs.version.outputs.version }}
+        BINARY: swarm.exe
+        FORMAT: zip
+      run: |
+        make clean
+        make -j"$(nproc)" CXX="x86_64-w64-mingw32-g++" RELEASE=1
+        OUTDIR="$PWD/assets" sh .github/scripts/package-asset.sh
+
+    - name: Verify
+      timeout-minutes: 5
+      env:
+        ASSET: win-x86_64
+      run: sh .github/scripts/verify-asset.sh assets "${{ needs.version.outputs.version }}"
+
+    - name: Upload
+      timeout-minutes: 5
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-win-x86_64
+        path: assets/*
+
+
+  macos:
+    name: ${{ matrix.target.asset }}
+    needs: version
+    runs-on: ${{ matrix.target.runner }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { asset: macos-aarch64, runner: macos-latest }
+          - { asset: macos-x86_64,  runner: macos-15-intel }
+
+    steps:
+    - name: Checkout
+      timeout-minutes: 5
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.ref }}
+
+    - name: Build and package
+      timeout-minutes: 20
+      env:
+        ASSET: ${{ matrix.target.asset }}
+        VERSION: ${{ needs.version.outputs.version }}
+      run: |
+        make clean
+        make -j"$(sysctl -n hw.ncpu)" RELEASE=1
+        bin/swarm -v
+        bin/swarm -v | grep -qx "Swarm ${VERSION}" || {
+          echo "::error::the binary does not report version ${VERSION}" >&2
+          exit 1
+        }
+        OUTDIR="$PWD/assets" sh .github/scripts/package-asset.sh
+
+    - name: Verify
+      timeout-minutes: 5
+      env:
+        ASSET: ${{ matrix.target.asset }}
+      run: sh .github/scripts/verify-asset.sh assets "${{ needs.version.outputs.version }}"
+
+    - name: Upload
+      timeout-minutes: 5
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-${{ matrix.target.asset }}
+        path: assets/*
+
+
+  macos-universal:
+    name: macos-universal
+    needs: [version, macos]
+    runs-on: macos-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout
+      timeout-minutes: 5
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ needs.version.outputs.ref }}
+
+    - name: Download the two macOS assets
+      timeout-minutes: 5
+      uses: actions/download-artifact@v7
+      with:
+        pattern: asset-macos-*
+        merge-multiple: true
+        path: downloads
+
+    # lipo joins the two single-architecture binaries; everything else in
+    # the asset is architecture-independent and comes from the checkout, so
+    # the tree is packed by the same script as every other asset.
+    - name: Combine and package
+      timeout-minutes: 10
+      env:
+        ASSET: macos-universal
+        VERSION: ${{ needs.version.outputs.version }}
+      run: |
+        for arch in aarch64 x86_64 ; do
+          tar xzf "downloads/swarm-${VERSION}-macos-${arch}.tar.gz" -C downloads
+        done
+        mkdir -p bin
+        lipo -create -output bin/swarm \
+             "downloads/swarm-${VERSION}-macos-aarch64/bin/swarm" \
+             "downloads/swarm-${VERSION}-macos-x86_64/bin/swarm"
+        lipo -info bin/swarm
+        bin/swarm -v
+        bin/swarm -v | grep -qx "Swarm ${VERSION}" || {
+          echo "::error::the binary does not report version ${VERSION}" >&2
+          exit 1
+        }
+        OUTDIR="$PWD/assets" sh .github/scripts/package-asset.sh
+
+    - name: Verify
+      timeout-minutes: 5
+      env:
+        ASSET: macos-universal
+      run: sh .github/scripts/verify-asset.sh assets "${{ needs.version.outputs.version }}"
+
+    - name: Upload
+      timeout-minutes: 5
+      uses: actions/upload-artifact@v7
+      with:
+        name: asset-macos-universal
+        path: assets/*
+
+
+  publish:
+    name: Attach the assets to the release
+    needs: [version, linux, windows, macos, macos-universal]
+    if: github.event_name == 'release' || inputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: write
+
+    steps:
+    - name: Download every asset
+      timeout-minutes: 5
+      uses: actions/download-artifact@v7
+      with:
+        pattern: asset-*
+        merge-multiple: true
+
+    # Seven, no more and no less: a silently missing asset is exactly the
+    # kind of thing nobody notices until a user reports a dead link.
+    - name: Check the set is complete
+      timeout-minutes: 5
+      run: |
+        ls -l
+        count=$(ls swarm-*.tar.gz swarm-*.zip 2>/dev/null | wc -l)
+        echo "${count} assets"
+        test "${count}" -eq 7 || { echo "::error::expected 7 assets, found ${count}" >&2 ; exit 1 ; }
+        sha256sum swarm-*.tar.gz swarm-*.zip | tee SHA256SUMS
+
+    - name: Upload to the release
+      timeout-minutes: 10
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload "${{ github.event.release.tag_name || inputs.tag }}" \
+           swarm-*.tar.gz swarm-*.zip SHA256SUMS \
+           --repo "${{ github.repository }}" --clobber
