@@ -89,14 +89,14 @@ cgtcgtcgtcgtcgt
 
 where sequence identifiers are unique and end with a value indicating
 the number of occurrences of the sequence (e.g., `_1000`). Alternative
-format is possible with the option `-z`, please see the [user
-manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf). Swarm
+format is possible with the option `-z`, please see the [manual
+page](https://github.com/torognes/swarm/blob/master/man/swarm.1). Swarm
 **requires** each fasta entry to present a number of occurrences to
 work properly. That crucial information can be produced during the
 [dereplication](#dereplication-mandatory) step.
 
 Use `swarm -h` to get a short help, or see the
-  [user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)
+  [manual page](https://github.com/torognes/swarm/blob/master/man/swarm.1)
   for a complete description of input/output formats and command line
   options.
 
@@ -242,7 +242,7 @@ cgtcgtcgtcgtcgt
 
 were `seqID1` has an abundance of 1,000 and `seqID2` has an abundance
 of 25 (alternative formats are possible, please see the
-[user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)).
+[manual page](https://github.com/torognes/swarm/blob/master/man/swarm.1)).
 
 The role of the dereplication step is to identify, merge and sort
 identical sequences by decreasing abundance. Here is a command using
@@ -307,7 +307,7 @@ CPU-cores. cluster representatives will be written to a new fasta file,
 other results will be discarded (`/dev/null`).
 
 See the
-[user manual](https://github.com/torognes/swarm/blob/master/man/swarm_manual.pdf)
+[manual page](https://github.com/torognes/swarm/blob/master/man/swarm.1)
 for details on swarm's options and parameters.
 
 
