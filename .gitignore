@@ -15,3 +15,10 @@ GTAGS
 src/.cache/
 TBD_*.md
 DONE_*.md
+
+# The .github/scripts/ helpers are shell scripts, but "*.sh" above hides
+# every one of them from git. Re-include just that directory.
+!.github/scripts/*.sh
+
+# Release assets, built by .github/scripts/package-asset.sh
+assets/
