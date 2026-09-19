@@ -217,6 +217,70 @@ jobs:
         path: assets/*
 
 
+  windows-smoke:
+    name: win-x86_64 (runs on Windows)
+    needs: [version, windows]
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Download the Windows asset
+      timeout-minutes: 5
+      uses: actions/download-artifact@v7
+      with:
+        name: asset-win-x86_64
+
+    # Expand-Archive rather than unzip: the Windows runner image ships
+    # 7zip and MSYS2, but MSYS2 is not on PATH and there is no unzip, while
+    # Expand-Archive is a built-in cmdlet and always there.
+    - name: Unpack
+      timeout-minutes: 5
+      shell: pwsh
+      run: Expand-Archive -Path "swarm-${{ needs.version.outputs.version }}-win-x86_64.zip" -DestinationPath .
+
+    # The only place a released swarm.exe is ever executed. It is
+    # cross-compiled on Linux and, until this job, run nowhere -- which is
+    # how a silent change of mingw-w64 threading model could reach a release
+    # unnoticed. "swarm -v" alone would not catch that, because it starts no
+    # threads, so the test clusters with -t 2: ThreadRunner then spawns real
+    # std::threads, each carrying a std::mutex and a std::condition_variable,
+    # which are exactly the three headers the threading model decides.
+    #
+    # Every value read back is passed through "tr -d '\r'": the binary's CRT
+    # opens stdout and the output file in text mode, so each line it writes
+    # ends CRLF.
+    - name: Run it
+      timeout-minutes: 10
+      shell: bash
+      run: |
+        version="${{ needs.version.outputs.version }}"
+        swarm="./swarm-${version}-win-x86_64/bin/swarm.exe"
+
+        reported=$("${swarm}" -v | head -n 1 | tr -d '\r')
+        echo "reported: ${reported}"
+        test "${reported}" = "Swarm ${version}" || {
+          echo "::error::the Windows binary reports '${reported}', expected 'Swarm ${version}'" >&2
+          exit 1
+        }
+
+        # Two sequences one substitution apart, plus an unrelated one: with
+        # -d 1 that is exactly two clusters.
+        printf '%s\n' \
+          '>seq1_10' 'ACGTACGTACGTACGTACGT' \
+          '>seq2_5'  'ACGTACGTACGTACGTACGA' \
+          '>seq3_1'  'TTTTTTTTTTTTTTTTTTTT' \
+          > input.fasta
+
+        "${swarm}" -d 1 -t 2 -o clusters.txt input.fasta
+
+        clusters=$(tr -d '\r' < clusters.txt | tr '\n' '/')
+        echo "clusters: ${clusters}"
+        test "${clusters}" = "seq1_10 seq2_5/seq3_1/" || {
+          echo "::error::expected 'seq1_10 seq2_5/seq3_1/' and got '${clusters}'" >&2
+          exit 1
+        }
+
+
   macos:
     name: ${{ matrix.target.asset }}
     needs: version
@@ -327,7 +391,7 @@ jobs:
 
   publish:
     name: Attach the assets to the release
-    needs: [version, linux, windows, macos, macos-universal]
+    needs: [version, linux, windows, windows-smoke, macos, macos-universal]
     if: github.event_name == 'release' || inputs.tag != ''
     runs-on: ubuntu-latest
     timeout-minutes: 15
