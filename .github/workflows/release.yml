@@ -22,11 +22,13 @@ name: Release assets
 #
 # 3. The Windows asset is cross-compiled on the runner itself rather than in
 #    that container. Its binary is linked -static (see src/Makefile), so an
-#    older glibc buys it nothing, and Debian's mingw-w64 defaults to the
-#    win32 threading model, whose libstdc++ ships empty <thread>, <mutex>
-#    and <condition_variable> headers -- src/utils/threads.hpp needs all
-#    three. Ubuntu's mingw-w64 defaults to posix threads, and is what the
-#    Build workflow already cross-compiles with.
+#    older glibc buys it nothing, and cross-compiling it the way the Build
+#    workflow already does keeps the released binary identical to the one CI
+#    tests. Which mingw-w64 threading model that lands on is deliberately
+#    left to the runner: ubuntu-latest moved from 13-posix to 13-win32 under
+#    us, and GCC 13 implements the C++11 threading headers on native Win32
+#    primitives either way. The build probes for that capability rather than
+#    matching on the model name.
 #
 # 4. The full test suite is not re-run here. It runs on every push to master
 #    and dev in the Build workflow, on the same six platforms; a release is
@@ -164,15 +166,28 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install make mingw-w64 zip
 
-    # <thread>, <mutex> and <condition_variable> are empty headers under the
-    # win32 threading model, so fail in two seconds with a readable message
-    # rather than three minutes into the build with a wall of template noise.
-    - name: Check the mingw-w64 threading model
+    # src/utils/threads.hpp needs <thread>, <mutex> and <condition_variable>,
+    # which mingw-w64 left as empty headers under the win32 threading model
+    # up to GCC 12. GCC 13 implements all three on native Win32 primitives,
+    # so the threading model no longer says whether they work -- and
+    # ubuntu-latest has since moved from 13-posix to 13-win32, which is what
+    # made an earlier check on the model name fail a build that compiles
+    # perfectly well. Probe the capability instead, and fail in two seconds
+    # with a readable message rather than three minutes into the build with
+    # a wall of template noise.
+    - name: Check the mingw-w64 toolchain has C++11 threads
       timeout-minutes: 5
       run: |
         x86_64-w64-mingw32-g++ -v 2>&1 | grep -E "Thread model|gcc version"
-        x86_64-w64-mingw32-g++ -v 2>&1 | grep -q "Thread model: posix" || {
-          echo "::error::mingw-w64 is on the win32 threading model; C++11 <thread> is unavailable" >&2
+        probe="${RUNNER_TEMP}/threads-probe"
+        printf '%s\n' \
+          '#include <condition_variable>' \
+          '#include <mutex>' \
+          '#include <thread>' \
+          'int main() { std::thread thr {[]{}}; thr.join(); return 0; }' \
+          > "${probe}.cpp"
+        x86_64-w64-mingw32-g++ -std=c++11 -o "${probe}.exe" "${probe}.cpp" || {
+          echo "::error::the mingw-w64 toolchain cannot compile C++11 <thread>" >&2
           exit 1
         }
 
