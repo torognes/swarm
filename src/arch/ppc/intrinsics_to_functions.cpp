@@ -90,7 +90,9 @@ auto v_load16(uint16_t const * const ptr) -> v_u16_t {
 
 // only in search8
 auto v_load_64(uint8_t const * const ptr) -> v_u8_t {
-  return reinterpret_cast<v_u8_t>(vec_splats(*reinterpret_cast<uint64_t const *>(ptr)));
+  // clang's vec_splats() has no overload for unsigned long (uint64_t)
+  auto const value = static_cast<unsigned long long>(*reinterpret_cast<uint64_t const *>(ptr));
+  return reinterpret_cast<v_u8_t>(vec_splats(value));
 }
 
 auto v_store16(uint16_t * const ptr, v_u16_t const cpu_register) -> void {

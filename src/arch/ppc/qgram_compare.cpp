@@ -59,7 +59,12 @@ auto compareqgramvectors(Qgram_vector const & lhs, Qgram_vector const & rhs,
   v_u64_t count_vector = { 0, 0 };
 
   for (auto i = 0ULL; i < n_vector_lengths; ++i) {
+    // refactoring: simplify when dropping GCC < 8
+#if defined(__clang__) || __GNUC__ >= 8
+    count_vector += vec_popcnt(reinterpret_cast<v_u64_t>(vec_xor(*lhs_ptr, *rhs_ptr)));
+#else
     count_vector += vec_vpopcnt(reinterpret_cast<v_u64_t>(vec_xor(*lhs_ptr, *rhs_ptr)));
+#endif
     ++lhs_ptr;
     ++rhs_ptr;
   }
