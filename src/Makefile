@@ -135,7 +135,15 @@ else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=c++11
 	ARCH_DIR := arch/ppc
 else ifeq ($(MACHINE), riscv64)
-	COMMON += -march=rv64gcv_zba_zbb_zbs -std=c++11
+	# RVV 1.0 + Zba/Zbb/Zbs (mandatory in RVA23). Run "make
+	# SWARM_RISCV_BASELINE=1" for plain rv64gc instead: boards without
+	# V, or valgrind (3.28 decodes neither RVV nor Zba/Zbb). Same code,
+	# compiled to scalar instructions, much slower.
+	ifdef SWARM_RISCV_BASELINE
+		COMMON += -march=rv64gc -std=c++11
+	else
+		COMMON += -march=rv64gcv_zba_zbb_zbs -std=c++11
+	endif
 	ARCH_DIR := arch/riscv64
 	# no hand-written qgram kernel: use the portable one (see below)
 	SWARM_PORTABLE_FALLBACK := 1
