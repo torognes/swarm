@@ -73,6 +73,12 @@ using VECTORTYPE = __vector unsigned char;
 
 #endif
 
+#elif defined __riscv
+
+#include "arch/riscv64/intrinsics_to_functions.hpp"
+#include "arch/riscv64/search_dispatch.hpp"
+using VECTORTYPE = v_u8_t;
+
 #else
 
 #error Unknown architecture

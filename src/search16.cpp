@@ -72,6 +72,12 @@ using VECTORTYPE = __vector unsigned short;
 
 #endif
 
+#elif defined __riscv
+
+#include "arch/riscv64/intrinsics_to_functions.hpp"
+#include "arch/riscv64/search_dispatch.hpp"
+using VECTORTYPE = v_u16_t;
+
 #else
 
 #error Unknown architecture
