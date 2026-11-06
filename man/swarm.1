@@ -114,7 +114,8 @@ most of the amplicon comparisons needed in a naive approach. To speed
 up the remaining amplicon comparisons, \fBswarm\fR implements an
 extremely fast Needleman-Wunsch algorithm making use of the Streaming
 SIMD Extensions (SSE2) of x86-64 CPUs, NEON instructions of ARM64
-CPUs, or Altivec/VMX instructions of POWER8 CPUs. If SSE2 instructions
+CPUs, Altivec/VMX instructions of POWER8 CPUs, or vector instructions
+(RVV 1.0) of RISC-V CPUs. If SSE2 instructions
 are not available, \fBswarm\fR exits with an error message.
 .PP
 \fBswarm\fR can read nucleotide amplicons in fasta format from a
