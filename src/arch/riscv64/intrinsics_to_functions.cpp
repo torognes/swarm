@@ -49,9 +49,6 @@ static_assert(sizeof(v_u16_t) == simd_vector_bytes, "v_u16_t must be 128-bit");
 
 namespace {
 
-  // the two 64-bit halves of a vector, for v_mask_eq8
-  using v_u64_t __attribute__((vector_size(16))) = uint64_t;
-
   // lane count from simd_vector_bytes rather than sizeof(v_u16_t):
   // cppcheck does not know vector_size types and evaluates their
   // sizeof as the size of one element
@@ -299,8 +296,7 @@ auto v_mask_eq16(v_u16_t const lhs, v_u16_t const rhs) -> uint16_t {
   // - keep the two bits of each lane's weight
   // - combine the lanes and return an uint16
   // The lanes' bits do not overlap, so OR-ing them is one reduction
-  // (vredor on RVV). Not the multiply of v_mask_eq8: measured slower
-  // here, since eight 16-bit lanes need no splitting into halves.
+  // (vredor on RVV).
   auto const bits = mask16(lhs == rhs) & lane_bits16;
   uint16_t result {0};
   for (auto i = 0U; i < n_lanes16; ++i) {
@@ -311,15 +307,21 @@ auto v_mask_eq16(v_u16_t const lhs, v_u16_t const rhs) -> uint16_t {
 
 auto v_mask_eq8(v_u8_t const lhs, v_u8_t const rhs) -> uint16_t {
   // - compare vectors of integers for equality
-  // - keep each lane's bit
-  // - combine the low and high halves and return an uint16
-  // Each 64-bit half holds eight lanes whose bits do not overlap, so
-  // multiplying by 0x0101010101010101 sums (ORs) them, without
-  // carries, into the top byte of the half.
-  static constexpr uint64_t sum_lanes = 0x0101010101010101ULL;
-  static constexpr auto top_lane = 56U;
-  static constexpr auto bits_per_byte = 8U;
-  auto const halves = reinterpret_cast<v_u64_t>(mask8(lhs == rhs) & lane_bits8);
-  return static_cast<uint16_t>(((halves[0] * sum_lanes) >> top_lane) |
-                               (((halves[1] * sum_lanes) >> top_lane) << bits_per_byte));
+  // - keep each lane's bit (bit i % 8 of lane i)
+  // - zip the two halves, so that 16-bit lane j holds lane j in its
+  //   low byte and lane j + 8 in its high byte (little-endian)
+  // - combine the 16-bit lanes with one reduction (vredor on RVV), as
+  //   in v_mask_eq16, and return an uint16
+  static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
+                "v_mask_eq8 reads byte pairs as little-endian 16-bit lanes");
+  auto const bits = mask8(lhs == rhs) & lane_bits8;
+  auto const pairs = reinterpret_cast<v_u16_t>(
+      __builtin_shufflevector(bits, bits,
+                              0, 8, 1, 9, 2, 10, 3, 11,
+                              4, 12, 5, 13, 6, 14, 7, 15));
+  uint16_t result {0};
+  for (auto i = 0U; i < n_lanes16; ++i) {
+    result = static_cast<uint16_t>(result | pairs[i]);
+  }
+  return result;
 }
