@@ -135,7 +135,7 @@ else ifeq ($(MACHINE), ppc64le)
 	COMMON += -mcpu=power8 -maltivec -std=c++11
 	ARCH_DIR := arch/ppc
 else ifeq ($(MACHINE), riscv64)
-	COMMON += -march=rv64gcv -std=c++11
+	COMMON += -march=rv64gcv_zba_zbb_zbs -std=c++11
 	ARCH_DIR := arch/riscv64
 	# no hand-written qgram kernel: use the portable one (see below)
 	SWARM_PORTABLE_FALLBACK := 1
