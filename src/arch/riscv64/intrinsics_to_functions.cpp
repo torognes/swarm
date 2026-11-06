@@ -204,38 +204,40 @@ auto v_merge_hi_64(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
                                  24, 25, 26, 27, 28, 29, 30, 31);
 }
 
-// min, saturating add and saturating sub (unsigned): written with
-// comparison masks, which GCC and clang both accept on generic
-// vectors in C++11 (the vector ?: operator is not portable)
+// min, saturating add and saturating sub (unsigned), written with
+// the vector ?: operator (GCC and clang, C++): compilers map it to
+// vminu/vmaxu, and clang folds the add and sub forms into vsaddu and
+// vssubu. Neither compiler recognises the comparison-mask idioms
+// (sum | (sum < lhs), ...), which cost a compare and a merge more.
+//
+// saturating add: lhs + min(rhs, ~lhs), as ~lhs is the headroom
+// left above lhs
+// saturating sub: max(lhs, rhs) - rhs, which is zero when lhs < rhs
 
 auto v_min16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
-  return rhs ^ ((lhs ^ rhs) & mask16(lhs < rhs));
+  return lhs < rhs ? lhs : rhs;
 }
 
 auto v_min8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
-  return rhs ^ ((lhs ^ rhs) & mask8(lhs < rhs));
+  return lhs < rhs ? lhs : rhs;
 }
 
 auto v_add16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
-  // a lane that wraps around becomes smaller than lhs: clamp it to max
-  auto const sum = lhs + rhs;
-  return sum | mask16(sum < lhs);
+  auto const headroom = ~lhs;
+  return lhs + (rhs < headroom ? rhs : headroom);
 }
 
 auto v_add8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
-  // a lane that wraps around becomes smaller than lhs: clamp it to max
-  auto const sum = lhs + rhs;
-  return sum | mask8(sum < lhs);
+  auto const headroom = ~lhs;
+  return lhs + (rhs < headroom ? rhs : headroom);
 }
 
 auto v_sub16(v_u16_t const lhs, v_u16_t const rhs) -> v_u16_t {
-  // a lane that would go below zero is clamped to zero
-  return (lhs - rhs) & mask16(lhs > rhs);
+  return (lhs > rhs ? lhs : rhs) - rhs;
 }
 
 auto v_sub8(v_u8_t const lhs, v_u8_t const rhs) -> v_u8_t {
-  // a lane that would go below zero is clamped to zero
-  return (lhs - rhs) & mask8(lhs > rhs);
+  return (lhs > rhs ? lhs : rhs) - rhs;
 }
 
 auto v_dup16(int16_t const value) -> v_u16_t {
