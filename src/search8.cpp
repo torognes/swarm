@@ -75,6 +75,7 @@ using VECTORTYPE = __vector unsigned char;
 
 #elif defined __riscv
 
+#include "arch/riscv64/align_rvv.hpp"
 #include "arch/riscv64/intrinsics_to_functions.hpp"
 #include "arch/riscv64/search_dispatch.hpp"
 using VECTORTYPE = v_u8_t;
@@ -287,8 +288,13 @@ auto align_cells_regular_8(VECTORTYPE * const Sm,
                            uint64_t * const dir_long,
                            VECTORTYPE const & H0) -> void
 {
+#ifdef __riscv_vector
+  // native RVV kernel (arch/riscv64/align_rvv.cpp)
+  align_rvv_regular_8(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0);
+#else
   No_mask no_mask;
   align_cells<Ops_8>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, no_mask);
+#endif
 }
 
 
@@ -306,9 +312,14 @@ auto align_cells_masked_8(VECTORTYPE * const Sm,
                           VECTORTYPE const * const MR,
                           VECTORTYPE const * const MQ0) -> void
 {
+#ifdef __riscv_vector
+  // native RVV kernel (arch/riscv64/align_rvv.cpp)
+  align_rvv_masked_8(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
+#else
   Mask_vectors masks {*Mm, *MQ, *MR, *MQ0};
   align_cells<Ops_8>(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, masks);
   *MQ = masks.mq;
+#endif
 }
 
 }  // namespace
