@@ -22,6 +22,7 @@
 */
 
 #include "search_dispatch.hpp"
+#include "align_rvv.hpp"
 #include "intrinsics_to_functions.hpp"  // v_u16_t, v_u8_t
 #include <cstdint>  // uint16_t, uint8_t
 #include <limits>
@@ -70,7 +71,11 @@ auto dispatch_align_regular_16(Cpu_features const & cpu_features,
                                uint64_t * const dir_long, VECTORTYPE16 const & H0) -> void
 {
   static_cast<void>(cpu_features);
+#ifdef __riscv_vector
+  align_rvv_regular_16(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0);
+#else
   align_cells_regular_16(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0);
+#endif
 }
 
 auto dispatch_align_masked_16(Cpu_features const & cpu_features,
@@ -83,5 +88,9 @@ auto dispatch_align_masked_16(Cpu_features const & cpu_features,
                               VECTORTYPE16 const * const MR, VECTORTYPE16 const * const MQ0) -> void
 {
   static_cast<void>(cpu_features);
+#ifdef __riscv_vector
+  align_rvv_masked_16(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
+#else
   align_cells_masked_16(Sm, hep, qp, Qm, Rm, ql, F0, dir_long, H0, Mm, MQ, MR, MQ0);
+#endif
 }
