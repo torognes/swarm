@@ -261,6 +261,11 @@ arch/x86_64/popcnt.o : arch/x86_64/popcnt.cpp Makefile
 arch/x86_64/search_dispatch.o : arch/x86_64/search_dispatch.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -mssse3 -msse4.1 -mpopcnt -c -o $@ $<
 
+# GCC 14 crashes (internal compiler error) on the RVV mask intrinsics
+# under LTO; this TU holds the native riscv64 kernels.
+arch/riscv64/align_rvv.o : arch/riscv64/align_rvv.cpp Makefile
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -fno-lto -c -o $@ $<
+
 # Pull in the auto-generated header-dependency files. The leading "-"
 # silences the warning when a .d file does not yet exist.
 -include $(DEPFILES)
